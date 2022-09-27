@@ -1,6 +1,8 @@
-#include <boost/filesystem.hpp>
 #include <condition_variable>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <unistd.h>
 #include <sstream>
 #include <chrono>
 #include <mutex>
@@ -9,7 +11,6 @@
 #include "ssd.hpp"
 #include "utils.hpp"
 
-namespace fs = boost::filesystem;
 using namespace std;
 using time_stamp_t = time_point<steady_clock, microseconds>;
 
@@ -36,9 +37,8 @@ static void detect(SSD &net, cv::Mat &image, string name, TimeStamp *ts) {
   }
 
   // check result directory
-  if (!fs::exists("./results")) {
-	  fs::create_directory("results");
-  }
+  if (access("results", 0) != F_OK)
+    mkdir("results", S_IRWXU);
 
   if (net.getPrecision()) {
     cv::imwrite("results/out-int8-" + name, image);
@@ -61,10 +61,10 @@ int main(int argc, char **argv) {
   bool is_video;
   string input_url;
   string bmodel_file;
-
+  struct stat info;
   bmodel_file = argv[3];
 
-  if (!fs::exists(bmodel_file)) {
+  if (stat(bmodel_file.c_str(), &info) != 0) {
     cout << "Cannot find valid model file." << endl;
     exit(1);
   }
@@ -79,8 +79,8 @@ int main(int argc, char **argv) {
     is_video = true;
 
   input_url = argv[2];
-  if (!is_video && !fs::exists(input_url)) {
-    cout << "Cannot find input image file." << endl;
+  if (stat(input_url.c_str(), &info) != 0) {
+    cout << "Cannot find input image path." << endl;
     exit(1);
   }
 
@@ -110,25 +110,22 @@ int main(int argc, char **argv) {
         exit(-1);
   }
 
-    TimeStamp main_ts;
+  TimeStamp main_ts;
   TimeStamp ssd_ts;
   TimeStamp *ts = &ssd_ts;
 
   SSD net(bmodel_file, dev_id);
   net.enableProfile(ts);
   if (!is_video) {
-    fs::path image_file(input_url);
-    if (fs::is_regular_file(image_file)) {
-      string name = image_file.filename().string();
       for (uint32_t i = 0; i < test_loop; i++) {
         ts->save("ssd overall");
         ts->save("read image");
         cv::Mat img = cv::imread(input_url, cv::IMREAD_COLOR, dev_id);
         ts->save("read image");
-        detect(net, img, to_string(i) + "_"+ name, ts);
+        detect(net, img, to_string(i) + "_image.jpg", ts);
         ts->save("ssd overall");
       }
-    }
+    
   } else {
     cv::VideoCapture cap(input_url, cv::CAP_ANY, dev_id);
     if (cap.isOpened()) {

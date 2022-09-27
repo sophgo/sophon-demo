@@ -1,10 +1,10 @@
-#include <boost/filesystem.hpp>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sstream>
+#include <dirent.h>
+#include <unistd.h>
 #include "ssd.hpp"
 
-namespace fs = boost::filesystem;
 using namespace std;
 
 static void detect(bm_handle_t         &bm_handle,
@@ -44,9 +44,8 @@ static void detect(bm_handle_t         &bm_handle,
     }
 
     // check result directory
-    if (!fs::exists("./results")) {
-	    fs::create_directory("results");
-    }
+    if (access("results", 0) != F_OK)
+        mkdir("results", S_IRWXU);
     std::cout<<"write"<<std::endl;
     // jpg encode
     if (net.getPrecision()) {
@@ -68,9 +67,9 @@ int main(int argc, char **argv) {
     cout << "  " << argv[0] << " video <video url>  <bmodel path> <test count> <device id>" << endl;
     exit(1);
   }
-
+  struct stat info;
   string bmodel_file = argv[3];
-  if (!fs::exists(bmodel_file)) {
+  if (stat(bmodel_file.c_str(), &info) != 0) {
     cout << "Cannot find valid model file." << endl;
     exit(1);
   }
@@ -85,8 +84,8 @@ int main(int argc, char **argv) {
     is_video = true;
 
   string input_url = argv[2];
-  if (!is_video && !fs::exists(input_url)) {
-    cout << "Cannot find input image file." << endl;
+  if (stat(input_url.c_str(), &info) != 0) {
+    cout << "Cannot find input image path." << endl;
     exit(1);
   }
 
@@ -135,20 +134,16 @@ int main(int argc, char **argv) {
   // decode and detect
   if (!is_video) {
 
-    fs::path image_file(input_url);
-    string name = image_file.filename().string();
     for (uint32_t i = 0; i < test_loop; i++) {
       ts->save("ssd overall");
       ts->save("read image");
 
       // decode jpg file to Mat object
       cv::Mat img = cv::imread(input_url, cv::IMREAD_COLOR, dev_id);
-      //cv::Mat img;
-      //cv::resize(input,img,cv::Size(300,300));
       ts->save("read image");
 
       // do detect
-      string img_out = "t_" + to_string(i) + "_dev_" + to_string(dev_id) + "_" +name;
+      string img_out = "t_" + to_string(i) + "_dev_" + to_string(dev_id) + "_image.jpg";
       detect(bm_handle, net, img, img_out, ts);
       ts->save("ssd overall");
     }

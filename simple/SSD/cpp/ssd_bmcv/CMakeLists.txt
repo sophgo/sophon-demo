@@ -23,7 +23,7 @@ if (${TARGET_ARCH} STREQUAL "x86")
 
     aux_source_directory(. SRC_FILES)
     add_executable(ssd_bmcv.pcie ${SRC_FILES})
-    target_link_libraries(ssd_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} boost_system boost_filesystem)
+    target_link_libraries(ssd_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so})
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
@@ -40,7 +40,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
 
     aux_source_directory(. SRC_FILES)
     add_executable(ssd_bmcv.soc ${SRC_FILES})
-    target_link_libraries(ssd_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS}  ${JPU_LIBS} boost_system boost_filesystem)
+    target_link_libraries(ssd_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS}  ${JPU_LIBS})
 
 endif ()
 

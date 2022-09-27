@@ -12,11 +12,6 @@ cpp目录下提供了一系列C++例程以供参考使用，具体情况如下�
 
 如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装 libsophon、sophon-opencv和sophon-ffmpeg。libsophon的安装可参考[LIBSOPHON使用手册]()，sophon-opencv和sophon-ffmpeg的安装可参考[multimedia开发参考手册]()。
 
-您可能还需要安装其他第三方库：
-```bash
-sudo apt-get install libboost-system-dev libboost-filesystem-dev libjsoncpp-dev
-```
-
 ## 1.2 程序编译
 C++程序需要编译可执行文件，ssd_opencv和ssd_bmcv编译方法相同，以编译ssd_opencv程序为例：
 ```bash
