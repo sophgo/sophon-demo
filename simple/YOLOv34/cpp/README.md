@@ -24,22 +24,25 @@ cmake .. && make # 生成yolov34_bmcv.pcie
 编译完成后，会生成yolov34_bmcv.pcie,具体参数说明如下：
 
 ```bash
-usage:./yolov34_bmcv.pcie image <input path> <bmodel path> <test count> <device id>
+usage:./yolov34_bmcv.pcie image <image list> <cfg file> <bmodel file> <test count> <device id> <conf thresh> <nms thresh>
 input path:推理图片路径，输入Imagelist和videolist的路径；
 bmodel path:用于推理的bmodel路径；
 test count:测试数；
 device id:用于推理的tpu设备id。
+conf thresh:置信度阈值
+nms thresh:nms阈值
 ```
 
 测试实例如下：
 
 ```bash
 # 测试图片  
-./yolov34_bmcv.pcie image ../../../data/images/Imagelist.txt ../../../data/models/BM1684X/yolov4_416_coco_fp32_1b.bmodel 1 0
+./yolov34_bmcv.pcie image ../../../data/images/Imagelist.txt ../configs/yolov4.cfg ../../../data/models/BM1684/yolov4_416_coco_fp32_1b.bmodel 4 0 0.5 0.45
 # 测试视频
-./yolov34_bmcv.pcie image ../../../data/video/videolist.txt ../../../data/models/BM1684X/yolov4_416_coco_fp32_1b.bmodel 300 0
+./yolov34_bmcv.pcie video ../../../data/video/videolist.txt ../configs/yolov4.cfg ../../../data/models/BM1684/yolov4_416_coco_fp32_1b.bmodel 300 0 0.5 0.45
 ```
 
+根据模型修改conf thresh和nms thresh数值
 可通过改变模型进行int8及batch_size=4推理。
 
 执行完成后，会将预测结果保存在`result_imgs/`下，同时会打印预测结果、推理时间等信息。

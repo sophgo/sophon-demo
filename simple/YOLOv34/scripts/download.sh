@@ -12,6 +12,7 @@ if [ ! -d "$data_dir" ]; then
   mkdir -p $data_dir
 fi
 #下载测试图片
+pushd $script_dir
 python3 -m dfn --url http://219.142.246.77:65000/sharing/Pj5UVvVsO
 python3 -m dfn --url  http://219.142.246.77:65000/sharing/OSPQaiNZV
 python3 -m dfn --url  http://219.142.246.77:65000/sharing/FDEJ2DSGa
@@ -27,6 +28,7 @@ python3 -m dfn --url http://219.142.246.77:65000/sharing/yhT38P98U
 #下载bmodel
 python3 -m dfn --url http://219.142.246.77:65000/sharing/FxRDnDSDR
 python3 -m dfn --url http://219.142.246.77:65000/sharing/N5eGQBuy7
+popd
 pushd $data_dir
 
 image_dir=$data_dir/images

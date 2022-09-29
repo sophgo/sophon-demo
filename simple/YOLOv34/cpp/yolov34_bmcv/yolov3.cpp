@@ -21,10 +21,23 @@ You may obtain a copy of the License at
 #include <algorithm>
 #include "yolov3.hpp"
 #include "utils.hpp"
+#include "cfg_parser.hpp"
 using namespace std;
 
-YOLO::YOLO(const std::string bmodel, int dev_id) {
-   /* create device handler */
+YOLO::YOLO(const std::string cfg_file, const std::string bmodel, int dev_id, float conf_thresh=0.5f, float nms_thresh=0.45f) {
+  /* parser initialization*/
+  biases_ = nullptr;
+  masks_ = nullptr;
+  num_ = 0;
+  anchor_num_ = 0;
+  classes_num_ = 0;
+  char *tmp = (char*)cfg_file.c_str();
+  cfg_parser(tmp);
+
+  threshold_prob_ = conf_thresh;
+  threshold_nms_ = nms_thresh;
+
+  /* create device handler */
   bm_dev_request(&bm_handle_, dev_id);
 
   /* create inference runtime handler */
@@ -52,14 +65,10 @@ YOLO::YOLO(const std::string bmodel, int dev_id) {
 
   /* get fp32/int8 type, the thresholds may be different */
   if (BM_FLOAT32 == net_info->input_dtypes[0]) {
-    threshold_prob_ = 0.5;
-    threshold_nms_ = 0.45;
     int8_flag_ = false;
     std::cout <<  "fp32 model" << std::endl;
     data_type = DATA_TYPE_EXT_FLOAT32;
   } else {
-    threshold_prob_ = 0.2;
-    threshold_nms_ = 0.45;
     int8_flag_ = true;
     std::cout <<  "int8 model" << std::endl;
   }
@@ -115,9 +124,19 @@ YOLO::YOLO(const std::string bmodel, int dev_id) {
     exit(1);
   }
   ts_ = nullptr;
+
 }
 
 YOLO::~YOLO() {
+  if (masks_){
+    delete []masks_;
+    masks_ = nullptr;
+  }
+  if (biases_){
+    delete []biases_;
+    biases_ = nullptr;
+  }
+
   delete []fm_size_;
   bm_image_destroy_batch(scaled_inputs_, batch_size_);
   if (scaled_inputs_) {
@@ -251,6 +270,7 @@ layer YOLO::make_yolo_layer(
   l.classes = classes;
   l.inputs = l.w * l.h * l.c;
   l.biases = reinterpret_cast<float*>(calloc(total * 2, sizeof(float)));
+
   for (int i = 0; i < total * 2; ++i) {
     l.biases[i] = biases_[i];  /* init the anchor size with pre value */
   }
@@ -488,7 +508,7 @@ detection* YOLO::get_detections(
   for (unsigned int i = 0; i < blobs.size(); ++i) {
     layer l_params = make_yolo_layer(i, 1, fm_size_[2 * i],
                     fm_size_[2 * i + 1], anchor_num_,
-                    sizeof(biases_) / (sizeof(float) * 2), classes);
+                    sizeof(biases_) * num_ / (sizeof(float) * 2), classes);
     layers_params.push_back(l_params);
     forward_yolo_layer(blobs[i], l_params);  /* blobs[i] host_mem data */
   }
@@ -598,4 +618,44 @@ std::vector<std::vector<yolov3_DetectRect> > YOLO::postForward() {
 
 int YOLO::getBatchSize() {
   return batch_size_;
+}
+
+void YOLO::cfg_parser(char *filename){
+  char *a = nullptr;
+  int num = 0;
+
+  list_t *sections = read_cfg(filename);
+  node *n = sections->front;
+  if(!n) {
+    error("Config file has no sections");
+  }
+
+  section *s = (section *)n->val;
+  list_t *options = s->options;
+  if(!is_network(s)){
+    error("First section must be [network] or [params]");
+  } 
+
+  anchor_num_ = option_find_int(options, "num_anchors", 3);
+  num = option_find_int(options, "num_classes", 80);
+  if (num <= 0){
+    error("num_classes must be >= 1");
+  }
+  classes_num_ = num;
+
+  a = option_find_str(options, "anchors", 0);
+  biases_ = parse_float_list(a, &num);
+  if (num % anchor_num_ != 0){
+    error("please check your num_anchors and anchors in .cfg");
+  }
+
+  a = option_find_str(options, "masks", 0);
+  masks_ = parse_int_list(a, &num_);
+  if (num != (num_ * 2)){
+    error("please check your num_anchors, anchors and masks in .cfg");
+  }
+
+  free_section(s);
+  free_list(sections);
+
 }

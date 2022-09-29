@@ -77,7 +77,7 @@ struct layer {
 
 class YOLO {
 public:
-  YOLO(const std::string bmodel, int dev_id);
+  YOLO(const std::string cfg_file, const std::string bmodel, int dev_id, float conf_thresh, float nms_thresh);
   ~YOLO();
   void preForward(std::vector<cv::Mat>& images);
   void forward();
@@ -86,6 +86,7 @@ public:
   int getBatchSize();
 
 private:
+  void cfg_parser(char *filename);
   void preprocess(bm_image& in, bm_image& out);
 
   /* bbox iou calculation */
@@ -200,11 +201,12 @@ private:
   int num_channels_;
 
   /* anchor */
-  float biases_[18] = { 12, 16, 19, 36, 40, 28, 36, 75,
-                                76, 55, 72, 146, 142, 110, 192, 243, 459, 401};
-  int masks_[9] = { 0, 1, 2, 3, 4, 5, 6, 7, 8};
-  const int anchor_num_ = 3;
-  const size_t classes_num_ = 80;
+  float *biases_;
+  int *masks_;
+  int num_;
+  int anchor_num_;
+  size_t classes_num_;
+
   int* fm_size_;
 
   float threshold_prob_;

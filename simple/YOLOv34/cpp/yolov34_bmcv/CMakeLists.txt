@@ -23,7 +23,7 @@ if (${TARGET_ARCH} STREQUAL "x86")
 
     aux_source_directory(. SRC_FILES)
     add_executable(yolov34_bmcv.pcie ${SRC_FILES})
-    target_link_libraries(yolov34_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} boost_system boost_filesystem libjsoncpp.a)
+    target_link_libraries(yolov34_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} boost_system boost_filesystem)
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
@@ -41,7 +41,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
 
     aux_source_directory(. SRC_FILES)
     add_executable(yolov34_bmcv.soc ${SRC_FILES})
-    target_link_libraries(yolov34_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS} ${FFMPEG_LIBS} ${JPU_LIBS} ${EXTRA_LIBS} libjsoncpp.a)
+    target_link_libraries(yolov34_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS} ${FFMPEG_LIBS} ${JPU_LIBS} ${EXTRA_LIBS})
 
 endif ()
 

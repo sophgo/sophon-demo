@@ -73,10 +73,10 @@ static void detect(YOLO &net, vector<cv::Mat>& images,
 int main(int argc, char **argv) {
   cout.setf(ios::fixed);
 
-  if (argc < 6) {
+  if (argc < 8) {
     cout << "USAGE:" << endl;
-    cout << "  " << argv[0] << " image <image list> <bmodel file> <test count> <device id>" << endl;
-    cout << "  " << argv[0] << " video <video list> <bmodel file> <test count> <device id>" << endl;
+    cout << "  " << argv[0] << " image <image list> <cfg file> <bmodel file> <test count> <device id> <conf thresh> <nms thresh>" << endl;
+    cout << "  " << argv[0] << " video <video list> <cfg file> <bmodel file> <test count> <device id> <conf thresh> <nms thresh>" << endl;
     exit(1);
   }
 
@@ -96,21 +96,27 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  string bmodel_file = argv[3];
+  string cfg_file = argv[3];
+  if (!fs::exists(cfg_file)) {
+    cout << "Cannot find config file." << endl;
+    exit(1);
+  }
+
+  string bmodel_file = argv[4];
   if (!fs::exists(bmodel_file)) {
     cout << "Cannot find valid model file." << endl;
     exit(1);
   }
 
   uint32_t test_loop;
-  test_loop = stoull(string(argv[4]), nullptr, 0);
+  test_loop = stoull(string(argv[5]), nullptr, 0);
   if (test_loop < 1 && is_video) {
     cout << "test loop must large 0." << endl;
     exit(1);
   }
 
   // set device id
-  std::string dev_str = argv[5];
+  std::string dev_str = argv[6];
   std::stringstream checkdevid(dev_str);
   double t;
   if (!(checkdevid >> t)) {
@@ -128,7 +134,11 @@ int main(int argc, char **argv) {
         exit(-1);
   }
 
-  YOLO net(bmodel_file, dev_id);
+  float conf_thresh = std::stof(argv[7]);
+  float nms_thresh = std::stof(argv[8]);
+  std::cout << "confidence threshold:" <<  conf_thresh << ", nms threshold: " << nms_thresh << std::endl;
+
+  YOLO net(cfg_file, bmodel_file, dev_id, conf_thresh, nms_thresh);
   int batch_size = net.getBatchSize();
   TimeStamp ts;
   net.enableProfile(&ts);
