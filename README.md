@@ -8,7 +8,16 @@ Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移
 ## 目录结构与说明
 | 目录 | 算法类别 | 编程语言 | BModel | 支持多batch | 预处理库 |
 |---|---|---|---|---|---|
-| [LPRNet](./simple/LPRNet/README.md) | 车牌识别 | C++ | FP32/INT8 | YES | BMCV/OpenCV |
+| [LPRNet](./simple/LPRNet/README.md) | 车牌识别 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
+| [ResNet](./simple/ResNet/README.md) | 图像分类 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
+| [RetinaFace](./simple/RetinaFace/README.md) | 人脸检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
+| [YOLOv5](./simple/YOLOv5/README.md) | 目标检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
+| [yolact](./simple/yolact/README.md) | 实例分割 | Python | FP32 | YES | BMCV/OpenCV |
+| [PP-OCR](./simple/PP-OCR/README.md) | OCR | Python | FP32 | YES | OpenCV |
+| [YOLOv34](./simple/YOLOv34/README.md) | 目标检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
+| [YOLOX](./simple/YOLOX/README.md) | 目标检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
+| [SSD](./simple/SSD/README.md) | 目标检测 | C++/Python | FP32/INT8 | NO | BMCV/OpenCV |
+| [CenterNet](./simple/CenterNet/README.md) | 目标检测、姿态识别 | C++/Python | FP32/INT8 | YES | OpenCV |
 
 ## 版本说明
 | 版本 | 说明 | 
