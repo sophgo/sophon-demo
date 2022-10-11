@@ -1,0 +1,4 @@
+opencv-python-headless
+shapely
+pyclipper
+pillow
