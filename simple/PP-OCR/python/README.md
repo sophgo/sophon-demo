@@ -30,7 +30,11 @@ make && make install
 ppocr_det_opencv.py参数说明如下：
 ```bash
 usage:ppocr_det_opencv.py [--tpu_id] [--img_path] [--det_model] [--det_batch_size] [--det_limit_side_len]
-+
+--tpu_id: 用于推理的tpu设备id;
+--img_path: 输入图片文件夹的路径;
+--det_model: 用于推理的文本检测bmodel路径;
+--det_batch_size: 模型输入的batch_size，本例程可支持1或4;
+--det_limit_side_len: 网络输入尺寸列表，本例程的模型支持960。
 ```
 
 ppocr_cls_opencv.py参数说明如下：
