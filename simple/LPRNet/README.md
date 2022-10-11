@@ -14,7 +14,7 @@
 
 本例程对[LNRNet_Pytorch](https://github.com/sirius-ai/LPRNet_Pytorch)的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
 
-**论文:** [LNRNet论文](https://arxiv.org/abs/1806.10447v1)
+**论文:** [LPRNet: License Plate Recognition via Deep Neural Networks](https://arxiv.org/abs/1806.10447v1)
 
 LPRNet(License Plate Recognition via Deep Neural Networks)，是一种轻量级卷积神经网络，可实现无需进行字符分割的端到端车牌识别。  
 LPRNet的优点可以总结为如下三点：  
@@ -101,7 +101,6 @@ pytorch模型的量化方法可参考[Quantization-Tools User Guide](https://doc
 
 本例程在`scripts`目录下提供了量化INT8 BModel的脚本。请注意修改`gen_int8model.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684和BM1684X），如：
 
-
 ```shell
 ./scripts/gen_int8bmodel.sh BM1684X
 ```
@@ -115,3 +114,4 @@ pytorch模型的量化方法可参考[Quantization-Tools User Guide](https://doc
 
 ## 5. 例程测试
 * [C++例程](cpp/README.md)
+* [Python例程](python/README.md)

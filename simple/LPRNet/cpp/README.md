@@ -88,6 +88,7 @@ make # 生成lprnet_opencv.soc
 ### 3.1 精度测试
 本例程在`tools`目录下提供了`eval.py`脚本，可以将预测结果的json文件与测试集标签的json文件进行对比，计算出车牌识别准确率。具体的测试命令如下：
 ```bash
+cd ../../..
 # 请根据实际情况修改json文件路径
 python3 tools/eval.py --label_json data/images/test_label.json --result_json cpp/lprnet_opencv/build/results/lprnet_fp32_1b.bmodel_test_opencv_cpp_result.json
 ```
@@ -95,7 +96,6 @@ python3 tools/eval.py --label_json data/images/test_label.json --result_json cpp
 ```bash
 INFO:root:ACC = 880/1000 = 0.882
 ```
-
 
 ### 3.2 性能测试
 
