@@ -20,7 +20,7 @@ if (${TARGET_ARCH} STREQUAL "x86")
     # use libbmrt libbmlib
     find_package(libsophon REQUIRED)
     include_directories(${LIBSOPHON_INCLUDE_DIRS})
-
+    link_directories(${LIBSOPHON_LIB_DIRS})
     aux_source_directory(. SRC_FILES)
     add_executable(ssd_opencv.pcie ${SRC_FILES})
     target_link_libraries(ssd_opencv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so})

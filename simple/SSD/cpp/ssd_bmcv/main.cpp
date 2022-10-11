@@ -9,13 +9,11 @@ using namespace std;
 
 static void detect(bm_handle_t         &bm_handle,
                    SSD                 &net,
-                   cv::Mat             &image,
-                   string              name,
+                   vector<cv::Mat>     &images,
+                   vector<string>      &batch_names,
                    TimeStamp           *ts) {
 
   vector<vector<ObjRect>> detections;
-  vector<cv::Mat> images;
-  images.push_back (image);
 
   vector<bm_image> input_img_bmcv;
   ts->save("attach input");
@@ -39,19 +37,18 @@ static void detect(bm_handle_t         &bm_handle,
   for (size_t i = 0; i < detections.size(); i++) {
     for (size_t j = 0; j < detections[i].size(); j++) {
       ObjRect rect = detections[i][j];
-      cv::rectangle(image, cv::Rect(rect.x1, rect.y1, rect.x2 - rect.x1 + 1,
+      cv::rectangle(images[i], cv::Rect(rect.x1, rect.y1, rect.x2 - rect.x1 + 1,
                                     rect.y2 - rect.y1 + 1), cv::Scalar(255, 0, 0), 2);
     }
 
     // check result directory
     if (access("results", 0) != F_OK)
         mkdir("results", S_IRWXU);
-    std::cout<<"write"<<std::endl;
     // jpg encode
     if (net.getPrecision()) {
-      cv::imwrite("results/out-batch-int8-" + name, image);
+      cv::imwrite("results/out-batch-int8-" + batch_names[i], images[i]);
     } else {
-      cv::imwrite("results/out-batch-fp32-" + name, image);
+      cv::imwrite("results/out-batch-fp32-" + batch_names[i], images[i]);
     }
   }
 }
@@ -73,7 +70,7 @@ int main(int argc, char **argv) {
     cout << "Cannot find valid model file." << endl;
     exit(1);
   }
-  
+
   if (strcmp(argv[1], "video") != 0 && strcmp(argv[1], "image") != 0){
     cout << "mode must be image or video" << endl;
     exit(1);
@@ -130,7 +127,9 @@ int main(int argc, char **argv) {
 
   // for profiling
   net.enableProfile(ts);
-
+  int batch_size = net.batch_size();
+  vector<cv::Mat> batch_imgs;
+  vector<string> batch_names;
   // decode and detect
   if (!is_video) {
 
@@ -144,7 +143,13 @@ int main(int argc, char **argv) {
 
       // do detect
       string img_out = "t_" + to_string(i) + "_dev_" + to_string(dev_id) + "_image.jpg";
-      detect(bm_handle, net, img, img_out, ts);
+      batch_imgs.push_back(img);
+      batch_names.push_back(img_out);
+      if ((int)batch_imgs.size() == batch_size) {
+        detect(bm_handle, net, batch_imgs, batch_names, ts);
+        batch_imgs.clear();
+        batch_names.clear();
+      }
       ts->save("ssd overall");
     }
 
@@ -180,7 +185,13 @@ int main(int argc, char **argv) {
       //cv::resize(*p_img,*input,cv::Size(300,300));
       // do detct
       string img_out = "t_" + to_string(c) + "_dev_" + to_string(dev_id)  + "_video.jpg";
-      detect(bm_handle, net, *p_img, img_out, ts);
+      batch_imgs.push_back(*p_img);
+      batch_names.push_back(img_out);
+      if ((int)batch_imgs.size() == batch_size) {
+        detect(bm_handle, net, batch_imgs, batch_names, ts);
+        batch_imgs.clear();
+        batch_names.clear();
+      }
       // release Mat object
       if (p_img != nullptr) delete p_img;
     }

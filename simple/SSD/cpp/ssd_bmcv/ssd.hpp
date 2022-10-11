@@ -29,7 +29,7 @@ public:
   void postForward(std::vector<bm_image> &input, std::vector<std::vector<ObjRect>> &detections);
   void enableProfile(TimeStamp *ts);
   bool getPrecision();
-
+  int batch_size();
 private:
   void preprocess_bmcv (std::vector<bm_image> &input);
 
@@ -41,6 +41,8 @@ private:
 
   // model info 
   const bm_net_info_t *net_info_;
+  const char **net_names;
+  int batch_size_;
 
   // indicate current bmodel type INT8 or FP32
   bool is_int8_;
@@ -64,6 +66,7 @@ private:
   // linear transformation arguments of BMCV
   bmcv_convert_to_attr linear_trans_param_;
 
+  
   // for profiling
   TimeStamp *ts_;
 };
