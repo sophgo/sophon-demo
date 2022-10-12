@@ -29,12 +29,12 @@ rm ch_ppocr_mobile_v2.0_cls_infer.tar
 
 
 # # BM1684
-python3 -m dfn --url http://219.142.246.77:65000/sharing/fHcvIfHrq
+python3 -m dfn --url http://219.142.246.77:65000/sharing/Dpnpgf9ev
 tar -xvf BM1684.tar -C ../data/models
 rm BM1684.tar
 
 # # BM1684X
-python3 -m dfn --url http://219.142.246.77:65000/sharing/V2pQtTvX7
+python3 -m dfn --url http://219.142.246.77:65000/sharing/ChHEwvB3O
 tar -xvf BM1684X.tar -C ../data/models
 rm BM1684X.tar 
 

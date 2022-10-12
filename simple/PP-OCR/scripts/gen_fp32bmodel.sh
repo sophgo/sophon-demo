@@ -1,6 +1,10 @@
 #!/bin/bash
 model_dir=$(dirname $(readlink -f "$0"))
-target=$1
+if [ ! $1 ]; then
+    target="BM1684X"
+else
+    target=$1
+fi
 outdir=../data/models/$target
 echo $outdir
 
@@ -19,7 +23,8 @@ function gen_fp32bmodel_det()
                         --shapes=[$1,3,960,960] \
                         --model=$model_det_dir \
                         --outdir=$outdir \
-                        --dyn=false
+                        --dyn=false \
+                        --output_names="save_infer_model/scale_0.tmp_1"
     mv $outdir/compilation.bmodel $outdir/ch_PP-OCRv2_det_$1b.bmodel
 
 }
@@ -33,7 +38,8 @@ function gen_fp32bmodel_cls()
                         --shapes=[$1,3,48,192] \
                         --model=$model_cls_dir \
                         --outdir=$outdir \
-                        --dyn=false
+                        --dyn=false \
+                        --output_names="save_infer_model/scale_0.tmp_1"
     mv $outdir/compilation.bmodel $outdir/ch_ppocr_mobile_v2.0_cls_$1b.bmodel
 }
 
@@ -46,7 +52,8 @@ function gen_fp32bmodel_rec()
                         --shapes=[$1,3,32,$2] \
                         --model=$model_rec_dir \
                         --outdir=$outdir \
-                        --dyn=false
+                        --dyn=false \
+                        --output_names="save_infer_model/scale_0.tmp_1"
     mv $outdir/compilation.bmodel $outdir/ch_PP-OCRv2_rec_$2_$1b.bmodel
 }
 

@@ -2,12 +2,12 @@ PP-OCR Python例程
 
 python目录下提供了一系列Python例程，具体情况如下：
 
-| 序号   | Python例程            | 说明                        |
-| ----   | ----------------     | --------------------------- |
-| 1      | ppocr_det_opencv.py | 使用OpenCV前处理、SAIL推理   |
-| 2      | ppocr_cls_opencv.py | 使用OpenCV前处理、SAIL推理   |
-| 3      | ppocr_rec_opencv.py | 使用OpenCV前处理、SAIL推理   |
-| 4      | ppocr_system_opencv.py | 使用OpenCV前处理、SAIL推理   |
+| 序号   | Python例程            | 说明                        | 功能 |
+| ----   | ----------------     | --------------------------- |-|
+| 1      | ppocr_det_opencv.py | 使用OpenCV前处理、SAIL推理   |文本检测|
+| 2      | ppocr_cls_opencv.py | 使用OpenCV前处理、SAIL推理   |文本方向分类|
+| 3      | ppocr_rec_opencv.py | 使用OpenCV前处理、SAIL推理   |文本识别|
+| 4      | ppocr_system_opencv.py | 使用OpenCV前处理、SAIL推理   |全流程测试|
 
 ## 1. x86 PCIe平台
 ## 1.1 环境准备
@@ -86,9 +86,10 @@ usage:ppocr_system_opencv.py [--tpu_id] [--img_path] [--batch_size] [--det_model
 ```
 
 以BM1684为例，如要测试BM1684X请更换bmodel文件夹
-文本识别测试实例如下：
+
+文本检测测试实例如下：
 ```bash
-# 以图片中的文本识别为例测试，使用combine后同时支持1batch和4batch的模型。
+# 以测试图片中的文本检测为例，测试同时支持1batch和4batch的FP32BModel模型。
 python3 ppocr_det_opencv.py --tpu_id 0  --img_path ../data/images/ppocr_img/test --det_model ../data/models/BM1684/ch_PP-OCRv2_det_fp32_b1b4.bmodel --det_batch_size 1
 # BM1684X目前只支持1batch
 python3 ppocr_det_opencv.py --tpu_id 0  --img_path ../data/images/ppocr_img/test --det_model ../data/models/BM1684X/ch_PP-OCRv2_det_1b.bmodel --det_batch_size 1
@@ -98,7 +99,7 @@ python3 ppocr_det_opencv.py --tpu_id 0  --img_path ../data/images/ppocr_img/test
 
 文本方向分类测试实例如下：
 ```bash
-# 以图片中的文本方向分类为例测试，使用combine后同时支持1batch和4batch的模型。
+# 以图片中的文本方向分类为例测试，测试同时支持1batch和4batch的FP32BModel模型。
 python3 ppocr_cls_opencv.py --tpu_id 0  --img_path ../data/images/ppocr_img/imgs_words/ch --cls_model ../data/models/BM1684/ch_ppocr_mobile_v2.0_cls_fp32_b1b4.bmodel --cls_batch_size 1 --cls_thresh 0.9 --label_list "0, 180"
 # BM1684X目前只支持1batch
 python3 ppocr_cls_opencv.py --tpu_id 0  --img_path ../data/images/ppocr_img/imgs_words/ch --cls_model ../data/models/BM1684X/ch_ppocr_mobile_v2.0_cls_1b.bmodel --cls_batch_size 1 --cls_thresh 0.9 --label_list "0, 180"
@@ -115,7 +116,7 @@ INFO:root:img_name:word_5.jpg, pred:0, conf:0.9999988079071045
 
 文本识别测试实例如下：
 ```bash
-# 以图片中的文本方向分类为例测试，使用combine后同时支持1batch和4batch的模型。
+# 以图片中的文本识别为例测试，测试同时支持1batch和4batch的FP32BModel模型。
 python3 ppocr_rec_opencv.py --tpu_id 0  --img_path ../data/images/ppocr_img/imgs_words/ch --rec_model ../data/models/BM1684/ch_PP-OCRv2_rec_fp32_b1b4.bmodel --rec_batch_size 4 --char_dict_path ../data/ppocr_keys_v1.txt  --use_space_char True
 # BM1684X目前只支持1batch
 python3 ppocr_rec_opencv.py --tpu_id 0  --img_path ../data/images/ppocr_img/imgs_words/ch --rec_model ../data/models/BM1684X/ch_PP-OCRv2_rec_fp32_b1.bmodel --rec_batch_size 1 --char_dict_path ../data/ppocr_keys_v1.txt  --use_space_char True
@@ -130,9 +131,9 @@ INFO:root:img_name:word_5.jpg, conf:0.980753, pred:西湾监管
 INFO:root:img_name:word_2.jpg, conf:0.994984, pred:汉阳鹦鹉家居建材市场E区25-26号
 ```
 
-全流程测试
+全流程测试：
 ```bash
-# 以图片中的文本方向分类为例测试，使用combine后同时支持1batch和4batch的模型。
+# 以图片中的文本检测，文字方向分类以及文本识别为例，测试同时支持1batch和4batch的FP32BModel模型。
 python3 ppocr_system_opencv.py --batch_size 4 --use_angle_cls True --drop_score 0.5 
 # BM1684X目前只支持1batch
 python3 ppocr_system_opencv.py --batch_size 1 --det_model ../data/models/BM1684X/ch_PP-OCRv2_det_1b.bmodel --det_batch_size 1 --rec_model ../data/models/BM1684X/ch_PP-OCRv2_rec_fp32_b1.bmodel --rec_batch_size 1 --cls_model ../data/models/BM1684X/ch_ppocr_mobile_v2.0_cls_1b.bmodel --cls_batch_size 1 --use_angle_cls True --drop_score 0.5 
