@@ -1,14 +1,14 @@
 # C++例程
 cpp目录下提供了一系列C++例程以供参考使用，具体情况如下：
-| 序号  | C++例程      | 说明                                 |
-| ---- | ------------- | -----------------------------------  |
+| 序号  | C++例程           | 说明                                 |
+| ---- | -------------     | -----------------------------------  |
 | 1    | retinaface_bmcv   | 使用OpenCV解码、BMCV前处理、BMRT推理   |
 
 
 ## 1. x86 PCIe 平台
 
 ## 1.1 环境准备
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装 libsophon、sophon-opencv和sophon-ffmpeg。libsophon的安装可参考[LIBSOPHON使用手册]()，sophon-opencv和sophon-ffmpeg的安装可参考[multimedia开发参考手册]()。
+如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装 libsophon、sophon-opencv和sophon-ffmpeg。libsophon的安装可参考[LIBSOPHON使用手册]，sophon-opencv和sophon-ffmpeg的安装可参考[multimedia开发参考手册]。
 
 ## 1.2 程序编译
 C++程序需要编译可执行文件，
@@ -22,10 +22,10 @@ cmake .. && make # 生成retinaface_bmcv.pcie
 编译完成后，会生成retinaface_bmcv.pcie,具体参数说明如下：
 
 ```bash
-usage:./retinaface_bmcv.pcie <input mode> <input> <bmodel path>
+usage:./retinaface_bmcv.pcie <input mode> <input path> <bmodel path>
 input mode: 0表示图片，1表示视频流
-input : 输入测试集图片文件或者视频图片文件；
-bmodel path:用于推理的bmodel path，默认使用stage 0的网络进行推理；
+input path: 输入测试图片集路径或者视频路径；
+bmodel path:用于推理的bmodel路径，默认使用stage 0的网络进行推理；
 ```
 
 测试实例如下：
@@ -35,8 +35,7 @@ bmodel path:用于推理的bmodel path，默认使用stage 0的网络进行推�
 # 如果模型是多batch的，会每攒够batch数的图片做一次推理
 $ ./retinaface_bmcv.pcie 0 ../../../data/images/face ../../../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel
 
-结果txt文件保存在`bmcv_cpp_result.txt`文件中。
-结果图片文件保存在`results/`文件夹中。
+执行完毕后，结果图片文件保存在`results/`文件夹中。
 
 # 视频模式，1batch，fp32
 # videolist.txt的每一行是一个mp4视频路径或者一个rtsp url
@@ -45,10 +44,11 @@ $ ./retinaface_bmcv.pcie 1 ../../../data/videos/videolist.txt  ../../../data/mod
 ```
 执行完毕后，结果图片保存在`results/`的文件夹。
 
-可通过改变模型进行int8及batch_size=4推理。
+可通过改变模型进行batch_size=4推理。
 
 
 ## 2. arm SoC平台
+
 ### 2.1 环境准备
 对于arm SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于/opt/sophon/下。
 
@@ -62,7 +62,12 @@ $ cd retinaface_bmcv
 $ mkdir build && cd build 
 $ cmake -DTARGET_ARCH=soc -DSDK=/{path_to_sdk}/soc-sdk .. && make # 生成retinaface_bmcv.soc
 ```
+
 ### 2.3 测试命令
 将生成的可执行文件及所需的模型和测试图片拷贝到SoC目标平台中测试，测试方法请参考x86 PCIe平台的1.3测试命令。
+
+
+
+
 
 
