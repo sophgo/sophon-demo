@@ -13,7 +13,7 @@ You may obtain a copy of the License at
  limitations under the License.
 
 ==============================================================================*/
-#include <boost/filesystem.hpp>
+// #include <boost/filesystem.hpp>
 #include <condition_variable>
 #include <chrono>
 #include <mutex>
@@ -24,8 +24,8 @@ You may obtain a copy of the License at
 #include <string>
 #include "yolov3.hpp"
 #include "utils.hpp"
-
-namespace fs = boost::filesystem;
+#include <unistd.h>
+// namespace fs = boost::filesystem;
 using namespace std;
 using time_stamp_t = time_point<steady_clock, microseconds>;
 
@@ -43,9 +43,14 @@ static void detect(YOLO &net, vector<cv::Mat>& images,
   ts->save("stage 3:post-process");
   ts->save("detection overall");
 
+  // string save_folder = "result_imgs";
+  // if (!fs::exists(save_folder)) {
+  //   fs::create_directory(save_folder);
+  // }
+
   string save_folder = "result_imgs";
-  if (!fs::exists(save_folder)) {
-    fs::create_directory(save_folder);
+  if (0 != access(save_folder.c_str(), 0)) {
+    system("mkdir -p result_imgs");
   }
 
   for (size_t i = 0; i < images.size(); i++) {
@@ -91,19 +96,19 @@ int main(int argc, char **argv) {
   }
 
   string image_list = argv[2];
-  if (!is_video && !fs::exists(image_list)) {
+  if (!is_video && (0 != access(image_list.c_str(), 0))) {
     cout << "Cannot find input image file." << endl;
     exit(1);
   }
 
   string cfg_file = argv[3];
-  if (!fs::exists(cfg_file)) {
+  if (0 != access(cfg_file.c_str(), 0)) {
     cout << "Cannot find config file." << endl;
     exit(1);
   }
 
   string bmodel_file = argv[4];
-  if (!fs::exists(bmodel_file)) {
+  if (0 != access(bmodel_file.c_str(), 0)) {
     cout << "Cannot find valid model file." << endl;
     exit(1);
   }
@@ -133,7 +138,7 @@ int main(int argc, char **argv) {
         << " exceeds the maximum number " << max_dev_id << std::endl;
         exit(-1);
   }
-
+  
   float conf_thresh = std::stof(argv[7]);
   float nms_thresh = std::stof(argv[8]);
   std::cout << "confidence threshold:" <<  conf_thresh << ", nms threshold: " << nms_thresh << std::endl;
@@ -157,8 +162,13 @@ int main(int argc, char **argv) {
          exit(1);
       }
       ts.save("decode overall");
-      fs::path fs_path(image_path);
-      string img_name = fs_path.filename().string();
+
+      // fs::path fs_path(image_path);
+      std::string image_path_s = image_path;
+      size_t index = image_path_s.rfind("/");
+      string img_name = image_path_s.substr(index + 1);
+
+      // string img_name = fs_path.filename().string();
       batch_imgs.push_back(img);
       batch_names.push_back(img_name);
       if (static_cast<int>(batch_imgs.size()) == batch_size) {
