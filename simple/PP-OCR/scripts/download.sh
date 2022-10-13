@@ -1,4 +1,5 @@
 #!/bin/bash
+pip3 install dfn
 scripts_dir=$(dirname $(readlink -f "$0"))
 # echo $scripts_dir
 
