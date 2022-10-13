@@ -78,12 +78,12 @@ optional arguments:
 cd ${YOLACT}/python
 # yolact_cv.py使用方法与yolact_bmcv.py一致，如果使用yolact_cv.py，结果将保存在results/results_cv目录下；如果使用yolact_bmcv.py，结果将保存在results/results_bmcv目录下。
 
-# yoloact base
+# 以yoloact base 1684X为例
 # image
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/yolact_base_54_800000_fp32_b1.bmodel --input_path ../data/images/
+python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_b1.bmodel --input_path ../data/images/
 
 # video
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/yolact_base_54_800000_fp32_b1.bmodel --is_video 1 --input_path ../data/videos/road.mp4 --video_detect_frame_num 10
+python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_b1.bmodel --is_video 1 --input_path ../data/videos/road.mp4 --video_detect_frame_num 10
 
 # PCIe模式下如果需要使用yolact_trace_pt.py、yolact_onnx.py测试，请自行安装pytorch、onnx环境
 # 如果使用yolact_trace_pt.py测试，<model>为JIT模型路径，结果将保存在results/results_trace_pt目录下
@@ -106,12 +106,12 @@ SoC平台的测试方法与x86 PCIe平台相同，请参考[1.2 测试命令](#1
 cd ${YOLACT}/python
 # yolact_cv.py使用方法与yolact_bmcv.py一致，如果使用yolact_cv.py，结果将保存在results/results_cv目录下；如果使用yolact_bmcv.py，结果将保存在results/results_bmcv目录下。
 
-# yoloact base
+# 以yoloact base 1684X为例
 # image
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/yolact_base_54_800000_fp32_b1.bmodel --input_path ../data/images/
+python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_b1.bmodel --input_path ../data/images/
 
 # video
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/yolact_base_54_800000_fp32_b1.bmodel --is_video 1 --input_path ../data/videos/road.mp4 --video_detect_frame_num 10
+python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_b1.bmodel --is_video 1 --input_path ../data/videos/road.mp4 --video_detect_frame_num 10
 
 # SoC模式下不具备pytorch、onnx环境，不建议使用yolact_trace_pt.py、yolact_onnx.py测试
 ```
