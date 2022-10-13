@@ -122,4 +122,4 @@ cd scripts
 ## 5. 例程测试
 
 - [C++例程](./cpp/yolov5_bmcv/README.md)
-- [Python例程](./python/README.md)（to do）
+- [Python例程](./python/README.md)
