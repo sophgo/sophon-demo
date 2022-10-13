@@ -5,6 +5,7 @@
 #include <vector>
 #include <math.h>
 #include <map>
+#include "bmodel_base.hpp"
 #include "bmruntime_interface.h"
 
 typedef struct _tag__stFaceRect{
@@ -59,13 +60,13 @@ public:
   }
 };
 
-class RetinaFacePostProcess {
+class RetinaFacePostProcess : public BmodelBase {
 public:
   RetinaFacePostProcess(std::string network = "net3", float nms = 0.4);
   ~RetinaFacePostProcess();
 
   void run(const bm_net_info_t& net_info, float** preds, std::vector<stFaceRect>& results,
-   int img_h, int img_w, int max_face_count = 20, float threshold = 0.9, float scales = 1.0);
+   int img_h, int img_w, float ratio_, int max_face_count = 20, float threshold = 0.9, float scales = 1.0);
 
 private:
   std::vector<FaceDetectInfo> postProcess(int inputW, int inputH, float threshold);
