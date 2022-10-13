@@ -129,13 +129,14 @@ centernet_bmcv
 
 ```bash
 # 测试图片目标检测,SoC mode,SoC环境下运行
+mkdir results
 # 1batch
-./centernet_bmcv.arm bmodel=./centernet_fp32_1b.bmodel --image=./ctdet_test.jpg
+./centernet_bmcv.arm --bmodel=./centernet_fp32_1b.bmodel --image=./ctdet_test.jpg
 # 执行完毕后，在./results生成centernet_result_20xx-xx-xx-xx-xx-xx.jpg格式的图片
 # 图片上检测出11个目标
 
 # 4batch
-./centernet_bmcv.arm bmodel=./centernet_fp32_1b.bmodel --image=./ctdet_test.jpg
+./centernet_bmcv.arm --bmodel=./centernet_fp32_1b.bmodel --image=./ctdet_test.jpg
 # 执行完毕后，在./results生成centernet_result_20xx-xx-xx-xx-xx-xx-bx.jpg格式的图片
 # 按照量化结果差异，图片上检测出11-13个目标，均属正常范围
 ```
