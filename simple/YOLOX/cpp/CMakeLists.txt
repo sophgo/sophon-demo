@@ -26,7 +26,7 @@ if (${TARGET_ARCH} STREQUAL "x86")
     link_directories(${LIBSOPHON_LIB_DIRS})
 
     # use sail
-    set(SAIL_LIBS  ${SAIL_DIR}/lib/pcie/libsail.so)
+    set(SAIL_LIBS  ${SAIL_DIR}/lib/libsail.so)
     message(STATUS ${SAIL_DIR})
     include_directories(${SAIL_DIR}/include)
     include_directories(${SAIL_DIR}/include/sail)
@@ -51,11 +51,12 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     include_directories("${SDK}/include/opencv4")
     link_directories("${SDK}/lib/")
 
+    set(SAIL_LIBS  ${SAIL_DIR}/lib/libsail.so)
     message("SDK: " ${SDK})
 
     aux_source_directory(. SRC_FILES)
     add_executable(yolox_sail.soc ${SRC_FILES})
-    target_link_libraries(yolox_sail.soc ${BM_LIBS} ${OPENCV_LIBS}  ${JPU_LIBS})
+    target_link_libraries(yolox_sail.soc ${BM_LIBS} ${OPENCV_LIBS} ${SAIL_LIBS} ${JPU_LIBS})
 else ()
     message( FATAL_ERROR  "not support mode, eg: soc/x86, cur: ${TARGET_ARCH}")
 endif ()

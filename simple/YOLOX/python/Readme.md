@@ -16,8 +16,8 @@ libsophon sophon-ffmpeg sophon-opencv sophon-sail should be download and install
 ``` shell
     python3 yolox_bmcv.py \
         --bmodel_path=your-path-to-bmodel \
-        --is_video=test-file-is-video-or-not \
-        --file_name=your-video-name-or-picture-path \
+        --is_video=test-file-is-video-or-not \  # 0 or 1
+        --file_name=your-video-name-or-picture-folder \
         --loops=video-inference-count \         # only used for video
         --device_id=use-tpu-id \                # defaule 0
         --detect_threshold=detect-threshold \   # default 0.25
@@ -40,8 +40,8 @@ for video, save picture count is batch_size*loops, name is frame_[frame idx]_dev
 ``` shell
     python3 yolox_opencv.py \
         --bmodel_path=your-path-to-bmodel \
-        --is_video=test-file-is-video-or-not \
-        --file_name=your-video-name-or-picture-path \
+        --is_video=test-file-is-video-or-not \  # 0 or 1
+        --file_name=your-video-name-or-picture-folder \
         --loops=video-inference-count \         # only used for video
         --device_id=use-tpu-id \                # defaule 0
         --detect_threshold=detect-threshold \   # default 0.25
@@ -76,8 +76,8 @@ libsophon-soc sophon-ffmpeg-soc sophon-opencv-soc sophon-sail should be download
 ``` shell
     python3 yolox_bmcv.py \
         --bmodel_path=your-path-to-bmodel \
-        --is_video=test-file-is-video-or-not \
-        --file_name=your-video-name-or-picture-path \
+        --is_video=test-file-is-video-or-not \  # 0 or 1
+        --file_name=your-video-name-or-picture-folder \
         --loops=video-inference-count \         # only used for video
         --detect_threshold=detect-threshold \   # default 0.25
         --nms_threshold=nms-threshold \         # default 0.45
@@ -99,8 +99,8 @@ for video, save picture count is batch_size*loops, name is frame_[frame idx]_dev
 ``` shell
     python3 yolox_opencv.py \
         --bmodel_path=your-path-to-bmodel \
-        --is_video=test-file-is-video-or-not \
-        --file_name=your-video-name-or-picture-path \
+        --is_video=test-file-is-video-or-not \  # 0 or 1
+        --file_name=your-video-name-or-picture-folder \
         --loops=video-inference-count \         # only used for video
         --device_id=use-tpu-id \                # defaule 0
         --detect_threshold=detect-threshold \   # default 0.25
