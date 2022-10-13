@@ -25,11 +25,12 @@ make
 - video url       :video name or picture path
 - bmodel path     : bmodel file name
 - test count      : video inference count, does not take effect in picture mode
-- detect threshold: detect threshold(0.25)
-- nms threshold   : nms threshold(0.45)
+- detect threshold: detect threshold
+- nms threshold   : nms threshold
 - save path       : result save path
 - device id       : device id
 
+all params needed
 ### Result
 result in your save path
 

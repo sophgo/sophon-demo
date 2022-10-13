@@ -46,6 +46,7 @@ YOLOx由旷世研究提出,是基于YOLO系列的改进。
 
 ## 3. 准备模型与数据
 
+您可以按以下步骤准备yolox的pt模型，生成bmodel，下载数据集，也可以运行scripts/downloads.sh来下载pt模型，准备好的BM1684和BM1684X的fp32和int8 bmodel，val2017测试集和groundtruth，以及准备好的量化数据集。
 
 ### 3.1 准备模型  
 
@@ -101,7 +102,6 @@ YOLOx由旷世研究提出,是基于YOLO系列的改进。
   ```
 
 上述脚本会在 `${PATH_TO_YOLOX_MODEL}` 下生成相应的JIT模型
-
 
 ### 3.2 准备量化集
 
@@ -272,8 +272,10 @@ output: 15, [4, 8400, 85], float32, scale: 1
 配置好环境变量安装好对应版本的sail之后执行：
 
 ```bash
+cd scripts
 ./auto_test.sh ${platform} ${target} ${tpu_id} ${sail_dir} ${soc_sdk}
 ```
+例如 auto_test.sh x86 BM1684 0 /opt/sophon/sophon-sail soc-sdk \
 auto_test.sh包括了cpp文件夹下c++程序的编译，运行和python文件夹下所有python程序的运行，以及mAP计算脚本的运行。\
 如果已经在x86平台交叉编译过soc程序，则需要把生成的可执行文件移动到cpp文件夹下，并且注释掉184行build_cpp $platform $sail_dir $SDK_dir 
 
