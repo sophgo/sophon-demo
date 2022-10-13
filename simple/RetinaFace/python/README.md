@@ -9,7 +9,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 ## 1. x86 PCIe平台
 ## 1.1 环境准备
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装sophon-inference，具体可参考[sophon-inference使用手册]。
+如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)、sophon-ffmpeg(>=0.2.4)和sophon-sail(>=3.0.1)。libsophon的安装可参考[LIBSOPHON使用手册]()，sophon-opencv和sophon-ffmpeg的安装可参考[multimedia开发参考手册]()，sophon-sail的安装可参考[sophon-sail使用手册]()。
 您还需要安装第三方库，
 $ cd python
 $ pip3 install -r requirements.txt
@@ -69,7 +69,7 @@ $ python3 retinaface_opencv.py --bmodel ../data/models/BM1684X/retinaface_mobile
 
 ```bash
 # 以测试文件夹为例
-$ python3 retinaface_opencv.py --bmodel ../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel --network mobile0.25 --input_path ../data/images/WIDERVAL --tpu_id 0 --conf 0.02 --nms 0.4 --use_np_file_as_input False
+$ python3 retinaface_opencv.py --bmodel ../data/models/BM1684X/retinaface_mobilenet0.25_fp32_4b.bmodel --network mobile0.25 --input_path ../data/images/WIDERVAL --tpu_id 0 --conf 0.02 --nms 0.4 --use_np_file_as_input False
 ```
 执行完成后，会将预测结果保存在`results/retinaface_mobilenet0.25_fp32_1b.bmodel_opencv_WIDERVAL_python_result.txt`文件中，将预测图片保存在`results/retinaface_mobilenet0.25_fp32_1b.bmodel_opencv_WIDERVAL_python_result/`文件夹下，同时会打印预测结果、推理时间、函数运行时间等信息。
 
@@ -94,11 +94,12 @@ $ python3 retinaface_opencv.py --bmodel ../data/models/BM1684X/retinaface_mobile
 
 ## 2. arm SoC平台
 ### 2.1 环境准备
-如果您使用SoC平台测试本例程，您需要安装sophon-sail,具体可参考[sophon-sail使用手册]。
+如果您使用SoC平台测试本例程，您需要安装sophon-sail(>=3.0.1)，具体可参考[sophon-sail用手册]()。
 此外您可能还需要安装其他第三方库
+```bash
 $ cd python
 $ pip3 install -r requirements.txt
-
+```
 ### 2.2 测试命令
 Soc平台的测试方法与x86 PCIe平台相同，请参考1.2测试命令。
 
@@ -106,7 +107,10 @@ Soc平台的测试方法与x86 PCIe平台相同，请参考1.2测试命令。
 ### 3.1 精度测试
 本例程在`tools`目录下提供了精度测试工具，可以将widerface预测结果与ground truth进行对比，计算出人脸检测ap。具体的测试命令如下：
 ```bash
-python3 transfer.py   # 请根据实际情况，将预测结果txt文件路径填入transfer.py
+cd tools/widerface_evaluate
+tar -zxvf widerface_txt.tar.gz
+# 请根据实际情况，将预测结果txt文件移动至当前文件夹，并将路径填入transfer.py, 并保证widerface_txt/的二级目录为空
+python3 transfer.py   
 python3 setup.py build_ext --inplace
 python3 evaluation.py
 ```

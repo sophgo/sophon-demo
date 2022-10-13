@@ -52,12 +52,12 @@ static void save_imgs(const std::vector<std::vector<stFaceRect> >& results,
     string save_name = save_foler + "/" + batch_names[i];
     imwrite(save_name,img);
     // write txt
-    out.open("bmcv_cpp_result.txt", std::ios::out | std::ios::app); 
-    out << batch_names[i] <<"\n";
-    out << results[i].size()<<"\n";
-    for (size_t z = 0; z < results[i].size(); z++){
-      out << rcs[z].x << " " << rcs[z].y << " " << rcs[z].width << " " << rcs[z].height << " " << scores[z] << "\n";
-    }
+    // out.open("bmcv_cpp_result.txt", std::ios::out | std::ios::app); 
+    // out << batch_names[i] <<"\n";
+    // out << results[i].size()<<"\n";
+    // for (size_t z = 0; z < results[i].size(); z++){
+    //   out << rcs[z].x << " " << rcs[z].y << " " << rcs[z].width << " " << rcs[z].height << " " << scores[z] << "\n";
+    // }
   }
 }
 
@@ -112,6 +112,22 @@ int main(int argc, const char * argv[]) {
       batch_imgs.push_back(img);
       batch_names.push_back(img_name);
       if (static_cast<int>(batch_imgs.size()) == batch_size) {
+        std::vector<std::vector<stFaceRect> > results;
+        face_detection_ptr->run(batch_imgs, results);
+        gettimeofday(&tpend, NULL);
+        timeuse = 1000000 * (tpend.tv_sec - tpstart.tv_sec) + tpend.tv_usec - tpstart.tv_usec;
+        timeuse /= 1000;
+        cout << "detect used time: " << timeuse << " ms" << endl;
+        save_imgs(results, batch_imgs, batch_names, save_foler);
+        batch_imgs.clear();
+        batch_names.clear();
+        gettimeofday(&tpstart, NULL);
+      } else if((iter+1)==files_vector.end()){
+        int rest = batch_size - static_cast<int>(batch_imgs.size());
+        for(int i=0;i<rest;i++){
+          batch_imgs.push_back(img);
+          batch_names.push_back(img_name);
+        }
         std::vector<std::vector<stFaceRect> > results;
         face_detection_ptr->run(batch_imgs, results);
         gettimeofday(&tpend, NULL);
