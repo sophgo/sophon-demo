@@ -32,7 +32,7 @@ RetinaFace: Single-stage Dense Face Localisation in the Wild，提出了一种�
 WIDER FACE下载地址：http://shuoyang1213.me/WIDERFACE/
 
 
-## 3. 准备环境与数据
+## 3. 准备模型与数据
 您需要准备用于测试的数据集。
 
 本例程在`scripts`目录下提供了相关模型和数据集的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型转换](#4-模型转换)进行模型转换。
