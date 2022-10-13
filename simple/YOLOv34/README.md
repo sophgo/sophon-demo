@@ -130,3 +130,4 @@ cd scripts
 ## 5. 例程测试
 
 - [C++例程](./cpp/README.md)
+- [Python例程](./python/README.md)
