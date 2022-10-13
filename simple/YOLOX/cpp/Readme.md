@@ -20,6 +20,10 @@ make
 
 ``` shell
 ./yolox_sail.pcie video <video url> <bmodel path> <test count> <detect threshold> <nms threshold> <save path> <device id>
+
+e.g
+/yolox_sail.pcie image ./val2017 ./test.bmodel 1 0.25 0.25 ./result 0
+
 ```
 - video           :test file is video, otherwise is picture
 - video url       :video name or picture path
