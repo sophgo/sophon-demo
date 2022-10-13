@@ -118,3 +118,7 @@ pytorch模型的量化方法可参考[Quantization-Tools User Guide](https://doc
 
 ## 5. 例程测试
 * [C++例程](cpp/README.md)
+* [Python例程](python/README.md)
+
+
+

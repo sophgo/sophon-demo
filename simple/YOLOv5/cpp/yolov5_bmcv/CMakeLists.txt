@@ -10,19 +10,22 @@ endif()
 
 if (${TARGET_ARCH} STREQUAL "x86")
     message( "${TARGET_ARCH} mode, starting......")
-    set(lib_DIR /usr/lib/x84_64-linux-gnu)
-    link_directories(${lib_DIR})
+    # set(lib_DIR /usr/lib/x84_64-linux-gnu)
+    # link_directories(${lib_DIR})
     # use ffmpeg
     set(FFMPEG_DIR  /opt/sophon/sophon-ffmpeg-latest/lib/cmake)
     find_package(FFMPEG REQUIRED)
     include_directories(${FFMPEG_INCLUDE_DIRS})
     link_directories(${FFMPEG_LIB_DIRS})
     # use opencv
+    set(OpenCV_DIR  /opt/sophon/sophon-opencv-latest/lib/cmake/opencv4)
     find_package(OpenCV REQUIRED)
     include_directories(${OpenCV_INCLUDE_DIRS})
+    link_directories(${OpenCV_LIB_DIRS})
     # use libbmrt libbmlib
     find_package(libsophon REQUIRED)
     include_directories(${LIBSOPHON_INCLUDE_DIRS})
+    link_directories(${LIBSOPHON_LIB_DIRS})
 
     # message(STATUS ${LIBSOPHON_LIB_DIRS})
     # message(STATUS ${LIBSOPHON_LIBS})

@@ -80,6 +80,6 @@ caffe模型编译为FP32 BModel，具体方法可参考[BMNETC 使用](https://d
 
 ## 5. 例程测试
 * [C++例程](cpp/README.md)
-
+* [python例程](python/README.md)
 
 

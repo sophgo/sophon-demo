@@ -14,7 +14,7 @@
 
 本例程对[LNRNet_Pytorch](https://github.com/sirius-ai/LPRNet_Pytorch)的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
 
-**论文:** [LNRNet论文](https://arxiv.org/abs/1806.10447v1)
+**论文:** [LPRNet: License Plate Recognition via Deep Neural Networks](https://arxiv.org/abs/1806.10447v1)
 
 LPRNet(License Plate Recognition via Deep Neural Networks)，是一种轻量级卷积神经网络，可实现无需进行字符分割的端到端车牌识别。  
 LPRNet的优点可以总结为如下三点：  
@@ -78,11 +78,11 @@ test_md5_lmdb: 用于量化的lmdb数据集
 
 trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
 
-模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[TPU-NNTC开发参考手册]()。
+模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考TPU-NNTC开发参考手册。
 
 ### 4.1 生成FP32 BModel
 
-pytorch模型编译为FP32 BModel，具体方法可参考[BMNETP 使用](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/nntc/html/usage/bmnetp.html)。
+pytorch模型编译为FP32 BModel，具体方法可参考TPU-NNTC开发参考手册。
 
 本例程在`scripts`目录下提供了编译FP32 BModel的脚本。请注意修改`gen_fp32bmodel.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684和BM1684X），如：
 
@@ -97,10 +97,9 @@ pytorch模型编译为FP32 BModel，具体方法可参考[BMNETP 使用](https:/
 
 不量化模型可跳过本节。
 
-pytorch模型的量化方法可参考[Quantization-Tools User Guide](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/calibration-tools/html/index.html)
+pytorch模型的量化方法可参考TPU-NNTC开发参考手册。
 
 本例程在`scripts`目录下提供了量化INT8 BModel的脚本。请注意修改`gen_int8model.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684和BM1684X），如：
-
 
 ```shell
 ./scripts/gen_int8bmodel.sh BM1684X
@@ -115,3 +114,4 @@ pytorch模型的量化方法可参考[Quantization-Tools User Guide](https://doc
 
 ## 5. 例程测试
 * [C++例程](cpp/README.md)
+* [Python例程](python/README.md)

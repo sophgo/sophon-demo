@@ -17,9 +17,10 @@ if (${TARGET_ARCH} STREQUAL "x86")
     set(OpenCV_DIR  /opt/sophon/sophon-opencv-latest/lib/cmake/opencv4/)
     find_package(OpenCV REQUIRED)
     include_directories(${OpenCV_INCLUDE_DIRS})
-    # use libbmrt libbmlib
+    # use libbmrt libbmlib libbmcv
     find_package(libsophon REQUIRED)
     include_directories(${LIBSOPHON_INCLUDE_DIRS})
+    link_directories(${LIBSOPHON_LIB_DIRS})
 
     aux_source_directory(. SRC_FILES)
     add_executable(lprnet_bmcv.pcie ${SRC_FILES})

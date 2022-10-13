@@ -138,28 +138,16 @@ bmrt_test --bmodel {path_of_bmodel}
 | resnet_bmcv   | int8 | 4          | 79.30  | 0.45          | 0.84           | 541.63 |
 
 在BM1684 PCIe上，不同例程、不同模型的精度和性能测试结果如下：
-
-| 例程          | 精度 | batch_size | ACC(%) | bmrt_test(ms) | infer_time(ms) | QPS    |
-| ------------- | ---- | ---------- | ------ | ------------- | -------------- | ------ |
-<<<<<<< HEAD
-| resnet_opencv | fp32 | 1          | 80.20  | 6.61          | 9.19           | 89.89  |
-| resnet_opencv | fp32 | 4          |        | -             | -              | -      |
-| resnet_opencv | int8 | 1          | 78.60  | 3.74          | 6.29           | 123.70 |
-| resnet_opencv | int8 | 4          | 79.20  | 1.14          | 3.54           | 192.06 |
-| resnet_bmcv   | fp32 | 1          | 79.90  | 6.62          | 7.79           | 104.55 |
-| resnet_bmcv   | fp32 | 4          |        |               | -              | -      |
-| resnet_bmcv   | int8 | 1          | 79.00  | 3.73          | 4.85           | 151.05 |
-| resnet_bmcv   | int8 | 4          | 79.50  | 1.14          | 2.15           | 264.62 |
-=======
-| resnet_opencv | fp32 | 1          | 80.20  | 6.61          | 9.16           | 90.98  |
-| resnet_opencv | fp32 | 4          | 80.20  | 5.19          | 7.68           | 106.32 |
-| resnet_opencv | int8 | 1          | 78.60  | 3.66          | 6.27           | 123.70 |
-| resnet_opencv | int8 | 4          | 79.20  | 1.15          | 3.54           | 194.66 |
-| resnet_bmcv   | fp32 | 1          | 79.90  | 6.60          | 7.81           | 104.43 |
-| resnet_bmcv   | fp32 | 4          | 79.90  | 5.22          | 6.21           | 127.03 |
-| resnet_bmcv   | int8 | 1          | 79.00  | 3.66          | 4.87           | 152.99 |
-| resnet_bmcv   | int8 | 4          | 79.50  | 1.12          | 2.08           | 275.36 |
->>>>>>> e7d75bf47f2097304b580a99772617a872917339
+|例程|精度|batch_size|ACC(%)|bmrt_test(ms)|infer_time(ms)|QPS|
+|--------|-----|-----|-----|-----|-----|----|
+|resnet_opencv|fp32|1|80.20|6.52|8.26|98.24|
+|resnet_opencv|fp32|4|80.20|5.20|6.79|119.06|
+|resnet_opencv|int8|1|78.60|3.63|5.63|137.71|
+|resnet_opencv|int8|4|79.20|1.12|3.13|226.51|
+|resnet_bmcv|fp32|1|79.90|6.49|7.45|111.16|
+|resnet_bmcv|fp32|4|79.90|5.48|6.09|133.42|
+|resnet_bmcv|int8|1|79.00|3.64|4.51|166.94|
+|resnet_bmcv|int8|4|79.50|1.12|1.99|295.64|
 
 在BM1684 Soc上，不同例程、不同模型的精度和性能测试结果如下：
 

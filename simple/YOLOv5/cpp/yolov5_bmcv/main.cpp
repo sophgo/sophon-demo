@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
       auto frame_boxes = boxes[i];
       for (auto bbox : boxes[i]) {
         std::cout << "  class id=" << bbox.class_id << ", score = " << bbox.score
-          << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",y=" << bbox.height << ")"
+          << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")"
           << std::endl;
         yolo.drawPred(bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.x + bbox.width,
             bbox.y + bbox.height, frame);

@@ -35,19 +35,17 @@ SSD::SSD(bm_handle_t& bm_handle, const string bmodel):p_bmrt_(nullptr) {
     exit(1);
   }
 
-  const char **net_names;
+
   bmrt_get_network_names(p_bmrt_, &net_names);
-  net_name_ = net_names[0];
-  free(net_names);
+
 
   // get model info by model name
-  net_info_ = bmrt_get_network_info(p_bmrt_, net_name_.c_str());
+  net_info_ = bmrt_get_network_info(p_bmrt_, net_names[0]);
   if (NULL == net_info_) {
     cout << "ERROR: get net-info failed!" << endl;
     exit(1);
   }
-
-  // get data type
+    // get data type
   if (NULL == net_info_->input_dtypes) {
     cout << "ERROR: get net input type failed!" << endl;
     exit(1);
@@ -105,6 +103,8 @@ SSD::SSD(bm_handle_t& bm_handle, const string bmodel):p_bmrt_(nullptr) {
   linear_trans_param_.beta_1 = -117.0 * input_scale;
   linear_trans_param_.alpha_2 = input_scale;
   linear_trans_param_.beta_2 = -104.0 * input_scale;
+  batch_size_ = net_info_->stages[0].input_shapes[0].dims[0];
+
 }
 
 SSD::~SSD() {
@@ -118,6 +118,7 @@ SSD::~SSD() {
 
   // deinit contxt handle
   bmrt_destroy(p_bmrt_);
+  free(net_names);
 }
 
 void SSD::enableProfile(TimeStamp *ts) {
@@ -132,7 +133,7 @@ void SSD::preForward(vector<bm_image> &input) {
 
 void SSD::forward() {
   LOG_TS(ts_, "ssd inference")
-  bool res = bm_inference(p_bmrt_, linear_trans_bmcv_, (void*)output_, input_shape_, net_name_.c_str());
+  bool res = bm_inference(p_bmrt_, linear_trans_bmcv_, (void*)output_, input_shape_, net_names[0]);
   LOG_TS(ts_, "ssd inference")
 
   if (!res) {
@@ -160,10 +161,9 @@ void SSD::postForward (vector<bm_image> &input, vector<vector<ObjRect>> &detecti
   int output_count = bmrt_shape_count(&output_shape);
   unsigned int image_id=0;
   int img_size = input.size();
+  detections.resize(img_size);
   int count_per_img = output_count / img_size;
-  std::vector<ObjRect> tmp;
   for (int image_idx = 0; image_idx < img_size; image_idx++) {
-    if(tmp.size() > 0) tmp.clear();
     int cur_count = (image_idx + 1 ) * count_per_img;
     for (int i = image_idx*count_per_img; i < cur_count; i += 7) {
       ObjRect detection;
@@ -186,26 +186,31 @@ void SSD::postForward (vector<bm_image> &input, vector<vector<ObjRect>> &detecti
       }
       // ignore class 0: background
       if (proposal[1] == 0) continue;
+      
       detection.class_id = proposal[1];
       detection.score = proposal[2];
       detection.x1 = proposal[3] * input[image_id].width;
       detection.y1 = proposal[4] * input[image_id].height;
       detection.x2 = proposal[5] * input[image_id].width;
       detection.y2 = proposal[6] * input[image_id].height;
-#define DEBUG_SSD
+
+      detections[image_id].push_back(detection);
+
+    }
+  }
+  for(int i=0;i<detections.size();i++){
+    for(int j=0;j<detections[i].size();j++){
+      #define DEBUG_SSD
 #ifdef DEBUG_SSD
-      std::cout << "class id: " << std::setw(2) << detection.class_id
+      std::cout << "class id: " << std::setw(2) << detections[i][j].class_id
             << std::fixed << std::setprecision(5)
-            << " upper-left: (" << std::setw(10) << detection.x1 << ", "
-            << std::setw(10) << detection.y1 << ") "
-            << " object-size: (" << std::setw(10) << detection.x2 - detection.x1 + 1 << ", "
-            << std::setw(10)  << detection.y2 - detection.y1 + 1 << ")"
+            << " upper-left: (" << std::setw(10) << detections[i][j].x1 << ", "
+            << std::setw(10) << detections[i][j].y1 << ") "
+            << " object-size: (" << std::setw(10) << detections[i][j].x2 - detections[i][j].x1 + 1 << ", "
+            << std::setw(10)  << detections[i][j].y2 - detections[i][j].y1 + 1 << ")"
             << std::endl;
 #endif
-
-      tmp.push_back(detection);
     }
-    detections.push_back(tmp);
     std::cout << "##############################################" << std::endl;
   }
   LOG_TS(ts_, "ssd post-process")
@@ -216,7 +221,6 @@ void SSD::preprocess_bmcv (vector<bm_image> &input) {
     cout << "mul-batch bmcv input empty!!!" << endl;
     return ;
   }
-
   if (!((1 == input.size()) || (4 == input.size()))) {
     cout << "mul-batch bmcv input error!!!" << endl;
     return ;
@@ -243,4 +247,8 @@ void SSD::preprocess_bmcv (vector<bm_image> &input) {
 
 bool SSD::getPrecision() {
   return is_int8_;
+}
+
+int SSD::batch_size(){
+  return batch_size_;
 }

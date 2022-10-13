@@ -62,12 +62,13 @@ bool FaceDetection::run(vector<Mat>& input_imgs,
     input_bm_imgs.push_back(bmimg);
   }
   //std::vector<bm_image> processed_imgs;
-  preprocess(input_bm_imgs);
+  std::vector<float> ratios;
+  ratios = preprocess(input_bm_imgs);
   // assert(static_cast<int>(input_imgs.size()) == batch_size_);
   // bmcv_image_convert_to(bm_handle_, batch_size_,
   //            convert_attr_, &processed_imgs[0], scaled_inputs_);
   forward();
-  postprocess(results, input_imgs);
+  postprocess(results, ratios, input_imgs);
   for (size_t i = 0; i < input_bm_imgs.size(); i++) {
     bm_image_destroy(input_bm_imgs[i]);
     //bm_image_destroy(processed_imgs[i]);
@@ -76,45 +77,69 @@ bool FaceDetection::run(vector<Mat>& input_imgs,
   return true;
 }
 
-void FaceDetection::preprocess(const std::vector<bm_image>& input_imgs) {
-  std::vector<bm_image> processed_imgs;
-  for (size_t i = 0; i < input_imgs.size(); i++) {
-    // bm_image resize_img;
-    // int resize_width = (input_imgs[i].width > input_imgs[i].height) ? net_w_ :
-    //                               net_w_ * input_imgs[i].width / input_imgs[i].height;
-    // int resize_height = (input_imgs[i].height > input_imgs[i].width) ? net_h_ :
-    //                               net_h_ * input_imgs[i].height / input_imgs[i].width;
-    // bm_image_create(bm_handle_, net_h_, net_w_, 
-    //                       FORMAT_BGR_PLANAR, 
-    //                       DATA_TYPE_EXT_1N_BYTE, &resize_img, NULL);
-    bmcv_rect_t resize_rect = {0, 0, input_imgs[i].width, input_imgs[i].height};
-    bmcv_image_vpp_convert(bm_handle_, 1, input_imgs[i], &resize_bmcv_[i], &resize_rect);
-    // bm_image processed_img;
-    // bm_image_create(bm_handle_, net_h_, net_w_,
-    //          FORMAT_BGR_PLANAR, DATA_TYPE_EXT_1N_BYTE, &processed_img, NULL);
-    // bmcv_copy_to_atrr_t copy_to_attr;
-    // copy_to_attr.start_x = 0;
-    // copy_to_attr.start_y = 0;
-    // copy_to_attr.padding_r = 128;
-    // copy_to_attr.padding_g = 128;
-    // copy_to_attr.padding_b = 128;
-    // copy_to_attr.if_padding = 1;
-    // bmcv_image_copy_to(bm_handle_, copy_to_attr, resize_img, processed_img);
-    // processed_imgs.push_back(processed_img);
-    // bm_image_destroy(resize_img);
+float FaceDetection::get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool *pIsAligWidth)
+{
+  float ratio;
+  float ratio_w, ratio_h;
+  ratio_h = (float) dst_h / src_h;
+  ratio_w = (float) dst_w / src_w;
+  if (src_w > src_h) {
+    // 宽是长边
+    *pIsAligWidth = false;
+    ratio = (float) dst_w / src_w;
+  } else {
+    //高是长边
+    *pIsAligWidth = true;
+    ratio = (float) dst_h / src_h;
   }
-  bmcv_image_convert_to(bm_handle_, batch_size_, convert_attr_, resize_bmcv_, scaled_inputs_);
-  return;
+
+  return ratio;
 }
 
-void FaceDetection::postprocess(vector<vector<stFaceRect> >& results, vector<Mat>& input_imgs) {
+std::vector<float> FaceDetection::preprocess(const std::vector<bm_image>& input_imgs) {
+  std::vector<bm_image> processed_imgs;
+  std::vector<float> ratios;
+  for (size_t i = 0; i < input_imgs.size(); i++) {
+    bool isAlignWidth = false;
+    float ratio = get_aspect_scaled_ratio(input_imgs[i].width, input_imgs[i].height, net_w_, net_h_, &isAlignWidth);
+    ratios.push_back(ratio);
+    bmcv_padding_atrr_t padding_attr;
+    memset(&padding_attr, 0, sizeof(padding_attr));
+    padding_attr.dst_crop_sty = 0;
+    padding_attr.dst_crop_stx = 0;
+    padding_attr.padding_b = 0;
+    padding_attr.padding_g = 0;
+    padding_attr.padding_r = 0;
+    padding_attr.if_memset = 1;
+    if (isAlignWidth) {
+      padding_attr.dst_crop_h = net_h_;
+      padding_attr.dst_crop_w = input_imgs[i].width*ratio;
+      padding_attr.dst_crop_sty = 0;
+      padding_attr.dst_crop_stx = 0;
+    }else{
+      padding_attr.dst_crop_h = input_imgs[i].height*ratio;
+      padding_attr.dst_crop_w = net_w_;
+      padding_attr.dst_crop_sty = 0;
+      padding_attr.dst_crop_stx = 0;
+    }
+
+    bmcv_rect_t crop_rect{0, 0, input_imgs[i].width, input_imgs[i].height};
+    auto ret = bmcv_image_vpp_convert_padding(bm_handle_, 1, input_imgs[i], &resize_bmcv_[i],
+        &padding_attr, &crop_rect);
+  }
+  bmcv_image_convert_to(bm_handle_, batch_size_, convert_attr_, resize_bmcv_, scaled_inputs_);
+  
+  return ratios;
+}
+
+void FaceDetection::postprocess(vector<vector<stFaceRect> >& results, vector<float> ratios, vector<Mat>& input_imgs) {
   for (int i = 0; i < batch_size_; i++) {
     float *preds[output_num_];
     vector<stFaceRect> det_result;
     results.push_back(det_result);
     int img_h = input_imgs[i].rows;
     int img_w = input_imgs[i].cols;
-
+    float ratio_ = ratios[i];
     for (int j = 0; j < output_num_; j++) {
       if (BM_FLOAT32 == net_info_->output_dtypes[j]) {
         preds[j] = reinterpret_cast<float*>(outputs_[j]) + output_sizes_[j] * i;
@@ -128,7 +153,7 @@ void FaceDetection::postprocess(vector<vector<stFaceRect> >& results, vector<Mat
       }
     }
     post_process_->run(*net_info_, preds,
-                  results[i], img_h, img_w, max_face_count_, score_threshold_);
+                  results[i], img_h, img_w, ratio_, max_face_count_, score_threshold_);
     for (int j = 0; j < output_num_; j++) {
       if (BM_FLOAT32 != net_info_->output_dtypes[j]) {
         delete []preds[j];

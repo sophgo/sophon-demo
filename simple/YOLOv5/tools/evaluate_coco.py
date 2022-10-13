@@ -11,7 +11,8 @@ sys.path.append(__dir__)
 sys.path.append(__dir__ + "/../")
 print(sys.path)
 
-from python.yolov5_opencv import YOLOv5
+from python.yolov5_opencv import YOLOv5 as YOLOv5_opencv
+from python.yolov5_bmcv import YOLOv5 as YOLOv5_bmcv
 from tqdm import tqdm
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
@@ -35,10 +36,23 @@ class YoloTest(object):
         self.cocoGt = self.load_coco(json_path)
         print('cocoGt is loaded.')
 
-        self.yolov5 = YOLOv5(model_path="../data/models/BM1684X/yolov5s_640_coco_v6.1_3output_fp32_1b.bmodel",
+        model_path = "../data/models/BM1684X/yolov5s_640_coco_v6.1_3output_fp32_1b.bmodel"
+        # model_path = "../data/models/BM1684X/yolov5s_640_coco_v6.1_3output_int8_1b.bmodel"
+        # model_path = "../data/models/BM1684/yolov5s_640_coco_v6.1_3output_fp32_1b.bmodel"
+        # model_path = "../data/models/BM1684/yolov5s_640_coco_v6.1_3output_int8_1b.bmodel"
+        
+        self.yolov5 = YOLOv5_opencv(model_path=model_path,
                              device_id = 0,
                              conf_thresh=0.001,
                              nms_thresh=0.65)
+        print("use opencv, model:{}".format(model_path))
+        
+        # self.yolov5 = YOLOv5_bmcv(model_path=model_path,
+        #                      device_id = 0,
+        #                      conf_thresh=0.001,
+        #                      nms_thresh=0.65)
+        # print("use bmcv, model:{}".format(model_path))
+        
         print('yolov5 is loaded.')
 
         self.speed_result = [0] * 4

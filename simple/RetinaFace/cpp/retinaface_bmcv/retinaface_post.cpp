@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <assert.h>
 #include "retinaface_post.hpp"
+#include "bmodel_base.hpp"
 
 using namespace std;
 
@@ -360,7 +361,7 @@ vector<FaceDetectInfo> RetinaFacePostProcess::nms(vector<FaceDetectInfo>& bboxes
 void RetinaFacePostProcess::run(
             const bm_net_info_t& net_info,
             float** preds, 
-            vector<stFaceRect>& results, int img_h, int img_w, int max_face_count,
+            vector<stFaceRect>& results, int img_h, int img_w, float ratio_, int max_face_count,
             float threshold, float scales) {
   auto &input_shape = net_info.stages[0].input_shapes[0];
   int hs = input_shape.dims[2];
@@ -413,22 +414,21 @@ void RetinaFacePostProcess::run(
           h = exp(loc[3] * variances[1]) * anchor_h;
           x = anchor_x + loc[0] * variances[0] * anchor_w;
           y = anchor_y + loc[1] * variances[0] * anchor_h;
-          obj.rect.x1 = (x - w / 2) * img_w;
-          obj.rect.x2 = (x + w / 2) * img_w;
-          obj.rect.y1 = (y - h / 2) * img_h;
-          obj.rect.y2 = (y + h / 2) * img_h;
+          obj.rect.x1 = (x - w / 2) * 640 / ratio_;
+          obj.rect.x2 = (x + w / 2) * 640 / ratio_;
+          obj.rect.y1 = (y - h / 2) * 640 / ratio_;
+          obj.rect.y2 = (y + h / 2) * 640 / ratio_;
           land = land_data + index * 10;
           for (int i = 0; i < 5; ++i){
             obj.pts.x[i] = (anchor_x +
-                land[i * 2] * variances[0] * anchor_w) * img_w;
+                // land[i * 2] * variances[0] * anchor_w) * net_w_ / ratio_;
+                // land[i * 2] * variances[0] * anchor_w) * img_w;
+                land[i * 2] * variances[0] * anchor_w) * 640 / ratio_;
             obj.pts.y[i] = (anchor_y +
-                land[i * 2 + 1] * variances[0] * anchor_h) * img_h;
+                // land[i * 2 + 1] * variances[0] * anchor_h) * net_h_ / ratio_;
+                // land[i * 2 + 1] * variances[0] * anchor_h) * img_h;
+                land[i * 2 + 1] * variances[0] * anchor_h) * 640 / ratio_;
           }
-          // cout << "obj.score = " << obj.score << endl;
-          // cout << "obj.rect.x1 = " << obj.rect.x1 << endl;
-          // cout << "obj.rect.x2 = " << obj.rect.x2 << endl;
-          // cout << "obj.rect.y1 = " << obj.rect.y1 << endl;
-          // cout << "obj.rect.y2 = " << obj.rect.y2 << endl;
           faceInfo.push_back(obj);
 cond:
           ++index;
@@ -438,8 +438,9 @@ cond:
   }
   // cout << "faceInfo.size:" << faceInfo.size() << endl;
   // auto objs = nms_(boxes, nms_threshold);
+
   faceInfo = nms(faceInfo, nms_threshold);
-  // cout << "faceInfo.size:" << faceInfo.size() << endl;
+  // cout << "faceInfo.size after nms:" << faceInfo.size() << endl;
   int face_num = 
        max_face_count > static_cast<int>(faceInfo.size()) ? static_cast<int>(faceInfo.size()) : max_face_count;
   for (int i = 0; i < face_num; i++) {
