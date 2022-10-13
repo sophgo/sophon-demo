@@ -19,8 +19,7 @@
 #include <opencv2/opencv.hpp>
 #include <sys/time.h>
 #include "face_detection.hpp"
-#include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
+#include <dirent.h>
 using namespace std;
 using namespace cv;
 
@@ -90,10 +89,23 @@ int main(int argc, const char * argv[]) {
   if (0 == input_mode) { // image mode
     vector<cv::Mat> batch_imgs;
     vector<string> batch_names;
-    fs::recursive_directory_iterator beg_iter(input_url);
-    fs::recursive_directory_iterator end_iter;
-    for (; beg_iter != end_iter; ++beg_iter){
-      string img_file = beg_iter->path().string();
+    vector<string> files_vector;
+    DIR *pDir;
+    struct dirent* ptr;
+    pDir = opendir(input_url.c_str());
+    while((ptr = readdir(pDir))!=0) {
+        if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0){
+            files_vector.push_back(input_url + "/" + ptr->d_name);
+        }
+    }
+    closedir(pDir);
+
+    std::sort(files_vector.begin(),files_vector.end());
+    vector<string>::iterator iter;
+    
+    for (iter = files_vector.begin(); iter != files_vector.end(); iter++){
+      // string img_file = beg_iter->path().string();
+      string img_file = *iter;
       Mat img = imread(img_file, cv::IMREAD_COLOR, 0);
       size_t index = img_file.rfind("/");
       string img_name = img_file.substr(index + 1);
@@ -115,14 +127,6 @@ int main(int argc, const char * argv[]) {
   } else { // video mode
     vector <cv::VideoCapture> caps;
     vector <string> cap_srcs;
-    // fs::recursive_directory_iterator beg_iter(input_url);
-    // fs::recursive_directory_iterator end_iter;
-    // for (; beg_iter != end_iter; ++beg_iter){
-    //   string img_file = beg_iter->path().string();
-    //   cv::VideoCapture cap(img_file);
-    //   caps.push_back(cap);
-    //   cap_srcs.push_back(img_file);
-    // }
     char image_path[1024] = {0};
     ifstream fp_img_list(input_url);
     while(fp_img_list.getline(image_path, 1024)) {
