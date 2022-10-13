@@ -22,6 +22,7 @@ if (${TARGET_ARCH} STREQUAL "x86")
     # use libbmrt libbmlib
     find_package(libsophon REQUIRED)
     include_directories(${LIBSOPHON_INCLUDE_DIRS})
+    link_directories(${LIBSOPHON_LIB_DIRS})
 
     set(SAIL_LIBS  ${SAIL_PATH}/lib/libsail.so)
     message(STATUS ${SAIL_PATH})
