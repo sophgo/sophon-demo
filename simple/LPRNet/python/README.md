@@ -9,7 +9,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 ## 1. x86 PCIe平台
 ## 1.1 环境准备
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)、sophon-ffmpeg(>=0.2.4)和sophon-sail(>=3.0.1)。libsophon的安装可参考[LIBSOPHON使用手册]()，sophon-opencv和sophon-ffmpeg的安装可参考[multimedia开发参考手册]()，sophon-sail的安装可参考[sophon-sail使用手册]()。
+如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)、sophon-ffmpeg(>=0.2.4)和sophon-sail(>=3.1.0)。libsophon的安装可参考LIBSOPHON使用手册，sophon-opencv和sophon-ffmpeg的安装可参考multimedia开发参考手册，sophon-sail的编译安装可参考sophon-sail的README。
 此外您可能还需要安装其他第三方库：
 ```bash
 pip3 install -r requirements.txt
@@ -51,7 +51,7 @@ INFO:root:average latency time(ms): 2.23, QPS: 448.663952
 
 ## 2. SoC平台
 ## 2.1 环境准备
-如果您使用SoC平台测试本例程，您需要安装sophon-sail(>=3.0.1)，具体可参考[sophon-sail用手册]()。
+如果您使用SoC平台测试本例程，您需要编译安装sophon-sail(>=3.1.0)，具体可参考sophon-sail的README。
 此外您可能还需要安装其他第三方库：
 ```bash
 pip3 install -r requirements.txt
