@@ -1,11 +1,12 @@
-#include <boost/filesystem.hpp>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sstream>
 #include "resnet.hpp"
 #include <string>
+#include <dirent.h>
+#include <unistd.h>
+#include <fstream>
 
-namespace fs = boost::filesystem;
 using namespace std;
 
 static vector<pair<int, float>> infer(bm_handle_t &bm_handle,
@@ -42,6 +43,8 @@ int main(int argc, char **argv)
   // system("chcp 65001");
   cout.setf(ios::fixed);
 
+  struct stat info;
+
   // sanity check
   if (argc != 4)
   {
@@ -51,14 +54,9 @@ int main(int argc, char **argv)
   }
 
   string input_url = argv[1];
-  if (!fs::exists(input_url))
-  {
-    cout << "Cannot find input image path." << endl;
-    exit(1);
-  }
 
   string bmodel_file = argv[2];
-  if (!fs::exists(bmodel_file))
+  if (stat(bmodel_file.c_str(), &info) != 0)
   {
     cout << "Cannot find valid model file." << endl;
     exit(1);
@@ -106,7 +104,12 @@ int main(int argc, char **argv)
 
   vector<cv::Mat> batch_imgs;
   vector<string> batch_names;
-  if (fs::is_regular_file(input_url))
+  if (stat(input_url.c_str(), &info) != 0)
+  {
+    cout << "Cannot find input image path." << endl;
+    exit(1);
+  }
+  if (info.st_mode & S_IFREG)
   {
     if (batch_size != 1)
     {
@@ -125,21 +128,18 @@ int main(int argc, char **argv)
     // output results
     cout << input_url << " pred: " << results[0].first << ", score:" << results[0].second << endl;
   }
-  else if (fs::is_directory(input_url))
+  else if (info.st_mode & S_IFDIR)
   {
-    fs::recursive_directory_iterator beg_iter(input_url);
-    fs::recursive_directory_iterator end_iter;
     vector<string> files_vector;
-    for (; beg_iter != end_iter; ++beg_iter)
-    {
-      if (fs::is_directory(*beg_iter))
-        continue;
-      else
-      {
-        string img_file = beg_iter->path().string();
-        files_vector.push_back(img_file);
-      }
+    DIR *pDir;
+    struct dirent* ptr;
+    pDir = opendir(input_url.c_str());
+    while((ptr = readdir(pDir))!=0) {
+        if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0){
+            files_vector.push_back(input_url + "/" + ptr->d_name);
+        }
     }
+    closedir(pDir);
     std::sort(files_vector.begin(), files_vector.end());
 
     map<string, pair<int, float>> d_result;
@@ -160,19 +160,17 @@ int main(int argc, char **argv)
         vector<pair<int, float>> results = infer(bm_handle, net, batch_imgs, ts);
         for (int i = 0; i < batch_size; i++)
         {
-          fs::path img_name(batch_names[i]);
-          cout << img_name.string() << " pred: " << results[i].first << ", score:" << results[i].second << endl;
-          d_result[img_name.string()] = results[i];
+          img_name = batch_names[i];
+          cout << img_name << " pred: " << results[i].first << ", score:" << results[i].second << endl;
+          d_result[img_name] = results[i];
         }
         batch_imgs.clear();
         batch_names.clear();
       }
     }
     ts->save("resnet overall");
-    if (!fs::exists("results"))
-    {
-      fs::create_directories("results");
-    }
+    if (access("results", 0) != F_OK)
+        mkdir("results", S_IRWXU);
     size_t index = input_url.rfind("/");
     string dataset_name = input_url.substr(index + 1);
     index = bmodel_file.rfind("/");

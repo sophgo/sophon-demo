@@ -21,10 +21,11 @@ if (${TARGET_ARCH} STREQUAL "x86")
     # use libbmrt libbmlib
     find_package(libsophon REQUIRED)
     include_directories(${LIBSOPHON_INCLUDE_DIRS})
+    link_directories(${LIBSOPHON_LIB_DIRS})
     
     aux_source_directory(. SRC_FILES)
     add_executable(resnet_bmcv.pcie ${SRC_FILES})
-    target_link_libraries(resnet_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} boost_system boost_filesystem)
+    target_link_libraries(resnet_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so})
 
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
@@ -34,7 +35,6 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     set(BM_LIBS bmlib bmrt bmcv)
     set(JPU_LIBS bmjpuapi bmjpulite)
     set(OPENCV_LIBS opencv_imgproc opencv_core opencv_highgui opencv_imgcodecs opencv_videoio)
-    set(EXTRA_LIBS boost_system boost_filesystem)
     include_directories("${SDK}/include/")
     include_directories("${SDK}/include/opencv4")
     link_directories("${SDK}/lib/")
@@ -43,6 +43,6 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
 
     aux_source_directory(. SRC_FILES)
     add_executable(resnet_bmcv.soc ${SRC_FILES})
-    target_link_libraries(resnet_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS}  ${JPU_LIBS} ${EXTRA_LIBS})
+    target_link_libraries(resnet_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS}  ${JPU_LIBS})
 
 endif ()
