@@ -20,7 +20,7 @@ class PostProcess:
 
     @staticmethod
     def _make_grid(nx=20, ny=20):
-        xv, yv = np.meshgrid(np.arange(ny), np.arange(nx))
+        xv, yv = np.meshgrid(np.arange(nx), np.arange(ny))
         return np.stack((xv, yv), 2).reshape((1, 1, ny, nx, 2)).astype(np.float32)
 
     def decode_for_3outputs(self, outputs):
