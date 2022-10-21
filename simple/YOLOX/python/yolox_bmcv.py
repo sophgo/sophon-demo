@@ -343,7 +343,7 @@ if __name__ == "__main__":
             exit(1)
         if batch_size == 1:
             for image_name in image_list:
-                decoder = sail.Decoder(image_name)
+                decoder = sail.Decoder(image_name, True, opt.device_id)
                 img = decoder.read(handle)
                 img_bgr = sail.BMImage(handle, img.height(), img.width(),sail.FORMAT_BGR_PLANAR, sail.DATA_TYPE_EXT_1N_BYTE)
                 bmcv.convert_format(img,img_bgr)
@@ -384,7 +384,7 @@ if __name__ == "__main__":
                 ost_image = []
                 start_time = time.time()
                 for i in range(4):
-                    decoder = sail.Decoder(image_list[idx+i])
+                    decoder = sail.Decoder(image_list[idx+i], True, opt.device_id)
                     img = decoder.read(handle)
                     img_bgr = sail.BMImage(handle, img.height(), img.width(),sail.FORMAT_BGR_PLANAR, sail.DATA_TYPE_EXT_1N_BYTE)
                     bmcv.convert_format(img,img_bgr)
