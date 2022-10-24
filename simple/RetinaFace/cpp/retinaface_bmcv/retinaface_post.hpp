@@ -60,7 +60,7 @@ public:
   }
 };
 
-class RetinaFacePostProcess : public BmodelBase {
+class RetinaFacePostProcess {
 public:
   RetinaFacePostProcess(std::string network = "net3", float nms = 0.4);
   ~RetinaFacePostProcess();
