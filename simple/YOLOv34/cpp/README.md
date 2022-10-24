@@ -39,7 +39,7 @@ nms thresh:nms阈值
 # 测试图片  
 ./yolov34_bmcv.pcie image ../../../data/images/Imagelist.txt ../configs/yolov4.cfg ../../../data/models/BM1684/yolov4_416_coco_fp32_1b.bmodel 4 0 0.5 0.45
 # 测试视频
-./yolov34_bmcv.pcie video ../../../data/video/videolist.txt ../configs/yolov4.cfg ../../../data/models/BM1684/yolov4_416_coco_fp32_1b.bmodel 300 0 0.5 0.45
+./yolov34_bmcv.pcie video ../../../data/videos/videolist.txt ../configs/yolov4.cfg ../../../data/models/BM1684/yolov4_416_coco_fp32_1b.bmodel 300 0 0.5 0.45
 ```
 
 根据模型修改conf thresh和nms thresh数值

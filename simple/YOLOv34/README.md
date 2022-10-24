@@ -26,13 +26,13 @@
 
 ​	同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
-​	本例程在`scripts`目录下提供了相关模型和测试数据的下载脚本`prepare.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
+​	本例程在`scripts`目录下提供了相关模型和测试数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
 - Remember to use your own anchors, mask and classes number config values in `cpp/yolov3.hpp` and `python/configs/*.yml`
 
 ```bash
 cd scripts
-./prepare.sh
+sudo ./download.sh
 ```
 
 ​	执行后，模型保存至`data/models`，数据集下载并解压至`data/images/`
