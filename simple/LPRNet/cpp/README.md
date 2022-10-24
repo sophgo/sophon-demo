@@ -69,8 +69,9 @@ SUMMARY: lprnet detect
 ## 2. SoC平台
 ## 2.1 环境准备
 对于SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下。
+
 ## 2.2 交叉编译
-通常在x86主机上交叉编译程序，使之能够在SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体可参考LIBSOPHON使用手册。本例程主要依赖libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4)运行库包。
+通常在x86主机上交叉编译程序，使之能够在SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../docs/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.md)。本例程主要依赖libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4)运行库包。
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件，lprnet_opencv和lprnet_bmcv编译方法相同，以编译lprnet_opencv程序为例：
 ```bash
