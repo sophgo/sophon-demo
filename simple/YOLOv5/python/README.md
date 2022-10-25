@@ -32,8 +32,8 @@
 
 **软件：**
 
-1. libsophon、sophon-opencv、sophon-ffmpeg，可按照[官网](https://developer.sophgo.com/site/index.html)说明，下载安装对应版本。
-2. sophon-sail的安装可参考[sophon-sail使用手册]()。 
+1. libsophon、sophon-opencv、sophon-ffmpeg，相应成果物可以联系技术支持获取或者通过官网获取
+2. sophon-sail的安装可参考工具包中说明文档 
 
 ### 2.2 SOC模式
 
@@ -41,8 +41,8 @@
 
 **软件：**
 
-1. 设备出厂一般会具备运行必备的环境，如果存在问题，可通过[官网](https://developer.sophgo.com/site/index/material/12/all.html)下载安装对应版本，进行固件升级。
-2. sophon-sail的安装可参考[sophon-sail使用手册]()。 
+1. 设备出厂一般会具备运行必备的环境，如果存在问题，可通过技术支持（或者官网）获取对应版本，进行固件升级。
+2. sophon-sail的安装可参考工具包中说明文档
 
 
 
@@ -78,12 +78,20 @@ optional arguments:
 
 ```bash
 # 测试单张图片
-python yolov5_opencv.py
+python3 yolov5_opencv.py
 ```
 
 
 
 ### 3.2 精度结果
+
+注意精度测试需要依赖`pycocotools`工具包，安装命令：
+
+```
+pip3 install pycocotools
+```
+
+
 
 #### 3.2.1 fp32bmodel精度
 
