@@ -34,6 +34,7 @@
 
 ```bash
 cd scripts
+chmod +x ./*
 ./1_1_prepare_model_val.sh
 ./1_2_prepare_test_data.sh
 ```
@@ -43,14 +44,14 @@ cd scripts
 ```
 下载的模型包括：
 ./models/
-├── fp32bmodel
-│   └── yolov5s_640_coco_v6.1_3output_fp32_1b.bmodel      # BM1684X fp32bmodel，[1 3 640 640]
-├── int8bmodel                                            # to do
+├── BM1684
+│   ├── yolov5s_640_coco_v6.1_3output_fp32_1b.bmodel
+│   └── yolov5s_640_coco_v6.1_3output_int8_1b.bmodel
+├── BM1684X
+│   ├── yolov5s_640_coco_v6.1_3output_fp32_1b.bmodel
+│   └── yolov5s_640_coco_v6.1_3output_int8_1b.bmodel
 └── torch
-    └── yolov5s_640_coco_v6.1_3output.torchscript.pt      # 官方trace后模型
-
-torch/yolov5s_640_coco_v6.1_3output.torchscript.pt        
-fp32bmodel/yolov5s_640_coco_v6.1_3output_fp32_1b.bmodel   
+    └── yolov5s_640_coco_v6.1_3output.torchscript.pt 
 
 下载的数据包括：
 images
@@ -81,16 +82,15 @@ videos
 
 ​	trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
 
-模型编译前需要安装tpu-nntc，具体可参考《TPU-NNTC开发参考手册》。
+​	模型编译前需要安装tpu-nntc，具体可参考tpu-nntc工具包中相关说明，工具包可以联系技术支持获取或者通过官网获取。
 
 ### 4.1 生成FP32 BModel
-
-​	pytorch模型编译为FP32 BModel，具体方法可参考[BMNETP 使用](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/nntc/html/usage/bmnetp.html)。
 
 ​	本例程在`scripts`目录下提供了编译FP32 BModel的脚本。请注意修改`2_1_gen_fp32bmodel.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684和BM1684X），如：
 
 ```bash
 cd scripts
+chmod +x ./*
 ./2_1_gen_fp32bmodel.sh BM1684X
 ```
 
@@ -100,18 +100,17 @@ cd scripts
 
 ​	不量化模型可跳过本节。
 
-​	pytorch模型的量化方法可参考[Quantization-Tools User Guide](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/calibration-tools/html/index.html)
-
 ​	本例程在`scripts`目录下提供了量化INT8 BModel的脚本。请注意修改`2_2_gen_int8bmodel.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684和BM1684X），如：
 
 ```shell
 cd scripts
+chmod +x ./*
 ./2_2_gen_int8bmodel.sh BM1684X
 ```
 
 ​	上述脚本会在`data/models/int8bmodel/BM1684X`下生成`yolov5_int8_1b.bmodel`文件，即转换好的INT8 BModel。
 
-> **YOLOv5模型量化建议（也可参考[官方量化手册指导](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/calibration-tools/html/module/chapter7.html)）：**
+> **YOLOv5模型量化建议：**
 >
 > 1. 制作lmdb量化数据集时，通过convert_imageset.py完成数据的预处理；
 > 2. 尝试不同的iterations进行量化可能得到较明显的精度提升；
