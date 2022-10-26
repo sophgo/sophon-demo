@@ -51,14 +51,14 @@ JIT（Just-In-Time）是一组编译工具，用于弥合PyTorch研究与生产�
 
 ```bash
 # 下载dlav0作为主干网的预训练模型
-cd examples/simple/CenterNet/scripts/
+cd simple/CenterNet/scripts/
 ./download.sh
 # download.sh 同时会下载原始模型，转换及量化后的bmodel，量化数据集以及测试图片
 # 原始模型下载成功后，文件位于../data/models/torch/ctdet_coco_dlav0_1x.pth
 ```
 
 #### dlav0.py网络修改说明
-当前目录下dlav0.py，是从[CenterNet源码](https://github.com/xingyizhou/CenterNet)中，修改dlav0.py中DLASeg类forward方法的返回值后得到的。
+tools/目录下dlav0.py，是从[CenterNet源码](https://github.com/xingyizhou/CenterNet)中，修改dlav0.py中DLASeg类forward方法的返回值后得到的。
 ```python
 #return [ret]
 return torch.cat((ret['hm'], ret['wh'], ret['reg']), 1) 
@@ -68,6 +68,7 @@ return torch.cat((ret['hm'], ret['wh'], ret['reg']), 1)
 #### JIT模型生成
 直接运行export.py即可
 ```bash
+pip3 install torch torchvision
 cd ../tools
 python3 export.py
 ```
@@ -89,11 +90,12 @@ python3 export.py
 
 ## 4. 模型编译与量化
 
-模型转换的过程需要在x86下的docker开发环境中完成。以下操作均在x86下的docker开发环境中完成。
+建议模型转换的过程在tpu-nntc提供的x86下的docker开发环境中完成。请访问算能官网下载安装tpu-nntc，并按照《TPU-NNTC快速入门指南》配置并进入docker环境。以下操作均在x86下的docker开发环境中完成。
 
 ### 4.1 生成FP32 BModel
 
 ```bash
+cd ../scripts
 ./gen_fp32bmodel.sh BM1684
 ```
 
