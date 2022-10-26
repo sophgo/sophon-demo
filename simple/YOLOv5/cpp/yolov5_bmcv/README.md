@@ -3,9 +3,14 @@
 # C++例程
 - [C++例程](#c例程)
   - [1. 目录说明](#1-目录说明)
-  - [2. 环境](#2-环境)
-  - [3. 程序编译](#3-程序编译)
-  - [4. 测试](#4-测试)
+  - [2.程序编译](#2程序编译)
+  - [2. 1 PCIE模式](#2-1-pcie模式)
+    - [2.1.1 环境](#211-环境)
+    - [2.1.2 程序编译](#212-程序编译)
+  - [2. 2 SOC模式](#2-2-soc模式)
+    - [2.2.1 环境](#221-环境)
+    - [2.2.2 程序编译](#222-程序编译)
+  - [3. 测试](#3-测试)
 
 ## 1. 目录说明
 
@@ -32,7 +37,7 @@ yolov5_bmcv
 
 ​	硬件：x86平台，并安装了1684X PCIE加速卡
 
-​	软件：libsophon、sophon-opencv、sophon-ffmpeg，可通过[官网](https://www.sophgo.com/site/index.html)下载安装对应版本
+​	软件：libsophon、sophon-opencv、sophon-ffmpeg，可联系技术支持获取
 
 ### 2.1.2 程序编译
 
@@ -61,9 +66,9 @@ yolov5_bmcv
 
 ​	硬件：x86平台(交叉编译)
 
-​	软件：libsophon、sophon-opencv、sophon-ffmpeg，可通过[官网](https://www.sophgo.com/site/index.html)下载安装对应版本
+​	软件：libsophon、sophon-mw、sophon-img，相应成果物请联系技术支持进行获取
 
-​	编译工具链：aarch64-linux-gnu，可参考《LIBSOPHON使用手册》手册中SOC MODE章节说明进行安装
+​	编译工具链：aarch64-linux-gnu，可参考《LIBSOPHON使用手册》手册中SOC MODE章节说明进行安装（注意lib、include的准备）
 
 ### 2.2.2 程序编译
 
@@ -131,3 +136,4 @@ Usage: yolov5_demo.pcie/soc [params]
 
 1. 程序执行完毕后，会通过终端打印的方式给出各阶段耗时
 2. 耗时统计存在略微波动属于正常现象
+2. CPP传参与python不同，需要用等于号，例如：`./yolov5_demo.pcie --bmodel=xxx`
