@@ -95,7 +95,7 @@ yolov5_bmcv
 
 ## 3. 测试
 
-可执行程序默认有一套参数，您也可以根据具体情况传入,具体参数说明如下：
+可执行程序默认有一套参数，，请注意根据实际情况进行传参，具体参数说明如下：
 
 ```bash
 Usage: yolov5_demo.pcie/soc [params]
@@ -136,4 +136,4 @@ Usage: yolov5_demo.pcie/soc [params]
 
 1. 程序执行完毕后，会通过终端打印的方式给出各阶段耗时
 2. 耗时统计存在略微波动属于正常现象
-2. CPP传参与python不同，需要用等于号，例如：`./yolov5_demo.pcie --bmodel=xxx`
+3. CPP传参与python不同，需要用等于号，例如：`./yolov5_demo.pcie --bmodel=xxx`
