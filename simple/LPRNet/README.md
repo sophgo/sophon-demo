@@ -33,7 +33,7 @@ LPRNet的优点可以总结为如下三点：
 [CCPD](https://github.com/detectRecog/CCPD)，是由中科大团队构建的一个用于车牌识别的大型国内停车场车牌数据集。该数据集在合肥市的停车场采集得来，采集时间早上7:30到晚上10:00。停车场采集人员手持Android POS机对停车场的车辆拍照并手工标注车牌位置。拍摄的车牌照片涉及多种复杂环境，包括模糊、倾斜、阴雨天、雪天等等。CCPD数据集一共包含将近30万张图片，每种图片大小720x1160x3。
 
 ## 3. 准备模型与数据
-Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel。trace的方法和原理可参考[torch.jit.trace参考文档](../docs/torch.jit.trace%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3.md)。
+Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel。trace的方法和原理可参考[torch.jit.trace参考文档](../docs/torch.jit.trace_Guide.md)。
 
 同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
@@ -78,7 +78,7 @@ test_md5_lmdb: 用于量化的lmdb数据集
 
 trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
 
-模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考TPU-NNTC开发参考手册。
+模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
 
 ### 4.1 生成FP32 BModel
 
