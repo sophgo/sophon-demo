@@ -113,7 +113,7 @@ def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None):
         if classes_ids is not None and conf_scores is not None:
             classes_ids = classes_ids.astype(np.int8)
             cv2.putText(image, COCO_CLASSES[classes_ids[idx] + 1] + ':' + str(round(conf_scores[idx], 2)),
-                        (left, top - 5),
+                        (left, top + height - 5),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), thickness=2)
         if masks is not None:
             mask = masks[:, :, idx]

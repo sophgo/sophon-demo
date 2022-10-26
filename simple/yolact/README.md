@@ -29,13 +29,14 @@ YOLACT是一种实时的实例分割的方法。
 
 ## 3 准备环境与数据
 
-Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel。trace的方法和原理可参考[torch.jit.trace参考文档](../docs/torch.jit.trace%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3.md)。
+Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel。trace的方法和原理可参考[torch.jit.trace参考文档](../docs/torch.jit.trace_Guide.md)。
 
 同时，您需要准备用于测试的数据。
 
 本例程在`${yolact}/scripts`目录下提供了相关模型和数据集的下载脚本，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
 ```bash
+chmod +x ./*
 ./scripts/00_prepare_test_data.sh
 ./scripts/01_prepare_model.sh
 ```
@@ -69,7 +70,7 @@ data
 
 trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
 
-模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考《TPU-NNTC开发参考手册》。注：需要获取《TPU-NNTC开发参考手册》，请联系技术支持。
+模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
 
 下面我们以`yolact_base_54_800000`模型为例，介绍如何完成模型的编译。
 
@@ -84,6 +85,7 @@ pytorch模型编译为FP32 BModel，具体方法可参考《TPU-NNTC开发参考
 ```bash
 # 编译BM1684模型： ./scripts/10_gen_fp32bmodel.sh BM1684
 # 编译BM1684X模型： ./scripts/10_gen_fp32bmodel.sh BM1684X
+chmod +x ./*
 ./scripts/10_gen_fp32bmodel.sh BM1684X
 ```
 
