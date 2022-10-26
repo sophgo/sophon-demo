@@ -10,7 +10,7 @@ cpp目录下提供了一系列C++例程以供参考使用，具体情况如下�
 
 ## 1.1 环境准备
 
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4)。libsophon的安装可参考LIBSOPHON使用手册，sophon-opencv和sophon-ffmpeg的安装可参考multimedia开发参考手册。
+如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4)。libsophon的安装可参考LIBSOPHON使用手册，sophon-opencv和sophon-ffmpeg的安装可参考MULTIMEDIA使用手册。
 
 ## 1.2 程序编译
 C++程序需要编译可执行文件，lprnet_opencv和lprnet_bmcv编译方法相同，以编译lprnet_opencv程序为例：
@@ -71,7 +71,7 @@ SUMMARY: lprnet detect
 对于SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下。
 
 ## 2.2 交叉编译
-通常在x86主机上交叉编译程序，使之能够在SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../docs/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.md)。本例程主要依赖libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4)运行库包。
+通常在x86主机上交叉编译程序，使之能够在SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../docs/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.md。本例程主要依赖libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4)运行库包。
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件，lprnet_opencv和lprnet_bmcv编译方法相同，以编译lprnet_opencv程序为例：
 ```bash
@@ -84,13 +84,13 @@ make # 生成lprnet_opencv.soc
 
 ## 2.3 测试命令
 将生成的可执行文件及所需的模型、测试图片拷贝到SoC目标平台中测试，测试方法请参考x86 PCIe平台的[1.3 测试命令](#13-测试命令)。
+
 ## 3. 精度与性能测试
 
 ### 3.1 精度测试
-本例程在`tools`目录下提供了`eval.py`脚本，可以将预测结果的json文件与测试集标签的json文件进行对比，计算出车牌识别准确率。具体的测试命令如下：
+本例程在`tools`目录下提供了`eval.py`脚本，可以将前面生成的预测结果json文件与测试集标签的json文件进行对比，计算出车牌识别准确率。具体的测试命令如下：
 ```bash
-cd ../../..
-# 请根据实际情况修改json文件路径
+# 请根据实际情况修改程序路径和json文件路径
 python3 tools/eval.py --label_json data/images/test_label.json --result_json cpp/lprnet_opencv/build/results/lprnet_fp32_1b.bmodel_test_opencv_cpp_result.json
 ```
 执行完成后，会打印出车牌识别的准确率：
