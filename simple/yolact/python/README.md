@@ -56,14 +56,14 @@ usage: yolact_bmcv.py [-h] [--cfgfile CFGFILE] [--model MODEL] [--dev_id DEV_ID]
 optional arguments:
   -h, --help            show this help message and exit
   --cfgfile CFGFILE     model config file					# 模型.cfg配置文件
-  --model MODEL         bmodel path							# 模型bmodel文件
+  --model MODEL         bmodel path							# 模型bmodel文件。如果is_video为True，只支持使用batchsize=1的模型
   --dev_id DEV_ID       device id							# 设备id
   --conf_thresh CONF_THRESH
                         confidence threshold				# conf阈值，默认为0.5
   --nms_thresh NMS_THRESH
                         nms threshold						# nms阈值，默认为0.5
   --keep KEEP           keep top-k							# top-k数量，默认为100
-  --is_video IS_VIDEO   input is video?						# 输入数据是否为视频，0：输入为图像，1：输入为视频。默认为0
+  --is_video IS_VIDEO   input is video?						# 输入数据是否为视频，0：输入为图像，1：输入为视频。默认为0。
   --input_path INPUT_PATH
                         input path							# 输入图像或视频路径 	
   --output_dir OUTPUT_DIR
@@ -80,10 +80,10 @@ cd ${YOLACT}/python
 
 # 以yoloact base 1684X为例
 # image
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_b1.bmodel --input_path ../data/images/
+python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_1b.bmodel --input_path ../data/images/
 
-# video
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_b1.bmodel --is_video 1 --input_path ../data/videos/road.mp4 --video_detect_frame_num 10
+# video 只支持使用batchsize=1的模型
+python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_1b.bmodel --is_video 1 --input_path ../data/videos/road.mp4 --video_detect_frame_num 10
 
 # PCIe模式下如果需要使用yolact_trace_pt.py、yolact_onnx.py测试，请自行安装pytorch、onnx环境
 # 如果使用yolact_trace_pt.py测试，<model>为JIT模型路径，结果将保存在results/results_trace_pt目录下
@@ -108,10 +108,10 @@ cd ${YOLACT}/python
 
 # 以yoloact base 1684X为例
 # image
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_b1.bmodel --input_path ../data/images/
+python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_1b.bmodel --input_path ../data/images/
 
-# video
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_b1.bmodel --is_video 1 --input_path ../data/videos/road.mp4 --video_detect_frame_num 10
+# video 只支持使用batchsize=1的模型
+python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_1b.bmodel --is_video 1 --input_path ../data/videos/road.mp4 --video_detect_frame_num 10
 
 # SoC模式下不具备pytorch、onnx环境，不建议使用yolact_trace_pt.py、yolact_onnx.py测试
 ```
