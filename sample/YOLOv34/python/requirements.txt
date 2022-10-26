@@ -1,0 +1,4 @@
+easydict
+opencv-python
+pillow
+pyyaml
