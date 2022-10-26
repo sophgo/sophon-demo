@@ -49,7 +49,7 @@ videos/test_car_person.mp4: 测试视频
 
 ## 4. 模型编译
 
-模型编译前需要安装tpu-nntc，具体可参考[TPU-NNTC开发参考手册]()。
+模型编译前需要安装tpu-nntc，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
 
 ### 4.1 生成FP32 BModel
 
