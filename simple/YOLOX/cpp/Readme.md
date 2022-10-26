@@ -7,8 +7,8 @@
 ### Environment configuration 
 
 ```shell
-libsophon sophon-ffmpeg sophon-opencv sophon-sail should be download and install
-configure the include and lib path in Makefile.pcie
+libsophon sophon-ffmpeg sophon-opencv sophon-sail should be download and installed. For details, see [x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)。
+
 ```
 ### Build example
 ```
@@ -48,8 +48,7 @@ for video, save picture count is batch_size*loops, name is frame_[frame idx]_dev
 ### Environment configuration
 
 ```shell
-libsophon-soc sophon-ffmpeg-soc sophon-opencv-soc sophon-sail should be download and install
-configure the include and lib path in Makefile.arm
+You need to use the SOPHON SDK on the x86 host to build a cross compilation environment, and package the header files and library files that the program depends on into the soc sdk directory. For details, see [交叉编译环境搭建](../../docs/Environment_Install_Guide.md#31-交叉编译环境搭建).
 ```
 
 ### Build example

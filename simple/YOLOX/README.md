@@ -78,6 +78,8 @@ YOLOx由旷世研究提出,是基于YOLO系列的改进。
 
  SophonSDK中的PyTorch模型编译工具BMNETP只接受PyTorch的JIT模型（TorchScript模型）.
 
+ Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel。trace的方法和原理可参考[torch.jit.trace参考文档](../docs/torch.jit.trace_Guide.md)。
+
  JIT（Just-In-Time）是一组编译工具，用于弥合PyTorch研究与生产之间的差距。它允许创建可以在不依赖Python解释器的情况下运行的模型，并且可以更积极地进行优化。在已有PyTorch的Python模型（基类为torch.nn.Module）的情况下，通过torch.jit.trace就可以得到JIT模型,如`torch.jit.trace(python_model, torch.rand(input_shape)).save('jit_model')`。BMNETP暂时不支持带有控制流操作（如if语句或循环）的JIT模型，因此不能使用`torch.jit.script`，而要使用`torch.jit.trace`，它仅跟踪和记录张量上的操作，不会记录任何控制流操作。这部分操作YOLOX已经为我们写好，只需运行如下命令即可导出符合要求的JIT模型：
 
 - YOLOX-s
@@ -116,7 +118,7 @@ YOLOx由旷世研究提出,是基于YOLO系列的改进。
 - 使用opencv做resize and padding
 
   ```bash
-  python3 image_resize.py --ost_path=${OST_DATA_PATH} --dst_path=${RESIZE_DATA_PATH} --dst_width=640 --dst_height=640
+  python3 ./tools/image_resize.py --ost_path=${OST_DATA_PATH} --dst_path=${RESIZE_DATA_PATH} --dst_width=640 --dst_height=640
   ```
   结果图片将保存在`${RESIZE_DATA_PATH}`中
 
@@ -124,7 +126,7 @@ YOLOx由旷世研究提出,是基于YOLO系列的改进。
 ### 3.2.3 生成lmdb数据
 
   ```bash
-    python3 ../../calibration/create_lmdb_demo/convert_imageset.py \
+    python3 ./tools/convert_imageset.py \
         --imageset_rootfolder=${RESIZE_DATA_PATH} \
         --imageset_lmdbfolder=${LMDB_PATH} \
         --resize_height=640 \
@@ -140,7 +142,7 @@ YOLOx由旷世研究提出,是基于YOLO系列的改进。
 
 模型转换的过程需要在x86下的docker开发环境中完成。fp32模型的运行验证可以在挂载有PCIe加速卡的x86-docker开发环境中进行，也可以在盒子中进行，且使用的原始模型为JIT模型。下面以YOLOX-s为例，介绍如何完成模型的转换。
 
-模型编译前需要安装tpu-nntc，具体可参考[TPU-NNTC开发参考手册]()。
+模型编译前需要安装tpu-nntc，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
 
 ### 4.1 使用脚本快速生成BMODEL
 
