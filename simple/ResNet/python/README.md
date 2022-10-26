@@ -9,7 +9,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 ## 1. x86 PCIe平台
 ## 1.1 环境准备
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装sophon-inference，具体可参考[sophon-inference使用手册]()。
+如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)、sophon-ffmpeg(>=0.2.4)和sophon-sail(>=3.1.0),具体请参考[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)。
 
 ## 1.2 测试命令
 resnet_opencv.py和resnet_bmcv.py的命令参数相同，以resnet_opencv.py的推理为例，参数说明如下：
@@ -51,7 +51,7 @@ INFO:root:average latency time(ms): 21.84, QPS: 45.785344
 ## 2. arm SoC平台
 ## 2.1 环境准备
 
-如果您使用SoC平台测试本例程，您需要安装sophon-sail，具体可参考[sophon-sail用手册](https://gerrit-ai.sophgo.vip:8443/plugins/gitblit/blob/?r=sophon-examples.git&f=simple/LPRNet/python/README.md&h=master)。
+如果您使用SoC平台测试本例程，您需要交叉编译安装sophon-sail(>=3.1.0)，具体可参考[交叉编译安装sophon-sail](../../docs/Environment_Install_Guide.md#32-交叉编译安装sophon-sail)。
 此外您可能还需要安装其他第三方库：
 
 ```bash

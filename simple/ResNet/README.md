@@ -32,7 +32,7 @@
 
 
 ## 3. 准备模型与数据
-Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel。trace的方法和原理可参考[torch.jit.trace参考文档](https://pytorch.org/docs/stable/generated/torch.jit.trace.html)。
+Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel。trace的方法和原理可参考[torch.jit.trace参考文档](../docs/torch.jit.trace_Guide.md)。
 
 同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
@@ -85,7 +85,7 @@ label.txt：标签文件
 
 trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
 
-模型编译前需要安装tpu-nntc，具体可参考[TPU-NNTC开发参考手册]()。
+模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
 
 ### 4.1 生成FP32 BModel
 

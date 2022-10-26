@@ -11,7 +11,7 @@ cpp目录下提供了一系列C++例程以供参考使用，具体情况如下�
 
 ## 1.1 环境准备
 
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装 libsophon、sophon-opencv和sophon-ffmpeg。libsophon的安装可参考[LIBSOPHON使用手册]()，sophon-opencv和sophon-ffmpeg的安装可参考[multimedia开发参考手册]()。
+如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4),具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)。
 
 您可能还需要安装其他第三方库：
 ```bash
@@ -75,7 +75,7 @@ SUMMARY: resnet infer
 ## 2.1 环境准备
 对于arm SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下。
 ## 2.2 交叉编译
-通常在x86主机上交叉编译程序，使之能够在arm SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体可参考[LIBSOPHON使用手册]()。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
+通常在x86主机上交叉编译程序，使之能够在SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../docs/Environment_Install_Guide.md#31-交叉编译环境搭建)。本例程主要依赖libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4)运行库包
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件，resnet_opencv和resnet_bmcv编译方法相同，以编译resnet_opencv程序为例：
 ```bash
