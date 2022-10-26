@@ -10,14 +10,14 @@ Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移
 |---|---|---|---|---|---|
 | [LPRNet](./simple/LPRNet/README.md) | 车牌识别 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
 | [ResNet](./simple/ResNet/README.md) | 图像分类 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
-| [RetinaFace](./simple/RetinaFace/README.md) | 人脸检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
+| [RetinaFace](./simple/RetinaFace/README.md) | 人脸检测 | C++/Python | FP32 | YES | BMCV/OpenCV |
 | [YOLOv5](./simple/YOLOv5/README.md) | 目标检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
 | [yolact](./simple/yolact/README.md) | 实例分割 | Python | FP32 | YES | BMCV/OpenCV |
 | [PP-OCR](./simple/PP-OCR/README.md) | OCR | Python | FP32 | YES | OpenCV |
-| [YOLOv34](./simple/YOLOv34/README.md) | 目标检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
+| [YOLOv34](./simple/YOLOv34/README.md) | 目标检测 | C++/Python | FP32/INT8 | NO | BMCV/OpenCV |
 | [YOLOX](./simple/YOLOX/README.md) | 目标检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
 | [SSD](./simple/SSD/README.md) | 目标检测 | C++/Python | FP32/INT8 | NO | BMCV/OpenCV |
-| [CenterNet](./simple/CenterNet/README.md) | 目标检测、姿态识别 | C++/Python | FP32/INT8 | YES | OpenCV |
+| [CenterNet](./simple/CenterNet/README.md) | 目标检测、姿态识别 | C++/Python | FP32/INT8 | YES | BMCV |
 
 ## 版本说明
 | 版本 | 说明 | 
@@ -25,10 +25,10 @@ Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移
 | 0.1.0	 | 适配BM1684X(x86 PCIe、SoC)，BM1684(x86 PCIe、SoC) |
 
 ## 环境依赖
-Sophon Demo主要依赖libsophon、sophon-ffmpeg、sophon-opencv，其版本要求如下：
-|sophon-demo|libsophon|sophon-ffmpeg|sophon-opencv|
-|---|---|---|---|
-| 0.1.0 | >=0.3.0 | >=0.2.4 | >=0.2.4 |
+Sophon Demo主要依赖libsophon、sophon-ffmpeg、sophon-opencv、sophon-sail，其版本要求如下：
+|sophon-demo|libsophon|sophon-ffmpeg|sophon-opencv|sophon-sail|
+|---|---|---|---|---|
+| 0.1.0 | >=0.3.0 | >=0.2.4 | >=0.2.4 | >=3.1.0 |
 > **注意**：不同例程对版本的要求可能存在差异，具体以例程的README为准，可能需要安装其他第三方库。
 
 ## 技术资料
