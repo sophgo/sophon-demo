@@ -8,7 +8,7 @@ cpp目录下提供了一系列C++例程以供参考使用，具体情况如下�
 ## 1. x86 PCIe 平台
 
 ## 1.1 环境准备
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4)。libsophon的安装可参考[LIBSOPHON使用手册]()，sophon-opencv和sophon-ffmpeg的安装可参考[multimedia开发参考手册]()。
+如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4),具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)。
 
 ## 1.2 程序编译
 C++程序需要编译可执行文件，
@@ -38,7 +38,7 @@ $ ./retinaface_bmcv.pcie 0 ../../../data/images/face ../../../data/models/BM1684
 执行完毕后，结果图片文件保存在`results/`文件夹中。
 
 # 视频模式，1batch，fp32
-# videolist.txt的每一行是一个mp4视频路径或者一个rtsp url
+# videolist.txt的每一行是一个mp4视频路径或者一个rtsp url, 请根据实际情况进行修改
 # videolist.txt的视频数和模型的batch数相等
 $ ./retinaface_bmcv.pcie 1 ../../../data/videos/videolist.txt  ../../../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel
 ```
@@ -53,7 +53,7 @@ $ ./retinaface_bmcv.pcie 1 ../../../data/videos/videolist.txt  ../../../data/mod
 对于SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下。
 
 ## 2.2 交叉编译
-通常在x86主机上交叉编译程序，使之能够在SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体可参考[LIBSOPHON使用手册]()。本例程主要依赖libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4)运行库包。
+通常在x86主机上交叉编译程序，使之能够在SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../docs/Environment_Install_Guide.md#31-交叉编译环境搭建)。本例程主要依赖libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4)运行库包。
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件。
 编译retinaface_bmcv方法如下：
