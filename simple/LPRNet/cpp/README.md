@@ -117,12 +117,12 @@ bmrt_test --bmodel {path_of_bmodel}
 |   --------    | ---- | -------  | ----- |  -----  | -----    | --- |
 | lprnet_opencv | fp32 |   1      | 88.2% |  0.8ms  |  0.7ms   | 620 |
 | lprnet_opencv | fp32 |   4      | 89.3% |  0.7ms  |  0.7ms   | 660 |
-| lprnet_opencv | int8 |   1      | 87.3% |  0.3ms  |  0.2ms   | 950 |
-| lprnet_opencv | int8 |   4      | 88.2% |  0.2ms  |  0.2ms   | 1000 |
+| lprnet_opencv | int8 |   1      | 87.4% |  0.3ms  |  0.2ms   | 950 |
+| lprnet_opencv | int8 |   4      | 87.9% |  0.2ms  |  0.2ms   | 1000 |
 | lprnet_bmcv   | fp32 |   1      | 88.2% |  0.8ms  |  0.8ms   | 660 |
 | lprnet_bmcv   | fp32 |   4      | 89.3% |  0.7ms  |  0.7ms   | 700 |
-| lprnet_bmcv   | int8 |   1      | 87.3% |  0.3ms  |  0.2ms   | 1050 |
-| lprnet_bmcv   | int8 |   4      | 88.2% |  0.2ms  |  0.2ms   | 1150 |
+| lprnet_bmcv   | int8 |   1      | 87.4% |  0.3ms  |  0.2ms   | 1050 |
+| lprnet_bmcv   | int8 |   4      | 87.9% |  0.2ms  |  0.2ms   | 1150 |
 
 在BM1684 SoC上，不同例程、不同模型的精度和性能测试结果如下：
 
@@ -130,12 +130,12 @@ bmrt_test --bmodel {path_of_bmodel}
 |   --------    | ---- | -------  | ----- |  -----  | -----    | --- |
 | lprnet_opencv | fp32 |   1      | 88.0% |  1.7ms  |  1.6ms   | 400 |
 | lprnet_opencv | fp32 |   4      | 89.2% |  0.9ms  |  0.9ms   | 600 |
-| lprnet_opencv | int8 |   1      | 87.7% |  0.7ms  |  0.7ms   | 660 |
-| lprnet_opencv | int8 |   4      | 88.8% |  0.3ms  |  0.2ms   | 960 |
+| lprnet_opencv | int8 |   1      | 87.3% |  0.7ms  |  0.7ms   | 660 |
+| lprnet_opencv | int8 |   4      | 88.4% |  0.3ms  |  0.2ms   | 960 |
 | lprnet_bmcv   | fp32 |   1      | 88.0% |  1.7ms  |  1.6ms   | 400 |
 | lprnet_bmcv   | fp32 |   4      | 89.2% |  0.9ms  |  0.9ms   | 620 |
-| lprnet_bmcv   | int8 |   1      | 87.7% |  0.7ms  |  0.7ms   | 660 |
-| lprnet_bmcv   | int8 |   4      | 88.8% |  0.3ms  |  0.2ms   | 1000 |
+| lprnet_bmcv   | int8 |   1      | 87.3% |  0.7ms  |  0.7ms   | 660 |
+| lprnet_bmcv   | int8 |   4      | 88.4% |  0.3ms  |  0.2ms   | 1000 |
 ```
 bmrt_test: 每张图片的理论推理时间；
 infer_time: 程序运行时每张图片的网络推理时间；

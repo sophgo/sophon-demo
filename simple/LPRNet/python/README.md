@@ -88,23 +88,23 @@ bmrt_test --bmodel {path_of_bmodel}
 |   ----------  | ---- | -------  | ----- |  -----  | -----    | --- |
 | lprnet_opencv | fp32 |   1      | 89.4% |  0.8ms  |  1.2ms   | 450 |
 | lprnet_opencv | fp32 |   4      | 90.1% |  0.7ms  |  0.9ms   | 650 |
-| lprnet_opencv | int8 |   1      | 88.8% |  0.3ms  |  0.7ms   | 580 |
-| lprnet_opencv | int8 |   4      | 89.6% |  0.2ms  |  0.4ms   | 1000 |
+| lprnet_opencv | int8 |   1      | 88.7% |  0.3ms  |  0.7ms   | 580 |
+| lprnet_opencv | int8 |   4      | 89.8% |  0.2ms  |  0.4ms   | 1000 |
 | lprnet_bmcv   | fp32 |   1      | 87.9% |  0.8ms  |  0.9ms   | 420 |
 | lprnet_bmcv   | fp32 |   4      | 88.2% |  0.7ms  |  0.8ms   | 530 |
 | lprnet_bmcv   | int8 |   1      | 87.6% |  0.3ms  |  0.3ms   | 580 |
-| lprnet_bmcv   | int8 |   4      | 87.7% |  0.2ms  |  0.2ms   | 750 |
+| lprnet_bmcv   | int8 |   4      | 87.8% |  0.2ms  |  0.2ms   | 750 |
 
 在BM1684 SoC上，不同例程、不同模型的精度和性能测试结果如下：
 |       例程    | 精度 |batch_size|  ACC  |bmrt_test|infer_time| QPS |
 |   ----------  | ---- | -------  | ----- |  -----  | -----    | --- |
 | lprnet_opencv | fp32 |   1      | 89.4% |  1.7ms  |  2.1ms   | 320 |
 | lprnet_opencv | fp32 |   4      | 90.1% |  0.9ms  |  1.1ms   | 600 |
-| lprnet_opencv | int8 |   1      | 88.8% |  0.7ms  |  1.1ms   | 480 |
-| lprnet_opencv | int8 |   4      | 89.6% |  0.3ms  |  0.4ms   | 950 |
+| lprnet_opencv | int8 |   1      | 88.7% |  0.7ms  |  1.1ms   | 480 |
+| lprnet_opencv | int8 |   4      | 89.8% |  0.3ms  |  0.4ms   | 950 |
 | lprnet_bmcv   | fp32 |   1      | 88.2% |  1.7ms  |  1.8ms   | 300 |
 | lprnet_bmcv   | fp32 |   4      | 88.2% |  0.9ms  |  0.9ms   | 480 |
-| lprnet_bmcv   | int8 |   1      | 87.4% |  0.7ms  |  0.8ms   | 430 |
+| lprnet_bmcv   | int8 |   1      | 87.1% |  0.7ms  |  0.8ms   | 430 |
 | lprnet_bmcv   | int8 |   4      | 87.8% |  0.3ms  |  0.3ms   | 680 |
 
 ```
