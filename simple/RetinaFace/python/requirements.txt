@@ -1,5 +1,0 @@
-Cython
-loguru
-prettytable
-tqdm
-scipy
