@@ -36,7 +36,7 @@ Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能
 本例程在`${yolact}/scripts`目录下提供了相关模型和数据集的下载脚本，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
 ```bash
-chmod +x ./*
+chmod +x ./scripts/*
 ./scripts/00_prepare_test_data.sh
 ./scripts/01_prepare_model.sh
 ```
@@ -85,7 +85,7 @@ pytorch模型编译为FP32 BModel，具体方法可参考《TPU-NNTC开发参考
 ```bash
 # 编译BM1684模型： ./scripts/10_gen_fp32bmodel.sh BM1684
 # 编译BM1684X模型： ./scripts/10_gen_fp32bmodel.sh BM1684X
-chmod +x ./*
+chmod +x ./scripts/*
 ./scripts/10_gen_fp32bmodel.sh BM1684X
 ```
 
