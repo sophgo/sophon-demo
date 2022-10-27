@@ -37,14 +37,14 @@ python
 
 ### 1.1 环境准备
 
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程。本例程需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，版本要求如下表所示。libsophon的安装可参考《LIBSOPHON使用手册》，sophon-opencv和sophon-ffmpeg的安装可参考《multimedia开发参考手册》，sophon-sail的安装可参考《sophon-sail使用手册》。注：需要获取《LIBSOPHON使用手册》、《multimedia开发参考手册》和《sophon-sail使用手册》，请联系技术支持。
+如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)、sophon-ffmpeg(>=0.2.4)和sophon-sail(>=3.1.0)。具体请参考[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)。
 
-| 依赖          | 版本    |
-| ------------- | ------- |
-| libsophon     | >=0.3.0 |
-| sophon-opencv | >=0.2.4 |
-| sophon-ffmpeg | >=0.2.4 |
-| sophon-sail   | >=3.0.1 |
+此外您可能还需要安装其他第三方库：
+
+```bash
+pip3 install opencv-python==3.4.10.37
+pip3 install opencv-python-headless
+```
 
 ### 1.2 测试命令
 
@@ -94,7 +94,13 @@ python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/
 
 ### 2.1 环境准备
 
-如果您使用SoC平台测试本例程，您需要安装sophon-sail(>=3.0.1)，具体可参考《sophon-sail用手册》。注：需要获取《sophon-sail用手册》，请联系技术支持。
+如果您使用SoC平台测试本例程，您需要交叉编译安装sophon-sail(>=3.1.0)，具体可参考[交叉编译安装sophon-sail](../../docs/Environment_Install_Guide.md#32-交叉编译安装sophon-sail)。
+此外您可能还需要安装其他第三方库：
+
+```bash
+pip3 install opencv-python==3.4.10.37
+pip3 install opencv-python-headless
+```
 
 ### 2.2 测试命令
 
