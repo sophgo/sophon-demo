@@ -26,7 +26,7 @@ python例程不需要编译，可以直接运行。yolov34_opencv.py和yolov34_b
 ```bash
 usage:yolov34_opencv.py [--config file CONFIG_PATH] [--input IMAGE_PATH]
 # default: --cfgfile=configs/yolov4_416.yml --input=../data/images/person.jpg
---cfgfile=<config file> config文件目录（修改yml文件更改默认bmodel路径）
+--cfgfile=<config file> config文件目录（请根据实际情况修改yml文件中的ENGINE_FILE的参数值，从而更改默认bmodel路径,若有其余需要也请修改yml中相关参数）
 --input=<image file path>推理图片路径，仅单张图
 #$ python3 yolov34_opencv.py --help # show help info
 ```
