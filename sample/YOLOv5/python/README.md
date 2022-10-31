@@ -40,6 +40,7 @@
 
 1. libsophon、sophon-opencv、sophon-ffmpeg，相应成果物可以联系技术支持获取或者通过官网获取
 2. sophon-sail的安装可参考工具包中说明文档 
+3. 其他依赖详见各自文件夹下的`requirements.txt`，采用`pip3 install -r requirements.txt`进行安装
 
 ### 2.2 SOC模式
 
@@ -49,6 +50,7 @@
 
 1. 设备出厂一般会具备运行必备的环境，如果存在问题，可通过技术支持（或者官网）获取对应版本，进行固件升级。
 2. sophon-sail的安装可参考工具包中说明文档
+3. 其他依赖详见各自文件夹下的`requirements.txt`，采用`pip3 install -r requirements.txt`进行安装
 
 
 

@@ -60,6 +60,7 @@ function download_val_dataset()
   fi
 
   if [ ! -d "coco" ]; then
+    command -v unzip > /dev/null 2>&1 || { echo "Error: please install unzip firstly"; exit -1; }
     echo "unzip coco2017val.zip"
     unzip coco2017val.zip
   fi
