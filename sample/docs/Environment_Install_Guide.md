@@ -121,7 +121,7 @@ source /etc/profile
     ```
 
 
-5. 打包生成python whell,生成的whell包的路径为`python/pcie/dist`,文件名为`sophon-master-py3-none-any.whl`
+5. 打包生成python whell,生成的whell包的路径为`python/pcie/dist`
 
     ```bash
     cd ../python/pcie 
@@ -132,6 +132,7 @@ source /etc/profile
 6. 安装python whell  
 
     ```bash
+    # 需根据实际生成的whell包修改其文件名
     pip3 install ./dist/sophon-master-py3-none-any.whl --force-reinstall 
     ```
 
@@ -193,21 +194,40 @@ source /etc/profile
 
 3. 执行编译命令
 
-    使用指定的python3,通过交叉编译的方式,编译出包含bmcv,sophon-ffmpeg,sophon-opencv的SAIL,python3的安装方式可通过python官方文档获取,也可以从[此链接](http://219.142.246.77:65000/sharing/8MlSKnV8x)下载已经编译好的python3,本示例使用的python3路径为`python_3.5.9/bin/python3`,python3的动态库目录`python_3.5.9/lib`。
+    使用指定的python3,通过交叉编译的方式,编译出包含bmcv,sophon-ffmpeg,sophon-opencv的SAIL,python3的安装方式可通过python官方文档获取,也可以从[此链接](http://219.142.246.77:65000/sharing/8MlSKnV8x)下载已经编译好的python3,本示例使用的python3路径为`python_3.8.2/bin/python3`,python3的动态库目录`python_3.8.2/lib`。
 
-    参考[3.1 交叉编译环境搭建](#31-交叉编译环境搭建)获取libsophon、sophon-ffmpeg和sophon-opencv的交叉编译库包，并根据实际情况修改相关路径。
+    请参考[3.1 交叉编译环境搭建](#31-交叉编译环境搭建)获取libsophon、sophon-ffmpeg和sophon-opencv的交叉编译库包。
 
     ```bash
+    # 请根据实际情况修改DPYTHON_EXECUTABLE、DCUSTOM_PY_LIBDIR、DLIBSOPHON_BASIC_PATH、DOPENCV_BASIC_PATH的路径
      cmake -DBUILD_TYPE=soc  \
         -DCMAKE_TOOLCHAIN_FILE=../cmake/BM168x_SOC/ToolChain_aarch64_linux.cmake \
-        -DPYTHON_EXECUTABLE=python_3.5.9/bin/python3 \
-        -DCUSTOM_PY_LIBDIR=python_3.5.9/lib \
+        -DPYTHON_EXECUTABLE=python_3.8.2/bin/python3 \
+        -DCUSTOM_PY_LIBDIR=python_3.8.2/lib \
         -DLIBSOPHON_BASIC_PATH=libsophon_soc_${x.y.z}_aarch64/opt/sophon/libsophon-${x.y.z} \
-        -DFFMPEG_BASIC_PATH=sophon-mw-soc_0.2.4_aarch64/opt/sophon/sophon-ffmpeg_0.2.4 \
+        -DFFMPEG_BASIC_PATH=sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z} \
         -DOPENCV_BASIC_PATH=sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z} \
         ..                                
     make                                      
     ```
+    编译参数：
+
+    * BUILD_TYPE : 编译的类型,目前有pcie和soc两种模式,pcie是编译在x86主机上可用的SAIL包,soc表示使用交叉编译的方式,在x86主机上编译soc上可用的SAIL包。默认pcie。
+    
+    * ONLY_RUNTIME : 编译结果是否只包含运行时,而不包含bmcv,sophon-ffmpeg,sophon-opencv,如果此编译选项为`ON`,这SAIL的编解码及Bmcv接口不可用,只有推理接口可用。默认`OFF`。
+    
+    * INSTALL_PREFIX : 执行make install时的安装路径,pcie模式下默认`/opt/sophon`,与libsophon的安装路径一致,交叉编译模式下默认`build_soc`。
+    
+    * PYTHON_EXECUTABLE : 编译使用的python3的路径名称(路径+名称),默认使用当前系统中默认的python3。
+    
+    * CUSTOM_PY_LIBDIR : 编译使用的python3的动态库的路径(只包含路径),默认使用当前系统中默认python3的动态库目录。
+    
+    * LIBSOPHON_BASIC_PATH : 交叉编译模式下,libsophon的路径,如果配置不正确则会编译失败。pcie模式下面此编译选项不生效。
+    
+    * FFMPEG_BASIC_PATH : 交叉编译模式下,sophon-ffmpeg的路径,如果配置不正确,且ONLY_RUNTIME为`ON`时会编译失败。pcie模式下面此编译选项不生效。
+    
+    * OPENCV_BASIC_PATH : 交叉编译模式下,sophon-opencv的路径,如果配置不正确,且ONLY_RUNTIME为`ON`时会编译失败。pcie模式下面此编译选项不生效。
+
 
 4. 安装SAIL动态库及头文件,编译结果将安装在`build_soc`下面
 
