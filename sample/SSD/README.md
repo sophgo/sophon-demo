@@ -26,7 +26,7 @@ VOC0712
 
 本例程在`scripts`目录下提供了相关模型和数据集的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型转换](#4-模型转换)进行模型转换。
 ```bash
-sudo pip3 install dfn
+pip3 install dfn
 chmod -R +x scripts/
 ./scripts/download.sh
 ```
