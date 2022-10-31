@@ -31,6 +31,7 @@
 - Remember to use your own anchors, mask and classes number config values in `cpp/yolov3.hpp` and `python/configs/*.yml`
 
 ```bash
+sudo chmod +x ./scripts
 cd scripts
 sudo ./download.sh
 ```
