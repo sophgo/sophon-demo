@@ -52,8 +52,8 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的tpu-nntc�
 ### 2.1 安装libsophon
 从官网上下载libsophon安装包，包括:
 * sophon-driver_x.y.z_amd64.deb
-* sophon-libsophon_x.y.y_amd64.deb
-* sophon-libsophon-dev_x.y.y_amd64.deb
+* sophon-libsophon_x.y.z_amd64.deb
+* sophon-libsophon-dev_x.y.z_amd64.deb
 
 其中：x.y.z表示版本号；sophon-driver包含了PCIe加速卡驱动；sophon-libsophon包含了运行时环境（库文件、工具等）；sophon-libsophon-dev包含了开发环境（头文件等）。如果只是在部署环境上安装，则不需要安装 sophon-libsophon-dev。
 ```bash
@@ -70,9 +70,9 @@ source /etc/profile
 ### 2.2 安装sophon-ffmpeg和sophon-opencv
 从官网上下载sophon-mw安装包，包括:
 * sophon-mw-sophon-ffmpeg_x.y.z_amd64.deb
-* sophon-mw-sophon-ffmpeg-dev_x.y.y_amd64.deb
+* sophon-mw-sophon-ffmpeg-dev_x.y.z_amd64.deb
 * sophon-mw-sophon-opencv_x.y.z_amd64.deb
-* sophon-mw-sophon-opencv-dev_x.y.y_amd64.deb
+* sophon-mw-sophon-opencv-dev_x.y.z_amd64.deb
 
 其中：x.y.z表示版本号；sophon-ffmpeg/sophon-opencv包含了ffmpeg/opencv运行时环境（库文件、工具等）；sophon-ffmpeg-dev/sophon-opencv-dev包含了开发环境（头文件、pkgconfig、cmake等）。如果只是在部署环境上安装，则不需要安装 sophon-ffmpeg-dev/sophon-opencv-dev。
 

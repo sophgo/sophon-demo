@@ -1,2 +1,1 @@
-opencv-python==3.4.10.37
-opencv-python-headless
+opencv-python-headless<=4.3
