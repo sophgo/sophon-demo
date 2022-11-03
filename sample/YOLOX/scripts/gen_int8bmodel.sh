@@ -34,7 +34,7 @@ function gen_bmodel() {
         -outdir=${outdir}
     judge_ret $? "convert to int8_1b bmodel"
 
-    mkdir ${path}"/../"$2
+    mkdir -p ${path}"/../"$2
     mv ${outdir}"/compilation.bmodel" ${path}"/../"$2"/"${trace_name%.*}"_int8_"${batch_size}"b.bmodel"
     judge_ret $? "move bmodel"
 
@@ -53,7 +53,7 @@ function gen_bmodel() {
     judge_ret $? "convert to int8_4b bmodel"
 
     echo "Start convert to fp32_4b bmodel..."
-    mkdir ${path}"/../"$2
+    mkdir -p ${path}"/../"$2
     mv ${outdir}"/compilation.bmodel" ${path}"/../"$2"/"${trace_name%.*}"_int8_"${batch_size}"b.bmodel"
     judge_ret $? "move bmodel"
 
