@@ -1,13 +1,17 @@
 # Example of YOLOX with Sophon Inference
 
-  **this example can run in pcie with docker and soc**
+  **this example can run in pcie and soc**
 
-## For pcie with docker
+## For pcie 
 
 ### Environment configuration 
 
 libsophon sophon-ffmpeg sophon-opencv sophon-sail should be download and installed，for details see [x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建).
 
+also needs some third libs, run
+```shell
+pip3 install -r requirements.txt
+```
 ### yolox_bmcv.py
  decoder use sail.Decoder, perprocess use sail.bmcv, inference use sail.Engine.process(graph_name,input_tensors_dict, output_tensors_dict)
 
@@ -16,7 +20,7 @@ libsophon sophon-ffmpeg sophon-opencv sophon-sail should be download and install
 ``` shell
     python3 yolox_bmcv.py \
         --bmodel_path=your-path-to-bmodel \
-        --is_video=test-file-is-video-or-not \  # 0 or 1
+        --is_video=test-file-is-video-or-not \  # 0 for not , 1 for is
         --file_name=your-video-name-or-picture-folder \
         --loops=video-inference-count \         # only used for video
         --device_id=use-tpu-id \                # defaule 0
@@ -40,7 +44,7 @@ for video, save picture count is batch_size*loops, name is frame_[frame idx]_dev
 ``` shell
     python3 yolox_opencv.py \
         --bmodel_path=your-path-to-bmodel \
-        --is_video=test-file-is-video-or-not \  # 0 or 1
+        --is_video=test-file-is-video-or-not \  # 0 for not , 1 for is
         --file_name=your-video-name-or-picture-folder \
         --loops=video-inference-count \         # only used for video
         --device_id=use-tpu-id \                # defaule 0
@@ -62,10 +66,15 @@ for video, save picture count is batch_size*loops, name is frame_[frame idx]_dev
 
 You need to use the SOPHON SDK on the x86 host to build a cross compilation environment, and package the header files and library files that the program depends on into the soc sdk directory. For details, see [交叉编译环境搭建](../../docs/Environment_Install_Guide.md#31-交叉编译环境搭建).
 
+also needs some third libs, run
+```shell
+pip3 install -r requirements.txt
+```
+
 ### If not installed numpy, install numpy
 
 ``` shell
-    sudo pip3 install numpy==1.17.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
+sudo pip3 install numpy==1.17.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ### yolox_bmcv.py
@@ -76,7 +85,7 @@ You need to use the SOPHON SDK on the x86 host to build a cross compilation envi
 ``` shell
     python3 yolox_bmcv.py \
         --bmodel_path=your-path-to-bmodel \
-        --is_video=test-file-is-video-or-not \  # 0 or 1
+        --is_video=test-file-is-video-or-not \  # 0 for not , 1 for is
         --file_name=your-video-name-or-picture-folder \
         --loops=video-inference-count \         # only used for video
         --detect_threshold=detect-threshold \   # default 0.25
@@ -99,7 +108,7 @@ for video, save picture count is batch_size*loops, name is frame_[frame idx]_dev
 ``` shell
     python3 yolox_opencv.py \
         --bmodel_path=your-path-to-bmodel \
-        --is_video=test-file-is-video-or-not \  # 0 or 1
+        --is_video=test-file-is-video-or-not \  # 0 for not , 1 for is
         --file_name=your-video-name-or-picture-folder \
         --loops=video-inference-count \         # only used for video
         --device_id=use-tpu-id \                # defaule 0
@@ -117,8 +126,12 @@ for video, save picture count is batch_size*loops, name is frame_[frame idx]_dev
 
 
 ## calculate mAP
+
+run calc_mAP.py to calculate mAP, ground_truths is the lable file of the test dataset, normally data/ground_truths/instances_val2017.json. The detections is the detect result file, under cpp/results and python/results
+
 ``` shell
-    python3 ../scripts/calc_mAP.py \
+    pip3 install pycocotools
+    python3 ../tools/calc_mAP.py \
         --ground_truths=your-ground_truths-file \ #json file
         --detections=your-detections-file \ #txt file
 ```

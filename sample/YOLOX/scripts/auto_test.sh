@@ -19,15 +19,15 @@ function run_make_pcie() {
   make -C ../cpp
 }
 
-function run_make_arm() {
-  rm -rf ../cpp/CMakeFiles
-  rm ../cpp/cmake_install.cmake
-  rm ../cpp/CMakeCache.txt
-  rm ../cpp/Makefile
-  #export TARGET_ARCH="soc"
-  cmake ../cpp/CMakeLists.txt -DTARGET_ARCH="soc" -DSAIL_DIR=$1 -DSDK=$2
-  make -C ../cpp
-}
+# function run_make_arm() {
+#   rm -rf ../cpp/CMakeFiles
+#   rm ../cpp/cmake_install.cmake
+#   rm ../cpp/CMakeCache.txt
+#   rm ../cpp/Makefile
+#   #export TARGET_ARCH="soc"
+#   cmake ../cpp/CMakeLists.txt -DTARGET_ARCH="soc" -DSAIL_DIR=$1 -DSDK=$2
+#   make -C ../cpp
+# }
 
 function build_cpp() {
   pushd ../cpp
@@ -37,7 +37,7 @@ function build_cpp() {
     echo $OUT_BUILD
   else if [[ $1 == "soc" ]]
   then
-    OUT_BUILD=$(run_make_arm $2 $3) 
+    #OUT_BUILD=$(run_make_arm $2 $3) 
     else
       OUT_BUILD="failed"
     fi
@@ -164,7 +164,6 @@ platform=$1
 target=$2
 tpu_id=$3
 sail_dir=$4
-SDK_dir=$5
 
 
 if [[ $platform != "x86" && $platform != "soc" ]]; then
@@ -181,9 +180,13 @@ if [ ! -d "../data/models" ]; then
   download_files
 fi
 
-build_cpp $platform $sail_dir $SDK_dir
+build_cpp $platform $sail_dir
 
 run_example_cpp $platform $target $tpu_id
+
+pip3 install opencv-python==3.4.10.37
+pip3 install opencv-python-headless
+
 run_example_py $tpu_id $target
 
 mkdir ../mAP
@@ -192,11 +195,10 @@ verify_result | tee ../mAP/mAP.txt
 
 
 ### Usages:
-###     ./auto_test <plantform> <target> <tpu_id> <sail_dir> <soc_sdk>
+###     ./auto_test <plantform> <target> <tpu_id> <sail_dir>
 ###
 ### Options:
 ###     <plantform>   x86 or soc
 ###     <target>      BM1684 or BM1684X
 ###     <tpu_id>      tpu id
-###     <sail_dir>    sail path
-###     <soc_sdk>     soc sdk path
+###     <sail_dir>    sail path 
