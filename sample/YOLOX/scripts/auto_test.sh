@@ -186,6 +186,7 @@ run_example_cpp $platform $target $tpu_id
 
 pip3 install opencv-python==3.4.10.37
 pip3 install opencv-python-headless
+pip3 install pycocotools
 
 run_example_py $tpu_id $target
 
