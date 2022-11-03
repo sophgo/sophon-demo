@@ -73,7 +73,7 @@ SUMMARY: detect
 
 3. 测试视频时，如果输入多batch模型，需要输入匹配数量的视频文件
 
-4. 更换图片以及视频需要修改`/data/images/Imagelist.txt`以及及`/data/video/videolist.txt`,`Imagelist.txt`内容如下：
+4. 更换图片以及视频需要修改`/data/images/Imagelist.txt`以及`/data/video/videolist.txt`,`Imagelist.txt`内容如下：
 
    ```bash
    ../../../data/images/person.jpg

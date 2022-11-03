@@ -1,6 +1,6 @@
 # yolov34 Python例程
 
-> Notes：For Python codes,  create your own config file *.yml in `configs` based on the values of `ENGINE_FILE`, `LABEL_FILE `, `YOLO_MASKS`, `YOLO_ANCHORS`, `OUTPUT_TENSOR_CHANNELS` for your model.
+> Notes：For Python codes,  create your own config file *.yml in `configs` based on the values of `ENGINE_FILE`, `LABEL_FILE `, `YOLO_MASKS`, `YOLO_ANCHORS`, `OUTPUT_TENSOR_CHANNELS`,`DEV_ID` for your model.
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -21,7 +21,7 @@ pip3 install -r requirements.txt
 
 ## 1.2 测试命令
 
-python例程不需要编译，可以直接运行。yolov34_opencv.py和yolov34_bmcv.py的命令参数相同，以yolov34_opencv.py的推理为例，参数说明如下：
+python例程不需要编译，可以直接运行。以yolov34_opencv.py的推理为例，参数说明如下：
 
 ```bash
 usage:yolov34_opencv.py [--config file CONFIG_PATH] [--input IMAGE_PATH]
