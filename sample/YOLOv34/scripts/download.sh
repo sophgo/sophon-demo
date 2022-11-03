@@ -1,7 +1,4 @@
 #!/bin/bash
-apt update
-apt install curl
-
 pip3 install dfn
 
 script_dir=$(dirname $(readlink -f "$0"))
@@ -88,15 +85,26 @@ mv $script_dir/yolov4.weights ./
 mv $script_dir/yolov4.cfg ./
 popd
 
-bmodel=$models_dir/BM1684
-if [ ! -d "$bmodel" ]; then
-  echo "create models dir: $bmodel"
-  mkdir -p $bmodel
+bmodel_1684=$models_dir/BM1684
+if [ ! -d "$bmodel_1684" ]; then
+  echo "create models dir: $bmodel_1684"
+  mkdir -p $bmodel_1684
 fi
 
-pushd $bmodel
+pushd $bmodel_1684
 mv $script_dir/yolov4_416_coco_int8_1b.bmodel ./
 mv $script_dir/yolov4_416_coco_fp32_1b.bmodel ./
+popd
+
+bmodel_1684X=$models_dir/BM1684X
+if [ ! -d "$bmodel_1684X" ]; then
+  echo "create models dir: $bmodel_1684X"
+  mkdir -p $bmodel_1684X
+fi
+
+pushd $bmodel_1684X
+python3 -m dfn --url http://219.142.246.77:65000/sharing/ThY1qIACq
+python3 -m dfn --url http://219.142.246.77:65000/sharing/K7iu7DeYG
 popd
 
 popd
