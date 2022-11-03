@@ -40,25 +40,45 @@ paddle/ch_PP-OCRv2_det_infer: 原始文本检测inference模型
 paddle/ch_ppocr_mobile_v2.0_cls_infer: 原始方向分类器inference模型
 paddle/ch_PP-OCRv2_rec_infer: 原始文字识别inference模型
 
-BM1684/ch_PP-OCRv2_det_1b.bmodel: 用于BM1684的FP32 BModel，batch_size=1
-BM1684/ch_PP-OCRv2_det_4b.bmodel: 用于BM1684的FP32 BModel，batch_size=4
-BM1684/ch_PP-OCRv2_det_fp32_b1b4.bmodel: 用于BM1684的FP32 BModel，batch_size=1,4
-BM1684/ch_ppocr_mobile_v2.0_cls_1b.bmodel: 用于BM1684的FP32 BModel，batch_size=1
-BM1684/ch_ppocr_mobile_v2.0_cls_4b.bmodel: 用于BM1684的FP32 BModel，batch_size=4
-BM1684/ch_ppocr_mobile_v2.0_cls_fp32_b1b4.bmodel: 用于BM1684的FP32 BModel，batch_size=1,4
-BM1684/ch_PP-OCRv2_rec_320_1b.bmodel: 用于BM1684的FP32 BModel，batch_size=1
-BM1684/ch_PP-OCRv2_rec_320_4b.bmodel: 用于BM1684的FP32 BModel，batch_size=4
-BM1684/ch_PP-OCRv2_rec_640_1b.bmodel: 用于BM1684的FP32 BModel，batch_size=1
-BM1684/ch_PP-OCRv2_rec_640_4b.bmodel: 用于BM1684的FP32 BModel，batch_size=4
-BM1684/ch_PP-OCRv2_rec_1280_4b.bmodel: 用于BM1684的FP32 BModel，batch_size=1
-BM1684/ch_PP-OCRv2_rec_fp32_b1b4.bmodel: 用于BM1684的FP32 BModel，batch_size=1,4
+## BM1684上测试使用的模型文件：
 
-BM1684X/ch_PP-OCRv2_det_1b.bmodel: 用于BM1684X的FP32 BModel，batch_size=1
-BM1684X/ch_ppocr_mobile_v2.0_cls_1b.bmodel: 用于BM1684X的FP32 BModel，batch_size=1
-BM1684X/ch_PP-OCRv2_rec_320_1b.bmodel: 用于BM1684X的FP32 BModel，batch_size=1
-BM1684X/ch_PP-OCRv2_rec_640_1b.bmodel: 用于BM1684X的FP32 BModel，batch_size=1
-BM1684X/ch_PP-OCRv2_rec_1280_1b.bmodel: 用于BM1684X的FP32 BModel，batch_size=1
-BM1684X/ch_PP-OCRv2_rec_fp32_b1.bmodel: 用于BM1684X的FP32 BModel，batch_size=1
+文本检测FP32Bmodel模型文件：
+用于组合ch_PP-OCRv2_det_fp32_b1b4.bmodel的模型：
+BM1684/ch_PP-OCRv2_det_1b.bmodel
+BM1684/ch_PP-OCRv2_det_4b.bmodel
+通过 ch_PP-OCRv2_det_1b.bmodel 和 ch_PP-OCRv2_det_4b.bmodel 组合得到：
+BM1684/ch_PP-OCRv2_det_fp32_b1b4.bmodel: 用于BM1684的FP32 BModel，支持使用batch_size=1或4的输入
+
+方向分类器FP32Bmodel模型文件：
+用于组合ch_ppocr_mobile_v2.0_cls_fp32_b1b4.bmodel的模型：
+BM1684/ch_ppocr_mobile_v2.0_cls_1b.bmodel
+BM1684/ch_ppocr_mobile_v2.0_cls_4b.bmodel
+通过 ch_ppocr_mobile_v2.0_cls_1b.bmodel 和 ch_ppocr_mobile_v2.0_cls_4b.bmodel 组合得到：
+BM1684/ch_ppocr_mobile_v2.0_cls_fp32_b1b4.bmodel: 用于BM1684的FP32 BModel，支持使用batch_size=1或4的输入
+
+文字识别FP32Bmodel模型文件：
+BM1684/ch_PP-OCRv2_rec_320_1b.bmodel
+BM1684/ch_PP-OCRv2_rec_320_4b.bmodel
+BM1684/ch_PP-OCRv2_rec_640_1b.bmodel
+BM1684/ch_PP-OCRv2_rec_640_4b.bmodel
+BM1684/ch_PP-OCRv2_rec_1280_1b.bmodel
+通过以上模型组合得到，处理不同图片尺寸的文字识别模型：
+BM1684/ch_PP-OCRv2_rec_fp32_b1b4.bmodel: 用于BM1684的FP32 BModel，支持使用batch_size=1或4的输入
+
+## BM1684X上测试使用的模型文件：
+
+文本检测FP32Bmodel模型文件：
+BM1684X/ch_PP-OCRv2_det_1b.bmodel: 用于BM1684X的FP32 BModel，支持使用batch_size=1的输入
+
+方向分类器FP32Bmodel模型文件：
+BM1684X/ch_ppocr_mobile_v2.0_cls_1b.bmodel: 用于BM1684X的FP32 BModel，支持使用batch_size=1的输入
+
+文字识别FP32Bmodel模型文件：
+BM1684X/ch_PP-OCRv2_rec_320_1b.bmodel
+BM1684X/ch_PP-OCRv2_rec_640_1b.bmodel
+BM1684X/ch_PP-OCRv2_rec_1280_1b.bmodel
+通过以上模型组合得到，处理不同图片尺寸的文字识别模型：
+BM1684X/ch_PP-OCRv2_rec_fp32_b1.bmodel: 用于BM1684X的FP32 BModel，支持使用batch_size=1的输入
 ```
 
 模型信息：

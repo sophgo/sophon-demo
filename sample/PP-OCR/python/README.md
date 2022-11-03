@@ -79,11 +79,10 @@ INFO:root:img_name:word_5.jpg, pred:0, conf:0.9999988079071045
 
 ppocr_rec_opencv.py参数说明如下：
 ```bash
-usage:ppocr_rec_opencv.py [--tpu_id] [--img_path] [--rec_model] [--img_size] [--rec_batch_size] [--char_dict_path] [--use_space_char]
+usage:ppocr_rec_opencv.py [--tpu_id] [--img_path] [--rec_model] [--rec_batch_size] [--char_dict_path] [--use_space_char]
 --tpu_id: 用于推理的tpu设备id;
 --img_path: 输入图片文件夹的路径;
 --rec_model: 用于推理的文本识别bmodel路径;
---img_size: 用于推理的图片尺寸, 默认[[320, 32],[640, 32],[1280, 32]];
 --rec_batch_size: 模型输入的batch_size，本例程可支持1或4;
 --char_dict_path: 识别的字符字典文件路径;
 --use_space_char: 是否包含空格如果为True，则会在最后字符字典中补充空格字符。
@@ -91,9 +90,9 @@ usage:ppocr_rec_opencv.py [--tpu_id] [--img_path] [--rec_model] [--img_size] [--
 
 文本识别测试实例如下：
 ```bash
-# 以图片中的文本识别为例测试，测试同时支持1batch和4batch的FP32BModel模型。
+# 由于需要处理不同的图片尺寸，需要使用组合后的 ch_PP-OCRv2_rec_fp32_b1b4.bmodel 进行测试。以图片中的文本识别为例测试，测试同时支持1batch和4batch的FP32BModel模型: 
 python3 ppocr_rec_opencv.py --tpu_id 0  --img_path ../data/images/ppocr_img/imgs_words/ch --rec_model ../data/models/BM1684/ch_PP-OCRv2_rec_fp32_b1b4.bmodel --rec_batch_size 4 --char_dict_path ../data/ppocr_keys_v1.txt  --use_space_char True
-# BM1684X目前只支持1batch
+# BM1684X目前只支持1batch: ch_PP-OCRv2_rec_fp32_b1.bmodel
 python3 ppocr_rec_opencv.py --tpu_id 0  --img_path ../data/images/ppocr_img/imgs_words/ch --rec_model ../data/models/BM1684X/ch_PP-OCRv2_rec_fp32_b1.bmodel --rec_batch_size 1 --char_dict_path ../data/ppocr_keys_v1.txt  --use_space_char True
 ```
 
