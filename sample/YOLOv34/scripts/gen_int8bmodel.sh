@@ -31,7 +31,7 @@ function gen_int8bmodel()
 
 pushd $script_dir
 # 1b
-#gen_int8bmodel 1
+gen_int8bmodel 1
 # 4b
 gen_int8bmodel 4
 popd
