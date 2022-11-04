@@ -18,7 +18,7 @@ function gen_bmodel() {
 
     batch_size=1
 
-    mkdir ${path}"/../"$2
+    mkdir -p ${path}"/../"$2
     outdir=${path}"/fp32model_bs"${batch_size}
     python3 -m bmnetp --model=$1 \
         --shapes=[1,3,640,640] \
