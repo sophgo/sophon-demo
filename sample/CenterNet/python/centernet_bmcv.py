@@ -106,7 +106,7 @@ if __name__ == '__main__':
                 #cet_detector.bmcv.rectangle(image_ost_list[b], left, top, right - left, bottom - top, (255, 0, 0), 3)
 
             # draw result
-            det_filename = './results/ctdet_result_{}_b_{}.jpg'.format(datetime.now().strftime('%Y-%m-%d-%H-%M-%S'), b)
+            det_filename = './results/centernet_result_{}_b_{}.jpg'.format(datetime.now().strftime('%Y-%m-%d-%H-%M-%S'), b)
             #cet_detector.bmcv.imwrite(det_filename, image_ost_list[b])
             cv2.imwrite(det_filename, cv_img)
             logging.info('Prediction result: {}'.format(det_filename))

@@ -76,6 +76,7 @@ echo "[Success] centernet_int8_4b.bmodel has been downloaded to path ../data/mod
 python3 -m dfn --url http://219.142.246.77:65000/sharing/I0B7AODBO
 tar zxvf images.tar.gz
 rm images.tar.gz
+rm -rf ../data/images
 mv images ../data
 
 popd

@@ -174,7 +174,7 @@ int main(int argc, char** argv) {
             auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
             std::stringstream ss;
             ss << std::put_time(std::localtime(&t), "%Y-%m-%d-%H-%M-%S");
-            bmcv.imwrite("./results/ctdet_result_" + ss.str() + ".jpg", rgb_img);
+            bmcv.imwrite("./results/centernet_result_" + ss.str() + ".jpg", rgb_img);
             std::cout << "save result" << "\n";
         } else if (input_batch_size == 4) {
             std::vector<sail::BMImage> imgs_0;
@@ -225,7 +225,7 @@ int main(int argc, char** argv) {
                 std::stringstream ss;
                 ss << std::put_time(std::localtime(&t), "%Y-%m-%d-%H-%M-%S");
                 cv::imwrite("./results/centernet_result_" + ss.str() + "_b" + std::to_string(b) + ".jpg", mat1);
-//            bmcv.imwrite("ctdet_result_" + ss.str() + ".jpg", imgs_0[0]);
+//            bmcv.imwrite("centernet_result_" + ss.str() + ".jpg", imgs_0[0]);
                 std::cout << "save result" << "\n";
             }
         }

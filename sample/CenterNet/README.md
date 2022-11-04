@@ -34,13 +34,13 @@ CenterNet 是一种 anchor-free 的目标检测网络，不仅可以用于目标
 #### 3.1.1 开发主机准备：
 
 - 开发主机：一台安装了Ubuntu16.04/18.04/20.04的x86主机，运行内存建议12GB以上
-- 软件环境：libsophon、sophon-opencv、sophon-ffmpeg、sophon-sail，可以通过[算能官网](https://developer.sophgo.com/site/index.html)下载安装对应版本
+- 软件环境：libsophon、sophon-mw、sophon-sail，可以通过[算能官网](https://developer.sophgo.com/site/index/material/21/all.html)下载安装对应版本
 
 ### 3.2 准备模型
 
-从[CenterNet GoogleDrive](https://drive.google.com/drive/folders/1px-Xg7jXSC79QqgsD1AAGJQkuf5m0zh_)下载所需的pt模型。
+在后续步骤中使用scripts/路径下download.sh脚本下载所需的pt模型。
 
-> **注意：**本示例展示的是使用CenterNet进行目标检测。由于工具链目前对DeformConv可变卷积还未支持，所以选用dlav0作为主干网, 从官方ModelZoo中下载对应的与训练pt文件。
+> **注意：**本示例展示的是使用CenterNet进行目标检测。由于工具链目前对DeformConv可变卷积还未支持，所以选用dlav0作为主干网, 下载对应的pt文件。
 
 
 
@@ -51,7 +51,7 @@ JIT（Just-In-Time）是一组编译工具，用于弥合PyTorch研究与生产�
 
 ```bash
 # 下载dlav0作为主干网的预训练模型
-cd simple/CenterNet/scripts/
+cd sample/CenterNet/scripts/
 ./download.sh
 # download.sh 同时会下载原始模型，转换及量化后的bmodel，量化数据集以及测试图片
 # 原始模型下载成功后，文件位于../data/models/torch/ctdet_coco_dlav0_1x.pth
@@ -64,15 +64,6 @@ tools/目录下dlav0.py，是从[CenterNet源码](https://github.com/xingyizhou/
 return torch.cat((ret['hm'], ret['wh'], ret['reg']), 1) 
 ```
 将heatmap, wh, reg三个head的特征图concat到一起，方便后续bmodel的转换
-
-#### JIT模型生成
-直接运行export.py即可
-```bash
-pip3 install torch torchvision
-cd ../tools
-python3 export.py
-```
-在`../data/models/torch`目录下生成了一份`ctdet_coco_dlav0_1x.torchscript.pt`文件
 
 
 ### 3.3 准备量化集
@@ -90,7 +81,16 @@ python3 export.py
 
 ## 4. 模型编译与量化
 
-建议模型转换的过程在tpu-nntc提供的x86下的docker开发环境中完成。请访问算能官网下载安装tpu-nntc，并按照《TPU-NNTC快速入门指南》配置并进入docker环境。以下操作均在x86下的docker开发环境中完成。
+建议模型转换的过程在tpu-nntc提供的x86下的docker开发环境中完成。模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
+
+#### JIT模型生成
+进入docker以后直接运行export.py即可
+```bash
+pip3 install torch torchvision
+cd ../tools
+python3 export.py
+```
+在`../data/models/torch`目录下生成了一份`ctdet_coco_dlav0_1x.torchscript.pt`文件
 
 ### 4.1 生成FP32 BModel
 
