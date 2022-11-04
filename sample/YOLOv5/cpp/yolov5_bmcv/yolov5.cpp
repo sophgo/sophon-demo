@@ -102,16 +102,16 @@ int YoloV5::Init(float confThresh, float objThresh, float nmsThresh, const std::
 float YoloV5::get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool *pIsAligWidth)
 {
   float ratio;
-  ratio = (float) dst_w / src_w;
-  int dst_h1 = src_h * ratio;
-  if (dst_h1 > dst_h) {
-    *pIsAligWidth = false;
-    ratio = (float) src_w / src_h;
-  } else {
+  float r_w = (float)dst_w / src_w;
+  float r_h = (float)dst_h / src_h;
+  if (r_h > r_w){
     *pIsAligWidth = true;
-    ratio = (float)src_h/src_w;
+    ratio = r_w;
   }
-
+  else{
+    *pIsAligWidth = false;
+    ratio = r_h;
+  }
   return ratio;
 }
 
@@ -172,7 +172,7 @@ int YoloV5::pre_process(const std::vector<cv::Mat>& images, int image_n)
     padding_attr.padding_r = 114;
     padding_attr.if_memset = 1;
     if (isAlignWidth) {
-      padding_attr.dst_crop_h = m_net_w*ratio;
+      padding_attr.dst_crop_h = images[i].rows*ratio;
       padding_attr.dst_crop_w = m_net_w;
 
       int ty1 = (int)((m_net_h - padding_attr.dst_crop_h) / 2);
@@ -180,7 +180,7 @@ int YoloV5::pre_process(const std::vector<cv::Mat>& images, int image_n)
       padding_attr.dst_crop_stx = 0;
     }else{
       padding_attr.dst_crop_h = m_net_h;
-      padding_attr.dst_crop_w = m_net_w*ratio;
+      padding_attr.dst_crop_w = images[i].cols*ratio;
 
       int tx1 = (int)((m_net_w - padding_attr.dst_crop_w) / 2);
       padding_attr.dst_crop_sty = 0;
@@ -308,11 +308,9 @@ int YoloV5::post_process(const std::vector<cv::Mat> &images, std::vector<YoloV5B
     bool isAlignWidth = false;
     float ratio = get_aspect_scaled_ratio(frame.cols, frame.rows, m_net_w, m_net_h, &isAlignWidth);
     if (isAlignWidth) {
-      frame_height = frame_width*(float)m_net_h/m_net_w;
-      ty1 = (int)((m_net_h - (int)(m_net_w*ratio)) / 2);
+      ty1 = (int)((m_net_h - (int)(frame_height*ratio)) / 2);
     }else{
-      frame_width = frame_height*(float)m_net_w/m_net_h;
-      tx1 = (int)((m_net_w - (int)(m_net_w*ratio)) / 2);
+      tx1 = (int)((m_net_w - (int)(frame_width*ratio)) / 2);
     }
 #endif
 
@@ -414,10 +412,10 @@ int YoloV5::post_process(const std::vector<cv::Mat> &images, std::vector<YoloV5B
       {
         if (confidence >= m_confThreshold)
         {
-          float centerX = (ptr[0]+1 - tx1)/m_net_w*frame_width-1;
-          float centerY = (ptr[1]+1 - ty1)/m_net_h*frame_height-1;
-          float width = (ptr[2]+0.5) * frame_width / m_net_w;
-          float height = (ptr[3]+0.5) * frame_height / m_net_h;
+          float centerX = (ptr[0]+1 - tx1)/ratio - 1;
+          float centerY = (ptr[1]+1 - ty1)/ratio - 1;
+          float width = (ptr[2]+0.5) / ratio;
+          float height = (ptr[3]+0.5) / ratio;
 
           YoloV5Box box;
           box.x = int(centerX - width / 2);
