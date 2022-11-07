@@ -13,37 +13,9 @@
 #include <unistd.h>
 #include "json.hpp"
 #include "lprnet.hpp"
-
+// #define DEBUG
 using json = nlohmann::json;
 using namespace std;
-
-static vector<string> detect(bm_handle_t         &bm_handle,
-                             LPRNET              &net,
-                             vector<cv::Mat>     &images,
-                             TimeStamp           *ts) {
-
-  vector<string> detections;
-  vector<bm_image> input_img_bmcv;
-  ts->save("detection");
-  ts->save("attach input");
-  bm_image_from_mat(bm_handle, images, input_img_bmcv);
-  ts->save("attach input");
-  
-  net.preForward(input_img_bmcv);
-
-  // do inference
-  net.forward();
-
-  net.postForward(input_img_bmcv , detections);
-  ts->save("detection");
-
-  // destory bm_image
-  for (size_t i = 0; i < input_img_bmcv.size();i++) {
-    bm_image_destroy(input_img_bmcv[i]);
-  }
-  return detections;
-}
-
 
 int main(int argc, char** argv) {
   cout.setf(ios::fixed);
@@ -73,42 +45,33 @@ int main(int argc, char** argv) {
     exit(1);
   }
   int dev_id = stoi(dev_str);
-  cout << "set device id:"  << dev_id << endl;
+  BMNNHandlePtr handle = make_shared<BMNNHandle>(dev_id);
+  cout << "set device id: "  << dev_id << endl;
+
+  // load bmodel
+  shared_ptr<BMNNContext> bm_ctx = make_shared<BMNNContext>(handle, bmodel_file.c_str());
+
+  // initialize net
+  LPRNET lprnet(bm_ctx);
+  CV_Assert(0 == lprnet.Init());
 
   // profiling
   TimeStamp lprnet_ts;
   TimeStamp *ts = &lprnet_ts;
+  lprnet.enableProfile(&lprnet_ts);
 
-  // initialize handle of low level device
-  int max_dev_id = 0;
-  bm_dev_getcount(&max_dev_id);
-  if (dev_id >= max_dev_id) {
-      cout << "ERROR: Input device id=" << dev_id
-                << " exceeds the maximum number " << max_dev_id << endl;
-      exit(-1);
-  }
-  bm_handle_t  bm_handle;
-  bm_status_t ret = bm_dev_request (&bm_handle, dev_id);
-  if (ret != BM_SUCCESS) {
-    cout << "Initialize bm handle failed, ret = " << ret << endl;
-    exit(-1);
-  }
-
-  // initialize LPRNET class
-  LPRNET net(bm_handle , bmodel_file);
-
-  // for profiling
-  net.enableProfile(ts);
-  int batch_size = net.batch_size();
+  // get batch_size
+  int batch_size = lprnet.batch_size();
 
   vector<cv::Mat> batch_imgs;
   vector<string> batch_names;
-  int cn;
+  int cn = 0;
   if (stat(input_url.c_str(), &info) != 0) {
     cout << "Cannot find input image path." << endl;
     exit(1);
   }
   else if (info.st_mode & S_IFDIR){
+    // get files
     vector<string> files_vector;
     DIR *pDir;
     struct dirent* ptr;
@@ -119,16 +82,18 @@ int main(int argc, char** argv) {
         }
     }
     closedir(pDir);
+    // sort files
+    sort(files_vector.begin(),files_vector.end());
 
-    std::sort(files_vector.begin(),files_vector.end());
-
+    vector<string> results;
     json result_json;
     cn = files_vector.size();
-    vector<string>::iterator iter;
     ts->save("lprnet overall");
-    for (iter = files_vector.begin(); iter != files_vector.end(); iter++){
+    for (vector<string>::iterator iter = files_vector.begin(); iter != files_vector.end(); iter++){
       string img_file = *iter;
-      //cout << img_file << endl;
+#ifdef DEBUG
+      cout << img_file << endl;
+#endif
       ts->save("read image");
       cv::Mat img = cv::imread(img_file, cv::IMREAD_COLOR, dev_id);
       ts->save("read image");
@@ -137,7 +102,7 @@ int main(int argc, char** argv) {
       batch_imgs.push_back(img);
       batch_names.push_back(img_name);
       if ((int)batch_imgs.size() == batch_size) {
-        vector<string> results = detect(bm_handle, net, batch_imgs, ts);
+        CV_Assert(0 == lprnet.Detect(batch_imgs, results));
         for(int i = 0; i < batch_size; i++){
           img_name = batch_names[i];
           cout << img_name << " pred:" << results[i].c_str() << endl;
@@ -145,9 +110,22 @@ int main(int argc, char** argv) {
         }
         batch_imgs.clear();
         batch_names.clear();
+        results.clear();
       }
     }
+    if (!batch_imgs.empty()){
+      CV_Assert(0 == lprnet.Detect(batch_imgs, results));
+        for(int i = 0; i < batch_size; i++){
+          string img_name = batch_names[i];
+          cout << img_name << " pred:" << results[i].c_str() << endl;
+          result_json[img_name] = results[i].c_str();
+        }
+        batch_imgs.clear();
+        batch_names.clear();
+    }
     ts->save("lprnet overall");
+    
+    // save results
     if (access("results", 0) != F_OK)
         mkdir("results", S_IRWXU);
     size_t index = input_url.rfind("/");
@@ -162,6 +140,8 @@ int main(int argc, char** argv) {
     cout << "Is not a valid path: " << input_url << endl;
     exit(1);
   }
+  
+  // print speed
   cout << "================" << endl;
   vector<time_stamp_t> t_infer = *lprnet_ts.records_["lprnet inference"];
   microseconds sum_infer(0);
@@ -185,10 +165,5 @@ int main(int argc, char** argv) {
   lprnet_ts.show_summary("lprnet detect");
   lprnet_ts.clear();
 
-  
-
-
-  bm_dev_free(bm_handle);
-  cout << endl;
   return 0;
 }
