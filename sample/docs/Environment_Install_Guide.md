@@ -236,7 +236,7 @@ source /etc/profile
     ```
     将`build_soc`文件夹拷贝至目标SOC上,即可直接引用其头文件调用动态库
 
-5. 打包生成python whell,生成的whell包的路径为`python/soc/dist`,文件名为`sophon_arm-master-py3_-none-any.whl`
+5. 打包生成python whell,生成的whell包的路径为`python/soc/dist`
 
     ```bash
     cd ../python/soc 
@@ -246,7 +246,8 @@ source /etc/profile
 
 5. 安装python whell  
 
-    将`sophon_arm-master-py3_-none-any.whl`拷贝到目标SOC上,然后执行如下安装命令
+    将生成的whell包拷贝到目标SOC上,然后执行如下安装命令
     ```bash
+    # 需根据实际生成的whell包修改其文件名
     pip3 install sophon_arm-master_-py3-none-any.whl --force-reinstall 
     ```
