@@ -217,7 +217,10 @@ class pseudo_torch_nms:
                 i, j = (x[:, 5:] > conf_thres).nonzero()
                 x = np.concatenate([box[i], x[i, j + 5, None], j[:, None].astype(np.float32)], 1)
             else:  # best class only
-                conf, j = x[:, 5:].max(1, keepdims=True)
+                conf = x[:, 5:].max(1, keepdims=True)
+                j_argmax = x[:, 5:].argmax(1)
+                j = j_argmax if j_argmax.shape == x[:, 5:].shape else \
+                    np.expand_dims(j_argmax, 1)  # for argmax(axis, keepdims=True)
                 x = np.concatenate([box, conf, j.astype(np.float32)], 1)[conf.reshape(-1) > conf_thres]
 
             # Check shape
