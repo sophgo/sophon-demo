@@ -37,6 +37,7 @@ function build_cpp() {
     echo $OUT_BUILD
   else if [[ $1 == "soc" ]]
   then
+    echo "please ensure you have compiled excute file on soc"
     #OUT_BUILD=$(run_make_arm $2 $3) 
     else
       OUT_BUILD="failed"
@@ -155,7 +156,7 @@ function verify_result() {
 
 }
 
-if [ $1 == "--help" ];then
+if [ $# == 0 ] || [ $1 == "--help" ];then
   sed -rn 's/^### ?//;T;p;' "$0"
 fi
 
@@ -184,8 +185,8 @@ build_cpp $platform $sail_dir
 
 run_example_cpp $platform $target $tpu_id
 
-pip3 install opencv-python==3.4.10.37
-pip3 install opencv-python-headless
+pip3 install opencv-python --force-reinstall
+pip3 install opencv-python-headless --force-reinstall
 pip3 install pycocotools
 
 run_example_py $tpu_id $target
@@ -202,4 +203,4 @@ verify_result | tee ../mAP/mAP.txt
 ###     <plantform>   x86 or soc
 ###     <target>      BM1684 or BM1684X
 ###     <tpu_id>      tpu id
-###     <sail_dir>    sail path 
+###     <sail_dir>    sail path, normally /opt/sophon/sophon-sail 

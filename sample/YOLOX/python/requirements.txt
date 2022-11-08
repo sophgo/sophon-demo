@@ -1,2 +1,2 @@
-opencv-python==3.4.10.37
+opencv-python
 opencv-python-headless

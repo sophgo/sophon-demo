@@ -33,8 +33,8 @@ function download_nas()
     fi
     curl -o $save_path -b "sharing_sid=${sid}" "${web_prefix}${id}/${file_name}"
     
-    line_0=`cat $save_path|awk -F "\"" '{print $1}'`
-    line_1=`cat $save_path|awk -F "\"" '{print $2}'`
+    # line_0=`cat $save_path|awk -F "\"" '{print $1}'`
+    # line_1=`cat $save_path|awk -F "\"" '{print $2}'`
     # if [ $line_0 = "{" ];then
     #     if [ $line_1 = "error" ];then
     #         judge_ret 1 "download "$file_url
