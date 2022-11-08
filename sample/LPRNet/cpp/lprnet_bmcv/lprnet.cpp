@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 #include <fstream>
 #include "lprnet.hpp"
-
+// #define DEBUG
 using namespace std;
 
 static char const *arr_chars[] = {"京", "沪", "津", "渝", "冀", "晋", "蒙", "辽", "吉", "黑", "苏",\
@@ -17,258 +17,222 @@ static char const *arr_chars[] = {"京", "沪", "津", "渝", "冀", "晋", "蒙
       "C", "D", "E", "F", "G", "H", "J", "K", "L","M", "N", "P", "Q", "R", "S", "T", "U", "V",\
       "W", "X", "Y", "Z", "I", "O", "-"};
 
-//const char *model_name = "lprnet";
-string get_res(int pred_num[], int len_char, int clas_char);
-
-LPRNET::LPRNET(bm_handle_t bm_handle, const string bmodel):p_bmrt_(nullptr) {
-
-  bool ret;
-
-  // get device handle
-  bm_handle_ = bm_handle;
-
-  // init bmruntime contxt
-  p_bmrt_ = bmrt_create(bm_handle_);
-  if (NULL == p_bmrt_) {
-    cout << "ERROR: get handle failed!" << endl;
-    exit(1);
-  }
-
-  // load bmodel from file
-  ret = bmrt_load_bmodel(p_bmrt_, bmodel.c_str());
-  if (!ret) {
-    cout << "ERROR: Load bmodel[" << bmodel << "] failed" << endl;
-    exit(1);
-  }
-
-  bmrt_get_network_names(p_bmrt_, &net_names_);
-
-  // get model info by model name
-  net_info_ = bmrt_get_network_info(p_bmrt_, net_names_[0]);
-  if (NULL == net_info_) {
-    cout << "ERROR: get net-info failed!" << endl;
-    exit(1);
-  }
-
-  // get data type
-  if (NULL == net_info_->input_dtypes) {
-    cout << "ERROR: get net input type failed!" << endl;
-    exit(1);
-  }
-
-  if (BM_FLOAT32 == net_info_->input_dtypes[0])
-    input_is_int8_ = false;
-  else
-    input_is_int8_ = true;
-
-  if (BM_FLOAT32 == net_info_->output_dtypes[0])
-    output_is_int8_ = false;
-  else
-    output_is_int8_ = true;
-
-  // allocate output buffer
-  if (output_is_int8_) {
-    output_int8 = new int8_t[BUFFER_SIZE];
-  }else{
-    output_fp32 = new float[BUFFER_SIZE];
-  }
-  
-  // init bm images for storing results of combined operation of resize & crop & split
-  bm_status_t bm_ret = bm_image_create_batch(bm_handle_,
-                              INPUT_HEIGHT,
-                              INPUT_WIDTH,
-                              FORMAT_BGR_PLANAR,
-                              DATA_TYPE_EXT_1N_BYTE,
-                              resize_bmcv_,
-                              MAX_BATCH);
-  if (BM_SUCCESS != bm_ret) {
-    cout << "ERROR: bm_image_create_batch failed" << endl;
-    exit(1);
-  }
-
-  // bm images for storing inference inputs
-  bm_image_data_format_ext data_type;
-  if (input_is_int8_) { // INT8
-    data_type = DATA_TYPE_EXT_1N_BYTE_SIGNED;
-  } else { // FP32
-    data_type = DATA_TYPE_EXT_FLOAT32;
-  }
-  bm_ret = bm_image_create_batch (bm_handle_,
-                               INPUT_HEIGHT,
-                               INPUT_WIDTH,
-                               FORMAT_BGR_PLANAR,
-                               data_type,
-                               linear_trans_bmcv_,
-                               MAX_BATCH);
-
-  if (BM_SUCCESS != bm_ret) {
-    cout << "ERROR: bm_image_create_batch failed" << endl;
-    exit(1);
-  }
-
-  // initialize linear transform parameter
-  // - mean value
-  // - scale value (mainly for INT8 calibration)
-  output_scale = net_info_->output_scales[0];
-  input_scale = net_info_->input_scales[0] * 0.0078125;
-  //cout << "scale: "<< input_scale << endl;
-  linear_trans_param_.alpha_0 = input_scale;
-  linear_trans_param_.beta_0 = -127.5 * input_scale;
-  linear_trans_param_.alpha_1 = input_scale;
-  linear_trans_param_.beta_1 = -127.5 * input_scale;
-  linear_trans_param_.alpha_2 = input_scale;
-  linear_trans_param_.beta_2 = -127.5 * input_scale;
-
-  bm_shape_t output_shape = net_info_->stages[0].output_shapes[0];
-  batch_size_ = net_info_->stages[0].output_shapes[0].dims[0];
-  len_char = net_info_->stages[0].output_shapes[0].dims[2];
-  clas_char = net_info_->stages[0].output_shapes[0].dims[1];
-  int output_count = bmrt_shape_count(&output_shape);
-  count_per_img = output_count/batch_size_;
-  
-
+LPRNET::LPRNET(shared_ptr<BMNNContext> context):m_bmContext(context) {
+  cout << "LPRNET ctor .." << endl;
 }
 
 LPRNET::~LPRNET() {
-  // deinit bm images
-  bm_image_destroy_batch (resize_bmcv_, MAX_BATCH);
-  bm_image_destroy_batch (linear_trans_bmcv_, MAX_BATCH);
+  cout << "LPRNET dtor ..." << endl;
+  bm_image_free_contiguous_mem(max_batch, m_resized_imgs.data());
+  bm_image_free_contiguous_mem(max_batch, m_converto_imgs.data());
+  for(int i=0; i<max_batch; i++){
+    bm_image_destroy(m_converto_imgs[i]);
+    bm_image_destroy(m_resized_imgs[i]);
+  }
+}
 
-  // free output buffer
-  if (output_is_int8_) {
-    delete []output_int8;
-  } else {
-    delete []output_fp32;
+int LPRNET::Init(){
+  //1. get network
+  m_bmNetwork = m_bmContext->network(0);
+
+  //2. get input
+  max_batch = m_bmNetwork->maxBatch();
+  auto tensor = m_bmNetwork->inputTensor(0);
+  m_net_h = tensor->get_shape()->dims[2];
+  m_net_w = tensor->get_shape()->dims[3];
+  //3. get output
+  output_num = m_bmNetwork->outputTensorNum();
+  assert(output_num>0);
+  auto output_tensor = m_bmNetwork->outputTensor(0);
+  auto output_shape = output_tensor->get_shape();
+  auto output_dims = output_shape->num_dims;
+  clas_char = output_shape->dims[1];
+  len_char = output_shape->dims[2];
+
+#ifdef DEBUG
+  cout << "net_batch = " << max_batch << endl;
+  cout << "output_num = " << output_num << endl;
+  cout << "output_shape = " << output_shape->dims[0] << "," << output_shape->dims[1] << "," << output_shape->dims[2] << endl;
+#endif
+
+  //2. initialize bmimages
+  m_resized_imgs.resize(max_batch);
+  m_converto_imgs.resize(max_batch);
+  // some API only accept bm_image whose stride is aligned to 64
+  int aligned_net_w = FFALIGN(m_net_w, 64);
+  int strides[3] = {aligned_net_w, aligned_net_w, aligned_net_w};
+  for(int i=0; i<max_batch; i++){
+    auto ret= bm_image_create(m_bmContext->handle(), m_net_h, m_net_w,
+        FORMAT_BGR_PLANAR,
+        DATA_TYPE_EXT_1N_BYTE,
+        &m_resized_imgs[i], strides);
+    assert(BM_SUCCESS == ret);
+  }
+  bm_image_alloc_contiguous_mem (max_batch, m_resized_imgs.data());
+
+  bm_image_data_format_ext img_dtype = DATA_TYPE_EXT_FLOAT32;
+  if (tensor->get_dtype() == BM_INT8) {
+    img_dtype = DATA_TYPE_EXT_1N_BYTE_SIGNED;
   }
 
-  // deinit contxt handle
-  bmrt_destroy(p_bmrt_);
-  free(net_names_);
+  auto ret = bm_image_create_batch(m_bmContext->handle(), m_net_h, m_net_w,
+      FORMAT_BGR_PLANAR,
+      img_dtype,
+      m_converto_imgs.data(), max_batch);
+  assert(BM_SUCCESS == ret);
+  //3.converto
+  float input_scale = tensor->get_scale();
+  input_scale = input_scale * 0.0078125;
+  converto_attr.alpha_0 = input_scale;
+  converto_attr.beta_0 = -127.5 * input_scale;
+  converto_attr.alpha_1 = input_scale;
+  converto_attr.beta_1 = -127.5 * input_scale;
+  converto_attr.alpha_2 = input_scale;
+  converto_attr.beta_2 = -127.5 * input_scale;
+  return 0;
 }
 
 void LPRNET::enableProfile(TimeStamp *ts) {
   ts_ = ts;
 }
 
-void LPRNET::preForward(vector<bm_image> &input) {
-  LOG_TS(ts_, "lprnet pre-process")
-  preprocess_bmcv (input);
-  LOG_TS(ts_, "lprnet pre-process")
-}
-
-void LPRNET::forward() {
-  //memset(output_, 0, sizeof(float) * BUFFER_SIZE);
-  LOG_TS(ts_, "lprnet inference")
-  bool res;
-  if (output_is_int8_) {
-    res = bm_inference(p_bmrt_, linear_trans_bmcv_, (int8_t*)output_int8, input_shape_, net_names_[0]);
-  }else{
-    res = bm_inference(p_bmrt_, linear_trans_bmcv_, (float*)output_fp32, input_shape_, net_names_[0]);
-  }
-
-  LOG_TS(ts_, "lprnet inference")
-  if (!res) {
-    cout << "ERROR : inference failed!!"<< endl;
-    exit(1);
-  }
-}
-
-static bool comp(const pair<float, int>& lhs,
-                        const pair<float, int>& rhs) {
-  return lhs.first > rhs.first;
-}
-
-void LPRNET::postForward(vector<bm_image> &input, vector<string> &detections) {
-  // int stage_num = net_info_->stage_num;
-  // bm_shape_t output_shape;
-  // for (int i = 0; i < stage_num; i++) {
-  //   if (net_info_->stages[i].input_shapes[0].dims[0] == (int)input.size()) {
-  //     output_shape = net_info_->stages[i].output_shapes[0];
-  //     break;
-  //   }
-  //   if ( i == (stage_num - 1)) {
-  //     cout << "ERROR: output not match stages" << endl;
-  //     return;
-  //   }
-  // }
-
-  LOG_TS(ts_, "lprnet post-process")
-  // int output_count = bmrt_shape_count(&output_shape);
-  // int img_size = input.size();
-  // int count_per_img = output_count/img_size;
-  //cout << "img_size = " << img_size << endl;
-  //cout << "count_per_img = " << count_per_img << endl;
-  detections.clear();
-
-  int N = 1;
-  // int len_char = net_info_->stages[0].output_shapes[0].dims[2];
-  // int clas_char = net_info_->stages[0].output_shapes[0].dims[1];
-  //cout << "len_char = " << len_char << endl;
-  //cout << "clas_char = " << clas_char << endl;
-  
-  vector<pair<float , int>> pairs;
-  //vector<string> res;
-  for (int i = 0; i < batch_size_; i++) {
-    //res.clear();
-    int pred_num[len_char]={1000};
-    for (int j = 0; j < len_char; j++){
-      pairs.clear();
-      for (int k = 0; k < clas_char; k++){
-        if (output_is_int8_){
-          pairs.push_back(make_pair(output_int8[i * count_per_img + k * len_char + j] * output_scale, k));
-        }else{
-          pairs.push_back(make_pair(output_fp32[i * count_per_img + k * len_char + j], k));
-        }
-        
-      }
-      partial_sort(pairs.begin(), pairs.begin() + N, pairs.end(), comp);
-      //cout << pairs[0].second << " : " << pairs[0].first << endl;
-      pred_num[j] = pairs[0].second;
-    }
-    string res = get_res(pred_num, len_char, clas_char);
-#ifdef DEBUG_RESULT
-    cout << "res = " << res << endl;
-#endif
-    detections.push_back(res);
-  }
-  LOG_TS(ts_, "lprnet post-process")
-}
-
-void LPRNET::preprocess_bmcv (vector<bm_image> &input) {
-  if (input.empty()) {
-    cout << "mul-batch bmcv input empty!!!" << endl;
-    return ;
-  }
-
-  if (!((1 == input.size()) || (4 == input.size()))) {
-    cout << "mul-batch bmcv input error!!!" << endl;
-    return ;
-  }
-
-  // set input shape according to input bm images
-  input_shape_ = {4, {(int)input.size(), 3, INPUT_HEIGHT, INPUT_WIDTH}};
-
-  // do not crop
-  crop_rect_ = {0, 0, input[0].width, input[0].height};
-
-  // resize && split by bmcv
-  for (size_t i = 0; i < input.size(); i++) {
-    LOG_TS(ts_, "lprnet pre-process-vpp")
-    bmcv_image_vpp_convert (bm_handle_, 1, input[i], &resize_bmcv_[i], &crop_rect_);
-    LOG_TS(ts_, "lprnet pre-process-vpp")
-  }
-  //cout << resize_bmcv_[0].width << " " << resize_bmcv_[0].height <<endl;
-  // do linear transform
-  LOG_TS(ts_, "linear transform")
-  bmcv_image_convert_to(bm_handle_, input.size(), linear_trans_param_, resize_bmcv_, linear_trans_bmcv_);
-  LOG_TS(ts_, "linear transform")
-}
-
 int LPRNET::batch_size() {
-  return batch_size_;
+  return max_batch;
 };
 
-string get_res(int pred_num[], int len_char, int clas_char){
+int LPRNET::Detect(const vector<cv::Mat>& input_images, vector<string>& results){
+  int ret = 0;
+  //3. preprocess
+  LOG_TS(ts_, "lprnet preprocess");
+  ret = pre_process(input_images);
+  CV_Assert(ret == 0);
+  LOG_TS(ts_, "lprnet preprocess");
+
+  //4. forward
+  LOG_TS(ts_, "lprnet inference");
+  ret = m_bmNetwork->forward();
+  CV_Assert(ret == 0);
+  LOG_TS(ts_, "lprnet inference");
+
+  //5. post process
+  LOG_TS(ts_, "lprnet postprocess");
+  ret = post_process(input_images, results);
+  CV_Assert(ret == 0);
+  LOG_TS(ts_, "lprnet postprocess");
+  return ret;
+}
+
+int LPRNET::pre_process(const std::vector<cv::Mat>& images) {
+  if (images.empty()) {
+    cout << "pre_process input empty!!!" << endl;
+    return -1;
+  }
+  
+  shared_ptr<BMNNTensor> input_tensor = m_bmNetwork->inputTensor(0);
+  int image_n = images.size();
+  if (image_n > max_batch) {
+    std::cout << "input image size > input_shape.batch(" << max_batch << ")." << std::endl;
+    return -1;
+  }
+  //1. resize image
+  int ret = 0;
+  for(int i = 0; i < image_n; ++i) {
+    bm_image image1;
+    bm_image image_aligned;
+    // src_img
+    CV_Assert(0 == cv::bmcv::toBMI((cv::Mat&)images[i], &image1, true));
+    bool need_copy = image1.width & (64-1);
+
+    if(need_copy){
+      int stride1[3], stride2[3];
+      bm_image_get_stride(image1, stride1);
+      stride2[0] = FFALIGN(stride1[0], 64);
+      stride2[1] = FFALIGN(stride1[1], 64);
+      stride2[2] = FFALIGN(stride1[2], 64);
+      bm_image_create(m_bmContext->handle(), image1.height, image1.width,
+          image1.image_format, image1.data_type, &image_aligned, stride2);
+
+      bm_image_alloc_dev_mem(image_aligned, BMCV_IMAGE_FOR_IN);
+      bmcv_copy_to_atrr_t copyToAttr;
+      memset(&copyToAttr, 0, sizeof(copyToAttr));
+      copyToAttr.start_x = 0;
+      copyToAttr.start_y = 0;
+      copyToAttr.if_padding = 1;
+
+      bmcv_image_copy_to(m_bmContext->handle(), copyToAttr, image1, image_aligned);
+    } else {
+      image_aligned = image1;
+    }
+    auto ret = bmcv_image_vpp_convert(m_bmContext->handle(), 1, image_aligned, &m_resized_imgs[i]);
+    assert(BM_SUCCESS == ret);
+    bm_image_destroy(image1);
+    if(need_copy) bm_image_destroy(image_aligned);
+  }
+  //2. converto
+  ret = bmcv_image_convert_to(m_bmContext->handle(), image_n, converto_attr, m_resized_imgs.data(), m_converto_imgs.data());
+  CV_Assert(ret == 0);
+
+  //3. attach to tensor
+  if(image_n != max_batch) image_n = m_bmNetwork->get_nearest_batch(image_n); 
+  bm_device_mem_t input_dev_mem;
+  bm_image_get_contiguous_device_mem(image_n, m_converto_imgs.data(), &input_dev_mem);
+  input_tensor->set_device_mem(&input_dev_mem);
+  input_tensor->set_shape_by_dim(0, image_n);  // set real batch number
+  return 0;
+}
+
+int LPRNET::post_process(const vector<cv::Mat> &images, vector<string>& results){
+  vector<shared_ptr<BMNNTensor>> outputTensors(output_num);
+  for(int i=0; i<output_num; i++){
+      outputTensors[i] = m_bmNetwork->outputTensor(i);
+  }
+
+  float* output_data = nullptr;
+  float ptr[clas_char];
+  int pred_num[len_char];
+  for(int idx = 0; idx < images.size(); ++idx)
+  {
+    for(int i=0; i<output_num; i++){
+      auto out_tensor = outputTensors[i];
+      output_data = (float*)out_tensor->get_cpu_data() + idx*len_char*clas_char;
+      for (int j = 0; j < len_char; j++){
+        for (int k = 0; k < clas_char; k++){
+          ptr[k] = *(output_data + k * len_char + j);
+#ifdef DEBUG
+          // cout << "j = " << j << ", k = " << k << ", ptr[k] = " << ptr[k] << endl;
+#endif
+        }
+        int class_id = argmax(&ptr[0], clas_char);
+        float confidence = ptr[class_id];
+#ifdef DEBUG
+        // cout << "class_id = " << class_id << ",confidence = " << confidence << endl;
+#endif
+        pred_num[j] = class_id;
+      }
+      string res = get_res(pred_num, len_char, clas_char);
+#ifdef DEBUG
+      cout << "res = " << res << endl;
+#endif
+      results.push_back(res);
+    }
+  }
+  return 0;
+}
+
+int LPRNET::argmax(float* data, int num) {
+  float max_value = -1e10;
+  int max_index = 0;
+  for(int i = 0; i < num; ++i) {
+    float value = data[i];
+    if (value > max_value) {
+      max_value = value;
+      max_index = i;
+    }
+  }
+  return max_index;
+}
+
+string LPRNET::get_res(int pred_num[], int len_char, int clas_char){
   int no_repeat_blank[20];
   //int num_chars = sizeof(CHARS) / sizeof(CHARS[0]);
   int cn_no_repeat_blank = 0;
@@ -288,14 +252,10 @@ string get_res(int pred_num[], int len_char, int clas_char){
       cn_no_repeat_blank++;
   }
 
-  //static char res[10];
   string res="";
   for (int j = 0; j < cn_no_repeat_blank; j++){
     res = res + arr_chars[no_repeat_blank[j]];
-    //cout << arr_chars[no_repeat_blank[j]] << endl;
-    //strcat(res, arr_chars[no_repeat_blank[j]]);  
   }
-  //cout << temp << endl;
-  //strcpy(res, temp);
+
   return res;
 }
