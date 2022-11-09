@@ -22,7 +22,8 @@ Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移
 ## 版本说明
 | 版本 | 说明 | 
 |---|---|
-| 0.1.0	 | 适配BM1684X(x86 PCIe、SoC)，BM1684(x86 PCIe、SoC) |
+| 0.1.1	 | 修复文档等问题，使用BMNN相关类重构LPRNet/cpp/lprnet_bmcv |
+| 0.1.0	 | 提供LPRNet等10个例程适配BM1684X(x86 PCIe、SoC)，BM1684(x86 PCIe、SoC) |
 
 ## 环境依赖
 Sophon Demo主要依赖libsophon、sophon-ffmpeg、sophon-opencv、sophon-sail，其版本要求如下：
