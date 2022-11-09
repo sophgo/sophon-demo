@@ -42,8 +42,11 @@ sudo ./download.sh
 下载的模型包括：
 ./models/
 ├── BM1684
-│   ├──yolov4_416_coco_fp32_1b.bmodel      # BM1684 fp32bmodel，[1 3 416 416]
-│   └── yolov4_416_coco_int8_1b.bmodel                                                
+│   ├── yolov4_416_coco_fp32_1b.bmodel      # BM1684 fp32bmodel，[1 3 416 416]
+│   └── yolov4_416_coco_int8_1b.bmodel 
+├── BM1684X
+│   ├── yolov4_416_coco_fp32_1b.bmodel      # BM1684X fp32bmodel，[1 3 416 416]
+│   └── yolov4_416_coco_int8_1b.bmodel                                               
 └── darknet
     ├── yolov4.cfg                                        # 官方darknet模型
     └── yolov4.weights 

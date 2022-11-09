@@ -30,6 +30,25 @@ usage:yolov34_opencv.py [--config file CONFIG_PATH] [--input IMAGE_PATH]
 --input=<image file path>推理图片路径，仅单张图
 #$ python3 yolov34_opencv.py --help # show help info
 ```
+confige文件修改如下：
+```yml
+DETECTOR: # 检测模型
+    TYPE: "coco_detector"
+    NAME: 'yolov34'
+    PRODUCER_NAME: 'sophon'
+    ENGINE_FILE: '../data/models/BM1684X/yolov4_416_coco_fp32_1b.bmodel'    #更改ENGINE_FILE更换模型文件
+    LABEL_FILE: '../data/coco.names'                                        #更改LABLE_FILE更换标签文件
+    DEV_ID: 0                                                               #更改DEV_ID选择芯片
+
+    YOLO_MASKS: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    YOLO_ANCHORS: [12, 16, 19, 36, 40, 28, 36, 75,
+                    76, 55, 72, 146, 142, 110, 192, 243, 459, 401]
+    
+    OUTPUT_TENSOR_CHANNELS: [52, 26, 13]
+    MIN_CONFIDENCE: 0.5
+    NMS_MAX_OVERLAP: 0.45
+
+```
 
 测试实例如下：
 ```bash
@@ -74,7 +93,7 @@ SoC平台的测试方法与x86 PCIe平台相同，请参考[1.2 测试命令](#1
 ### 3.1性能测试
 可以使用bmrt_test测试模型的理论性能：
 ```bash
-bmrt_test --bmodel {path_of_bmodel}
+bmrt_test --bmodel {path_of_bmodel}此处为bmodel文件路径
 ```
 也可以参考[1.2 测试命令](#12-测试命令)打印程序运行中的实际性能指标。  
 测试中性能指标存在一定的波动属正常现象。
