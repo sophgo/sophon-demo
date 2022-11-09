@@ -42,8 +42,7 @@ python
 此外您可能还需要安装其他第三方库：
 
 ```bash
-pip3 install opencv-python==4.3.0.36
-pip3 install opencv-python-headless==4.3.0.36
+pip3 install opencv-python-headless==4.6.0.66
 ```
 
 ### 1.2 测试命令
