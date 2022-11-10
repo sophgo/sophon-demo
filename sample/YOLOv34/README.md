@@ -98,7 +98,7 @@ cd scripts
 ./gen_fp32bmodel.sh BM1684
 ```
 
-​	执行上述命令会在`data/models/BM1684/`下生成`yolov4_coco_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​	执行上述命令会在`data/models/BM1684/`下生成`yolov4_416_coco_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 ### 4.2 生成INT8 BModel
 
@@ -118,7 +118,7 @@ cd scripts
 ./gen_int8bmodel.sh BM1684X
 ```
 
-​	上述脚本会在`data/models/BM1684X`下生成`yolov4_coco_int8_1b.bmodel`文件，即转换好的INT8 BModel。
+​	上述脚本会在`data/models/BM1684X`下生成`yolov4_416_coco_int8_1b.bmodel`文件，即转换好的INT8 BModel。
 
 > **YOLOv34模型量化建议（也可参考[官方量化手册指导](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/calibration-tools/html/module/chapter7.html)）：**
 >
