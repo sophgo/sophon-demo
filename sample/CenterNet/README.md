@@ -86,7 +86,6 @@ return torch.cat((ret['hm'], ret['wh'], ret['reg']), 1)
 #### JIT模型生成
 进入docker以后直接运行export.py即可
 ```bash
-pip3 install torch torchvision
 cd ../tools
 python3 export.py
 ```
