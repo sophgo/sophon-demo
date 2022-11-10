@@ -20,6 +20,7 @@ function gen_int8bmodel()
     	    --cali_image_preprocess='resize_h=416,resize_w=416;scale=0.003921569,bgr2rgb=True'   \
             --input_shapes="[$1,3,416,416]"  \
     	    --outdir=$outdir   \
+            --debug_cmd="not_suspend" \
             --target=$target      
     if [ $? -ne 0 ]; then
         echo "gen_int8bmodel batch_size $1 failed"
