@@ -63,6 +63,12 @@ SOC_SDK is also created when you build the the cross compilation environment.
 
 ### Run example(in soc)
 
+if yolox_sail.arm can not run because of "error while loading shared libraries: libsail.so: cannot open shared object file: No such file or directory", please set the environment path
+
+```bash
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+```
+
 ``` shell
 ./yolox_sail.arm video <video url> <bmodel path> <test count> <detect threshold> <nms threshold> <save path> <device id>
 ```

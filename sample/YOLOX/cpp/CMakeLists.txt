@@ -1,3 +1,4 @@
+
 cmake_minimum_required(VERSION 3.10)
 project(yolox)
 
@@ -57,8 +58,9 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     message("SDK: " ${SDK})
 
     aux_source_directory(. SRC_FILES)
-    add_executable(yolox_sail.soc ${SRC_FILES})
-    target_link_libraries(yolox_sail.soc ${BM_LIBS} ${OPENCV_LIBS} ${SAIL_LIBS} ${JPU_LIBS})
+    add_executable(yolox_sail.arm ${SRC_FILES})
+    target_link_libraries(yolox_sail.arm ${BM_LIBS} ${OPENCV_LIBS} ${SAIL_LIBS} ${JPU_LIBS})
 else ()
     message( FATAL_ERROR  "not support mode, eg: soc/x86, cur: ${TARGET_ARCH}")
 endif ()
+
