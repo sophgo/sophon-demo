@@ -126,10 +126,10 @@ cd scripts
 chmod +x auto_test.sh
 ./auto_test.sh ${platform} ${target} ${tpu_id} ${sail_dir}
 ```
-其中platform指所在平台（x86 or soc），target是芯片型号（BM1684 or BM1684X），tpu_id指定tpu的id（使用bm-smi查看），sail_dir是sail的安装路径。如果最终输出 `Failed:`则表示执行失败，否则表示成功。并且在根路径下生成mAP文件夹，其中保存着mAP结果。\
-例如 auto_test.sh x86 BM1684 0 /opt/sophon/sophon-sail \
+其中platform指所在平台（x86 or soc），target是芯片型号（BM1684 or BM1684X），tpu_id指定tpu的id（使用bm-smi查看），sail_dir是sail的安装路径。如果最终输出 `Failed:`则表示执行失败，否则表示成功。并且在根路径下生成mAP文件夹，其中保存着mAP结果。
+例如 auto_test.sh x86 BM1684 0 /opt/sophon/sophon-sail 
 
-在x86上，auto_test.sh包括了cpp文件夹下c++程序的编译，运行和python文件夹下所有python程序的运行，以及mAP计算脚本的运行。\
+在x86上，auto_test.sh包括了cpp文件夹下c++程序的编译，运行和python文件夹下所有python程序的运行，以及mAP计算脚本的运行。
 在soc上，auto_test.sh包括了cpp文件夹下c++程序的运行和python文件夹下所有python程序的运行，以及mAP计算脚本的运行。
 
 在x86上执行此脚本，首先参见[x86-pcie平台的开发和运行环境搭建](../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)，然后运行此脚本，其中${sail_dir}为上述环境搭建得到的sophon-sail安装路径，通常为/opt/sophon/sophon-sail。
