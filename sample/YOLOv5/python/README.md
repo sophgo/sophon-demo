@@ -85,7 +85,7 @@ optional arguments:
 ​	demo中支持单图、文件夹、视频测试，按照实际情况传入参数即可，默认是单图。另外，模型支持fp32bmodel、int8bmodel，可以通过传入模型路径参数进行测试：
 
 ```bash
-# 测试单张图片
+# 默认BM1684X平台、单图，请根据实际情况传参
 python3 yolov5_opencv.py
 ```
 
