@@ -72,7 +72,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 ``` shell
 ./yolox_sail.arm video <video url> <bmodel path> <test count> <detect threshold> <nms threshold> <save path> <device id>
 ```
-e.g ./yolox_sail.arm video ../data/video/1080p_1.mp4 ../data/image/val2017 ../data/models/BM1684/yolox_s_fp32_1b.bmodel 10 0.25 0.45 ./results 1
+e.g ./yolox_sail.arm video ../data/video/1080p_1.mp4 ../data/models/BM1684/yolox_s_fp32_1b.bmodel 10 0.25 0.45 ./results 0
 - video           : test file is video, otherwise is picture
 - video url       : video name or picture folder path
 - bmodel path     : bmodel file name
