@@ -274,6 +274,8 @@ class BMNNNetwork : public NoCopyable {
       std::cout << "bm_launch_tensor() failed=" << std::endl;
       return -1;
     }
+    bool status = bm_thread_sync(m_handle);
+    assert(BM_SUCCESS == status);
 
 #if 0
     for(int i = 0;i < m_netinfo->output_num; ++i) {
