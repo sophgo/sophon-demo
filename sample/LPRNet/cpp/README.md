@@ -77,7 +77,7 @@ SUMMARY: lprnet detect
 ```bash
 cd lprnet_opencv
 mkdir build && cd build
-#请根据实际情况修改-DSDK的路径
+#请根据实际情况修改-DSDK的路径，需使用绝对路径。
 cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk ..  
 make # 生成lprnet_opencv.soc
 ```
