@@ -82,7 +82,7 @@ trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如�
 
 ### 4.1 生成FP32 BModel
 
-pytorch模型编译为FP32 BModel，具体方法可参考TPU-NNTC开发参考手册。
+pytorch模型编译为FP32 BModel，具体方法可参考TPU-NNTC开发参考手册(请从[算能官网](https://developer.sophgo.com/site/index/material/all/all.html)相应版本的SDK中获取)。
 
 本例程在`scripts`目录下提供了编译FP32 BModel的脚本。请注意修改`gen_fp32bmodel.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684和BM1684X），如：
 
@@ -97,7 +97,7 @@ pytorch模型编译为FP32 BModel，具体方法可参考TPU-NNTC开发参考手
 
 不量化模型可跳过本节。
 
-pytorch模型的量化方法可参考TPU-NNTC开发参考手册。
+pytorch模型的量化方法可参考TPU-NNTC开发参考手册(请从[算能官网](https://developer.sophgo.com/site/index/material/all/all.html)相应版本的SDK中获取)。
 
 本例程在`scripts`目录下提供了量化INT8 BModel的脚本。请注意修改`gen_int8model.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684和BM1684X），如：
 
