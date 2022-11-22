@@ -108,7 +108,7 @@ bmrt_test --bmodel {path_of_bmodel}
 | lprnet_bmcv   | int8 |   4      | 87.8% |  0.3ms  |  0.3ms   | 680 |
 
 ```
-bmrt_test: 每张图片的理论推理时间；
+bmrt_test: 每张图片的理论推理时间(calculate time)，多batch模型需除以batch；
 infer_time: 程序运行时每张图片的网络推理时间；
 QPS: 程序每秒钟全流程处理的图片数。
 ```

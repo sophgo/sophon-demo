@@ -35,7 +35,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的tpu-nntc�
     ```bash
     cd tpu-nntc
     # 进入docker，如果当前系统没有对应镜像，会自动从docker hub上下载
-    # 将tpu-nntc的上一级目录映射到docker内的/workspace目录
+    # 这里将tpu-nntc的上一级目录映射到docker内的/workspace目录,用户需要根据实际情况将demo的目录映射到docker里面
     # 这里用了8001到8001端口映射，之后在使用ufw可视化工具会用到
     # 如果端口已经占用，请更换其他未占用端口，后面根据需要更换进行调整
     docker run -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:latest
@@ -229,7 +229,7 @@ source /etc/profile
     * OPENCV_BASIC_PATH : 交叉编译模式下,sophon-opencv的路径,如果配置不正确,且ONLY_RUNTIME为`ON`时会编译失败。pcie模式下面此编译选项不生效。
 
 
-4. 安装SAIL动态库及头文件,编译结果将安装在`build_soc`下面
+4. 安装SAIL动态库及头文件,编译结果将安装在`../build_soc`下面
 
     ```bash
     sudo make install                               
