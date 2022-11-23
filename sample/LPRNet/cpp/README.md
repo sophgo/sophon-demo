@@ -31,7 +31,7 @@ bmodel path:用于推理的bmodel路径，默认使用stage 0的网络进行推�
 device id:用于推理的tpu设备id。
 ```
 
-测试实例如下，请根据目标平台、模型精度、batch_size选择相应的bmodel：
+BM1684X的测试实例如下，请根据目标平台、模型精度、batch_size选择相应的bmodel：
 
 ```bash
 # 测试整个文件夹
