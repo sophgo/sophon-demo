@@ -25,7 +25,7 @@ usage:lprnet_opencv.py [--input_path IMG_PATH] [--bmodel BMODEL] [--tpu_id TPU]
 --tpu_id:用于推理的tpu设备id。
 ```
 
-测试实例如下，请根据目标平台、模型精度、batch_size选择相应的bmodel：
+BM1684X的测试实例如下，请根据目标平台、模型精度、batch_size选择相应的bmodel：
 ```bash
 # 测试整个文件夹
 python3 lprnet_opencv.py --input_path ../data/images/test --bmodel ../data/models/BM1684X/lprnet_fp32_1b.bmodel --tpu_id 0
