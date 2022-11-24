@@ -31,7 +31,7 @@ bmodel path:用于推理的bmodel路径，默认使用stage 0的网络进行推�
 测试实例如下：
 
 ```bash
-# 图片模式，1batch，fp32
+# 图片模式，1batch，fp32，以测试face文件夹为例
 # 如果模型是多batch的，会每攒够batch数的图片做一次推理
 $ ./retinaface_bmcv.pcie 0 ../../../data/images/face ../../../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel
 
