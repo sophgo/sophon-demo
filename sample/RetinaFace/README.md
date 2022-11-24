@@ -40,7 +40,7 @@ WIDER FACE下载地址：http://shuoyang1213.me/WIDERFACE/
 chmod -R +x scripts/
 ./scripts/download.sh
 ```
-执行后，模型保存至`data/models`，数据集下载并解压至`data/images/`
+执行后，模型保存至`data/models`，图片数据集下载并解压至`data/images/`， 视频保存至`data/videos/`
 ```
 下载的模型包括：
 onnx/retinaface_mobilenet0.25.onnx: 原始模型
@@ -51,7 +51,7 @@ BM1684X/retinaface_mobilenet0.25_fp32_4b.bmodel: 用于BM1684X的FP32 BModel，b
 
 下载的数据包括：
 WIDERVAL: 测试集
-face01.jpg-face05.jpg:测试单张图片
+face01.jpg-face05.jpg:测试图片
 station.avi: 测试视频
 
 ```

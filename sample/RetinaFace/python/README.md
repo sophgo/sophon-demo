@@ -31,52 +31,22 @@ usage:retinaface_opencv.py [--bmodel BMODEL] [--network NETWORK] [--input_path I
 ```
 
 测试实例如下：
-```bash
-# 以测试图片为例
-# 使用1batch bmodel
-$ python3 retinaface_opencv.py --bmodel ../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel --network mobile0.25 --input_path ../data/images/face/face01.jpg --tpu_id 0 --conf 0.02 --nms 0.4 --use_np_file_as_input False
-```
-执行完成后，会将预测图片保存在`results/`文件夹下，同时会打印预测结果、推理时间等信息。
-```bash
-- face 1: x1, y1, x2, y2, conf = [1.4813636e+03 2.3813448e+02 1.5513214e+03 3.2603729e+02 9.9838036e-01]
-- face 2: x1, y1, x2, y2, conf = [1.5934717e+03 2.1940230e+02 1.6646621e+03 3.0682361e+02 9.9629390e-01]
-- face 3: x1, y1, x2, y2, conf = [1.3471459e+03 2.0241377e+02 1.4162469e+03 2.9239706e+02 9.9526298e-01]
-- face 4: x1, y1, x2, y2, conf = [538.8302     306.1469     594.6965     377.89386      0.99249953]
-- face 5: x1, y1, x2, y2, conf = [802.2228    221.92374   858.7444    292.33325     0.9888797]
-- face 6: x1, y1, x2, y2, conf = [1.1095901e+03 2.1641072e+02 1.1663149e+03 2.8901352e+02 9.8742777e-01]
-- face 7: x1, y1, x2, y2, conf = [1.0253922e+03 2.9218658e+02 1.0776205e+03 3.5883188e+02 9.8676348e-01]
-- face 8: x1, y1, x2, y2, conf = [412.9569    289.28937   467.5013    357.1796      0.9867334]
-- face 9: x1, y1, x2, y2, conf = [899.41113    292.2927     955.6922     363.80243      0.98394644]
-- face 10: x1, y1, x2, y2, conf = [1.2130354e+03 2.0754848e+02 1.2684365e+03 2.7846011e+02 9.8286533e-01]
-- face 11: x1, y1, x2, y2, conf = [1.2773765e+03 2.8552786e+02 1.3350741e+03 3.6016623e+02 9.7993690e-01]
-- face 12: x1, y1, x2, y2, conf = [339.97354    187.02548    393.9029     253.09778      0.97491217]
-- face 13: x1, y1, x2, y2, conf = [481.79596   199.71217   534.8542    265.61383     0.9736318]
-- face 14: x1, y1, x2, y2, conf = [9.6184399e+02 2.0425456e+02 1.0173577e+03 2.7483292e+02 9.7248906e-01]
-- face 15: x1, y1, x2, y2, conf = [1.1389028e+03 3.0996884e+02 1.1967733e+03 3.8043613e+02 9.5937258e-01]
-- face 16: x1, y1, x2, y2, conf = [660.9378    198.53073   718.954     271.32382     0.9574182] 
-- face 17: x1, y1, x2, y2, conf = [298.1008     256.23212    354.85028    325.1901       0.95197785]
-- face 18: x1, y1, x2, y2, conf = [199.78685   253.32855   257.67377   326.9112      0.9292876]
-- face 19: x1, y1, x2, y2, conf = [781.88477   348.93954   834.64703   417.14322     0.8764282]
-- face 20: x1, y1, x2, y2, conf = [645.5316     299.6266     697.87836    367.65497      0.85817415]
-+--------------------------------------------------------------------------------+
-|                           Running Time Cost Summary                            |
-+------------------------+----------+--------------+--------------+--------------+
-|        函数名称        | 运行次数 | 平均耗时(秒) | 最大耗时(秒) | 最小耗时(秒) |
-+------------------------+----------+--------------+--------------+--------------+
-| preprocess_with_opencv |    1     |    0.009     |    0.009     |    0.009     |
-|      infer_numpy       |    1     |    0.011     |    0.011     |    0.011     |
-|      postprocess       |    1     |    0.007     |    0.007     |    0.007     |
-+------------------------+----------+--------------+--------------+--------------+
-```
 
 ```bash
-# 以测试文件夹为例
-$ python3 retinaface_opencv.py --bmodel ../data/models/BM1684X/retinaface_mobilenet0.25_fp32_4b.bmodel --network mobile0.25 --input_path ../data/images/WIDERVAL --tpu_id 0 --conf 0.02 --nms 0.4 --use_np_file_as_input False
+# 以测试WIDERVAL数据集为例
+# 使用1batch bmodel
+$ python3 retinaface_opencv.py --bmodel ../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel --network mobile0.25 --input_path ../data/images/WIDERVAL --tpu_id 0 --conf 0.02 --nms 0.4 --use_np_file_as_input False
 ```
 执行完成后，会将预测结果保存在`results/retinaface_mobilenet0.25_fp32_1b.bmodel_opencv_WIDERVAL_python_result.txt`文件中，将预测图片保存在`results/retinaface_mobilenet0.25_fp32_1b.bmodel_opencv_WIDERVAL_python_result/`文件夹下，同时会打印预测结果、推理时间、函数运行时间等信息。
 
 如下图所示：
 ``` bash
+- face 1: x,y,w,h,conf = 130 133 67 97 0.99906695
+- face 2: x,y,w,h,conf = 685 165 63 82 0.9955299
+- face 3: x,y,w,h,conf = 365 154 60 80 0.9952643
+- face 4: x,y,w,h,conf = 418 418 50 54 0.027065556
+- face 5: x,y,w,h,conf = 996 717 16 21 0.020527808
+- face 6: x,y,w,h,conf = 737 429 84 121 0.020261558
 - ------------------ Inference Time Info ----------------------
 - inference_time(ms): 6.50
 - total_time(ms): 68396.19, img_num: 3226
