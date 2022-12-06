@@ -6,77 +6,56 @@
 // third-party components.
 //
 //===----------------------------------------------------------------------===//
-#ifndef SSD_HPP
-#define SSD_HPP
 
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <vector>
+#include <dirent.h>
+#include "json.hpp"
 
-// Define USE_OPENCV for enabling OPENCV related funtions in bm_wrapper.hpp
 #define USE_OPENCV 1
 #include "bm_wrapper.hpp"
-
 #include "utils.hpp"
-
-#define MAX_BATCH 4
-
-struct ObjRect {
-  unsigned int class_id;
-  float score;
-  float x1;
-  float y1;
-  float x2;
-  float y2;
+#include "bmnn_utils.h"
+#define BUFFER_SIZE (1024 * 500)
+#define DEBUG 1
+#define USE_ASPECT_RATIO 0
+struct SSDObjRect{
+    unsigned int class_id;
+    float score;
+    float x1, y1, x2, y2;
+    void printBox(){
+        std::cout << "class: " << class_id 
+                  << "; score: " << score 
+                  << "; box:[" << x1 << ", "
+                  << y1 << ", " << x2 << ", " << y2 << "]" <<std::endl;
+    };
 };
-
 class SSD {
-public:
-  SSD(bm_handle_t& bm_handle, const std::string bmodel);
-  ~SSD();
-  void preForward(std::vector<bm_image> &input);
-  void forward();
-  void postForward(std::vector<bm_image> &input, std::vector<std::vector<ObjRect>> &detections);
-  void enableProfile(TimeStamp *ts);
-  bool getPrecision();
-  int batch_size();
-private:
-  void preprocess_bmcv (std::vector<bm_image> &input);
-
-  // handle of runtime contxt
-  void *p_bmrt_;
-
-  // handle of low level device 
-  bm_handle_t bm_handle_;
-
-  // model info 
-  const bm_net_info_t *net_info_;
-  const char **net_names;
-  int batch_size_;
-
-  // indicate current bmodel type INT8 or FP32
-  bool is_int8_;
-
-  // confidence 
-  float threshold_;
-
-  // buffer of inference results
-  float *output_;
-
-  // input image shape used for inference call
-  bm_shape_t input_shape_;
-
-  // bm image objects for storing intermediate results
-  bm_image resize_bmcv_[MAX_BATCH];
-  bm_image linear_trans_bmcv_[MAX_BATCH];
-
-  // crop arguments of BMCV
-  bmcv_rect_t crop_rect_;
-
-  // linear transformation arguments of BMCV
-  bmcv_convert_to_attr linear_trans_param_;
-
-  
-  // for profiling
-  TimeStamp *ts_;
+    std::shared_ptr<BMNNContext> m_bmContext;
+    std::shared_ptr<BMNNNetwork> m_bmNetwork;
+    std::vector<bm_image> m_resized_imgs;
+    std::vector<bm_image> m_converto_imgs;
+    float m_conf_thre;
+    float m_nms_thre;
+    int m_net_h, m_net_w;
+    int max_batch;
+    TimeStamp *m_ts;
+    public:
+        SSD(std::shared_ptr<BMNNContext> context, float conf_thre, float nms_thre);
+        ~SSD();
+        void Init();
+        int batch_size();
+        int detect(const std::vector<cv::Mat> &input_images, const std::vector<std::string> &input_names,
+                        std::vector<std::vector<SSDObjRect> > &results, cv::VideoWriter *VideoWriter=NULL);    
+        void enableProfile(TimeStamp *ts);            
+    private:
+        static float get_aspect_scaled_ratio(int src_w, int src_h, 
+                                             int dst_w, int dst_h, bool *alignWidth);
+        int pre_process(const std::vector<cv::Mat> &images);
+        int post_process(const std::vector<cv::Mat> &images, const std::vector<std::string> &input_names,
+                               std::vector<std::vector<SSDObjRect> > &results, cv::VideoWriter *VideoWriter=NULL);
 };
-
-#endif /* SSD_HPP */

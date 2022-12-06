@@ -6,214 +6,253 @@
 // third-party components.
 //
 //===----------------------------------------------------------------------===//
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sstream>
-#include <dirent.h>
-#include <unistd.h>
+
 #include "ssd.hpp"
 
-using namespace std;
+using json = nlohmann::json;
+bool IS_DIR;
+bool CONFIDENCE;
+bool NMS;
 
-static void detect(bm_handle_t         &bm_handle,
-                   SSD                 &net,
-                   vector<cv::Mat>     &images,
-                   vector<string>      &batch_names,
-                   TimeStamp           *ts) {
+int main(int argc, char **argv){
+    /*
+     * Custom configurations.
+     */
+    if(argc < 3){
+        std::cout << "USAGE:" << std::endl;
+        std::cout << "    " << argv[0] <<" <image directory or video path> <bmodel path> <device id(default: 0)> <conf_thre(default: 0.01)> <nms_thre(default:0.45)>" << std::endl;
+        exit(1);
+    }
+    struct stat info;
+    std::string input_url = argv[1];
+    if(stat(input_url.c_str(), &info) != 0){
+        std::cout << "Cannot find input_path." << std::endl;
+        exit(1);
+    }
+    auto index = input_url.rfind('.');
+    std::string postfix = input_url.substr(index + 1);
+    std::vector<std::string> video_postfixes = {"mp4", "avi"}; 
+    
+    auto compare_postfix = [&]()->bool{
+        for(int i = 0; i < video_postfixes.size(); i++){
+            if(postfix == video_postfixes[i]){
+                std::cout << "read input path postfix: " << postfix << std::endl;
+                return true;
+            }
+        }
+        return false;
+    };
 
-  vector<vector<ObjRect>> detections;
+    if(compare_postfix()){
+        IS_DIR = false;
+        std::cout << "input is video."<< std::endl;
+    }else if (info.st_mode & S_IFDIR) {
+        IS_DIR = true;
+        std::cout << "input is image directory." << std::endl;
+    }else{
+        std::cout << "unrecognized input path!" << std::endl;
+        exit(1);
+    }
+    std::string bmodel_file = argv[2];
+    if(stat(bmodel_file.c_str(), &info) != 0){
+        std::cout << "Cannot find valid model file." << std::endl;
+        exit(1);
+    }
+    int dev_id = 0;
+    if(argc >= 4){
+        dev_id = std::stoi(argv[3]);
+    }
+    float conf_thre = 0;
+    CONFIDENCE = 0;
+    if(argc >= 5){
+        std::cout << "using confidence threshold!" << std::endl;
+        CONFIDENCE = 1;
+        conf_thre = std::stof(argv[4]);
+    }
+    float nms_thre = 0.45;
+    NMS = 0;
+    if(argc >= 6){
+        std::cout << "using NMS!" << std::endl;
+        NMS = 1;
+        nms_thre = std::stof(argv[5]);
+    }
+    
+    /*------------------------------------------------------
+     * Inference flow.
+     *------------------------------------------------------
+     */
 
-  vector<bm_image> input_img_bmcv;
-  ts->save("attach input");
-  bm_image_from_mat(bm_handle, images, input_img_bmcv);
-  ts->save("attach input");
+    //1. Get device handle and load bmodel file.
+    std::shared_ptr<BMNNHandle> handle = std::make_shared<BMNNHandle>(dev_id);
+    std::shared_ptr<BMNNContext> bm_ctx = std::make_shared<BMNNContext>(handle, bmodel_file.c_str());
+    std::cout << "Set device id: " << dev_id << " ." << std::endl;     
 
-  ts->save("detection");
-  net.preForward (input_img_bmcv);
+    //2. Initialize network.
+    SSD ssd(bm_ctx, conf_thre, nms_thre);
+    ssd.Init();
+    int batch_size = ssd.batch_size();
+    
+    //3. Profile
+    TimeStamp ssd_ts;
+    TimeStamp *ts = &ssd_ts;
+    ssd.enableProfile(&ssd_ts);
 
-  // do inference
-  net.forward();
+    //4. Data structures for inference.
+    std::vector<cv::Mat> batch_imgs;
+    std::vector<std::string> batch_names;
+    std::vector<std::vector<SSDObjRect> > results;
+    
+    //5. Results saving
+    json result_json;
+    int count = 0;
+    ts->save("SSD overall");
+    //6. Forward data to network, output detected object boxes.
+    if(IS_DIR){
+        //Get images in input directory.
+        std::cout << "Get images in input directory." << std::endl;
+        std::vector<std::string> files_vector;
+        DIR *pDir;
+        struct dirent* ptr;
+        pDir = opendir(input_url.c_str());
+        while((ptr = readdir(pDir))!=0) {
+            if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0){
+                files_vector.push_back(input_url + "/" + ptr->d_name);
+            }
+        }
+        closedir(pDir);
+        std::sort(files_vector.begin(),files_vector.end());
+        std::cout << "Start SSD inference, total image num: " << files_vector.size() << std::endl;
+        #if DEBUG
+            for(int i = 0; i < MIN(8, files_vector.size()); i++){
+        #else
+            for(int i = 0; i < files_vector.size(); i++){
+        #endif
+                std::cout << "Read image path: " << files_vector[i] << std::endl;
+                cv::Mat img_bgr = cv::imread(files_vector[i], cv::IMREAD_COLOR, dev_id);
+                cv::Mat img;
+                cv::cvtColor(img_bgr, img, cv::COLOR_BGR2RGB);
+                size_t index = files_vector[i].rfind("/");
+                std::string img_name = files_vector[i].substr(index + 1);
+                batch_imgs.push_back(img);
+                batch_names.push_back(img_name);
+                results.push_back(std::vector<SSDObjRect>());
+                if((int)batch_imgs.size() == batch_size){
+                    CV_Assert(0 == ssd.detect(batch_imgs, batch_names, results));
+                    #if DEBUG
+                        for(int j = 0; j < results.size(); j++){
+                            std::cout << "image " << (i + 1 - batch_size) + j << " :" << std::endl;
+                            for(int k = 0; k < results[j].size(); k++){
+                                std::cout<<"   ";results[j][k].printBox();
+                            }
+                        }
+                    #endif
+                    for(int j = 0; j < results.size(); j++){
+                        int lIndex, rIndex;
+                        lIndex = batch_names[j].find_first_not_of('0');
+                        rIndex = batch_names[j].rfind('.');
+                        if(lIndex == rIndex)
+                            lIndex--; 
+                        auto name = batch_names[j].substr(lIndex, rIndex - lIndex);
+                        for(int k = 0; k < results[j].size(); k++){
+                            result_json[count]["image_id"] = std::stoi(name);
+                            result_json[count]["category_id"] = results[j][k].class_id;
+                            result_json[count]["score"] = results[j][k].score;
+                            result_json[count++]["bbox"] = {results[j][k].x1, results[j][k].y1, 
+                                                            results[j][k].x2 - results[j][k].x1, results[j][k].y2 - results[j][k].y1};
+                        }
+                    }           
+                    batch_imgs.clear();
+                    batch_names.clear();
+                    results.clear();
+                }
+            }
+            if(!batch_imgs.empty()){
+                CV_Assert(0 == ssd.detect(batch_imgs, batch_names, results));
+                #if DEBUG
+                    for(int j = 0; j < results.size(); j++){
+                        std::cout << "image " << (15 + 1 - batch_size) + j << " :" << std::endl;
+                        for(int k = 0; k < results[j].size(); k++){
+                            std::cout<<"   ";
+                            results[j][k].printBox();
+                        }
+                    }
+                #endif    
+                for(int j = 0; j < results.size(); j++){
+                    int lIndex, rIndex;
+                    lIndex = batch_names[j].find_first_not_of('0');
+                    rIndex = batch_names[j].rfind('.');
+                    if(lIndex == rIndex)
+                        lIndex--;
+                    auto name = batch_names[j].substr(lIndex, rIndex - lIndex);
+                    for(int k = 0; k < results[j].size(); k++){
+                        result_json[count]["image_id"] = std::stoi(name);
+                        result_json[count]["category_id"] = results[j][k].class_id;
+                        result_json[count]["score"] = results[j][k].score;
+                        result_json[count++]["bbox"] = {results[j][k].x1, results[j][k].y1, 
+                                                        results[j][k].x2 - results[j][k].x1, results[j][k].y2 - results[j][k].y1};
+                    }
+                }
+                batch_imgs.clear();
+                batch_names.clear();   
+                results.clear();
+            }
+            std::string json_file = "./bmcv_cpp_result_b" + std::to_string(batch_size) + ".json";
+            std::cout << "================================================" << std::endl;
+            std::cout << "result saved in " << json_file << std::endl;
+            std::cout << "================================================" << std::endl;
+            std::ofstream(json_file)<<std::setw(4)<<result_json;
+    }else{
+        //Get frames in input video.
+        cv::VideoCapture cap(input_url, cv::CAP_ANY, dev_id);
+        if(!cap.isOpened()){
+            std::cout << "open video stream failed!" << std::endl;
+            exit(1);
+        }
+        int w = int(cap.get(cv::CAP_PROP_FRAME_WIDTH));
+        int h = int(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
+        int frame_num = cap.get(cv::CAP_PROP_FRAME_COUNT);
+        std::cout << "Frame num: " << frame_num << std::endl;
+        std::cout << "resolution of input stream: " << h << ", " << w << std::endl;
+        cv::VideoWriter VideoWriter;
+        int frameRate = cap.get(cv::CAP_PROP_FPS);
 
-  net.postForward (input_img_bmcv , detections);
-  ts->save("detection");
-  // destory bm_image
-  for (size_t i = 0; i < input_img_bmcv.size();i++) {
-    bm_image_destroy (input_img_bmcv[i]);
-  }
-
-  // save results to jpg file
-  for (size_t i = 0; i < detections.size(); i++) {
-    for (size_t j = 0; j < detections[i].size(); j++) {
-      ObjRect rect = detections[i][j];
-      cv::rectangle(images[i], cv::Rect(rect.x1, rect.y1, rect.x2 - rect.x1 + 1,
-                                    rect.y2 - rect.y1 + 1), cv::Scalar(255, 0, 0), 2);
+        //encode type depends on user's machine.
+        VideoWriter.open("video.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), frameRate, cv::Size(w, h));
+        
+        int frame_count = 0;
+        while(frame_count < frame_num){
+            frame_count++;
+            std::vector<cv::Mat> images;
+            cv::Mat img_bgr, img;
+            cap >> img_bgr;
+            std::cout << "frame num: " << frame_count << std::endl;
+            cv::cvtColor(img_bgr, img, cv::COLOR_BGR2RGB);
+            batch_imgs.push_back(img);
+            batch_names.push_back("tmp.jpg"); //useless
+            results.push_back(std::vector<SSDObjRect>()); //useless
+            if((int)batch_imgs.size() == batch_size){
+                CV_Assert(0 == ssd.detect(batch_imgs, batch_names, results, &VideoWriter));
+                #if DEBUG
+                    for(int j = 0; j < results.size(); j++){
+                        for(int k = 0; k < results[j].size(); k++){
+                            std::cout<<"   ";results[j][k].printBox();
+                        }
+                    }
+                #endif
+                batch_imgs.clear();
+                batch_names.clear();
+                results.clear();
+            }
+        }
+        cap.release();
+        VideoWriter.release();
     }
 
-    // check result directory
-    if (access("results", 0) != F_OK)
-        mkdir("results", S_IRWXU);
-    // jpg encode
-    if (net.getPrecision()) {
-      cv::imwrite("results/out-batch-int8-" + batch_names[i], images[i]);
-    } else {
-      cv::imwrite("results/out-batch-fp32-" + batch_names[i], images[i]);
-    }
-  }
-}
-
-int main(int argc, char **argv) {
-
-  cout.setf(ios::fixed);
-
-  // sanity check
-  if (argc != 6) {
-    cout << "USAGE:" << endl;
-    cout << "  " << argv[0] << " image <image file> <bmodel path> <test count> <device id>" << endl;
-    cout << "  " << argv[0] << " video <video url>  <bmodel path> <test count> <device id>" << endl;
-    exit(1);
-  }
-  struct stat info;
-  string bmodel_file = argv[3];
-  if (stat(bmodel_file.c_str(), &info) != 0) {
-    cout << "Cannot find valid model file." << endl;
-    exit(1);
-  }
-
-  if (strcmp(argv[1], "video") != 0 && strcmp(argv[1], "image") != 0){
-    cout << "mode must be image or video" << endl;
-    exit(1);
-  }
-
-  bool is_video = false;
-  if (strcmp(argv[1], "video") == 0)
-    is_video = true;
-
-  string input_url = argv[2];
-  if (stat(input_url.c_str(), &info) != 0) {
-    cout << "Cannot find input image path." << endl;
-    exit(1);
-  }
-
-  unsigned long test_loop = stoul(string(argv[4]), nullptr, 0);
-  if (test_loop < 1) {
-    std::cout << "test_loop must large 0" << std::endl;
-    exit(1);
-  }
-
-  // set device id
-  std::string dev_str = argv[5];
-  std::stringstream checkdevid(dev_str);
-  double t;
-  if (!(checkdevid >> t)) {
-    std::cout << "Is not a valid dev ID: " << dev_str << std::endl;
-    exit(1);
-  }
-  int dev_id = std::stoi(dev_str);
-  std::cout << "set device id:"  << dev_id << std::endl;
-
-  // profiling
-  TimeStamp ssd_ts;
-  TimeStamp *ts = &ssd_ts;
-
-  // initialize handle of low level device
-    int max_dev_id = 0;
-    bm_dev_getcount(&max_dev_id);
-    if (dev_id >= max_dev_id) {
-        std::cout << "ERROR: Input device id=" << dev_id
-                  << " exceeds the maximum number " << max_dev_id << std::endl;
-        exit(-1);
-    }
-    bm_handle_t  bm_handle;
-  bm_status_t ret = bm_dev_request (&bm_handle, dev_id);
-  if (ret != BM_SUCCESS) {
-    cout << "Initialize bm handle failed, ret = " << ret << endl;
-    exit(-1);
-  }
-
-  // initialize SSD class
-  SSD net(bm_handle , bmodel_file);
-
-  // for profiling
-  net.enableProfile(ts);
-  int batch_size = net.batch_size();
-  vector<cv::Mat> batch_imgs;
-  vector<string> batch_names;
-  // decode and detect
-  if (!is_video) {
-
-    for (uint32_t i = 0; i < test_loop; i++) {
-      ts->save("ssd overall");
-      ts->save("read image");
-
-      // decode jpg file to Mat object
-      cv::Mat img = cv::imread(input_url, cv::IMREAD_COLOR, dev_id);
-      ts->save("read image");
-
-      // do detect
-      string img_out = "t_" + to_string(i) + "_dev_" + to_string(dev_id) + "_image.jpg";
-      batch_imgs.push_back(img);
-      batch_names.push_back(img_out);
-      if ((int)batch_imgs.size() == batch_size) {
-        detect(bm_handle, net, batch_imgs, batch_names, ts);
-        batch_imgs.clear();
-        batch_names.clear();
-      }
-      ts->save("ssd overall");
-    }
-
-  } else {
-
-    // open stream
-    cv::VideoCapture cap(input_url, cv::CAP_ANY, dev_id);
-    if (!cap.isOpened()) {
-      cout << "open stream " << input_url << " failed!" << endl;
-      exit(1);
-    }
-
-    // get resolution
-    int w = int(cap.get(cv::CAP_PROP_FRAME_WIDTH));
-    int h = int(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
-    cout << "resolution of input stream: " << h << "," << w << endl;
-    // set output format to YUVi420
-    cap.set(cv::CAP_PROP_OUTPUT_YUV, 1.0);
-
-    for (uint32_t c = 0; c < test_loop; c++) {
-
-      // get one frame from decoder
-      cv::Mat *p_img = new cv::Mat;
-      cap.read(*p_img);
-
-      // sanity check
-      if (p_img->avRows() != h || p_img->avCols() != w) {
-        if (p_img != nullptr) delete p_img;
-        continue;
-      }
-      //cv::Mat *input;
-
-      //cv::resize(*p_img,*input,cv::Size(300,300));
-      // do detct
-      string img_out = "t_" + to_string(c) + "_dev_" + to_string(dev_id)  + "_video.jpg";
-      batch_imgs.push_back(*p_img);
-      batch_names.push_back(img_out);
-      if ((int)batch_imgs.size() == batch_size) {
-        detect(bm_handle, net, batch_imgs, batch_names, ts);
-        batch_imgs.clear();
-        batch_names.clear();
-      }
-      // release Mat object
-      if (p_img != nullptr) delete p_img;
-    }
-  }
-
-  time_stamp_t base_time = time_point_cast<microseconds>(steady_clock::now());
-  ssd_ts.calbr_basetime(base_time);
-  ssd_ts.build_timeline("ssd detect");
-  ssd_ts.show_summary("detect ");
-  ssd_ts.clear();
-
-  bm_dev_free(bm_handle);
-
-  cout << endl;
-
-  return 0;
+    ts->save("SSD overall");
+    time_stamp_t base_time = time_point_cast<microseconds>(steady_clock::now());
+    ts->calbr_basetime(base_time);
+    ts->build_timeline("SSD detect");
+    ts->show_summary("SSD detect");
+    ts->clear();
+    return 0;
 }

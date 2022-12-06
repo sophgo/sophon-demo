@@ -6,66 +6,66 @@
 // third-party components.
 //
 //===----------------------------------------------------------------------===//
-#ifndef SSD_HPP
-#define SSD_HPP
 
 #include <string>
-#include <iomanip>
-#include <opencv2/opencv.hpp>
-#include "bmruntime_interface.h"
+#include <iostream>
+#include <fstream>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <vector>
+#include <dirent.h>
+#include "json.hpp"
+
+#define USE_OPENCV 1
+#include "bm_wrapper.hpp"
 #include "utils.hpp"
-struct ObjRect {
-  unsigned int class_id;
-  float score;
-  float x1;
-  float y1;
-  float x2;
-  float y2;
+#include "bmnn_utils.h"
+#define BUFFER_SIZE (1024 * 500)
+#define DEBUG 1
+struct SSDObjRect{
+    unsigned int class_id;
+    float score;
+    float x1, y1, x2, y2;
+    void printBox(){
+        std::cout << "class: " << class_id 
+                  << "; score: " << score 
+                  << "; box:[" << x1 << ", "
+                  << y1 << ", " << x2 << ", " << y2 << "]" <<std::endl;
+    };
 };
-
 class SSD {
-public:
-  SSD(const std::string bmodel, int dev_id);
-  ~SSD();
-  void preForward(const cv::Mat &image);
-  void forward();
-  void postForward(const cv::Mat &image, std::vector<ObjRect> &detections);
-  void enableProfile(TimeStamp *ts);
-  bool getPrecision();
-
-private:
-  void setMean(std::vector<float> &values);
-  void wrapInputLayer(std::vector<cv::Mat>* input_channels);
-  void preprocess(const cv::Mat& img, std::vector<cv::Mat>* input_channels);
-
-  // handle of low level device
-  bm_handle_t bm_handle_;
-  int dev_id_;
-
-  // runtime helper
-  const char **net_names_;
-  void *p_bmrt_;
-
-  // network input shape
-  int batch_size_;
-  int num_channels_;
-  cv::Size input_geometry_;
-
-  // network related parameters
-  cv::Mat mean_;
-  float threshold_;
-
-  // input & output buffers
-  bm_tensor_t input_tensor_;
-  bm_tensor_t output_tensor_;
-  float input_scale;
-  float output_scale;
-  float *input_f32;
-  int8_t *input_int8;
-  float *output_;
-  bool flag_int8; 
-  // for profiling
-  TimeStamp *ts_;
+    std::shared_ptr<BMNNContext> m_bmContext;
+    std::shared_ptr<BMNNNetwork> m_bmNetwork;
+    std::shared_ptr<BMNNTensor>  m_input_tensor;
+    std::shared_ptr<BMNNTensor>  m_output_tensor;
+    float m_conf_thre;
+    float m_nms_thre;
+    int m_net_h, m_net_w;
+    int m_num_channels;
+    int max_batch;
+    int m_dev_id;
+    TimeStamp *m_ts;
+    public:
+        SSD(std::shared_ptr<BMNNContext> context, float conf_thre, float nms_thre, int m_dev_id);
+        ~SSD();
+        void Init();
+        int batch_size();
+        int detect(const std::vector<cv::Mat> &input_images, const std::vector<std::string> &input_names,
+                        std::vector<std::vector<SSDObjRect> > &results, cv::VideoWriter *VideoWriter=NULL);    
+        void enableProfile(TimeStamp *ts);            
+    private:
+        float *m_input_f32;
+        int8_t *m_input_int8;
+        float *m_output_f32;
+        int8_t *m_output_int8;
+        cv::Mat m_mean;
+        int m_input_count;
+        static float get_aspect_scaled_ratio(int src_w, int src_h, 
+                                             int dst_w, int dst_h, bool *alignWidth);
+        int pre_process(const std::vector<cv::Mat> &images);
+        int post_process(const std::vector<cv::Mat> &images, const std::vector<std::string> &input_names,
+                               std::vector<std::vector<SSDObjRect> > &results, cv::VideoWriter *VideoWriter=NULL);                       
+        void setMean(std::vector<float> &values);
+        void wrapInputLayer(std::vector<cv::Mat>* input_channels, int batch_id);
+        void pre_process_image(const cv::Mat& img, std::vector<cv::Mat> *input_channels);
 };
-
-#endif /* SSD_HPP */

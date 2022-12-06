@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 project(ssd_opencv C CXX)
+SET(CMAKE_BUILD_TYPE "Debug")
 
 if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH x86)
 endif()
 
 if (${TARGET_ARCH} STREQUAL "x86")
-    set(lib_DIR /usr/lib/x84_64-linux-gnu)
-    link_directories(${lib_DIR})
+    # set(lib_DIR /usr/lib/x84_64-linux-gnu)
+    # link_directories(${lib_DIR})
     # use ffmpeg
     set(FFMPEG_DIR  /opt/sophon/sophon-ffmpeg-latest/lib/cmake)
     find_package(FFMPEG REQUIRED)
@@ -21,6 +22,7 @@ if (${TARGET_ARCH} STREQUAL "x86")
     find_package(libsophon REQUIRED)
     include_directories(${LIBSOPHON_INCLUDE_DIRS})
     link_directories(${LIBSOPHON_LIB_DIRS})
+    include_directories("../../../../include/")
     aux_source_directory(. SRC_FILES)
     add_executable(ssd_opencv.pcie ${SRC_FILES})
     target_link_libraries(ssd_opencv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so})
@@ -32,6 +34,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     set(BM_LIBS bmlib bmrt bmcv)
     set(JPU_LIBS bmjpuapi bmjpulite)
     set(OPENCV_LIBS opencv_imgproc opencv_core opencv_highgui opencv_imgcodecs opencv_videoio)
+    include_directories("../../../../include/")
     include_directories("${SDK}/include/")
     include_directories("${SDK}/include/opencv4")
     link_directories("${SDK}/lib/")
@@ -43,6 +46,8 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     target_link_libraries(ssd_opencv.soc ${BM_LIBS} ${OPENCV_LIBS}  ${JPU_LIBS})
 
 endif ()
+
+
 
 
 
