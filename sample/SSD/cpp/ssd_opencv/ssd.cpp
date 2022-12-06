@@ -7,313 +7,377 @@
 //
 //===----------------------------------------------------------------------===//
 #include "ssd.hpp"
-#include "utils.hpp"
+extern bool IS_DIR;
+extern bool CONFIDENCE;
+extern bool NMS;
+float overlap_FM(float x1, float w1, float x2, float w2)
+{
+	float l1 = x1;
+	float l2 = x2;
+	float left = l1 > l2 ? l1 : l2;
+	float r1 = x1 + w1;
+	float r2 = x2 + w2;
+	float right = r1 < r2 ? r1 : r2;
+	return right - left;
+}
 
-#define IS_END_OF_DATA(entry) (entry[1] == 0 && entry[2] == 0 &&\
-                               entry[3] == 0 && entry[4] == 0 &&\
-                               entry[5] == 0 && entry[6] == 0)
+float box_intersection_FM(SSDObjRect a, SSDObjRect b)
+{
+	float w = overlap_FM(a.x1, a.x2 - a.x1, b.x1, b.x2 - b.x1);
+	float h = overlap_FM(a.y1, a.y2 - a.y1, b.y2, b.y2 - b.y1);
+	if (w < 0 || h < 0) return 0;
+	float area = w*h;
+	return area;
+}
 
-using namespace std;
+float box_union_FM(SSDObjRect a, SSDObjRect b)
+{
+	float i = box_intersection_FM(a, b);
+	float u = (a.x2 - a.x1) * (a.y2 - a.y1) + (b.x2 - b.x1) * (b.y2 - b.y1) - i;
+	return u;
+}
 
-string net_name_;
-//const char *model_name = "VGG_VOC0712_SSD_300x300_deploy";
-SSD::SSD(const std::string bmodel, int dev_id) {
-  // init device id
-  dev_id_ = dev_id;
-  //create device handle
-  bm_status_t ret = bm_dev_request(&bm_handle_, dev_id_);
-  if (BM_SUCCESS != ret) {
-      std::cout << "ERROR: bm_dev_request err=" << ret << std::endl;
-      exit(-1);
-  }
+float box_iou_FM(SSDObjRect a, SSDObjRect b)
+{
+	return box_intersection_FM(a, b) / box_union_FM(a, b);
+}
 
-  //create inference runtime handle
-  p_bmrt_ = bmrt_create(bm_handle_);
+static bool sort_ObjRect(SSDObjRect a, SSDObjRect b)
+{
+    return a.score > b.score;
+}
 
+static void nms_sorted_bboxes(const std::vector<SSDObjRect>& objects, std::vector<int>& picked, float nms_threshold)
+{
+    picked.clear();
+    const int n = objects.size();
 
-#ifdef SOC_MODE
-  set_bmrt_mmap(p_bmrt_, true);
-#endif
+    for (int i = 0; i < n; i++)    {
+        const SSDObjRect& a = objects[i];
+        int keep = 1;
+        for (int j = 0; j < (int)picked.size(); j++)
+        {
+            const SSDObjRect& b = objects[picked[j]];
 
-  // load bmodel by file
-  bool flag = bmrt_load_bmodel(p_bmrt_, bmodel.c_str());
-  if (!flag) {
-    std::cout << "ERROR: Load bmodel[" << bmodel << "] failed" << std::endl;
-    exit(-1);
-  }
-
-  const char **net_names;
-  bmrt_get_network_names(p_bmrt_, &net_names);
-  net_name_ = net_names[0];
-  free(net_names);
-  // as of a simple example, assume the model file contains one SSD network only
-  std::cout << "> Load model " << net_name_.c_str() << " successfully" << std::endl;
-
-  //more info pelase see bm_net_info_t in bmdef.h
-  auto net_info = bmrt_get_network_info(p_bmrt_, net_name_.c_str());
-  std::cout << "** input scale:" << net_info->input_scales[0] << std::endl;
-  std::cout << "** output scale:" << net_info->output_scales[0] << std::endl;
-
-  //int8 out score different f32.reduce threshold to make result same
-  if (BM_FLOAT32 == net_info->input_dtypes[0]) {
-    threshold_ = 0.6;
-    flag_int8 = false;
-  } else {
-    threshold_ = 0.52;
-    flag_int8 = true;
-  }
-
-  //for int8 input data need mul input_scale
-  if (flag_int8) input_scale = net_info->input_scales[0];
-
-  // only one input shape supported in the pre-built model
-  //you can get stage_num from net_info
-  int stage_num = net_info->stage_num;
-  bm_shape_t input_shape;
-  bm_shape_t output_shape;
-  for (int i = 0; i < stage_num; i++) {
-    if(net_info->stages[i].input_shapes[0].dims[0] == 1) {
-      output_shape = net_info->stages[i].output_shapes[0];
-      input_shape = net_info->stages[i].input_shapes[0];
-      break;
+            float iou = box_iou_FM(a, b);
+            if (iou > nms_threshold)
+                keep = 0;
+        }
+        if (keep)
+            picked.push_back(i);
     }
+}
 
-    if ( i == (stage_num - 1)) {
-      std::cout << "ERROR: output not match stages" << std::endl;
-      return;
+//public:
+SSD::SSD(std::shared_ptr<BMNNContext> context, float conf_thre, float nms_thre, int dev_id):
+        m_bmContext(context), m_conf_thre(conf_thre), m_nms_thre(nms_thre) ,m_dev_id(dev_id){
+    std::cout << "SSD create bm_context" << std::endl;
+}
+
+SSD::~SSD(){
+    std::cout << "SSD delete bm_context" << std::endl;   
+}
+
+void SSD::Init(){
+    //1. Get network.
+    m_bmNetwork = m_bmContext->network(0);
+
+    //2. Malloc host memory
+    m_input_tensor = m_bmNetwork->inputTensor(0);
+
+    m_input_count = bmrt_shape_count(m_input_tensor->get_shape());
+    if(m_input_tensor->get_dtype() == BM_INT8){
+        m_input_int8 = new int8_t[m_input_count];
+    }else{
+        m_input_f32 = new float[m_input_count];
     }
-  }
-
-  //malloc device_memory for inference input and output data
-  bmrt_tensor(&input_tensor_, p_bmrt_, net_info->input_dtypes[0], input_shape);
-  bmrt_tensor(&output_tensor_, p_bmrt_, net_info->output_dtypes[0], output_shape);
-
-  int count;
-  count = bmrt_shape_count(&input_shape);
-  std::cout << "** input count:" << count << std::endl;
-  //malloc system memory for preprocess data
-  if (flag_int8) {
-    input_int8 = new int8_t[count];
-  } else {
-    input_f32 = new float[count];
-  }
-  count = bmrt_shape_count(&output_shape);
-  std::cout << "** output count:" << count << std::endl;
-  output_ = new float[count];
-
-  //input_shape contain dims value(n,c,h,w)
-  batch_size_ = input_shape.dims[0];
-  num_channels_ = input_shape.dims[1];
-  input_geometry_.height = input_shape.dims[2];
-  input_geometry_.width = input_shape.dims[3];
-
-  std::vector<float> mean_values;
-  mean_values.push_back(123);
-  mean_values.push_back(117);
-  mean_values.push_back(104);
-  setMean(mean_values);
-
-  ts_ = nullptr;
-
+    //3. Set parameters.
+    max_batch = m_bmNetwork->maxBatch();
+    m_num_channels = m_input_tensor->get_shape()->dims[1];
+    m_net_h = m_input_tensor->get_shape()->dims[2];
+    m_net_w = m_input_tensor->get_shape()->dims[3];
+    std::vector<float> mean_values;
+    mean_values.push_back(104.0);//B
+    mean_values.push_back(117.0);//G
+    mean_values.push_back(123.0);//R
+    setMean(mean_values);
 }
 
-SSD::~SSD() {
-  if (flag_int8) {
-    delete []input_int8;
-  } else {
-    delete []input_f32;
-  }
-  delete []output_;
-  bm_free_device(bm_handle_, input_tensor_.device_mem);
-  bm_free_device(bm_handle_, output_tensor_.device_mem);
-  bmrt_destroy(p_bmrt_);
-  bm_dev_free(bm_handle_);
+int SSD::batch_size(){
+    return max_batch;
 }
 
-void SSD::enableProfile(TimeStamp *ts) {
-  ts_ = ts;
+int SSD::detect(const std::vector<cv::Mat> &input_images, const std::vector<std::string> &input_names,
+                  std::vector<std::vector<SSDObjRect> > &results, cv::VideoWriter *VideoWriter){
+    int ret = 0;
+    //1. Preprocess, convert raw images to format which fits SSD network.
+    m_ts->save("SSD preprocess");
+    ret = pre_process(input_images);
+    m_ts->save("SSD preprocess");
+
+    CV_Assert(ret == 0);
+    //2. Run SSD inference.
+    m_ts->save("SSD inference");
+    ret = m_bmNetwork->forward();
+    CV_Assert(ret == 0);
+    m_ts->save("SSD inference");
+
+    //3. Postprocess, get detected boxes and draw them on original images.
+    m_ts->save("SSD postprocess");
+    ret = post_process(input_images, input_names, results, VideoWriter);
+    CV_Assert(ret == 0);
+    m_ts->save("SSD postprocess");
+    return ret;
 }
 
-void SSD::preForward(const cv::Mat &image) {
-  LOG_TS(ts_, "ssd pre-process")
-  std::cout << "input image size:" << image.size() << std::endl;
-  std::vector<cv::Mat> input_channels;
-  wrapInputLayer(&input_channels);
-  preprocess(image, &input_channels);
-  LOG_TS(ts_, "ssd pre-process")
+void SSD::enableProfile(TimeStamp *ts){
+    m_ts = ts;
 }
 
-void SSD::forward() {
-#ifdef DEBUG_INT8
-  FILE * pFile;
-  pFile = fopen ("input_data.bin", "wb");
-  fwrite (input_int8, input_tensor_.device_mem.size, 1, pFile);
-  fclose (pFile);
-#endif
-  //copy system memory data to device memory for inference
-  if (flag_int8) {
-    bm_memcpy_s2d(bm_handle_, input_tensor_.device_mem, ((void *)input_int8));
-  } else {
-    bm_memcpy_s2d(bm_handle_, input_tensor_.device_mem, ((void *)input_f32));
-  }
-  LOG_TS(ts_, "ssd inference")
-  bool ret = bmrt_launch_tensor_ex(p_bmrt_, net_name_.c_str(),
-                                  &input_tensor_, 1, &output_tensor_, 1, true, false);
-  if (!ret) {
-    std::cout << "ERROR: Failed to launch network" << net_name_.c_str() << "inference" << std::endl;
-  }
-
-  // sync, wait for finishing inference
-  bm_thread_sync(bm_handle_);
-  LOG_TS(ts_, "ssd inference")
-
-  size_t size = bmrt_tensor_bytesize(&output_tensor_);
-  bm_memcpy_d2s_partial(bm_handle_, output_, output_tensor_.device_mem, size);
-#ifdef DEBUG_INT8
-  pFile = fopen ("output_data.bin", "wb");
-  fwrite (output_int8, size, 1, pFile);
-  fclose (pFile);
-#endif
-}
-
-void SSD::postForward(const cv::Mat &image, std::vector<ObjRect> &detections) {
-  auto net_info = bmrt_get_network_info(p_bmrt_, net_name_.c_str());
-  int stage_num = net_info->stage_num;
-  bm_shape_t output_shape;
-  for (int i = 0; i < stage_num; i++) {
-    if(net_info->stages[i].input_shapes[0].dims[0] == 1) {
-      output_shape = net_info->stages[i].output_shapes[0];
-      break;
+//private:
+float SSD::get_aspect_scaled_ratio(int src_w, int src_h, 
+                                   int dst_w, int dst_h, bool *pIsAligWidth){
+    float ratio;
+    float r_w = (float)dst_w / src_w;
+    float r_h = (float)dst_h / src_h;
+    if (r_h > r_w){
+        *pIsAligWidth = true;
+        ratio = r_w;
     }
-
-    if ( i == (stage_num - 1)) {
-      std::cout << "ERROR: output not match stages" << std::endl;
-      return;
+    else{
+        *pIsAligWidth = false;
+        ratio = r_h;
     }
-  }
-
-  LOG_TS(ts_, "ssd post-process")
-  int output_count = bmrt_shape_count(&output_shape);
-  for (int i = 0; i < output_count; i += 7) {
-    ObjRect detection;
-    float *proposal = &output_[i];
-
-    if (IS_END_OF_DATA(proposal))
-      break;
-
-    /*
-     * Detection_Output format:
-     *   [image_id, label, score, xmin, ymin, xmax, ymax]
-     */
-    //std::cout << "** score: " << proposal[2] << std::endl;
-    if (proposal[2] < threshold_ || proposal[2] >= 1.0 )
-      continue;
-
-    detection.class_id = proposal[1];
-    detection.score = proposal[2];
-    detection.x1 = proposal[3] * image.cols;
-    detection.y1 = proposal[4] * image.rows;
-    detection.x2 = proposal[5] * image.cols;
-    detection.y2 = proposal[6] * image.rows;
-#define DEBUG_SSD
-#ifdef DEBUG_SSD
-    std::cout << "class id: " << std::setw(2) << detection.class_id
-            << std::fixed << std::setprecision(5)
-            << " upper-left: (" << std::setw(10) << detection.x1 << ", "
-            << std::setw(10) << detection.y1 << ") "
-            << " object-size: (" << std::setw(10) << detection.x2 - detection.x1 + 1 << ", "
-            << std::setw(10)  << detection.y2 - detection.y1 + 1 << ")"
-            << std::endl;
-#endif
-
-    detections.push_back(detection);
-  }
-  LOG_TS(ts_, "ssd post-process")
+    return ratio;
 }
 
 void SSD::setMean(std::vector<float> &values) {
     std::vector<cv::Mat> channels;
-
-    for (int i = 0; i < num_channels_; i++) {
-      /* Extract an individual channel. */
-      if (flag_int8) {
-        cv::Mat channel(input_geometry_.height, input_geometry_.width,
-                   CV_8SC1,cv::Scalar(0), cv::SophonDevice(this->dev_id_));
-        channels.push_back(channel);
-      } else {
-        cv::Mat channel(input_geometry_.height, input_geometry_.width,
-                   CV_32FC1,cv::Scalar(0), cv::SophonDevice(this->dev_id_));
-        channels.push_back(channel); 
-      }
+    for(int i = 0; i < m_num_channels; i++) {
+        /* Extract an individual channel. */
+        if(m_input_tensor->get_dtype() == BM_INT8){
+            cv::Mat channel(m_net_h, m_net_w, CV_8SC1,cv::Scalar(0), cv::SophonDevice(m_dev_id));
+            channels.push_back(channel);
+        }else{
+            cv::Mat channel(m_net_h, m_net_w, CV_32FC1,cv::Scalar(0), cv::SophonDevice(m_dev_id));
+            channels.push_back(channel); 
+        }
     }
     //init mat mean_
     std::vector<cv::Mat> channels_;
-    for (int i = 0; i < num_channels_; i++) {
-      /* Extract an individual channel. */
-      cv::Mat channel_(input_geometry_.height, input_geometry_.width, CV_32FC1,
-          cv::Scalar((float)values[i]), cv::SophonDevice(this->dev_id_));
-      channels_.push_back(channel_);
+    for (int i = 0; i < m_num_channels; i++) {
+        /* Extract an individual channel. */
+        cv::Mat channel_(m_net_h, m_net_w, CV_32FC1, cv::Scalar((float)values[i]), cv::SophonDevice(m_dev_id));
+        channels_.push_back(channel_);
     }
-    if (flag_int8) {
-        mean_.create(input_geometry_.height, input_geometry_.width, CV_8SC3, dev_id_);
+    if (m_input_tensor->get_dtype() == BM_INT8) {
+        m_mean.create(m_net_h, m_net_w, CV_8SC3, m_dev_id);
     }else{
-        mean_.create(input_geometry_.height, input_geometry_.width, CV_32FC3, dev_id_);
+        m_mean.create(m_net_h, m_net_w, CV_32FC3, m_dev_id);
     }
 
-    cv::merge(channels_, mean_);
+    cv::merge(channels_, m_mean);
 }
 
-void SSD::wrapInputLayer(std::vector<cv::Mat>* input_channels) {
-  int h = input_geometry_.height;
-  int w = input_geometry_.width;
+void SSD::wrapInputLayer(std::vector<cv::Mat>* input_channels, int batch_id) {
+    int h = m_net_h;
+    int w = m_net_w;
 
-  //init input_channels
-  if (flag_int8) {
-    int8_t *channel_base = input_int8;
-    for (int i = 0; i < num_channels_; i++) {
-      cv::Mat channel(h, w, CV_8SC1, channel_base);
-      input_channels->push_back(channel);
-      channel_base += h * w;
+    //init input_channels
+    if(m_input_tensor->get_dtype() == BM_INT8) {
+        int8_t *channel_base = m_input_int8;
+        channel_base += h * w * m_num_channels * batch_id;
+        for (int i = 0; i < m_num_channels; i++) {
+        cv::Mat channel(h, w, CV_8SC1, channel_base);
+        input_channels->push_back(channel);
+        channel_base += h * w;
+        }
+    } else {
+        float *channel_base = m_input_f32;
+        channel_base += h * w * m_num_channels * batch_id;
+        for (int i = 0; i < m_num_channels; i++) {
+        cv::Mat channel(h, w, CV_32FC1, channel_base);
+        input_channels->push_back(channel);
+        channel_base += h * w;
+        }
     }
-  } else {
-    float *channel_base = input_f32;
-    for (int i = 0; i < num_channels_; i++) {
-      cv::Mat channel(h, w, CV_32FC1, channel_base);
-      input_channels->push_back(channel);
-      channel_base += h * w;
+}
+
+void SSD::pre_process_image(const cv::Mat& img, std::vector<cv::Mat> *input_channels){
+    /* Convert the input image to the input image format of the network. */
+    cv::Mat sample = img;
+    cv::Mat sample_resized(m_net_h, m_net_w, CV_8UC3, cv::SophonDevice(m_dev_id));//resize output default CV_8UC3;
+    if(sample.size() != cv::Size(m_net_h, m_net_w)){
+        cv::resize(sample, sample_resized, cv::Size(m_net_h, m_net_w));
+    }else{
+        sample_resized = sample;
     }
-  }
+    cv::Mat sample_float(m_net_h, m_net_w, CV_32FC3, cv::SophonDevice(m_dev_id));
+    sample_resized.convertTo(sample_float, CV_32FC3);
+    cv::Mat sample_normalized(m_net_h, m_net_w, CV_32FC3, cv::SophonDevice(m_dev_id));
+    cv::subtract(sample_float, m_mean, sample_normalized);
+    /*note: int8 in convert need mul input_scale*/
+    if (m_input_tensor->get_dtype() == BM_INT8) {
+        cv::Mat sample_int8(m_net_h, m_net_w, CV_8UC3, cv::SophonDevice(m_dev_id));
+        sample_normalized.convertTo(sample_int8, CV_8SC1, m_input_tensor->get_scale()); 
+        cv::split(sample_int8, *input_channels);
+    } else {
+        cv::split(sample_normalized, *input_channels);
+    }
+}
+int SSD::pre_process(const std::vector<cv::Mat> &images){
+    //Safety check.
+    assert(images.size() <= max_batch);
+    
+    //1. Preprocess input images in host memory.
+    int ret = 0;
+    for(int i = 0; i < max_batch; i++){
+        std::vector<cv::Mat> input_channels;
+        wrapInputLayer(&input_channels, i);
+        if(i < images.size())
+            pre_process_image(images[i], &input_channels);
+        else{
+            cv::Mat tmp = cv::Mat::zeros(m_net_h, m_net_w, CV_32FC3);
+            pre_process_image(tmp, &input_channels);
+        }
+    }
+    //2. Attach to input tensor.
+    bm_tensor_t input_tensor;
+    bmrt_tensor(&input_tensor, 
+                m_bmContext->bmrt(), 
+                m_input_tensor->get_dtype(), 
+                *m_input_tensor->get_shape());
+    if(m_input_tensor->get_dtype() == BM_INT8){
+        bm_memcpy_s2d(m_bmContext->handle(), input_tensor.device_mem, (void *)m_input_int8);
+    }else{
+        bm_memcpy_s2d(m_bmContext->handle(), input_tensor.device_mem, (void *)m_input_f32);
+    }
+    m_input_tensor->set_device_mem(&input_tensor.device_mem);
+    return 0;
 }
 
-void SSD::preprocess(const cv::Mat& img, std::vector<cv::Mat>* input_channels) {
-  /* Convert the input image to the input image format of the network. */
-  cv::Mat sample = img;
-  cv::Mat sample_resized(input_geometry_.height, input_geometry_.width, CV_8UC3, cv::SophonDevice(dev_id_));
-  if (sample.size() != input_geometry_) {
-    cv::resize(sample, sample_resized, input_geometry_);
-  }
-  else {
-    sample_resized = sample;
-  }
+int SSD::post_process(const std::vector<cv::Mat> &images, const std::vector<std::string> &input_names,
+                            std::vector<std::vector<SSDObjRect> > &results, cv::VideoWriter *VideoWriter){
+    std::shared_ptr<BMNNTensor> outputTensor = m_bmNetwork->outputTensor(0);
+    auto output_shape = outputTensor->get_shape();
+    auto output_dims = output_shape->num_dims; //[1 1 200 7]
+    assert(m_bmNetwork->outputTensorNum() == 1);// [1 1 200/800 7]
+#if DEBUG
+    std::cout<<"Output shape infos: "<<output_shape->dims[0]<<" "
+             <<output_shape->dims[1]<<" "<<output_shape->dims[2]<<" "
+             <<output_shape->dims[3]<<std::endl;
+#endif
+    assert(output_dims == 4 &&
+           output_shape->dims[0] == 1 &&
+           output_shape->dims[1] == 1 &&
+           output_shape->dims[3] == 7 );
+    auto output_data = outputTensor->get_cpu_data();
+    //1. Get output bounding boxes.
+    int box_num_raw = output_shape->dims[0] * 
+                      output_shape->dims[1] * 
+                      output_shape->dims[2] ;
+    for(int bid = 0; bid < box_num_raw; bid++){ //bid: box id
+        SSDObjRect temp_bbox;
+        temp_bbox.class_id = *(output_data + 7 * bid + 1);
+        temp_bbox.score = *(output_data + 7 * bid + 2);
+        int i = *(output_data + 7 * bid);
+        if(i >= results.size())
+            continue;
+        if(CONFIDENCE || !IS_DIR){
+            if(temp_bbox.score < m_conf_thre || i >= images.size()){
+                continue;
+            }        
+        }
+        temp_bbox.x1 = *(output_data + 7 * bid + 3) * m_net_w;
+        temp_bbox.y1 = *(output_data + 7 * bid + 4) * m_net_h;
+        temp_bbox.x2 = *(output_data + 7 * bid + 5) * m_net_w;
+        temp_bbox.y2 = *(output_data + 7 * bid + 6) * m_net_h;
+        results[i].push_back(temp_bbox);
+    }
+    for(int i = 0; i < results.size(); i++){        
+        #if DEBUG
+            std::cout << "width: " << images[i].cols 
+                      << " height: " << images[i].rows << std::endl;
+        #endif
+        for(int j = 0; j < results[i].size(); j++){
+            results[i][j].x1 *= (float)images[i].cols / (float)m_net_w;
+            results[i][j].x2 *= (float)images[i].cols / (float)m_net_w;
+            results[i][j].y1 *= (float)images[i].rows / (float)m_net_h;
+            results[i][j].y2 *= (float)images[i].rows / (float)m_net_h;
+        }
+    }
+    //2. NMS.
+    if(NMS || !IS_DIR){
+        for(int i = 0; i < results.size(); i++){
+            std::vector<int> class_ids;
+            std::vector<SSDObjRect> bboxes_per_class;
+            std::vector<SSDObjRect> nmsed_results;
+            for(int j = 0; j < results[i].size(); j++){
+                if(std::find(class_ids.begin(), class_ids.end(), results[i][j].class_id) 
+                    == class_ids.end()){
+                    class_ids.push_back(results[i][j].class_id);
+                }
+            }
+            for(int j = 0; j < class_ids.size(); j++){
+                bboxes_per_class.clear();
+                for(int k = 0; k < results[i].size(); k++){
+                    if(results[i][k].class_id == class_ids[j])
+                        bboxes_per_class.push_back(results[i][k]);
+                }
+                std::sort(bboxes_per_class.begin(), bboxes_per_class.end(), sort_ObjRect);
+                std::vector<int> picked;
+                nms_sorted_bboxes(bboxes_per_class, picked, m_nms_thre);
+                for(int k = 0; k < picked.size(); k++){
+                    nmsed_results.push_back(bboxes_per_class[picked[k]]);
+                }
+            }
+            results[i].clear();
+            results[i] = nmsed_results;
+        }
+    }
+    
 
-  cv::Mat sample_float(cv::SophonDevice(this->dev_id_));
-  sample_resized.convertTo(sample_float, CV_32FC3);
+    for(int i = 0; i < results.size(); i++){
+        auto &frame = images[i];
+        int frame_width = frame.cols;
+        int frame_height = frame.rows;
 
-  cv::Mat sample_normalized(cv::SophonDevice(this->dev_id_));
-  cv::subtract(sample_float, mean_, sample_normalized);
-  
-  /*note: int8 in convert need mul input_scale*/
-  if (flag_int8) {
-    std::cout << "** int8" << std::endl;
-    cv::Mat sample_int8(cv::SophonDevice(this->dev_id_));
-    sample_normalized.convertTo(sample_int8, CV_8SC1, input_scale);
-    cv::split(sample_int8, *input_channels);
-  } else {
-    std::cout << "** f32" << std::endl;
-    cv::split(sample_normalized, *input_channels);
-  }
-}
+        for(int j = 0; j < results[i].size(); j++){
+            SSDObjRect rect = results[i][j];
+            cv::rectangle(frame, cv::Rect(rect.x1, rect.y1,
+                                          rect.x2 - rect.x1, rect.y2 - rect.y1),
+                                          cv::Scalar(255, 0, 0), 2);
+        }
+        if(IS_DIR){
+            //save result images.
+            if(access("results", 0) != F_OK)
+                mkdir("results", S_IRWXU);
+            if(m_bmNetwork->inputTensor(0)->get_dtype() == BM_FLOAT32){
+                if(batch_size() == 1){
+                    if(access("results/fp32-b1", 0) != F_OK)
+                        mkdir("results/fp32-b1", S_IRWXU);
+                    cv::imwrite("results/fp32-b1/" + input_names[i], frame);
+                }else{
+                    if(access("results/fp32-b4", 0) != F_OK)
+                        mkdir("results/fp32-b4", S_IRWXU);
+                    cv::imwrite("results/fp32-b4/" + input_names[i], frame);
+                }
+            }else{
+                if(batch_size() == 1){
+                    if(access("results/int8-b1", 0) != F_OK)
+                        mkdir("results/int8-b1", S_IRWXU);
+                    cv::imwrite("results/int8-b1/" + input_names[i], frame);
+                }else{
+                    if(access("results/int8-b4", 0) != F_OK)
+                        mkdir("results/int8-b4", S_IRWXU);
+                    cv::imwrite("results/int8-b4/" + input_names[i], frame);
+                }
+            }
+        }else{
+            //save video.
+            (*VideoWriter) << frame;
+        }
 
-bool SSD::getPrecision() {
-  return flag_int8;
+    }
+    return 0;
 }
