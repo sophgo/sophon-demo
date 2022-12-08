@@ -34,12 +34,12 @@ public:
   LPRNET(std::shared_ptr<BMNNContext> context);
   ~LPRNET();
   int Init();
-  int Detect(const std::vector<cv::Mat>& input_images, std::vector<std::string>& results);
+  int Detect(const std::vector<bm_image>& input_images, std::vector<std::string>& results);
   void enableProfile(TimeStamp *ts);
   int batch_size();
 private:
-  int pre_process(const std::vector<cv::Mat>& images);
-  int post_process(const std::vector<cv::Mat>& images, std::vector<std::string>& results);
+  int pre_process(const std::vector<bm_image>& images);
+  int post_process(const std::vector<bm_image>& images, std::vector<std::string>& results);
   int argmax(float* data, int dsize);
   std::string get_res(int pred_num[], int len_char, int clas_char);
 };

@@ -25,8 +25,10 @@ if (${TARGET_ARCH} STREQUAL "x86")
     include_directories("../../../../include/")
 
     aux_source_directory(. SRC_FILES)
+    aux_source_directory(../../../../src/ SRC_FILES)
+
     add_executable(lprnet_bmcv.pcie ${SRC_FILES})
-    target_link_libraries(lprnet_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so})
+    target_link_libraries(lprnet_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} -lpthread)
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
@@ -43,8 +45,9 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     # message(STATUS "SDK:" ${SDK})
 
     aux_source_directory(. SRC_FILES)
+    aux_source_directory(../../../../src/ SRC_FILES)
     add_executable(lprnet_bmcv.soc ${SRC_FILES})
-    target_link_libraries(lprnet_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS}  ${JPU_LIBS})
+    target_link_libraries(lprnet_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS}  ${JPU_LIBS} -lpthread -lavcodec -lavformat -lavutil)
 
 endif ()
 

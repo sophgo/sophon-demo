@@ -6,12 +6,15 @@
 // third-party components.
 //
 //===----------------------------------------------------------------------===//
+#ifndef BMNN_H
+#define BMNN_H
+
 #include <iostream>
 #include <string>
 #include <memory>
 
 #include "bmruntime_interface.h"
-#include "bm_wrapper.hpp"
+// #include "bm_wrapper.hpp"
 
 class NoCopyable {
   protected:
@@ -151,6 +154,9 @@ class BMNNTensor{
   void set_shape_by_dim(int dim, int size){
     assert(m_tensor->shape.num_dims>dim);
     m_tensor->shape.dims[dim] = size;
+  }
+  int get_num() {
+    return m_tensor->shape.dims[0];
   }
 
 };
@@ -431,3 +437,5 @@ class BMNNContext : public NoCopyable {
   }
 
 };
+
+#endif 
