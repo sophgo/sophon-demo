@@ -100,7 +100,7 @@ int LPRNET::batch_size() {
   return max_batch;
 };
 
-int LPRNET::Detect(const vector<cv::Mat>& input_images, vector<string>& results){
+int LPRNET::Detect(const vector<bm_image>& input_images, vector<string>& results){
   int ret = 0;
   //3. preprocess
   LOG_TS(ts_, "lprnet preprocess");
@@ -122,7 +122,7 @@ int LPRNET::Detect(const vector<cv::Mat>& input_images, vector<string>& results)
   return ret;
 }
 
-int LPRNET::pre_process(const std::vector<cv::Mat>& images) {
+int LPRNET::pre_process(const std::vector<bm_image>& images) {
   if (images.empty()) {
     cout << "pre_process input empty!!!" << endl;
     return -1;
@@ -137,10 +137,10 @@ int LPRNET::pre_process(const std::vector<cv::Mat>& images) {
   //1. resize image
   int ret = 0;
   for(int i = 0; i < image_n; ++i) {
-    bm_image image1;
+    bm_image image1 = images[i];
     bm_image image_aligned;
     // src_img
-    CV_Assert(0 == cv::bmcv::toBMI((cv::Mat&)images[i], &image1, true));
+    // CV_Assert(0 == cv::bmcv::toBMI((cv::Mat&)images[i], &image1, true));
     bool need_copy = image1.width & (64-1);
 
     if(need_copy){
@@ -181,7 +181,7 @@ int LPRNET::pre_process(const std::vector<cv::Mat>& images) {
   return 0;
 }
 
-int LPRNET::post_process(const vector<cv::Mat> &images, vector<string>& results){
+int LPRNET::post_process(const vector<bm_image> &images, vector<string>& results){
   vector<shared_ptr<BMNNTensor>> outputTensors(output_num);
   for(int i=0; i<output_num; i++){
       outputTensors[i] = m_bmNetwork->outputTensor(i);
