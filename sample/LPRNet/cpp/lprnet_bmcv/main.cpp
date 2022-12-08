@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include "json.hpp"
 #include "lprnet.hpp"
+#include "ff_decode.hpp"
 // #define DEBUG
 using json = nlohmann::json;
 using namespace std;
@@ -47,6 +48,7 @@ int main(int argc, char** argv) {
   int dev_id = stoi(dev_str);
   BMNNHandlePtr handle = make_shared<BMNNHandle>(dev_id);
   cout << "set device id: "  << dev_id << endl;
+  bm_handle_t h = handle->handle();
 
   // load bmodel
   shared_ptr<BMNNContext> bm_ctx = make_shared<BMNNContext>(handle, bmodel_file.c_str());
@@ -63,7 +65,7 @@ int main(int argc, char** argv) {
   // get batch_size
   int batch_size = lprnet.batch_size();
 
-  vector<cv::Mat> batch_imgs;
+  vector<bm_image> batch_imgs;
   vector<string> batch_names;
   int cn = 0;
   if (stat(input_url.c_str(), &info) != 0) {
@@ -95,11 +97,13 @@ int main(int argc, char** argv) {
       cout << img_file << endl;
 #endif
       ts->save("read image");
-      cv::Mat img = cv::imread(img_file, cv::IMREAD_COLOR, dev_id);
+      // cv::Mat img = cv::imread(img_file, cv::IMREAD_COLOR, dev_id);
+      bm_image bmimg;
+      picDec(h, img_file.c_str(), bmimg);
       ts->save("read image");
       size_t index = img_file.rfind("/");
       string img_name = img_file.substr(index + 1);
-      batch_imgs.push_back(img);
+      batch_imgs.push_back(bmimg);
       batch_names.push_back(img_name);
       if ((int)batch_imgs.size() == batch_size) {
         CV_Assert(0 == lprnet.Detect(batch_imgs, results));
