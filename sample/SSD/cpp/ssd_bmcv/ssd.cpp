@@ -74,7 +74,13 @@ SSD::SSD(std::shared_ptr<BMNNContext> context, float conf_thre, float nms_thre):
 }
 
 SSD::~SSD(){
-    std::cout << "SSD delete bm_context" << std::endl;   
+    std::cout << "SSD free." << std::endl;   
+    bm_image_free_contiguous_mem(max_batch, m_resized_imgs.data());
+    bm_image_free_contiguous_mem(max_batch, m_converto_imgs.data());
+    for(int i = 0; i < max_batch; i++){
+        bm_image_destroy(m_converto_imgs[i]);
+        bm_image_destroy(m_resized_imgs[i]);
+    }
 }
 
 void SSD::Init(){
