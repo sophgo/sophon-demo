@@ -30,6 +30,7 @@ Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移
 Sophon Demo主要依赖tpu-nntc、libsophon、sophon-ffmpeg、sophon-opencv、sophon-sail，其版本要求如下：
 |sophon-demo|tpu-nntc|libsophon|sophon-ffmpeg|sophon-opencv|sophon-sail|
 |---|---|---|---|---|---|
+| 0.1.2 | >=3.1.4 | >=0.4.3 | >=0.5.0 | >=0.5.0 | >=3.2.0 |
 | 0.1.1 | >=3.1.3 | >=0.4.2 | >=0.4.0 | >=0.4.0 | >=3.1.0 |
 | 0.1.0 | >=3.1.3 | >=0.3.0 | >=0.2.4 | >=0.2.4 | >=3.1.0 |
 > **注意**：不同例程对版本的要求可能存在差异，具体以例程的README为准，可能需要安装其他第三方库。
