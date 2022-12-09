@@ -20,7 +20,7 @@ int main(int argc, char **argv){
      */
     if(argc < 3){
         std::cout << "USAGE:" << std::endl;
-        std::cout << "    " << argv[0] <<" <image directory or video path> <bmodel path> <device id(default: 0)> <conf_thre(default: 0.01)> <nms_thre(default:0.45)>" << std::endl;
+        std::cout << "    " << argv[0] <<" <image directory or video path> <bmodel path> <device id(default: 0)> <conf_thre(default: unset)> <nms_thre(default: unset)>" << std::endl;
         exit(1);
     }
     struct stat info;
@@ -123,7 +123,7 @@ int main(int argc, char **argv){
         std::sort(files_vector.begin(),files_vector.end());
         std::cout << "Start SSD inference, total image num: " << files_vector.size() << std::endl;
         #if DEBUG
-            for(int i = 0; i < MIN(10, files_vector.size()); i++){
+            for(int i = 0; i < MIN(100, files_vector.size()); i++){
         #else
             for(int i = 0; i < files_vector.size(); i++){
         #endif

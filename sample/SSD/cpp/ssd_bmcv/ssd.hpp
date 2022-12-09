@@ -21,7 +21,7 @@
 #include "utils.hpp"
 #include "bmnn_utils.h"
 #define BUFFER_SIZE (1024 * 500)
-#define DEBUG 1
+#define DEBUG 0
 #define USE_ASPECT_RATIO 0
 struct SSDObjRect{
     unsigned int class_id;
