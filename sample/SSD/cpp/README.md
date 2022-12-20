@@ -8,11 +8,11 @@ cpp目录下提供了一系列C++例程以供参考使用，具体情况如下�
 
 ## 1. x86 PCIe 平台
 
-## 1.1 环境准备
+### 1.1 环境准备
 
 如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4),具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)。
 
-## 1.2 程序编译
+### 1.2 程序编译
 C++程序需要编译可执行文件，ssd_opencv和ssd_bmcv编译方法相同，以编译ssd_bmcv程序为例：
 ```bash
 cd ssd_bmcv
@@ -21,7 +21,7 @@ mkdir build && cd build
 cmake .. && make
 ```
 
-## 1.3 测试命令
+### 1.3 测试命令
 
 编译完成后，会生成ssd_bmcv.pcie，具体参数说明如下：
 
@@ -63,9 +63,9 @@ SUMMARY: SSD detect
 ```
 
 ## 2. arm SoC平台
-## 2.1 环境准备
+### 2.1 环境准备
 对于arm SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下。
-## 2.2 交叉编译
+### 2.2 交叉编译
 通常在x86主机上交叉编译程序，使之能够在arm SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../docs/Environment_Install_Guide.md#31-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件，以编译ssd_bmcv程序为例：
@@ -76,7 +76,7 @@ cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk ..
 make # 生成ssd_bmcv.soc
 ```
 
-## 2.3 测试命令
+### 2.3 测试命令
 将生成的可执行文件及所需的模型和测试图片拷贝到SoC目标平台中测试，测试方法请参考x86 PCIe平台的[1.3 测试命令](#13-测试命令)。
 
 ## 3. 精度与性能测试
@@ -85,7 +85,7 @@ make # 生成ssd_bmcv.soc
 本例程在`SSD/tools`目录下提供了`eval.py`脚本，以计算推理结果的mAP。具体的测试命令如下：
 ```bash
 # 请根据实际情况修改 --ground_truths 和 --result_json参数
-python3 eval.py 
+python3 eval.py --result_json ../cpp/ssd_bmcv/build/bmcv_cpp_result_b1.json
 ```
 执行完成后，会打印出mAP信息：
 ```bash
@@ -133,5 +133,8 @@ bmrt_test --bmodel {path_of_bmodel}
 | ssd_opencv   | int8 |   1      | 71.5% |    3.7ms     |21.8ms    |
 | ssd_opencv   | int8 |   4      | 71.5% |    8.1ms      |72.0ms   |
 
-**note:**
-preprocess_time in ssd_opencv depends on host hardware.
+**注:**
+
+1.同一例程、同一模型在soc与pcie上的infer_time相近，mAP相同。
+
+2.ssd_opencv 的 preprocess_time 一定程度上取决于主机硬件。
