@@ -22,15 +22,15 @@
 
 ## 2. 数据集
 
-​	YOLOv5基于[COCO2017数据集](https://cocodataset.org/#home)，该数据集是一个可用于图像检测（image detection），语义分割（semantic segmentation）和图像标题生成（image captioning）的大规模数据集。它有超过330K张图像（其中220K张是有标注的图像），包含150万个目标，80个目标类别（object categories：行人、汽车、大象等），91种材料类别（stuff categoris：草、墙、天空等），每张图像包含五句图像的语句描述，且有250,000个带关键点标注的行人。
+​YOLOv5基于[COCO2017数据集](https://cocodataset.org/#home)，该数据集是一个可用于图像检测（image detection），语义分割（semantic segmentation）和图像标题生成（image captioning）的大规模数据集。它有超过330K张图像（其中220K张是有标注的图像），包含150万个目标，80个目标类别（object categories：行人、汽车、大象等），91种材料类别（stuff categoris：草、墙、天空等），每张图像包含五句图像的语句描述，且有250,000个带关键点标注的行人。
 
 ## 3. 准备模型与数据
 
-​	Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel，trace方法可以采用官方`export.py`。
+​Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel，trace方法可以采用官方`export.py`。
 
-​	同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
+​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
-​	本例程在`scripts`目录下提供了相关模型和数据（后续demo会使用）的下载脚本`1_1_prepare_model_val.sh`和`1_2_prepare_test_data.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
+​本例程在`scripts`目录下提供了相关模型和数据（后续demo会使用）的下载脚本`1_1_prepare_model_val.sh`和`1_2_prepare_test_data.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
 ```bash
 cd scripts
@@ -65,7 +65,7 @@ videos
 └── dance.mp4                                             # 测试视频               
 ```
 
-​	模型信息：
+​模型信息：
 
 | 模型名称 | [YOLOv5s v6.1](https://github.com/ultralytics/yolov5/releases/download/v6.1/yolov5s.pt) |
 | :------- | :----------------------------------------------------------- |
@@ -80,13 +80,13 @@ videos
 
 ## 4. 模型编译
 
-​	trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
+​trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
 
-​	模型编译前需要安装tpu-nntc，具体可参考tpu-nntc工具包中相关说明，工具包可以联系技术支持获取或者通过官网获取。
+模型编译前需要安装TPU-NNTC，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。安装好后需在tpu-nntc环境中进入例程目录。
 
 ### 4.1 生成FP32 BModel
 
-​	本例程在`scripts`目录下提供了编译FP32 BModel的脚本。请注意修改`2_1_gen_fp32bmodel.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684和BM1684X），如：
+​本例程在`scripts`目录下提供了编译FP32 BModel的脚本。请注意修改`2_1_gen_fp32bmodel.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684和BM1684X），如：
 
 ```bash
 cd scripts
@@ -94,13 +94,13 @@ chmod +x ./*
 ./2_1_gen_fp32bmodel.sh BM1684X
 ```
 
-​	执行上述命令会在`data/models/BM1684X/`下生成`yolov5_float32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`data/models/BM1684X/`下生成`yolov5_float32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 ### 4.2 生成INT8 BModel
 
-​	不量化模型可跳过本节。
+​不量化模型可跳过本节。
 
-​	本例程在`scripts`目录下提供了量化INT8 BModel的脚本。请注意修改`2_2_gen_int8bmodel.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684和BM1684X），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本。请注意修改`2_2_gen_int8bmodel.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684和BM1684X），如：
 
 ```shell
 cd scripts
@@ -108,7 +108,7 @@ chmod +x ./*
 ./2_2_gen_int8bmodel.sh BM1684X
 ```
 
-​	上述脚本会在`data/models/int8bmodel/BM1684X`下生成`yolov5_int8_1b.bmodel`文件，即转换好的INT8 BModel。
+​上述脚本会在`data/models/int8bmodel/BM1684X`下生成`yolov5_int8_1b.bmodel`文件，即转换好的INT8 BModel。
 
 > **YOLOv5模型量化建议：**
 >

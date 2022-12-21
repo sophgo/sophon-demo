@@ -1,19 +1,17 @@
-
-
 # Python例程
 - [Python例程](#python例程)
   - [1. 目录](#1-目录)
-  - [2. 环境](#2-环境)
+  - [2. 环境准备](#2-环境准备)
     - [2.1 PCIE模式](#21-pcie模式)
     - [2.2 SOC模式](#22-soc模式)
-  - [3.  测试](#3--测试)
+  - [3. 测试](#3-测试)
     - [3.1 使用说明](#31-使用说明)
     - [3.2 精度结果](#32-精度结果)
       - [3.2.1 fp32bmodel精度](#321-fp32bmodel精度)
       - [3.2.2 int8bmodel精度](#322-int8bmodel精度)
 ## 1. 目录
 
-​	目录结构说明如下，主要使用`yolov5_bmcv.py`、`yolov5_opencv.py`：
+​目录结构说明如下，主要使用`yolov5_bmcv.py`、`yolov5_opencv.py`：
 
 ```
 .
@@ -26,33 +24,25 @@
 
 ```
 
+## 2. 环境准备
 
-
-## 2. 环境
-
-​	支持以下环境运行本程序。
+​支持以下环境运行本程序。
 
 ### 2.1 PCIE模式
 
-**硬件：**x86平台，并安装了168X PCIE加速卡，168X作为从设备。
-
-**软件：**
-
-1. libsophon、sophon-opencv、sophon-ffmpeg，相应成果物可以联系技术支持获取或者通过官网获取
-2. sophon-sail的安装可参考工具包中说明文档 
-3. 其他依赖详见各自文件夹下的`requirements.txt`，采用`pip3 install -r requirements.txt`进行安装
+如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail,具体请参考[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)。
+此外您可能还需要安装其他第三方库：
+```bash
+pip3 install 'opencv-python-headless<4.3'
+```
 
 ### 2.2 SOC模式
 
-**硬件：**SE5 SE6盒子等，168X作为主控。
-
-**软件：**
-
-1. 设备出厂一般会具备运行必备的环境，如果存在问题，可通过技术支持（或者官网）获取对应版本，进行固件升级。
-2. sophon-sail的安装可参考工具包中说明文档
-3. 其他依赖详见各自文件夹下的`requirements.txt`，采用`pip3 install -r requirements.txt`进行安装
-
-
+如果您使用SoC平台测试本例程，您需要交叉编译安装sophon-sail，具体可参考[交叉编译安装sophon-sail](../../docs/Environment_Install_Guide.md#32-交叉编译安装sophon-sail)。
+此外您可能还需要安装其他第三方库：
+```bash
+pip3 install 'opencv-python-headless<4.3'
+```
 
 ## 3.  测试
 
@@ -82,14 +72,12 @@ optional arguments:
                         output image directory
 ```
 
-​	demo中支持单图、文件夹、视频测试，按照实际情况传入参数即可，默认是单图。另外，模型支持fp32bmodel、int8bmodel，可以通过传入模型路径参数进行测试：
+​demo中支持单图、文件夹、视频测试，按照实际情况传入参数即可，默认是单图。另外，模型支持fp32bmodel、int8bmodel，可以通过传入模型路径参数进行测试：
 
 ```bash
 # 默认BM1684X平台、单图，请根据实际情况传参
 python3 yolov5_opencv.py
 ```
-
-
 
 ### 3.2 精度结果
 
@@ -99,11 +87,9 @@ python3 yolov5_opencv.py
 pip3 install pycocotools
 ```
 
-
-
 #### 3.2.1 fp32bmodel精度
 
-​	采用coco2017val数据集，使用`tools/evaluate_coco.py`脚本进行测试，得到精度结果如下（BM1684X、fp32bmodel、PCIE模式，SOC模式数据一致）：
+​采用coco2017val数据集，使用`tools/evaluate_coco.py`脚本进行测试，得到精度结果如下（BM1684X、fp32bmodel、PCIE模式，SOC模式数据一致）：
 
 - opencv
 
@@ -205,9 +191,7 @@ python3 evaluate_coco.py
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.724
 ```
 
-
-
-​	采用coco2017val数据集，使用`tools/evaluate_coco.py`脚本进行测试，得到精度结果如下（BM1684、fp32bmodel、PCIE模式，SOC模式数据一致）：
+采用coco2017val数据集，使用`tools/evaluate_coco.py`脚本进行测试，得到精度结果如下（BM1684、fp32bmodel、PCIE模式，SOC模式数据一致）：
 
 - opencv
 
@@ -313,7 +297,7 @@ python3 evaluate_coco.py
 
 #### 3.2.2 int8bmodel精度
 
-​	采用coco2017val数据集，使用`tools/evaluate_coco.py`脚本进行测试，得到精度结果如下（BM1684X、int8bmodel、PCIE模式，SOC模数数据基本一致）：
+​采用coco2017val数据集，使用`tools/evaluate_coco.py`脚本进行测试，得到精度结果如下（BM1684X、int8bmodel、PCIE模式，SOC模数数据基本一致）：
 
 - opencv
 
@@ -415,9 +399,7 @@ python3 evaluate_coco.py
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.708
 ```
 
-
-
-​	采用coco2017val数据集，使用`tools/evaluate_coco.py`脚本进行测试，得到精度结果如下（BM1684、int8bmodel、PCIE模式，SOC模数数据基本一致）：
+采用coco2017val数据集，使用`tools/evaluate_coco.py`脚本进行测试，得到精度结果如下（BM1684、int8bmodel、PCIE模式，SOC模数数据基本一致）：
 
 - opencv
 
@@ -518,4 +500,3 @@ python3 evaluate_coco.py
  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.610
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.696
 ```
-
