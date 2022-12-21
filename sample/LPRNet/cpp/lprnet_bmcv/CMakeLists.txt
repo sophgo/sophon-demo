@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(lprnet_opencv C CXX)
+project(lprnet_bmcv C CXX)
 
 if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH x86)
