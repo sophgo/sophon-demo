@@ -7,13 +7,13 @@ python目录下提供了一系列Python例程，具体情况如下：
 | 1    | ssd_bmcv.py | 使用SAIL解码、BMCV前处理、SAIL推理 |
 
 ## 1. x86 PCIe平台
-## 1.1 环境准备
+### 1.1 环境准备
 如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)、sophon-ffmpeg(>=0.2.4)和sophon-sail(>=3.1.0),具体请参考[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)。
 此外您可能还需要安装其他第三方库：
 ```
 pip3 install -r requirements.txt
 ```
-## 1.2 测试命令
+### 1.2 测试命令
 python例程不需要编译，可以直接运行。参数说明如下:
 ```shell
 # --bmodel: bmodel path, can be fp32 or int8 model with batch_size = 1 or 4.
@@ -35,11 +35,34 @@ total_time(ms): 451671.91, img_num: 4952
 avg_infer_time(ms): 255.88
 ```
 ## 2. arm SoC平台
-## 2.1 环境准备
+### 2.1 环境准备
 如果您使用SoC平台测试本例程，您需要交叉编译安装sophon-sail(>=3.1.0)，具体可参考[交叉编译安装sophon-sail](../../docs/Environment_Install_Guide.md#32-交叉编译安装sophon-sail)。
-## 2.2 测试命令
+### 2.2 测试命令
 SoC平台的测试方法与x86 PCIe平台相同，请参考[1.2 测试命令](#12-测试命令)。
 
+## 3. 精度与性能测试
+
+### 3.1 精度测试
+本例程在`SSD/tools`目录下提供了`eval.py`脚本，以计算推理结果的mAP。具体的测试命令如下：
+```bash
+# 请根据实际情况修改 --ground_truths 和 --result_json参数
+python3 eval.py --result_json ../python/result_bmcv.json
+```
+执行完成后，会打印出mAP信息：
+```bash
+...
+Average Precision (AP) @[ IoU=0.50 | area= all | maxDets=100 ] = 0.717 #mAP
+...
+```
+
+### 3.2 性能测试
+
+可以使用bmrt_test测试模型的理论性能：
+```bash
+bmrt_test --bmodel {path_of_bmodel}
+```
+也可以参考[1.3 测试命令](#13-测试命令)打印程序运行中的实际性能指标。  
+测试中性能指标存在一定的波动属正常现象。
 
 ### 3.3 测试结果
 
@@ -59,3 +82,7 @@ SoC平台的测试方法与x86 PCIe平台相同，请参考[1.2 测试命令](#1
 | ssd_bmcv   | fp32 |   4      | 71.5% |184.9ms |
 | ssd_bmcv   | int8 |   1      | 71.1% |20.1ms    |
 | ssd_bmcv   | int8 |   4      | 71.1% |73.2ms   |
+
+**注:**
+
+1.同一例程、同一模型在soc与pcie上的infer_time相近，mAP相同。
