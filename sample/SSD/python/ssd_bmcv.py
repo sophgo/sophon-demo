@@ -123,7 +123,7 @@ def inference(bmodel_path, input_path, conf_thre, tpu_id, results_path):
         loop_count = len(input_directory)
     else: 
         loop_count = 1000000
-        decoder = sail.Decoder(input_path)
+        decoder = sail.Decoder(input_path, True, tpu_id)
     frame_count = 0
     if batch_size == 4:
         BMImageArray = eval('sail.BMImageArray{}D'.format(input_shape[0]))
