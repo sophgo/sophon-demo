@@ -69,7 +69,8 @@ static void nms_sorted_bboxes(const std::vector<SSDObjRect>& objects, std::vecto
 }
 
 //public:
-SSD::SSD(std::shared_ptr<BMNNContext> context, float conf_thre, float nms_thre):m_bmContext(context),m_conf_thre(conf_thre),m_nms_thre(nms_thre){
+SSD::SSD(std::shared_ptr<BMNNContext> context, int dev_id, float conf_thre, float nms_thre):
+        m_bmContext(context),m_dev_id(dev_id),m_conf_thre(conf_thre),m_nms_thre(nms_thre){
     std::cout << "SSD create bm_context" << std::endl;
 }
 
@@ -367,7 +368,7 @@ int SSD::post_process(const std::vector<cv::Mat> &images, const std::vector<std:
 
     for(int i = 0; i < results.size(); i++){
         auto &frame_ = images[i];
-        cv::Mat frame;
+        cv::Mat frame(m_net_h, m_net_w, CV_8UC3, cv::SophonDevice(m_dev_id));
         cv::cvtColor(frame_, frame, cv::COLOR_RGB2BGR);
         int frame_width = frame.cols;
         int frame_height = frame.rows;

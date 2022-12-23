@@ -43,9 +43,10 @@ class SSD {
     float m_nms_thre;
     int m_net_h, m_net_w;
     int max_batch;
+    int m_dev_id;
     TimeStamp *m_ts;
     public:
-        SSD(std::shared_ptr<BMNNContext> context, float conf_thre, float nms_thre);
+        SSD(std::shared_ptr<BMNNContext> context, int dev_id, float conf_thre, float nms_thre);
         ~SSD();
         void Init();
         int batch_size();

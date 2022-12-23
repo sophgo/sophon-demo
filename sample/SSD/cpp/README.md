@@ -32,34 +32,23 @@ usage:./ssd_bmcv.pcie <image directory or video path> <bmodel path> <device id(d
 测试实例如下：
 
 ```bash
-./ssd_bmcv.pcie ../../../data/VOC2007-test-images/ ../../../data/models/BM1684X/ssd300_fp32_1b.bmodel 0
+./ssd_bmcv.pcie ../../../data/VOC2007-test-images ../../../data/models/BM1684X/ssd300_fp32_1b.bmodel 0
 ```
 
 可通过改变模型进行b4或int8推理。
 
-执行完成后，会将预测结果图片保存在`results/`下，预测结果信息保存在bmcv_cpp_result_b1.json中，同时会打印预测结果、推理时间等信息。
+执行完成后，会将预测结果图片保存在`results/`下，预测结果信息保存在bmcv_cpp_result_b1.json中，同时会打印推理时间等信息。
+
+注：如果测试的是视频，则会在build目录下生成视频流预测结果video.avi，且不会保存json格式的预测结果信息。
 
 ```bash
-########################
-
-Start SSD inference, total image num: 4952
-Read image path: ../../../data/VOC2007-test-images//000001.jpg
-Open /dev/bm-sophon0 successfully, device index = 0, jpu fd = 14, vpp fd = 14
-Output shape infos: 1 1 15 7
-width: 353 height: 500
-image 0 :
-   class: 12; score: 0.838305; box:[50.7866, 240.05, 201.803, 374.777]
-   class: 15; score: 0.986782; box:[12.3152, 6.01171, 354.142, 492.357]
-================================================
-result saved in ./bmcv_cpp_result_b1.json
-================================================
-
 ############################
 SUMMARY: SSD detect
 ############################
-[ Start SSD inference]  loops:    2 avg: 4291 us
-[Start SSD preprocess]  loops:    1 avg: 1316 us
-[Start SSD postprocess]  loops:    1 avg: 3683 us
+[         SSD overall]  loops:    1 avg: 390676506 us
+[      SSD preprocess]  loops:  100 avg: 1526 us
+[       SSD inference]  loops:  100 avg: 65929 us
+[     SSD postprocess]  loops:  100 avg: 6076 us
 ```
 
 ## 2. arm SoC平台
@@ -72,6 +61,7 @@ SUMMARY: SSD detect
 ```bash
 cd ssd_bmcv
 mkdir build && cd build
+#请根据实际情况修改-DSDK的路径，需使用绝对路径。
 cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk ..
 make # 生成ssd_bmcv.soc
 ```
@@ -85,13 +75,24 @@ make # 生成ssd_bmcv.soc
 本例程在`SSD/tools`目录下提供了`eval.py`脚本，以计算推理结果的mAP。具体的测试命令如下：
 ```bash
 # 请根据实际情况修改 --ground_truths 和 --result_json参数
+# --ground_truths: 数据集的标注文件，这里默认设置为../data/pascal_test2007.json
+# --result_json: 预测结果文件，可以填cpp或python例程运行生成的.json格式文件。
 python3 eval.py --result_json ../cpp/ssd_bmcv/build/bmcv_cpp_result_b1.json
 ```
 执行完成后，会打印出mAP信息：
 ```bash
-...
-Average Precision (AP) @[ IoU=0.50 | area= all | maxDets=100 ] = 0.717 #mAP
-...
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.433
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.717 # mAP
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.458
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.059
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.253
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.544
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.383
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.531
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.550
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.163
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.433
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.642
 ```
 
 ### 3.2 性能测试
@@ -100,7 +101,16 @@ Average Precision (AP) @[ IoU=0.50 | area= all | maxDets=100 ] = 0.717 #mAP
 ```bash
 bmrt_test --bmodel {path_of_bmodel}
 ```
-也可以参考[1.3 测试命令](#13-测试命令)打印程序运行中的实际性能指标。  
+也可以参考[1.3 测试命令](#13-测试命令)打印程序运行中的实际性能指标。
+```bash
+############################
+SUMMARY: SSD detect
+############################
+[         SSD overall]  loops:    1 avg: 390676506 us
+[      SSD preprocess]  loops:  100 avg: 1526 us # preprocess_time
+[       SSD inference]  loops:  100 avg: 65929 us # infer_time
+[     SSD postprocess]  loops:  100 avg: 6076 us
+```
 测试中性能指标存在一定的波动属正常现象。
 
 ### 3.3 测试结果
@@ -130,8 +140,8 @@ bmrt_test --bmodel {path_of_bmodel}
 | ssd_bmcv   | int8 |   4      | 71.5% |    10.4ms      |70.1ms   |
 | ssd_opencv | fp32 |   1      | 71.7% |    4.1ms    |38.2ms   |
 | ssd_opencv   | fp32 |   4      | 71.7% |    10.5ms      |180.5ms |
-| ssd_opencv   | int8 |   1      | 71.5% |    3.7ms     |21.8ms    |
-| ssd_opencv   | int8 |   4      | 71.5% |    8.1ms      |72.0ms   |
+| ssd_opencv   | int8 |   1      | 71.4% |    3.7ms     |21.8ms    |
+| ssd_opencv   | int8 |   4      | 71.4% |    8.1ms      |72.0ms   |
 
 **注:**
 

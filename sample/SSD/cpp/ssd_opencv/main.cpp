@@ -194,7 +194,7 @@ int main(int argc, char **argv){
                 batch_names.clear();   
                 results.clear();
             }
-            std::string json_file = "./bmcv_cpp_result_b" + std::to_string(batch_size) + ".json";
+            std::string json_file = "./opencv_cpp_result_b" + std::to_string(batch_size) + ".json";
             std::cout << "================================================" << std::endl;
             std::cout << "result saved in " << json_file << std::endl;
             std::cout << "================================================" << std::endl;
@@ -219,6 +219,7 @@ int main(int argc, char **argv){
         
         int frame_count = 0;
         while(frame_count < frame_num){
+            std::cout << "frame id:" << frame_count << std::endl;
             frame_count++;
             std::vector<cv::Mat> images;
             cv::Mat img;

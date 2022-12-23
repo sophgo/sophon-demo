@@ -88,7 +88,7 @@ int main(int argc, char **argv){
     std::cout << "Set device id: " << dev_id << " ." << std::endl;     
 
     //2. Initialize network.
-    SSD ssd(bm_ctx, conf_thre, nms_thre);
+    SSD ssd(bm_ctx, dev_id, conf_thre, nms_thre);
     ssd.Init();
     int batch_size = ssd.batch_size();
     
@@ -129,7 +129,7 @@ int main(int argc, char **argv){
         #endif
                 std::cout << "Read image path: " << files_vector[i] << std::endl;
                 cv::Mat img_bgr = cv::imread(files_vector[i], cv::IMREAD_COLOR, dev_id);
-                cv::Mat img;
+                cv::Mat img(img_bgr.rows, img_bgr.cols, CV_8UC3, cv::SophonDevice(dev_id));
                 cv::cvtColor(img_bgr, img, cv::COLOR_BGR2RGB);
                 size_t index = files_vector[i].rfind("/");
                 std::string img_name = files_vector[i].substr(index + 1);

@@ -26,24 +26,28 @@ VOC0712
 
 本例程在`scripts`目录下提供了相关模型和数据集的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型转换](#4-模型转换)进行模型转换。
 ```bash
-pip3 install dfn
+pip3 install dfn pycocotools
 chmod -R +x scripts/
 ./scripts/download.sh
 ```
-执行后，模型保存至`data/models`，数据集下载并解压至`data/images/`
+执行后，模型保存在`data/models`，数据集在`data/`
 ```
 下载的模型包括：
 
-BM1684/ssd_fp32_1b.bmodel: 用于BM1684的FP32 BModel，batch_size=1
-BM1684/ssd_fp32_4b.bmodel: 用于BM1684的FP32 BModel，batch_size=4
-BM1684/ssd_int8_1b.bmodel: 用于BM1684的INT8 BModel，batch_size=1
-BM1684X/ssd_fp32_1b.bmodel: 用于BM1684X的FP32 BModel，batch_size=1
-BM1684X/ssd_fp32_4b.bmodel: 用于BM1684X的FP32 BModel，batch_size=4
-BM1684X/ssd_int8_1b.bmodel: 用于BM1684X的INT8 BModel，batch_size=1
-下载的数据包括：
-images/vehicle_1.jpg: 测试图片
-images/lmdb/data.mdb: 用于量化的lmdb数据集
-videos/test_car_person.mp4: 测试视频
+BM1684/ssd300_fp32_1b.bmodel: 用于BM1684的FP32 BModel，batch_size=1
+BM1684/ssd300_fp32_4b.bmodel: 用于BM1684的FP32 BModel，batch_size=4
+BM1684/ssd300_int8_1b.bmodel: 用于BM1684的INT8 BModel，batch_size=1
+BM1684/ssd300_int8_4b.bmodel: 用于BM1684的INT8 BModel，batch_size=4
+BM1684X/ssd300_fp32_1b.bmodel: 用于BM1684X的FP32 BModel，batch_size=1
+BM1684X/ssd300_fp32_4b.bmodel: 用于BM1684X的FP32 BModel，batch_size=4
+BM1684X/ssd300_int8_1b.bmodel: 用于BM1684X的INT8 BModel，batch_size=1
+BM1684X/ssd300_int8_4b.bmodel: 用于BM1684X的INT8 BModel，batch_size=4
+
+下载的数据集包括：
+images/lmdb: 用于量化的lmdb数据集
+videos.mp4: 测试视频
+VOC2007-test-images: VOC2007测试集
+pascal_test2007.json: VOC2007测试集的ground truth
 ```
 
 
