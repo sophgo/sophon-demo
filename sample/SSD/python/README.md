@@ -28,8 +28,10 @@ python3 ssd_bmcv.py --bmodel ../data/models/BM1684X/ssd300_fp32_4b.bmodel --inpu
 ```
 执行完成后，会将预测结果保存在同目录的results/中，打印日志信息如下：
 ```
-read image:  000000.jpg
-..........
+read image:  000001.jpg
+......
+......
+......
 read image:  009963.jpg
 total_time(ms): 451671.91, img_num: 4952
 avg_infer_time(ms): 255.88
@@ -46,13 +48,24 @@ SoC平台的测试方法与x86 PCIe平台相同，请参考[1.2 测试命令](#1
 本例程在`SSD/tools`目录下提供了`eval.py`脚本，以计算推理结果的mAP。具体的测试命令如下：
 ```bash
 # 请根据实际情况修改 --ground_truths 和 --result_json参数
-python3 eval.py --result_json ../python/result_bmcv.json
+# --ground_truths: 数据集的标注文件，这里默认设置为../data/pascal_test2007.json
+# --result_json: 预测结果文件，可以填cpp或python例程运行生成的.json格式文件。
+python3 eval.py --result_json ../python/results_bmcv.json
 ```
 执行完成后，会打印出mAP信息：
 ```bash
-...
-Average Precision (AP) @[ IoU=0.50 | area= all | maxDets=100 ] = 0.717 #mAP
-...
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.430
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.715 # mAP
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.453
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.054
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.250
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.542
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.382
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.531
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.549
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.158
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.430
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.643
 ```
 
 ### 3.2 性能测试
@@ -61,7 +74,16 @@ Average Precision (AP) @[ IoU=0.50 | area= all | maxDets=100 ] = 0.717 #mAP
 ```bash
 bmrt_test --bmodel {path_of_bmodel}
 ```
-也可以参考[1.3 测试命令](#13-测试命令)打印程序运行中的实际性能指标。  
+也可以参考[1.2 测试命令](#12-测试命令)打印程序运行中的实际性能指标。  
+```bash
+read image:  000000.jpg
+......
+......
+......
+read image:  009963.jpg
+total_time(ms): 451671.91, img_num: 4952
+avg_infer_time(ms): 255.88 # infer_time
+```
 测试中性能指标存在一定的波动属正常现象。
 
 ### 3.3 测试结果
@@ -78,6 +100,9 @@ bmrt_test --bmodel {path_of_bmodel}
 | ssd_bmcv   | int8 |   4      | 71.1% |22.5ms   |
 
 在BM1684 PCIE上，不同模型的精度和性能测试结果如下：
+
+|   例程      | 精度 |batch_size|  mAP   |infer_time|
+|   -------- | ---- | ------- | -----  |-----    |
 | ssd_bmcv   | fp32 |   1      | 71.5% |38.5ms   |
 | ssd_bmcv   | fp32 |   4      | 71.5% |184.9ms |
 | ssd_bmcv   | int8 |   1      | 71.1% |20.1ms    |
