@@ -56,12 +56,8 @@ class SSD {
     private:
         float *m_input_f32;
         int8_t *m_input_int8;
-        float *m_output_f32;
-        int8_t *m_output_int8;
         cv::Mat m_mean;
         int m_input_count;
-        static float get_aspect_scaled_ratio(int src_w, int src_h, 
-                                             int dst_w, int dst_h, bool *alignWidth);
         int pre_process(const std::vector<cv::Mat> &images);
         int post_process(const std::vector<cv::Mat> &images, const std::vector<std::string> &input_names,
                                std::vector<std::vector<SSDObjRect> > &results, cv::VideoWriter *VideoWriter=NULL);                       

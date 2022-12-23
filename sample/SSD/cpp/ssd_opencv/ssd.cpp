@@ -76,6 +76,11 @@ SSD::SSD(std::shared_ptr<BMNNContext> context, float conf_thre, float nms_thre, 
 
 SSD::~SSD(){
     std::cout << "SSD delete bm_context" << std::endl;   
+    if(m_input_tensor->get_dtype() == BM_INT8){
+        delete [] m_input_int8;
+    }else{
+        delete [] m_input_f32;
+    }
 }
 
 void SSD::Init(){
@@ -135,22 +140,6 @@ void SSD::enableProfile(TimeStamp *ts){
 }
 
 //private:
-float SSD::get_aspect_scaled_ratio(int src_w, int src_h, 
-                                   int dst_w, int dst_h, bool *pIsAligWidth){
-    float ratio;
-    float r_w = (float)dst_w / src_w;
-    float r_h = (float)dst_h / src_h;
-    if (r_h > r_w){
-        *pIsAligWidth = true;
-        ratio = r_w;
-    }
-    else{
-        *pIsAligWidth = false;
-        ratio = r_h;
-    }
-    return ratio;
-}
-
 void SSD::setMean(std::vector<float> &values) {
     std::vector<cv::Mat> channels;
     for(int i = 0; i < m_num_channels; i++) {
@@ -253,6 +242,7 @@ int SSD::pre_process(const std::vector<cv::Mat> &images){
         bm_memcpy_s2d(m_bmContext->handle(), input_tensor.device_mem, (void *)m_input_f32);
     }
     m_input_tensor->set_device_mem(&input_tensor.device_mem);
+    bm_free_device(m_bmContext->handle(), input_tensor.device_mem);
     return 0;
 }
 
