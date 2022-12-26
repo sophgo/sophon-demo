@@ -135,16 +135,18 @@ SUMMARY: SSD detect
 |     例程      | 精度 |batch_size|  mAP  |preprocess_time |infer_time|
 |   --------    | ---- | -------  | ----- | ------------| -----    |
 | ssd_bmcv   | fp32 |   1      | 71.7% |    2.7ms    |38.2ms   |
-| ssd_bmcv   | fp32 |   4      | 71.7% |    10.3ms      |180.5ms |
+| ssd_bmcv   | fp32 |   4      | 65.0% |    10.3ms      |180.5ms |
 | ssd_bmcv   | int8 |   1      | 71.5% |    2.7ms      |21.8ms    |
-| ssd_bmcv   | int8 |   4      | 71.5% |    10.4ms      |70.1ms   |
+| ssd_bmcv   | int8 |   4      | 63.0% |    10.4ms      |70.1ms   |
 | ssd_opencv | fp32 |   1      | 71.7% |    4.1ms    |38.2ms   |
-| ssd_opencv   | fp32 |   4      | 71.7% |    10.5ms      |180.5ms |
+| ssd_opencv   | fp32 |   4      | 65.0% |    10.5ms      |180.5ms |
 | ssd_opencv   | int8 |   1      | 71.4% |    3.7ms     |21.8ms    |
-| ssd_opencv   | int8 |   4      | 71.4% |    8.1ms      |72.0ms   |
+| ssd_opencv   | int8 |   4      | 62.9% |    8.1ms      |72.0ms   |
 
 **注:**
 
 1.同一例程、同一模型在soc与pcie上的infer_time相近，mAP相同。
 
 2.ssd_opencv 的 preprocess_time 一定程度上取决于主机硬件。
+
+3.1684的4b模型存在精度问题，正在排查中。
