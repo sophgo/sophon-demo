@@ -45,7 +45,7 @@ BM1684X/ssd300_int8_4b.bmodel: 用于BM1684X的INT8 BModel，batch_size=4
 
 下载的数据集包括：
 images/lmdb: 用于量化的lmdb数据集
-videos.mp4: 测试视频
+video.mp4: 测试视频
 VOC2007-test-images: VOC2007测试集
 pascal_test2007.json: VOC2007测试集的ground truth
 ```

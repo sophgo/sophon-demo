@@ -103,11 +103,13 @@ avg_infer_time(ms): 255.88 # infer_time
 
 |   例程      | 精度 |batch_size|  mAP   |infer_time|
 |   -------- | ---- | ------- | -----  |-----    |
-| ssd_bmcv   | fp32 |   1      | 71.5% |38.5ms   |
-| ssd_bmcv   | fp32 |   4      | 71.5% |184.9ms |
+| ssd_bmcv   | fp32 |   1      | 71.6% |38.5ms   |
+| ssd_bmcv   | fp32 |   4      | 65.0% |184.9ms |
 | ssd_bmcv   | int8 |   1      | 71.1% |20.1ms    |
-| ssd_bmcv   | int8 |   4      | 71.1% |73.2ms   |
+| ssd_bmcv   | int8 |   4      | 62.9% |73.2ms   |
 
 **注:**
 
 1.同一例程、同一模型在soc与pcie上的infer_time相近，mAP相同。
+
+2.1684的4b模型存在精度问题，正在排查中。
