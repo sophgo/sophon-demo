@@ -44,7 +44,7 @@ pip3 install 'opencv-python-headless<4.3'
 pip3 install 'opencv-python-headless<4.3'
 ```
 
-## 3.  测试
+## 3. 测试
 
 ### 3.1 使用说明
 
