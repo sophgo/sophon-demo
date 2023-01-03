@@ -3,7 +3,7 @@ cpp目录下提供了一系列C++例程以供参考使用，具体情况如下�
 | 序号  | C++例程      | 说明                                 |
 | ---- | ------------- | -----------------------------------  |
 | 1    | lprnet_opencv | 使用OpenCV解码、OpenCV前处理、BMRT推理 |
-| 2    | lprnet_bmcv   | 使用OpenCV解码、BMCV前处理、BMRT推理   |
+| 2    | lprnet_bmcv   | 使用FFmpeg解码、BMCV前处理、BMRT推理   |
 
 
 ## 1. x86 PCIe 平台
@@ -119,10 +119,10 @@ bmrt_test --bmodel {path_of_bmodel}
 | lprnet_opencv | fp32 |   4      | 89.3% |  0.7ms  |  0.7ms   | 660 |
 | lprnet_opencv | int8 |   1      | 87.4% |  0.3ms  |  0.2ms   | 950 |
 | lprnet_opencv | int8 |   4      | 87.9% |  0.2ms  |  0.2ms   | 1000 |
-| lprnet_bmcv   | fp32 |   1      | 88.2% |  0.8ms  |  0.8ms   | 750 |
-| lprnet_bmcv   | fp32 |   4      | 89.3% |  0.7ms  |  0.7ms   | 800 |
-| lprnet_bmcv   | int8 |   1      | 87.4% |  0.3ms  |  0.2ms   | 1300 |
-| lprnet_bmcv   | int8 |   4      | 87.9% |  0.2ms  |  0.2ms   | 1500 |
+| lprnet_bmcv   | fp32 |   1      | 88.2% |  0.8ms  |  0.8ms   | 610 |
+| lprnet_bmcv   | fp32 |   4      | 89.3% |  0.7ms  |  0.7ms   | 660 |
+| lprnet_bmcv   | int8 |   1      | 87.4% |  0.3ms  |  0.2ms   | 950 |
+| lprnet_bmcv   | int8 |   4      | 87.9% |  0.2ms  |  0.2ms   | 1050 |
 
 在BM1684 SoC上，不同例程、不同模型的精度和性能测试结果如下：
 
@@ -132,10 +132,10 @@ bmrt_test --bmodel {path_of_bmodel}
 | lprnet_opencv | fp32 |   4      | 89.2% |  0.9ms  |  0.9ms   | 600 |
 | lprnet_opencv | int8 |   1      | 87.3% |  0.7ms  |  0.7ms   | 660 |
 | lprnet_opencv | int8 |   4      | 88.4% |  0.3ms  |  0.2ms   | 960 |
-| lprnet_bmcv   | fp32 |   1      | 88.0% |  1.7ms  |  1.6ms   | 450 |
-| lprnet_bmcv   | fp32 |   4      | 89.2% |  0.9ms  |  0.9ms   | 700 |
-| lprnet_bmcv   | int8 |   1      | 87.3% |  0.7ms  |  0.7ms   | 820 |
-| lprnet_bmcv   | int8 |   4      | 88.4% |  0.3ms  |  0.2ms   | 1200 |
+| lprnet_bmcv   | fp32 |   1      | 88.0% |  1.7ms  |  1.6ms   | 350 |
+| lprnet_bmcv   | fp32 |   4      | 89.2% |  0.9ms  |  0.9ms   | 530 |
+| lprnet_bmcv   | int8 |   1      | 87.3% |  0.7ms  |  0.7ms   | 600 |
+| lprnet_bmcv   | int8 |   4      | 88.4% |  0.3ms  |  0.2ms   | 900 |
 ```
 bmrt_test: 每张图片的理论推理时间(calculate time)，多batch模型需除以batch；
 infer_time: 程序运行时每张图片的网络推理时间；
