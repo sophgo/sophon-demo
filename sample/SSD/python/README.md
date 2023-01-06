@@ -38,7 +38,10 @@ avg_infer_time(ms): 255.88
 ```
 ## 2. arm SoC平台
 ### 2.1 环境准备
-如果您使用SoC平台测试本例程，您需要交叉编译安装sophon-sail(>=3.1.0)，具体可参考[交叉编译安装sophon-sail](../../docs/Environment_Install_Guide.md#32-交叉编译安装sophon-sail)。
+如果您使用SoC平台测试本例程，您需要交叉编译安装sophon-sail(>=3.1.0)，具体可参考[交叉编译安装sophon-sail](../../docs/Environment_Install_Guide.md#32-交叉编译安装sophon-sail)。此外您可能还需要安装其他第三方库：
+```
+pip3 install -r requirements.txt
+```
 ### 2.2 测试命令
 SoC平台的测试方法与x86 PCIe平台相同，请参考[1.2 测试命令](#12-测试命令)。
 
