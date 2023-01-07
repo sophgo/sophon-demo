@@ -11,6 +11,13 @@
 
 using namespace std;
 
+const int hw_jpeg_header_fmt_words[] =
+    {
+        0x221111, // yuv420
+        0x211111, // yuv422
+        0x111111  // yuv444
+};
+
 int read_buffer(void *opaque, uint8_t *buf, int buf_size)
 {
     bs_buffer_t *bs = (bs_buffer_t *)opaque;
@@ -29,6 +36,57 @@ int read_buffer(void *opaque, uint8_t *buf, int buf_size)
     bs->pos += len;
 
     return len;
+}
+
+bool determine_hardware_decode(uint8_t *buffer)
+{
+    int ret = 0;
+    int offset = 2;
+    int SOF0_Marker = 0xFFC0;
+    bool is_hw = false;
+    while (1)
+    {
+        uint8_t flag_high = *(uint8_t *)(buffer + offset);
+        uint8_t flag_low = *(uint8_t *)(buffer + offset + 1);
+
+        int word = (flag_high << 8) + flag_low;
+
+        if (SOF0_Marker == word)
+        {
+            // gray
+            if( 1 == (*(buffer + offset + 9) & 255)){
+                return true;
+            }
+            // color
+            offset += 11;
+            int ret1 = *(buffer + offset) & 255;
+            offset += 3;
+            int ret2 = *(buffer + offset) & 255;
+            offset += 3;
+            int ret3 = *(buffer + offset) & 255;
+
+            ret = (ret1 << 16) + (ret2 << 8) + ret3;
+            break;
+        }
+
+        else
+        {
+            offset += 2;
+            uint8_t offset_high = *(uint8_t *)(buffer + offset);
+            uint8_t offset_low = *(uint8_t *)(buffer + offset + 1);
+            offset += (offset_high << 8) + offset_low;
+        }
+    }
+
+    for (int i = 0; i < 3; i++)
+    {
+        // std::cout << "hw " << is_hw << std::endl;
+        is_hw = (hw_jpeg_header_fmt_words[i] == ret) ? true : false;
+        // std::cout << "hw " << is_hw << std::endl;
+        if (is_hw)
+            break;
+    }
+    return is_hw;
 }
 
 VideoDecFFM::VideoDecFFM()
@@ -146,6 +204,13 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
         data_five_denominator = 2;
         data_six_denominator = 2;
         break;
+    // case AV_PIX_FMT_YUV440P:
+    // case AV_PIX_FMT_YUVJ440P:
+    //     plane = 3;
+    //     data_four_denominator = -1;
+    //     data_five_denominator = 1;
+    //     data_six_denominator = 4;
+    //     break;
     case AV_PIX_FMT_NV16:
         plane = 2;
         data_four_denominator = -1;
@@ -248,7 +313,6 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
             stride[1] = in.linesize[5];
             stride[2] = in.linesize[6];
         }
-
         bm_format = (bm_image_format_ext)map_avformat_to_bmformat(in.format);
         bm_image_create(handle,
                         in.height,
@@ -278,7 +342,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
     return BM_SUCCESS;
 }
 
-int VideoDecFFM::openDec(bm_handle_t *dec_handle, const char *input, int sophon_idx)
+int VideoDecFFM::openDec(bm_handle_t *dec_handle, const char *input)
 {
     this->handle = dec_handle;
     int ret = 0;
@@ -298,7 +362,7 @@ int VideoDecFFM::openDec(bm_handle_t *dec_handle, const char *input, int sophon_
         return ret;
     }
 
-    ret = openCodecContext(&video_stream_idx, &video_dec_ctx, ifmt_ctx, AVMEDIA_TYPE_VIDEO, sophon_idx);
+    ret = openCodecContext(&video_stream_idx, &video_dec_ctx, ifmt_ctx, AVMEDIA_TYPE_VIDEO, bm_get_devid(*dec_handle));
 
     if (ret >= 0)
     {
@@ -430,6 +494,7 @@ AVFrame *VideoDecFFM::grabFrame()
                 continue;
             }
             av_log(video_dec_ctx, AV_LOG_ERROR, "av_read_frame ret(%d) maybe eof...\n", ret);
+            quit_flag = true;
             return NULL;
         }
 
@@ -485,11 +550,22 @@ void *VideoDecFFM::vidPushImage()
 {
     while (1)
     {
-        // bm_image img;
         bm_image *img = new bm_image;
+        // bm_image *bgr_img = new bm_image;
         AVFrame *avframe = grabFrame();
+        if (quit_flag)
+            break;
         avframe_to_bm_image(*(this->handle), *avframe, *img);
 
+        // bm_image_create(*handle, img->height, img->width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, bgr_img, NULL);
+        // if (bm_image_alloc_dev_mem_heap_mask(*bgr_img, USEING_MEM_HEAP0) != BM_SUCCESS)
+        // {
+        //     printf("bmcv allocate mem failed!!!");
+        // }
+        // bmcv_image_vpp_csc_matrix_convert(*handle, 1, *img, bgr_img, CSC_YPbPr2RGB_BT601, NULL, BMCV_INTER_NEAREST, NULL);
+        // // bm_image_write_to_bmp(bgr_img, "result3.bmp");
+        // bm_image_destroy(*img);
+        // bm_image_write_to_bmp(*img, "ffmpeg.bmp");
         while (queue.size() == QUEUE_MAX_SIZE)
         {
             if (is_rtsp)
@@ -507,7 +583,7 @@ void *VideoDecFFM::vidPushImage()
 
         lock.lock();
         queue.push(img);
-        cout << "push, queue size " << queue.size() << endl;
+        // cout << "push, queue size " << queue.size() << endl;
         lock.unlock();
     }
     return NULL;
@@ -517,6 +593,8 @@ bm_image *VideoDecFFM::grab()
 {
     while (queue.empty())
     {
+        if (quit_flag)
+            return nullptr;
         usleep(500);
     }
 
@@ -525,7 +603,7 @@ bm_image *VideoDecFFM::grab()
     queue.pop();
     lock.unlock();
 
-    cout << "grab, queue size " << queue.size() << endl;
+    // cout << "grab, queue size " << queue.size() << endl;
     return bm_img;
 }
 
@@ -575,6 +653,7 @@ bm_status_t pngDec(bm_handle_t &handle, string input_name, bm_image &img)
         exit(1);
     }
     codec = avcodec_find_decoder(AV_CODEC_ID_PNG);
+    // codec = avcodec_find_decoder(AV_CODEC_ID_MJPEG);
     if (!codec)
     {
         fprintf(stderr, "Codec not found\n");
@@ -601,7 +680,7 @@ bm_status_t pngDec(bm_handle_t &handle, string input_name, bm_image &img)
 
     pkt->size = numBytes;
     pkt->data = (unsigned char *)bs_buffer;
-    dec_ctx->pix_fmt = AV_PIX_FMT_BGR24; //指明像素格式
+    dec_ctx->pix_fmt = AV_PIX_FMT_BGR24; // 指明像素格式
     if (pkt->size)
     {
         int ret;
@@ -635,7 +714,6 @@ bm_status_t pngDec(bm_handle_t &handle, string input_name, bm_image &img)
         bm_memcpy_s2d(handle, mem1, frame->data[0]);
         frame->data[4] = (uint8_t *)mem1.u.device.device_addr;
         frame->linesize[4] = frame->linesize[0];
-
         avframe_to_bm_image(handle, *frame, img);
         // bm_image_write_to_bmp(img, "result3.bmp");
         free(bs_buffer);
@@ -664,13 +742,17 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
     AVDictionary *dict = nullptr;
     AVIOContext *avio_ctx = nullptr;
     AVFrame *pFrame = nullptr;
+    AVFrame *I420Frame = nullptr;
     AVPacket pkt;
+    struct SwsContext *convert_ctx = NULL;
 
     bm_image bgr_img;
     csc_type_t csc_type = CSC_YPbPr2RGB_BT601;
     int got_picture;
     FILE *infile;
+    FILE *record;
     int numBytes;
+    bool hw_decode;
     uint8_t *aviobuffer = nullptr;
     int aviobuf_size = 32 * 1024; // 32K
     uint8_t *bs_buffer = nullptr;
@@ -702,6 +784,8 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
     fread(bs_buffer, sizeof(uint8_t), numBytes, infile);
     fclose(infile);
     infile = nullptr;
+
+    hw_decode = determine_hardware_decode(bs_buffer);
 
     aviobuffer = (uint8_t *)av_malloc(aviobuf_size); // 32k
     if (aviobuffer == nullptr)
@@ -748,7 +832,9 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
     // av_dump_format(pFormatCtx, 0, 0, 0);
 
     /* HW JPEG decoder: jpeg_bm */
-    pCodec = avcodec_find_decoder_by_name("jpeg_bm");
+
+    pCodec = hw_decode ? avcodec_find_decoder_by_name("jpeg_bm") : avcodec_find_decoder_by_name("mjpeg");
+    // pCodec = avcodec_find_decoder_by_name("mjpeg");
     if (pCodec == NULL)
     {
         cerr << "Codec not found." << endl;
@@ -804,9 +890,87 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
         goto Func_Exit;
     }
 
+    // filter convert format to I420
+    // TODO
+    if (!hw_decode)
+    {
+        int height = pFrame->height;
+        int width = pFrame->width;
+        uchar bgr_buffer[height * width * 3];
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int indexY = y * pFrame->linesize[0] + x;
+                int indexU = (y / 2) * pFrame->linesize[1] + x;
+                int indexV = (y / 2) * pFrame->linesize[2] + x;
+
+                uchar Y = pFrame->data[0][indexY];
+                uchar U = pFrame->data[1][indexU];
+                uchar V = pFrame->data[2][indexV];
+
+                int YPbPr2RGB_BT601[12] = {0x00000400, 0x00000000, 0x0000059b, (int)0xfffd322d,
+                                           0x00000400, (int)0xfffffea0, (int)0xfffffd25, 0x00021dd6,
+                                           0x00000400, 0x00000716, 0x00000000, (int)0xfffc74bc};
+
+                // double M[] = {1, 1.40252, 0, 0,
+                //               1, -0.71440, -0.34434, 0,
+                //               1, 0, 1.77305, 0};
+
+                double M[12] = {1.0000000000000000, 0.0000000000000000, 1.4018863751529200, -179.4414560195740000,
+                                1.0000000000000000, -0.3458066722146720, -0.7149028511111540, 135.7708189857060000,
+                                1.0000000000000000, 1.7709825540494100, 0.0000000000000000, -226.6857669183240000};
+                // double M[12] = {1.0000000000000000, 0.0000000000000000, 1.5747219882569700, -201.5644144968920000,
+                                // 1.0000000000000000, -0.1873140895347890, -0.4682074705563420, 83.90675969166480000,
+                                // 1.0000000000000000, 1.8556153692785300, 0.0000000000000000, -237.5187672676520000};
+
+                int R = M[0] * Y + M[1] * (U) + M[2] * (V) + M[3];
+                int G = M[4] * Y + M[5] * (U) + M[6] * (V) + M[7];
+                int B = M[8] * Y + M[9] * (U) + M[10] * (V) + M[11];
+
+                // int R = (Y - 16) * 1.164                    - (V-128) * -1.596;
+                // int G = (Y - 16) * 1.164 - (U-128) *  0.391 - (V-128) *  0.813;
+                // int B = (Y - 16) * 1.164 - (U-128) * -2.018;
+
+                // int R = (YPbPr2RGB_BT601[0] * Y + YPbPr2RGB_BT601[2] * V + YPbPr2RGB_BT601[3]) >> 10;
+                // int G = (YPbPr2RGB_BT601[4] * Y + YPbPr2RGB_BT601[5] * U + YPbPr2RGB_BT601[6] * V + YPbPr2RGB_BT601[7]) >> 10;
+                // int B = (YPbPr2RGB_BT601[8] * Y + YPbPr2RGB_BT601[9] * U + YPbPr2RGB_BT601[11]) >> 10;
+                R = (R < 0) ? 0 : R;
+                G = (G < 0) ? 0 : G;
+                B = (B < 0) ? 0 : B;
+                R = (R > 255) ? 255 : R;
+                G = (G > 255) ? 255 : G;
+                B = (B > 255) ? 255 : B;
+
+                bgr_buffer[(y * width + x) * 3 + 0] = uchar(B);
+                bgr_buffer[(y * width + x) * 3 + 1] = uchar(G);
+                bgr_buffer[(y * width + x) * 3 + 2] = uchar(R);
+
+                // std::cout << "B " << B << " G " << G << " R " << R << std::endl;
+            }
+        }
+
+        bm_device_mem_t mem;
+        bm_malloc_device_byte(handle, &mem, height * width * 3);
+        bm_memcpy_s2d_partial(handle, mem, bgr_buffer, height * width * 3);
+
+        bm_image_create(handle, height, width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &img);
+        bm_image_attach(img, &mem);
+        goto Func_Exit;
+    }
+
     avframe_to_bm_image(handle, *pFrame, img);
+
     // bm_image_write_to_bmp(img, "result2.bmp");
+    // if(FORMAT_GRAY == img.image_format)
+    // {
+    //     std::cout << "gray" << std::endl;
+    //     std::cout << "width " << img.width << std::endl;
+    //     std::cout << "height " << img.height << std::endl;
+    //     goto Func_Exit; 
+    // }
     bm_image_create(handle, img.height, img.width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &bgr_img, NULL);
+
     if (bm_image_alloc_dev_mem_heap_mask(bgr_img, USEING_MEM_HEAP0) != BM_SUCCESS)
     {
         printf("bmcv allocate mem failed!!!");
@@ -814,6 +978,7 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
         goto Func_Exit;
     }
     bmcv_image_vpp_csc_matrix_convert(handle, 1, img, &bgr_img, csc_type, NULL, BMCV_INTER_NEAREST, NULL);
+    // bmcv_image_storage_convert(handle, 1, &img, &bgr_img);
     // bm_image_write_to_bmp(bgr_img, "result3.bmp");
     bm_image_destroy(img);
     img = bgr_img;

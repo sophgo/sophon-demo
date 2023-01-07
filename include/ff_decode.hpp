@@ -58,12 +58,14 @@ public:
     ~VideoDecFFM();
 
     /* open video decoder, decode, convert avFrame to bm_image, push it into the cache queue  */
-    int openDec(bm_handle_t *dec_handle, const char *input, int sophon_idx);
+    int openDec(bm_handle_t *dec_handle, const char *input);
 
     /* grab a bm_image from the cache queue*/
     bm_image *grab();
 
 private:
+    bool quit_flag = false;
+
     int is_rtsp;
     int width;
     int height;
