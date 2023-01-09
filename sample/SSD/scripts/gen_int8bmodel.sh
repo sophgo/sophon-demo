@@ -21,6 +21,7 @@ function gen_int8bmodel()
         --cali_lmdb ${cali_data_path} \
         --input_shapes [1,3,300,300] \
         --cali_iterations=200 \
+        --target=${target} \
         --convert_bmodel_cmd_opt "-outdir=$outdir --target=$target --enable_profile=true"
     if [ $? -ne 0 ]; then
         echo "gen_int8bmodel batch_size 1 failed"
