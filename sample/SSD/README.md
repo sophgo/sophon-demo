@@ -65,7 +65,7 @@ caffe模型编译为FP32 BModel，具体方法可参考[BMNETC 使用](https://d
 ./scripts/gen_fp32bmodel.sh BM1684X
 ```
 
-执行上述命令会在`data/models/BM1684X/`下生成`ssd_fp32_1b.bmodel、ssd_fp32_4b.bmodel、`文件，即转换好的FP32 BModel。
+执行上述命令会在`data/models/BM1684X/`下生成`ssd300_fp32_1b.bmodel、ssd300_fp32_4b.bmodel、`文件，即转换好的FP32 BModel。
 
 ### 4.2 生成INT8 BModel
 
@@ -79,7 +79,7 @@ caffe模型编译为FP32 BModel，具体方法可参考[BMNETC 使用](https://d
 ./scripts/gen_int8bmodel.sh BM1684X
 ```
 
-执行上述命令会在`data/models/BM1684X/`下生成`ssd_int8_1b.bmodel、ssd_int8_4b.bmodel、`文件，即转换好的INT8 BModel。
+执行上述命令会在`data/models/BM1684X/`下生成`ssd300_int8_1b.bmodel、ssd300_int8_4b.bmodel、`文件，即转换好的INT8 BModel。
 
 
 ## 5. 例程测试
