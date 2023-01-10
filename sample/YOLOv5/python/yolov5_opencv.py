@@ -7,43 +7,38 @@
 #
 #===----------------------------------------------------------------------===#
 import os
-import sys
-os.chdir(os.path.abspath(os.path.dirname(sys.argv[0])))
-__dir__ = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(__dir__)
-
-import shutil
-import numpy as np
+import json
+import time
 import cv2
 import argparse
-from yolov5_utils.sophon_inference import SophonInference
-from yolov5_utils.preprocess_numpy import PreProcess
-from yolov5_utils.postprocess_numpy import PostProcess
-from yolov5_utils.utils import draw_numpy, is_img
+import numpy as np
+import sophon.sail as sail
+from postprocess_numpy import PostProcess
+from utils import draw_numpy
+import logging
+logging.basicConfig(level=logging.DEBUG)
+# sail.set_print_flag(1)
 
 class YOLOv5:
-    def __init__(self, model_path, device_id, conf_thresh=0.5, nms_thresh=0.5):
-        if not os.path.exists(model_path):
-            raise FileNotFoundError('{} is not existed.'.format(model_path))
+    def __init__(self, args):
+        # load bmodel
+        self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
+        logging.debug("load {} success!".format(args.bmodel))
+        self.graph_name = self.net.get_graph_names()[0]
+        self.input_name = self.net.get_input_names(self.graph_name)[0]
+        self.output_names = self.net.get_output_names(self.graph_name)
+        self.input_shape = self.net.get_input_shape(self.graph_name, self.input_name)
 
-        self.conf_thresh = conf_thresh
-        self.nms_thresh = nms_thresh
-
-        self.net = SophonInference(
-            model_path=model_path,
-            device_id=device_id,
-            input_mode=0, # use cv
-        )
-
-        self.batch_size = self.net.inputs_shapes[0][0]
-        self.net_c = self.net.inputs_shapes[0][1]
-        self.net_h = self.net.inputs_shapes[0][2]
-        self.net_w = self.net.inputs_shapes[0][3]
-        self.preprocess = PreProcess(self.net_w, self.net_h)
-
+        self.batch_size = self.input_shape[0]
+        self.net_h = self.input_shape[2]
+        self.net_w = self.input_shape[3]
+        
+        self.conf_thresh = args.conf_thresh
+        self.nms_thresh = args.nms_thresh
         self.agnostic = False
         self.multi_label = True
         self.max_det = 1000
+        
         self.postprocess = PostProcess(
             conf_thresh=self.conf_thresh,
             nms_thresh=self.nms_thresh,
@@ -51,236 +46,290 @@ class YOLOv5:
             multi_label=self.multi_label,
             max_det=self.max_det,
         )
+        
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
+    
+    def init(self):
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
+            
+    def preprocess(self, ori_img):
+        """
+        pre-processing
+        Args:
+            img: numpy.ndarray -- (h,w,3)
 
-        self.resort = False
-        self.output_order_node = ['147', '148', '149'] # if use resort, please set output_order_node manually
+        Returns: (3,h,w) numpy.ndarray after pre-processing
 
-        print('{} is loaded.'.format(model_path))
+        """
+        letterbox_img, ratio, (tx1, ty1) = self.letterbox(
+            ori_img,
+            new_shape=(self.net_h, self.net_w),
+            color=(114, 114, 114),
+            auto=False,
+            scaleFill=False,
+            scaleup=True,
+            stride=32
+        )
 
-    def predict(self, tensor):
-        if tensor.ndim != 4:
-            tensor = np.expand_dims(tensor, 0)
-        # feed: [input0]
-        out_dict = self.net.infer_numpy([tensor])
-        if not self.resort:
-            self.output_order_node = self.net.output_names
+        img = letterbox_img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+        img = img.astype(np.float32)
+        # input_data = np.expand_dims(input_data, 0)
+        img = np.ascontiguousarray(img / 255.0)
+        return img, ratio, (tx1, ty1) 
+    
+    def letterbox(self, im, new_shape=(640, 640), color=(114, 114, 114), auto=False, scaleFill=False, scaleup=True,
+                  stride=32):
+        # Resize and pad image while meeting stride-multiple constraints
+        shape = im.shape[:2]  # current shape [height, width]
+        if isinstance(new_shape, int):
+            new_shape = (new_shape, new_shape)
 
+        # Scale ratio (new / old)
+        r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+        if not scaleup:  # only scale down, do not scale up (for better val mAP)
+            r = min(r, 1.0)
+
+        # Compute padding
+        ratio = r, r  # width, height ratios
+        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
+        if auto:  # minimum rectangle
+            dw, dh = np.mod(dw, stride), np.mod(dh, stride)  # wh padding
+        elif scaleFill:  # stretch
+            dw, dh = 0.0, 0.0
+            new_unpad = (new_shape[1], new_shape[0])
+            ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]  # width, height ratios
+
+        dw /= 2  # divide padding into 2 sides
+        dh /= 2
+
+        if shape[::-1] != new_unpad:  # resize
+            im = cv2.resize(im, new_unpad, interpolation=cv2.INTER_LINEAR)
+        top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
+        left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+        im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
+        return im, ratio, (dw, dh)
+    
+    def predict(self, input_img, img_num):
+        input_data = {self.input_name: input_img}
+        outputs = self.net.process(self.graph_name, input_data)
+        
         # resort
-        out_keys = list(out_dict.keys())
+        out_keys = list(outputs.keys())
         ord = []
-        for n in self.output_order_node:
+        for n in self.output_names:
             for i, k in enumerate(out_keys):
-                if n in k:
+                if n == k:
                     ord.append(i)
                     break
-        out = [out_dict[out_keys[i]] for i in ord]
+        out = [outputs[out_keys[i]][:img_num] for i in ord]
         return out
     
-    def do_once_proc(self, file_path):
+    def __call__(self, img_list):
+        img_num = len(img_list)
+        ori_size_list = []
+        preprocessed_img_list = []
+        ratio_list = []
+        txy_list = []
+        for ori_img in img_list:
+            ori_h, ori_w = ori_img.shape[:2]
+            ori_size_list.append((ori_w, ori_h))
+            start_time = time.time()
+            preprocessed_img, ratio, (tx1, ty1) = self.preprocess(ori_img)
+            self.preprocess_time += time.time() - start_time
+            preprocessed_img_list.append(preprocessed_img)
+            ratio_list.append(ratio)
+            txy_list.append([tx1, ty1])
         
-        batch_size = self.net.inputs_shapes[0][0]
-        input_path = file_path
-
-        if not os.path.exists(input_path):
-            raise FileNotFoundError('{} is not existed.'.format(input_path))
-        
-        # imgage directory
-        input_list = []
-        assert is_img(input_path), "not correct img path: {}".format(input_path)
-        input_list.append(input_path)
-        # imgage list saved in file
-
-        inp_batch = []
-        images = []
-        result = []
-        ino = 0        
-        image = decode_image_opencv(input_list[ino])
-        if image is None:
-            print('skip: image data is none: {}'.format(input_list[ino]))
-            return None
-        
-        images.append(image)
-        inp_batch.append(input_list[ino])
-
-        org_size_list = []
-        for i in range(len(inp_batch)):
-            org_h, org_w = images[i].shape[:2]
-            org_size_list.append((org_w, org_h))
-
-        # batch end-to-end inference
-        preprocessed_img, ratio_list, txy_list = self.preprocess.infer_batch(images)
-        out_infer = self.predict(preprocessed_img)
-        det_batch = self.postprocess.infer_batch(
-            out_infer,
-            org_size_list,
-            ratio_list,
-            txy_list,
-        ) 
-        
-        return det_batch[0]
-        
-       
-
-
-def decode_image_opencv(image_path):
-    try:
-        with open(image_path, "rb") as f:
-            image = np.array(bytearray(f.read()), dtype="uint8")
-            image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-    except:
-        image = None
-    return image
-
-
-
-def main(opt):
-    if not os.path.exists(opt.output_dir):
-        os.makedirs(opt.output_dir)
-    else:
-        shutil.rmtree(opt.output_dir)
-        os.makedirs(opt.output_dir)
-
-    yolov5 = YOLOv5(
-        model_path=opt.model,
-        device_id=opt.dev_id,
-        conf_thresh=opt.conf_thresh,
-        nms_thresh=opt.nms_thresh,
-    )
-
-    batch_size = yolov5.net.inputs_shapes[0][0]
-    input_path = opt.input_path
-
-    if not os.path.exists(input_path):
-        raise FileNotFoundError('{} is not existed.'.format(input_path))
-
-    if opt.is_video:
-        if batch_size != 1:
-            raise ValueError(
-                'bmodel batch size must be 1 in video inference, but got {}'.format(
-                    batch_size)
-            )
-
-        cap = cv2.VideoCapture(input_path)
-        ret, frame = cap.read()
-        id = 0
-
-        while ret and frame is not None:
-            org_h, org_w = frame.shape[:2]
-            preprocessed_img, ratio, txy = yolov5.preprocess(frame)
-            out_infer = yolov5.predict(preprocessed_img)
-            det_batch = yolov5.postprocess.infer_batch(
-                out_infer,
-                [(org_w, org_h)],
-                [ratio],
-                [txy],
-            )
-
-            det = det_batch[0]
-            vis_image = draw_numpy(frame.copy(), det[:, :4],
-                                   masks=None,
-                                   classes_ids=det[:, -1],
-                                   conf_scores=det[:, -2])
-            save_basename, _ = os.path.splitext(os.path.basename(opt.model))
-            save_basename = save_basename + '_opencv_python_result_{}'.format(id)
-            save_name = os.path.join(opt.output_dir, save_basename)
-            cv2.imencode('.jpg', vis_image)[1].tofile('{}.jpg'.format(save_name))
-            id += 1
-            ret, frame = cap.read()
-        cap.release()
-
-    else:
-
-        # imgage directory
-        input_list = []
-        if os.path.isdir(input_path):
-            for img_name in os.listdir(input_path):
-                if is_img(img_name):
-                    input_list.append(os.path.join(input_path, img_name))
-                    # imgage file
-        elif is_img(input_path):
-            input_list.append(input_path)
-        # imgage list saved in file
+        if img_num == self.batch_size:
+            input_img = np.stack(preprocessed_img_list)
         else:
-            with open(input_path, 'r', encoding='utf-8') as fin:
-                for line in fin.readlines():
-                    line_head = line.strip("\n").split(' ')[0]
-                    if is_img(line_head):
-                        input_list.append(line_head)
+            input_img = np.zeros(self.input_shape, dtype='float32')
+            input_img[:img_num] = np.stack(preprocessed_img_list)
+            
+        start_time = time.time()
+        outputs = self.predict(input_img, img_num)
+        self.inference_time += time.time() - start_time
+        
+        start_time = time.time()
+        results = self.postprocess(outputs, ori_size_list, ratio_list, txy_list)
+        self.postprocess_time += time.time() - start_time
 
-        img_num = len(input_list)
+        return results
+    
+def main(args):
+    # check params
+    if not os.path.exists(args.input):
+        raise FileNotFoundError('{} is not existed.'.format(args.input))
+    if not os.path.exists(args.bmodel):
+        raise FileNotFoundError('{} is not existed.'.format(args.bmodel))
+    
+    # creat save path
+    output_dir = "./results"
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    output_img_dir = os.path.join(output_dir, 'images')
+    if not os.path.exists(output_img_dir):
+        os.mkdir(output_img_dir) 
+    
+    # initialize net
+    yolov5 = YOLOv5(args)
+    batch_size = yolov5.batch_size
+    
+    # warm up 
+    for i in range(10):
+        results = yolov5([np.zeros((640, 640, 3))])
+    yolov5.init()
+    
+    decode_time = 0.0
+    # test images
+    if os.path.isdir(args.input): 
+        img_list = []
+        filename_list = []
+        results_list = []
+        cn = 0
+        for root, dirs, filenames in os.walk(args.input):
+            for filename in filenames:
+                if os.path.splitext(filename)[-1].lower() not in ['.jpg','.png','.jpeg','.bmp','.webp']:
+                    continue
+                img_file = os.path.join(root, filename)
+                cn += 1
+                logging.info("{}, img_file: {}".format(cn, img_file))
+                # decode
+                start_time = time.time()
+                src_img = cv2.imdecode(np.fromfile(img_file, dtype=np.uint8), -1)
+                if src_img is None:
+                    logging.error("{} imdecode is None.".format(img_file))
+                    continue
+                if len(src_img.shape) != 3:
+                    src_img = cv2.cvtColor(src_img, cv2.COLOR_GRAY2BGR)
+                decode_time += time.time() - start_time
+                
+                img_list.append(src_img)
+                filename_list.append(filename)
+                if len(img_list) == batch_size:
+                    # predict
+                    results = yolov5(img_list)
+                    
+                    for i, filename in enumerate(filename_list):
+                        det = results[i]
+                        # save image
+                        res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                        cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
+                        
+                        # save result
+                        res_dict = dict()
+                        res_dict['image_name'] = filename
+                        res_dict['bboxes'] = []
+                        for idx in range(det.shape[0]):
+                            bbox_dict = dict()
+                            x1, y1, x2, y2, score, category_id = det[idx]
+                            bbox_dict['bbox'] = [int(x1), int(y1), int(x2 - x1), int(y2 -y1)]
+                            bbox_dict['category_id'] = int(category_id)
+                            bbox_dict['score'] = float(score)
+                            res_dict['bboxes'].append(bbox_dict)
+                        results_list.append(res_dict)
+                        
+                    img_list.clear()
+                    filename_list.clear()
+                    
+        if len(img_list):
+            results = yolov5(img_list)
+            for i, filename in enumerate(filename_list):
+                det = results[i]
+                res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
+                res_dict = dict()
+                res_dict['image_name'] = filename
+                res_dict['bboxes'] = []
+                for idx in range(det.shape[0]):
+                    bbox_dict = dict()
+                    x1, y1, x2, y2, score, category_id = det[idx]
+                    bbox_dict['bbox'] = [int(x1), int(y1), int(x2 - x1), int(y2 -y1)]
+                    bbox_dict['category_id'] = int(category_id)
+                    bbox_dict['score'] = float(score)
+                    res_dict['bboxes'].append(bbox_dict)
+                results_list.append(res_dict)
+            img_list.clear()
+            filename_list.clear()   
 
-        inp_batch = []
-        images = []
-        for ino in range(img_num):
-            image = decode_image_opencv(input_list[ino])
-            if image is None:
-                print('skip: image data is none: {}'.format(input_list[ino]))
-                continue
-            images.append(image)
-            inp_batch.append(input_list[ino])
+        # save results
+        json_name = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input)[-1] + "_opencv" + "_python_result.json"
+        with open(os.path.join(output_dir, json_name), 'w') as jf:
+            # json.dump(results_list, jf)
+            json.dump(results_list, jf, indent=4, ensure_ascii=False)
+        logging.info("result saved in {}".format(os.path.join(output_dir, json_name)))
+        
+    # test video
+    else:
+        cap = cv2.VideoCapture()
+        if not cap.open(args.input):
+            raise Exception("can not open the video")
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        # print(fps, size)
+        save_video = os.path.join(output_dir, os.path.splitext(os.path.split(args.input)[1])[0] + '.avi')
+        out = cv2.VideoWriter(save_video, fourcc, fps, size)
+        cn = 0
+        frame_list = []
+        while True:
+            start_time = time.time()
+            ret, frame = cap.read()
+            decode_time += time.time() - start_time
+            if not ret or frame is None:
+                break
+            frame_list.append(frame)
+            if len(frame_list) == batch_size:
+                results = yolov5(frame_list)
+                for i, frame in enumerate(frame_list):
+                    det = results[i]
+                    cn += 1
+                    logging.info("{}, det nums: {}".format(cn, det.shape[0]))
+                    res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                    out.write(res_frame)
+                frame_list.clear()
+        if len(frame_list):
+            results = yolov5(frame_list)
+            for i, frame in enumerate(frame_list):
+                det = results[i]
+                cn += 1
+                logging.info("{}, det nums: {}".format(cn, det.shape[0]))
+                res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                out.write(res_frame)
+        cap.release()
+        out.release()
+        logging.info("result saved in {}".format(save_video))
+        
+    # calculate speed  
+    logging.info("------------------ Predict Time Info ----------------------")
+    decode_time = decode_time / cn
+    preprocess_time = yolov5.preprocess_time / cn
+    inference_time = yolov5.inference_time / cn
+    postprocess_time = yolov5.postprocess_time / cn
+    logging.info("decode_time(ms): {:.2f}".format(decode_time * 1000))
+    logging.info("preprocess_time(ms): {:.2f}".format(preprocess_time * 1000))
+    logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
+    logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
+    # average_latency = decode_time + preprocess_time + inference_time + postprocess_time
+    # qps = 1 / average_latency
+    # logging.info("average latency time(ms): {:.2f}, QPS: {:2f}".format(average_latency * 1000, qps))
 
-            if len(images) != batch_size and ino != (img_num - 1):
-                continue
-
-            org_size_list = []
-            for i in range(len(inp_batch)):
-                org_h, org_w = images[i].shape[:2]
-                org_size_list.append((org_w, org_h))
-
-            # batch end-to-end inference
-            preprocessed_img, ratio_list, txy_list = yolov5.preprocess.infer_batch(images)
-
-            cur_bs = len(images)
-            padding_bs = batch_size - cur_bs
-            # padding a batch
-            for i in range(padding_bs):
-                preprocessed_img = np.concatenate([preprocessed_img,
-                                                   preprocessed_img[:1, :, :].copy()],
-                                                  axis=0)
-
-            out_infer = yolov5.predict(preprocessed_img)
-
-            # cancel padding data
-            if padding_bs != 0:
-                out_infer = [e_data[:cur_bs] for e_data in out_infer]
-
-            det_batch = yolov5.postprocess.infer_batch(
-                out_infer,
-                org_size_list,
-                ratio_list,
-                txy_list,
-            )
-
-            for i, (e_img, det) in enumerate(zip(images,
-                                                 det_batch,
-                                                 )):
-                vis_image = draw_numpy(e_img, det[:,:4],
-                                       masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
-                save_basename, _ = os.path.splitext(os.path.basename(opt.model)) 
-                input_name, _ = os.path.splitext(os.path.basename(inp_batch[i])) 
-                save_basename = save_basename + '_opencv_python_result_{}'.format(input_name)
-                save_name = os.path.join(opt.output_dir, save_basename)
-                cv2.imencode('.jpg', vis_image)[1].tofile('{}.jpg'.format(save_name))
-
-            images.clear()
-            inp_batch.clear()
-
-        print('the results is saved: {}'.format(os.path.abspath(opt.output_dir)))
-
-
-def parse_opt():
+def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--model', type=str, default="../data/models/BM1684X/yolov5s_640_coco_v6.1_3output_fp32_1b.bmodel", help='bmodel path')
-    parser.add_argument('--dev_id', type=int, default=0, help='device id')
+    parser.add_argument('--input', type=str, default='../datasets/test', help='path of input')
+    parser.add_argument('--bmodel', type=str, default='../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--conf_thresh', type=float, default=0.5, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.5, help='nms threshold')
-    parser.add_argument('--is_video', default=0, type=int, help="input is video?")
-    parser.add_argument('--input_path', type=str, default="../data/images/zidane.jpg", help='input image path')
-    parser.add_argument('--output_dir', type=str, default="results", help='output image directory')
-    opt = parser.parse_args()
-    return opt
+    args = parser.parse_args()
+    return args
 
 if __name__ == "__main__":
-    opt = parse_opt()
-    main(opt)
+    args = argsparser()
+    main(args)
     print('all done.')

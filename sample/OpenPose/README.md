@@ -72,7 +72,7 @@ chmod -R +x scripts/
 ├── coco128                                   # coco128数据集，用于模型量化
 └── coco                                      
     ├── val2017                               # coco val2017数据集
-    └── person_keypoints_val2017.json         # coco val2017数据集关键点标签，用于计算精度评价指标
+    └── person_keypoints_val2017.json         # coco val2017数据集关键点标签文件，用于计算精度评价指标
 ```
 
 ## 4. 模型编译
@@ -123,7 +123,7 @@ pip3 install pycocotools
 python3 tools/eval_coco.py --label_json datasets/coco/person_keypoints_val2017.json --result_json python/results/pose_coco_fp32_1b.bmodel_val2017_opencv_python_result.json
 ```
 ### 6.2 测试结果
-在coco2017val上测试coco相关模型，测试结果如下：
+在coco2017val数据集上，精度测试结果如下：
 |   测试平台    |      测试程序       |        测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ------------------ | -----------------------  | ------------- | -------- |
 | BM1684 PCIe  | openpose_opencv.py | pose_coco_fp32_1b.bmodel | 0.408         | 0.669    |
@@ -172,7 +172,7 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
-使用各个例程测试`datasets/test`，结果如下：
+在不同的测试平台上，使用不同的例程、模型测试`datasets/test`，性能测试结果如下：
 |    测试平台   |      测试程序       |       测试模型           |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ------------ | ------------------ | ------------------------ | -------- | --------- | --------- | --------- |
 | BM1684 PCIe  | openpose_opencv.py | pose_coco_fp32_1b.bmodel | 4.5      | 2.2       | 128       | 515       |

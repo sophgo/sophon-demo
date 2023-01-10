@@ -9,7 +9,7 @@
 import numpy as np
 import cv2
 # import scipy.special
-from .utils import softmax
+from utils import softmax
 
 class PostProcess:
     def __init__(self, conf_thresh=0.1, nms_thresh=0.5, agnostic=False, multi_label=True, max_det=1000):
@@ -47,7 +47,7 @@ class PostProcess:
         return z
 
 
-    def infer_batch(self, preds_batch, org_size_batch, ratios_batch, txy_batch):
+    def  __call__(self, preds_batch, org_size_batch, ratios_batch, txy_batch):
         """
         post-processing
         :param preds_batch:     list of predictions in a batch
@@ -167,6 +167,7 @@ class pseudo_torch_nms:
                                         agnostic=agnostic,
                                         multi_label=True,
                                         max_det=max_det)
+    
     def non_max_suppression(self,
                             prediction,
                             conf_thres=0.25,
