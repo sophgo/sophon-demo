@@ -110,35 +110,6 @@ COLORS = [
         [245, 255, 0],
     ]
 
-def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None):
-    for idx in range(len(boxes)):
-        x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
-        if classes_ids is not None:
-            color = COLORS[int(classes_ids[idx]) + 1]
-        else:
-            color = (0, 0, 255)
-        cv2.rectangle(image, (x1, y1), (x2, y2), color, thickness=1)
-        if classes_ids is not None and conf_scores is not None:
-            classes_ids = classes_ids.astype(np.int8)
-            cv2.putText(image, COCO_CLASSES[classes_ids[idx] + 1] + ':' + str(round(conf_scores[idx], 2)),
-                        (x1, y1 - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness=1)
-        if masks is not None:
-            mask = masks[:, :, idx]
-            image[mask] = image[mask] * 0.5 + np.array(color) * 0.5
-        print(" class id=", classes_ids[idx], " score = ", conf_scores[idx], "   (x1={},y1={},x2={},y2={})".format(x1, y1, x2, y2))
-    return image
-
-def draw_bmcv(bmcv, image, boxes, masks=None, classes_ids=None, conf_scores=None):
-    for idx in range(len(boxes)):
-        x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
-        if classes_ids is not None:
-            color = np.array(COLORS[int(classes_ids[idx]) + 1]).astype(np.uint8).tolist()
-        else:
-            color = (0, 0, 255)
-        bmcv.rectangle(image, x1, y1, (x2 - x1), (y2 - y1), color, 2)
-        print(" class id=", int(classes_ids[idx]), " score = ", conf_scores[idx], "   (x1={},y1={},w={},h={})".format(x1, y1, x2-x1, y2-y1))
-
 def is_img(file_name):
     """judge the file is available image or not
     Args:

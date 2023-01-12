@@ -14,16 +14,16 @@ import argparse
 import numpy as np
 import sophon.sail as sail
 from postprocess_numpy import PostProcess
-from utils import draw_numpy
+from utils import COLORS, COCO_CLASSES
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 # sail.set_print_flag(1)
 
 class YOLOv5:
     def __init__(self, args):
         # load bmodel
         self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
-        logging.debug("load {} success!".format(args.bmodel))
+        logging.info("load {} success!".format(args.bmodel))
         self.graph_name = self.net.get_graph_names()[0]
         self.input_name = self.net.get_input_names(self.graph_name)[0]
         self.output_names = self.net.get_output_names(self.graph_name)
@@ -81,8 +81,7 @@ class YOLOv5:
         img = np.ascontiguousarray(img / 255.0)
         return img, ratio, (tx1, ty1) 
     
-    def letterbox(self, im, new_shape=(640, 640), color=(114, 114, 114), auto=False, scaleFill=False, scaleup=True,
-                  stride=32):
+    def letterbox(self, im, new_shape=(640, 640), color=(114, 114, 114), auto=False, scaleFill=False, scaleup=True, stride=32):
         # Resize and pad image while meeting stride-multiple constraints
         shape = im.shape[:2]  # current shape [height, width]
         if isinstance(new_shape, int):
@@ -160,7 +159,26 @@ class YOLOv5:
         self.postprocess_time += time.time() - start_time
 
         return results
-    
+
+def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None):
+    for idx in range(len(boxes)):
+        x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
+        if classes_ids is not None:
+            color = COLORS[int(classes_ids[idx]) + 1]
+        else:
+            color = (0, 0, 255)
+        cv2.rectangle(image, (x1, y1), (x2, y2), color, thickness=1)
+        if classes_ids is not None and conf_scores is not None:
+            classes_ids = classes_ids.astype(np.int8)
+            cv2.putText(image, COCO_CLASSES[classes_ids[idx] + 1] + ':' + str(round(conf_scores[idx], 2)),
+                        (x1, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness=1)
+        if masks is not None:
+            mask = masks[:, :, idx]
+            image[mask] = image[mask] * 0.5 + np.array(color) * 0.5
+        logging.debug("class id={}, score={}, (x1={},y1={},x2={},y2={})".format(classes_ids[idx],conf_scores[idx], x1, y1, x2, y2))
+    return image
+   
 def main(args):
     # check params
     if not os.path.exists(args.input):

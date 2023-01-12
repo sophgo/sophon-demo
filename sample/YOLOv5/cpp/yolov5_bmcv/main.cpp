@@ -15,7 +15,6 @@
 #include "opencv2/opencv.hpp"
 #include "ff_decode.hpp"
 #include "yolov5.hpp"
-// #define DEBUG
 using json = nlohmann::json;
 using namespace std;
 
@@ -128,7 +127,9 @@ int main(int argc, char *argv[]){
             batch_imgs[i] = frame;
           }
           for (auto bbox : boxes[i]) {
+#if DEBUG
             cout << "  class id=" << bbox.class_id << ", score = " << bbox.score << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")" << endl;
+#endif
             // draw image
             yolov5.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i]);
 
@@ -174,7 +175,9 @@ int main(int argc, char *argv[]){
           batch_imgs[i] = frame;
         }
         for (auto bbox : boxes[i]) {
+#if DEBUG
           cout << "  class id=" << bbox.class_id << ", score = " << bbox.score << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")" << endl;
+#endif
           yolov5.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i]);
           json bbox_json;
           bbox_json["category_id"] = bbox.class_id;
@@ -240,8 +243,9 @@ int main(int argc, char *argv[]){
             batch_imgs[i] = frame;
           }
           for (auto bbox : boxes[i]) {
-            cout << "  class id=" << bbox.class_id << ", score = " << bbox.score
-              << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")" << endl;
+#if DEBUG
+            cout << "  class id=" << bbox.class_id << ", score = " << bbox.score << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")" << endl;
+#endif
             yolov5.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i], false);
           }
           string img_file = "results/images/" + to_string(id) + ".jpg";
@@ -273,8 +277,9 @@ int main(int argc, char *argv[]){
           batch_imgs[i] = frame;
         }
         for (auto bbox : boxes[i]) {
-          cout << "  class id=" << bbox.class_id << ", score = " << bbox.score
-            << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")" << endl;
+#if DEBUG
+          cout << "  class id=" << bbox.class_id << ", score = " << bbox.score << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")" << endl;
+#endif
           yolov5.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i], false);
         }
         void* jpeg_data = NULL;

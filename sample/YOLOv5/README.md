@@ -201,6 +201,6 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
-2. 性能测试结果具有一定的波动性；
+2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 3. PCIe上的性能由于CPU的不同可能存在较大差异，BM1684 PCIe测试平台使用的CPU为Intel(R) Xeon(R) W-2255 CPU @ 3.70GHz，BM1684X PCIe测试平台使用的CPU为Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz；
 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异。 

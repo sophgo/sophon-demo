@@ -13,11 +13,12 @@
 #include <iostream>
 #include <vector>
 #include "opencv2/opencv.hpp"
-// Define USE_OPENCV for enabling OPENCV related funtions in bm_wrapper.hpp
-#define USE_OPENCV 1
 #include "bmnn_utils.h"
 #include "utils.hpp"
 #include "bm_wrapper.hpp"
+// Define USE_OPENCV for enabling OPENCV related funtions in bm_wrapper.hpp
+#define USE_OPENCV 1
+#define DEBUG 0
 
 struct YoloV5Box {
   int x, y, width, height;

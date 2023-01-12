@@ -10,11 +10,12 @@ import os
 import time
 import json
 import argparse
+import numpy as np
 import sophon.sail as sail
 from postprocess_numpy import PostProcess
-from utils import draw_bmcv
+from utils import COLORS
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 # sail.set_print_flag(1)
 
 class YOLOv5:
@@ -205,6 +206,16 @@ class YOLOv5:
         self.postprocess_time += time.time() - start_time
 
         return results
+
+def draw_bmcv(bmcv, image, boxes, masks=None, classes_ids=None, conf_scores=None):
+    for idx in range(len(boxes)):
+        x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
+        if classes_ids is not None:
+            color = np.array(COLORS[int(classes_ids[idx]) + 1]).astype(np.uint8).tolist()
+        else:
+            color = (0, 0, 255)
+        bmcv.rectangle(image, x1, y1, (x2 - x1), (y2 - y1), color, 2)
+        logging.debug("class id={}, score={}, (x1={},y1={},w={},h={})".format(int(classes_ids[idx]), conf_scores[idx], x1, y1, x2-x1, y2-y1))
 
 def main(opt):
     # check params
