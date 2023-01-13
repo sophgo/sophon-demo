@@ -69,7 +69,7 @@ chmod -R +x scripts/
 ## 4. 模型编译
 ​trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
 
-模型编译前需要安装TPU-NNTC，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。安装好后需在tpu-nntc环境中进入例程目录。
+模型编译前需要安装TPU-NNTC，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。安装好后需在tpu-nntc环境中进入例程目录。
 
 ### 4.1 生成FP32 BModel
 
@@ -110,7 +110,7 @@ pytorch模型的量化方法可参考《TPU-NNTC开发参考手册》的“模�
 # 安装pycocotools，若已安装请跳过
 pip3 install pycocotools
 # 请根据实际情况修改程序路径和json文件路径
-python3 tools/eval_coco.py --label_json datasets/coco/instances_val2017.json --result_json python/results/pose_coco_fp32_1b.bmodel_val2017_opencv_python_result.json
+python3 tools/eval_coco.py --label_json datasets/coco/instances_val2017.json --result_json results/yolov5s_v6.1_3output_fp32_1b.bmodel_val2017_opencv_python_result.json
 ```
 ### 6.2 测试结果
 在coco2017val数据集上，精度测试结果如下：
@@ -160,47 +160,30 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/test`，性能测试结果如下：
-|    测试平台   |     测试程序      |             测试模型                |decode_time|preprocess_time|inference_time|postprocess_time| 
-| ------------ | ---------------- | ----------------------------------- | -------- | --------- | --------- | --------- |
-| BM1684 PCIe  | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 6.5      | 7.5       | 34.5      | 15.0      |
-| BM1684 PCIe  | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 6.0      | 6.0       | 20.0      | 10.0      |
-| BM1684 PCIe  | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 5.5      | 5.5       | 15.8      | 10.3      |
-| BM1684 PCIe  | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 1.5      | 2.2       | 30.5      | 15.8      |
-| BM1684 PCIe  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 1.4      | 1.9       | 18.5      | 14.5      |
-| BM1684 PCIe  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 1.4      | 1.9       | 11.8      | 11.8      |
-| BM1684 PCIe  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 2.6      | 1.9       | 22.7      | 29.0      |
-| BM1684 PCIe  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 2.6      | 1.9       | 11.6      | 29.0      |
-| BM1684 PCIe  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 2.6      | 1.9       | 6.3       | 20.0      |
-| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 22.8     | 28.2      | 33.7      | 114       |
-| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 22.0     | 24.0      | 33.5      | 111       |
-| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 22.0     | 24.5      | 28.5      | 115       |
-| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 1.8      | 3.2       | 28.6      | 111       |
-| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 1.8      | 2.6       | 17.5      | 111       |
-| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 1.7      | 2.4       | 11.4      | 115       |
-| BM1684 SoC   | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.7      | 1.9       | 22.6      | 55.7      |
-| BM1684 SoC   | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 4.7      | 1.9       | 11.5      | 55.9      |
-| BM1684 SoC   | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 4.5      | 1.8       | 6.2       | 55.8      |
-| BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 5.8      | 4.5       | 24.5      | 7.5       |
-| BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 5.6      | 4.5       | 9.0       | 7.5       |
-| BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 5.6      | 4.5       | 9.1       | 9.5       |
-| BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 1.3      | 1.7       | 24.2      | 15.8      |
-| BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 1.0      | 1.4       | 6.1       | 7.6       |
-| BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 1.0      | 1.5       | 5.9       | 9.2       |
-| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 1.8      | 1.0       | 19.8      | 20.5      |
-| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 1.7      | 0.8       | 3.1       | 15.0      |
-| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 1.7      | 0.7       | 2.9       | 15.0      |
-| BM1684X SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 21.8     | 23.5      | 30.4      | 105       |
-| BM1684X SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 21.8     | 23.5      | 25.5      | 104       |
-| BM1684X SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 21.7     | 23.2      | 24.6      | 108       |
-| BM1684X SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 1.6      | 2.4       | 26.8      | 105       |
-| BM1684X SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 1.6      | 1.8       | 9.5       | 105       |
-| BM1684X SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 1.5      | 1.7       | 8.6       | 108       |
-| BM1684X SoC  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.2      | 0.9       | 20.4      | 54.5      |
-| BM1684X SoC  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 4.2      | 0.7       | 3.1       | 54.5      |
-| BM1684X SoC  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 4.1      | 0.7       | 2.9       | 54.3      |
+|    测试平台  |     测试程序      |             测试模型                |decode_time|preprocess_time|inference_time|postprocess_time| 
+| ----------- | ---------------- | ----------------------------------- | -------- | --------- | --------- | --------- |
+| BM1684 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 22.8     | 28.2      | 33.7      | 114       |
+| BM1684 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 22.0     | 24.0      | 33.5      | 111       |
+| BM1684 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 22.0     | 24.5      | 28.5      | 115       |
+| BM1684 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 1.8      | 3.2       | 28.6      | 111       |
+| BM1684 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 1.8      | 2.6       | 17.5      | 111       |
+| BM1684 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 1.7      | 2.4       | 11.4      | 115       |
+| BM1684 SoC  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.7      | 1.9       | 22.6      | 55.7      |
+| BM1684 SoC  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 4.7      | 1.9       | 11.5      | 55.9      |
+| BM1684 SoC  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 4.5      | 1.8       | 6.2       | 55.8      |
+| BM1684X SoC | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 21.8     | 23.5      | 30.4      | 105       |
+| BM1684X SoC | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 21.8     | 23.5      | 25.5      | 104       |
+| BM1684X SoC | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 21.7     | 23.2      | 24.6      | 108       |
+| BM1684X SoC | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 1.6      | 2.4       | 26.8      | 105       |
+| BM1684X SoC | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 1.6      | 1.8       | 9.5       | 105       |
+| BM1684X SoC | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 1.5      | 1.7       | 8.6       | 108       |
+| BM1684X SoC | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.2      | 0.9       | 20.4      | 54.5      |
+| BM1684X SoC | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 4.2      | 0.7       | 3.1       | 54.5      |
+| BM1684X SoC | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 4.1      | 0.7       | 2.9       | 54.3      |
+
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-3. PCIe上的性能由于CPU的不同可能存在较大差异，BM1684 PCIe测试平台使用的CPU为Intel(R) Xeon(R) W-2255 CPU @ 3.70GHz，BM1684X PCIe测试平台使用的CPU为Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz；
+3. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异。 

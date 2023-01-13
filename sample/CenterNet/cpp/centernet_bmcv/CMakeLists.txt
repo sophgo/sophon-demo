@@ -4,10 +4,10 @@ project(centernet_bmcv)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 
 if (NOT DEFINED TARGET_ARCH)
-    set(TARGET_ARCH x86)
+    set(TARGET_ARCH pcie)
 endif()
 
-if (${TARGET_ARCH} STREQUAL "x86")
+if (${TARGET_ARCH} STREQUAL "pcie")
     set(lib_DIR /usr/lib/x84_64-linux-gnu)
     link_directories(${lib_DIR})
     # use ffmpeg

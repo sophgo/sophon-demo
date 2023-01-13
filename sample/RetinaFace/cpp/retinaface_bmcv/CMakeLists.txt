@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 project(retinaface_bmcv C CXX)
 
 if (NOT DEFINED TARGET_ARCH)
-    set(TARGET_ARCH x86)
+    set(TARGET_ARCH pcie)
 endif()
 
-if (${TARGET_ARCH} STREQUAL "x86")
+if (${TARGET_ARCH} STREQUAL "pcie")
     # set(lib_DIR /usr/lib/x84_64-linux-gnu)
     # link_directories(${lib_DIR})
     # use ffmpeg

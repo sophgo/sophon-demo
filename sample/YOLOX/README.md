@@ -31,7 +31,7 @@ YOLOx由旷世研究提出,是基于YOLO系列的改进。
 
 ## 3. 准备模型与数据
 
-Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel。trace的方法和原理可参考[torch.jit.trace参考文档](../docs/torch.jit.trace_Guide.md)。
+Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel。trace的方法和原理可参考[torch.jit.trace参考文档](../../docs/torch.jit.trace_Guide.md)。
 
 同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
@@ -76,7 +76,7 @@ trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如�
 
 您可以使用上一步下载的，位于data/models/torch/yolox_s.pt的pt模型，以及位于/data/image/lmdb的量化数据集，也可以使用自己trace完成的pt模型，和量化数据集。
 
-模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
+模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
 
 ### 4.1 生成FP32 BModel
 
@@ -132,9 +132,9 @@ chmod +x auto_test.sh
 在x86上，auto_test.sh包括了cpp文件夹下c++程序的编译，运行和python文件夹下所有python程序的运行，以及mAP计算脚本的运行。
 在soc上，auto_test.sh包括了cpp文件夹下c++程序的运行和python文件夹下所有python程序的运行，以及mAP计算脚本的运行。
 
-在x86上执行此脚本，首先参见[x86-pcie平台的开发和运行环境搭建](../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)，然后运行此脚本，其中${sail_dir}为上述环境搭建得到的sophon-sail安装路径，通常为/opt/sophon/sophon-sail。
+在x86上执行此脚本，首先参见[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)，然后运行此脚本，其中${sail_dir}为上述环境搭建得到的sophon-sail安装路径，通常为/opt/sophon/sophon-sail。
 
-在soc上执行此脚本，首先需要在x86平台交叉编译出arm程序(参见[交叉编译环境搭建](../docs/Environment_Install_Guide.md#31-交叉编译环境搭建).)，然后把生成的可执行文件移动到cpp文件夹下。之后设置环境变量
+在soc上执行此脚本，首先需要在x86平台交叉编译出arm程序(参见[交叉编译环境搭建](../../docs/Environment_Install_Guide.md#31-交叉编译环境搭建).)，然后把生成的可执行文件移动到cpp文件夹下。之后设置环境变量
 ```bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 ```

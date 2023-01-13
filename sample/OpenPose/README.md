@@ -79,7 +79,7 @@ chmod -R +x scripts/
 
 caffe原始模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
 
-模型编译前需要安装TPU-NNTC，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。安装好后需在tpu-nntc环境中进入例程目录。
+模型编译前需要安装TPU-NNTC，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。安装好后需在tpu-nntc环境中进入例程目录。
 
 ### 4.1 生成FP32 BModel
 
@@ -173,35 +173,23 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/test`，性能测试结果如下：
-|    测试平台   |      测试程序       |       测试模型           |decode_time|preprocess_time|inference_time|postprocess_time| 
-| ------------ | ------------------ | ------------------------ | -------- | --------- | --------- | --------- |
-| BM1684 PCIe  | openpose_opencv.py | pose_coco_fp32_1b.bmodel | 4.5      | 2.2       | 128       | 515       |
-| BM1684 PCIe  | openpose_opencv.py | pose_coco_int8_1b.bmodel | 4.5      | 2.2       | 66        | 515       |
-| BM1684 PCIe  | openpose_opencv.py | pose_coco_int8_4b.bmodel | 4.5      | 2.2       | 19        | 515       |
-| BM1684 PCIe  | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel | 2.1      | 5.4       | 125       | 116       |
-| BM1684 PCIe  | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel | 2.1      | 5.4       | 63.1      | 116       |
-| BM1684 PCIe  | openpose_bmcv.pcie | pose_coco_int8_4b.bmodel | 2.1      | 5.4       | 15.8      | 100       |
-| BM1684 SoC   | openpose_opencv.py | pose_coco_fp32_1b.bmodel | 18.7     | 10.0      | 131       | 5200      |
-| BM1684 SoC   | openpose_opencv.py | pose_coco_int8_1b.bmodel | 18.7     | 10.0      | 75        | 5200      |
-| BM1684 SoC   | openpose_opencv.py | pose_coco_int8_4b.bmodel | 19.2     | 10.5      | 26.7      | 5200      |
-| BM1684 SoC   | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel | 4.2      | 5.4       | 125       | 527       |
-| BM1684 SoC   | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel | 4.2      | 5.4       | 63        | 527       |
-| BM1684 SoC   | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel | 4.0      | 5.4       | 15.8      | 527       |
-| BM1684X PCIe | openpose_opencv.py | pose_coco_fp32_1b.bmodel | 4.7      | 0.8       | 258       | 470       |
-| BM1684X PCIe | openpose_opencv.py | pose_coco_int8_1b.bmodel | 4.7      | 0.8       | 11.1      | 470       |
-| BM1684X PCIe | openpose_opencv.py | pose_coco_int8_4b.bmodel | 5.1      | 0.9       | 11.0      | 470       |
-| BM1684X PCIe | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel | 1.6      | 1.0       | 256       | 110       |
-| BM1684X PCIe | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel | 1.5      | 0.9       | 9.1       | 90        |
-| BM1684X PCIe | openpose_bmcv.pcie | pose_coco_int8_4b.bmodel | 1.5      | 0.8       | 8.9       | 90        |
-| BM1684X SoC  | openpose_opencv.py | pose_coco_fp32_1b.bmodel | 18.5     | 9.4       | 261       | 5270      |
-| BM1684X SoC  | openpose_opencv.py | pose_coco_int8_1b.bmodel | 18.5     | 9.4       | 20.8      | 5270      |
-| BM1684X SoC  | openpose_opencv.py | pose_coco_int8_4b.bmodel | 19.1     | 9.9       | 20.0      | 5270      |
-| BM1684X SoC  | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel | 3.6      | 0.9       | 256       | 514       |
-| BM1684X SoC  | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel | 3.6      | 0.8       | 9.0       | 512       |
-| BM1684X SoC  | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel | 3.4      | 0.8       | 8.9       | 512       |
+|    测试平台  |      测试程序       |       测试模型           |decode_time|preprocess_time|inference_time|postprocess_time| 
+| ----------- | ------------------ | ------------------------ | -------- | --------- | --------- | --------- |
+| BM1684 SoC  | openpose_opencv.py | pose_coco_fp32_1b.bmodel | 18.7     | 10.0      | 131       | 5200      |
+| BM1684 SoC  | openpose_opencv.py | pose_coco_int8_1b.bmodel | 18.7     | 10.0      | 75        | 5200      |
+| BM1684 SoC  | openpose_opencv.py | pose_coco_int8_4b.bmodel | 19.2     | 10.5      | 26.7      | 5200      |
+| BM1684 SoC  | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel | 4.2      | 5.4       | 125       | 527       |
+| BM1684 SoC  | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel | 4.2      | 5.4       | 63        | 527       |
+| BM1684 SoC  | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel | 4.0      | 5.4       | 15.8      | 527       |
+| BM1684X SoC | openpose_opencv.py | pose_coco_fp32_1b.bmodel | 18.5     | 9.4       | 261       | 5270      |
+| BM1684X SoC | openpose_opencv.py | pose_coco_int8_1b.bmodel | 18.5     | 9.4       | 20.8      | 5270      |
+| BM1684X SoC | openpose_opencv.py | pose_coco_int8_4b.bmodel | 19.1     | 9.9       | 20.0      | 5270      |
+| BM1684X SoC | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel | 3.6      | 0.9       | 256       | 514       |
+| BM1684X SoC | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel | 3.6      | 0.8       | 9.0       | 512       |
+| BM1684X SoC | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel | 3.4      | 0.8       | 8.9       | 512       |
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-3. PCIe上的性能由于CPU的不同可能存在较大差异，BM1684 PCIe测试平台使用的CPU为Intel(R) Xeon(R) W-2255 CPU @ 3.70GHz，BM1684X PCIe测试平台使用的CPU为Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz；
+3. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异。
