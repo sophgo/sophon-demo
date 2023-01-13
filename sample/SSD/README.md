@@ -53,7 +53,7 @@ pascal_test2007.json: VOC2007测试集的ground truth
 
 ## 4. 模型编译
 
-模型编译前需要安装tpu-nntc，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
+模型编译前需要安装tpu-nntc，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
 
 ### 4.1 生成FP32 BModel
 

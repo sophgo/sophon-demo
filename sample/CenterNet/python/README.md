@@ -27,6 +27,12 @@
 
 软件环境：libsophon、sophon-mw、sophon-sail，可以通过[算能官网](https://developer.sophgo.com/site/index/material/21/all.html)下载安装对应版本
 
+安装python opencv
+
+```bash
+pip3 install opencv-python-headless==4.3.0.36
+```
+
 > 运行之前需要访问sophon-sail github仓库编译安装sail包
 
 Python代码无需编译，无论是x86 SC平台还是arm SE5平台配置好环境之后就可直接运行。
@@ -83,12 +89,6 @@ python3 centernet_bmcv.py --bmodel=../data/models/BM1684/centernet_int8_4b.bmode
  例如：在BM1684设备上运行fp32_1batch的模型，需拷贝`sophon-demo/sample/CenterNet/data/models/BM1684/centernet_fp32_1b.bmodel`, 在BM1684X设备上运行int8_4batch的模型，需拷贝`sophon-demo/sample/CenterNet/data/models/BM1684X/centernet_int8_4b.bmodel`,
 
 > 将python整个文件夹拷贝到SE5中，和bmodel和jpg文件同一目录下
-
-安装python opencv
-
-```bash
-pip3 install opencv-python opencv-python-headless
-```
 
 ```bash
 # 测试图片目标检测,SoC mode,SoC环境下运行

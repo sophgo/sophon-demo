@@ -81,11 +81,12 @@ return torch.cat((ret['hm'], ret['wh'], ret['reg']), 1)
 
 ## 4. 模型编译与量化
 
-建议模型转换的过程在tpu-nntc提供的x86下的docker开发环境中完成。模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
+建议模型转换的过程在tpu-nntc提供的x86下的docker开发环境中完成。模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
 
 #### JIT模型生成
 进入docker以后直接运行export.py即可
 ```bash
+pip3 install torch torchvision
 cd ../tools
 python3 export.py
 ```

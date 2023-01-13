@@ -81,7 +81,7 @@ usage: centernet_bmcv.pcie [params]
 
 # 4batch
 ./centernet_bmcv.pcie --bmodel=../../data/models/BM1684/centernet_int8_4b.bmodel --image=../../data/ctdet_test.jpg
-# 执行完毕后，在./results生成centernet_result_20xx-xx-xx-xx-xx-xx_bx.jpg格式的图片
+# 执行完毕后，在./results生成centernet_result_20xx-xx-xx-xx-xx-xx-bx.jpg格式的图片
 # 按照量化结果差异，图片上检测出11-13个目标，均属正常范围
 ```
 
@@ -95,7 +95,7 @@ usage: centernet_bmcv.pcie [params]
 
 编译工具链：aarch64-linux-gnu
 
-以上环境与编译器的配置与安装，请参考[环境配置指南](../../docs/Environment_Install_Guide.md#3-SoC平台的开发和运行环境搭建)进行。
+以上环境与编译器的配置与安装，请参考[环境配置指南](../../docs/Environment_Install_Guide.md)进行。
 > 请注意，在进行交叉编译时使用的sail需要按照sophon-sail仓库中的指导编译为arm兼容的格式
 
 #### 2.2.2 程序编译
@@ -144,8 +144,8 @@ mkdir results
 # 图片上检测出11个目标
 
 # 4batch
-./centernet_bmcv.arm --bmodel=./centernet_int8_4b.bmodel --image=./ctdet_test.jpg
-# 执行完毕后，在./results生成centernet_result_20xx-xx-xx-xx-xx-xx_bx.jpg格式的图片
+./centernet_bmcv.arm --bmodel=./centernet_fp32_1b.bmodel --image=./ctdet_test.jpg
+# 执行完毕后，在./results生成centernet_result_20xx-xx-xx-xx-xx-xx-bx.jpg格式的图片
 # 按照量化结果差异，图片上检测出11-13个目标，均属正常范围
 ```
 若在SoC执行报错找不到libsail.so，请设置如下环境变量
