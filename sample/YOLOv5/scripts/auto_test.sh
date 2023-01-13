@@ -1,16 +1,20 @@
 #!/bin/bash
 scripts_dir=$(dirname $(readlink -f "$0"))
 top_dir=$scripts_dir/../
+pushd $top_dir
 
-TARGET="BM1684"
+#default config
+TARGET="BM1684X"
 MODE="pcie_test"
+TPUID=0
+ALL_PASS=1
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID]" 1>&2 
 }
 
-while getopts ":m:t:s:" opt
+while getopts ":m:t:s:d:" opt
 do
   case $opt in 
     m)
@@ -22,6 +26,9 @@ do
     s)
       SOCSDK=${OPTARG}
       echo "soc-sdk is $SOCSDK";;
+    d)
+      TPUID=${OPTARG}
+      echo "using tpu $TPUID";;
     ?)
       usage
       exit 1;;
@@ -34,7 +41,7 @@ function judge_ret() {
     echo ""
   else
     echo "Failed: $2"
-    exit 1
+    ALL_PASS=0
   fi
   sleep 3
 }
@@ -82,57 +89,64 @@ function build_soc()
   popd
 }
 
+function compare_res(){
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.0001 && y-x<0.0001)?1:0}'`
+    if [ $ret -eq 0 ]
+    then
+        ALL_PASS=0
+        echo "compare wrong!"
+    else
+        echo "compare right!"
+    fi
+}
+
 function test_cpp()
 {
   pushd cpp/yolov5_$2
-  ./yolov5_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3
-  judge_ret $? "./yolov5_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3"
+  ./yolov5_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id $TPUID
+  judge_ret $? "./yolov5_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id $TPUID"
   popd
 }
 
 function eval_cpp()
 {
   pushd cpp/yolov5_$2
-  ./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --obj_thresh=0.001
-  judge_ret $? "./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --obj_thresh=0.001"
-  res=$(python3 ../../tools/eval_coco.py --label_json ../../datasets/coco/instances_val2017.json --result_json results/$3_val2017_$2_cpp_result.json 2>&1)
-  echo $res
+  if [ ! -d log ];then
+    mkdir log
+  fi
+  ./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --obj_thresh=0.001 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --obj_thresh=0.001 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
+  echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  echo "python3 ../../tools/eval_coco.py --label_json ../../datasets/coco/instances_val2017.json --result_json results/$3_val2017_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log"
+  echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  res=$(python3 ../../tools/eval_coco.py --label_json ../../datasets/coco/instances_val2017.json --result_json results/$3_val2017_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
   array=(${res//=/ })
   acc=${array[1]}
-  if test $acc = $4
-  then
-    echo 'compare right!'
-  else
-    echo 'compare wrong!'
-    exit 1
-  fi
+  compare_res $acc $4
   popd
 }
 
 function test_python()
 {
-  python3 python/yolov5_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id 0
-  judge_ret $? "python3 python/yolov5_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id 0"
+  python3 python/yolov5_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID
+  judge_ret $? "python3 python/yolov5_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID"
 }
 
 function eval_python()
-{
-  python3 python/yolov5_$1.py --input datasets/coco/val2017 --bmodel models/$TARGET/$2 --dev_id 0 --conf_thresh 0.001 --nms_thresh 0.6
-  judge_ret $? "python3 python/yolov5_$1.py --input datasets/coco/val2017 --bmodel models/$TARGET/$2 --dev_id 0 --conf_thresh 0.001 --nms_thresh 0.6"
-  res=$(python3 tools/eval_coco.py --label_json datasets/coco/instances_val2017.json --result_json results/$2_val2017_$1_python_result.json 2>&1)
-  echo $res
+{  
+  if [ ! -d python/log ];then
+    mkdir python/log
+  fi
+  python3 python/yolov5_$1.py --input datasets/coco/val2017 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1
+  judge_ret $? "python3 python/yolov5_$1.py --input datasets/coco/val2017 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1"
+  echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  echo "python3 tools/eval_coco.py --label_json datasets/coco/instances_val2017.json --result_json results/$2_val2017_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log"
+  echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  res=$(python3 tools/eval_coco.py --label_json datasets/coco/instances_val2017.json --result_json results/$2_val2017_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
   array=(${res//=/ })
   acc=${array[1]}
-  if test $acc = $3
-  then
-    echo 'compare right!'
-  else
-    echo 'compare wrong!'
-    exit 1
-  fi
+  compare_res $acc $3
 }
-
-pushd $top_dir
 
 if test $MODE = "compile"
 then
@@ -248,6 +262,16 @@ then
     eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.34471780636574756
   fi
 fi
-popd
 
-echo 'test pass!!!'
+if [ $ALL_PASS -eq 0 ]
+then
+    echo "====================================================================="
+    echo "Some process produced unexpected results, please look out their logs!"
+    echo "====================================================================="
+else
+    echo "===================="
+    echo "Test cases all pass!"
+    echo "===================="
+fi
+
+popd

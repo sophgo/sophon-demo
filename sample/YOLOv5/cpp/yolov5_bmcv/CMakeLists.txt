@@ -5,10 +5,10 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 message("cur dir: ${PROJECT_SOURCE_DIR}")
 
 if (NOT DEFINED TARGET_ARCH)
-    set(TARGET_ARCH x86)
+    set(TARGET_ARCH pcie)
 endif()
 
-if (${TARGET_ARCH} STREQUAL "x86")
+if (${TARGET_ARCH} STREQUAL "pcie")
     message( "${TARGET_ARCH} mode, starting......")
     # set(lib_DIR /usr/lib/x84_64-linux-gnu)
     # link_directories(${lib_DIR})
