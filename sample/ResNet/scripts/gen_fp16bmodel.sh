@@ -5,11 +5,7 @@ export BMCOMPILER_LAYER_DTYPE_MODE=auto
 export GLOG_v=4
 export BMCOMPILER_STAT_ERR=1
 
-if [ ! $1 ]; then
-    target="BM1684X"
-else
-    target=$1
-fi
+target="BM1684X"
 
 outdir=../data/models/$target
 

@@ -180,10 +180,10 @@ int main(int argc, char **argv)
     if (access("results", 0) != F_OK)
         mkdir("results", S_IRWXU);
     size_t index = input_url.rfind("/");
-    string dataset_name = input_url.substr(index + 1);
+    string dataset_name = input_rl.substr(index + 1);
     index = bmodel_file.rfind("/");
     string model_name = bmodel_file.substr(index + 1);
-    string json_file = "results/" + model_name + "_" + dataset_name + "_bmcv_cpp" + "_result.txt";
+    string json_file = "../../../results/" + model_name + "_" + dataset_name + "_bmcv_cpp" + "_result.txt";
     cout << "================" << endl;
     cout << "result saved in " << json_file << endl;
     ofstream desFile(json_file, ios::out);

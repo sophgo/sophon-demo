@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
     string dataset_name = input_url.substr(index + 1);
     index = bmodel_file.rfind("/");
     string model_name = bmodel_file.substr(index + 1);
-    string result_file = "results/" + model_name + "_" + dataset_name + "_opencv_cpp" + "_result.txt";
+    string result_file = "../../../results/" + model_name + "_" + dataset_name + "_opencv_cpp" + "_result.txt";
     cout << "================" << endl;
     cout << "result saved in " << result_file << endl;
     ofstream desFile(result_file, ios::out);

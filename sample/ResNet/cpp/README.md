@@ -94,7 +94,7 @@ make # 生成resnet_opencv.soc
 本例程在`tools`目录下提供了`eval.py`脚本，可以将预测结果文件与测试集标签文件进行对比，计算出分类准确率。具体的测试命令如下：
 ```bash
 # 请根据实际情况修改文件路径
-python3 tools/eval.py --gt_path data/images/imagenet_val_1k/label.txt --pred_path cpp/resnet_opencv/build/results/resnet_fp32_b1.bmodel_img_opencv_cpp_result.txt
+python3 eval.py --gt_path ../data/images/imagenet_val_1k/label.txt --pred_path ../results --data_type 'fp32' --batch_size 1 --img_module 'opencv' --lan 'cpp'
 ```
 执行完成后，会打印出分类的准确率：
 ```bash

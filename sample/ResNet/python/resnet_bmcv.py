@@ -144,7 +144,7 @@ def main(args):
     resnet = Resnet(args)
     batch_size = resnet.batch_size
 
-    output_dir = "./results"
+    output_dir = "./../results"
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     

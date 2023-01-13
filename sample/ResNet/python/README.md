@@ -15,19 +15,21 @@ python目录下提供了一系列Python例程，具体情况如下：
 resnet_opencv.py和resnet_bmcv.py的命令参数相同，以resnet_opencv.py的推理为例，参数说明如下：
 
 ```bash
-usage:resnet_opencv.py [--input_path IMG_PATH] [--bmodel BMODEL] [--tpu_id TPU]
+usage:resnet_opencv.py [--input_path IMG_PATH] [--bmodel BMODEL] [--tpu_id TPU] [--data_type DATA_TYPE] [--batch_size BATCH_SIZE]
 --input_path:推理图片路径，可输入整个图片文件夹的路径；
---bmodel:用于推理的bmodel路径，默认使用stage 0的网络进行推理；
+--bmodel:用于推理的bmodel所在文件夹的路径；
 --tpu_id:用于推理的tpu设备id。
+--data_type:bmodel的数据类型。
+--batch_size:模型的batch大小。
 ```
 
 测试实例如下：
 ```bash
 # 测试整个文件夹
-python3 resnet_opencv.py --input_path ../data/images/imagenet_val_1k/img --bmodel ../data/models/BM1684X/resnet_fp32_b1.bmodel --tpu_id 0
+python3 resnet_opencv.py --input_path ../data/images/imagenet_val_1k/img --bmodel ../data/models/BM1684X --tpu_id 0 --data_type fp32 --batch_size 1
 ```
 
-执行完成后，会将预测结果保存在`results/resnet_fp32_b1.bmodel_img_opencv_python_result.txt`下，同时会打印预测结果、推理时间等信息。
+执行完成后，会将预测结果保存在`../results/resnet_fp32_b1.bmodel_img_opencv_python_result.txt`下，同时会打印预测结果、推理时间等信息。
 
 ```bash
 ......
@@ -67,7 +69,7 @@ pip3 install -r requirements.txt
 本例程在`tools`目录下提供了`eval.py`脚本，可以将预测结果文件与测试集标签文件进行对比，计算出分类准确率。具体的测试命令如下：
 ```bash
 # 请根据实际情况修改文件路径
-python3 tools/eval.py --gt_path data/images/imagenet_val_1k/label.txt --pred_path python/results/resnet_fp32_b1.bmodel_img_opencv_python_result.txt
+python3 eval.py --gt_path ../data/images/imagenet_val_1k/label.txt --pred_path ../results --data_type 'fp32' --batch_size 1 --img_module 'opencv' --lan 'python'
 ```
 执行完成后，会打印出分类的准确率：
 ```bash

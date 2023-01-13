@@ -9,7 +9,8 @@
   - [3. 准备模型与数据](#3-准备模型与数据)
   - [4. 模型编译](#4-模型编译)
     - [4.1 生成FP32 BModel](#41-生成fp32-bmodel)
-    - [4.2 生成INT8 BModel](#42-生成int8-bmodel)
+    - [4.2 生成FP16 BModel](#42-生成fp16-bmodel)
+    - [4.3 生成INT8 BModel](#43-生成int8-bmodel)
   - [5. 例程测试](#5-例程测试)
     
 
@@ -99,8 +100,20 @@ pytorch模型编译为FP32 BModel，具体方法可参考[BMNETP 使用](https:/
 
 执行上述命令会在`data/models/BM1684X/`下生成`resnet_fp32_b1.bmodel、resnet_fp32_b4.bmodel`文件，即转换好的FP32 BModel。
 
+### 4.2 生成FP16 BModel
 
-### 4.2 生成INT8 BModel
+pytorch模型编译为FP16 BModel，与编译FP32 BModel的命令和参数是一致的，只是需要预先设定环境变量。
+
+本例程在`scripts`目录下提供了编译FP16 BModel的脚本。请注意修改`gen_fp16bmodel.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数。注意生成FP16 BModel目前仅支持BM1684X：
+
+```bash
+./scripts/gen_fp32bmodel.sh
+```
+
+执行上述命令会在`data/models/BM1684X/`下生成`resnet_fp16_b1.bmodel、resnet_fp16_b4.bmodel`文件，即转换好的FP16 BModel。可以对比下FP32 BModel的文件大小，FP16 BModel大约是FP32 BModel文件大小的一半。
+
+
+### 4.3 生成INT8 BModel
 
 不量化模型可跳过本节。
 

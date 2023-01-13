@@ -7,6 +7,7 @@ scripts_dir=$(dirname $(readlink -f "$0"))
 pushd $scripts_dir
 
 mkdir -p ../data/images
+mkdir -p ../results
 
 # test dataset
 # imagenet验证集随机抽取1000张
