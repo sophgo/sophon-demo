@@ -32,7 +32,7 @@ pip3 install -r python/requirements.txt
 ```
 
 ## 2. 推理测试
-python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的，下面主要以PCIe模式进行介绍。
+python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
 ### 2.1 参数说明
 openpose_opencv.py的参数说明如下：
 ```bash

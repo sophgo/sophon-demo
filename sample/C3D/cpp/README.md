@@ -6,11 +6,11 @@ cpp目录下提供了一系列C++例程以供参考使用，具体情况如下�
 | 1    | c3d_opencv | 使用OpenCV解码、OpenCV前处理、BMRT推理 |
 
 
-## 1. x86 PCIe 平台
+## 1. x86/arm PCIe 平台
 
 ### 1.1 环境准备
 
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4),具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)。
+如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4),具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#4-arm-pcie平台的开发和运行环境搭建)。
 
 ### 1.2 程序编译
 C++程序需要编译可执行文件，以编译c3d_opencv程序为例：
@@ -88,25 +88,34 @@ SUMMARY: C3D detect
 ```
 
 
-在BM1684X PCIE上，不同例程、不同模型的精度和性能测试结果如下：
+在BM1684X上，不同例程、不同模型的精度和性能测试结果如下：
 
 |   例程      | 精度 |batch_size|  acc  |infer_time|
 |   -------- | ---- | ------- | ----- |-----    |
-| c3d_opencv   | fp32 |   1    | 71.54% |75.6ms   |
-| c3d_opencv   | fp32 |   4    | 71.54% |281.4ms |
-| c3d_opencv   | int8 |   1    | 71.54% |10.1ms   |
-| c3d_opencv   | int8 |   4    | 71.54% |28.0ms |
+| c3d_opencv.pcie  | fp32 |   1    | 71.54% |75.6ms   |
+| c3d_opencv.pcie   | fp32 |   4    | 71.54% |281.4ms |
+| c3d_opencv.pcie   | int8 |   1    | 71.54% |10.1ms   |
+| c3d_opencv.pcie   | int8 |   4    | 71.54% |28.0ms |
+| c3d_opencv.soc  | fp32 |   1    | 71.54% |75.5ms   |
+| c3d_opencv.soc   | fp32 |   4    | 71.54% |281.3ms |
+| c3d_opencv.soc   | int8 |   1    | 71.54% |10.2ms   |
+| c3d_opencv.soc   | int8 |   4    | 71.54% |28.0ms |
 
-在BM1684 PCIE上，不同例程、不同模型的精度和性能测试结果如下：
+在BM1684上，不同例程、不同模型的精度和性能测试结果如下：
 
 |   例程      | 精度 |batch_size|  acc  |infer_time|
 |   -------- | ---- | ------- | ----- |-----    |
-| c3d_opencv   | fp32 |   1    | 71.54% | 55.4ms   |
-| c3d_opencv   | fp32 |   4    | 71.54% | 186.7ms |
-| c3d_opencv   | int8 |   1    | 69.10% | 42.8ms   |
-| c3d_opencv   | int8 |   4    | 69.10% | 69.2ms |
+| c3d_opencv.pcie   | fp32 |   1    | 71.54% | 55.4ms   |
+| c3d_opencv.pcie   | fp32 |   4    | 71.54% | 186.7ms |
+| c3d_opencv.pcie   | int8 |   1    | 69.10% | 42.8ms   |
+| c3d_opencv.pcie   | int8 |   4    | 69.10% | 69.2ms |
+| c3d_opencv.soc  | fp32 |   1    | 71.54% |55.3ms   |
+| c3d_opencv.soc   | fp32 |   4    | 71.54% |186.5ms |
+| c3d_opencv.soc   | int8 |   1    | 69.48% |42.7ms   |
+| c3d_opencv.soc   | int8 |   4    | 69.48% |69.0ms |
 
 **注:**
 
 1.相同版本驱动下，同一例程、同一模型在soc与pcie上的infer_time误差不超过20%。
+
 2.由于视频解码差异，同一例程、同一模型在soc与pcie上的acc可能会有误差，一般不超过1%。

@@ -88,9 +88,28 @@ pytorch模型的量化方法可参考TPU-NNTC开发参考手册(请从[算能官
 * [python例程](python/README.md)
 
 **自动化测试：**
-确保环境依赖安装完毕，可以使用自动测试脚本进行C++和python例程自动化测试，请注意在执行时指定BModel运行的目标平台（支持BM1684和BM1684X）和TPU的id，**该脚本仅限pcie环境，soc环境需自行修改脚本内命令。** 例如：
+确保环境依赖安装完毕，可以使用自动测试脚本进行C++和python例程自动化测试，请注意在执行时指定BModel运行的目标平台（支持BM1684和BM1684X）和TPU的id， 例如：
 ```
-./scripts/auto_test.sh BM1684X 0
+./scripts/auto_test.sh -m pcie_test -t BM1684X -d 0
+```
+脚本参数如下：
+```bash
+Usage: [ -m MODE compile|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID]
+```
+参数解释如下：
+```bash
+#MODE:
+compile: 编译模型，若指定该参数则需在tpu-nntc的docker环境下运行脚本。
+pcie_test: pcie平台的全流程测试，在主机环境下进行。
+soc_build: 编译soc可执行程序，在主机环境下进行。
+soc_test: soc平台的全流程测试，需将c3d_opencv.soc可执行文件复制到对应的cpp/c3d_opencv/build目录下。
+#TARGET
+BM1684: 指定运行芯片型号为BM1684。
+BM1684X: 指定运行芯片型号为BM1684X。
+#SOCSDK
+指定交叉编译的soc-sdk的绝对路径.
+#TPUID
+指定TPU的id。
 ```
 
 执行完毕后，会在cpp/c3d_opencv/build/和python/下生成fp32_1b.log、fp32_4b.log日志文件，可以查看其中的结果信息。
