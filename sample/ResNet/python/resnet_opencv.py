@@ -100,6 +100,10 @@ class Resnet(object):
         return self.dt
 
 def main(args):
+    assert (args.data_type in ('fp32', 'fp16', 'int8')), "Data type must be fp32, fp16 or int8!"
+    assert (args.batch_size in (1, 4)), "Batch size must be 1 or 4!"
+    args.bmodel = args.bmodel + f'/resnet_{args.data_type}_b{args.batch_size}.bmodel'
+    
     resnet = Resnet(args)
     batch_size = resnet.batch_size
 
@@ -164,8 +168,10 @@ def main(args):
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--input_path', type=str, default='../data/images/imagenet_val_1k/img', help='path of input, must be image directory')
-    parser.add_argument('--bmodel', type=str, default='../data/models/BM1684X/resnet_fp32_b1.bmodel', help='path of bmodel')
+    parser.add_argument('--bmodel', type=str, default='../data/models/BM1684X', help='path of bmodel folder')
     parser.add_argument('--tpu_id', type=int, default=0, help='tpu id')
+    parser.add_argument('--data_type', type=str, default='fp32', help='data type of the model, choose from fp32, fp16 and int8')
+    parser.add_argument('--batch_size', type=int, default=1, help='batch size of the model, choose from 1 and 4')
     args = parser.parse_args()
     return args
 
