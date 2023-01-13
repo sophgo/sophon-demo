@@ -16,8 +16,8 @@ tar -xf imagenet_val_1k.tar -C ../data/images/
 rm imagenet_val_1k.tar
 
 # models
-# 包含原始pytorch模型、traced pytorch模型、fp32bmodel和int8bmodel
-python3 -m dfn --url http://219.142.246.77:65000/sharing/kcI1V2G2f
+# 包含原始pytorch模型、traced pytorch模型、fp32bmodel、fp16bmodel和int8bmodel
+python3 -m dfn --url http://disk-sophgo-vip.quickconnect.cn/sharing/jCykTMC8q
 tar -xf models.tar -C ../data/
 rm models.tar
 
