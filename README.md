@@ -16,7 +16,7 @@ Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移
 | [PP-OCR](./sample/PP-OCR/README.md) | OCR | Python | FP32 | YES | OpenCV |
 | [YOLOv34](./sample/YOLOv34/README.md) | 目标检测 | C++/Python | FP32/INT8 | NO | BMCV/OpenCV |
 | [YOLOX](./sample/YOLOX/README.md) | 目标检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
-| [SSD](./sample/SSD/README.md) | 目标检测 | C++/Python | FP32/INT8 | NO | BMCV/OpenCV |
+| [SSD](./sample/SSD/README.md) | 目标检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
 | [CenterNet](./sample/CenterNet/README.md) | 目标检测、姿态识别 | C++/Python | FP32/INT8 | YES | BMCV |
 
 ## 版本说明

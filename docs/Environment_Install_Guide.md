@@ -136,6 +136,7 @@ source /etc/profile
     pip3 install ./dist/sophon-master-py3-none-any.whl --force-reinstall 
     ```
 
+
 ## 3 SoC平台的开发和运行环境搭建
 对于SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下，可直接用于运行环境。通常在x86主机上交叉编译程序，使之能够在SoC平台运行。
 
@@ -251,3 +252,98 @@ source /etc/profile
     # 需根据实际生成的whell包修改其文件名
     pip3 install sophon_arm-master_-py3-none-any.whl --force-reinstall 
     ```
+
+## 4 arm PCIe平台的开发和运行环境搭建
+如果您在arm平台安装了PCIe加速卡，开发环境与运行环境可以是统一的，您可以直接在宿主机上搭建开发和运行环境。
+这里提供银河麒麟v10机器的环境安装方法，其他类型机器具体请参考官网开发手册。
+### 4.1 安装libsophon
+从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载libsophon安装包，
+安装包由一个文件构成，其中“$arch”为当前机器的硬件架构，使用以下命令可以获取当前服务器的arch：
+```
+uname -m
+```
+通常x86_64机器对应的硬件架构为x86_64，arm64机器对应的硬件架构为aarch64：
+```
+libsophon_0.4.4_$arch.tar.gz
+```
+可以通过如下步骤安装：
+
+**注意：如果有旧版本，先参考下面的卸载方式步骤卸载旧版本。**
+```
+tar -xzvf libsophon_0.4.4_aarch64.tar.gz
+sudo cp -r libsophon_0.4.4_aarch64/* /
+sudo ln -s /opt/sophon/libsophon-0.4.4 /opt/sophon/libsophon-current
+```
+接下来请先按照您所使用Linux发行版的要求搭建驱动编译环境，然后做如下操作：
+```
+sudo ln -s /opt/sophon/driver-0.4.4/$bin /lib/firmware/bm1684x_firmware.bin
+sudo ln -s /opt/sophon/driver-0.4.4/$bin /lib/firmware/bm1684_ddr_firmware.bin
+sudo ln -s /opt/sophon/driver-0.4.4/$bin /lib/firmware/bm1684_tcm_firmware.bin
+cd /opt/sophon/driver-0.4.4
+```
+此处“$bin”是带有版本号的bin文件全名, 对于bm1684x板卡，如bm1684x.bin_v3.1.0-9734c1da-220802, 对于bm1684板卡，如bm1684_ddr.bin_v3.1.1-63a8614d-220906和bm1684_tcm.bin_v3.1.1-63a8614d-220906。
+
+之后就可以编译驱动了（这里不依赖于dkms）：
+```
+sudo make SOC_MODE=0 PLATFORM=asic SYNC_API_INT_MODE=1 \
+          TARGET_PROJECT=sg_pcie_device FW_SIMPLE=0 \
+          PCIE_MODE_ENABLE_CPU=1
+sudo cp ./bmsophon.ko /lib/modules/$(uname -r)/kernel/
+sudo depmod
+sudo modprobe bmsophon
+```
+最后是一些配置工作：
+
+添加库和可执行文件路径：
+```
+sudo cp /opt/sophon/libsophon-current/data/libsophon.conf /etc/ld.so.conf.d/
+sudo ldconfig
+sudo cp /opt/sophon/libsophon-current/data/libsophon-bin-path.sh /etc/profile.d/
+```
+在终端执行如下命令，或者登出再登入当前用户后即可使用bm-smi等命令：
+```
+source /etc/profile
+```
+添加cmake config文件：
+```
+sudo mkdir -p /usr/lib/cmake/libsophon
+sudo cp /opt/sophon/libsophon-current/data/libsophon-config.cmake /usr/lib/cmake/libsophon/
+```
+其他平台机器请参考[libsophon安装教程](https://doc.sophgo.com/sdk-docs/v22.12.01/docs_latest_release/docs/libsophon/guide/html/1_install.html)。
+更多libsophon信息请参考《LIBSOPHON使用手册.pdf》
+### 4.2 安装sophon-ffmpeg和sophon-opencv
+从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载sophon-mw安装包，
+安装包由一个文件构成：
+```
+sophon-mw_v22.12.01_aarch64.tar.gz
+```
+可以通过如下步骤安装：
+
+先按照《LIBSOPHON使用手册》安装好libsophon包，然后，
+```
+tar -xzvf sophon-mw_v22.12.01_aarch64.tar.gz
+sudo cp -r sophon-mw_v22.12.01_aarch64/* /
+sudo ln -s /opt/sophon/sophon-ffmpeg_v22.12.01 /opt/sophon/sophon-ffmpeg-latest
+sudo ln -s /opt/sophon/sophon-opencv_v22.12.01 /opt/sophon/sophon-opencv-latest
+sudo ln -s /opt/sophon/sophon-sample_v22.12.01 /opt/sophon/sophon-sample-latest
+sudo sed -i "s/usr\/local/opt\/sophon\/sophon-ffmpeg-latest/g" /opt/sophon/sophon-ffmpeg-latest/lib/pkgconfig/*.pc
+sudo sed -i "s/^prefix=.*$/prefix=\/opt\/sophon\/sophon-opencv-latest/g" /opt/sophon/sophon-opencv-latest/lib/pkgconfig/opencv4.pc
+```
+最后，**安装bz2 libc6 libgcc依赖库**（这部分需要根据操作系统不同，选择对应的安装包，这里不统一介绍）
+然后是一些配置工作：
+
+添加库和可执行文件路径：
+```
+sudo cp /opt/sophon/sophon-ffmpeg-latest/data/01_sophon-ffmpeg.conf /etc/ld.so.conf.d/
+sudo cp /opt/sophon/sophon-opencv-latest/data/02_sophon-opencv.conf /etc/ld.so.conf.d/
+sudo ldconfig
+sudo cp /opt/sophon/sophon-ffmpeg-latest/data/sophon-ffmpeg-autoconf.sh /etc/profile.d/
+sudo cp /opt/sophon/sophon-opencv-latest/data/sophon-opencv-autoconf.sh /etc/profile.d/
+sudo cp /opt/sophon/sophon-sample-latest/data/sophon-sample-autoconf.sh /etc/profile.d/
+source /etc/profile
+```
+其他平台机器请参考[libsophon安装教程](https://doc.sophgo.com/sdk-docs/v22.12.01/docs_latest_release/docs/sophon-mw/manual/html/1_install.html)。
+更多sophon-mw信息请参考《MULTIMEDIA使用手册.pdf》、《MULTIMEDIA开发参考手册.pdf》。
+
+### 4.3 编译安装sophon-sail
+与[2.3 编译安装sophon-sail](#23-编译安装sophon-sail)安装方法相同。
