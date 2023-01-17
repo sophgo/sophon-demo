@@ -81,7 +81,9 @@ function compare_res(){
 #e.g.: test_cpp opencv pcie c3d_int8_1b.bmodel 0.715
 function test_cpp(){
     pushd cpp/c3d_$1/build
+    echo "------------------"
     echo "testing cpp $1 $3:"
+    echo "------------------"
     chmod +x ./c3d_$1.$2
     res=$(./c3d_$1.$2 ../../../data/UCF_test_01 ../../../data/models/$TARGET/$3 $TPUID 2>&1 | tee $1_$3.log)
     acc=(${res##*now:})
@@ -93,7 +95,9 @@ function test_cpp(){
 #e.g.: test_python opencv c3d_int8_1b.bmodel 0.715
 function test_python(){
     pushd python
+    echo "---------------------"
     echo "testing python $1 $2:"
+    echo "---------------------"
     res=$(python3 c3d_$1.py --input_path ../data/UCF_test_01 --bmodel ../data/models/$TARGET/$2 --tpu_id $TPUID 2>&1 | tee $1_$2.log)
     acc=(${res#*ACC:})
     gt=$3
