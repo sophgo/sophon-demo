@@ -53,11 +53,7 @@ INFO:root:average latency time(ms): 21.84, QPS: 45.785344
 ## 2. arm SoC平台
 ## 2.1 环境准备
 
-<<<<<<< HEAD
-如果您使用SoC平台测试本例程，您需要交叉编译安装sophon-sail(>=3.1.0)，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#32-交叉编译安装sophon-sail)。
-=======
 如果您使用SoC平台测试本例程，您需要交叉编译安装sophon-sail(>=3.1.0)，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
->>>>>>> 568c629451
 此外您可能还需要安装其他第三方库：
 
 ```bash

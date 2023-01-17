@@ -7,11 +7,7 @@
 ### Environment configuration 
 
 
-<<<<<<< HEAD
-libsophon sophon-ffmpeg sophon-opencv sophon-sail should be download and installed. For details, see [x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)。
-=======
 libsophon sophon-ffmpeg sophon-opencv sophon-sail should be download and installed. For details, see [x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)。
->>>>>>> 568c629451
 
 
 ### Build example
@@ -52,11 +48,7 @@ for video, save picture count is batch_size*loops, name is frame_[frame idx]_dev
 
 ### Environment configuration
 
-<<<<<<< HEAD
-You need to use the SOPHON SDK on the x86 host to build a cross compilation environment, and package the header files and library files that the program depends on into the soc sdk directory. For details, see [交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#31-交叉编译环境搭建).
-=======
 You need to use the SOPHON SDK on the x86 host to build a cross compilation environment, and package the header files and library files that the program depends on into the soc sdk directory. For details, see [交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建).
->>>>>>> 568c629451
 
 ### Build example
 
