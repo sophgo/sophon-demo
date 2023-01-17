@@ -1,8 +1,25 @@
-# Environment Guide
-Sophon Demo所依赖的环境主要包括用于编译和量化模型的tpu-nntc环境，用于编译C++程序的开发环境以及用于部署程序的运行环境。
+# sophon-demo环境安装指南
+## 目录
+* [sophon-demo环境安装指南](#sophon-demo环境安装指南)
+  * [目录](#目录)
+  * [1 TPU-NNTC环境搭建](#1-tpu-nntc环境搭建)
+  * [2 TPU-MLIR环境搭建](#2-tpu-mlir环境搭建)
+  * [3 x86 PCIe平台的开发和运行环境搭建](#3-x86-pcie平台的开发和运行环境搭建)
+    * [3.1 安装libsophon](#31-安装libsophon)
+    * [3.2 安装sophon-ffmpeg和sophon-opencv](#32-安装sophon-ffmpeg和sophon-opencv)
+    * [3.3 编译安装sophon-sail](#33-编译安装sophon-sail)
+  * [4 SoC平台的开发和运行环境搭建](#4-soc平台的开发和运行环境搭建)
+    * [4.1 交叉编译环境搭建](#41-交叉编译环境搭建)
+    * [4.2 交叉编译安装sophon-sail](#42-交叉编译安装sophon-sail)
+  * [5 arm PCIe平台的开发和运行环境搭建](#5-arm-pcie平台的开发和运行环境搭建)
+    * [5.1 安装libsophon](#51-安装libsophon)
+    * [5.2 安装sophon-ffmpeg和sophon-opencv](#52-安装sophon-ffmpeg和sophon-opencv)
+    * [5.3 编译安装sophon-sail](#53-编译安装sophon-sail)
 
-## 1 tpu-nntc环境搭建
-编译和量化模型需要在tpu-nntc环境中完成。通常需要在x86主机上安装tpu-nntc环境，x86主机已安装Ubuntu16.04/18.04/20.04系统，并且运行内存在12GB以上。tpu-nntc环境安装步骤主要包括：
+Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC、TPU-MLIR环境，用于编译C++程序的开发环境以及用于部署程序的运行环境。
+
+## 1 TPU-NNTC环境搭建
+如果您使用BM1684芯片，建议使用TPU-NNTC编译BModel。通常需要在x86主机上安装TPU-NNTC环境，x86主机已安装Ubuntu16.04/18.04/20.04系统，并且运行内存在12GB以上。TPU-NNTC环境安装步骤主要包括：
 
 1. 安装Docker
 
@@ -20,9 +37,9 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的tpu-nntc�
     ```
     > **提示**：需要logout系统然后重新登录，再使用docker就不需要sudo了。
 
-2. 下载并解压tpu-nntc
+2. 下载并解压TPU-NNTC
 
-    从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载tpu-nntc的压缩包，命名如tpu-nntc_vx.y.z-hash-date.tar.gz，x.y.z表示版本号，并进行解压。
+    从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载TPU-NNTC的压缩包，命名如tpu-nntc_vx.y.z-hash-date.tar.gz，x.y.z表示版本号，并进行解压。
     ```bash
     mkdir tpu-nntc
     # 将压缩包解压到tpu-nntc
@@ -31,7 +48,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的tpu-nntc�
 
 3. 创建并进入docker
 
-    tpu-nntc使用的docker是sophgo/tpuc_dev:latest, docker镜像和tpu-nntc有绑定关系，少数情况下有可能更新了tpu-nntc，需要新的镜像。
+    TPU-NNTC使用的docker是sophgo/tpuc_dev:latest, docker镜像和tpu-nntc有绑定关系，少数情况下有可能更新了tpu-nntc，需要新的镜像。
     ```bash
     cd tpu-nntc
     # 进入docker，如果当前系统没有对应镜像，会自动从docker hub上下载
@@ -44,12 +61,56 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的tpu-nntc�
     cd /workspace/tpu-nntc
     source scripts/envsetup.sh
     ```
-此镜像仅用于编译和量化模型，程序编译和运行请在开发和运行环境中进行。更多tpu-nntc信息请参考《TPU-NNTC快速入门指南.pdf》和《TPU-NNTC开发参考手册.pdf》。
+此镜像仅用于编译和量化模型，程序编译和运行请在开发和运行环境中进行。更多TPU-NNTC的教程请参考[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)的《TPU-NNTC快速入门指南》和《TPU-NNTC开发参考手册》。
 
-## 2 x86 PCIe平台的开发和运行环境搭建
+## 2 TPU-MLIR环境搭建
+如果您使用BM1684X芯片，建议使用TPU-MLIR编译BModel。通常需要在x86主机上安装TPU-MLIR环境，x86主机已安装Ubuntu16.04/18.04/20.04系统，并且运行内存在12GB以上。TPU-MLIR环境安装步骤主要包括：
+
+1. 安装Docker
+
+   若已安装docker，请跳过本节。
+    ```bash
+    # 安装docker
+    sudo apt-get install docker.io
+    # docker命令免root权限执行
+    # 创建docker用户组，若已有docker组会报错，没关系可忽略
+    sudo groupadd docker
+    # 将当前用户加入docker组
+    sudo gpasswd -a ${USER} docker
+    # 切换当前会话到新group或重新登录重启X会话
+    newgrp docker​ 
+    ```
+    > **提示**：需要logout系统然后重新登录，再使用docker就不需要sudo了。
+
+2. 下载并解压TPU-MLIR
+
+    从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)上下载TPU-MLIR的压缩包，命名如tpu-mlir_vx.y.z-hash-date.tar.gz，x.y.z表示版本号，并进行解压。
+    ```bash
+    mkdir tpu-mlir
+    # 将压缩包解压到tpu-mlir
+    tar zxvf tpu-mlir_vx.y.z-<hash>-<date>.tar.gz -C tpu-mlir
+    ```
+
+3. 创建并进入docker
+
+    TPU-MLIR使用的docker是sophgo/tpuc_dev:latest, docker镜像和tpu-mlir有绑定关系，少数情况下有可能更新了tpu-mlir，需要新的镜像。
+    ```bash
+    cd tpu-mlir
+    # 进入docker，如果当前系统没有对应镜像，会自动从docker hub上下载
+    # 这里将tpu-mlir的上一级目录映射到docker内的/workspace目录,用户需要根据实际情况将demo的目录映射到docker里面
+    # myname只是举个名字的例子, 请指定成自己想要的容器的名字
+    docker run --name myname -v $PWD/..:/workspace -it sophgo/tpuc_dev:latest
+    # 此时已经进入docker，并在/workspace目录下
+    # 初始化软件环境
+    cd /workspace/tpu-mlir
+    source ./envsetup.sh
+    ```
+此镜像仅用于编译和量化模型，程序编译和运行请在开发和运行环境中进行。更多TPU-MLIR的教程请参考[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)的《TPU-MLIR快速入门手册》和《TPU-MLIR开发参考手册》。
+
+## 3 x86 PCIe平台的开发和运行环境搭建
 如果您在x86平台安装了PCIe加速卡，开发环境与运行环境可以是统一的，您可以直接在宿主机上搭建开发和运行环境。
 
-### 2.1 安装libsophon
+### 3.1 安装libsophon
 从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载libsophon安装包，包括:
 * sophon-driver_x.y.z_amd64.deb
 * sophon-libsophon_x.y.z_amd64.deb
@@ -67,7 +128,7 @@ source /etc/profile
 
 更多libsophon信息请参考《LIBSOPHON使用手册.pdf》。
 
-### 2.2 安装sophon-ffmpeg和sophon-opencv
+### 3.2 安装sophon-ffmpeg和sophon-opencv
 从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载sophon-mw安装包，包括:
 * sophon-mw-sophon-ffmpeg_x.y.z_amd64.deb
 * sophon-mw-sophon-ffmpeg-dev_x.y.z_amd64.deb
@@ -92,7 +153,7 @@ source /etc/profile
 
 更多sophon-mw信息请参考《MULTIMEDIA使用手册.pdf》、《MULTIMEDIA开发参考手册.pdf》。
 
-### 2.3 编译安装sophon-sail
+### 3.3 编译安装sophon-sail
 如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
 1. 解压并进入目录
 
@@ -137,10 +198,10 @@ source /etc/profile
     ```
 
 
-## 3 SoC平台的开发和运行环境搭建
+## 4 SoC平台的开发和运行环境搭建
 对于SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下，可直接用于运行环境。通常在x86主机上交叉编译程序，使之能够在SoC平台运行。
 
-### 3.1 交叉编译环境搭建
+### 4.1 交叉编译环境搭建
 需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中。
 1. 安装交叉编译工具链
     ```bash
@@ -176,7 +237,7 @@ source /etc/profile
 
 这里，交叉编译环境已经搭建完成，接下来可以使用打包好的soc-sdk编译需要在SoC平台上运行的程序。更多交叉编译信息请参考《LIBSOPHON使用手册.pdf》。
 
-### 3.2 交叉编译安装sophon-sail
+### 4.2 交叉编译安装sophon-sail
 如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。需要在x86主机上交叉编译sophon-sail，并在SoC平台上安装。
 
 需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
@@ -253,10 +314,10 @@ source /etc/profile
     pip3 install sophon_arm-master_-py3-none-any.whl --force-reinstall 
     ```
 
-## 4 arm PCIe平台的开发和运行环境搭建
+## 5 arm PCIe平台的开发和运行环境搭建
 如果您在arm平台安装了PCIe加速卡，开发环境与运行环境可以是统一的，您可以直接在宿主机上搭建开发和运行环境。
 这里提供银河麒麟v10机器的环境安装方法，其他类型机器具体请参考官网开发手册。
-### 4.1 安装libsophon
+### 5.1 安装libsophon
 从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载libsophon安装包，
 安装包由一个文件构成，其中“$arch”为当前机器的硬件架构，使用以下命令可以获取当前服务器的arch：
 ```
@@ -311,7 +372,8 @@ sudo cp /opt/sophon/libsophon-current/data/libsophon-config.cmake /usr/lib/cmake
 ```
 其他平台机器请参考[libsophon安装教程](https://doc.sophgo.com/sdk-docs/v22.12.01/docs_latest_release/docs/libsophon/guide/html/1_install.html)。
 更多libsophon信息请参考《LIBSOPHON使用手册.pdf》
-### 4.2 安装sophon-ffmpeg和sophon-opencv
+
+### 5.2 安装sophon-ffmpeg和sophon-opencv
 从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载sophon-mw安装包，
 安装包由一个文件构成：
 ```
@@ -345,5 +407,5 @@ source /etc/profile
 其他平台机器请参考[libsophon安装教程](https://doc.sophgo.com/sdk-docs/v22.12.01/docs_latest_release/docs/sophon-mw/manual/html/1_install.html)。
 更多sophon-mw信息请参考《MULTIMEDIA使用手册.pdf》、《MULTIMEDIA开发参考手册.pdf》。
 
-### 4.3 编译安装sophon-sail
+### 5.3 编译安装sophon-sail
 与[2.3 编译安装sophon-sail](#23-编译安装sophon-sail)安装方法相同。

@@ -30,7 +30,7 @@
 安装python opencv
 
 ```bash
-pip3 install opencv-python-headless==4.3.0.36
+pip3 install 'opencv-python-headless<4.3'
 ```
 
 > 运行之前需要访问sophon-sail github仓库编译安装sail包
