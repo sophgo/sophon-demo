@@ -6,8 +6,8 @@
   * [2. 特性](#2-特性)
   * [3. 准备模型与数据](#3-准备模型与数据)
   * [4. 模型编译](#4-模型编译)
-    * [4.1 生成FP32 BModel](#41-生成fp32-bmodel)
-    * [4.2 生成INT8 BModel](#42-生成int8-bmodel)
+    * [4.1 TPU-NNTC编译BModel](#41-tpu-nntc编译bmodel)
+    * [4.2 TPU-MLIR编译BModel](#42-tpu-mlir编译bmodel)
   * [5. 例程测试](#5-例程测试)
   * [6. 精度测试](#6-精度测试)
     * [6.1 测试方法](#61-测试方法)
@@ -20,22 +20,24 @@
 ​YOLOv5是非常经典的基于anchor的One Stage目标检测算法，因其优秀的精度和速度表现，在工程实践应用中获得了非常广泛的应用。本例程对[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)v6.1版本的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC)
-* 支持FP32和INT8模型编译和推理
+* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
-* 支持1个输出和多3个输出模型推理
+* 支持1个输出和3个输出模型推理
 * 支持图片和视频测试
  
 ## 3. 准备模型与数据
-​Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel。可以使用官方仓库中的`export.py`导出torchscript模型，具体可参考[YOLOv5模型trace说明](./docs/YOLOv5_Export_Guide.md)。
+如果您使用BM1684芯片，建议使用TPU-NNTC编译BModel，Pytorch模型在编译前要导出成torchscript模型或onnx模型；如果您使用BM1684X芯片，建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。具体可参考[YOLOv5模型导出](./docs/YOLOv5_Export_Guide.md)。
 
 ​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
 ​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
 ```bash
+# 安装unzip，若已安装请跳过
+sudo apt install unzip
 chmod -R +x scripts/
 ./scripts/download.sh
 ```
@@ -44,15 +46,19 @@ chmod -R +x scripts/
 ```
 ./models
 ├── BM1684
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # yolov5s，用于BM1684的FP32 BModel，batch_size=1，3个输出
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # yolov5s，用于BM1684的INT8 BModel，batch_size=1，3个输出
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # yolov5s，用于BM1684的INT8 BModel，batch_size=4，3个输出
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 使用TPU-NNTC编译，用于BM1684的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 使用TPU-NNTC编译，用于BM1684的INT8 BModel，batch_size=1
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 使用TPU-NNTC编译，用于BM1684的INT8 BModel，batch_size=4
 ├── BM1684X
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # yolov5s，用于BM1684X的FP32 BModel，batch_size=1，3个输出
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # yolov5s，用于BM1684X的INT8 BModel，batch_size=1，3个输出
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # yolov5s，用于BM1684X的INT8 BModel，batch_size=4，3个输出
-└── torch
-    └── yolov5s_v6.1_3output.torchscript.pt   # yolov5s，3个输出原始模型      
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+│── torch
+│   └── yolov5s_v6.1_3output.torchscript.pt   # trace后的torchscript模型
+└── onnx
+    ├── yolov5s_v6.1_3output_1b.onnx         # 导出的onnx模型，batch_size=1
+    └── yolov5s_v6.1_3output_4b.onnx         # 导出的onnx模型，batch_size=4       
 ```
 下载的数据包括：
 ```
@@ -67,35 +73,68 @@ chmod -R +x scripts/
 ```
 
 ## 4. 模型编译
-​trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
+导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。如果您使用BM1684芯片，建议使用TPU-NNTC编译BModel；如果您使用BM1684X芯片，建议使用TPU-MLIR编译BModel。
 
-模型编译前需要安装TPU-NNTC，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。安装好后需在tpu-nntc环境中进入例程目录。
+### 4.1 TPU-NNTC编译BModel
+模型编译前需要安装TPU-NNTC，具体可参考[TPU-NNTC环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。安装好后需在TPU-NNTC环境中进入例程目录。
 
-### 4.1 生成FP32 BModel
+- 生成FP32 BModel
 
-pytorch模型编译为FP32 BModel，具体方法可参考《TPU-NNTC开发参考手册》的“BMNETP 使用”(请从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)相应版本的SDK中获取)。
+使用TPU-NNTC将trace后的torchscript模型编译为FP32 BModel，具体方法可参考《TPU-NNTC开发参考手册》的“BMNETP 使用”(请从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)相应版本的SDK中获取)。
 
-​本例程在`scripts`目录下提供了编译FP32 BModel的脚本。请注意修改`gen_fp32bmodel.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684和BM1684X），如：
+​本例程在`scripts`目录下提供了TPU-NNTC编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_nntc.sh`中的torchscript模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684和BM1684X），如：
 
 ```bash
-./scripts/gen_fp32bmodel.sh BM1684
+./scripts/gen_fp32bmodel_nntc.sh BM1684
 ```
 
 ​执行上述命令会在`models/BM1684/`下生成`yolov5s_v6.1_3output_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
-### 4.2 生成INT8 BModel
+- 生成INT8 BModel
 
-​不量化模型可跳过本节。
+使用TPU-NNTC量化torchscript模型的方法可参考《TPU-NNTC开发参考手册》的“模型量化”(请从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)相应版本的SDK中获取)，以及[模型量化注意事项](../../docs/Calibration_Guide.md#1-注意事项)。
 
-pytorch模型的量化方法可参考《TPU-NNTC开发参考手册》的“模型量化”(请从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)相应版本的SDK中获取)，以及[模型量化注意事项](../../docs/Calibration_Guide.md#1-注意事项)。
-
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本。请注意修改`gen_int8bmodel.sh`中的JIT模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684和BM1684X），如：
+​本例程在`scripts`目录下提供了TPU-NNTC量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_nntc.sh`中的torchscript模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台，如：
 
 ```shell
-./scripts/gen_int8bmodel.sh BM1684
+./scripts/gen_int8bmodel_nntc.sh BM1684
 ```
 
 ​上述脚本会在`models/BM1684`下生成`yolov5s_v6.1_3output_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+
+### 4.2 TPU-MLIR编译BModel
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#2-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
+
+- 生成FP32 BModel
+
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+
+```bash
+./scripts/gen_fp32bmodel_mlir.sh bm1684x
+```
+
+​执行上述命令会在`models/BM1684X/`下生成`yolov5s_v6.1_3output_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+
+- 生成FP16 BModel
+
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+
+```bash
+./scripts/gen_fp16bmodel_mlir.sh bm1684x
+```
+
+​执行上述命令会在`models/BM1684X/`下生成`yolov5s_v6.1_3output_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+
+- 生成INT8 BModel
+
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684X），如：
+
+```shell
+./scripts/gen_int8bmodel_mlir.sh bm1684x
+```
+
+​上述脚本会在`models/BM1684X`下生成`yolov5s_v6.1_3output_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
@@ -123,11 +162,14 @@ python3 tools/eval_coco.py --label_json datasets/coco/instances_val2017.json --r
 | BM1684 PCIe  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.359         | 0.562    |
 | BM1684 PCIe  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.332         | 0.534    |
 | BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.373         | 0.571    |
-| BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.356         | 0.554    |
+| BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.373         | 0.571    |
+| BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.357         | 0.563    |
 | BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.363         | 0.559    |
-| BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.345         | 0.540    |
+| BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.363         | 0.558    |
+| BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.346         | 0.550    |
 | BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.359         | 0.562    |
-| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.345         | 0.546    |
+| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.359         | 0.562    |
+| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.344         | 0.553    |
 
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
@@ -148,9 +190,10 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 | BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel  | 22.6              |
 | BM1684/yolov5s_v6.1_3output_int8_1b.bmodel  | 11.5              |
 | BM1684/yolov5s_v6.1_3output_int8_4b.bmodel  | 6.4               |
-| BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel | 20.5              |
-| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel | 3.1               |
-| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel | 2.9               |
+| BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel | 20.8              |
+| BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel | 7.2               |
+| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel | 3.5               |
+| BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel | 3.3               |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

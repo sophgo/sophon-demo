@@ -95,7 +95,7 @@ usage: centernet_bmcv.pcie [params]
 
 编译工具链：aarch64-linux-gnu
 
-以上环境与编译器的配置与安装，请参考[环境配置指南](../../../docs/Environment_Install_Guide.md#3-SoC平台的开发和运行环境搭建)进行。
+以上环境与编译器的配置与安装，请参考[环境配置指南](../../../docs/Environment_Install_Guide.md#4-SoC平台的开发和运行环境搭建)进行。
 > 请注意，在进行交叉编译时使用的sail需要按照sophon-sail仓库中的指导编译为arm兼容的格式
 
 #### 2.2.2 程序编译

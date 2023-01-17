@@ -1,8 +1,6 @@
-# YOLOv5模型trace说明
+# YOLOv5模型导出
 ## 1. 准备工作
-YOLOv5模型trace是在Pytorch模型的生产环境下进行的，需提前根据[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)的要求安装好Pytorch环境，准备好相应的代码和模型，并保证模型能够在Pytorch环境下正常推理运行。
-
-**注意：** torch版本建议`<=1.10`，以免在后续模型编译量化中发生错误。
+YOLOv5模型导出是在Pytorch模型的生产环境下进行的，需提前根据[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)的要求安装好Pytorch环境，准备好相应的代码和模型，并保证模型能够在Pytorch环境下正常推理运行。
 
 ## 2. 主要步骤
 ### 2.1 修改model/yolo.py
@@ -40,17 +38,27 @@ YOLOv5不同版本的代码导出的YOLOv5模型的输出会有所不同，根�
 ```
 
 ### 2.2 导出torchscript模型
-
-YOLOv5官方仓库提供了模型导出脚本`export.py`，可以直接使用它导出torchscript模型：
+​Pytorch模型在编译前要经过`torch.jit.trace`，trace后的模型才能使用tpu-nntc编译BModel。YOLOv5官方仓库提供了模型导出脚本`export.py`，可以直接使用它导出torchscript模型：
 
 ```bash
 # 下述脚本可能会根据不用版本的YOLOv5有所调整，请以官方仓库说明为准
 python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include torchscript
 ```
 
-上述脚本会在原始pt模型所在目录下生成导出的torchscript模型，导出后可以修改模型名称以区分不同版本和输出类型，如`yolov5s_640_coco_v6.1_3output.trace.pt`表示带有3个输出的JIT模型。
+上述脚本会在原始pt模型所在目录下生成导出的torchscript模型，导出后可以修改模型名称以区分不同版本和输出类型，如`yolov5s_v6.1_3output.torchscript.pt`表示带有3个输出的JIT模型。
 
 **注意：** 导出的模型建议以`.pt`为后缀，以免在后续模型编译量化中发生错误。
 
+### 2.3 导出onnx模型
+如果使用tpu-mlir编译模型，则必须先将Pytorch模型导出为onnx模型。YOLOv5官方仓库提供了模型导出脚本`export.py`，可以直接使用它导出onnx模型：
+
+```bash
+# 下述脚本可能会根据不用版本的YOLOv5有所调整，请以官方仓库说明为准
+# 请根据实际需求修改img-size、batch-size等参数
+python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include onnx --batch-size 1
+```
+
+上述脚本会在原始pt模型所在目录下生成导出的onnx模型，导出后可以修改模型名称以区分不同参数和输出类型，如`yolov5s_v6.1_3output_1b.onnx`表示带有3个输出的onnx模型。
+
 ## 3. 常见问题
-待整理
+TODO
