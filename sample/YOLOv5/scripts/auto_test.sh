@@ -265,15 +265,15 @@ then
     test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
     eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.37284926941692986
-    # eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.37279000669409373
+    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.37279731515231684
     eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3568049563925935
     eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3568049563925935
     eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3628276247456819
-    # eval_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.3628276247456819
+    eval_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.36273778749009744
     eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3464152996599053
     eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3464152996599053 
     eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3590649468018816
-    # eval_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.3590649468018816
+    eval_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.3590066718304196
     eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.344157647308505
     eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.344157647308505
   fi
