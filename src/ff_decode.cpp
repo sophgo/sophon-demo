@@ -744,13 +744,11 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
     AVFrame *pFrame = nullptr;
     AVFrame *I420Frame = nullptr;
     AVPacket pkt;
-    struct SwsContext *convert_ctx = NULL;
 
     bm_image bgr_img;
     csc_type_t csc_type = CSC_YPbPr2RGB_BT601;
     int got_picture;
     FILE *infile;
-    FILE *record;
     int numBytes;
     bool hw_decode;
     uint8_t *aviobuffer = nullptr;
@@ -863,7 +861,7 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
     av_dict_set_int(&dict, "bs_buffer_size", bs_size, 0);
     /* Extra frame buffers: "0" for still jpeg, at least "2" for mjpeg */
     av_dict_set_int(&dict, "num_extra_framebuffers", 0, 0);
-
+    av_dict_set_int(&dict, "zero_copy", 0, 0);
     av_dict_set_int(&dict, "sophon_idx", bm_get_devid(handle), 0);
     tmp = avcodec_open2(dec_ctx, pCodec, &dict);
     if (tmp < 0)
@@ -909,9 +907,9 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
                 uchar U = pFrame->data[1][indexU];
                 uchar V = pFrame->data[2][indexV];
 
-                int YPbPr2RGB_BT601[12] = {0x00000400, 0x00000000, 0x0000059b, (int)0xfffd322d,
-                                           0x00000400, (int)0xfffffea0, (int)0xfffffd25, 0x00021dd6,
-                                           0x00000400, 0x00000716, 0x00000000, (int)0xfffc74bc};
+                // int YPbPr2RGB_BT601[12] = {0x00000400, 0x00000000, 0x0000059b, (int)0xfffd322d,
+                                        //    0x00000400, (int)0xfffffea0, (int)0xfffffd25, 0x00021dd6,
+                                        //    0x00000400, 0x00000716, 0x00000000, (int)0xfffc74bc};
 
                 // double M[] = {1, 1.40252, 0, 0,
                 //               1, -0.71440, -0.34434, 0,
@@ -957,6 +955,37 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
         bm_image_create(handle, height, width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &img);
         bm_image_attach(img, &mem);
         goto Func_Exit;
+    }
+    // vpp_convert do not support YUV422P, use libyuv to filter
+    if (AV_PIX_FMT_YUVJ422P == pFrame->format)
+    {
+        I420Frame = av_frame_alloc();
+
+        I420Frame->width = pFrame->width;
+        I420Frame->height = pFrame->height;
+        I420Frame->format = AV_PIX_FMT_YUV420P;
+
+        libyuv::I422ToI420(pFrame->data[0], pFrame->linesize[0], pFrame->data[1], pFrame->linesize[1], pFrame->data[2], pFrame->linesize[2],
+                           pFrame->data[0], pFrame->linesize[0], pFrame->data[1], pFrame->linesize[1], pFrame->data[2], pFrame->linesize[2],
+                           I420Frame->width, I420Frame->height);
+
+        bm_device_mem_t mem_y, mem_u, mem_v;
+        bm_malloc_device_byte(handle, &mem_y, pFrame->height * pFrame->width);
+        bm_malloc_device_byte(handle, &mem_u, pFrame->height * pFrame->width / 4);
+        bm_malloc_device_byte(handle, &mem_v, pFrame->height * pFrame->width / 4);
+        bm_memcpy_s2d_partial(handle, mem_y, pFrame->data[0], pFrame->height * pFrame->width);
+        bm_memcpy_s2d_partial(handle, mem_u, pFrame->data[1], pFrame->height * pFrame->width / 4);
+        bm_memcpy_s2d_partial(handle, mem_v, pFrame->data[2], pFrame->height * pFrame->width / 4);
+
+        I420Frame->data[4] = (uint8_t *)bm_mem_get_device_addr(mem_y);
+        I420Frame->data[5] = (uint8_t *)bm_mem_get_device_addr(mem_u);
+        I420Frame->data[6] = (uint8_t *)bm_mem_get_device_addr(mem_v);
+        I420Frame->linesize[4] = pFrame->linesize[0];
+        I420Frame->linesize[5] = pFrame->linesize[1];
+        I420Frame->linesize[6] = pFrame->linesize[2];
+
+        av_frame_free(&pFrame);
+        pFrame = I420Frame;
     }
 
     avframe_to_bm_image(handle, *pFrame, img);

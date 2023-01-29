@@ -8,7 +8,7 @@
 #include "bmlib_runtime.h"
 #include "opencv2/opencv.hpp"
 #include <opencv2/core.hpp>
-
+#include "libyuv.h"
 extern "C"
 {
 #include <libavformat/avformat.h>
