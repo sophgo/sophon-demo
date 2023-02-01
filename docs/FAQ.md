@@ -13,7 +13,10 @@
 我们列出了一些用户和开发者在开发过程中会遇到的常见问题以及对应的解决方案，如果您发现了任何问题，请随时联系我们或创建相关issue，非常欢迎您提出的任何问题或解决方案。
 
 ## 1 环境安装相关问题
-sophon-demo涉及的开发和运行环境安装可以参考[相关文档](./Environment_Install_Guide.md)。
+### 1.1 sophon-demo涉及的开发和运行环境安装可以参考[相关文档](./Environment_Install_Guide.md)。
+
+### 1.2 SoC模式下如何使用SD卡刷更新固件
+下载解压v22.09.02以后的SophonSDK，找到sophon-img文件夹下的sdcard刷机包，并参考[相关文档](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/faq/html/devices/SOC/soc_firmware_update.html#id6)刷新固件。
 
 ## 2 模型导出相关问题
 ### 2.1 Pytorch模型如何进行jit.trace
