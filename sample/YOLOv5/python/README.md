@@ -50,7 +50,7 @@ usage: yolov5_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 --nms_thresh: nms阈值。
 ```
 ### 2.2 测试图片
-图片测试实例如下，支持对整个图片文件夹进行测试，模型支持fp32bmodel、int8bmodel，支持BM1684和BM1684X，支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+图片测试实例如下，支持对整个图片文件夹进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，int8bmodel支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
 ```bash
 python3 python/yolov5_opencv.py --input datasets/test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5
 ```
@@ -59,7 +59,7 @@ python3 python/yolov5_opencv.py --input datasets/test --bmodel models/BM1684/yol
 ![res](../pics/zidane_python_opencv.jpg)
 
 ### 2.3 测试视频
-视频测试实例如下，支持对视频流进行测试，模型支持fp32bmodel、int8bmodel，支持BM1684和BM1684X，支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+视频测试实例如下，支持对视频流进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，int8bmodel支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
 ```bash
 python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5
 ```
