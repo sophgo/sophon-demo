@@ -96,3 +96,10 @@ Usage: yolov5_bmcv.pcie [params]
 ./yolov5_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel=../../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id=0 --conf_thresh=0.5 --nms_thresh=0.5 --obj_thresh=0.5 --classnames=../../datasets/coco.names
 ```
 测试结束后，会将预测结果画在图片上并保存在`results/images`中，同时会打印预测结果、推理时间等信息。
+
+**注意：** 某些情况下会出现以下异常，这是由于缓存没有及时清除导致的，不影响推理结果。
+![decoder_issue](../pics/decoder_issue.png)
+可以通过运行如下命令解决：
+```bash
+sudo rm /tmp/vid_*
+```
