@@ -212,18 +212,18 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 | BM1684 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 1.8      | 3.2       | 28.6      | 111       |
 | BM1684 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 1.8      | 2.6       | 17.5      | 111       |
 | BM1684 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 1.7      | 2.4       | 11.4      | 115       |
-| BM1684 SoC  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.7      | 1.9       | 22.6      | 55.7      |
-| BM1684 SoC  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 4.7      | 1.9       | 11.5      | 55.9      |
-| BM1684 SoC  | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 4.5      | 1.8       | 6.2       | 55.8      |
+| BM1684 SoC  | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.7      | 1.9       | 22.6      | 55.7      |
+| BM1684 SoC  | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 4.7      | 1.9       | 11.5      | 55.9      |
+| BM1684 SoC  | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 4.5      | 1.8       | 6.2       | 55.8      |
 | BM1684X SoC | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 21.8     | 23.5      | 30.4      | 105       |
 | BM1684X SoC | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 21.8     | 23.5      | 25.5      | 104       |
 | BM1684X SoC | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 21.7     | 23.2      | 24.6      | 108       |
 | BM1684X SoC | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 1.6      | 2.4       | 26.8      | 105       |
 | BM1684X SoC | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 1.6      | 1.8       | 9.5       | 105       |
 | BM1684X SoC | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 1.5      | 1.7       | 8.6       | 108       |
-| BM1684X SoC | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.2      | 0.9       | 20.4      | 54.5      |
-| BM1684X SoC | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 4.2      | 0.7       | 3.1       | 54.5      |
-| BM1684X SoC | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 4.1      | 0.7       | 2.9       | 54.3      |
+| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.2      | 0.9       | 20.4      | 54.5      |
+| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 4.2      | 0.7       | 3.1       | 54.5      |
+| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 4.1      | 0.7       | 2.9       | 54.3      |
 
 
 > **测试说明**：  
