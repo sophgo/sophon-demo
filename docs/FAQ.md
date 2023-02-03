@@ -51,10 +51,18 @@ export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
 ### 4.3 基于OpenCV的C++例程使用Sophon OpenCV还是原生OpenCV
 基于OpenCV的C++例程在CMakeLists.txt中设置了OpenCV_DIR路径，链接Sophon OpenCV的相关头文件和库文件。如果需要调用原生OpenCV，需自行安装原生OpenCV，并修改相关链接路径。
 
+### 4.4 C++例程使用ff_decode解码视频提示“vid reset unlock flock failed”，但不影响正常运行
+这是由于缓存没有及时清除导致的，不影响推理结果。可以通过运行如下命令解决：
+```bash
+sudo rm /tmp/vid_*
+```
+
 ## 5 精度测试相关问题
 ### 5.1 FP32 BModel的推理结果与原模型的推理结果不一致
 在前后处理与原算法对齐的前提下，FP32 BModel的精度与原模型的最大误差通常在0.001以下，不会对最终的预测结果造成影响。FP32 BModel精度对齐的方法可以参考[相关文档](./FP32BModel_Precise_Alignment.md)。
 
 ## 6 性能测试相关问题
+### 6.1 部分FP32 BModel的BM1684X性能低于BM1684
+BM1684X的local memory相比BM1684少了一半，参数量较大的模型有可能放不下，导致gdma访问ddr次数大量增加。
 
 ## 7 其他问题
