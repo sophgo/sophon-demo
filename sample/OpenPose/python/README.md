@@ -16,7 +16,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 ## 1. 环境准备
 ### 1.1 x86 PCIe平台
-如果您在x86平台安装了PCIe加速卡（如SC系列加速卡），您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)。
+如果您在x86平台安装了PCIe加速卡（如SC系列加速卡），您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)。
 
 此外您可能还需要安装其他第三方库：
 ```bash
