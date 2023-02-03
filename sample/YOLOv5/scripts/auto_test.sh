@@ -100,9 +100,9 @@ function compare_res(){
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
-        echo "compare wrong!"
+        echo -e "\e[41m compare wrong! \e[0m" #red
     else
-        echo "compare right!"
+        echo -e "\e[42m compare right! \e[0m" #green
     fi
 }
 

@@ -44,6 +44,11 @@ int main(int argc, char *argv[]){
     cout << "Cannot find valid model file." << endl;
     exit(1);
   }
+  string coco_names = parser.get<string>("classnames");
+  if (stat(coco_names.c_str(), &info) != 0) {
+    cout << "Cannot find classnames file." << endl;
+    exit(1);
+  }
   if (stat(input.c_str(), &info) != 0){
     cout << "Cannot find input path." << endl;
     exit(1);
@@ -59,7 +64,6 @@ int main(int argc, char *argv[]){
 
   // initialize net
   YoloV5 yolov5(bm_ctx);
-  string coco_names = parser.get<string>("classnames");
   CV_Assert(0 == yolov5.Init(
         parser.get<float>("conf_thresh"),
         parser.get<float>("obj_thresh"),
