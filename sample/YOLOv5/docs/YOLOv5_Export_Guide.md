@@ -54,11 +54,10 @@ python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include torchs
 
 ```bash
 # 下述脚本可能会根据不用版本的YOLOv5有所调整，请以官方仓库说明为准
-# 请根据实际需求修改img-size、batch-size等参数
-python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include onnx --batch-size 1
+python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include onnx --dynamic
 ```
 
-上述脚本会在原始pt模型所在目录下生成导出的onnx模型，导出后可以修改模型名称以区分不同参数和输出类型，如`yolov5s_v6.1_3output_1b.onnx`表示带有3个输出的onnx模型。
+上述脚本会在原始pt模型所在目录下生成导出的onnx模型，导出后可以修改模型名称以区分不同版本和输出类型，如`yolov5s_v6.1_3output.onnx`表示带有3个输出的onnx模型。
 
 ## 3. 常见问题
 TODO

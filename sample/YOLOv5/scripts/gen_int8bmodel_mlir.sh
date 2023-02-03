@@ -13,7 +13,7 @@ function gen_mlir()
 {
     model_transform.py \
         --model_name yolov5s_v6.1_3output \
-        --model_def ../models/onnx/yolov5s_v6.1_3output_$1b.onnx \
+        --model_def ../models/onnx/yolov5s_v6.1_3output.onnx \
         --input_shapes [[$1,3,640,640]] \
         --mean 0.0,0.0,0.0 \
         --scale 0.0039216,0.0039216,0.0039216 \
