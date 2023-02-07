@@ -57,6 +57,9 @@ export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
 sudo rm /tmp/vid_*
 ```
 
+### 4.5 C++例程使用ff_decode解码，输入图片的后缀是大写时报"not support pic format, only support jpg and png"
+目前的解决方案是将输入图片的后缀改小写，后续将直接根据图像输入来判断图像格式，而非根据名称来判断。
+
 ## 5 精度测试相关问题
 ### 5.1 FP32 BModel的推理结果与原模型的推理结果不一致
 在前后处理与原算法对齐的前提下，FP32 BModel的精度与原模型的最大误差通常在0.001以下，不会对最终的预测结果造成影响。FP32 BModel精度对齐的方法可以参考[相关文档](./FP32BModel_Precise_Alignment.md)。
