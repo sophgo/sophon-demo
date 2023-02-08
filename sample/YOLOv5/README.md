@@ -58,8 +58,7 @@ chmod -R +x scripts/
 │── torch
 │   └── yolov5s_v6.1_3output.torchscript.pt   # trace后的torchscript模型
 └── onnx
-    ├── yolov5s_v6.1_3output_1b.onnx         # 导出的onnx模型，batch_size=1
-    └── yolov5s_v6.1_3output_4b.onnx         # 导出的onnx模型，batch_size=4       
+    └── yolov5s_v6.1_3output.onnx         # 导出的onnx动态模型       
 ```
 下载的数据包括：
 ```
