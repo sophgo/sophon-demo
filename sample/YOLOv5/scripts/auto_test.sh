@@ -123,9 +123,9 @@ function eval_cpp()
   ./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
   judge_ret $? "./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
   echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 ../../tools/eval_coco.py --label_json ../../datasets/coco/instances_val2017.json --result_json results/$3_val2017_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log"
+  echo "python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/instances_val2017.json --result_json results/$3_val2017_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log"
   echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  res=$(python3 ../../tools/eval_coco.py --label_json ../../datasets/coco/instances_val2017.json --result_json results/$3_val2017_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
+  res=$(python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/instances_val2017.json --result_json results/$3_val2017_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $4
@@ -146,9 +146,9 @@ function eval_python()
   python3 python/yolov5_$1.py --input datasets/coco/val2017 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1
   judge_ret $? "python3 python/yolov5_$1.py --input datasets/coco/val2017 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1"
   echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 tools/eval_coco.py --label_json datasets/coco/instances_val2017.json --result_json results/$2_val2017_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log"
+  echo "python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017.json --result_json results/$2_val2017_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log"
   echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  res=$(python3 tools/eval_coco.py --label_json datasets/coco/instances_val2017.json --result_json results/$2_val2017_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
+  res=$(python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017.json --result_json results/$2_val2017_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $3

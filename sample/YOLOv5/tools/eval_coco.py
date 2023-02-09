@@ -16,7 +16,7 @@ from pycocotools.cocoeval import COCOeval
 
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--label_json', type=str, default='project/sophon-demo/sample/YOLOv5/datasets/coco2017val/annotations/instances_val2017.json', help='path of label json')
+    parser.add_argument('--gt_path', type=str, default='project/sophon-demo/sample/YOLOv5/datasets/coco2017val/annotations/instances_val2017.json', help='path of label json')
     parser.add_argument('--result_json', type=str, default='project/sophon-demo/sample/YOLOv5/python/results/yolov5s_640_coco_v6.1_3output_fp32_1b.bmodel__opencv_python_result.json', help='path of result json')
     parser.add_argument('--ann_type', type=str, default='bbox', help='type of evaluation')
     args = parser.parse_args()
@@ -97,7 +97,7 @@ def convert_to_coco_bbox(json_file, cocoGt):
         json.dump(temp_json, fid)
 
 def main(args):
-    cocoGt = COCO(args.label_json)
+    cocoGt = COCO(args.gt_path)
     if args.ann_type == 'keypoints':
         convert_to_coco_keypoints(args.result_json, cocoGt)
     if args.ann_type == 'bbox':
