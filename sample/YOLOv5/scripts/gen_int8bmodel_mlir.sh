@@ -44,6 +44,9 @@ function gen_int8bmodel()
 }
 
 pushd $model_dir
+if [ ! -d $outdir ]; then
+    mkdir -p $outdir
+fi
 # batch_size=1
 gen_mlir 1
 gen_cali_table 1

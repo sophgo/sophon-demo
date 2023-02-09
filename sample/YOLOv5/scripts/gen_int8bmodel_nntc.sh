@@ -37,7 +37,9 @@ function gen_int8bmodel()
 }
 
 pushd $model_dir
-
+if [ ! -d $outdir ]; then
+    mkdir -p $outdir
+fi
 # batch_size=1
 auto_cali
 # batch_size=4

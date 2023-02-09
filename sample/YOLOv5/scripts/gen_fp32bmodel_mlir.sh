@@ -30,6 +30,9 @@ function gen_fp32bmodel()
 }
 
 pushd $model_dir
+if [ ! -d $outdir ]; then
+    mkdir -p $outdir
+fi
 # batch_size=1
 gen_mlir 1
 gen_fp32bmodel 1
