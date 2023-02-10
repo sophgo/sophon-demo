@@ -18,3 +18,12 @@
 ## 2. 常见问题
 ### 2.1 量化后检测框偏移严重
 在以上注意事项都确认无误的基础上，尝试不同的门限策略th_method，推荐ADMM, MAX,PERCENTILE9999。
+
+### 2.2 量化过程中精度对比不通过导致量化中断
+相关报错：
+```bash
+w0209 14:47:33.992739 3751 graphTransformer.cpp:515] max diff = 0.00158691 max diff blob id : 4 blob name : out put
+Fail: only one compare!
+```
+原因：量化过程中fp32精度对比超过设定阈值(默认值为0.001)。
+解决办法：修改fp32精度对比阈值，如-fp32_diff=0.01。
