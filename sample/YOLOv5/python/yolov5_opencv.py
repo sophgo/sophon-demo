@@ -167,12 +167,12 @@ def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None):
             color = COLORS[int(classes_ids[idx]) + 1]
         else:
             color = (0, 0, 255)
-        cv2.rectangle(image, (x1, y1), (x2, y2), color, thickness=1)
+        cv2.rectangle(image, (x1, y1), (x2, y2), color, thickness=2)
         if classes_ids is not None and conf_scores is not None:
             classes_ids = classes_ids.astype(np.int8)
             cv2.putText(image, COCO_CLASSES[classes_ids[idx] + 1] + ':' + str(round(conf_scores[idx], 2)),
                         (x1, y1 - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness=1)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness=2)
         if masks is not None:
             mask = masks[:, :, idx]
             image[mask] = image[mask] * 0.5 + np.array(color) * 0.5
