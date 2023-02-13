@@ -88,7 +88,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
     ```bash
     mkdir tpu-mlir
     # 将压缩包解压到tpu-mlir
-    tar zxvf tpu-mlir_vx.y.z-<hash>-<date>.tar.gz -C tpu-mlir
+    tar zxvf tpu-mlir_vx.y.z-<hash>-<date>.tar.gz --strip-components=1 -C tpu-mlir
     ```
 
 3. 创建并进入docker
