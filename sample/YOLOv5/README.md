@@ -143,7 +143,7 @@ chmod -R +x scripts/
 ## 6. 精度测试
 ### 6.1 测试方法
 
-首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集和相关参数(conf_thresh=0.001、obj_thresh=0.001、nms_thresh=0.6)。  
+首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017)和相关参数(conf_thresh=0.001、obj_thresh=0.001、nms_thresh=0.6)。  
 然后，使用`tools`目录下的`eval_coco.py`脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
 ```bash
 # 安装pycocotools，若已安装请跳过
@@ -153,7 +153,7 @@ python3 tools/eval_coco.py --label_json datasets/coco/instances_val2017.json --r
 ```
 ### 6.2 测试结果
 在coco2017val数据集上，精度测试结果如下：
-|   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AR@IoU=0.5|
+|   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ---------------- | ----------------------------------- | ------------- | -------- |
 | BM1684 PCIe  | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.373         | 0.571    |
 | BM1684 PCIe  | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.342         | 0.542    |
@@ -173,7 +173,8 @@ python3 tools/eval_coco.py --label_json datasets/coco/instances_val2017.json --r
 
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
-2. SoC和PCIe的模型精度一致。
+2. SoC和PCIe的模型精度一致；
+3. AP@IoU=0.5:0.95为area=all对应的指标。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
