@@ -120,8 +120,8 @@ function eval_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --obj_thresh=0.001 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --obj_thresh=0.001 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
+  ./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
   echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
   echo "python3 ../../tools/eval_coco.py --label_json ../../datasets/coco/instances_val2017.json --result_json results/$3_val2017_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log"
   echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
