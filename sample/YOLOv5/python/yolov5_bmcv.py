@@ -254,6 +254,7 @@ def main(opt):
                 if os.path.splitext(filename)[-1].lower() not in ['.jpg','.png','.jpeg','.bmp','.webp']:
                     continue
                 img_file = os.path.join(root, filename)
+                cn += 1
                 logging.info("{}, img_file: {}".format(cn, img_file))
                 # decode
                 start_time = time.time()
@@ -274,7 +275,6 @@ def main(opt):
                     
                     for i, filename in enumerate(filename_list):
                         det = results[i]
-                        cn += 1
                         # save image
                         img_bgr_planar = yolov5.bmcv.convert_format(bmimg_list[i])
                         draw_bmcv(yolov5.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
@@ -299,7 +299,6 @@ def main(opt):
             results = yolov5(bmimg_list)
             for i, filename in enumerate(filename_list):
                 det = results[i]
-                cn += 1
                 img_bgr_planar = yolov5.bmcv.convert_format(bmimg_list[i])
                 draw_bmcv(yolov5.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
                 yolov5.bmcv.imwrite(os.path.join(output_img_dir, filename), img_bgr_planar)
