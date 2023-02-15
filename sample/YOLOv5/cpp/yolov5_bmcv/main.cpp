@@ -24,7 +24,6 @@ int main(int argc, char *argv[]){
   const char *keys="{bmodel | ../../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel | bmodel file path}"
     "{dev_id | 0 | TPU device id}"
     "{conf_thresh | 0.5 | confidence threshold for filter boxes}"
-    "{obj_thresh | 0.5 | object score threshold for filter boxes}"
     "{nms_thresh | 0.5 | iou threshold for nms}"
     "{help | 0 | print help information.}"
     "{input | ../../datasets/test | input path, images direction or video file path}"
@@ -66,7 +65,7 @@ int main(int argc, char *argv[]){
   YoloV5 yolov5(bm_ctx);
   CV_Assert(0 == yolov5.Init(
         parser.get<float>("conf_thresh"),
-        parser.get<float>("obj_thresh"),
+        0.001, //obj_thresh
         parser.get<float>("nms_thresh"),
         coco_names));
 
