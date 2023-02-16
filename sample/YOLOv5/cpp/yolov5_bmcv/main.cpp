@@ -65,7 +65,6 @@ int main(int argc, char *argv[]){
   YoloV5 yolov5(bm_ctx);
   CV_Assert(0 == yolov5.Init(
         parser.get<float>("conf_thresh"),
-        0.001, //obj_thresh
         parser.get<float>("nms_thresh"),
         coco_names));
 
@@ -134,7 +133,7 @@ int main(int argc, char *argv[]){
             cout << "  class id=" << bbox.class_id << ", score = " << bbox.score << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")" << endl;
 #endif
             // draw image
-            yolov5.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i]);
+              yolov5.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i]);
 
             // save result
             json bbox_json;

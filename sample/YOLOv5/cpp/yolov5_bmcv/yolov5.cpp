@@ -34,10 +34,9 @@ YoloV5::~YoloV5() {
   }
 }
 
-int YoloV5::Init(float confThresh, float objThresh, float nmsThresh, const std::string& coco_names_file)
+int YoloV5::Init(float confThresh, float nmsThresh, const std::string& coco_names_file)
 {
   m_confThreshold= confThresh;
-  m_objThreshold = objThresh;
   m_nmsThreshold = nmsThresh;
   std::ifstream ifs(coco_names_file);
   if (ifs.is_open()) {
@@ -319,7 +318,7 @@ int YoloV5::post_process(const std::vector<bm_image> &images, std::vector<YoloV5
             dst[3] = pow((sigmoid(ptr[3]) * 2), 2) * anchors[tidx][anchor_idx][1];
             dst[4] = sigmoid(ptr[4]);
             float score = dst[4];
-            if (score > m_objThreshold) {
+            if (score > m_confThreshold) {
               for(int d=5; d<nout; d++){
                 dst[d] = sigmoid(ptr[d]);
               }
@@ -346,10 +345,8 @@ int YoloV5::post_process(const std::vector<bm_image> &images, std::vector<YoloV5
       float score = ptr[4];
       int class_id = argmax(&ptr[5], m_class_num);
       float confidence = ptr[class_id + 5];
-      if (confidence * score > m_objThreshold)
+      if (confidence * score > m_confThreshold)
       {
-        if (confidence >= m_confThreshold)
-        {
           float centerX = (ptr[0]+1 - tx1)/ratio - 1;
           float centerY = (ptr[1]+1 - ty1)/ratio - 1;
           float width = (ptr[2]+0.5) / ratio;
@@ -365,7 +362,6 @@ int YoloV5::post_process(const std::vector<bm_image> &images, std::vector<YoloV5
           box.class_id = class_id;
           box.score = confidence * score;
           yolobox_vec.push_back(box);
-        }
       }
     }
     LOG_TS(m_ts, "post 2: filter boxes");
