@@ -56,9 +56,9 @@ void C3D::Init(){
     m_net_h = m_input_tensor->get_shape()->dims[3];
     m_net_w = m_input_tensor->get_shape()->dims[4];
     std::vector<float> mean_values;
-    mean_values.push_back(104.0);//ImageNet channel B std
-    mean_values.push_back(117.0);//ImageNet channel G std
-    mean_values.push_back(123.0);//ImageNet channel R std
+    mean_values.push_back(104.0);//ImageNet channel B mean
+    mean_values.push_back(117.0);//ImageNet channel G mean
+    mean_values.push_back(123.0);//ImageNet channel R mean
     setMean(mean_values);
 }
 
@@ -68,17 +68,31 @@ int C3D::batch_size(){
 
 int C3D::detect(const std::vector<std::string> &batch_videos, std::vector<int> &preds){
     int ret = 0;
+    
+    std::vector<cv::Mat> m_decoded_input;
+    m_decoded_input.resize(max_batch * m_clip_len);
+    //0. Decode videos and get frame list.
+    m_ts->save("C3D decode_time");
+    for(int i = 0; i < max_batch; i++){
+        if(i < batch_videos.size())
+            decode_video(batch_videos[i], m_decoded_input, i);
+        else{
+            decode_video(batch_videos[0], m_decoded_input, i); //useless data
+        }
+    }
+    m_ts->save("C3D decode_time");
+
     //1. Preprocess, convert raw images to format which fits C3D network.
-    m_ts->save("C3D preprocess");
-    ret = pre_process(batch_videos);
-    m_ts->save("C3D preprocess");
+    m_ts->save("C3D preprocess_time");
+    ret = pre_process(m_decoded_input);
+    m_ts->save("C3D preprocess_time");
 
     CV_Assert(ret == 0);
     //2. Run C3D inference.
-    m_ts->save("C3D inference");
+    m_ts->save("C3D infer_time");
     ret = m_bmNetwork->forward();
     CV_Assert(ret == 0);
-    m_ts->save("C3D inference");
+    m_ts->save("C3D infer_time");
     
     std::shared_ptr<BMNNTensor> outputTensor = m_bmNetwork->outputTensor(0);
     auto output_shape = outputTensor->get_shape();
@@ -91,11 +105,13 @@ int C3D::detect(const std::vector<std::string> &batch_videos, std::vector<int> &
     assert(m_bmNetwork->outputTensorNum() == 1); 
     int class_num = output_shape->dims[1];
     auto output_data = outputTensor->get_cpu_data();
+    m_ts->save("C3D postprocess_time");
     for(int i = 0; i < batch_videos.size(); i++){
         auto max_index = argmax(output_data + i * class_num, 
                                 output_data + (i + 1) * class_num);
         preds.push_back(max_index);
     }
+    m_ts->save("C3D postprocess_time");
     return 0;
 }
 
@@ -131,6 +147,49 @@ void C3D::setMean(std::vector<float> &values) {
     cv::merge(channels_, m_mean);
 }
 
+void C3D::decode_video(const std::string video_path, std::vector<cv::Mat> &decoded_frames, int video_id){
+    int channel_base = video_id * m_clip_len;
+    auto handle = m_bmContext->handle();
+
+    cv::VideoCapture cap(video_path, cv::CAP_ANY, m_dev_id);
+    if(!cap.isOpened()){
+        std::cout << "open video stream failed!" << std::endl;
+        exit(1);
+    }
+    int w = int(cap.get(cv::CAP_PROP_FRAME_WIDTH));
+    int h = int(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
+    int frame_num = cap.get(cv::CAP_PROP_FRAME_COUNT);
+#if DEBUG
+    std::cout << "Frame num: " << frame_num << std::endl;
+    std::cout << "resolution of input stream: " << h << ", " << w << std::endl;
+#endif
+    int frame_count = 0;
+
+    for(int i = 0; i < frame_num; i++){
+        cv::Mat img(h, w, CV_8UC3, cv::SophonDevice(m_dev_id));
+        cap.read(img);
+        if(img.empty()) continue;
+        if(frame_count >= m_clip_len)
+            break;
+        if(i % m_step != 0)
+            continue;
+        decoded_frames[channel_base + frame_count]=img;
+        frame_count++;
+    }
+    while(frame_count < m_clip_len){
+        decoded_frames[channel_base + frame_count - 1].copyTo(decoded_frames[channel_base + frame_count]);
+        frame_count++;
+    }
+}
+
+void print_array(float array[], int i0, int i1, int i2, int i3){
+    for(int i = 0; i < 112; i++){
+        std::cout<<array[i3*112 + i2 * 112 * 112 + 
+                        i1 * 16 * 112 * 112 + i0 * 3 * 16 * 112 * 112 + i]<<" ";
+    }
+    std::cout<<std::endl;
+}
+
 void C3D::wrapInputLayer(std::vector<cv::Mat>* input_channels, int batch_id) {
     int h = m_net_h;
     int w = m_net_w;
@@ -155,87 +214,40 @@ void C3D::wrapInputLayer(std::vector<cv::Mat>* input_channels, int batch_id) {
     }
 }
 
-void C3D::pre_process_video(const std::string video_path, std::vector<cv::Mat> &input_channels){
-    cv::VideoCapture cap(video_path, cv::CAP_ANY, m_dev_id);
-    if(!cap.isOpened()){
-        std::cout << "open video stream failed!" << std::endl;
-        exit(1);
-    }
-    int w = int(cap.get(cv::CAP_PROP_FRAME_WIDTH));
-    int h = int(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
-    int frame_num = cap.get(cv::CAP_PROP_FRAME_COUNT);
-    // std::cout << "Video frame num: " << frame_num << std::endl;
-    /* Convert the input frame to the format of the network. */
-    int frame_count = 0;
-    cv::Mat tmp_channels[m_num_channels / m_clip_len];
-    for(int i = 0; i < frame_num; i++){
-        cv::Mat sample(h, w, CV_8UC3, cv::SophonDevice(m_dev_id));
-        cap.read(sample);
-        if(frame_count >= m_clip_len)
-            break;
-        if(i % m_step != 0)
-            continue;
-        /*FOR DEBUG:
-        // if(frame_count==10){
-        //     cv::imwrite("tmp.jpg", sample);
-        //     std::cout<<"frame_id: "<<i<<std::endl;
-        //     std::cout << cv::format(sample(cv::Rect(0, 0, 112, 1)), cv::Formatter::FMT_DEFAULT) << std::endl;
-        //     exit(1);
-        // }
-        */       
-        cv::Mat sample_resized(171, 128, CV_8UC3, cv::SophonDevice(m_dev_id));//resize output default CV_8UC3;
-        cv::resize(sample, sample_resized, cv::Size(171, 128)); //171 128, preprocess of UCF101.        
-        cv::Mat sample_croped = sample_resized(cv::Rect(30, 8, m_net_w, m_net_h));
-        cv::Mat sample_float(m_net_h, m_net_w, CV_32FC3, cv::SophonDevice(m_dev_id));
-        sample_croped.convertTo(sample_float, CV_32FC3);
-        cv::Mat sample_normalized(m_net_h, m_net_w, CV_32FC3, cv::SophonDevice(m_dev_id));
-        cv::subtract(sample_float, m_mean, sample_normalized);
-        
-        /*note: int8 in convert need mul input_scale*/
-        if (m_input_tensor->get_dtype() == BM_INT8) {
-            cv::Mat sample_int8(m_net_h, m_net_w, CV_8UC3, cv::SophonDevice(m_dev_id));
-            sample_normalized.convertTo(sample_int8, CV_8SC1, m_input_tensor->get_scale()); 
-            cv::split(sample_int8, tmp_channels);
-        } else {
-            cv::split(sample_normalized, tmp_channels);
-        }
-        // std::cout << cv::format(tmp_channels[0](cv::Rect(0, 0, 112, 1)), cv::Formatter::FMT_DEFAULT) << std::endl;
-        for(int j = 0; j < m_num_channels / m_clip_len; j++){
-            tmp_channels[j].copyTo(input_channels[frame_count + j * m_clip_len]);
-            // input_channels + frame_count + j * m_clip_len = &tmp_channels[j];
-        }
-        frame_count++;
-    }
-    while(frame_count < m_clip_len){
-        for(int j = 0; j < m_num_channels / m_clip_len; j++){
-            tmp_channels[j].copyTo(input_channels[frame_count + j * m_clip_len]);
-            // input_channels + frame_count + j * m_clip_len = &tmp_channels[j];
-        }
-        frame_count++;
-    }
-}
-void print_array(float array[], int i0, int i1, int i2, int i3){
-    for(int i = 0; i < 112; i++){
-        std::cout<<array[i3*112 + i2 * 112 * 112 + 
-                        i1 * 16 * 112 * 112 + i0 * 3 * 16 * 112 * 112 + i]<<" ";
-    }
-    std::cout<<std::endl;
-}
-int C3D::pre_process(const std::vector<std::string> &batch_videos){
+int C3D::pre_process(const std::vector<cv::Mat> &decoded_frames){
     //Safety check.
-    assert(batch_videos.size() <= max_batch);
+    /* Convert the input frame to the format of the network. */   
     
     //1. Preprocess input videos in host memory.
     int ret = 0;
-    for(int i = 0; i < max_batch; i++){
+    for(int batch_id = 0; batch_id < max_batch; batch_id++){
         std::vector<cv::Mat> input_channels;
-        wrapInputLayer(&input_channels, i);
-        if(i < batch_videos.size())
-            pre_process_video(batch_videos[i], input_channels);
-        else{
-            pre_process_video(batch_videos[0], input_channels); //useless data
+        wrapInputLayer(&input_channels, batch_id);
+        cv::Mat tmp_channels[m_num_channels / m_clip_len];
+        int channel_base = batch_id * m_clip_len;
+        for(int i = channel_base; i < channel_base + m_clip_len; i++){
+            cv::Mat sample_resized(171, 128, CV_8UC3, cv::SophonDevice(m_dev_id));//resize output default CV_8UC3;
+            cv::resize(decoded_frames[i], sample_resized, cv::Size(171, 128)); //171 128, preprocess of UCF101.        
+            cv::Mat sample_croped = sample_resized(cv::Rect(30, 8, m_net_w, m_net_h));
+            cv::Mat sample_float(m_net_h, m_net_w, CV_32FC3, cv::SophonDevice(m_dev_id));
+            sample_croped.convertTo(sample_float, CV_32FC3);
+            cv::Mat sample_normalized(m_net_h, m_net_w, CV_32FC3, cv::SophonDevice(m_dev_id));
+            cv::subtract(sample_float, m_mean, sample_normalized);
+            /*note: int8 in convert need mul input_scale*/
+            if (m_input_tensor->get_dtype() == BM_INT8) {
+                cv::Mat sample_int8(m_net_h, m_net_w, CV_8UC3, cv::SophonDevice(m_dev_id));
+                sample_normalized.convertTo(sample_int8, CV_8SC1, m_input_tensor->get_scale()); 
+                cv::split(sample_int8, tmp_channels);
+            } else {
+                cv::split(sample_normalized, tmp_channels);
+            }
+            for(int j = 0; j < m_num_channels / m_clip_len; j++){
+                tmp_channels[j].copyTo(input_channels[i + j * m_clip_len - channel_base]);
+            }
         }
     }
+    
+
     //2. Attach to input tensor.
     bm_tensor_t input_tensor;
     bmrt_tensor(&input_tensor, 
@@ -249,8 +261,5 @@ int C3D::pre_process(const std::vector<std::string> &batch_videos){
     }
     m_input_tensor->set_device_mem(&input_tensor.device_mem);
     bm_free_device(m_bmContext->handle(), input_tensor.device_mem);
-
-    // print_array(m_input_f32, 0, 0, 2, 0);
-
     return 0;
 }

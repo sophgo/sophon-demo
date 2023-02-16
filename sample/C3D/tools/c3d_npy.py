@@ -13,7 +13,6 @@ import argparse
 import json
 import math
 import cv2
-from ufwio.io import *
 from logging import raiseExceptions
 
 def center_crop(frame):
@@ -25,7 +24,6 @@ def inference(input_path):
     max_video_length = 300
     step = 5
     input_shape = [1,3,16,112,112]
-    lmdb = LMDB_Dataset("../datasets/cali_set_lmdb")
 
     if os.path.isdir(input_path):
         input_directory = os.listdir(input_path)
@@ -34,7 +32,7 @@ def inference(input_path):
         print("class: ", input_directory[class_idx])
         class_path = os.path.join(input_path, input_directory[class_idx])
         video_path_list = os.listdir(class_path)
-        for video_idx in range(0, int(len(video_path_list))):
+        for video_idx in range(0, int(len(video_path_list)/2)):
             print("reading: ", os.path.join(class_path, video_path_list[video_idx]))
             cap = cv2.VideoCapture(os.path.join(class_path, video_path_list[video_idx]))
             frame_id = 0 
@@ -55,17 +53,19 @@ def inference(input_path):
                 input_numpy_array.append(input_numpy_array[-1])
             input_numpy_array = np.array(input_numpy_array).astype(np.float32)
             input_numpy_array = np.expand_dims(input_numpy_array, axis=0)
-            input_numpy_array = np.transpose(input_numpy_array, (0, 4, 1, 2, 3))
-            lmdb.put(np.ascontiguousarray(input_numpy_array, dtype=np.float32))
+            input_numpy_array = np.transpose(input_numpy_array, (0, 4, 1, 2, 3)) # 1,3,16,112,112
+            input_dict = {"input":input_numpy_array}
+            np.save("../datasets/cali_set_npy/c3d_cali_"+str(count),input_numpy_array)
             count+=1
+    
     print(count)
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser()
     PARSER.add_argument('--input_path', default='../datasets/UCF_test_01', required=False)
     if not os.path.exists("../datasets"):
         os.mkdir("../datasets")
-    if not os.path.exists("../datasets/cali_set_lmdb"):
-        os.mkdir("../datasets/cali_set_lmdb")
+    if not os.path.exists("../datasets/cali_set_npy"):
+        os.mkdir("../datasets/cali_set_npy")
     ARGS = PARSER.parse_args()
     if not (os.path.isdir(ARGS.input_path)):
         raise Exception('{} is not a valid input.'.format(ARGS.input_path))

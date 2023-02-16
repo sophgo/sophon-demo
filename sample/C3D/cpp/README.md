@@ -1,121 +1,96 @@
+<font size=5>C++例程</font>
 
-# C++例程
-cpp目录下提供了一系列C++例程以供参考使用，具体情况如下：
+<font size=4> 目录</font>
+- [1. 环境准备](#1-环境准备)
+  - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+  - [1.2 SoC平台](#12-soc平台)
+- [2. 程序编译](#2-程序编译)
+  - [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
+  - [2.2 SoC平台](#22-soc平台)
+- [3. 推理测试](#3-推理测试)
+  - [3.1 参数说明](#31-参数说明)
+  - [3.2 测试视频理解数据集](#32-测试视频理解数据集)
+
+cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
 | ---- | ------------- | -----------------------------------  |
-| 1    | c3d_opencv | 使用OpenCV解码、OpenCV前处理、BMRT推理 |
+| 1    | c3d_bmcv   | 使用OpenCV解码、BMCV前处理、BMRT推理   |
+| 2    | c3d_opencv   | 使用OpenCV解码、OpenCV前处理、BMRT推理   |
+
+## 1. 环境准备
+### 1.1 x86/arm PCIe平台
+如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+
+### 1.2 SoC平台
+如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
 
 
-## 1. x86/arm PCIe 平台
+## 2. 程序编译
+C++程序运行前需要编译可执行文件，下面以c3d_bmcv为例子，c3d_opencv编译方法相同。
+### 2.1 x86/arm PCIe平台
+可以直接在PCIe平台上编译程序：
 
-### 1.1 环境准备
-
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)和sophon-ffmpeg(>=0.2.4),具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
-
-### 1.2 程序编译
-C++程序需要编译可执行文件，以编译c3d_opencv程序为例：
 ```bash
-cd c3d_opencv
+cd cpp/c3d_bmcv
 mkdir build && cd build
-cmake .. && make
+cmake .. 
+make
+cd ..
 ```
+编译完成后，会在c3d_bmcv目录下生成c3d_bmcv.pcie。
 
-### 1.3 测试命令
+### 2.2 SoC平台
+通常在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
-编译完成后，会生成c3d_opencv.pcie，具体参数说明如下：
+交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件：
 
 ```bash
-usage:./c3d_opencv.pcie <dataset path> <bmodel path> <device id(default: 0)>
-```
-
-测试实例如下：
-
-```bash
-./c3d_opencv.pcie ../../../data/UCF_test_01 ../../../data/models/BM1684X/c3d_fp32_1b.bmodel 0
-```
-
-可通过改变模型进行b4推理。
-
-执行完成后，会打印推理时间、准确率等信息。
-
-```bash
-========================================
-acc now: 0.715356
-========================================
-
-############################
-SUMMARY: C3D detect
-############################
-[         C3D overall]  loops:    1 avg: 614241420 us
-[      C3D preprocess]  loops:  100 avg: 89400 us
-[       C3D inference]  loops:  100 avg: 75612 us 
-```
-
-## 2. arm SoC平台
-### 2.1 环境准备
-对于arm SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下。
-### 2.2 交叉编译
-通常在x86主机上交叉编译程序，使之能够在arm SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
-
-交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件，以编译c3d_opencv程序为例：
-```bash
-cd c3d_opencv
+cd cpp/c3d_bmcv
 mkdir build && cd build
 #请根据实际情况修改-DSDK的路径，需使用绝对路径。
-cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk ..
-make # 生成c3d_opencv.soc
+cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk ..  
+make
 ```
+编译完成后，会在c3d_bmcv目录下生成c3d_bmcv.soc。
 
-### 2.3 测试命令
-将生成的可执行文件及所需的模型和测试图片拷贝到SoC目标平台中测试，测试方法请参考x86 PCIe平台的[1.3 测试命令](#13-测试命令)。
+## 3. 推理测试
+对于PCIe平台，可以直接在PCIe平台上推理测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据拷贝到SoC平台中测试。c3d_bmcv、c3d_opencv例程的测试参数及运行方式是一致的，下面主要以PCIe 模式、c3d_bmcv例程进行介绍。
 
-## 3. 精度与性能测试结果
-
-经本地编译测试，**使用与本例程同样的预处理方法**，[MMAction C3D](https://mmaction2.readthedocs.io/zh_CN/latest/recognition_models.html#ucf-101)中提供的pytorch模型在本地UCF101测试集上的top-1 acc为71.5356。
-
-结果打印信息如下，在其中可以获取到acc、infer_time等信息。
+### 3.1 参数说明
+可执行程序默认有一套参数，请注意根据实际情况进行传参，具体参数说明如下：
 ```bash
-========================================
-acc now: 0.715356 #acc
-========================================
+Usage: c3d_bmcv.pcie [params] 
+
+        --bmodel (value:../../models/BM1684X/c3d_fp32_1b.bmodel)
+                bmodel file path
+        --dev_id (value:0)
+                TPU device id
+        --help (value:true)
+                print help information.
+        --input (value:../../datasets/UCF_test_01)
+                input path, UCF-101 style video directory
+        --classnames (value:../../datasets/ucf_names.txt)
+                UCF-101 class names
+```
+**注意：** CPP传参与python不同，需要用等于号，例如`./c3d_bmcv.pcie --bmodel=xxx`。
+
+### 3.2 测试视频理解数据集
+测试实例如下，对UCF101视频数据集的一个子集进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，均支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+```bash
+./c3d_bmcv.pcie --bmodel=../../models/BM1684X/c3d_fp32_1b.bmodel --input=../../datasets/UCF_test_01 --dev_id=0
+```
+测试结束后，同时会打印预测结果、推理时间等信息。
+```
+================
+result saved in results/c3d_fp16_1b.bmodel_bmcv_cpp.json
 
 ############################
 SUMMARY: C3D detect
 ############################
-[         C3D overall]  loops:    1 avg: 614241420 us
-[      C3D preprocess]  loops:  100 avg: 89400 us
-[       C3D inference]  loops:  100 avg: 75612 us #infer_time 
+[     C3D decode_time]  loops:  100 avg: 76547 us
+[ C3D preprocess_time]  loops:  100 avg: 2296 us
+[    C3D realloc_time]  loops:  100 avg: 979 us
+[       C3D inference]  loops:  100 avg: 11615 us
+[C3D postprocess_time]  loops:  100 avg: 14 us
+C3D delete bm_context
 ```
-
-
-在BM1684X上，不同例程、不同模型的精度和性能测试结果如下：
-
-|   例程      | 精度 |batch_size|  acc  |infer_time|
-|   -------- | ---- | ------- | ----- |-----    |
-| c3d_opencv.pcie  | fp32 |   1    | 71.54% |75.6ms   |
-| c3d_opencv.pcie   | fp32 |   4    | 71.54% |281.4ms |
-| c3d_opencv.pcie   | int8 |   1    | 71.54% |10.1ms   |
-| c3d_opencv.pcie   | int8 |   4    | 71.54% |28.0ms |
-| c3d_opencv.soc  | fp32 |   1    | 71.54% |75.5ms   |
-| c3d_opencv.soc   | fp32 |   4    | 71.54% |281.3ms |
-| c3d_opencv.soc   | int8 |   1    | 71.54% |10.2ms   |
-| c3d_opencv.soc   | int8 |   4    | 71.54% |28.0ms |
-
-在BM1684上，不同例程、不同模型的精度和性能测试结果如下：
-
-|   例程      | 精度 |batch_size|  acc  |infer_time|
-|   -------- | ---- | ------- | ----- |-----    |
-| c3d_opencv.pcie   | fp32 |   1    | 71.54% | 55.4ms   |
-| c3d_opencv.pcie   | fp32 |   4    | 71.54% | 186.7ms |
-| c3d_opencv.pcie   | int8 |   1    | 69.10% | 42.8ms   |
-| c3d_opencv.pcie   | int8 |   4    | 69.10% | 69.2ms |
-| c3d_opencv.soc  | fp32 |   1    | 71.54% |55.3ms   |
-| c3d_opencv.soc   | fp32 |   4    | 71.54% |186.5ms |
-| c3d_opencv.soc   | int8 |   1    | 69.48% |42.7ms   |
-| c3d_opencv.soc   | int8 |   4    | 69.48% |69.0ms |
-
-**注:**
-
-1.相同版本驱动下，同一例程、同一模型在soc与pcie上的infer_time误差不超过20%。
-
-2.由于视频解码差异，同一例程、同一模型在soc与pcie上的acc可能会有误差，一般不超过1%。

@@ -156,7 +156,7 @@ int main(int argc, char **argv){
     }
     size_t index = bmodel_file.rfind("/");
     std::string model_name = bmodel_file.substr(index + 1);
-    std::string json_file = "results/" + model_name + "_opencv_cpp.json";        
+    std::string json_file = "results/" + model_name + "_bmcv_cpp.json";        
     std::cout << "================" << std::endl;
     std::cout << "result saved in " << json_file << std::endl;
     std::ofstream(json_file) << std::setw(4) << results_json;

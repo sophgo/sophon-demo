@@ -1,14 +1,14 @@
 #!/bin/bash
-script_dir=$(dirname $(readlink -f "$0"))
+model_dir=$(dirname $(readlink -f "$0"))
 
 if [ ! $1 ]; then
-    target="BM1684X"
+    target="BM1684"
 else
     target=$1
 fi
 
-outdir=../data/models/$target
-cali_data_path=../data/c3d_lmdb/
+outdir=../models/$target
+cali_data_path=../datasets/cali_set_lmdb/
 
 
 function gen_int8bmodel()
@@ -16,7 +16,7 @@ function gen_int8bmodel()
 
     python3 -m ufw.cali.cali_model \
         --net_name 'c3d' \
-        --model ../data/models/c3d_ucf101.pt \
+        --model ../models/torch/c3d_ucf101.pt \
         --test_iterations 1 \
         --cali_lmdb ${cali_data_path} \
         --input_shapes [1,3,16,112,112] \
@@ -33,8 +33,8 @@ function gen_int8bmodel()
 
 function gen_int8bmodel_b4()
 {
-    bmnetu -model ../data/models/c3d_bmnetp_deploy_int8_unique_top.prototxt \
-       -weight ../data/models/c3d_bmnetp.int8umodel \
+    bmnetu -model ../models/torch/c3d_bmnetp_deploy_int8_unique_top.prototxt \
+       -weight ../models/torch/c3d_bmnetp.int8umodel \
        -max_n 4 \
        -prec=INT8 \
        -dyn=0 \
@@ -48,7 +48,16 @@ function gen_int8bmodel_b4()
     fi
 }
 
-pushd $script_dir
+pushd $model_dir
+if [ ! -d "$outdir" ]; then
+    echo $pwd
+    mkdir $outdir
+fi
+
+cd ../tools/
+python3 c3d_lmdb.py
+cd ../scripts
+
 # b1
 gen_int8bmodel
 # b4

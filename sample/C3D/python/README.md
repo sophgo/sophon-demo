@@ -1,85 +1,60 @@
+<font size=5>Python例程</font>
 
-## C3D Python例程
+<font size=4> 目录</font>
+- [1. 环境准备](#1-环境准备)
+  - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+  - [1.2 SoC平台](#12-soc平台)
+- [2. 推理测试](#2-推理测试)
+  - [2.1 参数说明](#21-参数说明)
+  - [2.2 测试视频理解数据集](#22-测试视频理解数据集)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
-| 序号   | Python例程      | 说明                                |
+| 序号 |  Python例程      | 说明                                |
 | ---- | ---------------- | -----------------------------------  |
-| 1    | c3d_opencv.py | 使用OPENCV解码、OPENCV前处理、SAIL推理 |
+| 1    | c3d_opencv.py | 使用OpenCV解码、OpenCV前处理、SAIL推理 |
 
-## 1. x86/arm PCIe平台
-### 1.1 环境准备
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)、sophon-ffmpeg(>=0.2.4)和sophon-sail(>=3.1.0),具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+## 1. 环境准备
+### 1.1 x86/arm PCIe平台
+
+如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+
 此外您可能还需要安装其他第三方库：
-```
-pip3 install -r requirements.txt
-```
-### 1.2 测试命令
-python例程不需要编译，可以直接运行。参数说明如下:
-```shell
-# --bmodel: bmodel path.
-# --input_path:  input dataset path.
-# --tpu_id: device id.
-```
-测试实例如下：
-```
-python3 c3d_opencv.py --bmodel ../data/models/BM1684X/c3d_fp32_1b.bmodel --input_path ../data/UCF_test_01
-```
-执行完成后，打印结果信息如下：
-```
-total_time(ms): 501262.83, frame_num: 58820
-avg_infer_time(ms): 79.69
-ACC:  0.7153558052434457
-```
-
-## 2. arm SoC平台
-### 2.1 环境准备
-如果您使用SoC平台测试本例程，您需要交叉编译安装sophon-sail(>=3.1.0)，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
-此外您可能还需要安装其他第三方库：
-```
-pip3 install -r requirements.txt
-```
-### 2.2 测试命令
-SoC平台的测试方法与x86 PCIe平台相同，请参考[1.2 测试命令](#12-测试命令)。
-
-## 3. 精度与性能测试结果
-
-经本地编译测试，**使用与本例程同样的预处理方法**，[MMAction C3D](https://mmaction2.readthedocs.io/zh_CN/latest/recognition_models.html#ucf-101)中提供的pytorch模型在本地UCF101测试集上的top-1 acc为71.5356。
-
-结果打印信息如下，在其中可以获取到acc等信息。
 ```bash
-total_time(ms): 501262.83, frame_num: 58820
-avg_infer_time(ms): 79.69 
-ACC:  0.7153558052434457 #acc
+pip3 install 'opencv-python-headless<4.3'
 ```
 
-在BM1684X 上，不同例程、不同模型的精度和性能测试结果如下：
+### 1.2 SoC平台
 
-|   例程      | 精度 |batch_size|  acc  |infer_time|
-|   -------- | ---- | ------- | ----- |-----    |
-| c3d_opencv.py(pcie)   | fp32 |   1    | 71.54% |79.7ms   |
-| c3d_opencv.py(pcie)   | fp32 |   4    | 71.54% |296.5ms |
-| c3d_opencv.py(pcie)   | int8 |   1    | 71.54% |13.9ms   |
-| c3d_opencv.py(pcie)   | int8 |   4    | 71.54% |42.0ms |
-| c3d_opencv.py(soc)   | fp32 |   1    | 71.54% |79.7ms   |
-| c3d_opencv.py(soc)   | fp32 |   4    | 71.54% |296.5ms |
-| c3d_opencv.py(soc)   | int8 |   1    | 71.54% |13.9ms   |
-| c3d_opencv.py(soc)   | int8 |   4    | 71.54% |42.0ms |
+如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。您还需要交叉编译安装sophon-sail，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
 
-在BM1684 PCIE上，不同例程、不同模型的精度和性能测试结果如下：
+此外您可能还需要安装其他第三方库：
+```bash
+pip3 install 'opencv-python-headless<4.3'
+```
 
-|   例程      | 精度 |batch_size|  acc  |infer_time|
-|   -------- | ---- | ------- | ----- |-----    |
-| c3d_opencv.py(pcie)   | fp32 |   1    | 71.54% | 57.0ms   |
-| c3d_opencv.py(pcie)   | fp32 |   4    | 71.54% | 191.7ms |
-| c3d_opencv.py(pcie)   | int8 |   1    | 69.10% | 44.4ms   |
-| c3d_opencv.py(pcie)   | int8 |   4    | 69.10% | 74.2ms |
-| c3d_opencv.py(soc)   | fp32 |   1    | 71.54% |55.9ms   |
-| c3d_opencv.py(soc)   | fp32 |   4    | 71.54% |187.8ms |
-| c3d_opencv.py(soc)   | int8 |   1    | 69.48% |43.3ms   |
-| c3d_opencv.py(soc)   | int8 |   4    | 69.48% |70.3ms |
-**注:**
+## 2. 推理测试
+python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
+### 2.1 参数说明
+```bash
+usage: c3d_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
+--input: 测试数据路径，格式：文件夹/类别（二级目录）/视频；
+--bmodel: 用于推理的bmodel路径，默认使用stage 0的网络进行推理；
+--dev_id: 用于推理的tpu设备id；
+--classnames: 数据集类别文件。
+```
+### 2.2 测试视频理解数据集
+测试实例如下，对UCF101视频数据集的一个子集进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+```bash
+python3 python/c3d_opencv.py --input datasets/UCF_test_01 --bmodel models/BM1684X/c3d_fp32_1b.bmodel --dev_id 0
+```
+测试结束后，会打印预测结果、推理时间等信息，并将预测结果保存在`./results/c3d_fp32_1b.bmodel_opencv_python.json`中。
 
-1.相同版本驱动下，同一例程、同一模型在soc与pcie上的infer_time误差不超过20%。
-
-2.由于视频解码差异，同一例程、同一模型在soc与pcie上的acc可能会有误差，一般不超过1%。
+```
+INFO:root:result saved in ./results/c3d_fp32_1b.bmodel_opencv_python.json
+INFO:root:decode_time(ms): 67.19
+INFO:root:preprocess_time(ms): 31.01
+INFO:root:inference_time(ms): 88.76
+INFO:root:postprocess_time(ms): 0.10
+all done.
+```

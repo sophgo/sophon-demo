@@ -21,6 +21,7 @@
 #include "bm_wrapper.hpp"
 #include "utils.hpp"
 #include "bmnn_utils.h"
+#include "ff_decode.hpp"
 #define BUFFER_SIZE (1024 * 500)
 #define DEBUG 0
 
@@ -29,13 +30,20 @@ class C3D {
     std::shared_ptr<BMNNNetwork> m_bmNetwork;
     std::shared_ptr<BMNNTensor>  m_input_tensor;
     std::shared_ptr<BMNNTensor>  m_output_tensor;
+    std::vector<bm_image> m_decoded_input;
+    std::vector<bm_image> m_resized_input;
+    std::vector<bm_image> m_croped_input;
+    std::vector<bm_image> m_converto_input;
     int m_step;
     int m_net_h, m_net_w;
     int m_clip_len;
     int m_num_channels;
     int max_batch;
     int m_dev_id;
+    int ret;
     TimeStamp *m_ts;
+    bmcv_convert_to_attr m_converto_attr;
+
     public:
         C3D(std::shared_ptr<BMNNContext> context, int step_len, int dev_id);
         ~C3D();
@@ -44,15 +52,6 @@ class C3D {
         int detect(const std::vector<std::string> &video_paths, std::vector<int> &preds);    
         void enableProfile(TimeStamp *ts);            
     private:
-        float *m_input_f32;
-        int8_t *m_input_int8;
-        float *m_output_f32;
-        int8_t *m_output_int8;
-        cv::Mat m_mean;
-        int m_input_count;
-        int pre_process(const std::vector<cv::Mat> &decoded_frames);
-        void setMean(std::vector<float> &values);
-        void wrapInputLayer(std::vector<cv::Mat>* input_channels, int batch_id);
-        void pre_process_video(const std::string video_path, std::vector<cv::Mat> &input_channels);
-        void decode_video(const std::string video_path, std::vector<cv::Mat> &decoded_frames, int video_id);
+        int pre_process(const std::vector<bm_image> &decoded_frames);
+        void decode_video(const std::string video_path, std::vector<bm_image> &decoded_frames, int video_id);
 };
