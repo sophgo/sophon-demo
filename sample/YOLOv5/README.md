@@ -174,7 +174,8 @@ python3 tools/eval_coco.py --label_json datasets/coco/instances_val2017.json --r
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
 2. SoC和PCIe的模型精度一致；
-3. AP@IoU=0.5:0.95为area=all对应的指标。
+3. AP@IoU=0.5:0.95为area=all对应的指标；
+4. 该测试需要系统内存约3.2G，BM1684 SoC模式可以将json文件拷贝至其他平台测试。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
