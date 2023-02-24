@@ -23,6 +23,17 @@
 部分开源仓库提供了模型导出的脚本，如果没有则需要参考[相关文档](./torch.jit.trace_Guide.md)或者[Pytorch官方文档](https://pytorch.org/docs/stable/jit.html)编写jit.trace脚本。jit.trace通常是在模型开发(torch)环境中进行，不需要安装SophonSDK。
 - YOLOv5模型jit.trace的方法可参考[相关文档](../sample/YOLOv5/docs/YOLOv5_Export_Guide.md)
 
+### 2.2 ONNX模型导出过程使用的算子集
+如果pytorch版本过低，可能无法支持高版本ONNX算子集，导致ONNX输出失败。
+需要根据当前环境使用pytorch版本，设置支持的ONNX算子集版本。以设置使用ONNX算子集版本13为例，设置方式如下：
+```python
+torch.onnx.export(
+    ...
+    opset_version=13,
+    ...
+)
+```
+
 ## 3 模型编译和量化相关问题
 ### 3.1 使用TPU-NNTC量化的相关问题
 详见[相关文档](./Calibration_Guide.md)。
