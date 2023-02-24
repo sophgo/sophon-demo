@@ -4,11 +4,11 @@ Sophon Demo，欢迎各位开发者
 
 **贡献要求**
 
-开发者提交的模型包括源码、README、参考模型、license文件、测试用例，并遵循以下标准
+开发者提交的模型包括源码、README、参考模型、测试用例，并遵循以下标准
 
 **一、源码**
 
-1、离线推理请使用C++或python代码，符合第四部分编码规范
+1、推理请使用C++或python代码，符合第四部分编码规范
 
 2、请将各模块的内容提交到相应的代码目录内
 
@@ -22,38 +22,27 @@ Sophon Demo，欢迎各位开发者
 
 ```
 # ...... 源项目的License头部声明 ......
-# ============================================================================
-# Copyright 2022 Sophgo Technologies Co., Ltd
+#===----------------------------------------------------------------------===#
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Copyright (C) 2022 Sophgo Technologies Inc.  All rights reserved.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
+# third-party components.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#===----------------------------------------------------------------------===#
 ```
 
 2、每个自己新编写的文件，都需要在源文件开头添加算能License声明
 
 ```
-# Copyright 2022 Sophgo Technologies Co., Ltd
+#===----------------------------------------------------------------------===#
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Copyright (C) 2022 Sophgo Technologies Inc.  All rights reserved.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
+# third-party components.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#===----------------------------------------------------------------------===#
 ```
 
 > 关于License声明时间，应注意：
@@ -63,7 +52,7 @@ Sophon Demo，欢迎各位开发者
 
 **三、README**
 
-README用于指导用户理解和部署样例，要包含如下内容：
+README用于指导用户理解和测试样例，要包含如下内容：
 
 1. 关于例程功能的说明；
 2. 编译或测试例程所需的环境的配置方法；
@@ -72,9 +61,9 @@ README用于指导用户理解和部署样例，要包含如下内容：
 针对模型的参考样例，要包含如下内容：
 
 1. 模型的来源及简介；
-2. 训练原始模型使用的数据集及预训练好的原始模型的下载方式；
-3. FP32 BModel（1batch及4batch）及INT8 BModel（1batch及4batch）的生成脚本；
-4. 模型推理的步骤和源码（Python、C++），入口请封装成`.sh`、`.py`；
+2. 相关模型和数据的下载方式；
+3. FP32 BModel、FP16(BM1684X)及INT8 BModel（1batch及4batch）的生成脚本；
+4. 模型推理的步骤和源码（Python、C++）；
 5. 模型的性能测试方法和结果；
 6. 模型的精度测试方法和结果。
 
@@ -82,21 +71,13 @@ README用于指导用户理解和部署样例，要包含如下内容：
 
 1. 模型的出处、对数据的要求、免责声明等，开源代码文件修改需要增加版权说明；
 
-2. 模型转换得到的离线模型对输入数据的要求；
+2. 模型转换得到的模型对输入数据的要求；
 
 3. 环境变量设置，依赖的第三方软件包和库，以及安装方法；
 
 4. 精度和性能达成要求：尽量达到原始模型水平；
 
-5. 原始模型及转换后FP32和INT8 BModel的下载地址；
-
-6. 数据集说明：
-
-   -  关于数据集，可使用词汇：用户自行准备好数据集，可选用“XXX”，“XXX”，“XXX”，
-
-     例如：请用户自行准备好数据集，包含训练集和验证集两部分，可选用的数据集包括ImageNet2012，CIFAR10、Flower等，包含train和val两部分。
-   
-   -  脚本中不允许提供链接下载数据集，如果开源脚本上存在对应的链接，请修改或者删除对应的脚本
+5. 原始模型及转换后FP32和INT8 BModel的下载地址。
 
 
 **四、编程规范**
