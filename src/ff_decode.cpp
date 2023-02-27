@@ -54,7 +54,8 @@ bool determine_hardware_decode(uint8_t *buffer)
         if (SOF0_Marker == word)
         {
             // gray
-            if( 1 == (*(buffer + offset + 9) & 255)){
+            if (1 == (*(buffer + offset + 9) & 255))
+            {
                 return true;
             }
             // color
@@ -281,6 +282,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
         int stride[3];
         bm_image_format_ext bm_format;
         bm_device_mem_t input_addr[3] = {0};
+        bm_device_mem_t bm_img_addr[3] = {0};
         if (plane == 1)
         {
             if ((0 == in.height) || (0 == in.width) || (0 == in.linesize[4]) || (0 == in.data[4]))
@@ -321,23 +323,28 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
                         DATA_TYPE_EXT_1N_BYTE,
                         &out,
                         stride);
+        
         int size = in.height * stride[0];
         if (data_four_denominator != -1)
         {
             size = in.height * stride[0] * 3;
         }
+        bm_image_alloc_dev_mem_heap_mask(out, USEING_MEM_HEAP2);
+        bm_image_get_device_mem(out, bm_img_addr);
         input_addr[0] = bm_mem_from_device((unsigned long long)in.data[4], size);
+        bm_memcpy_d2d_byte(handle, bm_img_addr[0], 0, input_addr[0], 0, size);
         if (data_five_denominator != -1)
         {
             size = in.height * stride[1] / data_five_denominator;
             input_addr[1] = bm_mem_from_device((unsigned long long)in.data[5], size);
+            bm_memcpy_d2d_byte(handle, bm_img_addr[1], 0, input_addr[1], 0, size);
         }
         if (data_six_denominator != -1)
         {
             size = in.height * stride[2] / data_six_denominator;
             input_addr[2] = bm_mem_from_device((unsigned long long)in.data[6], size);
+            bm_memcpy_d2d_byte(handle, bm_img_addr[2], 0, input_addr[2], 0, size);
         }
-        bm_image_attach(out, input_addr);
     }
     return BM_SUCCESS;
 }
@@ -551,40 +558,26 @@ void *VideoDecFFM::vidPushImage()
     while (1)
     {
         bm_image *img = new bm_image;
-        // bm_image *bgr_img = new bm_image;
         AVFrame *avframe = grabFrame();
         if (quit_flag)
             break;
         avframe_to_bm_image(*(this->handle), *avframe, *img);
 
-        // bm_image_create(*handle, img->height, img->width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, bgr_img, NULL);
-        // if (bm_image_alloc_dev_mem_heap_mask(*bgr_img, USEING_MEM_HEAP0) != BM_SUCCESS)
-        // {
-        //     printf("bmcv allocate mem failed!!!");
-        // }
-        // bmcv_image_vpp_csc_matrix_convert(*handle, 1, *img, bgr_img, CSC_YPbPr2RGB_BT601, NULL, BMCV_INTER_NEAREST, NULL);
-        // // bm_image_write_to_bmp(bgr_img, "result3.bmp");
-        // bm_image_destroy(*img);
-        // bm_image_write_to_bmp(*img, "ffmpeg.bmp");
         while (queue.size() == QUEUE_MAX_SIZE)
         {
             if (is_rtsp)
             {
-                lock.lock();
+                std::lock_guard<std::mutex> my_lock_guard(lock);
                 queue.pop();
                 cout << "rtsp pop, queue size " << queue.size() << endl;
-                lock.unlock();
             }
             else
             {
                 usleep(2000);
             }
         }
-
-        lock.lock();
+        std::lock_guard<std::mutex> my_lock_guard(lock);
         queue.push(img);
-        // cout << "push, queue size " << queue.size() << endl;
-        lock.unlock();
     }
     return NULL;
 }
@@ -597,12 +590,12 @@ bm_image *VideoDecFFM::grab()
             return nullptr;
         usleep(500);
     }
-
-    lock.lock();
-    bm_image *bm_img = queue.front();
-    queue.pop();
-    lock.unlock();
-
+    bm_image *bm_img;
+    {
+        std::lock_guard<std::mutex> my_lock_guard(lock);
+        bm_img = queue.front();
+        queue.pop();
+    }
     // cout << "grab, queue size " << queue.size() << endl;
     return bm_img;
 }
@@ -907,32 +900,14 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
                 uchar U = pFrame->data[1][indexU];
                 uchar V = pFrame->data[2][indexV];
 
-                // int YPbPr2RGB_BT601[12] = {0x00000400, 0x00000000, 0x0000059b, (int)0xfffd322d,
-                                        //    0x00000400, (int)0xfffffea0, (int)0xfffffd25, 0x00021dd6,
-                                        //    0x00000400, 0x00000716, 0x00000000, (int)0xfffc74bc};
-
-                // double M[] = {1, 1.40252, 0, 0,
-                //               1, -0.71440, -0.34434, 0,
-                //               1, 0, 1.77305, 0};
-
                 double M[12] = {1.0000000000000000, 0.0000000000000000, 1.4018863751529200, -179.4414560195740000,
                                 1.0000000000000000, -0.3458066722146720, -0.7149028511111540, 135.7708189857060000,
                                 1.0000000000000000, 1.7709825540494100, 0.0000000000000000, -226.6857669183240000};
-                // double M[12] = {1.0000000000000000, 0.0000000000000000, 1.5747219882569700, -201.5644144968920000,
-                                // 1.0000000000000000, -0.1873140895347890, -0.4682074705563420, 83.90675969166480000,
-                                // 1.0000000000000000, 1.8556153692785300, 0.0000000000000000, -237.5187672676520000};
 
                 int R = M[0] * Y + M[1] * (U) + M[2] * (V) + M[3];
                 int G = M[4] * Y + M[5] * (U) + M[6] * (V) + M[7];
                 int B = M[8] * Y + M[9] * (U) + M[10] * (V) + M[11];
-
-                // int R = (Y - 16) * 1.164                    - (V-128) * -1.596;
-                // int G = (Y - 16) * 1.164 - (U-128) *  0.391 - (V-128) *  0.813;
-                // int B = (Y - 16) * 1.164 - (U-128) * -2.018;
-
-                // int R = (YPbPr2RGB_BT601[0] * Y + YPbPr2RGB_BT601[2] * V + YPbPr2RGB_BT601[3]) >> 10;
-                // int G = (YPbPr2RGB_BT601[4] * Y + YPbPr2RGB_BT601[5] * U + YPbPr2RGB_BT601[6] * V + YPbPr2RGB_BT601[7]) >> 10;
-                // int B = (YPbPr2RGB_BT601[8] * Y + YPbPr2RGB_BT601[9] * U + YPbPr2RGB_BT601[11]) >> 10;
+                
                 R = (R < 0) ? 0 : R;
                 G = (G < 0) ? 0 : G;
                 B = (B < 0) ? 0 : B;
@@ -989,15 +964,8 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
     }
 
     avframe_to_bm_image(handle, *pFrame, img);
-
     // bm_image_write_to_bmp(img, "result2.bmp");
-    // if(FORMAT_GRAY == img.image_format)
-    // {
-    //     std::cout << "gray" << std::endl;
-    //     std::cout << "width " << img.width << std::endl;
-    //     std::cout << "height " << img.height << std::endl;
-    //     goto Func_Exit; 
-    // }
+
     bm_image_create(handle, img.height, img.width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &bgr_img, NULL);
 
     if (bm_image_alloc_dev_mem_heap_mask(bgr_img, USEING_MEM_HEAP0) != BM_SUCCESS)
@@ -1007,7 +975,6 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
         goto Func_Exit;
     }
     bmcv_image_vpp_csc_matrix_convert(handle, 1, img, &bgr_img, csc_type, NULL, BMCV_INTER_NEAREST, NULL);
-    // bmcv_image_storage_convert(handle, 1, &img, &bgr_img);
     // bm_image_write_to_bmp(bgr_img, "result3.bmp");
     bm_image_destroy(img);
     img = bgr_img;
