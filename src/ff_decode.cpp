@@ -189,8 +189,8 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
     case AV_PIX_FMT_YUVJ420P:
         plane = 3;
         data_four_denominator = -1;
-        data_five_denominator = 4;
-        data_six_denominator = 4;
+        data_five_denominator = 2;
+        data_six_denominator = 2;
         break;
     case AV_PIX_FMT_NV12:
         plane = 2;
@@ -202,8 +202,8 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
     case AV_PIX_FMT_YUVJ422P:
         plane = 3;
         data_four_denominator = -1;
-        data_five_denominator = 2;
-        data_six_denominator = 2;
+        data_five_denominator = 1;
+        data_six_denominator = 1;
         break;
     // case AV_PIX_FMT_YUV440P:
     // case AV_PIX_FMT_YUVJ440P:
