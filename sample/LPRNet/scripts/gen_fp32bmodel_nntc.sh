@@ -8,7 +8,7 @@ else
     target=$1
 fi
 
-outdir=../data/models/$target
+outdir=../models/$target
 
 
 function gen_fp32bmodel()
@@ -18,7 +18,7 @@ function gen_fp32bmodel()
                       --opt=1 \
                       --cmp=true \
                       --shapes=[$1,3,24,94] \
-                      --model=../data/models/torch/LPRNet_model_trace.pt \
+                      --model=../models/torch/LPRNet_model_trace.pt \
                       --outdir=$outdir \
                       --dyn=false
     mv $outdir/compilation.bmodel $outdir/lprnet_fp32_$1b.bmodel
@@ -26,9 +26,14 @@ function gen_fp32bmodel()
 }
 
 pushd $model_dir
+
+if [ ! -d $outdir ]; then
+    mkdir -p $outdir
+fi
+
 #batch_size=1
 gen_fp32bmodel 1
 #batch_size=4
-gen_fp32bmodel 4
+# gen_fp32bmodel 4
 # tpu_model --combine $outdir/lprnet_fp32_1b.bmodel $outdir/lprnet_fp32_4b.bmodel -o $outdir/lprnet_fp32_1b4b.bmodel 
 popd

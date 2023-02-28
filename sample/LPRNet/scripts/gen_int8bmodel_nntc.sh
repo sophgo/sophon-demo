@@ -8,15 +8,15 @@ else
     target=$1
 fi
 
-outdir=../data/models/$target
+outdir=../models/$target
 
 function create_lmdb()
 {
-    rm ../data/images/test_md5_lmdb/*
+    rm ../datasets/test_md5_lmdb/*
     # convert_imageset.py包含所有预处理流程
     python3 ../tools/convert_imageset.py \
-        --imageset_rootfolder=../data/images/test_md5 \
-        --imageset_lmdbfolder=../data/images/test_md5_lmdb/ \
+        --imageset_rootfolder=../datasets/test_md5 \
+        --imageset_lmdbfolder=../datasets/test_md5_lmdb/ \
         --resize_height=24 \
         --resize_width=94 \
         --shuffle=True \
@@ -26,10 +26,10 @@ function create_lmdb()
 function gen_fp32umodel()
 {
     python3 -m ufw.tools.pt_to_umodel \
-        -m ../data/models/torch/LPRNet_model_trace.pt \
+        -m ../models/torch/LPRNet_model_trace.pt \
         -s "(1, 3, 24, 94)" \
         -d compilation \
-        -D ../data/images/test_md5_lmdb/ \
+        -D ../datasets/test_md5_lmdb/ \
         --cmp
 }
 function gen_int8umodel()
@@ -52,7 +52,13 @@ function gen_int8bmodel()
     mv $outdir/compilation.bmodel $outdir/lprnet_int8_$1b.bmodel
 }
 
+
 pushd $model_dir
+
+if [ ! -d $outdir ]; then
+    mkdir -p $outdir
+fi
+
 #在制作lmdb过程中使用bm_opencv
 # export PYTHONPATH=$PYTHONPATH:$REL_TOP/lib/opencv/pcie/opencv-python/
 # create_lmdb
