@@ -223,10 +223,10 @@ bmrt_test --bmodel models/BM1684/c3d_fp32_1b.bmodel
 | BM1684 SoC  | c3d_bmcv.soc  | c3d_fp32_4b.bmodel | 80.08   |  3.48   |  46.63  |   0.02      |
 | BM1684 SoC  | c3d_bmcv.soc  | c3d_int8_1b.bmodel | 79.15   |  3.62   |  42.70  |  0.02   |
 | BM1684 SoC  | c3d_bmcv.soc  | c3d_int8_4b.bmodel | 79.99   |  3.45   |  17.25   |  0.02   |
-| BM1684 SoC  | c3d_opencv.soc  | c3d_fp32_1b.bmodel | 0.83   | 111.20   |  55.33   |  0.01   |
-| BM1684 SoC  | c3d_opencv.soc  | c3d_fp32_4b.bmodel | 0.81   | 110.12    | 46.64   |  0.02    |
-| BM1684 SoC  | c3d_opencv.soc  | c3d_int8_1b.bmodel | 0.85   | 110.87  |   42.74   |  0.01  |
-| BM1684 SoC  | c3d_opencv.soc  | c3d_int8_4b.bmodel | 0.82   | 110.93   |  17.28  |   0.02   |
+| BM1684 SoC  | c3d_opencv.soc  | c3d_fp32_1b.bmodel | 77.03   | 26.20   |  55.33   |  0.01   |
+| BM1684 SoC  | c3d_opencv.soc  | c3d_fp32_4b.bmodel | 76.81   | 26.12    | 46.64   |  0.02    |
+| BM1684 SoC  | c3d_opencv.soc  | c3d_int8_1b.bmodel | 75.70   | 26.87  |   42.74   |  0.01  |
+| BM1684 SoC  | c3d_opencv.soc  | c3d_int8_4b.bmodel | 75.11   | 26.93   |  17.28  |   0.02   |
 | BM1684X SoC | c3d_opencv.py | c3d_fp32_1b.bmodel |  67.19    | 31.01    |  88.76  |  0.10   |
 | BM1684X SoC | c3d_opencv.py | c3d_fp32_4b.bmodel |  49.85      |  29.09  |  84.06  |   0.03  |
 | BM1684X SoC | c3d_opencv.py | c3d_fp16_1b.bmodel |  65.62     |  31.07 |  19.59  |   0.10   |
