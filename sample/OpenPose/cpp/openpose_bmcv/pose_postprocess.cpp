@@ -38,6 +38,7 @@
     170.f, 255.f, 255.f, \
     85.f, 255.f, 255.f
 
+#define DEBUG 0
 
 const std::vector<float> POSE_COLORS_RENDER{ POSE_COLORS_RENDER_CPU };
 // const std::vector<unsigned int> POSE_COCO_PAIRS_RENDER{1, 2, 1, 5, 2, 3, 3, 4, 5, 6, 6, 7, 1, 8, 8, 9, 9, 10, 1, 11, 11, 12, 12, 13, 1, 0, 0, 14, 14, 16, 0, 15, 15, 17};
@@ -570,7 +571,9 @@ void OpenPosePostProcess::renderKeypointsCpu(cv::Mat& frame, const std::vector<f
             // Negative thickness in cv::circle means that a filled circle is to be drawn.
             // const auto thicknessCircle = (ratioAreas > 0.05 ? thicknessRatio : -1);
             const auto thicknessCircle = 3; 
-            // std::cout << "thicknessCircle = " << thicknessCircle << std::endl;
+#if DEBUG
+            std::cout << "thicknessCircle = " << thicknessCircle << std::endl;
+#endif
             const auto thicknessLine = 2;// intRound(thicknessRatio * thicknessLineRatioWRTCircle);
             const auto radius = thicknessRatio / 2;
 
@@ -673,10 +676,11 @@ void OpenPosePostProcess::renderKeypointsBmcv(bm_handle_t &handle, bm_image& fra
                                           colors[(colorIndex + 0) % numberColors]};
                     bmcv_point_t start = {intRound(keypoints[index1] * scale), intRound(keypoints[index1 + 1] * scale)};
                     bmcv_point_t end = {intRound(keypoints[index2] * scale), intRound(keypoints[index2 + 1] * scale)};
+#if DEBUG
                     std::cout << "color: " << (int)color.r << "," << (int)color.g << "," << (int)color.b << std::endl;
                     std::cout << "start: " << start.x << "," << start.y << std::endl;
                     std::cout << "end: " << end.x << "," << end.y << std::endl;
-
+#endif
                     if (BM_SUCCESS != bmcv_image_draw_lines(handle, frame, &start, &end, 1, color, thicknessLine)){
                         std::cout << "bmcv draw lines error !!!" << std::endl;
                     }
@@ -714,7 +718,9 @@ bm_image OpenPosePostProcess::renderPoseKeypointsBmcv(bm_handle_t &handle, bm_im
     const auto& pairs = getPosePairs(modelType);
 
     if (frame.image_format == 11){
+#if DEBUG
         std::cout << "frame:" << frame.image_format << "," << frame.data_type << "," << frame.height << "," << frame.width << std::endl;
+#endif
         bm_image image_aligned;
         bool need_copy = frame.width & (64-1);
         if(need_copy){
@@ -723,8 +729,10 @@ bm_image OpenPosePostProcess::renderPoseKeypointsBmcv(bm_handle_t &handle, bm_im
             stride2[0] = FFALIGN(stride1[0], 64);
             stride2[1] = FFALIGN(stride1[1], 64);
             stride2[2] = FFALIGN(stride1[2], 64);
+#if DEBUG
             std::cout << "stride1:" << stride1[0] << "," << stride1[1] << "," << stride1[2] << std::endl;
             std::cout << "stride2:" << stride2[0] << "," << stride2[1] << "," << stride2[2] << std::endl;
+#endif
             bm_image_create(handle, frame.height, frame.width, frame.image_format, frame.data_type, &image_aligned, stride2);
             bm_image_alloc_dev_mem(image_aligned, BMCV_IMAGE_FOR_IN);
             bmcv_copy_to_atrr_t copyToAttr;
@@ -736,13 +744,16 @@ bm_image OpenPosePostProcess::renderPoseKeypointsBmcv(bm_handle_t &handle, bm_im
         }else {
             image_aligned = frame;
         }
-        // std::cout << "image_aligned:" << image_aligned.image_format << "," << image_aligned.data_type << "," << image_aligned.height << "," << image_aligned.width << std::endl;
-        
+#if DEBUG
+        std::cout << "image_aligned:" << image_aligned.image_format << "," << image_aligned.data_type << "," << image_aligned.height << "," << image_aligned.width << std::endl;
+#endif
         bm_image bmimg;
         bm_image_create(handle, frame.height, frame.width, FORMAT_YUV420P, frame.data_type, &bmimg);
         bmcv_rect_t crop_rect = {0, 0, frame.width, frame.height};
         bmcv_image_vpp_convert (handle, 1, image_aligned, &bmimg, &crop_rect);
+#if DEBUG
         std::cout << "bmimg:" << bmimg.image_format << "," << bmimg.data_type <<std::endl;
+#endif
         bm_image_destroy(image_aligned);
         // frame = bmimg;
         // 
@@ -768,14 +779,18 @@ int OpenPosePostProcess::getKeyPoints(std::shared_ptr<BMNNTensor>  outputTensorP
     int chan_num = outputTensorPtr->get_shape()->dims[1];
     int net_output_height = outputTensorPtr->get_shape()->dims[2];
     int net_output_width = outputTensorPtr->get_shape()->dims[3];
-    // std::cout << n << ", " << images.size() <<std::endl;
+#if DEBUG
+    std::cout << n << ", " << images.size() <<std::endl;
+#endif
     int batch_byte_size = chan_num*net_output_height*net_output_width;
     int ch_area = net_output_height* net_output_width;
     for(int batch_idx = 0;batch_idx < images.size(); ++batch_idx) {
         float *base = outputTensorPtr->get_cpu_data() + batch_byte_size * batch_idx;
         bm_image image = images[batch_idx];
         cv::Size originSize(image.width, image.height);
-        // std::cout << originSize.height << ", " << originSize.width << std::endl;
+#if DEBUG
+        std::cout << originSize.height << ", " << originSize.width << std::endl;
+#endif
         PoseBlobPtr resizedBlob = std::make_shared<PoseBlob>(1, chan_num, originSize.height, originSize.width);
         for (int ch = 0; ch < chan_num; ++ch) {
             cv::Mat src(net_output_height, net_output_width, CV_32F, base +  ch_area * ch);
