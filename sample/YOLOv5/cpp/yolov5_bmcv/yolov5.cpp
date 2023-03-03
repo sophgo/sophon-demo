@@ -476,14 +476,15 @@ void YoloV5::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, i
   int colors_num = colors.size();
   //Draw a rectangle displaying the bounding box
   bmcv_rect_t rect;
-  rect.start_x = left;
-  rect.start_y = top;
-  rect.crop_w = width;
-  rect.crop_h = height;
+  rect.start_x = MIN(MAX(left, 0), width);
+  rect.start_y = MIN(MAX(top, 0), height);
+  rect.crop_w = MAX(MIN(width, frame.width - left), 0);
+  rect.crop_h = MAX(MIN(height, frame.height - top), 0);
+  // std::cout << frame.width << " " << frame.height << std::endl;
   // std::cout << rect.start_x << "," << rect.start_y << "," << rect.crop_w << "," << rect.crop_h << std::endl;
   bmcv_image_draw_rectangle(handle, frame, 1, &rect, 3, colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
+  // std::cout << "draw rect! " << std::endl;
   // cv::rectangle(frame, cv::Point(left, top), cv::Point(right, bottom), cv::Scalar(0, 0, 255), 3);
-
   if (put_text_flag){
     //Get the label for the class name and its confidence
     std::string label = m_class_names[classId] + ":" + cv::format("%.2f", conf);
