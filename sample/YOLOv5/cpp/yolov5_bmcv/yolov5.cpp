@@ -476,8 +476,8 @@ void YoloV5::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, i
   int colors_num = colors.size();
   //Draw a rectangle displaying the bounding box
   bmcv_rect_t rect;
-  rect.start_x = MIN(MAX(left, 0), width);
-  rect.start_y = MIN(MAX(top, 0), height);
+  rect.start_x = MIN(MAX(left, 0), frame.width);
+  rect.start_y = MIN(MAX(top, 0), frame.height);
   rect.crop_w = MAX(MIN(width, frame.width - left), 0);
   rect.crop_h = MAX(MIN(height, frame.height - top), 0);
   // std::cout << frame.width << " " << frame.height << std::endl;
