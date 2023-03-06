@@ -46,7 +46,7 @@ usage: c3d_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 ### 2.2 测试视频理解数据集
 测试实例如下，对UCF101视频数据集的一个子集进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
 ```bash
-python3 python/c3d_opencv.py --input datasets/UCF_test_01 --bmodel models/BM1684X/c3d_fp32_1b.bmodel --dev_id 0
+python3 python/c3d_opencv.py --input datasets/UCF_test_01 --bmodel models/BM1684X/c3d_fp32_1b.bmodel --dev_id 0 --classnames datasets/ucf_names.txt
 ```
 测试结束后，会打印预测结果、推理时间等信息，并将预测结果保存在`./results/c3d_fp32_1b.bmodel_opencv_python.json`中。
 
