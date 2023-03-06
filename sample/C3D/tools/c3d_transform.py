@@ -156,7 +156,7 @@ def pth_to_onnx(input, checkpoint, onnx_path, input_names=['input'], output_name
                       input_names=input_names, 
                       output_names=output_names,
                       dynamic_axes={
-                          input_names[0]:{0: 'batch_size', 3: 'in_width', 4: 'in_width'},
+                          input_names[0]:{0: 'batch_size', 3: 'in_height', 4: 'in_width'},
                           output_names[0]:{0: 'batch_size'}}) #指定模型的输入，以及onnx的输出路径
     print("Exporting .pth model to onnx model has been successful!")
 
