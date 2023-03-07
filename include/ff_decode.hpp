@@ -16,6 +16,11 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
+#define QUEUE_MAX_SIZE 5
+#define EXTRA_FRAME_BUFFER_NUM 5
+#define USEING_MEM_HEAP2 4
+#define USEING_MEM_HEAP1 2
+
 typedef struct {
     uint8_t* start;
     int      size;
@@ -33,7 +38,7 @@ int map_avformat_to_bmformat(int avformat);
 /**
  * @brief convert avformat to bm_image.
  */
-bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out);
+bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame *in, bm_image *out, bool is_jpeg);
 
 /**
  * @brief picture decode. support jpg and png
