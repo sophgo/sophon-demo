@@ -5,11 +5,10 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#define USEING_MEM_HEAP2 4
-#define USEING_MEM_HEAP0 2
-#define QUEUE_MAX_SIZE 5
-
 using namespace std;
+
+bool hardware_decode = true;
+bool data_on_device_mem = true;
 
 const int hw_jpeg_header_fmt_words[] =
     {
@@ -163,7 +162,7 @@ int map_avformat_to_bmformat(int avformat)
     return format;
 }
 
-bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
+bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame *in, bm_image *out, bool is_jpeg)
 {
 
     int plane = 0;
@@ -172,9 +171,10 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
     int data_six_denominator = -1;
     static int mem_flags = USEING_MEM_HEAP2;
 
-    switch (in.format)
+    switch (in->format)
     {
     case AV_PIX_FMT_RGB24:
+    case AV_PIX_FMT_BGR24:
         plane = 1;
         data_four_denominator = 1;
         data_five_denominator = -1;
@@ -195,7 +195,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
     case AV_PIX_FMT_NV12:
         plane = 2;
         data_four_denominator = -1;
-        data_five_denominator = 2;
+        data_five_denominator = 1;
         data_six_denominator = -1;
         break;
     case AV_PIX_FMT_YUV422P:
@@ -231,50 +231,50 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
         break;
     }
 
-    if (in.channel_layout == 101)
+    if (in->channel_layout == 101)
     { /* COMPRESSED NV12 FORMAT */
-        if ((0 == in.height) || (0 == in.width) ||
-            (0 == in.linesize[4]) || (0 == in.linesize[5]) || (0 == in.linesize[6]) || (0 == in.linesize[7]) ||
-            (0 == in.data[4]) || (0 == in.data[5]) || (0 == in.data[6]) || (0 == in.data[7]))
+        if ((0 == in->height) || (0 == in->width) ||
+            (0 == in->linesize[4]) || (0 == in->linesize[5]) || (0 == in->linesize[6]) || (0 == in->linesize[7]) ||
+            (0 == in->data[4]) || (0 == in->data[5]) || (0 == in->data[6]) || (0 == in->data[7]))
         {
             printf("bm_image_from_frame: get yuv failed!!");
             return BM_ERR_PARAM;
         }
         bm_image cmp_bmimg;
         bm_image_create(handle,
-                        in.height,
-                        in.width,
+                        in->height,
+                        in->width,
                         FORMAT_COMPRESSED,
                         DATA_TYPE_EXT_1N_BYTE,
                         &cmp_bmimg);
 
         bm_device_mem_t input_addr[4];
-        int size = in.height * in.linesize[4];
-        input_addr[0] = bm_mem_from_device((unsigned long long)in.data[6], size);
-        size = (in.height / 2) * in.linesize[5];
-        input_addr[1] = bm_mem_from_device((unsigned long long)in.data[4], size);
-        size = in.linesize[6];
-        input_addr[2] = bm_mem_from_device((unsigned long long)in.data[7], size);
-        size = in.linesize[7];
-        input_addr[3] = bm_mem_from_device((unsigned long long)in.data[5], size);
+        int size = in->height * in->linesize[4];
+        input_addr[0] = bm_mem_from_device((unsigned long long)in->data[6], size);
+        size = (in->height / 2) * in->linesize[5];
+        input_addr[1] = bm_mem_from_device((unsigned long long)in->data[4], size);
+        size = in->linesize[6];
+        input_addr[2] = bm_mem_from_device((unsigned long long)in->data[7], size);
+        size = in->linesize[7];
+        input_addr[3] = bm_mem_from_device((unsigned long long)in->data[5], size);
         bm_image_attach(cmp_bmimg, input_addr);
         bm_image_create(handle,
-                        in.height,
-                        in.width,
+                        in->height,
+                        in->width,
                         FORMAT_YUV420P,
                         DATA_TYPE_EXT_1N_BYTE,
-                        &out);
-        if (mem_flags == USEING_MEM_HEAP2 && bm_image_alloc_dev_mem_heap_mask(out, USEING_MEM_HEAP2) != BM_SUCCESS)
+                        out);
+        if (mem_flags == USEING_MEM_HEAP2 && bm_image_alloc_dev_mem_heap_mask(*out, USEING_MEM_HEAP2) != BM_SUCCESS)
         {
-            mem_flags = USEING_MEM_HEAP0;
+            mem_flags = USEING_MEM_HEAP1;
         }
-        if (mem_flags == USEING_MEM_HEAP0 && bm_image_alloc_dev_mem_heap_mask(out, USEING_MEM_HEAP0) != BM_SUCCESS)
+        if (mem_flags == USEING_MEM_HEAP1 && bm_image_alloc_dev_mem_heap_mask(*out, USEING_MEM_HEAP1) != BM_SUCCESS)
         {
             printf("bmcv allocate mem failed!!!");
         }
 
-        bmcv_rect_t crop_rect = {0, 0, in.width, in.height};
-        bmcv_image_vpp_convert(handle, 1, cmp_bmimg, &out, &crop_rect);
+        bmcv_rect_t crop_rect = {0, 0, in->width, in->height};
+        bmcv_image_vpp_convert(handle, 1, cmp_bmimg, out, &crop_rect);
         bm_image_destroy(cmp_bmimg);
     }
     else
@@ -282,68 +282,97 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
         int stride[3];
         bm_image_format_ext bm_format;
         bm_device_mem_t input_addr[3] = {0};
-        bm_device_mem_t bm_img_addr[3] = {0};
-        if (plane == 1)
-        {
-            if ((0 == in.height) || (0 == in.width) || (0 == in.linesize[4]) || (0 == in.data[4]))
-            {
-                return BM_ERR_PARAM;
-            }
-            stride[0] = in.linesize[4];
-        }
-        else if (plane == 2)
-        {
-            if ((0 == in.height) || (0 == in.width) ||
-                (0 == in.linesize[4]) || (0 == in.linesize[5]) ||
-                (0 == in.data[4]) || (0 == in.data[5]))
-            {
-                return BM_ERR_PARAM;
-            }
 
-            stride[0] = in.linesize[4];
-            stride[1] = in.linesize[5];
-        }
-        else if (plane == 3)
+        data_on_device_mem ? stride[0] = in->linesize[4] : stride[0] = in->linesize[0];
+
+        if (plane > 1)
         {
-            if ((0 == in.height) || (0 == in.width) ||
-                (0 == in.linesize[4]) || (0 == in.linesize[5]) || (0 == in.linesize[6]) ||
-                (0 == in.data[4]) || (0 == in.data[5]) || (0 == in.data[6]))
-            {
-                return BM_ERR_PARAM;
-            }
-            stride[0] = in.linesize[4];
-            stride[1] = in.linesize[5];
-            stride[2] = in.linesize[6];
+            data_on_device_mem ? stride[1] = in->linesize[5] : stride[1] = in->linesize[1];
         }
-        bm_format = (bm_image_format_ext)map_avformat_to_bmformat(in.format);
+        if (plane > 2)
+        {
+            data_on_device_mem ? stride[2] = in->linesize[6] : stride[2] = in->linesize[2];
+        }
+        bm_image tmp;
+        bm_format = (bm_image_format_ext)map_avformat_to_bmformat(in->format);
         bm_image_create(handle,
-                        in.height,
-                        in.width,
+                        in->height,
+                        in->width,
                         bm_format,
                         DATA_TYPE_EXT_1N_BYTE,
-                        &out,
+                        &tmp,
                         stride);
-        
-        int size = in.height * stride[0];
+        bm_image_create(handle,
+                        in->height,
+                        in->width,
+                        FORMAT_BGR_PACKED,
+                        DATA_TYPE_EXT_1N_BYTE,
+                        out);
+        bm_image_alloc_dev_mem_heap_mask(*out, USEING_MEM_HEAP2);
+
+        int size = in->height * stride[0];
         if (data_four_denominator != -1)
         {
-            size = in.height * stride[0] * 3;
+            size = in->height * stride[0] * 3;
         }
-        bm_image_alloc_dev_mem_heap_mask(out, USEING_MEM_HEAP2);
-        bm_image_get_device_mem(out, bm_img_addr);
-        input_addr[0] = bm_mem_from_device((unsigned long long)in.data[4], size);
-        bm_memcpy_d2d_byte(handle, bm_img_addr[0], 0, input_addr[0], 0, size);
+        if (data_on_device_mem)
+        {
+            input_addr[0] = bm_mem_from_device((unsigned long long)in->data[4], size);
+        }
+        else
+        {
+            bm_malloc_device_byte(handle, &input_addr[0], size);
+            bm_memcpy_s2d_partial(handle, input_addr[0], in->data[0], size);
+        }
+
         if (data_five_denominator != -1)
         {
-            size = in.height * stride[1] / data_five_denominator;
-            input_addr[1] = bm_mem_from_device((unsigned long long)in.data[5], size);
-            bm_memcpy_d2d_byte(handle, bm_img_addr[1], 0, input_addr[1], 0, size);
+            size = in->height * stride[1] / data_five_denominator;
+            if (data_on_device_mem)
+            {
+                input_addr[1] = bm_mem_from_device((unsigned long long)in->data[5], size);
+            }
+            else
+            {
+                bm_malloc_device_byte(handle, &input_addr[1], size);
+                bm_memcpy_s2d_partial(handle, input_addr[1], in->data[1], size);
+            }
         }
+
         if (data_six_denominator != -1)
         {
-            size = in.height * stride[2] / data_six_denominator;
-            input_addr[2] = bm_mem_from_device((unsigned long long)in.data[6], size);
-            bm_memcpy_d2d_byte(handle, bm_img_addr[2], 0, input_addr[2], 0, size);
+            size = in->height * stride[2] / data_six_denominator;
+            if (data_on_device_mem)
+            {
+                input_addr[2] = bm_mem_from_device((unsigned long long)in->data[6], size);
+            }
+            else
+            {
+                bm_malloc_device_byte(handle, &input_addr[2], size);
+                bm_memcpy_s2d_partial(handle, input_addr[2], in->data[2], size);
+            }
+        }
+
+        bm_image_attach(tmp, input_addr);
+        if (is_jpeg)
+        {
+            csc_type_t csc_type = CSC_YPbPr2RGB_BT601;
+            bmcv_image_vpp_csc_matrix_convert(handle, 1, tmp, out, csc_type, NULL, BMCV_INTER_NEAREST, NULL);
+        }
+        else
+        {
+            bmcv_rect_t crop_rect = {0, 0, in->width, in->height};
+            bmcv_image_vpp_convert(handle, 1, tmp, out, &crop_rect);
+        }
+        bm_image_detach(tmp);
+        
+        if (!data_on_device_mem)
+        {
+            bm_free_device(handle, input_addr[0]);
+            if (data_five_denominator != -1)
+                bm_free_device(handle, input_addr[1]);
+            if (data_six_denominator != -1)
+                bm_free_device(handle, input_addr[2]);
         }
     }
     return BM_SUCCESS;
@@ -351,6 +380,8 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame &in, bm_image &out)
 
 int VideoDecFFM::openDec(bm_handle_t *dec_handle, const char *input)
 {
+    if (strstr(input, "rtsp://"))
+        this->is_rtsp = 1;
     this->handle = dec_handle;
     int ret = 0;
     AVDictionary *dict = NULL;
@@ -427,6 +458,12 @@ int VideoDecFFM::openCodecContext(int *stream_idx, AVCodecContext **dec_ctx, AVF
     stream_index = ret;
     st = fmt_ctx->streams[stream_index];
 
+    if (st->codecpar->codec_id != AV_CODEC_ID_H264 && st->codecpar->codec_id != AV_CODEC_ID_HEVC)
+    {
+        hardware_decode = false;
+        data_on_device_mem = false;
+    }
+
     /* find decoder for the stream */
     decoder = avcodec_find_decoder(st->codecpar->codec_id);
 
@@ -459,7 +496,7 @@ int VideoDecFFM::openCodecContext(int *stream_idx, AVCodecContext **dec_ctx, AVF
     /* Init the decoders, with or without reference counting */
     av_dict_set(&opts, "refcounted_frames", refcount ? "1" : "0", 0);
     av_dict_set_int(&opts, "sophon_idx", sophon_idx, 0);
-    av_dict_set_int(&opts, "extra_frame_buffer_num", 5, 0); // if we use dma_buffer mode
+    av_dict_set_int(&opts, "extra_frame_buffer_num", EXTRA_FRAME_BUFFER_NUM, 0); // if we use dma_buffer mode
 
     ret = avcodec_open2(*dec_ctx, dec, &opts);
     if (ret < 0)
@@ -557,17 +594,13 @@ void *VideoDecFFM::vidPushImage()
 {
     while (1)
     {
-        bm_image *img = new bm_image;
-        AVFrame *avframe = grabFrame();
-        if (quit_flag)
-            break;
-        avframe_to_bm_image(*(this->handle), *avframe, *img);
-
         while (queue.size() == QUEUE_MAX_SIZE)
         {
             if (is_rtsp)
             {
                 std::lock_guard<std::mutex> my_lock_guard(lock);
+                bm_image *img = queue.front();
+                bm_image_destroy(*img);
                 queue.pop();
                 cout << "rtsp pop, queue size " << queue.size() << endl;
             }
@@ -576,6 +609,13 @@ void *VideoDecFFM::vidPushImage()
                 usleep(2000);
             }
         }
+
+        bm_image *img = new bm_image;
+        AVFrame *avframe = grabFrame();
+        if (quit_flag)
+            break;
+        avframe_to_bm_image(*(this->handle), avframe, img, false);
+
         std::lock_guard<std::mutex> my_lock_guard(lock);
         queue.push(img);
     }
@@ -673,11 +713,10 @@ bm_status_t pngDec(bm_handle_t &handle, string input_name, bm_image &img)
 
     pkt->size = numBytes;
     pkt->data = (unsigned char *)bs_buffer;
-    dec_ctx->pix_fmt = AV_PIX_FMT_BGR24; // 指明像素格式
+    // dec_ctx->pix_fmt = AV_PIX_FMT_RGB24;
     if (pkt->size)
     {
         int ret;
-
         ret = avcodec_send_packet(dec_ctx, pkt);
 
         if (ret < 0)
@@ -700,15 +739,9 @@ bm_status_t pngDec(bm_handle_t &handle, string input_name, bm_image &img)
         }
 
         fflush(stdout);
-        // cout << "pframe data " << frame->data << endl;
-        int size = frame->height * frame->width * 3;
-        bm_device_mem_t mem1;
-        bm_malloc_device_byte_heap_mask(handle, &mem1, USEING_MEM_HEAP0, size);
-        bm_memcpy_s2d(handle, mem1, frame->data[0]);
-        frame->data[4] = (uint8_t *)mem1.u.device.device_addr;
-        frame->linesize[4] = frame->linesize[0];
-        avframe_to_bm_image(handle, *frame, img);
-        // bm_image_write_to_bmp(img, "result3.bmp");
+
+        data_on_device_mem = false;
+        avframe_to_bm_image(handle, frame, &img, false);
         free(bs_buffer);
         avcodec_free_context(&dec_ctx);
         av_frame_free(&frame);
@@ -738,12 +771,10 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
     AVFrame *I420Frame = nullptr;
     AVPacket pkt;
 
-    bm_image bgr_img;
-    csc_type_t csc_type = CSC_YPbPr2RGB_BT601;
     int got_picture;
     FILE *infile;
     int numBytes;
-    bool hw_decode;
+
     uint8_t *aviobuffer = nullptr;
     int aviobuf_size = 32 * 1024; // 32K
     uint8_t *bs_buffer = nullptr;
@@ -776,7 +807,7 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
     fclose(infile);
     infile = nullptr;
 
-    hw_decode = determine_hardware_decode(bs_buffer);
+    hardware_decode = determine_hardware_decode(bs_buffer);
 
     aviobuffer = (uint8_t *)av_malloc(aviobuf_size); // 32k
     if (aviobuffer == nullptr)
@@ -820,12 +851,8 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
         goto Func_Exit;
     }
 
-    // av_dump_format(pFormatCtx, 0, 0, 0);
-
     /* HW JPEG decoder: jpeg_bm */
-
-    pCodec = hw_decode ? avcodec_find_decoder_by_name("jpeg_bm") : avcodec_find_decoder_by_name("mjpeg");
-    // pCodec = avcodec_find_decoder_by_name("mjpeg");
+    pCodec = hardware_decode ? avcodec_find_decoder_by_name("jpeg_bm") : avcodec_find_decoder_by_name("mjpeg");
     if (pCodec == NULL)
     {
         cerr << "Codec not found." << endl;
@@ -883,7 +910,7 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
 
     // filter convert format to I420
     // TODO
-    if (!hw_decode)
+    if (!hardware_decode)
     {
         int height = pFrame->height;
         int width = pFrame->width;
@@ -907,7 +934,7 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
                 int R = M[0] * Y + M[1] * (U) + M[2] * (V) + M[3];
                 int G = M[4] * Y + M[5] * (U) + M[6] * (V) + M[7];
                 int B = M[8] * Y + M[9] * (U) + M[10] * (V) + M[11];
-                
+
                 R = (R < 0) ? 0 : R;
                 G = (G < 0) ? 0 : G;
                 B = (B < 0) ? 0 : B;
@@ -940,44 +967,23 @@ bm_status_t jpgDec(bm_handle_t &handle, string input_name, bm_image &img)
         I420Frame->height = pFrame->height;
         I420Frame->format = AV_PIX_FMT_YUV420P;
 
+        I420Frame->linesize[0] = pFrame->linesize[0];
+        I420Frame->linesize[1] = pFrame->linesize[1];
+        I420Frame->linesize[2] = pFrame->linesize[2];
+
+        I420Frame->data[0] = (uint8_t *)malloc(pFrame->linesize[0] * I420Frame->height * 2);
+        I420Frame->data[1] = (uint8_t *)malloc(pFrame->linesize[1] * I420Frame->height / 2);
+        I420Frame->data[2] = (uint8_t *)malloc(pFrame->linesize[2] * I420Frame->height / 2);
         libyuv::I422ToI420(pFrame->data[0], pFrame->linesize[0], pFrame->data[1], pFrame->linesize[1], pFrame->data[2], pFrame->linesize[2],
-                           pFrame->data[0], pFrame->linesize[0], pFrame->data[1], pFrame->linesize[1], pFrame->data[2], pFrame->linesize[2],
+                           I420Frame->data[0], I420Frame->linesize[0], I420Frame->data[1], I420Frame->linesize[1], I420Frame->data[2], I420Frame->linesize[2],
                            I420Frame->width, I420Frame->height);
-
-        bm_device_mem_t mem_y, mem_u, mem_v;
-        bm_malloc_device_byte(handle, &mem_y, pFrame->height * pFrame->width);
-        bm_malloc_device_byte(handle, &mem_u, pFrame->height * pFrame->width / 4);
-        bm_malloc_device_byte(handle, &mem_v, pFrame->height * pFrame->width / 4);
-        bm_memcpy_s2d_partial(handle, mem_y, pFrame->data[0], pFrame->height * pFrame->width);
-        bm_memcpy_s2d_partial(handle, mem_u, pFrame->data[1], pFrame->height * pFrame->width / 4);
-        bm_memcpy_s2d_partial(handle, mem_v, pFrame->data[2], pFrame->height * pFrame->width / 4);
-
-        I420Frame->data[4] = (uint8_t *)bm_mem_get_device_addr(mem_y);
-        I420Frame->data[5] = (uint8_t *)bm_mem_get_device_addr(mem_u);
-        I420Frame->data[6] = (uint8_t *)bm_mem_get_device_addr(mem_v);
-        I420Frame->linesize[4] = pFrame->linesize[0];
-        I420Frame->linesize[5] = pFrame->linesize[1];
-        I420Frame->linesize[6] = pFrame->linesize[2];
 
         av_frame_free(&pFrame);
         pFrame = I420Frame;
+        data_on_device_mem = false;
     }
 
-    avframe_to_bm_image(handle, *pFrame, img);
-    // bm_image_write_to_bmp(img, "result2.bmp");
-
-    bm_image_create(handle, img.height, img.width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &bgr_img, NULL);
-
-    if (bm_image_alloc_dev_mem_heap_mask(bgr_img, USEING_MEM_HEAP0) != BM_SUCCESS)
-    {
-        printf("bmcv allocate mem failed!!!");
-        ret = BM_ERR_FAILURE;
-        goto Func_Exit;
-    }
-    bmcv_image_vpp_csc_matrix_convert(handle, 1, img, &bgr_img, csc_type, NULL, BMCV_INTER_NEAREST, NULL);
-    // bm_image_write_to_bmp(bgr_img, "result3.bmp");
-    bm_image_destroy(img);
-    img = bgr_img;
+    avframe_to_bm_image(handle, pFrame, &img, true);
 
 Func_Exit:
     av_packet_unref(&pkt);
