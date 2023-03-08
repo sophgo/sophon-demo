@@ -77,7 +77,7 @@ Usage: yolov8_bmcv.pcie [params]
 **注意：** CPP传参与python不同，需要用等于号，例如`./yolov8_bmcv.pcie --bmodel=xxx`。
 
 ### 3.2 测试图片
-图片测试实例如下，支持对整个图片文件夹进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，int8bmodel支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
 ./yolov8_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/yolov8s_fp32_1b.bmodel --dev_id=0 --conf_thresh=0.25 --nms_thresh=0.7 --classnames=../../datasets/coco.names 
 ```
@@ -86,7 +86,7 @@ Usage: yolov8_bmcv.pcie [params]
 ![res](../pics/bus_cpp_bmcv.jpg)
 
 ### 3.3 测试视频
-视频测试实例如下，支持对视频流进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，int8bmodel支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+视频测试实例如下，支持对视频流进行测试。
 ```bash
 ./yolov8_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel=../../models/BM1684X/yolov8s_fp32_1b.bmodel --dev_id=0 --conf_thresh=0.25 --nms_thresh=0.7 --classnames=../../datasets/coco.names
 ```

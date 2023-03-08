@@ -67,7 +67,7 @@ Usage: openpose_bmcv.pcie [params]
 **注意：** C++程序的传参方式与python不同，需要用等于号，例如`./openpose_bmcv.pcie --bmodel=xxx`。
 
 ### 3.2 测试图片
-图片测试实例如下，支持对整个图片文件夹进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，int8bmodel支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
 ./openpose_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0
 ```
@@ -76,7 +76,7 @@ Usage: openpose_bmcv.pcie [params]
 ![res](../pics/1_cpp_bmcv.jpeg)
 
 ### 3.3 测试视频
-视频测试实例如下，支持对视频流进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，int8bmodel支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+视频测试实例如下，支持对视频流进行测试。
 ```bash
 ./openpose_bmcv.pcie --input=../../datasets/dance_1080P.mp4 --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0
 ```

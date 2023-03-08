@@ -72,7 +72,7 @@ Usage: lprnet_opencv.pcie [params]
 **注意：** CPP传参与python不同，需要用等于号，例如`./lprnet_opencv.pcie --bmodel=xxx`。
 
 ### 3.2 测试图片
-图片测试实例如下，支持对整个图片文件夹进行测试，模型支持fp32bmodel、int8bmodel，支持BM1684和BM1684X，支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
 ./lprnet_opencv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/lprnet_fp32_1b.bmodel --dev_id=0
 ```
