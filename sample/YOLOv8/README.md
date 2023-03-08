@@ -182,7 +182,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017.json --resu
 2. SoC和PCIe的模型精度一致；
 3. AP@IoU=0.5:0.95为area=all对应的指标；
 4. 该测试需要系统内存约3.2G，BM1684 SoC模式需要将json文件拷贝至其他平台测试；
-5. 本例程未提供arm PCIe平台测试结果
+
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -207,7 +207,7 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间；
-3. 本例程未提供arm PCIe平台测试结果。
+
 
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
@@ -242,7 +242,7 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 3. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异；
-5. 本例程未提供arm PCIe平台测试结果。
+
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

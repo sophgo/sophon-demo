@@ -283,7 +283,7 @@ int main(int argc, char *argv[]){
         if (!batch_imgs.empty()){
             // predict
             CV_Assert(0 == yolov8.Detect(batch_imgs, boxes));
-            for(int i = 0; i < batch_size; i++){
+            for(int i = 0; i < batch_imgs.size(); i++){
                 id++;
                 cout << id << ", det_nums: " << boxes[i].size() << endl;
                 if (batch_imgs[i].image_format != 0){
