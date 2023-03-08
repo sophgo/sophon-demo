@@ -19,10 +19,13 @@ Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移
 | [SSD](./sample/SSD/README.md) | 目标检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
 | [CenterNet](./sample/CenterNet/README.md) | 目标检测、姿态识别 | C++/Python | FP32/INT8 | YES | BMCV |
 | [OpenPose](./sample/OpenPose/README.md) | 人体关键点检测 | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
+| [C3D](./sample/C3D/README.md) | 视频动作识别 | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [YOLOv8](./sample/YOLOv8/README.md) | 目标检测 | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 
 ## 版本说明
 | 版本 | 说明 | 
 |---|---|
+| 0.1.4	 | 修复文档等问题，新增C3D、YOLOv8例程 |
 | 0.1.3	 | 新增OpenPose例程，重构YOLOv5例程（包括适配arm PCIe、支持TPU-MLIR编译BM1684X模型、使用ffmpeg组件替换opencv解码等） |
 | 0.1.2	 | 修复文档等问题，重构SSD相关例程，LPRNet/cpp/lprnet_bmcv使用ffmpeg组件替换opencv解码 |
 | 0.1.1	 | 修复文档等问题，使用BMNN相关类重构LPRNet/cpp/lprnet_bmcv |
@@ -32,6 +35,7 @@ Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移
 Sophon Demo主要依赖tpu-mlir、tpu-nntc、libsophon、sophon-ffmpeg、sophon-opencv、sophon-sail，其版本要求如下：
 |sophon-demo|tpu-mlir|tpu-nntc|libsophon|sophon-ffmpeg|sophon-opencv|sophon-sail|
 |---|---|---|---|---|---|---|
+| 0.1.4 | >=0.7.1     | >=3.1.5 | >=0.4.4 | >=0.5.1 | >=0.5.1 | >=3.3.0 |
 | 0.1.3 | >=0.7.1     | >=3.1.5 | >=0.4.4 | >=0.5.1 | >=0.5.1 | >=3.3.0 |
 | 0.1.2 | Not support | >=3.1.4 | >=0.4.3 | >=0.5.0 | >=0.5.0 | >=3.2.0 |
 | 0.1.1 | Not support | >=3.1.3 | >=0.4.2 | >=0.4.0 | >=0.4.0 | >=3.1.0 |
