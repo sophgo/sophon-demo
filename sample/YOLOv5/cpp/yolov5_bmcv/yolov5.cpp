@@ -58,7 +58,7 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& coco_name
 
   //3. get output
   output_num = m_bmNetwork->outputTensorNum();
-  assert(output_num > 0);
+  assert(output_num == 1 || output_num == 3);
   min_dim = m_bmNetwork->outputTensor(0)->get_shape()->num_dims;
 
   //4. initialize bmimages

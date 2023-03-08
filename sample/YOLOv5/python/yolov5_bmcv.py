@@ -37,6 +37,9 @@ class YOLOv5:
         
         # get output
         self.output_names = self.net.get_output_names(self.graph_name)
+        if len(self.output_names) not in [1, 3]:
+            raise ValueError('only suport 1 or 3 outputs, but got {} outputs bmodel'.format(len(self.output_names)))
+        
         self.output_tensors = {}
         self.output_scales = {}
         for output_name in self.output_names:
@@ -287,9 +290,9 @@ def main(opt):
                         for idx in range(det.shape[0]):
                             bbox_dict = dict()
                             x1, y1, x2, y2, score, category_id = det[idx]
-                            bbox_dict['bbox'] = [int(x1), int(y1), int(x2 - x1), int(y2 -y1)]
+                            bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2 - x1,3)), float(round(y2 -y1, 3))]
                             bbox_dict['category_id'] = int(category_id)
-                            bbox_dict['score'] = float(score)
+                            bbox_dict['score'] = float(round(score,5))
                             res_dict['bboxes'].append(bbox_dict)
                         results_list.append(res_dict)
                         
@@ -308,9 +311,9 @@ def main(opt):
                 for idx in range(det.shape[0]):
                     bbox_dict = dict()
                     x1, y1, x2, y2, score, category_id = det[idx]
-                    bbox_dict['bbox'] = [int(x1), int(y1), int(x2 - x1), int(y2 -y1)]
+                    bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2 - x1,3)), float(round(y2 -y1, 3))]
                     bbox_dict['category_id'] = int(category_id)
-                    bbox_dict['score'] = float(score)
+                    bbox_dict['score'] = float(round(score,5))
                     res_dict['bboxes'].append(bbox_dict)
                 results_list.append(res_dict)
             bmimg_list.clear()
