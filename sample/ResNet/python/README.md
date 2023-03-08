@@ -49,7 +49,7 @@ usage:resnet_opencv.py [--input IMG_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 ```
 
 ### 2.2 测试图片
-图片测试实例如下，支持对整个图片文件夹进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，int8bmodel支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
 # 测试整个文件夹
 python3 python/resnet_opencv.py --input datasets/imagenet_val_1k/img --bmodel models/BM1684X/resnet50_fp32_1b.bmodel --dev_id 0

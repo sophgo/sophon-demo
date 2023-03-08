@@ -41,7 +41,7 @@ usage: openpose_opencv.py [--input INPUT] [--bmodel BMODEL] [--dev_id DEV_ID]
 --dev_id: 用于推理的tpu设备id。
 ```
 ### 2.2 测试图片
-图片测试实例如下，支持对整个图片文件夹进行测试，模型支持fp32bmodel、int8bmodel，支持BM1684和BM1684X，支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
 python3 python/openpose_opencv.py --input datasets/test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel --dev_id 0
 ```
@@ -50,7 +50,7 @@ python3 python/openpose_opencv.py --input datasets/test --bmodel models/BM1684/p
 ![res](../pics/1_python_opencv.jpeg)
 
 ### 2.3 测试视频
-视频测试实例如下，支持对视频流进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，int8bmodel支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+视频测试实例如下，支持对视频流进行测试。
 ```bash
 python3 python/openpose_opencv.py --input datasets/dance_1080P.mp4 --bmodel models/BM1684/pose_coco_fp32_1b.bmodel --dev_id 0
 ```

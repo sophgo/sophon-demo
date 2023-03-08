@@ -75,7 +75,7 @@ Usage: c3d_bmcv.pcie [params]
 **注意：** CPP传参与python不同，需要用等于号，例如`./c3d_bmcv.pcie --bmodel=xxx`。
 
 ### 3.2 测试视频理解数据集
-测试实例如下，对UCF101视频数据集的一个子集进行测试，BM1684X支持FP32、FP16、INT8的BModel，BM1684支持FP32、INT8的BModel，均支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+测试实例如下，对UCF101视频数据集的一个子集进行测试。
 ```bash
 ./c3d_bmcv.pcie --bmodel=../../models/BM1684X/c3d_fp32_1b.bmodel --input=../../datasets/UCF_test_01 --dev_id=0
 ```
