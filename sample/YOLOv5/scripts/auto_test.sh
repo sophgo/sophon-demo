@@ -120,12 +120,12 @@ function eval_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./yolov5_$2.$1 --input=../../datasets/coco/val2017 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
+  ./yolov5_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./yolov5_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
   echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/instances_val2017.json --result_json results/$3_val2017_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log"
+  echo "python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/instances_val2017_1000.json --result_json results/$3_val2017_1000_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log"
   echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  res=$(python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/instances_val2017.json --result_json results/$3_val2017_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
+  res=$(python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/instances_val2017_1000.json --result_json results/$3_val2017_1000_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $4
@@ -143,12 +143,12 @@ function eval_python()
   if [ ! -d python/log ];then
     mkdir python/log
   fi
-  python3 python/yolov5_$1.py --input datasets/coco/val2017 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1
-  judge_ret $? "python3 python/yolov5_$1.py --input datasets/coco/val2017 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1"
+  python3 python/yolov5_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1
+  judge_ret $? "python3 python/yolov5_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1"
   echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017.json --result_json results/$2_val2017_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log"
+  echo "python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/$2_val2017_1000_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log"
   echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  res=$(python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017.json --result_json results/$2_val2017_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
+  res=$(python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/$2_val2017_1000_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $3
@@ -181,15 +181,15 @@ then
     test_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3728494154948667
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3415060943647802
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3415060943647802
-    eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3627150044630879
-    eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3302358654479303
-    eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3302358654479303
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.35903516521721296
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3317881837937532
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3317881837937532
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3773764563626435
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3439189258831839
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3439189258831839
+    eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.36747564866420607
+    eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3324248220512968
+    eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3324248220512968
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.36198611090287713
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.33120211839959446
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.33120211839959446
 
   elif test $TARGET = "BM1684X"
   then
@@ -206,18 +206,18 @@ then
     test_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.372849263961394
-    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.3727899910691487
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.356805022950668
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.356805022950668
-    eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.36282681409398276
-    eval_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.36275216215387257
-    eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.34641547670369127
-    eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.34641547670369127
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3590649468018816
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.35900463558759066
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.344157647308505
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.344157647308505
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.37737636274439434
+    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.37724278449899024
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3628645335983023
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3628645335983023
+    eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.36798452617905963
+    eval_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.36810847154352055
+    eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3532147888323377
+    eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3532147888323377
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3615735390831538
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.36161684576968545
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3481852060306845
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3481852060306845
   fi
 elif test $MODE = "soc_build"
 then
@@ -240,15 +240,15 @@ then
     test_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3728494154948667
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3415060943647802
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3415060943647802
-    eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3627150044630879
-    eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3302358654479303
-    eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3302358654479303
-    eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.35903516521721296 
-    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3317881837937532
-    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3317881837937532
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3773764563626435
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3439189258831839
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3439189258831839
+    eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.36747564866420607
+    eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3324248220512968
+    eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3324248220512968
+    eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.36198611090287713 
+    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.33120211839959446
+    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.33120211839959446
   elif test $TARGET = "BM1684X"
   then
     test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test
@@ -264,18 +264,18 @@ then
     test_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.37284926941692986
-    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.37279731515231684
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3568049563925935
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3568049563925935
-    eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3628276247456819
-    eval_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.36273778749009744
-    eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3464152996599053
-    eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3464152996599053 
-    eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3590649468018816
-    eval_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.3590066718304196
-    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.344157647308505
-    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.344157647308505
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.37737636274439434
+    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.37724278449899024
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3628645335983023
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3628645335983023
+    eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.36798452617905963
+    eval_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.36810847154352055
+    eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3532147888323377
+    eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3532147888323377 
+    eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3615735390831538
+    eval_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.36161684576968545
+    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3481852060306845
+    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3481852060306845
   fi
 fi
 

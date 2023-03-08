@@ -3,7 +3,7 @@
 YOLOv5模型导出是在Pytorch模型的生产环境下进行的，需提前根据[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)的要求安装好Pytorch环境，准备好相应的代码和模型，并保证模型能够在Pytorch环境下正常推理运行。
 
 ## 2. 主要步骤
-### 2.1 修改model/yolo.py
+### 2.1 修改models/yolo.py
 
 YOLOv5不同版本的代码导出的YOLOv5模型的输出会有所不同，根据不同的组合可能会有1、2、3、4个输出的情况，主要取决于model/yolo.py文件中的class Detect的forward函数。建议修改Detect类的forward函数的最后return语句，实现1个输出或3个输出。若模型为3输出，需在后处理进行sigmoid和预测坐标的转换。
 
