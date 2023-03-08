@@ -451,7 +451,7 @@ void YoloV8::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, i
     bmcv_point_t org = {left, top};
     bmcv_color_t color = {colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]};
     int thickness = 2;
-    float fontScale = 2; 
+    float fontScale = 1; 
     if (BM_SUCCESS != bmcv_image_put_text(handle, frame, label.c_str(), org, color, fontScale, thickness)) {
       std::cout << "bmcv put text error !!!" << std::endl;   
     }

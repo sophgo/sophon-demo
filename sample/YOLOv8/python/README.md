@@ -60,4 +60,4 @@ python3 python/yolov8_opencv.py --input datasets/test --bmodel models/BM1684/yol
 ```bash
 python3 python/yolov8_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1684/yolov8s_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.25 --nms_thresh 0.7
 ```
-测试结束后，会将预测的结果画在`results/test_car_person_1080P.avi`中，同时会打印预测结果、推理时间等信息。`yolov8_bmcv.py`会将预测结果画在图片上并保存在`results/images`中。
+测试结束后，`yolov8_opencv.py`会将预测的结果画在`results/test_car_person_1080P.avi`中，同时会打印预测结果、推理时间等信息。`yolov8_bmcv.py`会将预测结果画在图片上并保存在`results/images`中。
