@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(yolov5)
 
+# set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS "-O3")
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 message("cur dir: ${PROJECT_SOURCE_DIR}")
 

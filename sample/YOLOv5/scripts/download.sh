@@ -28,14 +28,14 @@ then
     unzip coco128.zip -d ../datasets/
     rm coco128.zip
 
-    # val2017.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/np8j6kg3b
-    unzip val2017.zip -d ../datasets/coco
-    rm val2017.zip
+    # val2017_1000.zip
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/rn5EXB0OF
+    unzip val2017_1000.zip -d ../datasets/coco
+    rm val2017_1000.zip
 
-    # instances_val2017.json
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/OpUgYWuVg
-    mv instances_val2017.json ../datasets/coco
+    # instances_val2017_1000.json
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/nPWztHsTO
+    mv instances_val2017_1000.json ../datasets/coco
 
     echo "datasets download!"
 else
