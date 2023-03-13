@@ -1,0 +1,7 @@
+Cython
+pycocotools
+scipy
+loguru
+thop
+lap
+motmetrics
