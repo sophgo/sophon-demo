@@ -1,6 +1,7 @@
 # YOLOv5模型导出
 ## 1. 准备工作
-建议使用我们提供的`sophgo/tpuc_dev:latest`镜像进行模型导出，避免因pytorch或onnx版本等原因导致模型编译失败。模型导出前，需将相应的代码和模型迁移至由`sophgo/tpuc_dev:latest`创建的容器内。
+YOLOv5模型导出是在Pytorch模型的生产环境下进行的，需提前根据[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)的要求安装好Pytorch环境，准备好相应的代码和模型，并保证模型能够在Pytorch环境下正常推理运行。
+> **注意**：建议使用`1.8.0+cpu`的torch版本，避免因pytorch版本导致模型编译失败。
 
 ## 2. 主要步骤
 ### 2.1 修改models/yolo.py

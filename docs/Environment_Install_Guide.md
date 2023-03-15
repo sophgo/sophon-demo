@@ -55,7 +55,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
     # 这里将tpu-nntc的上一级目录映射到docker内的/workspace目录,用户需要根据实际情况将demo的目录映射到docker里面
     # 这里用了8001到8001端口映射，之后在使用ufw可视化工具会用到
     # 如果端口已经占用，请更换其他未占用端口，后面根据需要更换进行调整
-    docker run -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:latest
+    docker run --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:v2.1
     # 此时已经进入docker，并在/workspace目录下
     # 下面初始化软件环境
     cd /workspace/tpu-nntc
@@ -86,23 +86,20 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
 
     从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)上下载TPU-MLIR的压缩包，命名如tpu-mlir_vx.y.z-hash-date.tar.gz，x.y.z表示版本号，并进行解压。
     ```bash
-    mkdir tpu-mlir
-    # 将压缩包解压到tpu-mlir
-    tar zxvf tpu-mlir_vx.y.z-<hash>-<date>.tar.gz --strip-components=1 -C tpu-mlir
+    tar zxvf tpu-mlir_vx.y.z-<hash>-<date>.tar.gz
     ```
 
 3. 创建并进入docker
 
     TPU-MLIR使用的docker是sophgo/tpuc_dev:latest, docker镜像和tpu-mlir有绑定关系，少数情况下有可能更新了tpu-mlir，需要新的镜像。
     ```bash
-    cd tpu-mlir
-    # 进入docker，如果当前系统没有对应镜像，会自动从docker hub上下载
-    # 这里将tpu-mlir的上一级目录映射到docker内的/workspace目录,用户需要根据实际情况将demo的目录映射到docker里面
+    # 如果当前系统没有对应镜像，会自动从docker hub上下载
+    # 这里将本级目录映射到docker内的/workspace目录,用户需要根据实际情况将demo的目录映射到docker里面
     # myname只是举个名字的例子, 请指定成自己想要的容器的名字
-    docker run --name myname -v $PWD/..:/workspace -it sophgo/tpuc_dev:latest
+    docker run --name myname -v $PWD:/workspace -it sophgo/tpuc_dev:v2.1
     # 此时已经进入docker，并在/workspace目录下
     # 初始化软件环境
-    cd /workspace/tpu-mlir
+    cd /workspace/tpu-mlir_vx.y.z-<hash>-<date>
     source ./envsetup.sh
     ```
 此镜像仅用于编译和量化模型，程序编译和运行请在开发和运行环境中进行。更多TPU-MLIR的教程请参考[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)的《TPU-MLIR快速入门手册》和《TPU-MLIR开发参考手册》。
