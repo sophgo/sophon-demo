@@ -1,5 +1,5 @@
 #!/bin/bash
-pip3 install dfn
+pip3 install dfn==1.0.2
 # sudo apt install unzip
 
 scripts_dir=$(dirname $(readlink -f "$0"))
