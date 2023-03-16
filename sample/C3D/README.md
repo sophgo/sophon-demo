@@ -212,7 +212,7 @@ bmrt_test --bmodel models/BM1684/c3d_fp32_1b.bmodel
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的视频解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每个视频平均处理时间。
 
-在不同的测试平台上，使用不同的例程、模型测试`datasets/test`，性能测试结果如下：
+在不同的测试平台上，使用不同的例程、模型测试`datasets/UCF_test_01`，性能测试结果如下：
 |    测试平台  |     测试程序      |      测试模型    |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ---------------- | -------- | --------- | --------- | --------- |
 | BM1684 SoC  | c3d_opencv.py | c3d_fp32_1b.bmodel | 75.50    | 31.57  |   62.01 |  0.09   |

@@ -63,14 +63,14 @@ Usage: c3d_bmcv.pcie [params]
 
         --bmodel (value:../../models/BM1684X/c3d_fp32_1b.bmodel)
                 bmodel file path
+        --classnames (value:../../datasets/ucf_names.txt)
+                UCF-101 class names
         --dev_id (value:0)
                 TPU device id
         --help (value:true)
                 print help information.
         --input (value:../../datasets/UCF_test_01)
-                input path, UCF-101 style video directory
-        --classnames (value:../../datasets/ucf_names.txt)
-                UCF-101 class names
+                UCF-101 style video directory
 ```
 **注意：** CPP传参与python不同，需要用等于号，例如`./c3d_bmcv.pcie --bmodel=xxx`。
 
