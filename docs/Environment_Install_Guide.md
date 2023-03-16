@@ -179,7 +179,7 @@ source /etc/profile
     ```
 
 
-5. 打包生成python whell,生成的whell包的路径为`python/pcie/dist`
+5. 打包生成python wheel,生成的wheel包的路径为`python/pcie/dist`
 
     ```bash
     cd ../python/pcie 
@@ -187,10 +187,10 @@ source /etc/profile
     ./sophon_pcie_whl.sh  
     ```
 
-6. 安装python whell  
+6. 安装python wheel  
 
     ```bash
-    # 需根据实际生成的whell包修改其文件名
+    # 需根据实际生成的wheel包修改其文件名
     pip3 install ./dist/sophon-master-py3-none-any.whl --force-reinstall 
     ```
 
@@ -293,9 +293,9 @@ source /etc/profile
     ```bash
     sudo make install                               
     ```
-    将`build_soc`文件夹拷贝至目标SOC上,即可直接引用其头文件调用动态库
+    将`build_soc`文件夹下的`sophon-sail`拷贝至目标SOC的`/opt/sophon`目录下，然后返回编译机器进行后续操作。
 
-5. 打包生成python whell,生成的whell包的路径为`python/soc/dist`
+5. 打包生成python wheel,生成的wheel包的路径为`python/soc/dist`
 
     ```bash
     cd ../python/soc 
@@ -303,12 +303,12 @@ source /etc/profile
     ./sophon_soc_whl.sh  
     ```
 
-5. 安装python whell  
+5. 安装python wheel  
 
-    将生成的whell包拷贝到目标SOC上,然后执行如下安装命令
+    将生成的wheel包拷贝到目标SOC上,然后执行如下安装命令
     ```bash
-    # 需根据实际生成的whell包修改其文件名
-    pip3 install sophon_arm-master_-py3-none-any.whl --force-reinstall 
+    # 需根据实际生成的wheel包修改其文件名，x.y.z表示版本号
+    pip3 install sophon_arm-${x.y.z}-py3-none-any.whl --force-reinstall 
     ```
 
 ## 5 arm PCIe平台的开发和运行环境搭建
@@ -322,22 +322,22 @@ uname -m
 ```
 通常x86_64机器对应的硬件架构为x86_64，arm64机器对应的硬件架构为aarch64：
 ```
-libsophon_0.4.4_$arch.tar.gz
+libsophon_x.y.z_$arch.tar.gz，x.y.z表示版本号
 ```
 可以通过如下步骤安装：
 
 **注意：如果有旧版本，先参考下面的卸载方式步骤卸载旧版本。**
 ```
-tar -xzvf libsophon_0.4.4_aarch64.tar.gz
-sudo cp -r libsophon_0.4.4_aarch64/* /
-sudo ln -s /opt/sophon/libsophon-0.4.4 /opt/sophon/libsophon-current
+tar -xzvf libsophon_${x.y.z}_aarch64.tar.gz
+sudo cp -r libsophon_${x.y.z}_aarch64/* /
+sudo ln -s /opt/sophon/libsophon-${x.y.z} /opt/sophon/libsophon-current
 ```
 接下来请先按照您所使用Linux发行版的要求搭建驱动编译环境，然后做如下操作：
 ```
-sudo ln -s /opt/sophon/driver-0.4.4/$bin /lib/firmware/bm1684x_firmware.bin
-sudo ln -s /opt/sophon/driver-0.4.4/$bin /lib/firmware/bm1684_ddr_firmware.bin
-sudo ln -s /opt/sophon/driver-0.4.4/$bin /lib/firmware/bm1684_tcm_firmware.bin
-cd /opt/sophon/driver-0.4.4
+sudo ln -s /opt/sophon/driver-${x.y.z}/$bin /lib/firmware/bm1684x_firmware.bin
+sudo ln -s /opt/sophon/driver-${x.y.z}/$bin /lib/firmware/bm1684_ddr_firmware.bin
+sudo ln -s /opt/sophon/driver-${x.y.z}/$bin /lib/firmware/bm1684_tcm_firmware.bin
+cd /opt/sophon/driver-${x.y.z}
 ```
 此处“$bin”是带有版本号的bin文件全名, 对于bm1684x板卡，如bm1684x.bin_v3.1.0-9734c1da-220802, 对于bm1684板卡，如bm1684_ddr.bin_v3.1.1-63a8614d-220906和bm1684_tcm.bin_v3.1.1-63a8614d-220906。
 
@@ -374,17 +374,17 @@ sudo cp /opt/sophon/libsophon-current/data/libsophon-config.cmake /usr/lib/cmake
 从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载sophon-mw安装包，
 安装包由一个文件构成：
 ```
-sophon-mw_v22.12.01_aarch64.tar.gz
+sophon-mw_x.y.z_aarch64.tar.gz，x.y.z表示版本号
 ```
 可以通过如下步骤安装：
 
 先按照《LIBSOPHON使用手册》安装好libsophon包，然后，
 ```
-tar -xzvf sophon-mw_v22.12.01_aarch64.tar.gz
-sudo cp -r sophon-mw_v22.12.01_aarch64/* /
-sudo ln -s /opt/sophon/sophon-ffmpeg_v22.12.01 /opt/sophon/sophon-ffmpeg-latest
-sudo ln -s /opt/sophon/sophon-opencv_v22.12.01 /opt/sophon/sophon-opencv-latest
-sudo ln -s /opt/sophon/sophon-sample_v22.12.01 /opt/sophon/sophon-sample-latest
+tar -xzvf sophon-mw_${x.y.z}_aarch64.tar.gz
+sudo cp -r sophon-mw_${x.y.z}_aarch64/* /
+sudo ln -s /opt/sophon/sophon-ffmpeg_${x.y.z} /opt/sophon/sophon-ffmpeg-latest
+sudo ln -s /opt/sophon/sophon-opencv_${x.y.z} /opt/sophon/sophon-opencv-latest
+sudo ln -s /opt/sophon/sophon-sample_${x.y.z} /opt/sophon/sophon-sample-latest
 sudo sed -i "s/usr\/local/opt\/sophon\/sophon-ffmpeg-latest/g" /opt/sophon/sophon-ffmpeg-latest/lib/pkgconfig/*.pc
 sudo sed -i "s/^prefix=.*$/prefix=\/opt\/sophon\/sophon-opencv-latest/g" /opt/sophon/sophon-opencv-latest/lib/pkgconfig/opencv4.pc
 ```
@@ -405,4 +405,4 @@ source /etc/profile
 更多sophon-mw信息请参考《MULTIMEDIA使用手册.pdf》、《MULTIMEDIA开发参考手册.pdf》。
 
 ### 5.3 编译安装sophon-sail
-与[2.3 编译安装sophon-sail](#23-编译安装sophon-sail)安装方法相同。
+与[3.3 编译安装sophon-sail](#33-编译安装sophon-sail)安装方法相同。
