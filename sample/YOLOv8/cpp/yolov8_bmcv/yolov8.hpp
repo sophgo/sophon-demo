@@ -70,7 +70,7 @@ class YoloV8 {
     void enableProfile(TimeStamp *ts);
     int batch_size();
     int Detect(const std::vector<bm_image>& images, std::vector<YoloV8BoxVec>& boxes);
-    void draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, int top, int right, int bottom, bm_image& frame, bool put_text_flag=true);
+    void draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, int top, int right, int bottom, bm_image& frame, bool put_text_flag=false);
 };
 
 #endif //!YOLOV8_H
