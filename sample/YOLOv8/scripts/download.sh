@@ -29,7 +29,7 @@ then
     mv instances_val2017.json ../datasets/coco
 
     # test.zip
-    python3 -m dfn --url http://disk-sophgo-vip.quickconnect.cn/sharing/z5jmUBzrt
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/z5jmUBzrt
     unzip test.zip -d ../datasets/
     rm test.zip
 
