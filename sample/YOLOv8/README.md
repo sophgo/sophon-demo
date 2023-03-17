@@ -188,7 +188,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017.json --resu
 ### 7.1 bmrt_test
 使用bmrt_test测试模型的理论性能：
 ```bash
-# 请根据实际情况修改要测试的bmodel路径
+# 请根据实际情况修改要测试的bmodel路径和devid参数
 bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 ```
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
@@ -207,6 +207,7 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间；
+3. SoC和PCIe的测试结果基本一致。
 
 
 ### 7.2 程序运行性能
