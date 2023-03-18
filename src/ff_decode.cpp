@@ -657,13 +657,16 @@ bm_status_t picDec(bm_handle_t &handle, const char *path, bm_image &img)
     auto pos1 = input_name.find(".jpg");
     auto pos2 = input_name.find(".jpeg");
     auto pos3 = input_name.find(".png");
-    if (pos1 == string::npos && pos2 == string::npos && pos3 == string::npos)
+    auto pos4 = input_name.find(".JPG");
+    auto pos5 = input_name.find(".JPEG");
+    auto pos6 = input_name.find(".PNG");
+    if (pos1 == string::npos && pos2 == string::npos && pos3 == string::npos && pos4 == string::npos && pos5 == string::npos && pos6 == string::npos)
     {
         fprintf(stderr, "not support pic format, only support jpg and png\n");
         exit(1);
     }
 
-    if (pos1 == string::npos && pos2 == string::npos)
+    if (pos1 == string::npos && pos2 == string::npos && pos4 == string::npos && pos5 == string::npos)
     {
         bm_status_t ret = pngDec(handle, input_name, img);
         return ret;
