@@ -79,4 +79,8 @@ sudo rm /tmp/vid_*
 ### 6.1 部分FP32 BModel的BM1684X性能低于BM1684
 BM1684X的local memory相比BM1684少了一半，参数量较大的模型有可能放不下，导致gdma访问ddr次数大量增加。
 
+### 6.2 基于opencv-python的例程int8bmodel推理时间没有比fp32bmodel快
+int8bmodel的输入层数据类型是int8，scale不等1，基于opencv-python的例程以numpy.array为输入，推理接口内部需要进行乘scale操作，而fp32bmodel输入层的scale是1，推理接口内部不需要进行乘scale操作，这部分时间可能会抵掉模型推理优化的时间。可以在代码中添加`sail.set_print_flag(1)`，打印推理接口的具体耗时。  
+如果要使用opencv-python例程进行部署，建议将int8bmodel的输入、输出层保留为浮点计算。
+
 ## 7 其他问题
