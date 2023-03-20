@@ -96,7 +96,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
     # 如果当前系统没有对应镜像，会自动从docker hub上下载
     # 这里将本级目录映射到docker内的/workspace目录,用户需要根据实际情况将demo的目录映射到docker里面
     # myname只是举个名字的例子, 请指定成自己想要的容器的名字
-    docker run --name myname -v $PWD:/workspace -it sophgo/tpuc_dev:v2.1
+    docker run --name myname -v $PWD:/workspace -it sophgo/tpuc_dev:v2.2
     # 此时已经进入docker，并在/workspace目录下
     # 初始化软件环境
     cd /workspace/tpu-mlir_vx.y.z-<hash>-<date>
@@ -339,7 +339,7 @@ sudo ln -s /opt/sophon/driver-${x.y.z}/$bin /lib/firmware/bm1684_ddr_firmware.bi
 sudo ln -s /opt/sophon/driver-${x.y.z}/$bin /lib/firmware/bm1684_tcm_firmware.bin
 cd /opt/sophon/driver-${x.y.z}
 ```
-此处“$bin”是带有版本号的bin文件全名, 对于bm1684x板卡，如bm1684x.bin_v3.1.0-9734c1da-220802, 对于bm1684板卡，如bm1684_ddr.bin_v3.1.1-63a8614d-220906和bm1684_tcm.bin_v3.1.1-63a8614d-220906。
+此处“$bin”是带有版本号的bin文件全名, 对于bm1684x板卡，为a53lite_pkg.bin，对于bm1684板卡，如bm1684_ddr.bin_v3.1.1-63a8614d-220906和bm1684_tcm.bin_v3.1.1-63a8614d-220906。
 
 之后就可以编译驱动了（这里不依赖于dkms）：
 ```
@@ -366,6 +366,22 @@ source /etc/profile
 ```
 sudo mkdir -p /usr/lib/cmake/libsophon
 sudo cp /opt/sophon/libsophon-current/data/libsophon-config.cmake /usr/lib/cmake/libsophon/
+```
+卸载方式：
+```
+sudo rm -f /etc/ld.so.conf.d/libsophon.conf
+sudo ldconfig
+sudo rm -f /etc/profile.d/libsophon-bin-path.sh
+sudo rm -rf /usr/lib/cmake/libsophon
+sudo rmmod bmsophon
+sudo rm -f /lib/modules/$(uname -r)/kernel/bmsophon.ko
+sudo depmod
+sudo rm -f /lib/firmware/bm1684x_firmware.bin
+sudo rm -f /lib/firmware/bm1684_ddr_firmware.bin
+sudo rm -f /lib/firmware/bm1684_tcm_firmware.bin
+sudo rm -f /opt/sophon/libsophon-current
+sudo rm -rf /opt/sophon/libsophon-0.4.6
+sudo rm -rf /opt/sophon/driver-0.4.6
 ```
 其他平台机器请参考[libsophon安装教程](https://doc.sophgo.com/sdk-docs/v22.12.01/docs_latest_release/docs/libsophon/guide/html/1_install.html)。
 更多libsophon信息请参考《LIBSOPHON使用手册.pdf》
