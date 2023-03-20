@@ -223,6 +223,9 @@ int main(int argc, char *argv[]){
         
         // save results
         size_t index = input.rfind("/");
+        if(index == input.length() - 1)
+            input = input.substr(0, input.length() - 1);
+            index = input.rfind("/");
         string dataset_name = input.substr(index + 1);
         index = bmodel_file.rfind("/");
         string model_name = bmodel_file.substr(index + 1);
