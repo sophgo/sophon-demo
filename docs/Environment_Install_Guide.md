@@ -31,7 +31,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
     # 创建docker用户组，若已有docker组会报错，没关系可忽略
     sudo groupadd docker
     # 将当前用户加入docker组
-    sudo gpasswd -a ${USER} docker
+    sudo usermod -aG docker $USER
     # 切换当前会话到新group或重新登录重启X会话
     newgrp docker​ 
     ```
@@ -48,7 +48,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
 
 3. 创建并进入docker
 
-    TPU-NNTC使用的docker是sophgo/tpuc_dev:latest, docker镜像和tpu-nntc有绑定关系，少数情况下有可能更新了tpu-nntc，需要新的镜像。
+    TPU-NNTC使用的docker是sophgo/tpuc_dev:2.1, docker镜像和tpu-nntc有绑定关系，少数情况下有可能更新了tpu-nntc，需要新的镜像。
     ```bash
     cd tpu-nntc
     # 进入docker，如果当前系统没有对应镜像，会自动从docker hub上下载
@@ -76,7 +76,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
     # 创建docker用户组，若已有docker组会报错，没关系可忽略
     sudo groupadd docker
     # 将当前用户加入docker组
-    sudo gpasswd -a ${USER} docker
+    sudo usermod -aG docker $USER
     # 切换当前会话到新group或重新登录重启X会话
     newgrp docker​ 
     ```
@@ -91,7 +91,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
 
 3. 创建并进入docker
 
-    TPU-MLIR使用的docker是sophgo/tpuc_dev:latest, docker镜像和tpu-mlir有绑定关系，少数情况下有可能更新了tpu-mlir，需要新的镜像。
+    TPU-MLIR使用的docker是sophgo/tpuc_dev:2.2, docker镜像和tpu-mlir有绑定关系，少数情况下有可能更新了tpu-mlir，需要新的镜像。
     ```bash
     # 如果当前系统没有对应镜像，会自动从docker hub上下载
     # 这里将本级目录映射到docker内的/workspace目录,用户需要根据实际情况将demo的目录映射到docker里面
