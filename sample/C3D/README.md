@@ -180,7 +180,7 @@ python3 tools/eval_ucf.py --gt_path datasets/ground_truth.json --result_json cpp
 
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
-2. 由于不同平台的系统存在解码差异，SoC和PCIe模式下相同模型的准确率也会存在细微差异；
+2. 在不同平台或系统下，opencv解码.avi格式的视频存在差异，可能导致精度也有细微差异。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
