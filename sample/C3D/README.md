@@ -35,7 +35,7 @@ C3D是使用三维卷积进行视频动作识别的开荒者，论文链接：[L
 **如果您有自己训练的Pytorch C3D模型**，您可以参考tools/c3d_transform.py，**自行修改源模型路径和模型网络的层名，确保能够加载您的参数**，以成功转换torchscript和onnx模型。同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
 ```bash
-# 安装unzip，若已安装请跳过
+# 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
 sudo apt install unzip
 chmod -R +x scripts/
 ./scripts/download.sh
