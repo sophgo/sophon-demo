@@ -16,16 +16,18 @@
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
 | ---- | ------------- | -----------------------------------  |
-| 1    | yolov5_bmcv   | 使用FFmpeg解码、BMCV前处理、BMRT推理   |
+| 1    | deepsort_bmcv   | 使用FFmpeg解码、BMCV前处理、BMRT推理   |
 
 ## 1. 环境准备
-### 1.1 x86/arm PCIe平台
-如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
 
-C++程序依赖Eigen，可以运行如下命令安装：
+本C++例程依赖Eigen，您需要在编译c++程序的机器上运行如下命令安装：
 ```bash
 sudo apt install libeigen3-dev
 ```
+
+### 1.1 x86/arm PCIe平台
+如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+
 
 ### 1.2 SoC平台
 如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
@@ -82,9 +84,11 @@ Usage: deepsort_bmcv.pcie [params]
 ```
 **注意：** 
 
-CPP传参与python不同，需要用等于号，例如`./deepsort_bmcv.pcie --bmodel_detector=xxx`。
+1. CPP传参与python不同，需要用等于号，例如`./deepsort_bmcv.pcie --bmodel_detector=xxx`。
 
-如果您使用自己的特征提取模型，注意修改`deep_sort/include/dataType.h`中的特征维度`k_feature_dims`。
+2. 如果您使用自己的特征提取模型，注意修改`deep_sort/include/dataType.h`中的特征维度`k_feature_dims`。
+
+3. 本例程不提供目标检测模型和卡尔曼滤波的自定义参数，相关参数可以在`deepsort.cpp`和`main.cpp`中修改。
 
 ### 3.2 测试MOT数据集
 MOT数据集测试实例如下，支持对整个文件夹里的所有图片进行测试。
