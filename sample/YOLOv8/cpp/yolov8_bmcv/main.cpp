@@ -135,7 +135,8 @@ int main(int argc, char *argv[]){
                             float bboxwidth = bbox.x2-bbox.x1;
                             float bboxheight = bbox.y2-bbox.y1;
                             // draw image
-                            yolov8.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x1, bbox.y1, bboxwidth, bboxheight, batch_imgs[i]);
+                            if(bbox.score > 0.25)
+                                yolov8.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x1, bbox.y1, bboxwidth, bboxheight, batch_imgs[i]);
                             // save result
                             json bbox_json;
                             bbox_json["category_id"] = bbox.class_id;
@@ -188,7 +189,8 @@ int main(int argc, char *argv[]){
                     float bboxwidth = bbox.x2-bbox.x1;
                     float bboxheight = bbox.y2-bbox.y1;
                     // draw image
-                    yolov8.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x1, bbox.y1, bboxwidth, bboxheight, batch_imgs[i]);
+                    if(bbox.score > 0.25)
+                        yolov8.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x1, bbox.y1, bboxwidth, bboxheight, batch_imgs[i]);
                     // save result
                     json bbox_json;
                     bbox_json["category_id"] = bbox.class_id;
@@ -265,7 +267,8 @@ int main(int argc, char *argv[]){
                         int bboxwidth = bbox.x2-bbox.x1;
                         int bboxheight = bbox.y2-bbox.y1;
                         // draw image
-                        yolov8.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x1, bbox.y1, bboxwidth, bboxheight, batch_imgs[i]);
+                        if(bbox.score > 0.25)
+                            yolov8.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x1, bbox.y1, bboxwidth, bboxheight, batch_imgs[i]);
                     }
                     string img_file = "results/images/" + to_string(id) + ".jpg";
                     void* jpeg_data = NULL;
@@ -300,7 +303,8 @@ int main(int argc, char *argv[]){
                     float bboxwidth = bbox.x2-bbox.x1;
                     float bboxheight = bbox.y2-bbox.y1;
                     // draw image
-                    yolov8.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x1, bbox.y1, bboxwidth, bboxheight, batch_imgs[i]);
+                    if(bbox.score > 0.25)
+                        yolov8.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x1, bbox.y1, bboxwidth, bboxheight, batch_imgs[i]);
                 }
                 string img_file = "results/images/" + to_string(id) + ".jpg";
                 void* jpeg_data = NULL;

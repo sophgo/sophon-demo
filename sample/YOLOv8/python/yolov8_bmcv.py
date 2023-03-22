@@ -22,7 +22,7 @@ class YOLOv8:
         # load bmodel
         self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSO)
         logging.debug("load {} success!".format(args.bmodel))
-        self.handle = self.net.get_handle()
+        self.handle = sail.Handle(args.dev_id)
         self.bmcv = sail.Bmcv(self.handle)
         self.graph_name = self.net.get_graph_names()[0]
         
@@ -63,7 +63,7 @@ class YOLOv8:
         self.conf_thresh = args.conf_thresh
         self.nms_thresh = args.nms_thresh
         self.agnostic = False
-        self.multi_label = True
+        self.multi_label = False
         self.max_det = 300
 
         self.postprocess = PostProcess(
@@ -202,17 +202,22 @@ class YOLOv8:
 
         return results
         
-def draw_bmcv(bmcv, image, boxes, masks=None, classes_ids=None, conf_scores=None):
+def draw_bmcv(dev_id, image, boxes, output_img_dir, file_name, cn, masks=None, classes_ids=None, conf_scores=None, isvideo=False):
+    bmcv = sail.Bmcv(sail.Handle(dev_id))
+    img_bgr_planar = bmcv.convert_format(image)
     for idx in range(len(boxes)):
         x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
         if classes_ids is not None:
             color = np.array(COLORS[int(classes_ids[idx]) + 1]).astype(np.uint8).tolist()
         else:
             color = (0, 0, 255)
-        bmcv.rectangle(image, x1, y1, (x2 - x1), (y2 - y1), color, 2)
+        bmcv.rectangle(img_bgr_planar, x1, y1, (x2 - x1), (y2 - y1), color, 2)
         # bmcv.putText(image, COCO_CLASSES[int(classes_ids[idx] + 1)], x1, y1, tuple(color),1.0,1)
         logging.debug("class id={}, score={}, (x1={},y1={},w={},h={})".format(int(classes_ids[idx]), conf_scores[idx], x1, y1, x2-x1, y2-y1))
-
+        if isvideo:
+            bmcv.imwrite(os.path.join(output_img_dir, file_name + '_' + str(cn) + '.jpg'), img_bgr_planar)
+        else:
+            bmcv.imwrite(os.path.join(output_img_dir, file_name), img_bgr_planar)
 
 def main(args):
     # check params
@@ -245,6 +250,7 @@ def main(args):
         filename_list = []
         results_list = []
         cn = 0
+        yolov8_handle = sail.Handle(args.dev_id)
         for root, dirs, filenames in os.walk(args.input):
             for filename in filenames:
                 if os.path.splitext(filename)[-1].lower() not in ['.jpg','.png','.jpeg','.bmp','.webp']:
@@ -256,7 +262,7 @@ def main(args):
                 start_time = time.time()
                 decoder = sail.Decoder(img_file, True, args.dev_id)
                 bmimg = sail.BMImage()
-                ret = decoder.read(yolov8.handle, bmimg)
+                ret = decoder.read(yolov8_handle, bmimg)
                 if ret != 0:
                     logging.error("{} decode failure.".format(img_file))
                     continue
@@ -271,9 +277,16 @@ def main(args):
                         det = results[i]
                         
                         # save image
-                        img_bgr_planar = yolov8.bmcv.convert_format(bmimg_list[i])
-                        draw_bmcv(yolov8.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
-                        yolov8.bmcv.imwrite(os.path.join(output_img_dir, filename), img_bgr_planar)
+                        det_draw = det[det[:, -2] > 0.25]
+                        draw_bmcv(args.dev_id,
+                                  bmimg_list[i],
+                                  det_draw[:,:4],
+                                  output_img_dir,
+                                  filename,
+                                  cn, 
+                                  masks=None,
+                                  classes_ids=det_draw[:, -1],
+                                  conf_scores=det_draw[:, -2])
                         
                         # save result
                         res_dict = dict()
@@ -295,11 +308,17 @@ def main(args):
             results = yolov8(bmimg_list)
             for i, filename in enumerate(filename_list):
                 det = results[i]
-                
                 # save image
-                img_bgr_planar = yolov8.bmcv.convert_format(bmimg_list[i])
-                draw_bmcv(yolov8.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
-                yolov8.bmcv.imwrite(os.path.join(output_img_dir, filename), img_bgr_planar)
+                det_draw = det[det[:, -2] > 0.25]
+                draw_bmcv(args.dev_id,
+                          bmimg_list[i],
+                          det_draw[:,:4],
+                          output_img_dir,
+                          filename,
+                          cn,
+                          masks=None,
+                          classes_ids=det_draw[:, -1],
+                          conf_scores=det_draw[:, -2])
                         
                 res_dict = dict()
                 res_dict['image_name'] = filename
@@ -331,9 +350,10 @@ def main(args):
         frame = sail.BMImage()
         cn = 0
         frame_list = []
+        yolov8_handle = sail.Handle(args.dev_id)
         while True:
             start_time = time.time()
-            ret = decoder.read(yolov8.handle, frame)
+            ret = decoder.read(yolov8_handle, frame)
             if ret:
                 break
             decode_time += time.time() - start_time
@@ -344,9 +364,17 @@ def main(args):
                     det = results[i]
                     cn += 1
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
-                    img_bgr_planar = yolov8.bmcv.convert_format(frame_list[i])
-                    draw_bmcv(yolov8.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
-                    yolov8.bmcv.imwrite(os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg'), img_bgr_planar)
+                    det_draw = det[det[:, -2] > 0.25]
+                    draw_bmcv(args.dev_id,
+                              frame_list[i],
+                              det_draw[:,:4],
+                              output_img_dir,
+                              video_name,
+                              cn, 
+                              masks=None,
+                              classes_ids=det_draw[:, -1],
+                              conf_scores=det_draw[:, -2],
+                              isvideo=True)
                 frame_list.clear()
         if len(frame_list):
             results = yolov8(frame_list)
@@ -354,9 +382,17 @@ def main(args):
                 det = results[i]
                 cn += 1
                 logging.info("{}, det nums: {}".format(cn, det.shape[0]))
-                img_bgr_planar = yolov8.bmcv.convert_format(frame_list[i])
-                draw_bmcv(yolov8.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
-                yolov8.bmcv.imwrite(os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg'), img_bgr_planar)
+                det_draw = det[det[:, -2] > 0.25]
+                draw_bmcv(args.dev_id,
+                        frame_list[i],
+                        det_draw[:,:4],
+                        output_img_dir,
+                        video_name,
+                        cn, 
+                        masks=None,
+                        classes_ids=det_draw[:, -1],
+                        conf_scores=det_draw[:, -2],
+                        isvideo=True)
         decoder.release()
         logging.info("result saved in {}".format(output_img_dir))
 
