@@ -13,7 +13,7 @@
 #include <vector>
 #define USE_ASPECT_RATIO 1
 #define DUMP_FILE 0
-#define USE_MULTICLASS_NMS 1
+#define USE_MULTICLASS_NMS 0
 
 const std::vector<std::vector<int>> colors = {
     {255, 0, 0},     {255, 85, 0},    {255, 170, 0},   {255, 255, 0}, {170, 255, 0}, {85, 255, 0},  {0, 255, 0},

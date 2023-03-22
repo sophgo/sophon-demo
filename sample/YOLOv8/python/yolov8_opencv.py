@@ -36,7 +36,7 @@ class YOLOv8:
         self.conf_thresh = args.conf_thresh
         self.nms_thresh = args.nms_thresh
         self.agnostic = False
-        self.multi_label = True
+        self.multi_label = False
         self.max_det = 300
 
         self.postprocess = PostProcess(
@@ -237,7 +237,8 @@ def main(args):
                     for i, filename in enumerate(filename_list):
                         det = results[i]
                         # save image
-                        res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                        det_draw = det[det[:, -2] > 0.25]
+                        res_img = draw_numpy(img_list[i], det_draw[:,:4], masks=None, classes_ids=det_draw[:, -1], conf_scores=det_draw[:, -2])
                         cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
                         
                         # save result
@@ -260,7 +261,8 @@ def main(args):
             results = yolov8(img_list)
             for i, filename in enumerate(filename_list):
                 det = results[i]
-                res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                det_draw = det[det[:, -2] > 0.25]
+                res_img = draw_numpy(img_list[i], det_draw[:,:4], masks=None, classes_ids=det_draw[:, -1], conf_scores=det_draw[:, -2])
                 cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
                 res_dict = dict()
                 res_dict['image_name'] = filename
@@ -309,7 +311,8 @@ def main(args):
                     det = results[i]
                     cn += 1
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
-                    res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                    det_draw = det[det[:, -2] > 0.25]
+                    res_frame = draw_numpy(frame_list[i], det_draw[:,:4], masks=None, classes_ids=det_draw[:, -1], conf_scores=det_draw[:, -2])
                     out.write(res_frame)
                 frame_list.clear()
         if len(frame_list):
@@ -318,7 +321,8 @@ def main(args):
                 det = results[i]
                 cn += 1
                 logging.info("{}, det nums: {}".format(cn, det.shape[0]))
-                res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                det_draw = det[det[:, -2] > 0.25]
+                res_frame = draw_numpy(frame_list[i], det_draw[:,:4], masks=None, classes_ids=det_draw[:, -1], conf_scores=det_draw[:, -2])
                 out.write(res_frame)
         cap.release()
         out.release()
