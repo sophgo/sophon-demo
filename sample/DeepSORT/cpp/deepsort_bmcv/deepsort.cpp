@@ -19,10 +19,9 @@ DeepSort::~DeepSort() {
     delete featureExtractor;
 }
 
-void DeepSort::sort(bm_image& frame, vector<YoloV5Box>& dets, int frame_id) {
+void DeepSort::sort(bm_image& frame, vector<YoloV5Box>& dets, vector<TrackBox>& track_boxs, int frame_id) {
     // preprocess Mat -> DETECTION
     DETECTIONS detections;
-
     for (YoloV5Box i : dets) {
         /*very important, if not this code, you will suffer from segmentation fault.*/
         auto start_x = MIN(MAX(int(i.x), 0), frame.width);
@@ -37,8 +36,7 @@ void DeepSort::sort(bm_image& frame, vector<YoloV5Box>& dets, int frame_id) {
         d.class_id = i.class_id;
         detections.push_back(d);
     }
-    result.clear();
-    respond_clss.clear();
+    track_boxs.clear();
     if (detections.size() > 0) {
         LOG_TS(m_ts, "extractor time");
         bool flag = featureExtractor->getRectsFeature(frame, detections);
@@ -49,20 +47,13 @@ void DeepSort::sort(bm_image& frame, vector<YoloV5Box>& dets, int frame_id) {
             objTracker->update(detections);
             // std::cout << "track num: " << objTracker.tracks.size() << std::endl;
             for (Track& track : objTracker->tracks) {
-                if ((!track.is_confirmed() || track.time_since_update > 1) && frame_id > 2) {
-                    // result.push_back(std::make_pair(-1, track.to_tlwh()));
+                if ((!track.is_confirmed() || track.time_since_update > 1) && frame_id > 2) { //when frame_id < 2, there is no track.
                     continue;
                 }
-                result.push_back(std::make_pair(track.track_id, track.to_tlwh()));
-                respond_clss.push_back(track.class_id);
+                DETECTBOX k = track.to_tlwh();
+                TrackBox tmp(k(0), k(1), k(2), k(3), 1., track.class_id, track.track_id);
+                track_boxs.push_back(tmp);
             }
-        }
-        dets.clear();
-        // std::cout << "result size: " << result.size() << std::endl;
-        for (int i = 0; i < result.size(); ++i) {
-            DETECTBOX k = result[i].second;
-            YoloV5Box tmp(k(0), k(1), k(2), k(3), 1., respond_clss[i], result[i].first);
-            dets.push_back(tmp);
         }
         LOG_TS(m_ts, "deepsort postprocess");
     }

@@ -20,18 +20,22 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 
 ## 1. 环境准备
 
+### 1.1 x86/arm PCIe平台
+如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+
 本C++例程依赖Eigen，您需要在编译c++程序的机器上运行如下命令安装：
 ```bash
 sudo apt install libeigen3-dev
 ```
 
-### 1.1 x86/arm PCIe平台
-如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
-
 
 ### 1.2 SoC平台
 如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
 
+本C++例程依赖Eigen，您需要在编译c++程序的机器上运行如下命令安装：
+```bash
+sudo apt install libeigen3-dev
+```
 
 ## 2. 程序编译
 C++程序运行前需要编译可执行文件。
@@ -121,7 +125,7 @@ YoloV5 dtor ...
 ### 3.3 测试视频
 视频测试实例如下，支持对视频流进行测试。
 ```bash
-./yolov5_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/BM1684X/extractor_fp32_1b.bmodel --dev_id=0
+./deepsort_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/BM1684X/extractor_fp32_1b.bmodel --dev_id=0
 ```
 测试结束后，会将预测结果画在图片上并保存在`results/video`中，预测的结果保存在`results/mot_eval/test_car_person_1080P.mp4_extractor_fp32_1b.bmodel.txt`下，同时会打印推理耗时等信息。
 

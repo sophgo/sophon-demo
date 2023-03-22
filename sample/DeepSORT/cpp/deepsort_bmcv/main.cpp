@@ -15,8 +15,8 @@
 #include "deepsort.h"
 #include "ff_decode.hpp"
 #include "json.hpp"
-#include "opencv2/opencv.hpp"
 #include "yolov5.hpp"
+#include "draw_utils.hpp"
 #define USE_OPENCV_DRAW_BOX 1
 using json = nlohmann::json;
 using namespace std;
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
         "{dev_id | 0 | TPU device id}"
         "{help | 0 | print help information.}"
         "{input | ../../datasets/test_car_person_1080P.mp4 | input path, video file path or image folder}"
-        "{classnames | ./detector/yolov5_bmcv/coco.names | class names file path}";
+        "{classnames | ./coco.names | class names file path}";
     cv::CommandLineParser parser(argc, argv, keys);
     if (parser.get<bool>("help")) {
         parser.printMessage();
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
 
     // initialize net
     YoloV5 yolov5(bm_ctx_detector);
-    yolov5.Init(0.5, 0.5, "./detector/yolov5_bmcv/coco.names");
+    yolov5.Init(0.5, 0.5, parser.get<string>("classnames"));
     DeepSort deepsort(bm_ctx_extractor);
     // profiling
     TimeStamp deepsort_ts;
@@ -189,23 +189,25 @@ int main(int argc, char* argv[]) {
             for (int i = 0; i < batch_imgs.size(); i++) {
                 id++;
                 crop_total += yolov5_boxes[i].size();
-                cout << id << ", detect_nums: " << yolov5_boxes[i].size();
+
+                //tracker, directly output tracked boxes.
+                vector<TrackBox> track_boxes;
                 ts->save("deepsort time");
-                deepsort.sort(batch_imgs[i], yolov5_boxes[i], id);
+                deepsort.sort(batch_imgs[i], yolov5_boxes[i], track_boxes, id);
                 ts->save("deepsort time");
-                cout << "; track_nums: " << yolov5_boxes[i].size() << endl;
+                
+                cout << id << ", detect_nums: " << yolov5_boxes[i].size()<< "; track_nums: " << yolov5_boxes[i].size() << endl;
                 ts->save("encode time");
-                for (auto bbox : yolov5_boxes[i]) {
+                for (auto bbox : track_boxes) {
                     string save_str = cv::format("%d,%d,%d,%d,%d,%d,1,-1,-1,-1\n", id, bbox.track_id, bbox.x, bbox.y,
                                                  bbox.width, bbox.height);
                     mot_saver << save_str;
                 }
-
 #if USE_OPENCV_DRAW_BOX
                 cv::Mat frame_to_draw;
                 cv::bmcv::toMAT(&batch_imgs[i], frame_to_draw);
-                for (auto bbox : yolov5_boxes[i]) {
-                    yolov5.drawPred(bbox.track_id, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.x + bbox.width,
+                for (auto bbox : track_boxes) {
+                    draw_opencv(bbox.track_id, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.x + bbox.width,
                                     bbox.y + bbox.height, frame_to_draw);
                 }
                 bm_image frame_drawed;
@@ -224,8 +226,8 @@ int main(int argc, char* argv[]) {
                 int ret = bmcv_image_jpeg_enc(h, 1, &frame_drawed, &jpeg_data, &out_size);
                 bm_image_destroy(frame_drawed);
 #else
-                for (auto bbox : yolov5_boxes[i]) {
-                    yolov5.draw_bmcv(h, bbox.track_id, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width,
+                for (auto bbox : track_boxes[i]) {
+                    draw_bmcv(h, bbox.track_id, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width,
                                      bbox.height, batch_imgs[i], true);
                 }
                 if (batch_imgs[i].image_format != 0) {

@@ -6,7 +6,9 @@
 # third-party components.
 #
 #===----------------------------------------------------------------------===#
-from detector.yolov5.yolov5_opencv import YOLOv5
+import sys
+sys.path.append("../../YOLOv5/python")
+from yolov5_opencv import YOLOv5
 from deep_sort.deep_sort import DeepSort
 from deep_sort.utils.parser import get_config
 import cv2
@@ -84,16 +86,23 @@ def argsparser():
     parser.add_argument('--bmodel_detector', type=str, default='../models/BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel', help='path of detector bmodel')
     parser.add_argument('--bmodel_extractor', type=str, default='../models/BM1684X/extractor_fp16_4b.bmodel', help='path of extractor bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
-    args = parser.parse_args()
+    args = parser.parse_args()    
     return args
 
+class yolov5_arg:
+    def __init__(self, bmodel, dev_id, conf_thresh, nms_thresh):
+        self.bmodel = bmodel
+        self.dev_id = dev_id
+        self.conf_thresh = conf_thresh
+        self.nms_thresh = nms_thresh
 
 def main():
     args = argsparser()
     cfg = get_config()
     cfg.merge_from_file("configs/deep_sort.yaml")
+    yolov5_args = yolov5_arg(args.bmodel_detector, args.dev_id, cfg.DETECTOR.CONF_THRE, cfg.DETECTOR.NMS_THRE)
     #initialize detector yolov5.
-    detector = YOLOv5(args.bmodel_detector, args.dev_id, cfg.DETECTOR.CONF_THRE, cfg.DETECTOR.NMS_THRE)
+    detector = YOLOv5(yolov5_args)
     #initialize deepsort tracker.
     deepsort = DeepSort(args.bmodel_extractor, args.dev_id,
                         max_dist=cfg.DEEPSORT.MAX_DIST, min_confidence=cfg.DEEPSORT.MIN_CONFIDENCE,

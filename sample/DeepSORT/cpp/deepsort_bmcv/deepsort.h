@@ -16,12 +16,30 @@
 #include "tracker.h"
 #include "yolov5.hpp"
 using std::vector;
+struct TrackBox: YoloV5Box{
+    TrackBox(float x = 0,
+              float y = 0,
+              float w = 0,
+              float h = 0,
+              float score = 0,
+              float class_id = -1,
+              float track_id = -1) {
+        this->x = x;
+        this->y = y;
+        this->width = w;
+        this->height = h;
+        this->score = score;
+        this->class_id = class_id;
+        this->track_id = track_id;
+    }
+    int track_id;
+};
 
 class DeepSort {
    public:
     DeepSort(std::shared_ptr<BMNNContext> context);
     virtual ~DeepSort();
-    void sort(bm_image& frame, vector<YoloV5Box>& dets, int frame_id);
+    void sort(bm_image& frame, vector<YoloV5Box>& dets, vector<TrackBox>& track_boxs, int frame_id);
 
     TimeStamp* m_ts;
     void enableProfile(TimeStamp* ts) {
@@ -30,12 +48,9 @@ class DeepSort {
     }
 
    private:
-    // void sort(bm_image& frame, DETECTIONSV2& detectionsv2);
-    vector<RESULT_DATA> result;
     FeatureExtractor* featureExtractor;
-    // vector<std::pair<CLSCONF, DETECTBOX>> results;
     tracker* objTracker;
-    vector<int> respond_clss;
 };
 
 #endif  // deepsort.h
+

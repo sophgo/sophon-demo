@@ -52,7 +52,8 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     #link our own include and srcs
     include_directories("../../../../include/")
     include_sub_directories_recursively(${CMAKE_SOURCE_DIR})
-    file(GLOB_RECURSE SRC_FILES "./deep_sort/*.cpp" "./detector/*.cpp")
+    include_directories("../../../YOLOv5/cpp/yolov5_bmcv/")
+    file(GLOB_RECURSE SRC_FILES "./thirdparty/*.cpp" "../../../YOLOv5/cpp/yolov5_bmcv/yolov5.cpp") # dont involve build/
     aux_source_directory(. SRC_FILES)
     aux_source_directory(../../../../src/ SRC_FILES)
     add_executable(deepsort_bmcv.pcie ${SRC_FILES})
@@ -68,7 +69,8 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     include_directories("../../../../include/")
     include_directories(/usr/include/eigen3)
     include_sub_directories_recursively(${CMAKE_SOURCE_DIR})
-    file(GLOB_RECURSE SRC_FILES "./deep_sort/*.cpp" "./detector/*.cpp")
+    include_directories("../../../YOLOv5/cpp/yolov5_bmcv/")
+    file(GLOB_RECURSE SRC_FILES "./thirdparty/*.cpp" "../../../YOLOv5/cpp/yolov5_bmcv/yolov5.cpp") # dont involve build/
     include_directories("${SDK}/include/")
     include_directories("${SDK}/include/opencv4")
     link_directories("${SDK}/lib/")
@@ -76,7 +78,6 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     message(STATUS "SDK:" ${SDK})
 
     aux_source_directory(. SRC_FILES)
-    aux_source_directory(./detector/yolov5_bmcv/ SRC_FILES)
     aux_source_directory(../../../../src/ SRC_FILES)
     
     add_executable(deepsort_bmcv.soc ${SRC_FILES})
