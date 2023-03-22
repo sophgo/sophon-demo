@@ -43,7 +43,7 @@ chmod -R +x scripts/
 ./scripts/download.sh
 ```
 
-执行后，模型保存至`models/`，测试数据集下载并解压至`datasets/test/`，精度测试数据集下载并解压至`datasets/coco/val2017/`，量化数据集下载并解压至`datasets/coco128/`
+执行后，模型保存至`models/`，测试数据集下载并解压至`datasets/test/`，精度测试数据集下载并解压至`datasets/coco/val2017_1000/`，量化数据集下载并解压至`datasets/coco128/`
 
 ```
 下载的模型包括：
@@ -74,8 +74,8 @@ chmod -R +x scripts/
 ├── coco.names                                # coco类别名文件
 ├── coco128                                   # coco128数据集，用于模型量化
 └── coco                                      
-    ├── val2017                               # coco val2017数据集
-    └── instances_val2017.json                # coco val2017数据集标签文件，用于计算精度评价指标  
+    ├── val2017_1000                               # coco val2017_1000数据集：coco val2017中随机抽取的1000张样本
+    └── instances_val2017_1000.json                # coco val2017_1000数据集关键点标签文件，用于计算精度评价指标 
 ```
 
 ## 4. 模型编译
@@ -149,39 +149,38 @@ chmod -R +x scripts/
 ## 6. 精度测试
 ### 6.1 测试方法
 
-首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017)和相关参数(conf_thresh=0.001、nms_thresh=0.7)。  
+首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(conf_thresh=0.001、nms_thresh=0.7)。  
 然后，使用`tools`目录下的`eval_coco.py`脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
 ```bash
 # 安装pycocotools，若已安装请跳过
 pip3 install pycocotools
 # 请根据实际情况修改程序路径和json文件路径
-python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017.json --result_json results/yolov8s_fp32_1b.bmodel_val2017_opencv_python_result.json
+python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/yolov8s_fp32_1b.bmodel_val2017_1000_opencv_python_result.json
 ```
 ### 6.2 测试结果
 在coco2017 val数据集上，精度测试结果如下：
 |   测试平台    |      测试程序     |      测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ---------------- | ---------------------- | ------------- | -------- |
-| BM1684 PCIe  | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 0.448         | 0.616 |
-| BM1684 PCIe  | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 0.439         | 0.608 |
-| BM1684 PCIe  | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 0.444         | 0.612 |
-| BM1684 PCIe  | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 0.435         | 0.604 |
-| BM1684 PCIe  | yolov8_bmcv.pcie | yolov8s_fp32_1b.bmodel | 0.448         | 0.616 |
-| BM1684 PCIe  | yolov8_bmcv.pcie | yolov8s_int8_1b.bmodel | 0.439         | 0.608 |
-| BM1684X PCIe | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 0.448         | 0.616 |
-| BM1684X PCIe | yolov8_opencv.py | yolov8s_fp16_1b.bmodel | 0.448         | 0.616 |
-| BM1684X PCIe | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 0.438         | 0.607 |
-| BM1684X PCIe | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 0.444         | 0.612 |
-| BM1684X PCIe | yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel | 0.444         | 0.612 |
-| BM1684X PCIe | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 0.436         | 0.603 |
-| BM1684X PCIe | yolov8_bmcv.pcie | yolov8s_fp32_1b.bmodel | 0.448         | 0.616 |
-| BM1684X PCIe | yolov8_bmcv.pcie | yolov8s_fp16_1b.bmodel | 0.448         | 0.616 |
-| BM1684X PCIe | yolov8_bmcv.pcie | yolov8s_int8_1b.bmodel | 0.438         | 0.607 |
+| BM1684 PCIe  | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 0.448   | 0.609 |
+| BM1684 PCIe  | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 0.438   | 0.603 |
+| BM1684 PCIe  | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 0.440   | 0.604 |
+| BM1684 PCIe  | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 0.432   | 0.597 |
+| BM1684 PCIe  | yolov8_bmcv.pcie | yolov8s_fp32_1b.bmodel | 0.448   | 0.609 |
+| BM1684 PCIe  | yolov8_bmcv.pcie | yolov8s_int8_1b.bmodel | 0.437   | 0.601 |
+| BM1684X PCIe | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 0.448   | 0.609 |
+| BM1684X PCIe | yolov8_opencv.py | yolov8s_fp16_1b.bmodel | 0.447   | 0.609 |
+| BM1684X PCIe | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 0.442   | 0.605 |
+| BM1684X PCIe | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 0.440   | 0.602 |
+| BM1684X PCIe | yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel | 0.440   | 0.602 |
+| BM1684X PCIe | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 0.432   | 0.594 |
+| BM1684X PCIe | yolov8_bmcv.pcie | yolov8s_fp32_1b.bmodel | 0.448   | 0.610 |
+| BM1684X PCIe | yolov8_bmcv.pcie | yolov8s_fp16_1b.bmodel | 0.447   | 0.609 |
+| BM1684X PCIe | yolov8_bmcv.pcie | yolov8s_int8_1b.bmodel | 0.441   | 0.605 |
 
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
 2. SoC和PCIe的模型精度一致；
-3. AP@IoU=0.5:0.95为area=all对应的指标；
-4. 该测试需要系统内存约3.2G，BM1684 SoC模式需要将json文件拷贝至其他平台测试；
+3. AP@IoU=0.5:0.95为area=all对应的指标。
 
 
 ## 7. 性能测试
@@ -213,36 +212,36 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
-在不同的测试平台上，使用不同的例程、模型测试`datasets/test`，性能测试结果如下：
+在不同的测试平台上，使用不同的例程、模型测试`datasets/val2017_1000`，conf_thresh=0.25，nms_thresh=0.7，性能测试结果如下：
 |    测试平台  |     测试程序      |        测试模型        |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ---------------------- | -------- | --------- | --------- | --------- |
-| BM1684 SoC  | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 20.18 | 24.77 | 31.22  | 28.81  |
-| BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 20.03 | 25.69 | 33.34  | 30.75  |
-| BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 22.71 | 26.46 | 25.44  | 31.20  |
-| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 1.87  | 3.11  | 28.20  | 29.57  |
-| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 1.90  | 2.56  | 17.55  | 34.12  |
-| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_int8_4b.bmodel | 1.70  | 2.40  | 9.78   | 33.75  |
-| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel | 5.05  | 1.94  | 25.73  | 24.44  |
-| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel | 5.03  | 1.93  | 15.08  | 25.56  |
-| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel | 4.96  | 1.84  | 7.48   | 25.40  |
-| BM1684X SoC | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 22.29 | 25.45 | 34.80  | 28.87  |
-| BM1684X SoC | yolov8_opencv.py | yolov8s_fp16_1b.bmodel | 22.04 | 25.81 | 12.13  | 35.58  |
-| BM1684X SoC | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 22.37 | 26.26 | 9.13   | 30.17  |
-| BM1684X SoC | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 23.52 | 25.90 | 9.00   | 27.87  |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 1.72  | 2.43  | 31.63  | 29.81  |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel | 1.86  | 2.50  | 8.87   | 30.24  |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 1.80  | 2.53  | 5.93   | 34.09  |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_int8_4b.bmodel | 1.82  | 2.29  | 5.79   | 31.13  |
-| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel | 5.13  | 1.03  | 28.88  | 25.75  |
-| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_fp16_1b.bmodel | 5.35  | 1.06  | 6.24   | 28.56  |
-| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel | 5.02  | 1.03  | 3.43   | 26.37  |
-| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel | 4.19  | 0.82  | 3.24   | 24.56  |
+| BM1684 SoC  | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 16.37 | 24.68 | 31.95 | 7.76  |
+| BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 15.09 | 23.06 | 33.31 | 5.47  | 
+| BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 15.18 | 25.36 | 25.39 | 5.59  |
+| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 2.99  | 3.00  | 27.90 | 5.31  |
+| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 2.98  | 2.45  | 17.28 | 5.40  |
+| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_int8_4b.bmodel | 2.83  | 2.28  | 9.26  | 4.87  |
+| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel | 5.245 | 2.478 | 25.92 | 17.94 |
+| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel | 4.982 | 1.680 | 15.10 | 17.58 |
+| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel | 4.931 | 1.623 | 7.492 | 17.49 |
+| BM1684X SoC | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 15.03 | 22.98 | 34.80 | 5.45  |
+| BM1684X SoC | yolov8_opencv.py | yolov8s_fp16_1b.bmodel | 15.03 | 22.46 | 12.14 | 5.45  |
+| BM1684X SoC | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 14.99 | 22.40 | 9.18  | 5.37  |
+| BM1684X SoC | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 15.03 | 24.77 | 8.91  | 5.47  |
+| BM1684X SoC | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 2.69  | 2.23  | 31.25 | 5.52  |
+| BM1684X SoC | yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel | 2.58  | 2.23  | 8.55  | 5.53  |
+| BM1684X SoC | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 2.67  | 2.24  | 5.65  | 5.43  |
+| BM1684X SoC | yolov8_bmcv.py   | yolov8s_int8_4b.bmodel | 2.45  | 2.14  | 5.17  | 4.88  |
+| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel | 4.324 | 0.772 | 28.97 | 17.96 |
+| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_fp16_1b.bmodel | 4.312 | 0.772 | 6.259 | 17.80 |
+| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel | 4.276 | 0.772 | 3.350 | 17.95 |
+| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel | 4.128 | 0.736 | 3.277 | 17.70 |
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 3. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
-4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异；
+4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 
 
 ## 8. FAQ
