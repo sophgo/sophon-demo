@@ -30,6 +30,7 @@ C3D::C3D(std::shared_ptr<BMNNContext> context, int step_len, int dev_id):
 
 C3D::~C3D(){
     std::cout << "C3D delete bm_context" << std::endl;   
+    bm_free_device(m_bmContext->handle(), input_tensor.device_mem);
     if(m_input_tensor->get_dtype() == BM_INT8){
         delete [] m_input_int8;
     }else{
@@ -60,6 +61,12 @@ void C3D::Init(){
     mean_values.push_back(117.0);//ImageNet channel G mean
     mean_values.push_back(123.0);//ImageNet channel R mean
     setMean(mean_values);
+    //4. Set device mem
+    bmrt_tensor(&input_tensor, 
+                m_bmContext->bmrt(), 
+                m_input_tensor->get_dtype(), 
+                *m_input_tensor->get_shape());
+    m_input_tensor->set_device_mem(&input_tensor.device_mem);
 }
 
 int C3D::batch_size(){
@@ -249,17 +256,11 @@ int C3D::pre_process(const std::vector<cv::Mat> &decoded_frames){
     
 
     //2. Attach to input tensor.
-    bm_tensor_t input_tensor;
-    bmrt_tensor(&input_tensor, 
-                m_bmContext->bmrt(), 
-                m_input_tensor->get_dtype(), 
-                *m_input_tensor->get_shape());
     if(m_input_tensor->get_dtype() == BM_INT8){
         bm_memcpy_s2d(m_bmContext->handle(), input_tensor.device_mem, (void *)m_input_int8);
     }else{
         bm_memcpy_s2d(m_bmContext->handle(), input_tensor.device_mem, (void *)m_input_f32);
     }
-    m_input_tensor->set_device_mem(&input_tensor.device_mem);
-    bm_free_device(m_bmContext->handle(), input_tensor.device_mem);
+
     return 0;
 }
