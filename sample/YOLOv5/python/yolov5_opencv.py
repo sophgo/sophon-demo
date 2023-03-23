@@ -165,6 +165,9 @@ class YOLOv5:
 def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None):
     for idx in range(len(boxes)):
         x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
+        logging.debug("class id={}, score={}, (x1={},y1={},x2={},y2={})".format(classes_ids[idx],conf_scores[idx], x1, y1, x2, y2))
+        if conf_scores[idx] < 0.25:
+            continue
         if classes_ids is not None:
             color = COLORS[int(classes_ids[idx]) + 1]
         else:
@@ -178,7 +181,7 @@ def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None):
         if masks is not None:
             mask = masks[:, :, idx]
             image[mask] = image[mask] * 0.5 + np.array(color) * 0.5
-        logging.debug("class id={}, score={}, (x1={},y1={},x2={},y2={})".format(classes_ids[idx],conf_scores[idx], x1, y1, x2, y2))
+        
     return image
    
 def main(args):
