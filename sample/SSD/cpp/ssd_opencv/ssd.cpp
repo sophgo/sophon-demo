@@ -76,6 +76,7 @@ SSD::SSD(std::shared_ptr<BMNNContext> context, float conf_thre, float nms_thre, 
 
 SSD::~SSD(){
     std::cout << "SSD delete bm_context" << std::endl;   
+    bm_free_device(m_bmContext->handle(), input_tensor.device_mem);
     if(m_input_tensor->get_dtype() == BM_INT8){
         delete [] m_input_int8;
     }else{
@@ -106,6 +107,13 @@ void SSD::Init(){
     mean_values.push_back(117.0);//G
     mean_values.push_back(123.0);//R
     setMean(mean_values);
+
+    //4. Set device mem
+    bmrt_tensor(&input_tensor, 
+                m_bmContext->bmrt(), 
+                m_input_tensor->get_dtype(), 
+                *m_input_tensor->get_shape());
+    m_input_tensor->set_device_mem(&input_tensor.device_mem);
 }
 
 int SSD::batch_size(){
@@ -231,18 +239,12 @@ int SSD::pre_process(const std::vector<cv::Mat> &images){
         }
     }
     //2. Attach to input tensor.
-    bm_tensor_t input_tensor;
-    bmrt_tensor(&input_tensor, 
-                m_bmContext->bmrt(), 
-                m_input_tensor->get_dtype(), 
-                *m_input_tensor->get_shape());
+
     if(m_input_tensor->get_dtype() == BM_INT8){
         bm_memcpy_s2d(m_bmContext->handle(), input_tensor.device_mem, (void *)m_input_int8);
     }else{
         bm_memcpy_s2d(m_bmContext->handle(), input_tensor.device_mem, (void *)m_input_f32);
     }
-    m_input_tensor->set_device_mem(&input_tensor.device_mem);
-    bm_free_device(m_bmContext->handle(), input_tensor.device_mem);
     return 0;
 }
 
