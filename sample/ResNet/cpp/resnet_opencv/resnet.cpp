@@ -54,6 +54,12 @@ int RESNET::Init() {
   mean_values.push_back(-1.8044444444444445);
   setStdMean(scale_values, mean_values);
 
+  //5. set device mem
+  bmrt_tensor(&input_tensor, 
+              m_bmContext->bmrt(), 
+              m_input_tensor->get_dtype(), 
+              *m_input_tensor->get_shape());
+  m_input_tensor->set_device_mem(&input_tensor.device_mem);
   return 0;
 }
 
@@ -140,7 +146,8 @@ int RESNET::Classify(std::vector<cv::Mat>& input_images, std::vector<std::pair<i
 }
 
 RESNET::~RESNET() {
-  std::cout << "ResNet delete bm_context" << std::endl;   
+  std::cout << "ResNet delete bm_context" << std::endl;  
+  bm_free_device(m_bmContext->handle(), input_tensor.device_mem);
   if(m_input_tensor->get_dtype() == BM_INT8) {
       delete [] m_input_int8;
   } else {
@@ -227,17 +234,11 @@ int RESNET::pre_process(vector<cv::Mat> &images) {
     }
   }
   //2. Attach to input tensor.
-  bm_tensor_t input_tensor;
-  bmrt_tensor(&input_tensor, 
-              m_bmContext->bmrt(), 
-              m_input_tensor->get_dtype(), 
-              *m_input_tensor->get_shape());
   if(m_input_tensor->get_dtype() == BM_INT8) {
     bm_memcpy_s2d(m_bmContext->handle(), input_tensor.device_mem, (void *)m_input_int8);
   } else {
     bm_memcpy_s2d(m_bmContext->handle(), input_tensor.device_mem, (void *)m_input_float);
   }
-  m_input_tensor->set_device_mem(&input_tensor.device_mem);
-  bm_free_device(m_bmContext->handle(), input_tensor.device_mem);
+
   return 0;
 }

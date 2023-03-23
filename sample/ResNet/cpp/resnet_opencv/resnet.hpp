@@ -34,6 +34,7 @@ class RESNET {
   int class_num;
   float input_scale;
   float output_scale;
+  bm_tensor_t input_tensor;
 
   // for profiling
   TimeStamp *ts_ = NULL;
