@@ -23,7 +23,8 @@ class YOLOv5:
         # load bmodel
         self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSO)
         logging.debug("load {} success!".format(args.bmodel))
-        self.handle = self.net.get_handle()
+        # self.handle = self.net.get_handle()
+        self.handle = sail.Handle(args.dev_id)
         self.bmcv = sail.Bmcv(self.handle)
         self.graph_name = self.net.get_graph_names()[0]
         
@@ -210,17 +211,22 @@ class YOLOv5:
 
         return results
 
-def draw_bmcv(bmcv, image, boxes, masks=None, classes_ids=None, conf_scores=None):
+def draw_bmcv(bmcv, bmimg, boxes, classes_ids=None, conf_scores=None, save_path=""):
+    img_bgr_planar = bmcv.convert_format(bmimg)
     for idx in range(len(boxes)):
         x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
+        logging.debug("class id={}, score={}, (x1={},y1={},w={},h={})".format(int(classes_ids[idx]), conf_scores[idx], x1, y1, x2-x1, y2-y1))
+        if conf_scores[idx] < 0.25:
+            continue
         if classes_ids is not None:
             color = np.array(COLORS[int(classes_ids[idx]) + 1]).astype(np.uint8).tolist()
         else:
             color = (0, 0, 255)
-        bmcv.rectangle(image, x1, y1, (x2 - x1), (y2 - y1), color, 2)
-        logging.debug("class id={}, score={}, (x1={},y1={},w={},h={})".format(int(classes_ids[idx]), conf_scores[idx], x1, y1, x2-x1, y2-y1))
+        bmcv.rectangle(img_bgr_planar, x1, y1, (x2 - x1), (y2 - y1), color, 2)
+    bmcv.imwrite(save_path, img_bgr_planar)
+        
 
-def main(opt):
+def main(args):
     # check params
     if not os.path.exists(args.input):
         raise FileNotFoundError('{} is not existed.'.format(args.input))
@@ -239,8 +245,11 @@ def main(opt):
     yolov5 = YOLOv5(args)
     batch_size = yolov5.batch_size
     
+    handle = sail.Handle(args.dev_id)
+    bmcv = sail.Bmcv(handle)
+    
     # warm up 
-    bmimg = sail.BMImage(yolov5.handle, 1080, 1920, sail.Format.FORMAT_YUV420P, sail.DATA_TYPE_EXT_1N_BYTE)
+    bmimg = sail.BMImage(handle, 1080, 1920, sail.Format.FORMAT_YUV420P, sail.DATA_TYPE_EXT_1N_BYTE)
     for i in range(10):
         results = yolov5([bmimg])
     yolov5.init()
@@ -263,7 +272,7 @@ def main(opt):
                 start_time = time.time()
                 decoder = sail.Decoder(img_file, True, args.dev_id)
                 bmimg = sail.BMImage()
-                ret = decoder.read(yolov5.handle, bmimg)    
+                ret = decoder.read(handle, bmimg)    
                 # print(bmimg.format(), bmimg.dtype())
                 if ret != 0:
                     logging.error("{} decode failure.".format(img_file))
@@ -279,9 +288,8 @@ def main(opt):
                     for i, filename in enumerate(filename_list):
                         det = results[i]
                         # save image
-                        img_bgr_planar = yolov5.bmcv.convert_format(bmimg_list[i])
-                        draw_bmcv(yolov5.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
-                        yolov5.bmcv.imwrite(os.path.join(output_img_dir, filename), img_bgr_planar)
+                        save_path = os.path.join(output_img_dir, filename)
+                        draw_bmcv(bmcv, bmimg_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
                         
                         # save result
                         res_dict = dict()
@@ -302,9 +310,8 @@ def main(opt):
             results = yolov5(bmimg_list)
             for i, filename in enumerate(filename_list):
                 det = results[i]
-                img_bgr_planar = yolov5.bmcv.convert_format(bmimg_list[i])
-                draw_bmcv(yolov5.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
-                yolov5.bmcv.imwrite(os.path.join(output_img_dir, filename), img_bgr_planar)
+                save_path = os.path.join(output_img_dir, filename)
+                draw_bmcv(bmcv, bmimg_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
                 res_dict = dict()
                 res_dict['image_name'] = filename
                 res_dict['bboxes'] = []
@@ -337,7 +344,7 @@ def main(opt):
         frame_list = []
         while True:
             start_time = time.time()
-            ret = decoder.read(yolov5.handle, frame)
+            ret = decoder.read(handle, frame)
             if ret:
                 break
             decode_time += time.time() - start_time
@@ -348,9 +355,8 @@ def main(opt):
                     det = results[i]
                     cn += 1
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
-                    img_bgr_planar = yolov5.bmcv.convert_format(frame_list[i])
-                    draw_bmcv(yolov5.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
-                    yolov5.bmcv.imwrite(os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg'), img_bgr_planar)
+                    save_path = os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg')
+                    draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
                 frame_list.clear()
         if len(frame_list):
             results = yolov5(frame_list)
@@ -358,9 +364,8 @@ def main(opt):
                 det = results[i]
                 cn += 1
                 logging.info("{}, det nums: {}".format(cn, det.shape[0]))
-                img_bgr_planar = yolov5.bmcv.convert_format(frame_list[i])
-                draw_bmcv(yolov5.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
-                yolov5.bmcv.imwrite(os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg'), img_bgr_planar)
+                save_path = os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg')
+                draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
         decoder.release()
         logging.info("result saved in {}".format(output_img_dir))
 
