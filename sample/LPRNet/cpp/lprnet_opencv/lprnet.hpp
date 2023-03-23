@@ -38,7 +38,7 @@ class LPRNET {
     int len_char;
     int clas_char;
     TimeStamp* ts_ = NULL;
-
+    bm_tensor_t input_tensor;
    public:
     LPRNET(std::shared_ptr<BMNNContext> context, int m_dev_id);
     ~LPRNET();
