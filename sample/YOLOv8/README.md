@@ -215,7 +215,7 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 在不同的测试平台上，使用不同的例程、模型测试`datasets/val2017_1000`，conf_thresh=0.25，nms_thresh=0.7，性能测试结果如下：
 |    测试平台  |     测试程序      |        测试模型        |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ---------------------- | -------- | --------- | --------- | --------- |
-| BM1684 SoC  | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 16.37 | 24.68 | 31.95 | 7.76  |
+| BM1684 SoC  | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 15.90 | 23.54 | 31.30 | 5.50  |
 | BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 15.09 | 23.06 | 33.31 | 5.47  | 
 | BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 15.18 | 25.36 | 25.39 | 5.59  |
 | BM1684 SoC  | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 2.99  | 3.00  | 27.90 | 5.31  |
