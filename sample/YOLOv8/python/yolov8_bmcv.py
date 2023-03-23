@@ -335,6 +335,8 @@ def main(args):
             filename_list.clear()   
 
         # save results
+        if args.input[-1] == '/':
+            args.input = args.input[:-1]
         json_name = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input)[-1] + "_bmcv" + "_python_result.json"
         with open(os.path.join(output_dir, json_name), 'w') as jf:
             # json.dump(results_list, jf)
