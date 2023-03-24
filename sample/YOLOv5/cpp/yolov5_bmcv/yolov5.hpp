@@ -64,7 +64,7 @@ class YoloV5 {
   int batch_size();
   int Detect(const std::vector<bm_image>& images, std::vector<YoloV5BoxVec>& boxes);
   void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
-  void draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, int top, int right, int bottom, bm_image& frame, bool put_text_flag=true);
+  void draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, int top, int right, int bottom, bm_image& frame, bool put_text_flag=false);
 };
 
 #endif //!YOLOV5_H
