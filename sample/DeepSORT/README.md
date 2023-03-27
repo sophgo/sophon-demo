@@ -156,12 +156,12 @@ chmod -R +x scripts/
 ### 6.1 测试方法
 
 首先，参考[C++例程](cpp/README.md#32-测试MOT数据集)或[Python例程](python/README.md#22-测试MOT数据集)推理要测试的数据集，生成包含目标追踪结果的txt文件，注意修改数据集(datasets/mot15_trainset/ADL-Rundle-6/img1)。  
-然后，使用`tools`目录下的`eval_mot.py`脚本，将测试生成的txt文件与测试集标签txt文件进行对比，计算出目标追踪的一系列评价指标，命令如下：
+然后，使用`tools`目录下的`eval_mot15.py`脚本，将测试生成的txt文件与测试集标签txt文件进行对比，计算出目标追踪的一系列评价指标，命令如下：
 ```bash
 # 安装motmetrics，若已安装请跳过
 pip3 install motmetrics
 # 请根据实际情况修改程序路径和txt文件路径
-python3 tools/eval_mot.py --gt_file datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file python/results/mot_eval/ADL-Rundle-6_extractor_fp32_1b.bmodel.txt
+python3 tools/eval_mot15.py --gt_file datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file python/results/mot_eval/ADL-Rundle-6_extractor_fp32_1b.bmodel.txt
 ```
 运行结果：
 ```bash
