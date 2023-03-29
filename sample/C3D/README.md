@@ -198,12 +198,12 @@ bmrt_test --bmodel models/BM1684/c3d_fp32_1b.bmodel
 | BM1684/c3d_fp32_4b.bmodel  | 46.7           |
 | BM1684/c3d_int8_1b.bmodel  | 43.0            |
 | BM1684/c3d_int8_4b.bmodel  | 17.3             |
-| BM1684X/c3d_fp32_1b.bmodel | 80.8              |
-| BM1684X/c3d_fp32_4b.bmodel | 75.3              |
-| BM1684X/c3d_fp16_1b.bmodel | 11.7               |
-| BM1684X/c3d_fp16_4b.bmodel | 9.0               |
-| BM1684X/c3d_int8_1b.bmodel | 10.1               |
-| BM1684X/c3d_int8_4b.bmodel | 8.7               |
+| BM1684X/c3d_fp32_1b.bmodel | 75.4          |
+| BM1684X/c3d_fp32_4b.bmodel | 70.1           |
+| BM1684X/c3d_fp16_1b.bmodel | 9.4            |
+| BM1684X/c3d_fp16_4b.bmodel | 7.0          |
+| BM1684X/c3d_int8_1b.bmodel | 5.5            |
+| BM1684X/c3d_int8_4b.bmodel | 4.2            |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -214,38 +214,38 @@ bmrt_test --bmodel models/BM1684/c3d_fp32_1b.bmodel
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的视频解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每个视频平均处理时间。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/UCF_test_01`，性能测试结果如下：
-|    测试平台  |     测试程序      |      测试模型    |decode_time|preprocess_time|inference_time|postprocess_time| 
-| ----------- | ---------------- | ---------------- | -------- | --------- | --------- | --------- |
-| BM1684 SoC  | c3d_opencv.py | c3d_fp32_1b.bmodel | 75.50    | 31.57  |   62.01 |  0.09   |
-| BM1684 SoC  | c3d_opencv.py | c3d_fp32_4b.bmodel | 51.94    | 28.81  | 53.65   |  0.03   |
-| BM1684 SoC  | c3d_opencv.py | c3d_int8_1b.bmodel | 71.45    | 30.89  | 49.61  |  0.10  |
-| BM1684 SoC  | c3d_opencv.py | c3d_int8_4b.bmodel | 53.06    | 28.57   | 24.26  |  0.03   |
-| BM1684 SoC  | c3d_bmcv.soc  | c3d_fp32_1b.bmodel | 79.53   |  3.59   |  55.30   |  0.02   |
-| BM1684 SoC  | c3d_bmcv.soc  | c3d_fp32_4b.bmodel | 80.08   |  3.48   |  46.63  |   0.02      |
-| BM1684 SoC  | c3d_bmcv.soc  | c3d_int8_1b.bmodel | 79.15   |  3.62   |  42.70  |  0.02   |
-| BM1684 SoC  | c3d_bmcv.soc  | c3d_int8_4b.bmodel | 79.99   |  3.45   |  17.25   |  0.02   |
-| BM1684 SoC  | c3d_opencv.soc  | c3d_fp32_1b.bmodel | 77.03   | 26.20   |  55.33   |  0.01   |
-| BM1684 SoC  | c3d_opencv.soc  | c3d_fp32_4b.bmodel | 76.81   | 26.12    | 46.64   |  0.02    |
-| BM1684 SoC  | c3d_opencv.soc  | c3d_int8_1b.bmodel | 75.70   | 26.87  |   42.74   |  0.01  |
-| BM1684 SoC  | c3d_opencv.soc  | c3d_int8_4b.bmodel | 75.11   | 26.93   |  17.28  |   0.02   |
-| BM1684X SoC | c3d_opencv.py | c3d_fp32_1b.bmodel |  67.19    | 31.01    |  88.76  |  0.10   |
-| BM1684X SoC | c3d_opencv.py | c3d_fp32_4b.bmodel |  49.85      |  29.09  |  84.06  |   0.03  |
-| BM1684X SoC | c3d_opencv.py | c3d_fp16_1b.bmodel |  65.62     |  31.07 |  19.59  |   0.10   |
-| BM1684X SoC | c3d_opencv.py | c3d_fp16_4b.bmodel |  48.72      | 29.12  |  17.87  | 0.03   |
-| BM1684X SoC | c3d_opencv.py | c3d_int8_1b.bmodel |  65.41      |  31.05  | 17.98   | 0.10   |
-| BM1684X SoC | c3d_opencv.py | c3d_int8_4b.bmodel |  49.36     |  29.21  | 17.53   |  0.03    |
-| BM1684X SoC | c3d_bmcv.soc  | c3d_fp32_1b.bmodel |  77.05     |   2.30   |  80.76  | 0.02    |
-| BM1684X SoC | c3d_bmcv.soc  | c3d_fp32_4b.bmodel |   76.47      |  2.26   |  75.30  |  0.02   |
-| BM1684X SoC | c3d_bmcv.soc  | c3d_fp16_1b.bmodel |   76.55    |  2.30  |  11.63   |   0.02     |
-| BM1684X SoC | c3d_bmcv.soc  | c3d_fp16_4b.bmodel |   76.62    |  2.25  |  9.08    |   0.02    |
-| BM1684X SoC | c3d_bmcv.soc  | c3d_int8_1b.bmodel |   77.35     |  2.31   | 10.03    |  0.02     |
-| BM1684X SoC | c3d_bmcv.soc  | c3d_int8_4b.bmodel |   76.69    |  2.23  | 8.72  |   0.02   |
-| BM1684X SoC | c3d_opencv.soc  | c3d_fp32_1b.bmodel |  72.81     |   26.76   |  80.76  | 0.02    |
-| BM1684X SoC | c3d_opencv.soc  | c3d_fp32_4b.bmodel |   73.38      |  26.42  |  75.30  |  0.02   |
-| BM1684X SoC | c3d_opencv.soc  | c3d_fp16_1b.bmodel |   73.70    |  26.86 |  11.63   |   0.02     |
-| BM1684X SoC | c3d_opencv.soc  | c3d_fp16_4b.bmodel |   73.85    |  26.52  |  9.08    |   0.02    |
-| BM1684X SoC | c3d_opencv.soc  | c3d_int8_1b.bmodel |   73.34     |  26.72   | 10.03    |  0.02     |
-| BM1684X SoC | c3d_opencv.soc  | c3d_int8_4b.bmodel |   73.87    |  26.36  | 8.72  |   0.02   |
+|    测试平台  |     测试程序  |      测试模型     |decode_time|preprocess_time|inference_time|postprocess_time| 
+| ----------- | ------------- | ---------------- | -------- | ---------   | ---------------| --------- |
+| BM1684 SoC  | c3d_opencv.py | c3d_fp32_1b.bmodel | 75.50   | 31.57      |       62.01     |  0.09   |
+| BM1684 SoC  | c3d_opencv.py | c3d_fp32_4b.bmodel | 51.94   | 28.81      |     53.65       |  0.03   |
+| BM1684 SoC  | c3d_opencv.py | c3d_int8_1b.bmodel | 71.45   | 30.89      |     49.61       |  0.10  |
+| BM1684 SoC  | c3d_opencv.py | c3d_int8_4b.bmodel | 53.06   | 28.57      |     24.26       |  0.03   |
+| BM1684 SoC  | c3d_bmcv.soc  | c3d_fp32_1b.bmodel | 79.53   |  3.59      |      55.30      |  0.02   |
+| BM1684 SoC  | c3d_bmcv.soc  | c3d_fp32_4b.bmodel | 80.08   |  3.48      |      46.63      |   0.02      |
+| BM1684 SoC  | c3d_bmcv.soc  | c3d_int8_1b.bmodel | 79.15   |  3.62      |      42.70      |  0.02   |
+| BM1684 SoC  | c3d_bmcv.soc  | c3d_int8_4b.bmodel | 79.99   |  3.45      |      17.25      |  0.02   |
+| BM1684 SoC  | c3d_opencv.soc| c3d_fp32_1b.bmodel | 77.03   | 26.20      |      55.33      |  0.01   |
+| BM1684 SoC  | c3d_opencv.soc| c3d_fp32_4b.bmodel | 76.81   | 26.12      |     46.64       |  0.02    |
+| BM1684 SoC  | c3d_opencv.soc| c3d_int8_1b.bmodel | 75.70   | 26.87      |       42.74     |  0.01  |
+| BM1684 SoC  | c3d_opencv.soc| c3d_int8_4b.bmodel | 75.11   | 26.93      |      17.28      |   0.02   |
+| BM1684X SoC | c3d_opencv.py | c3d_fp32_1b.bmodel | 71.15  | 31.44      |      82.23      |  0.10   |
+| BM1684X SoC | c3d_opencv.py | c3d_fp32_4b.bmodel | 70.88  | 39.35     |      77.09      |   0.03  |
+| BM1684X SoC | c3d_opencv.py | c3d_fp16_1b.bmodel | 67.98  | 31.05     |      16.01      |   0.10   |
+| BM1684X SoC | c3d_opencv.py | c3d_fp16_4b.bmodel | 69.1  | 39.06      |      13.93      | 0.03   |
+| BM1684X SoC | c3d_opencv.py | c3d_int8_1b.bmodel | 68.46  |  31.10     |     12.09       | 0.10   |
+| BM1684X SoC | c3d_opencv.py | c3d_int8_4b.bmodel | 70.55  |  39.08     |     11.26       |  0.03    |
+| BM1684X SoC | c3d_bmcv.soc  | c3d_fp32_1b.bmodel | 77.05  |   2.30     |     75.31      | 0.02    |
+| BM1684X SoC | c3d_bmcv.soc  | c3d_fp32_4b.bmodel |   76.47 |  2.26      |      70.30      |  0.02   |
+| BM1684X SoC | c3d_bmcv.soc  | c3d_fp16_1b.bmodel |   76.55 |  2.30      |      9.27      |   0.02     |
+| BM1684X SoC | c3d_bmcv.soc  | c3d_fp16_4b.bmodel |   76.62 |  2.25      |      6.95       |   0.02    |
+| BM1684X SoC | c3d_bmcv.soc  | c3d_int8_1b.bmodel |   77.35 |  2.31      |     5.37       |  0.02     |
+| BM1684X SoC | c3d_bmcv.soc  | c3d_int8_4b.bmodel |   76.69 |  2.23      |     4.22        |   0.02   |
+| BM1684X SoC | c3d_opencv.soc| c3d_fp32_1b.bmodel |  72.81  |   26.76    |     75.31      | 0.02    |
+| BM1684X SoC | c3d_opencv.soc| c3d_fp32_4b.bmodel |   73.38 |  26.42     |      70.30     |  0.02   |
+| BM1684X SoC | c3d_opencv.soc| c3d_fp16_1b.bmodel |   73.70 |  26.86     |      9.27      |   0.02     |
+| BM1684X SoC | c3d_opencv.soc| c3d_fp16_4b.bmodel |   73.85 |  26.52     |     6.95       |   0.02    |
+| BM1684X SoC | c3d_opencv.soc| c3d_int8_1b.bmodel |   73.34 |  26.72     |     5.37       |  0.02     |
+| BM1684X SoC | c3d_opencv.soc| c3d_int8_4b.bmodel |   73.87 |  26.36     |     4.22      |   0.02   |
 
 
 > **测试说明**：  
