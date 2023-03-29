@@ -297,6 +297,8 @@ def main(args):
     t2 = time.time()
 
     # save result
+    if args.input[-1] == '/':
+        args.input = args.input[:-1]
     json_name = (
         os.path.split(args.bmodel)[-1]
         + "_"

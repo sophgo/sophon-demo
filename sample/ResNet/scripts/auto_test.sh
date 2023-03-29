@@ -96,13 +96,18 @@ function build_soc()
 }
 
 function compare_res(){
-    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<=0.01 && y-x<=0.01)?1:0}'`
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.0001 && y-x<0.0001)?1:0}'`
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
+        echo "***************************************"
+        echo "Ground truth is $2, your result is: $1"
         echo -e "\e[41m compare wrong! \e[0m" #red
+        echo "***************************************"
     else
+        echo "***************************************"
         echo -e "\e[42m compare right! \e[0m" #green
+        echo "***************************************"
     fi
 }
 

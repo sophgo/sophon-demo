@@ -69,13 +69,18 @@ function build_soc()
 }
 
 function compare_res(){
-    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.001 && y-x<0.001)?1:0}'`
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.0001 && y-x<0.0001)?1:0}'`
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
+        echo "***************************************"
+        echo "Ground truth is $2, your result is: $1"
         echo -e "\e[41m compare wrong! \e[0m" #red
+        echo "***************************************"
     else
+        echo "***************************************"
         echo -e "\e[42m compare right! \e[0m" #green
+        echo "***************************************"
     fi
 }
 #e.g.: test_cpp opencv pcie c3d_int8_1b.bmodel 0.715
@@ -90,8 +95,6 @@ function test_cpp(){
     ./c3d_$1.$2 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$3.log 2>&1
     cd ../../tools/
     res=$(python3 eval_ucf.py --result_json ../cpp/c3d_$1/results/$3_$1_cpp.json 2>&1)
-    echo $res
-    echo "------------------"
     array=(${res//=/ })
     acc=${array[1]}
     compare_res $acc $4

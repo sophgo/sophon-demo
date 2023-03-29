@@ -210,9 +210,15 @@ int main(int argc, char *argv[]){
     }
     
     // save results
-    auto index = bmodel_file.rfind("/");
+    size_t index = input.rfind("/");
+    if(index == input.length() - 1){
+      input = input.substr(0, input.length() - 1);
+      index = input.rfind("/");
+    }
+    string dataset_name = input.substr(index + 1);
+    index = bmodel_file.rfind("/");
     string model_name = bmodel_file.substr(index + 1);
-    string json_file = "results/" + model_name + "_bmcv_cpp" + "_result.json";
+    string json_file = "results/" + model_name + "_" + dataset_name + "_bmcv_cpp" + "_result.json";
     cout << "================" << endl;
     cout << "result saved in " << json_file << endl;
     ofstream(json_file) << std::setw(4) << results_json;

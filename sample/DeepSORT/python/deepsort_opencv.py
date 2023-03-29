@@ -121,8 +121,13 @@ def main():
     encode_time = 0.0
     img_batch = []
     frame_num = 0
+    if args.input[-1] == '/':
+        args.input = args.input[:-1]
     if os.path.isdir(args.input):
-        save_name = args.input.split('/')[-2] #interesting, if your input is not img1, it will also return correct name.
+        if args.input.split('/')[-1] == 'img1':
+            save_name = args.input.split('/')[-2]
+        else:
+            save_name = args.input.split('/')[-1]
     else:
         save_name = args.input.split('/')[-1].split('.')[0]
     mot_saver = open("results/mot_eval/{}_{}.txt".format(save_name, args.bmodel_extractor.split("/")[-1]), "w") 

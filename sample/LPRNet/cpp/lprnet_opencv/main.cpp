@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
         return 0;
     }
     string bmodel_file = parser.get<string>("bmodel");
-    string input_url = parser.get<string>("input");
+    string input = parser.get<string>("input");
     int dev_id = parser.get<int>("dev_id");
 
     struct stat info;
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
     vector<cv::Mat> batch_imgs;
     vector<string> batch_names;
     int cn = 0;
-    if (stat(input_url.c_str(), &info) != 0) {
+    if (stat(input.c_str(), &info) != 0) {
         cout << "Cannot find input image path." << endl;
         exit(1);
     } else if (info.st_mode & S_IFDIR) {
@@ -80,11 +80,11 @@ int main(int argc, char** argv) {
         vector<string> files_vector;
         DIR* pDir;
         struct dirent* ptr;
-        pDir = opendir(input_url.c_str());
+        pDir = opendir(input.c_str());
         while ((ptr = readdir(pDir)) != 0) {
             if (strcmp(ptr->d_name, ".") != 0 &&
                 strcmp(ptr->d_name, "..") != 0) {
-                files_vector.push_back(input_url + "/" + ptr->d_name);
+                files_vector.push_back(input + "/" + ptr->d_name);
             }
         }
         closedir(pDir);
@@ -135,8 +135,12 @@ int main(int argc, char** argv) {
         // save results
         if (access("results", 0) != F_OK)
             mkdir("results", S_IRWXU);
-        size_t index = input_url.rfind("/");
-        string dataset_name = input_url.substr(index + 1);
+        size_t index = input.rfind("/");
+        if(index == input.length() - 1){
+            input = input.substr(0, input.length() - 1);
+            index = input.rfind("/");
+        }
+        string dataset_name = input.substr(index + 1);
         index = bmodel_file.rfind("/");
         string model_name = bmodel_file.substr(index + 1);
         string json_file = "results/" + model_name + "_" + dataset_name +
@@ -145,7 +149,7 @@ int main(int argc, char** argv) {
         cout << "result saved in " << json_file << endl;
         ofstream(json_file) << std::setw(4) << result_json;
     } else {
-        cout << "Is not a valid path: " << input_url << endl;
+        cout << "Is not a valid path: " << input << endl;
         exit(1);
     }
 

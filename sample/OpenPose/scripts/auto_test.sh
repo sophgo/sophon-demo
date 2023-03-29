@@ -149,9 +149,14 @@ function compare_res(){
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
+        echo "***************************************"
+        echo "Ground truth is $2, your result is: $1"
         echo -e "\e[41m compare wrong! \e[0m" #red
+        echo "***************************************"
     else
+        echo "***************************************"
         echo -e "\e[42m compare right! \e[0m" #green
+        echo "***************************************"
     fi
 }
 

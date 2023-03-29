@@ -100,12 +100,16 @@ function compare_res(){
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
-        echo "compare wrong!"
+        echo "***************************************"
+        echo "Ground truth is $2, your result is: $1"
+        echo -e "\e[41m compare wrong! \e[0m" #red
+        echo "***************************************"
     else
-        echo "compare right!"
+        echo "***************************************"
+        echo -e "\e[42m compare right! \e[0m" #green
+        echo "***************************************"
     fi
 }
-
 function test_cpp()
 {
   pushd cpp/lprnet_$2

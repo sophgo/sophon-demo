@@ -118,7 +118,7 @@ chmod -R +x scripts/
 # 安装pycocotools，若已安装请跳过
 pip3 install pycocotools
 # 请根据实际情况修改程序路径和json文件路径
-python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json cpp/yolov5_tpukernel/results/yolov5s_tpukernel_fp32_1b.bmodel_bmcv_cpp_result.json
+python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json cpp/yolov5_tpukernel/results/yolov5s_tpukernel_fp32_1b.bmodel_val2017_1000_bmcv_cpp_result.json
 ```
 ### 6.2 测试结果
 在coco/val2017_1000数据集上，精度测试结果如下：
