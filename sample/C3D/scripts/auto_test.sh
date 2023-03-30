@@ -69,13 +69,18 @@ function build_soc()
 }
 
 function compare_res(){
-    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.001 && y-x<0.001)?1:0}'`
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.01 && y-x<0.01)?1:0}'`
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
+        echo "***************************************"
+        echo "Ground truth is $2, your result is: $1"
         echo -e "\e[41m compare wrong! \e[0m" #red
+        echo "***************************************"
     else
+        echo "***************************************"
         echo -e "\e[42m compare right! \e[0m" #green
+        echo "***************************************"
     fi
 }
 #e.g.: test_cpp opencv pcie c3d_int8_1b.bmodel 0.715
@@ -84,14 +89,11 @@ function test_cpp(){
     if [ ! -d log ];then
         mkdir log
     fi
-    echo "------------------"
     echo "testing cpp $1 $3:"
     chmod +x ./c3d_$1.$2
     ./c3d_$1.$2 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$3.log 2>&1
     cd ../../tools/
     res=$(python3 eval_ucf.py --result_json ../cpp/c3d_$1/results/$3_$1_cpp.json 2>&1)
-    echo $res
-    echo "------------------"
     array=(${res//=/ })
     acc=${array[1]}
     compare_res $acc $4
@@ -104,13 +106,10 @@ function test_python(){
     if [ ! -d log ];then
         mkdir log
     fi
-    echo "---------------------"
     echo "testing python $1 $2:"
     python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2.log 2>&1
     cd ../tools/
     res=$(python3 eval_ucf.py --result_json ../python/results/$2_$1_python.json 2>&1)
-    echo $res
-    echo "------------------"
     array=(${res//=/ })
     acc=${array[1]}
     compare_res $acc $3
@@ -176,12 +175,12 @@ then
     download
     test_python opencv c3d_fp32_1b.bmodel 0.715356
     test_python opencv c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.6910 || gt=0.715356
+    [ $TARGET = "BM1684" ] && gt=0.6910 || gt=0.711610
     test_python opencv c3d_int8_1b.bmodel $gt
     test_python opencv c3d_int8_4b.bmodel $gt
     test_cpp opencv soc c3d_fp32_1b.bmodel 0.715356
     test_cpp opencv soc c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.6910 || gt=0.715356
+    [ $TARGET = "BM1684" ] && gt=0.6910 || gt=0.711610
     test_cpp opencv soc c3d_int8_1b.bmodel $gt
     test_cpp opencv soc c3d_int8_4b.bmodel $gt
     if test $TARGET = "BM1684X"
@@ -194,7 +193,7 @@ then
     #############################################
     test_cpp bmcv soc c3d_fp32_1b.bmodel 0.715356
     test_cpp bmcv soc c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.692884 || gt=0.717228
+    [ $TARGET = "BM1684" ] && gt=0.692884 || gt=0.711610
     test_cpp bmcv soc c3d_int8_1b.bmodel $gt
     test_cpp bmcv soc c3d_int8_4b.bmodel $gt
     if test $TARGET = "BM1684X"

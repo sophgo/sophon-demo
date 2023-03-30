@@ -1,17 +1,28 @@
 #!/bin/bash
 scripts_dir=$(dirname $(readlink -f "$0"))
-# echo $scripts_dir
-pip3 install dfn
+
+res=$(dpkg -l|grep unzip)
+if [ $? != 0 ];
+then
+    echo "Please install unzip on your system!"
+    exit
+fi
+res=$(pip3 list|grep dfn)
+if [ $? != 0 ];
+then
+    pip3 install dfn
+fi
+
 pushd $scripts_dir
 
 if [ ! -d '../models' ]; then
     mkdir ../models
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/9WvrT9Q58 #c3d bmodels.
-    unzip models_*.zip -d ../models
-    rm models_*.zip
-    cd ../models
-    mv models_*/* ../models/
-    rm -r models_*
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/xQh47vOxP #c3d bmodels.
+    unzip models.zip -d ../
+    rm models.zip
+    echo "models download!"
+else
+    echo "Models folder exist! Remove it if you need to update."
 fi
 
 
@@ -24,6 +35,8 @@ if [ ! -d '../datasets' ]; then
     rm UCF_test_01.tar.gz
     python3 -m dfn --url http://219.142.246.77:65000/sharing/86xHDl5rV
     python3 -m dfn --url http://219.142.246.77:65000/sharing/JhtXbNdO1
+else
+    echo "Datasets folder exist! Remove it if you need to update."
 fi
 
 

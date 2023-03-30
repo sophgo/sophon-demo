@@ -36,6 +36,7 @@ class C3D {
     int max_batch;
     int m_dev_id;
     TimeStamp *m_ts;
+    bm_tensor_t input_tensor;
     public:
         C3D(std::shared_ptr<BMNNContext> context, int step_len, int dev_id);
         ~C3D();
