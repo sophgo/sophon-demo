@@ -179,7 +179,7 @@ chmod -R +x scripts/
 ```bash
 
 # 请根据实际情况修改程序路径和json文件路径
-python3 tools/eval_ccpd.py --gt_path datasets/test_label.json --result_json cpp/lprnet_bmcv/results/lprnet_fp32_1b.bmodel_test_opencv_python_result.json
+python3 tools/eval_ccpd.py --gt_path datasets/test_label.json --result_json cpp/lprnet_bmcv/results/lprnet_fp32_1b.bmodel_test_bmcv_cpp_result.json
 ```
 
 ### 6.2 测试结果
@@ -202,10 +202,10 @@ python3 tools/eval_ccpd.py --gt_path datasets/test_label.json --result_json cpp/
 | BM1684X PCIe | lprnet_opencv.py | lprnet_fp16_1b.bmodel | 0.894         |
 | BM1684X PCIe | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.867         | 
 | BM1684X PCIe | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.88         | 
-| BM1684X PCIe | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.879         | 
-| BM1684X PCIe | lprnet_bmcv.py   | lprnet_fp16_1b.bmodel | 0.879         | 
-| BM1684X PCIe | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.866        | 
-| BM1684X PCIe | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.862        | 
+| BM1684X PCIe | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.882         | 
+| BM1684X PCIe | lprnet_bmcv.py   | lprnet_fp16_1b.bmodel | 0.882         | 
+| BM1684X PCIe | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.861        | 
+| BM1684X PCIe | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.88        | 
 | BM1684X PCIe | lprnet_opencv.pcie | lprnet_fp32_1b.bmodel | 0.882         | 
 | BM1684X PCIe | lprnet_opencv.pcie | lprnet_fp16_1b.bmodel | 0.882         | 
 | BM1684X PCIe | lprnet_opencv.pcie | lprnet_int8_1b.bmodel | 0.861         | 
