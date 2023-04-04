@@ -193,7 +193,6 @@ int YoloV5::pre_process(const std::vector<bm_image>& images){
     std::string fname = cv::format("resized_img_%d.jpg", i);
     cv::imwrite(fname, resized_img);
 #endif
-    // bm_image_destroy(image1);
     if(need_copy) bm_image_destroy(image_aligned);
   }
   
@@ -366,8 +365,6 @@ int YoloV5::post_process(const std::vector<bm_image> &images, std::vector<YoloV5
     }
     LOG_TS(m_ts, "post 2: filter boxes");
 
-    // printf("\n --> valid boxes number = %d\n", (int)yolobox_vec.size());
-
     LOG_TS(m_ts, "post 3: nms");
 #if USE_MULTICLASS_NMS
     std::vector<YoloV5BoxVec> class_vec(m_class_num);
@@ -467,7 +464,6 @@ void YoloV5::drawPred(int classId, float conf, int left, int top, int right, int
   int baseLine;
   cv::Size labelSize = getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
   top = std::max(top, labelSize.height);
-  //rectangle(frame, Point(left, top - int(1.5 * labelSize.height)), Point(left + int(1.5 * labelSize.width), top + baseLine), Scalar(0, 255, 0), FILLED);
   cv::putText(frame, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(0, 255, 0), 1);
 }
 
@@ -481,20 +477,10 @@ void YoloV5::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, i
   rect.start_y = MIN(MAX(top, 0), frame.height);
   rect.crop_w = MAX(MIN(width, frame.width - left), 0);
   rect.crop_h = MAX(MIN(height, frame.height - top), 0);
-  // std::cout << frame.width << " " << frame.height << std::endl;
-  // std::cout << rect.start_x << "," << rect.start_y << "," << rect.crop_w << "," << rect.crop_h << std::endl;
   bmcv_image_draw_rectangle(handle, frame, 1, &rect, 3, colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
-  // std::cout << "draw rect! " << std::endl;
-  // cv::rectangle(frame, cv::Point(left, top), cv::Point(right, bottom), cv::Scalar(0, 0, 255), 3);
   if (put_text_flag){
     //Get the label for the class name and its confidence
     std::string label = m_class_names[classId] + ":" + cv::format("%.2f", conf);
-    // Display the label at the top of the bounding box
-    // int baseLine;
-    // cv::Size labelSize = getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-    // top = std::max(top, labelSize.height);
-    // //rectangle(frame, Point(left, top - int(1.5 * labelSize.height)), Point(left + int(1.5 * labelSize.width), top + baseLine), Scalar(0, 255, 0), FILLED);
-    // cv::putText(frame, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(0, 255, 0), 1);
     bmcv_point_t org = {left, top};
     bmcv_color_t color = {colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]};
     int thickness = 2;

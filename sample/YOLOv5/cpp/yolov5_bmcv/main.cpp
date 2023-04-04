@@ -107,7 +107,6 @@ int main(int argc, char *argv[]){
       id++;
       cout << id << "/" << cn << ", img_file: " << img_file << endl;
       ts->save("read image");
-      // cv::Mat img = cv::imread(img_file, cv::IMREAD_COLOR, dev_id);
       bm_image bmimg;
       picDec(h, img_file.c_str(), bmimg);
       ts->save("read image");
