@@ -191,7 +191,7 @@ source /etc/profile
 
     ```bash
     # 需根据实际生成的wheel包修改其文件名
-    pip3 install ./dist/sophon-master-py3-none-any.whl --force-reinstall 
+    pip3 install ./dist/sophon-*-py3-none-any.whl --force-reinstall 
     ```
 
 
@@ -308,7 +308,7 @@ source /etc/profile
     将生成的wheel包拷贝到目标SOC上,然后执行如下安装命令
     ```bash
     # 需根据实际生成的wheel包修改其文件名，x.y.z表示版本号
-    pip3 install sophon_arm-${x.y.z}-py3-none-any.whl --force-reinstall 
+    pip3 install sophon_arm-*-py3-none-any.whl --force-reinstall 
     ```
 
 ## 5 arm PCIe平台的开发和运行环境搭建
