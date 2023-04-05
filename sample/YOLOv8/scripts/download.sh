@@ -20,16 +20,16 @@ then
     rm coco128.zip
 
     # val2017_1000.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/JedilLXIB
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/rn5EXB0OF
     unzip val2017_1000.zip -d ../datasets/coco
     rm val2017_1000.zip
 
     # instances_val2017_1000.json
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/rKJAsupda
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/nPWztHsTO
     mv instances_val2017_1000.json ../datasets/coco
 
     # test.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/z5jmUBzrt
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/WcrtDXMN6
     unzip test.zip -d ../datasets/
     rm test.zip
 
@@ -45,7 +45,7 @@ fi
 # models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfn --url http://disk-sophgo-vip.quickconnect.cn/sharing/lpTqaNwTo
+    python3 -m dfn --url http://disk-sophgo-vip.quickconnect.cn/sharing/jVHGIR9uH
     unzip models.zip -d ../
     rm models.zip
     echo "models download!"
