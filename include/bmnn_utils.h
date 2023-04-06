@@ -16,6 +16,9 @@
 #include "bmruntime_interface.h"
 // #include "bm_wrapper.hpp"
 
+/*
+ * Any class that inherits this class cannot be assigned.
+ */
 class NoCopyable {
   protected:
     NoCopyable() =default;
@@ -24,14 +27,19 @@ class NoCopyable {
     NoCopyable& operator=(const NoCopyable& rhs)= delete;
 };
 
+/*
+ * Help user managing input tensor and output tensor.
+ * Feat 1. Free system memory automatically. 
+ *      2. Any member in m_tensor has device memory like bm_tensor_t\bm_image\bm_device_mem_t must be freed outside.
+ */
 class BMNNTensor{
   /**
    *  members from bm_tensor {
-   *  bm_data_type_t dtype;
-   bm_shape_t shape;
-   bm_device_mem_t device_mem;
-   bm_store_mode_t st_mode;
-   }
+   *    bm_data_type_t dtype;
+   *    bm_shape_t shape;
+   *    bm_device_mem_t device_mem;
+   *    bm_store_mode_t st_mode;
+   *  }
    */
   bm_handle_t  m_handle;
 
@@ -59,6 +67,7 @@ class BMNNTensor{
     }
   }
 
+  // Set tensor device memory.
   int set_device_mem(bm_device_mem_t *mem){
     this->m_tensor->device_mem = *mem;
     return 0;
@@ -68,6 +77,7 @@ class BMNNTensor{
     return &this->m_tensor->device_mem;
   }
 
+  // Return an array pointer to system memory of tensor.
   float *get_cpu_data() {
     if(m_cpu_data) return m_cpu_data;
     bm_status_t ret;
@@ -161,6 +171,12 @@ class BMNNTensor{
 
 };
 
+/*
+ * Help user managing network to do inference.
+ * Feat 1. Create and free device memory of output tensors automatically.
+ *      2. Device memory of input tensors must be provided outside, and will not be freed here.
+ *      3. Print Network information.
+ */
 class BMNNNetwork : public NoCopyable {
   const bm_net_info_t *m_netinfo;
   bm_tensor_t* m_inputTensors;
@@ -175,6 +191,7 @@ class BMNNNetwork : public NoCopyable {
   std::unordered_map<std::string, bm_tensor_t*> m_mapOutputs;
 
   public:
+  // Initialize a network for inference, including handle\netinfo\io tensors.
   BMNNNetwork(void *bmrt, const std::string& name):m_bmrt(bmrt) {
     m_handle = static_cast<bm_handle_t>(bmrt_get_bm_handle(bmrt));
     m_netinfo = bmrt_get_network_info(bmrt, name.c_str());
@@ -267,7 +284,6 @@ class BMNNNetwork : public NoCopyable {
   }
 
   int forward() {
-
     bool user_mem = false; // if false, bmrt will alloc mem every time.
     if (m_outputTensors->device_mem.size != 0) {
       // if true, bmrt don't alloc mem again.
@@ -344,6 +360,7 @@ class BMNNNetwork : public NoCopyable {
 
 };
 
+// Device handle auto manager.
 class BMNNHandle: public NoCopyable {
   bm_handle_t m_handle;
   int m_dev_id;
@@ -368,6 +385,9 @@ class BMNNHandle: public NoCopyable {
 
 using BMNNHandlePtr = std::shared_ptr<BMNNHandle>;
 
+/*
+ * Help user managing handles and networks of a bmodel, using class instances above.
+ */
 class BMNNContext : public NoCopyable {
   BMNNHandlePtr m_handlePtr;
   void *m_bmrt;
