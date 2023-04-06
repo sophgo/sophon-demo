@@ -77,7 +77,7 @@ Usage: deepsort_bmcv.pcie [params]
                 detector bmodel file path
         --bmodel_extractor (value:../../models/BM1684X/extractor_fp16_1b.bmodel)
                 extractor bmodel file path
-        --classnames (value:./detector/yolov5_bmcv/coco.names)
+        --classnames (value:./coco.names)
                 class names file path
         --dev_id (value:0)
                 TPU device id
