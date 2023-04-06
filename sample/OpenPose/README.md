@@ -166,11 +166,11 @@ python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000
 |   测试平台    |      测试程序       |        测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ------------------ | -----------------------  | ------------- | -------- |
 | BM1684 PCIe  | openpose_opencv.py | pose_coco_fp32_1b.bmodel |   0.439  |  0.693 |
-| BM1684 PCIe  | openpose_opencv.py | pose_coco_int8_1b.bmodel |   0.431  |  0.673 |
+| BM1684 PCIe  | openpose_opencv.py | pose_coco_int8_1b.bmodel |   0.429  |  0.684 |
 | BM1684 PCIe  | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |   0.422  |  0.698 |
 | BM1684 PCIe  | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |   0.407  |  0.677 |
 | BM1684 SoC   | openpose_opencv.py | pose_coco_fp32_1b.bmodel |   0.439  |  0.693 |
-| BM1684 SoC   | openpose_opencv.py | pose_coco_int8_1b.bmodel |   0.431  |  0.673 |
+| BM1684 SoC   | openpose_opencv.py | pose_coco_int8_1b.bmodel |   0.431  |  0.684 |
 | BM1684 SoC   | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |   0.422  |  0.697 |
 | BM1684 SoC   | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |   0.407  |  0.677 |
 | BM1684X PCIe | openpose_opencv.py | pose_coco_fp32_1b.bmodel |   0.439  |  0.693 |
