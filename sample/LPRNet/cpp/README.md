@@ -1,4 +1,15 @@
 # C++例程
+* [1. 环境准备](#1-环境准备)
+    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    * [1.2 SoC平台](#12-soc平台)
+* [2. 程序编译](#2-程序编译)
+    * [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
+    * [2.2 SoC平台](#22-soc平台)
+* [3. 推理测试](#3-推理测试)
+    * [3.1 参数说明](#31-参数说明)
+    * [3.2 测试图片](#32-测试图片)
+
+
 cpp目录下提供了一系列C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
 | ---- | ------------- | -----------------------------------  |
@@ -6,39 +17,67 @@ cpp目录下提供了一系列C++例程以供参考使用，具体情况如下�
 | 2    | lprnet_bmcv   | 使用FFmpeg解码、BMCV前处理、BMRT推理   |
 
 
-## 1. x86 PCIe 平台
+## 1. 环境准备
+### 1.1 x86/arm PCIe平台
+如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
 
-## 1.1 环境准备
+### 1.2 SoC平台
+如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
 
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon、sophon-opencv和sophon-ffmpeg,具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)。
 
-## 1.2 程序编译
-C++程序需要编译可执行文件，lprnet_opencv和lprnet_bmcv编译方法相同，以编译lprnet_opencv程序为例：
+## 2. 程序编译
+C++程序运行前需要编译可执行文件。
+### 2.1 x86/arm PCIe平台
+可以直接在PCIe平台上编译程序,lprnet_opencv和lprnet_bmcv编译方法相同，以编译lprnet_opencv程序为例：
 ```bash
-cd lprnet_opencv
+cd cpp/lprnet_opencv
 mkdir build && cd build
-cmake .. && make # 生成lprnet_opencv.pcie
+cmake ..
+make
+cd ..
 ```
+编译完成后，会在lprnet_opencv目录下生成lprnet_opencv.pcie。
 
-## 1.3 测试命令
+### 2.2 SoC平台
+通常在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
-编译完成后，会生成lprnet_opencv.pcie,具体参数说明如下：
+交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件，lprnet_opencv和lprnet_bmcv编译方法相同，以编译lprnet_opencv程序为例：
+```bash
+cd cpp/lprnet_opencv
+mkdir build && cd build
+#请根据实际情况修改-DSDK的路径，需使用绝对路径。
+cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk ..  
+make
+```
+编译完成后，会在lprnet_opencv目录下生成lprnet_opencv.soc。
+
+## 3. 推理测试
+对于PCIe平台，可以直接在PCIe平台上推理测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据拷贝到SoC平台中测试。测试的参数及运行方式是一致的，下面主要以PCIe模式进行介绍。
+
+### 3.1 参数说明
+可执行程序默认有一套参数，请注意根据实际情况进行传参，lprnet_opencv和lprnet_bmcv参数相同，以lprnet_opencv为例，具体参数说明如下：
 
 ```bash
-usage:./lprnet_opencv.pcie <input path> <bmodel path> <device id>
-input path:推理图片路径，可输入整个推理图片文件夹的路径；
-bmodel path:用于推理的bmodel路径，默认使用stage 0的网络进行推理；
-device id:用于推理的tpu设备id。
+Usage: lprnet_opencv.pcie [params]
+
+        --bmodel (value:../../models/BM1684/lprnet_fp32_1b.bmodel)
+                bmodel file path
+        --dev_id (value:0)
+                TPU device id
+        --help (value:true)
+                print help information.
+        --input (value:../../datasets/test)
+                input path, images direction or video file path
 ```
+**注意：** CPP传参与python不同，需要用等于号，例如`./lprnet_opencv.pcie --bmodel=xxx`。
 
-BM1684X的测试实例如下，请根据目标平台、模型精度、batch_size选择相应的bmodel：
-
+### 3.2 测试图片
+图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-# 测试整个文件夹
-./lprnet_opencv.pcie ../../../data/images/test ../../../data/models/BM1684X/lprnet_fp32_1b.bmodel 0
+./lprnet_opencv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/lprnet_fp32_1b.bmodel --dev_id=0
 ```
 
-执行完成后，会将预测结果保存在`results/lprnet_fp32_1b.bmodel_test_opencv_cpp_result.json`下，同时会打印预测结果、推理时间等信息。
+执行完成后，会将预测结果保存在`results/lprnet_fp32_1b.bmodel_test_opencv_cpp_result.json`下，同时会打印预测结果、推理时间等信息，输出如下：
 
 ```bash
 ......
@@ -66,83 +105,3 @@ SUMMARY: lprnet detect
 
 ```
 
-## 2. SoC平台
-## 2.1 环境准备
-对于SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下。
-
-## 2.2 交叉编译
-通常在x86主机上交叉编译程序，使之能够在SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
-
-交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件，lprnet_opencv和lprnet_bmcv编译方法相同，以编译lprnet_opencv程序为例：
-```bash
-cd lprnet_opencv
-mkdir build && cd build
-#请根据实际情况修改-DSDK的路径，需使用绝对路径。
-cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk ..  
-make # 生成lprnet_opencv.soc
-```
-
-## 2.3 测试命令
-将生成的可执行文件及所需的模型、测试图片拷贝到SoC目标平台中测试，测试方法请参考x86 PCIe平台的[1.3 测试命令](#13-测试命令)。
-
-## 3. 精度与性能测试
-
-### 3.1 精度测试
-本例程在`tools`目录下提供了`eval.py`脚本，可以将前面生成的预测结果json文件与测试集标签的json文件进行对比，计算出车牌识别准确率。具体的测试命令如下：
-```bash
-# 请根据实际情况修改程序路径和json文件路径
-python3 tools/eval.py --label_json data/images/test_label.json --result_json cpp/lprnet_opencv/build/results/lprnet_fp32_1b.bmodel_test_opencv_cpp_result.json
-```
-执行完成后，会打印出车牌识别的准确率：
-```bash
-INFO:root:ACC = 880/1000 = 0.882
-```
-
-### 3.2 性能测试
-
-可以使用bmrt_test测试模型的理论性能：
-```bash
-bmrt_test --bmodel {path_of_bmodel}
-```
-也可以参考[1.3 测试命令](#13-测试命令)打印程序运行中的实际性能指标。  
-测试中性能指标存在一定的波动属正常现象。
-
-### 3.3 测试结果
-
-[LNRNet_Pytorch](https://github.com/sirius-ai/LPRNet_Pytorch)中模型在该测试集上的准确率为89.4%。
-
-在BM1684X SoC上，不同例程、不同模型的精度和性能测试结果如下：
-
-|     例程      | 精度 |batch_size|  ACC  |bmrt_test|infer_time| QPS |
-|   --------    | ---- | -------  | ----- |  -----  | -----    | --- |
-| lprnet_opencv | fp32 |   1      | 88.2% |  0.8ms  |  0.7ms   | 620 |
-| lprnet_opencv | fp32 |   4      | 89.3% |  0.7ms  |  0.7ms   | 660 |
-| lprnet_opencv | int8 |   1      | 87.4% |  0.3ms  |  0.2ms   | 950 |
-| lprnet_opencv | int8 |   4      | 87.9% |  0.2ms  |  0.2ms   | 1000 |
-| lprnet_bmcv   | fp32 |   1      | 88.2% |  0.8ms  |  0.8ms   | 610 |
-| lprnet_bmcv   | fp32 |   4      | 89.3% |  0.7ms  |  0.7ms   | 660 |
-| lprnet_bmcv   | int8 |   1      | 87.4% |  0.3ms  |  0.2ms   | 950 |
-| lprnet_bmcv   | int8 |   4      | 87.9% |  0.2ms  |  0.2ms   | 1050 |
-
-在BM1684 SoC上，不同例程、不同模型的精度和性能测试结果如下：
-
-|     例程      | 精度 |batch_size|  ACC  |bmrt_test|infer_time| QPS |
-|   --------    | ---- | -------  | ----- |  -----  | -----    | --- |
-| lprnet_opencv | fp32 |   1      | 88.0% |  1.7ms  |  1.6ms   | 400 |
-| lprnet_opencv | fp32 |   4      | 89.2% |  0.9ms  |  0.9ms   | 600 |
-| lprnet_opencv | int8 |   1      | 87.3% |  0.7ms  |  0.7ms   | 660 |
-| lprnet_opencv | int8 |   4      | 88.4% |  0.3ms  |  0.2ms   | 960 |
-| lprnet_bmcv   | fp32 |   1      | 88.0% |  1.7ms  |  1.6ms   | 350 |
-| lprnet_bmcv   | fp32 |   4      | 89.2% |  0.9ms  |  0.9ms   | 530 |
-| lprnet_bmcv   | int8 |   1      | 87.3% |  0.7ms  |  0.7ms   | 600 |
-| lprnet_bmcv   | int8 |   4      | 88.4% |  0.3ms  |  0.2ms   | 900 |
-```
-bmrt_test: 每张图片的理论推理时间(calculate time)，多batch模型需除以batch；
-infer_time: 程序运行时每张图片的网络推理时间；
-QPS: 程序每秒钟全流程处理的图片数。
-```
-
-> **测试说明**：  
-1.PCIe上的测试精度与SoC相同，性能由于CPU的不同可能存在一定差异；  
-2.LPRNet网络中包含mean算子，会把所有batch数据加和求平均，当多batch推理时，同一张图片在不同的batch组合中可能会有不同的推理结果;  
-3.性能测试的结果具有一定的波动性。
