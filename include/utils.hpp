@@ -29,9 +29,22 @@ struct TsInfo {
   std::string desc;
 };
 
+/*
+ * Help user recording time cost of any interval.
+ * Example:
+    TimeStamp* ts = new TimeStamp();
+    ts->save("func process time"); //Or: LOG_TS(ts, "func process time");
+    func();
+    ts->save("func process time");
+    time_stamp_t base_time = time_point_cast<microseconds>(steady_clock::now());
+    ts->calbr_basetime(base_time);
+    ts->build_timeline("test");
+    ts->show_summary("test");
+    ts.clear();
+ * See sample/YOLOv5/cpp/yolov5_bmcv/main.cpp for more details.
+ */
 class TimeStamp {
 public:
-  //TimeStamp(): records_(), tags_(), timeline_() {}
 
   TimeStamp(): records_(), tags_(), timeline_() {
     tags_.reserve(MAX_TAGS);
