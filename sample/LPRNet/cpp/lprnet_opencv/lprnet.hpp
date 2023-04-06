@@ -9,66 +9,61 @@
 #ifndef LPRNET_HPP
 #define LPRNET_HPP
 
-#include <string>
 #include <iomanip>
+#include <string>
+#define USE_OPENCV 1
 #include <opencv2/opencv.hpp>
+#include "bmnn_utils.h"
 #include "bmruntime_interface.h"
 #include "utils.hpp"
 
-#define MAX_BATCH 4
-#define INPUT_WIDTH 94
-#define INPUT_HEIGHT 24
+// #define MAX_BATCH 4
+// #define INPUT_WIDTH 94
+// #define INPUT_HEIGHT 24
 #define BUFFER_SIZE (1024 * 500)
 
-//char * get_res(int pred_num[], int len_char, int clas_char);
+// char * get_res(int pred_num[], int len_char, int clas_char);
 
 class LPRNET {
-public:
-  LPRNET(const std::string bmodel, int dev_id);
-  ~LPRNET();
-  void preForward(const std::vector<cv::Mat> &images);
-  void forward();
-  void postForward(std::vector<std::string> &detections);
-  void enableProfile(TimeStamp *ts);
-  int batch_size();
-private:
-  void setMean(std::vector<float> &values);
-  void wrapInputLayer(std::vector<cv::Mat>* input_channels,const int batch_id);
-  void preprocess(const cv::Mat &img, std::vector<cv::Mat>* input_channels);
-  
-  // handle of low level device 
-  bm_handle_t bm_handle_;
-  int dev_id_;
+    std::shared_ptr<BMNNContext> m_bmContext;
+    std::shared_ptr<BMNNNetwork> m_bmNetwork;
+    std::shared_ptr<BMNNTensor> m_input_tensor;
+    std::shared_ptr<BMNNTensor> m_output_tensor;
 
-  // runtime helper
-  const char **net_names_;
-  void *p_bmrt_;
+    int m_net_h, m_net_w;
+    int m_num_channels;
+    int max_batch;
+    int m_dev_id;
+    int output_num;
+    int len_char;
+    int clas_char;
+    TimeStamp* ts_ = NULL;
+    bm_tensor_t input_tensor;
+   public:
+    LPRNET(std::shared_ptr<BMNNContext> context, int m_dev_id);
+    ~LPRNET();
+    int Init();
+    int Detect(const std::vector<cv::Mat>& input_images,
+               std::vector<std::string>& results);
+    void enableProfile(TimeStamp* ts);
+    int batch_size();
 
-  // network input shape
-  int batch_size_;
-  int num_channels_;
-  int net_h_;
-  int net_w_;
-
-  // network related parameters
-  cv::Mat mean_;
-
-  // input & output buffers
-  bm_tensor_t input_tensor_;
-  bm_tensor_t output_tensor_;
-  float input_scale;
-  float output_scale;
-  float *input_f32;
-  int8_t *input_int8;
-  float *output_f32;
-  int8_t *output_int8;
-  bool int8_flag_;
-  bool int8_output_flag;
-  int count_per_img;
-  int len_char;
-  int clas_char;
-  // for profiling
-  TimeStamp *ts_;
+   private:
+    float* m_input_f32;
+    int8_t* m_input_int8;
+    cv::Mat m_mean;
+    cv::Mat m_std;
+    int m_input_count;
+    int pre_process(const std::vector<cv::Mat>& images);
+    int post_process(const std::vector<cv::Mat>& images,
+                     std::vector<std::string>& results);
+    void setStdMean(std::vector<float>& std, std::vector<float>& mean);
+    void wrapInputLayer(std::vector<cv::Mat>* input_channels,
+                        const int batch_id);
+    void pre_process_image(const cv::Mat& img,
+                           std::vector<cv::Mat>* input_channels);
+    int argmax(float* data, int dsize);
+    std::string get_res(int pred_num[], int len_char, int clas_char);
 };
 
 #endif /* LPRNET_HPP */
