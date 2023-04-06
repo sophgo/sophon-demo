@@ -9,19 +9,18 @@
 # -*- coding: utf-8 -*- 
 import time
 import os
+import json
 import numpy as np
 import argparse
 import sophon.sail as sail
 import logging
 import glob
-logging.basicConfig(level=logging.DEBUG)
-
-
+logging.basicConfig(level=logging.INFO)
 
 class Resnet(object):
     def __init__(self, args):
         # load bmodel
-        self.net = sail.Engine(args.bmodel, args.tpu_id, sail.IOMode.SYSO)
+        self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSO)
         logging.debug("load {} success!".format(args.bmodel))
 
         self.graph_name = self.net.get_graph_names()[0]
@@ -43,7 +42,6 @@ class Resnet(object):
         self.handle = self.net.get_handle()
         self.bmcv = sail.Bmcv(self.handle)
         self.img_dtype = self.bmcv.get_bm_image_data_format(self.input_dtype)
-        print(self.img_dtype)
 
         self.input_scale = self.net.get_input_scale(self.graph_name, self.input_name)
         self.output_scale = self.net.get_output_scale(self.graph_name, self.output_name)
@@ -63,7 +61,9 @@ class Resnet(object):
         self.net_h = self.input_shape[2]
         self.net_w = self.input_shape[3]
         
-        self.dt = 0.0
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
 
         self.output_tensor = sail.Tensor(self.handle, self.output_shape, self.output_dtype,  True, True)
         self.output_tensors = {self.output_name: self.output_tensor}
@@ -85,11 +85,7 @@ class Resnet(object):
 
     def predict(self, input_tensor):
         input_tensors = {self.input_name: input_tensor}
-
-        t0 = time.time()
         self.net.process(self.graph_name, input_tensors, self.output_tensors)
-        self.dt += time.time() - t0
-
         outputs = self.output_tensor.asnumpy() * self.output_scale
         return outputs
 
@@ -100,7 +96,7 @@ class Resnet(object):
         predictions = np.argmax(outputs, axis = 1)
         for pred, output in zip(predictions, outputs):
             score = output[pred]
-            res.append((pred,score))
+            res.append((pred.tolist(),float(score)))
         return res
 
     def __call__(self, bmimg_list):
@@ -111,10 +107,14 @@ class Resnet(object):
             for bmimg in bmimg_list:            
                 output_bmimg = sail.BMImage(self.handle, self.net_h, self.net_w, \
                         sail.Format.FORMAT_RGB_PLANAR, self.img_dtype)
+                start_time = time.time()
                 output_bmimg = self.preprocess_bmcv(bmimg, output_bmimg)
+                self.preprocess_time += time.time() - start_time
                 input_tensor = sail.Tensor(self.handle, self.input_shape,  self.input_dtype,  False, False)
                 self.bmcv.bm_image_to_tensor(output_bmimg, input_tensor)
+                start_time = time.time()
                 outputs = self.predict(input_tensor)
+                self.inference_time += time.time() - start_time
                 
         else:
             BMImageArray = eval('sail.BMImageArray{}D'.format(self.batch_size))
@@ -122,19 +122,22 @@ class Resnet(object):
             for i in range(img_num):
                 output_bmimg = sail.BMImage(self.handle, self.net_h, self.net_w, \
                     sail.Format.FORMAT_RGB_PLANAR, self.img_dtype)
+                start_time = time.time()
                 output_bmimg = self.preprocess_bmcv(bmimg_list[i], output_bmimg)
+                self.preprocess_time += time.time() - start_time
                 # self.preprocess_bmcv(bmimg_list[i], output_bmimg)
                 bmimgs[i] = output_bmimg.data()
             input_tensor = sail.Tensor(self.handle, self.input_shape,  self.input_dtype,  False, False)
             self.bmcv.bm_image_to_tensor(bmimgs, input_tensor)
+            start_time = time.time()
             outputs = self.predict(input_tensor)[:img_num]
+            self.inference_time += time.time() - start_time
 
+        start_time = time.time()
         res = self.postprocess(outputs)
+        self.postprocess_time += time.time() - start_time
 
         return res
-
-    def get_time(self):
-        return self.dt
 
 def main(args):
     resnet = Resnet(args)
@@ -144,64 +147,75 @@ def main(args):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     
-    if not os.path.isdir(args.input_path):
-        raise Exception('{} is not a directory.'.format(args.input_path))
+    if not os.path.isdir(args.input):
+        raise Exception('{} is not a directory.'.format(args.input))
 
     bmimg_list = []
     filename_list = []
+    results_list = []
     res_dict = {}
-    t1 = time.time()
-    for filename in glob.glob(args.input_path+'/*'):
+    decode_time = 0.0
+    for filename in glob.glob(args.input+'/*'):
         if os.path.splitext(filename)[-1] not in ['.jpg','.png','.jpeg','.bmp','.JPEG','.JPG','.BMP']:
             continue
-        decoder = sail.Decoder(filename, True, args.tpu_id)
+        start_time = time.time()
+        decoder = sail.Decoder(filename, True, args.dev_id)
         bmimg = sail.BMImage()
         ret = decoder.read(resnet.handle, bmimg)    
         if ret != 0:
             logging.error("{} decode failure.".format(filename))
             continue
+        decode_time += time.time() - start_time
         bmimg_list.append(bmimg)
         filename_list.append(filename)
         if len(bmimg_list) == batch_size:
-            res_list = resnet(bmimg_list)
+            results = resnet(bmimg_list)
             for i, filename in enumerate(filename_list):
-                logging.info("filename: {}, res: {}".format(filename, res_list[i]))
-                res_dict[filename] = res_list[i]
+                res_dict = dict()
+                logging.info("filename: {}, res: {}".format(filename, results[i]))
+                res_dict['filename'] = filename
+                res_dict['prediction'] = results[i][0]
+                res_dict['score'] = results[i][1]
+                results_list.append(res_dict)
             bmimg_list = []
             filename_list = []
 
     if len(bmimg_list):
-        res_list = resnet(bmimg_list)
+        results = resnet(bmimg_list)
         for i, filename in enumerate(filename_list):
-            logging.info("filename: {}, res: {}".format(filename, res_list[i]))
-            res_dict[filename] = res_list[i]
-
-    t2 = time.time()
+            res_dict = dict()
+            logging.info("filename: {}, res: {}".format(filename, results[i]))
+            res_dict['filename'] = filename
+            res_dict['prediction'] = results[i][0]
+            res_dict['score'] = results[i][1]
+            results_list.append(res_dict)
 
     # save result
-    result_file = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input_path)[-1] + "_bmcv" + "_python_result.txt"
-    fout = open(os.path.join(output_dir, result_file), 'w')
-    for filename, (prediction, score) in res_dict.items():
-        fout.write('\t'.join([filename, str(prediction), str(score)])+'\n')
-    fout.close()
-    logging.info("result saved in {}".format(os.path.join(output_dir, result_file)))
-        
+    if args.input[-1] == '/':
+        args.input = args.input[:-1]
+    json_name = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input)[-1] + "_bmcv" + "_python_result.json"
+    with open(os.path.join(output_dir, json_name), 'w') as jf:
+        # json.dump(results_list, jf)
+        json.dump(results_list, jf, indent=4, ensure_ascii=False)
+    logging.info("result saved in {}".format(os.path.join(output_dir, json_name)))
+
     # calculate speed   
     cn = len(res_dict)    
     logging.info("------------------ Inference Time Info ----------------------")
-    inference_time = resnet.get_time() / cn
+    decode_time = decode_time / cn
+    preprocess_time = resnet.preprocess_time / cn
+    inference_time = resnet.inference_time / cn
+    postprocess_time = resnet.postprocess_time / cn
+    logging.info("decode_time(ms): {:.2f}".format(decode_time * 1000))
+    logging.info("preprocess_time(ms): {:.2f}".format(preprocess_time * 1000))
     logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
-    total_time = t2 - t1
-    logging.info("total_time(ms): {:.2f}, img_num: {}".format(total_time * 1000, cn))
-    average_latency = total_time / cn
-    qps = 1 / average_latency
-    logging.info("average latency time(ms): {:.2f}, QPS: {:2f}".format(average_latency * 1000, qps))
+    logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
 
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--input_path', type=str, default='../data/images/imagenet_val_1k/img', help='path of input, must be image directory')
-    parser.add_argument('--bmodel', type=str, default='../data/models/BM1684X/resnet_fp32_b1.bmodel', help='path of bmodel')
-    parser.add_argument('--tpu_id', type=int, default=0, help='tpu id')
+    parser.add_argument('--input', type=str, default='../datasets/imagenet_val_1k/img', help='path of input, must be image directory')
+    parser.add_argument('--bmodel', type=str, default='../models/BM1684X/resnet50_fp32_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--dev_id', type=int, default=0, help='tpu id')
     args = parser.parse_args()
     return args
 
