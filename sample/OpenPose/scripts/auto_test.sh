@@ -183,9 +183,9 @@ then
     test_cpp pcie bmcv pose_coco_fp32_1b.bmodel ../../datasets/dance_1080P.mp4
     test_cpp pcie bmcv pose_coco_int8_1b.bmodel ../../datasets/dance_1080P.mp4
 
-    eval_python opencv pose_coco_fp32_1b.bmodel 0.43869402774722493
-    eval_python opencv pose_coco_int8_1b.bmodel 0.4305725250236341
-    eval_python opencv pose_coco_int8_4b.bmodel 0.4305725250236341
+    eval_python opencv pose_coco_fp32_1b.bmodel 0.4389763121962809
+    eval_python opencv pose_coco_int8_1b.bmodel 0.4292836389703862
+    eval_python opencv pose_coco_int8_4b.bmodel 0.4292836389703862
     eval_cpp pcie bmcv pose_coco_fp32_1b.bmodel 0.422054793081309
     eval_cpp pcie bmcv pose_coco_int8_1b.bmodel 0.4072217325729422
     eval_cpp pcie bmcv pose_coco_int8_4b.bmodel 0.4072217325729422

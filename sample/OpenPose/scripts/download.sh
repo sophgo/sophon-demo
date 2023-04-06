@@ -25,12 +25,12 @@ then
     mv dance_1080P.mp4 ../datasets/
 
     # val2017_1000.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/JedilLXIB
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/rn5EXB0OF
     unzip val2017_1000.zip -d ../datasets/coco
     rm val2017_1000.zip
 
     # person_keypoints_val2017_1000.json
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/W2W5jaTno
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/7mVCx8bEX
     mv person_keypoints_val2017_1000.json ../datasets/coco
 
     echo "datasets download!"
