@@ -9,19 +9,20 @@
 # -*- coding: utf-8 -*- 
 import os
 import time
+import json
 import cv2
 import numpy as np
 import argparse
 import glob
 import sophon.sail as sail
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 class Resnet(object):
     def __init__(self, args):
         # load bmodel
-        self.net = sail.Engine(args.bmodel, args.tpu_id, sail.IOMode.SYSIO)
+        self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
         self.graph_name = self.net.get_graph_names()[0]
         self.input_names = self.net.get_input_names(self.graph_name)
         self.input_shapes = [self.net.get_input_shape(self.graph_name, name) for name in self.input_names]
@@ -40,15 +41,15 @@ class Resnet(object):
         self.mean=[0.485, 0.456, 0.406]
         self.std=[0.229, 0.224, 0.225]
 
-        self.dt = 0.0
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
 
         self.handle = self.net.get_handle()
         self.bmcv = sail.Bmcv(self.handle)
         self.input_dtype = self.net.get_input_dtype(self.graph_name, self.input_name)
         self.output_dtype = self.net.get_output_dtype(self.graph_name, self.output_names[0])
         self.img_dtype = self.bmcv.get_bm_image_data_format(self.input_dtype)
-        print('img_dtype', self.img_dtype)
-        print('input_dtype, output_dtype', self.input_dtype, self.output_dtype) 
 
     def preprocess(self, img):
         h, w, _ = img.shape
@@ -62,9 +63,7 @@ class Resnet(object):
 
     def predict(self, input_img):
         input_data = {self.input_name: input_img}
-        t0 = time.time()
         outputs = self.net.process(self.graph_name, input_data)
-        self.dt += time.time() - t0
         return list(outputs.values())[0]
 
     def postprocess(self, outputs):
@@ -74,25 +73,33 @@ class Resnet(object):
         predictions = np.argmax(outputs, axis = 1)
         for pred, output in zip(predictions, outputs):
             score = output[pred]
-            res.append((pred,score))
+            res.append((pred.tolist(),float(score)))
         return res
 
     def __call__(self, img_list):
         img_num = len(img_list)
         img_input_list = []
         for img in img_list:
+            start_time = time.time()
             img = self.preprocess(img)
+            self.preprocess_time += time.time() - start_time
             img_input_list.append(img)
         
         if img_num == self.batch_size:
             input_img = np.stack(img_input_list)
+            start_time = time.time()
             outputs = self.predict(input_img)
+            self.inference_time += time.time() - start_time
         else:
             input_img = np.zeros(self.input_shape, dtype='float32')
             input_img[:img_num] = np.stack(img_input_list)
+            start_time = time.time()
             outputs = self.predict(input_img)[:img_num]
-
+            self.inference_time += time.time() - start_time
+        
+        start_time = time.time()
         res = self.postprocess(outputs)
+        self.postprocess_time += time.time() - start_time
 
         return res
 
@@ -107,65 +114,75 @@ def main(args):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     
-    if not os.path.isdir(args.input_path):
-        # logging.error("input_path must be an image directory.")
+    if not os.path.isdir(args.input):
+        # logging.error("input must be an image directory.")
         # return 0
-        raise Exception('{} is not a directory.'.format(args.input_path))
+        raise Exception('{} is not a directory.'.format(args.input))
         
 
     img_list = []
     filename_list = []
+    results_list = []
     res_dict = {}
-    t1 = time.time()
-    for filename in glob.glob(args.input_path+'/*'):
+    decode_time = 0.0
+    for filename in glob.glob(args.input+'/*'):
         if os.path.splitext(filename)[-1] not in ['.jpg','.png','.jpeg','.bmp','.JPEG','.JPG','.BMP']:
             continue
+        start_time = time.time()
         src_img = cv2.imread(filename)
         if src_img is None:
             logging.error("{} imread is None.".format(filename))
             continue
+        decode_time += time.time() - start_time
         img_list.append(src_img)
         filename_list.append(filename)
         if len(img_list) == batch_size:
-            res_list = resnet(img_list)
+            results = resnet(img_list)
             for i, filename in enumerate(filename_list):
-                logging.info("filename: {}, res: {}".format(filename, res_list[i]))
-                res_dict[filename] = res_list[i]
+                res_dict = dict()
+                logging.info("filename: {}, res: {}".format(filename, results[i]))
+                res_dict['filename'] = filename
+                res_dict['prediction'] = results[i][0]
+                res_dict['score'] = results[i][1]
+                results_list.append(res_dict)
             img_list = []
             filename_list = []
     if len(img_list):
-        res_list = resnet(img_list)
+        results = resnet(img_list)
         for i, filename in enumerate(filename_list):
-            logging.info("filename: {}, res: {}".format(filename, res_list[i]))
-            res_dict[filename] = res_list[i]
-
-    t2 = time.time()
+            res_dict = dict()
+            logging.info("filename: {}, res: {}".format(filename, results[i]))
+            res_dict['filename'] = filename
+            res_dict['prediction'] = results[i][0]
+            res_dict['score'] = results[i][1]
+            results_list.append(res_dict)
 
     # save result
-    result_file = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input_path)[-1] + "_opencv" + "_python_result.txt"
-    fout = open(os.path.join(output_dir, result_file), 'w')
-    for filename, (prediction, score) in res_dict.items():
-        fout.write('\t'.join([filename, str(prediction), str(score)])+'\n')
-    fout.close()
-
-    logging.info("result saved in {}".format(os.path.join(output_dir, result_file)))
+    if args.input[-1] == '/':
+        args.input = args.input[:-1]
+    json_name = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input)[-1] + "_opencv" + "_python_result.json"
+    with open(os.path.join(output_dir, json_name), 'w') as jf:
+        # json.dump(results_list, jf)
+        json.dump(results_list, jf, indent=4, ensure_ascii=False)
+    logging.info("result saved in {}".format(os.path.join(output_dir, json_name)))
 	    
     # calculate speed  
     cn = len(res_dict)    
     logging.info("------------------ Inference Time Info ----------------------")
-    inference_time = resnet.get_time() / cn
+    decode_time = decode_time / cn
+    preprocess_time = resnet.preprocess_time / cn
+    inference_time = resnet.inference_time / cn
+    postprocess_time = resnet.postprocess_time / cn
+    logging.info("decode_time(ms): {:.2f}".format(decode_time * 1000))
+    logging.info("preprocess_time(ms): {:.2f}".format(preprocess_time * 1000))
     logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
-    total_time = t2 - t1
-    logging.info("total_time(ms): {:.2f}, img_num: {}".format(total_time * 1000, cn))
-    average_latency = total_time / cn
-    qps = 1 / average_latency
-    logging.info("average latency time(ms): {:.2f}, QPS: {:2f}".format(average_latency * 1000, qps))
+    logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
         
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--input_path', type=str, default='../data/images/imagenet_val_1k/img', help='path of input, must be image directory')
-    parser.add_argument('--bmodel', type=str, default='../data/models/BM1684X/resnet_fp32_b1.bmodel', help='path of bmodel')
-    parser.add_argument('--tpu_id', type=int, default=0, help='tpu id')
+    parser.add_argument('--input', type=str, default='../datasets/imagenet_val_1k/img', help='path of input, must be image directory')
+    parser.add_argument('--bmodel', type=str, default='../models/BM1684X/resnet50_fp32_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--dev_id', type=int, default=0, help='tpu id')
     args = parser.parse_args()
     return args
 

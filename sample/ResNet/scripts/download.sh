@@ -1,29 +1,42 @@
 #!/bin/bash
 pip3 install dfn
+# sudo apt install unzip
 
 scripts_dir=$(dirname $(readlink -f "$0"))
 # echo $scripts_dir
 
 pushd $scripts_dir
 
-mkdir -p ../data/images
+# datasets
+if [ ! -d "../datasets" ]; 
+then
+    mkdir -p ../datasets
+    # test dataset
+    # imagenet验证集随机抽取1000张
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/oh2B5pGUu
+    unzip imagenet_val_1k.zip -d ../datasets/
+    rm imagenet_val_1k.zip
 
-# test dataset
-# imagenet验证集随机抽取1000张
-python3 -m dfn --url http://219.142.246.77:65000/sharing/kKHeokzEF
-tar -xf imagenet_val_1k.tar -C ../data/images/
-rm imagenet_val_1k.tar
+    # cali data
+    # imagenet验证集随机抽出了200张
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/W1ED8v06A
+    unzip cali_data.zip -d ../datasets/
+    rm cali_data.zip
+
+    echo "datasets download!"
+else
+    echo "datasets exist!"
+fi
 
 # models
-# 包含原始pytorch模型、traced pytorch模型、fp32bmodel和int8bmodel
-python3 -m dfn --url http://219.142.246.77:65000/sharing/kcI1V2G2f
-tar -xf models.tar -C ../data/
-rm models.tar
-
-# cali data
-# imagenet验证集随机抽出了200张
-python3 -m dfn --url http://219.142.246.77:65000/sharing/gjR0Cpw2u
-tar -xf cali_data.tar -C ../data/images/
-rm cali_data.tar
-
+if [ ! -d "../models" ]; 
+then
+    # 包含原始pytorch模型、traced pytorch模型、fp32bmodel、fp16bmodel和int8bmodel
+    python3 -m dfn --url http://219.142.246.77:65000/sharing/dHWRblq7M
+    unzip models.zip -d ../
+    rm models.zip
+    echo "models download!"
+else
+    echo "models exist!"
+fi
 popd

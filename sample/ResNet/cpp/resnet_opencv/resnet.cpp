@@ -8,116 +8,41 @@
 //===----------------------------------------------------------------------===//
 #include <fstream>
 #include "resnet.hpp"
-#include "utils.hpp"
+#define USE_ASPECT_RATIO 1
+#define DUMP_FILE 0
 
 using namespace std;
 
-RESNET::RESNET(const string bmodel, int dev_id)
-{
-  // init device id
-  dev_id_ = dev_id;
+RESNET::RESNET(std::shared_ptr<BMNNContext> context, int dev_id) : m_bmContext(context), m_dev_id(dev_id) {
+  std::cout << "ResNet create bm_context" << std::endl;
+}
 
-  // create device handle
-  bm_status_t ret = bm_dev_request(&bm_handle_, dev_id_);
-  if (BM_SUCCESS != ret)
-  {
-    std::cout << "ERROR: bm_dev_request err=" << ret << std::endl;
-    exit(-1);
+int RESNET::Init() {
+  //1. get network
+  m_bmNetwork = m_bmContext->network(0);
+  
+  //2. get input
+  max_batch = m_bmNetwork->maxBatch();
+  m_input_tensor = m_bmNetwork->inputTensor(0);
+  m_num_channels = m_input_tensor->get_shape()->dims[1];
+  m_net_h = m_input_tensor->get_shape()->dims[2];
+  m_net_w = m_input_tensor->get_shape()->dims[3];
+  m_input_count = bmrt_shape_count(m_input_tensor->get_shape());
+  input_scale = m_input_tensor->get_scale();
+  if(m_input_tensor->get_dtype() == BM_INT8) {
+      m_input_int8 = new int8_t[m_input_count];
+  } else {
+      m_input_float = new float[m_input_count];
   }
 
-  // init bmruntime contxt
-  p_bmrt_ = bmrt_create(bm_handle_);
-  if (NULL == p_bmrt_)
-  {
-    cout << "ERROR: get handle failed!" << endl;
-    exit(1);
-  }
+  //3. get output
+  m_output_tensor = m_bmNetwork->outputTensor(0);
+  output_scale = m_output_tensor->get_scale();
+  output_num = m_bmNetwork->outputTensorNum();
+  assert(output_num > 0);
+  class_num = m_bmNetwork->outputTensor(0)->get_shape()->dims[1];
 
-  // load bmodel by file
-  bool flag = bmrt_load_bmodel(p_bmrt_, bmodel.c_str());
-  if (!flag)
-  {
-    cout << "ERROR: Load bmodel[" << bmodel << "] failed" << endl;
-    exit(-1);
-  }
-
-  bmrt_get_network_names(p_bmrt_, &net_names_);
-  cout << "> Load model " << net_names_[0] << " successfully" << endl;
-
-  // get model info by model name
-  auto net_info = bmrt_get_network_info(p_bmrt_, net_names_[0]);
-  if (NULL == net_info)
-  {
-    cout << "ERROR: get net-info failed!" << endl;
-    exit(1);
-  }
-
-  cout << "input scale:" << net_info->input_scales[0] << endl;
-  cout << "output scale:" << net_info->output_scales[0] << endl;
-
-  /* get fp32/int8 type, the thresholds may be different */
-  if (BM_FLOAT32 == net_info->input_dtypes[0])
-  {
-    int8_flag_ = false;
-    cout << "fp32 input" << endl;
-  }
-  else
-  {
-    int8_flag_ = true;
-    cout << "int8 input" << endl;
-  }
-  if (BM_FLOAT32 == net_info->output_dtypes[0])
-  {
-    int8_output_flag = false;
-    cout << "fp32 output" << endl;
-  }
-  else
-  {
-    int8_output_flag = true;
-    cout << "int8 output" << endl;
-  }
-
-#ifdef DEBUG
-  bmrt_print_network_info(net_info);
-#endif
-
-  bm_shape_t input_shape = net_info->stages[0].input_shapes[0];
-  /* attach device_memory for inference input data */
-  bmrt_tensor(&input_tensor_, p_bmrt_, net_info->input_dtypes[0], input_shape);
-  /* malloc input and output system memory for preprocess data */
-  int input_count = bmrt_shape_count(&input_shape);
-  net_h_ = input_shape.dims[2];
-  net_w_ = input_shape.dims[3];
-  batch_size_ = input_shape.dims[0];
-  num_channels_ = input_shape.dims[1];
-  input_scale_ = net_info->input_scales[0];
-  cout << "input count:" << input_count << endl;
-  if (int8_flag_)
-  {
-    input_int8 = new int8_t[input_count];
-  }
-  else
-  {
-    input_f32 = new float[input_count];
-  }
-
-  bm_shape_t output_shape = net_info->stages[0].output_shapes[0];
-  bmrt_tensor(&output_tensor_, p_bmrt_, net_info->output_dtypes[0], output_shape);
-  int output_count = bmrt_shape_count(&output_shape);
-  class_num_ = output_shape.dims[1];
-  count_per_img = output_count / batch_size_;
-  output_scale_ = net_info->output_scales[0];
-  if (int8_output_flag)
-  {
-    output_int8 = new int8_t[output_count];
-  }
-  else
-  {
-    output_f32 = new float[output_count];
-  }
-
-
-
+  //4. set mean and scale
   vector<float> scale_values;
   scale_values.push_back(0.017124753831663668);
   scale_values.push_back(0.01750700280112045);
@@ -129,238 +54,191 @@ RESNET::RESNET(const string bmodel, int dev_id)
   mean_values.push_back(-1.8044444444444445);
   setStdMean(scale_values, mean_values);
 
-  ts_ = nullptr;
+  //5. set device mem
+  bmrt_tensor(&input_tensor, 
+              m_bmContext->bmrt(), 
+              m_input_tensor->get_dtype(), 
+              *m_input_tensor->get_shape());
+  m_input_tensor->set_device_mem(&input_tensor.device_mem);
+  return 0;
 }
 
-RESNET::~RESNET()
-{
-  if (int8_flag_)
-  {
-    delete[] input_int8;
-  }
-  else
-  {
-    delete[] input_f32;
-  }
-  if (int8_output_flag)
-  {
-    delete[] output_int8;
-  }
-  else
-  {
-    delete[] output_f32;
-  }
-  bm_free_device(bm_handle_, input_tensor_.device_mem);
-  bm_free_device(bm_handle_, output_tensor_.device_mem);
-  free(net_names_);
-  bmrt_destroy(p_bmrt_);
-  bm_dev_free(bm_handle_);
-}
-
-void RESNET::enableProfile(TimeStamp *ts)
-{
+void RESNET::enableProfile(TimeStamp *ts) {
   ts_ = ts;
 }
 
-void RESNET::preForward(const vector<cv::Mat> &images)
-{
-  LOG_TS(ts_, "resnet pre-process")
-  for (int i = 0; i < batch_size_; i++)
-  {
-    vector<cv::Mat> input_channels;
-    wrapInputLayer(&input_channels, i);
-    preprocess(images[i], &input_channels);
+void RESNET::setStdMean(vector<float> &std, vector<float> &mean) {
+  // init mat m_mean
+  vector<cv::Mat> std_channels;
+  vector<cv::Mat> mean_channels;
+  for (int i = 0; i < m_num_channels; i++) {
+    /* Extract an individual channel. */
+    cv::Mat std_channel(m_net_h, m_net_w, CV_32FC1, cv::Scalar((float)std[i]), cv::SophonDevice(this->m_dev_id));
+    std_channels.push_back(std_channel);
+    cv::Mat mean_channel(m_net_h, m_net_w, CV_32FC1, cv::Scalar((float)mean[i]), cv::SophonDevice(this->m_dev_id));
+    mean_channels.push_back(mean_channel);
   }
-  LOG_TS(ts_, "resnet pre-process")
+  // Todo: fp16
+  if (m_input_tensor->get_dtype() == BM_INT8) {
+    m_std.create(m_net_h, m_net_w, CV_8SC3, m_dev_id);
+    m_mean.create(m_net_h, m_net_w, CV_8SC3, m_dev_id);
+  }
+  else {
+    m_std.create(m_net_h, m_net_w, CV_32FC3, m_dev_id);
+    m_mean.create(m_net_h, m_net_w, CV_32FC3, m_dev_id);
+  }
+
+  cv::merge(std_channels, m_std);
+  cv::merge(mean_channels, m_mean);
+  cout << "mean_size:" << m_mean.size().height << "," << m_mean.size().width << "," << m_mean.channels() << endl;
+  cout << "std_size:" << m_std.size().height << "," << m_std.size().width << "," << m_std.channels() << endl;
 }
 
-void RESNET::forward()
-{
-  if (int8_flag_)
-  {
-    bm_memcpy_s2d(bm_handle_, input_tensor_.device_mem, ((void *)input_int8));
-  }
-  else
-  {
-    bm_memcpy_s2d(bm_handle_, input_tensor_.device_mem, ((void *)input_f32));
-  }
-  LOG_TS(ts_, "resnet inference")
-  bool ret = bmrt_launch_tensor_ex(p_bmrt_, net_names_[0],
-                                   &input_tensor_, 1, &output_tensor_, 1, true, false);
-  if (!ret)
-  {
-    cout << "ERROR: Failed to launch network" << net_names_[0] << "inference" << endl;
-  }
+void RESNET::wrapInputLayer(std::vector<cv::Mat>* input_channels, int batch_id) {
+  int h = m_net_h;
+  int w = m_net_w;
 
-  // sync, wait for finishing inference
-  bm_thread_sync(bm_handle_);
-  LOG_TS(ts_, "resnet inference")
-
-  size_t size = bmrt_tensor_bytesize(&output_tensor_);
-  if (int8_output_flag)
-  {
-    bm_memcpy_d2s_partial(bm_handle_, output_int8, output_tensor_.device_mem, size);
-  }
-  else
-  {
-    bm_memcpy_d2s_partial(bm_handle_, output_f32, output_tensor_.device_mem, size);
+  //init input_channels
+  if(m_input_tensor->get_dtype() == BM_INT8) {
+    int8_t *channel_base = m_input_int8;
+    channel_base += h * w * m_num_channels * batch_id;
+    for (int i = 0; i < m_num_channels; i++) {
+    cv::Mat channel(h, w, CV_8SC1, channel_base);
+    input_channels->push_back(channel);
+    channel_base += h * w;
+    }
+  } else {
+    float *channel_base = m_input_float;
+    channel_base += h * w * m_num_channels * batch_id;
+    for (int i = 0; i < m_num_channels; i++) {
+    cv::Mat channel(h, w, CV_32FC1, channel_base);
+    input_channels->push_back(channel);
+    channel_base += h * w;
+    }
   }
 }
 
-static bool comp(const std::pair<float, int> &lhs,
-                 const std::pair<float, int> &rhs)
-{
-  return lhs.first > rhs.first;
+int RESNET::batch_size() {
+  return max_batch;
+};
+
+int RESNET::Classify(std::vector<cv::Mat>& input_images, std::vector<std::pair<int, float>>& results) {
+  int ret = 0;
+  // 1. preprocess
+  LOG_TS(ts_, "resnet preprocess");
+  ret = pre_process(input_images);
+  CV_Assert(ret == 0);
+  LOG_TS(ts_, "resnet preprocess");
+
+  // 2. forward
+  LOG_TS(ts_, "resnet inference");
+  ret = m_bmNetwork->forward();
+  CV_Assert(ret == 0);
+  LOG_TS(ts_, "resnet inference");
+
+  // 3. post process
+  LOG_TS(ts_, "resnet postprocess");
+  ret = post_process(input_images, results);
+  CV_Assert(ret == 0);
+  LOG_TS(ts_, "resnet postprocess");
+
+  return ret;
 }
 
-void RESNET::postForward(vector<pair<int, float>> &results)
-{
+RESNET::~RESNET() {
+  std::cout << "ResNet delete bm_context" << std::endl;  
+  bm_free_device(m_bmContext->handle(), input_tensor.device_mem);
+  if(m_input_tensor->get_dtype() == BM_INT8) {
+      delete [] m_input_int8;
+  } else {
+      delete [] m_input_float;
+  }
+}
 
-  LOG_TS(ts_, "resnet post-process")
-
+int RESNET::post_process(vector<cv::Mat> &images, vector<pair<int, float>> &results) {
   results.clear();
+  m_output_tensor = m_bmNetwork->outputTensor(0);
+  output_scale = m_output_tensor->get_scale();
+  float* output_data = (float*)m_output_tensor->get_cpu_data();
 
-  for (int i = 0; i < batch_size_; i++)
-  {
+  for(unsigned int batch_idx = 0; batch_idx < images.size(); ++ batch_idx) {
     float exp_sum = 0;
-    for (int j = 0; j < class_num_; j++)
-    {
-      if (int8_output_flag)
-      {
-        exp_sum += std::exp(output_int8[count_per_img * i + j] * output_scale_);
-      }
-      else
-      {
-        exp_sum += std::exp(output_f32[count_per_img * i + j]);
-      }
+    for (int j = 0; j < class_num; j++) {
+      exp_sum += std::exp(*(output_data + batch_idx * class_num + j) * output_scale);
     }
     int max_idx = -1;
     float max_score = -1;
-    for (int j = 0; j < class_num_; j++)
-    {
+    for (int j = 0; j < class_num; j++) {
       float score = 0;
-      if (int8_output_flag)
-      {
-        score = std::exp(output_int8[count_per_img * i + j] * output_scale_) / exp_sum;
-      }
-      else
-      {
-        score = std::exp(output_f32[count_per_img * i + j]) / exp_sum;
-      }
-      if (max_score < score)
-      {
+      score = std::exp(*(output_data + batch_idx * class_num + j) * output_scale) / exp_sum;
+      if (max_score < score) {
         max_score = score;
         max_idx = j;
       }
     }
+
 #ifdef DEBUG
     cout << max_idx << ": " << max_score << endl;
 #endif
     results.push_back({max_idx, max_score});
   }
-  LOG_TS(ts_, "resnet post-process")
+
+  return 0;
 }
 
-void RESNET::setStdMean(vector<float> &std, vector<float> &mean)
-{
-  // init mat mean_
-  vector<cv::Mat> std_channels;
-  vector<cv::Mat> mean_channels;
-  for (int i = 0; i < num_channels_; i++)
-  {
-    /* Extract an individual channel. */
-    cv::Mat std_channel(net_h_, net_w_, CV_32FC1, cv::Scalar((float)std[i]), cv::SophonDevice(this->dev_id_));
-    std_channels.push_back(std_channel);
-    cv::Mat mean_channel(net_h_, net_w_, CV_32FC1, cv::Scalar((float)mean[i]), cv::SophonDevice(this->dev_id_));
-    mean_channels.push_back(mean_channel);
-  }
-  if (int8_flag_)
-  {
-    std_.create(net_h_, net_w_, CV_8SC3, dev_id_);
-    mean_.create(net_h_, net_w_, CV_8SC3, dev_id_);
-  }
-  else
-  {
-    std_.create(net_h_, net_w_, CV_32FC3, dev_id_);
-    mean_.create(net_h_, net_w_, CV_32FC3, dev_id_);
-  }
-
-  cv::merge(std_channels, std_);
-  cv::merge(mean_channels, mean_);
-  cout << "mean_size:" << mean_.size().height << "," << mean_.size().width << "," << mean_.channels() << endl;
-  cout << "std_size:" << std_.size().height << "," << std_.size().width << "," << std_.channels() << endl;
-}
-
-void RESNET::wrapInputLayer(std::vector<cv::Mat> *input_channels, int batch_id)
-{
-  int h = net_h_;
-  int w = net_w_;
-
-  // init input_channels
-  if (int8_flag_)
-  {
-    int8_t *channel_base = input_int8;
-    channel_base += h * w * num_channels_ * batch_id;
-    for (int i = 0; i < num_channels_; i++)
-    {
-      cv::Mat channel(h, w, CV_8SC1, channel_base);
-      input_channels->push_back(channel);
-      channel_base += h * w;
-    }
-  }
-  else
-  {
-    float *channel_base = input_f32;
-    channel_base += h * w * num_channels_ * batch_id;
-    for (int i = 0; i < num_channels_; i++)
-    {
-      cv::Mat channel(h, w, CV_32FC1, channel_base);
-      input_channels->push_back(channel);
-      channel_base += h * w;
-    }
-  }
-}
-
-void RESNET::preprocess(const cv::Mat &img, vector<cv::Mat> *input_channels)
-{
+void RESNET::pre_process_image(const cv::Mat& img, std::vector<cv::Mat> *input_channels) {
   /* Convert the input image to the input image format of the network. */
   cv::Mat sample = img;
-  cv::Mat sample_resized(net_h_, net_w_, CV_8UC3, cv::SophonDevice(dev_id_));
-  if (sample.size() != cv::Size(net_w_, net_h_))
-  {
-    cv::resize(sample, sample_resized, cv::Size(net_w_, net_h_));
-  }
-  else
-  {
+  cv::Mat sample_resized(m_net_h, m_net_w, CV_8UC3, cv::SophonDevice(m_dev_id));
+  if (sample.size() != cv::Size(m_net_w, m_net_h)) {
+    cv::resize(sample, sample_resized, cv::Size(m_net_w, m_net_h));
+  } else {
     sample_resized = sample;
   }
-  cv::Mat sample_resized_rgb(cv::SophonDevice(this->dev_id_));
+  cv::Mat sample_resized_rgb(cv::SophonDevice(this->m_dev_id));
   cv::cvtColor(sample_resized, sample_resized_rgb, cv::COLOR_BGR2RGB);
 
-  cv::Mat sample_float(cv::SophonDevice(this->dev_id_));
+  cv::Mat sample_float(cv::SophonDevice(this->m_dev_id));
   sample_resized_rgb.convertTo(sample_float, CV_32FC3);
 
-  cv::Mat sample_multiply(cv::SophonDevice(this->dev_id_));
-  cv::Mat sample_normalized(cv::SophonDevice(this->dev_id_));
-  cv::multiply(sample_float, std_, sample_multiply);
-  cv::add(sample_multiply, mean_, sample_normalized);
+  cv::Mat sample_multiply(cv::SophonDevice(this->m_dev_id));
+  cv::Mat sample_normalized(cv::SophonDevice(this->m_dev_id));
+  cv::multiply(sample_float, m_std, sample_multiply);
+  cv::add(sample_multiply, m_mean, sample_normalized);
 
   // /*note: int8 in convert need mul input_scale*/
-  if (int8_flag_)
-  {
-    cv::Mat sample_int8(cv::SophonDevice(this->dev_id_));
-    sample_normalized.convertTo(sample_int8, CV_8SC1, input_scale_);
+  if (m_input_tensor->get_dtype() == BM_INT8) {
+    cv::Mat sample_int8(cv::SophonDevice(this->m_dev_id));
+    sample_normalized.convertTo(sample_int8, CV_8SC1, input_scale);
     cv::split(sample_int8, *input_channels);
-  }
-  else
-  {
-    cv::Mat sample_fp32(cv::SophonDevice(this->dev_id_));
-    sample_normalized.convertTo(sample_fp32, CV_32FC3, input_scale_);
+  } else {
+    cv::Mat sample_fp32(cv::SophonDevice(this->m_dev_id));
+    sample_normalized.convertTo(sample_fp32, CV_32FC3, input_scale);
     cv::split(sample_fp32, *input_channels);
   }
 }
 
-int RESNET::batch_size()
-{
-  return batch_size_;
-};
+int RESNET::pre_process(vector<cv::Mat> &images) {
+  //Safety check.
+  assert(images.size() <= max_batch);
+  
+  //1. Preprocess input images in host memory.
+  for(int i = 0; i < max_batch; i++){
+    std::vector<cv::Mat> input_channels;
+    wrapInputLayer(&input_channels, i);
+    if(i < images.size())
+      pre_process_image(images[i], &input_channels);
+    else {
+      cv::Mat tmp = cv::Mat::zeros(m_net_h, m_net_w, CV_32FC3);
+      pre_process_image(tmp, &input_channels);
+    }
+  }
+  //2. Attach to input tensor.
+  if(m_input_tensor->get_dtype() == BM_INT8) {
+    bm_memcpy_s2d(m_bmContext->handle(), input_tensor.device_mem, (void *)m_input_int8);
+  } else {
+    bm_memcpy_s2d(m_bmContext->handle(), input_tensor.device_mem, (void *)m_input_float);
+  }
+
+  return 0;
+}
