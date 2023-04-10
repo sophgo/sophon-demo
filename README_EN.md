@@ -1,9 +1,9 @@
 ## Introduction to sophon-demo
 
 ## Introduction
-SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI chip, covering model optimization, efficient runtime support, and other capabilities required for the inference phase of neural networks, providing an easy-to-use and efficient full-stack solution for deep learning application development and deployment. It is currently compatible with the third-generation BM1684 chip and supports the fourth-generation BM1684X chip.
-
 Sophon Demo is developed based on the SophonSDK interface and provides a series of samples for mainstream algorithms. It includes model compilation and quantization based on TPU-NNTC and TPU-MLIR, inference engine porting based on BMRuntime, and pre and post-processing algorithm migration based on BMCV/OpenCV.
+
+SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI chip, covering model optimization, efficient runtime support, and other capabilities required for the inference phase of neural networks, providing an easy-to-use and efficient full-stack solution for deep learning application development and deployment. It is currently compatible with the third-generation BM1684 chip and supports the fourth-generation BM1684X chip.
 
 ## Directory Structure and Description
 | Contents | Algorithm Categories | Programming Languages | BModel | Multi-batch Support | Preprocessing Libraries |
