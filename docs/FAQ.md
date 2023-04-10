@@ -83,4 +83,7 @@ BM1684X的local memory相比BM1684少了一半，参数量较大的模型有可�
 int8bmodel的输入层数据类型是int8，scale不等1，基于opencv-python的例程以numpy.array为输入，推理接口内部需要进行乘scale操作，而fp32bmodel输入层的scale是1，推理接口内部不需要进行乘scale操作，这部分时间可能会抵掉模型推理优化的时间。可以在代码中添加`sail.set_print_flag(1)`，打印推理接口的具体耗时。  
 如果要使用opencv-python例程进行部署，建议将int8bmodel的输入、输出层保留为浮点计算。
 
+### 6.3 sophon-demo能否用于性能压测
+不建议。sophon-demo提供一系列主流算法的移植例程，用户可以根据sophon-demo进行模型算法移植和精度测试。但sophon-demo的前处理/推理/后处理是串行的，即使开多个进程也很难将CPU和TPU的性能充分发挥出来。[sophon-pipeline](https://github.com/sophgo/sophon-pipeline)能够将前处理/推理/后处理分别运行在3个线程上，最大化的实现并行，因此建议使用sophon-pipeline进行性能压测。
+
 ## 7 其他问题
