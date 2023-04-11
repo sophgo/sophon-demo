@@ -8,12 +8,12 @@ set(CMAKE_CXX_FLAGS "-O3")
 add_definitions(-w)
 
 if (NOT DEFINED TARGET_ARCH)
-    set(TARGET_ARCH x86)
+    set(TARGET_ARCH pcie)
 endif()
  
-if (${TARGET_ARCH} STREQUAL "x86")
-    set(lib_DIR /usr/lib/x84_64-linux-gnu)
-    link_directories(${lib_DIR})
+if (${TARGET_ARCH} STREQUAL "pcie")
+    # set(lib_DIR /usr/lib/x84_64-linux-gnu)
+    # link_directories(${lib_DIR})
     # use ffmpeg
     set(FFMPEG_DIR  /opt/sophon/sophon-ffmpeg-latest/lib/cmake)
     find_package(FFMPEG REQUIRED)

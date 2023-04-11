@@ -264,6 +264,7 @@ template <std::size_t N>
 int YoloV5::pre_process(std::vector<sail::BMImage>& input) {
     if(input.size() != N){
         std::cout << "Unsupport batch size!" << std::endl;
+        exit(1);
     }
     std::shared_ptr<sail::BMImage> resized_imgs_vec[N];
     sail::BMImageArray<N> resized_imgs;
