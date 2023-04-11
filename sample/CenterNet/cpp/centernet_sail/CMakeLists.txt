@@ -5,12 +5,12 @@ project(centernet_sail)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
  
 if (NOT DEFINED TARGET_ARCH)
-    set(TARGET_ARCH x86)
+    set(TARGET_ARCH pcie)
 endif()
  
-if (${TARGET_ARCH} STREQUAL "x86")
-    set(lib_DIR /usr/lib/x84_64-linux-gnu)
-    link_directories(${lib_DIR})
+if (${TARGET_ARCH} STREQUAL "pcie")
+    # set(lib_DIR /usr/lib/x84_64-linux-gnu)
+    # link_directories(${lib_DIR})
     # use ffmpeg
     set(FFMPEG_DIR  /opt/sophon/sophon-ffmpeg-latest/lib/cmake)
     find_package(FFMPEG REQUIRED)
