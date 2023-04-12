@@ -157,13 +157,13 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 |   测试平台    |      测试程序       |        测试模型        | ACC(%) |
 | ------------ | ----------------   | ---------------------- | ------ |
 | BM1684 PCIe  | resnet_opencv.pcie | resnet50_fp32_1b.bmodel  | 80.20  |
-| BM1684 PCIe  | resnet_opencv.pcie | resnet50_int8_1b.bmodel  | 78.60  |
+| BM1684 PCIe  | resnet_opencv.pcie | resnet50_int8_1b.bmodel  | 78.70  |
 | BM1684 PCIe  | resnet_bmcv.pcie   | resnet50_fp32_1b.bmodel  | 78.50  |
-| BM1684 PCIe  | resnet_bmcv.pcie   | resnet50_int8_1b.bmodel  | 77.10  |
+| BM1684 PCIe  | resnet_bmcv.pcie   | resnet50_int8_1b.bmodel  | 76.90  |
 | BM1684 PCIe  | resnet_opencv.py   | resnet50_fp32_1b.bmodel  | 80.10  |
-| BM1684 PCIe  | resnet_opencv.py   | resnet50_int8_1b.bmodel  | 78.20  |
-| BM1684 PCIe  | resnet_bmcv.py     | resnet50_fp32_1b.bmodel  | 77.20  |
-| BM1684 PCIe  | resnet_bmcv.py     | resnet50_int8_1b.bmodel  | 75.50  |
+| BM1684 PCIe  | resnet_opencv.py   | resnet50_int8_1b.bmodel  | 78.30  |
+| BM1684 PCIe  | resnet_bmcv.py     | resnet50_fp32_1b.bmodel  | 77.50  |
+| BM1684 PCIe  | resnet_bmcv.py     | resnet50_int8_1b.bmodel  | 76.10  |
 | BM1684X PCIe | resnet_opencv.pcie | resnet50_fp32_1b.bmodel  | 80.00  |
 | BM1684X PCIe | resnet_opencv.pcie | resnet50_fp16_1b.bmodel  | 80.00  |
 | BM1684X PCIe | resnet_opencv.pcie | resnet50_int8_1b.bmodel  | 79.20  |
@@ -173,9 +173,9 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 | BM1684X PCIe | resnet_opencv.py   | resnet50_fp32_1b.bmodel  | 80.10  |
 | BM1684X PCIe | resnet_opencv.py   | resnet50_fp16_1b.bmodel  | 80.10  |
 | BM1684X PCIe | resnet_opencv.py   | resnet50_int8_1b.bmodel  | 79.10  |
-| BM1684X PCIe | resnet_bmcv.py     | resnet50_fp32_1b.bmodel  | 78.30  |
-| BM1684X PCIe | resnet_bmcv.py     | resnet50_fp16_1b.bmodel  | 78.20  |
-| BM1684X PCIe | resnet_bmcv.py     | resnet50_int8_1b.bmodel  | 77.90  |
+| BM1684X PCIe | resnet_bmcv.py     | resnet50_fp32_1b.bmodel  | 77.80  |
+| BM1684X PCIe | resnet_bmcv.py     | resnet50_fp16_1b.bmodel  | 77.70  |
+| BM1684X PCIe | resnet_bmcv.py     | resnet50_int8_1b.bmodel  | 77.10  |
 
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
@@ -193,9 +193,9 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 
 |                  测试模型      | calculate time(ms) |
 | ----------------------------- | ----------------- |
-| BM1684/resnet50_fp32_1b.bmodel  | 6.58              |
-| BM1684/resnet50_int8_1b.bmodel  | 3.68              |
-| BM1684/resnet50_int8_4b.bmodel  | 1.13              |
+| BM1684/resnet50_fp32_1b.bmodel  | 6.54              |
+| BM1684/resnet50_int8_1b.bmodel  | 3.69              |
+| BM1684/resnet50_int8_4b.bmodel  | 1.14              |
 | BM1684X/resnet50_fp32_1b.bmodel | 8.84              |
 | BM1684X/resnet50_fp16_1b.bmodel | 1.57              |
 | BM1684X/resnet50_int8_1b.bmodel | 1.07              |

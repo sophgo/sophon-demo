@@ -184,13 +184,17 @@ then
     test_cpp pcie bmcv resnet50_int8_4b.bmodel ../../datasets/imagenet_val_1k/img
 
     eval_python opencv resnet50_fp32_1b 80.10
-    eval_python opencv resnet50_int8_4b 78.20
-    eval_python bmcv resnet50_fp32_1b 77.20
-    eval_python bmcv resnet50_int8_4b 77.50
+    eval_python opencv resnet50_int8_1b 78.30
+    eval_python opencv resnet50_int8_4b 78.30
+    eval_python bmcv resnet50_fp32_1b 77.50
+    eval_python bmcv resnet50_int8_1b 76.10
+    eval_python bmcv resnet50_int8_4b 76.10
     eval_cpp pcie opencv resnet50_fp32_1b 80.20
-    eval_cpp pcie opencv resnet50_int8_4b 78.60
+    eval_cpp pcie opencv resnet50_int8_1b 78.70
+    eval_cpp pcie opencv resnet50_int8_4b 78.70
     eval_cpp pcie bmcv resnet50_fp32_1b 78.50
-    eval_cpp pcie bmcv resnet50_int8_4b 77.10
+    eval_cpp pcie bmcv resnet50_int8_1b 76.90
+    eval_cpp pcie bmcv resnet50_int8_4b 76.90
 
   elif test $TARGET = "BM1684X"
   then
@@ -209,15 +213,19 @@ then
 
     eval_python opencv resnet50_fp32_1b 80.10
     eval_python opencv resnet50_fp16_1b 80.10
+    eval_python opencv resnet50_int8_1b 79.10
     eval_python opencv resnet50_int8_4b 79.10
-    eval_python bmcv resnet50_fp32_1b 78.30
-    eval_python bmcv resnet50_fp16_1b 78.20
-    eval_python bmcv resnet50_int8_4b 77.90
+    eval_python bmcv resnet50_fp32_1b 77.80
+    eval_python bmcv resnet50_fp16_1b 77.70
+    eval_python bmcv resnet50_int8_1b 77.10
+    eval_python bmcv resnet50_int8_4b 77.10
     eval_cpp pcie opencv resnet50_fp32_1b 80.00
     eval_cpp pcie opencv resnet50_fp16_1b 80.00
+    eval_cpp pcie opencv resnet50_int8_1b 79.20
     eval_cpp pcie opencv resnet50_int8_4b 79.20
     eval_cpp pcie bmcv resnet50_fp32_1b 78.60
     eval_cpp pcie bmcv resnet50_fp16_1b 78.60
+    eval_cpp pcie bmcv resnet50_int8_1b 77.80
     eval_cpp pcie bmcv resnet50_int8_4b 77.80
   fi
 elif test $MODE = "soc_build"
@@ -243,17 +251,17 @@ then
     test_cpp soc bmcv resnet50_int8_4b.bmodel ../../datasets/imagenet_val_1k/img
 
     eval_python opencv resnet50_fp32_1b 80.10
-    eval_python opencv resnet50_int8_1b 78.20
-    eval_python opencv resnet50_int8_4b 79.40
-    eval_python bmcv resnet50_fp32_1b 77.20
-    eval_python bmcv resnet50_int8_1b 75.50
-    eval_python bmcv resnet50_int8_4b 76.90
+    eval_python opencv resnet50_int8_1b 78.30
+    eval_python opencv resnet50_int8_4b 78.30
+    eval_python bmcv resnet50_fp32_1b 77.50   
+    eval_python bmcv resnet50_int8_1b 76.10
+    eval_python bmcv resnet50_int8_4b 76.10
     eval_cpp soc opencv resnet50_fp32_1b 80.20 
-    eval_cpp soc opencv resnet50_int8_1b 78.60
-    eval_cpp soc opencv resnet50_int8_4b 79.20
+    eval_cpp soc opencv resnet50_int8_1b 78.70
+    eval_cpp soc opencv resnet50_int8_4b 78.70 
     eval_cpp soc bmcv resnet50_fp32_1b 78.50 
-    eval_cpp soc bmcv resnet50_int8_1b 77.10
-    eval_cpp soc bmcv resnet50_int8_4b 77.50
+    eval_cpp soc bmcv resnet50_int8_1b 76.90
+    eval_cpp soc bmcv resnet50_int8_4b 76.90 
   elif test $TARGET = "BM1684X"
   then
     test_python opencv resnet50_fp32_1b.bmodel datasets/imagenet_val_1k/img
@@ -269,20 +277,20 @@ then
     test_cpp soc bmcv resnet50_fp32_1b.bmodel ../../datasets/imagenet_val_1k/img
     test_cpp soc bmcv resnet50_int8_4b.bmodel ../../datasets/imagenet_val_1k/img
 
-    eval_python opencv resnet50_fp32_1b 80.00
-    eval_python opencv resnet50_fp16_1b.bmodel 79.40
-    eval_python opencv resnet50_int8_1b 79.20
-    eval_python opencv resnet50_int8_4b 79.20
-    eval_python bmcv resnet50_fp32_1b 78.30
-    eval_python bmcv resnet50_fp16_1b.bmodel 77.70
-    eval_python bmcv resnet50_int8_1b 77.90
-    eval_python bmcv resnet50_int8_4b 77.90
+    eval_python opencv resnet50_fp32_1b 80.10
+    eval_python opencv resnet50_fp16_1b 80.10
+    eval_python opencv resnet50_int8_1b 79.10
+    eval_python opencv resnet50_int8_4b 79.10
+    eval_python bmcv resnet50_fp32_1b 77.80
+    eval_python bmcv resnet50_fp16_1b 77.70
+    eval_python bmcv resnet50_int8_1b 77.10
+    eval_python bmcv resnet50_int8_4b 77.10
     eval_cpp soc opencv resnet50_fp32_1b 80.0
-    eval_cpp soc opencv resnet50_fp16_1b.bmodel 79.70
+    eval_cpp soc opencv resnet50_fp16_1b 80.0
     eval_cpp soc opencv resnet50_int8_1b 79.20
     eval_cpp soc opencv resnet50_int8_4b 79.20 
     eval_cpp soc bmcv resnet50_fp32_1b 78.60
-    eval_cpp soc bmcv resnet50_fp16_1b.bmodel 76.90
+    eval_cpp soc bmcv resnet50_fp16_1b 78.60
     eval_cpp soc bmcv resnet50_int8_1b 77.80
     eval_cpp soc bmcv resnet50_int8_4b 77.80
 

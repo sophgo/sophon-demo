@@ -15,7 +15,7 @@ cali_data_path=../datasets/cali_data
 function auto_cali()
 {
     python3 -m ufw.cali.cali_model \
-        --net_name=resnet \
+        --net_name=resnet50 \
         --model=../models/torch/resnet50-11ad3fa6.torchscript.pt \
         --cali_image_path=$cali_data_path \
         --cali_image_preprocess='resize_h=224,resize_w=224;mean_value=103.53:116.28:123.675,scale=0.01742919:0.017507:0.01712475,bgr2rgb=True' \
