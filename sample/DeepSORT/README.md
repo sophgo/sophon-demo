@@ -29,7 +29,7 @@
 * 支持MOT格式数据集(即图片文件夹)和单视频测试
  
 ## 3. 准备模型与数据
-本例程**目标检测模型**和**特征提取模型**，目标检测模型请参考[YOLOv5](../YOLOv5/README.md#3-准备模型与数据)，下面主要介绍特征提取模型。
+本例程需要准备**目标检测模型**和**特征提取模型**，目标检测模型请参考[YOLOv5](../YOLOv5/README.md#3-准备模型与数据)，下面主要介绍特征提取模型。
 
 如果您使用BM1684芯片，建议使用TPU-NNTC编译BModel，Pytorch模型在编译前要导出成torchscript模型或onnx模型；如果您使用BM1684X芯片，建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。`tools/extractor_transform.py`是针对[Deep Sort with PyTorch](https://github.com/ZQPei/deep_sort_pytorch)中模型的转换脚本，可以一次性导出torchscript和onnx模型。**请您根据需要修改代码**。
 
@@ -170,7 +170,7 @@ MOTA = 0.43801157915751643
 acc         525  0.524889  0.544908  0.506289  0.687163  0.739579  5009  10  12   2  1212  1567    36  79  0.438012  0.218005
 ```
 ### 6.2 测试结果
-这里使用目标检测模型yolov5s_v6.1_3output_int8_1b.bmodel，使用数据集ADL-Rundle-6，记录MOTA作为精度指标，精度测试结果如下：
+这里使用目标检测模型`yolov5s_v6.1_3output_int8_1b.bmodel`，使用数据集ADL-Rundle-6，记录MOTA作为精度指标，精度测试结果如下：
 |   测试平台    |      测试程序     |           测试模型         | MOTA |
 | ------------ | ---------------- | -------------------------- | ---- |
 | BM1684 PCIe  | deepsort_opencv.py | extractor_fp32_1b.bmodel | 45.7 |
@@ -192,8 +192,8 @@ acc         525  0.524889  0.544908  0.506289  0.687163  0.739579  5009  10  12 
 ### 7.1 bmrt_test
 使用bmrt_test测试模型的理论性能：
 ```bash
-# 请根据实际情况修改要测试的bmodel路径
-bmrt_test --bmodel models/BM1684/extractor_fp32_1b.bmodel
+# 请根据实际情况修改要测试的bmodel路径和devid参数
+bmrt_test --bmodel models/BM1684X/extractor_fp32_1b.bmodel
 ```
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
@@ -214,6 +214,7 @@ bmrt_test --bmodel models/BM1684/extractor_fp32_1b.bmodel
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间。
+3. SoC和PCIe的测试结果基本一致。
 
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。这里**只统计特征提取模型的时间**，解码、目标检测模型的时间请参考[YOLOV5](../YOLOv5/README.md#72-程序运行性能)。
