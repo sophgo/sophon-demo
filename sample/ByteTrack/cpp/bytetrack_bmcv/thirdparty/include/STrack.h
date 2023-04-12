@@ -9,7 +9,7 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
-#include "kalmanFilter.h"
+#include "kalmanfilter.h"
 
 using namespace cv;
 using namespace std;

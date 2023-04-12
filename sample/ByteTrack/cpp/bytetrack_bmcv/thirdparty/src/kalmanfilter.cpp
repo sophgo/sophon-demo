@@ -6,7 +6,7 @@
 // third-party components.
 //
 //===----------------------------------------------------------------------===//
-#include "kalmanFilter.h"
+#include "kalmanfilter.h"
 #include <eigen3/Eigen/Cholesky>
 
 namespace byte_kalman
