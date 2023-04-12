@@ -139,7 +139,9 @@ class LPRNet(object):
 
 
     def preprocess_bmcv(self, input_bmimg, output_bmimg):
-        input_bmimg_bgr = self.bmcv.yuv2bgr(input_bmimg)
+        # input_bmimg_bgr = self.bmcv.yuv2bgr(input_bmimg)
+        input_bmimg_bgr = sail.BMImage(self.handle, input_bmimg.height(), input_bmimg.width(), sail.Format.FORMAT_BGR_PLANAR, input_bmimg.dtype())
+        self.bmcv.convert_format(input_bmimg, input_bmimg_bgr)
         if (
             input_bmimg_bgr.width() != self.net_w
             or input_bmimg_bgr.height() != self.net_h

@@ -10,7 +10,7 @@ pushd $scripts_dir
 if [ ! -d "../datasets" ]; 
 then
     python3 -m dfn --url http://219.142.246.77:65000/sharing/BYL5yfRm9
-    unzip datasets.zip -d ../
+    7z x datasets.zip -o../
     rm datasets.zip
 
     echo "datasets download!"

@@ -113,8 +113,8 @@ function compare_res(){
 function test_cpp()
 {
   pushd cpp/lprnet_$2
-  ./lprnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id $TPUID
-  judge_ret $? "./lprnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id $TPUID"
+  ./lprnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID
+  judge_ret $? "./lprnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID"
   popd
 }
 
@@ -124,8 +124,8 @@ function eval_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./lprnet_$2.$1 --input=../../datasets/test --bmodel=../../models/$TARGET/$3 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./lprnet_$2.$1 --input=../../datasets/test --bmodel=../../models/$TARGET/$3 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
+  ./lprnet_$2.$1 --input=../../datasets/test --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./lprnet_$2.$1 --input=../../datasets/test --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1"
   echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
   echo "python3 ../../tools/eval_ccpd.py --gt_path ../../datasets/test_label.json --result_json results/$3_test_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log"
   echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
@@ -187,15 +187,15 @@ then
     eval_python opencv lprnet_fp32_1b.bmodel 0.894
     eval_python opencv lprnet_int8_1b.bmodel 0.887
     eval_python opencv lprnet_int8_4b.bmodel 0.898
-    eval_python bmcv lprnet_fp32_1b.bmodel 0.879
-    eval_python bmcv lprnet_int8_1b.bmodel 0.876
-    eval_python bmcv lprnet_int8_4b.bmodel 0.878
-    eval_cpp pcie opencv lprnet_fp32_1b.bmodel 0.882
-    eval_cpp pcie opencv lprnet_int8_1b.bmodel 0.874
-    eval_cpp pcie opencv lprnet_int8_4b.bmodel 0.879
-    eval_cpp pcie bmcv lprnet_fp32_1b.bmodel 0.882
-    eval_cpp pcie bmcv lprnet_int8_1b.bmodel 0.874
-    eval_cpp pcie bmcv lprnet_int8_4b.bmodel 0.879
+    eval_python bmcv lprnet_fp32_1b.bmodel 0.88
+    eval_python bmcv lprnet_int8_1b.bmodel 0.873
+    eval_python bmcv lprnet_int8_4b.bmodel 0.884
+    eval_cpp pcie opencv lprnet_fp32_1b.bmodel 0.88
+    eval_cpp pcie opencv lprnet_int8_1b.bmodel 0.873
+    eval_cpp pcie opencv lprnet_int8_4b.bmodel 0.884
+    eval_cpp pcie bmcv lprnet_fp32_1b.bmodel 0.88
+    eval_cpp pcie bmcv lprnet_int8_1b.bmodel 0.873
+    eval_cpp pcie bmcv lprnet_int8_4b.bmodel 0.884
 
   elif test $TARGET = "BM1684X"
   then
@@ -213,10 +213,10 @@ then
     eval_python opencv lprnet_fp16_1b.bmodel 0.894
     eval_python opencv lprnet_int8_1b.bmodel 0.867
     eval_python opencv lprnet_int8_4b.bmodel 0.88
-    eval_python bmcv lprnet_fp32_1b.bmodel 0.879
-    eval_python bmcv lprnet_fp16_1b.bmodel 0.879
-    eval_python bmcv lprnet_int8_1b.bmodel 0.866
-    eval_python bmcv lprnet_int8_4b.bmodel 0.862
+    eval_python bmcv lprnet_fp32_1b.bmodel 0.882
+    eval_python bmcv lprnet_fp16_1b.bmodel 0.882
+    eval_python bmcv lprnet_int8_1b.bmodel 0.861
+    eval_python bmcv lprnet_int8_4b.bmodel 0.88
     eval_cpp pcie opencv lprnet_fp32_1b.bmodel 0.882
     eval_cpp pcie opencv lprnet_fp16_1b.bmodel 0.882
     eval_cpp pcie opencv lprnet_int8_1b.bmodel 0.861
@@ -247,9 +247,9 @@ then
     eval_python opencv lprnet_fp32_1b.bmodel 0.894
     eval_python opencv lprnet_int8_1b.bmodel 0.887
     eval_python opencv lprnet_int8_4b.bmodel 0.898
-    eval_python bmcv lprnet_fp32_1b.bmodel 0.882
-    eval_python bmcv lprnet_int8_1b.bmodel 0.871
-    eval_python bmcv lprnet_int8_4b.bmodel 0.878
+    eval_python bmcv lprnet_fp32_1b.bmodel 0.88
+    eval_python bmcv lprnet_int8_1b.bmodel 0.873
+    eval_python bmcv lprnet_int8_4b.bmodel 0.884
     eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.88 
     eval_cpp soc opencv lprnet_int8_1b.bmodel 0.873
     eval_cpp soc opencv lprnet_int8_4b.bmodel 0.884
@@ -268,14 +268,14 @@ then
     test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test
 
 
-    eval_python opencv lprnet_fp32_1b.bmodel 0.882
-    eval_python opencv lprnet_fp16_1b.bmodel 0.882
-    eval_python opencv lprnet_int8_1b.bmodel 0.861
+    eval_python opencv lprnet_fp32_1b.bmodel 0.894
+    eval_python opencv lprnet_fp16_1b.bmodel 0.894
+    eval_python opencv lprnet_int8_1b.bmodel 0.867
     eval_python opencv lprnet_int8_4b.bmodel 0.88
-    eval_python bmcv lprnet_fp32_1b.bmodel 0.879
-    eval_python bmcv lprnet_fp16_1b.bmodel 0.879
-    eval_python bmcv lprnet_int8_1b.bmodel 0.866
-    eval_python bmcv lprnet_int8_4b.bmodel 0.862 
+    eval_python bmcv lprnet_fp32_1b.bmodel 0.882
+    eval_python bmcv lprnet_fp16_1b.bmodel 0.882
+    eval_python bmcv lprnet_int8_1b.bmodel 0.861
+    eval_python bmcv lprnet_int8_4b.bmodel 0.88 
     eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.882
     eval_cpp soc opencv lprnet_fp16_1b.bmodel 0.882
     eval_cpp soc opencv lprnet_int8_1b.bmodel 0.861
