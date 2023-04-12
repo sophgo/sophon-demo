@@ -175,11 +175,11 @@ acc         525  0.524889  0.544908  0.506289  0.687163  0.739579  5009  10  12 
 | ------------ | ---------------- | -------------------------- | ---- |
 | BM1684 PCIe  | deepsort_opencv.py | extractor_fp32_1b.bmodel | 45.7 |
 | BM1684 PCIe  | deepsort_opencv.py | extractor_int8_1b.bmodel | 45.6 |
-| BM1684 PCIe | deepsort_bmcv.pcie | extractor_fp32_1b.bmodel | 45.6 |
-| BM1684 PCIe | deepsort_bmcv.pcie | extractor_int8_1b.bmodel | 45.7 |
-| BM1684x PCIe  | deepsort_opencv.py | extractor_fp32_1b.bmodel | 43.8 |
-| BM1684x PCIe  | deepsort_opencv.py | extractor_fp16_1b.bmodel | 43.8 |
-| BM1684x PCIe  | deepsort_opencv.py | extractor_int8_1b.bmodel | 43.1 |
+| BM1684 PCIe  | deepsort_bmcv.pcie | extractor_fp32_1b.bmodel | 45.6 |
+| BM1684 PCIe  | deepsort_bmcv.pcie | extractor_int8_1b.bmodel | 45.7 |
+| BM1684x PCIe | deepsort_opencv.py | extractor_fp32_1b.bmodel | 43.8 |
+| BM1684x PCIe | deepsort_opencv.py | extractor_fp16_1b.bmodel | 43.8 |
+| BM1684x PCIe | deepsort_opencv.py | extractor_int8_1b.bmodel | 43.1 |
 | BM1684X PCIe | deepsort_bmcv.pcie | extractor_fp32_1b.bmodel | 44.2 |
 | BM1684X PCIe | deepsort_bmcv.pcie | extractor_fp16_1b.bmodel | 44.2 |
 | BM1684X PCIe | deepsort_bmcv.pcie | extractor_int8_1b.bmodel | 43.7 |
@@ -221,26 +221,26 @@ bmrt_test --bmodel models/BM1684/extractor_fp32_1b.bmodel
 在不同的测试平台上，使用不同的例程、模型测试`datasets/mot15_trainset/ADL-Rundle-6/img1`，性能测试结果如下：
 |    测试平台  |     测试程序       |        测试模型           |preprocess_time|inference_time|postprocess_time| 
 | ----------- | ----------------   |------------------------- | ------------- | ------------ |  --------- |
-| BM1684 soc  | deepsort_opencv.py | extractor_fp32_1b.bmodel | 2.63  | 3.43  |  94.40  |
-| BM1684 soc  | deepsort_opencv.py | extractor_fp32_4b.bmodel | 2.52  | 1.95 |  74.49  |
-| BM1684 soc  | deepsort_opencv.py | extractor_int8_1b.bmodel |  2.44 | 2.08 |  75.16   |
-| BM1684 soc  | deepsort_opencv.py | extractor_fp32_4b.bmodel |  2.42 | 1.09 |  61.44   |
-| BM1684 soc  | deepsort_bmcv.soc | extractor_fp32_1b.bmodel | 0.16| 2.19  |  4.53 |
-| BM1684 soc  | deepsort_bmcv.soc | extractor_fp32_4b.bmodel | 0.09 |1.35  | 4.59  |
-| BM1684 soc  | deepsort_bmcv.soc | extractor_int8_1b.bmodel | 0.15 |0.92  | 5.02   |
-| BM1684 soc  | deepsort_bmcv.soc | extractor_int8_4b.bmodel | 0.09  | 0.25 | 5.05   |
-| BM1684x soc | deepsort_opencv.py | extractor_fp32_1b.bmodel | 2.14  | 3.50 | 62.09   |
-| BM1684x soc | deepsort_opencv.py | extractor_fp32_4b.bmodel | 2.14  | 3.15 | 66.19   |
-| BM1684x soc | deepsort_opencv.py | extractor_fp16_1b.bmodel | 2.17  | 1.19 |  59.13   |
-| BM1684x soc | deepsort_opencv.py | extractor_fp16_4b.bmodel | 2.14  | 1.45 | 58.72   |
-| BM1684x soc | deepsort_opencv.py | extractor_int8_1b.bmodel | 2.17  | 1.19 |  59.13  |
-| BM1684x soc | deepsort_opencv.py | extractor_int8_4b.bmodel | 2.15  | 0.64  | 62.25   |
-| BM1684X soc | deepsort_bmcv.soc | extractor_fp32_1b.bmodel | 0.12 | 2.65 | 5.34   |
-| BM1684X soc | deepsort_bmcv.soc | extractor_fp32_4b.bmodel | 0.08 | 2.31  |5.29    |
-| BM1684X soc | deepsort_bmcv.soc | extractor_fp16_1b.bmodel | 0.12 | 0.61 | 5.15    |
-| BM1684X soc | deepsort_bmcv.soc | extractor_fp16_4b.bmodel | 0.08 | 0.28 | 5.31   |
-| BM1684X soc | deepsort_bmcv.soc | extractor_int8_1b.bmodel | 0.12 | 0.34 | 5.41    |
-| BM1684X soc | deepsort_bmcv.soc | extractor_int8_4b.bmodel | 0.08 | 0.16  | 5.43   |
+| BM1684 soc  | deepsort_opencv.py | extractor_fp32_1b.bmodel | 2.63          | 3.43         |  94.40   |
+| BM1684 soc  | deepsort_opencv.py | extractor_fp32_4b.bmodel | 2.52          | 1.95         |  74.49   |
+| BM1684 soc  | deepsort_opencv.py | extractor_int8_1b.bmodel | 2.44          | 2.08         |  75.16   |
+| BM1684 soc  | deepsort_opencv.py | extractor_fp32_4b.bmodel | 2.42          | 1.09         |  61.44   |
+| BM1684 soc  | deepsort_bmcv.soc  | extractor_fp32_1b.bmodel | 0.16          | 2.19         |  4.53    |
+| BM1684 soc  | deepsort_bmcv.soc  | extractor_fp32_4b.bmodel | 0.09          | 1.35         |  4.59    |
+| BM1684 soc  | deepsort_bmcv.soc  | extractor_int8_1b.bmodel | 0.15          | 0.92         |  5.02    |
+| BM1684 soc  | deepsort_bmcv.soc  | extractor_int8_4b.bmodel | 0.09          | 0.25         |  5.05    |
+| BM1684x soc | deepsort_opencv.py | extractor_fp32_1b.bmodel | 2.14          | 3.50         |  62.09   |
+| BM1684x soc | deepsort_opencv.py | extractor_fp32_4b.bmodel | 2.14          | 3.15         |  66.19   |
+| BM1684x soc | deepsort_opencv.py | extractor_fp16_1b.bmodel | 2.17          | 1.19         |  59.13   |
+| BM1684x soc | deepsort_opencv.py | extractor_fp16_4b.bmodel | 2.14          | 1.45         |  58.72   |
+| BM1684x soc | deepsort_opencv.py | extractor_int8_1b.bmodel | 2.17          | 1.19         |  59.13   |
+| BM1684x soc | deepsort_opencv.py | extractor_int8_4b.bmodel | 2.15          | 0.64         |  62.25   |
+| BM1684X soc | deepsort_bmcv.soc  | extractor_fp32_1b.bmodel | 0.12          | 2.65         |  5.34    |
+| BM1684X soc | deepsort_bmcv.soc  | extractor_fp32_4b.bmodel | 0.08          | 2.31         |  5.29    |
+| BM1684X soc | deepsort_bmcv.soc  | extractor_fp16_1b.bmodel | 0.12          | 0.61         |  5.15    |
+| BM1684X soc | deepsort_bmcv.soc  | extractor_fp16_4b.bmodel | 0.08          | 0.28         |  5.31    |
+| BM1684X soc | deepsort_bmcv.soc  | extractor_int8_1b.bmodel | 0.12          | 0.34         |  5.41    |
+| BM1684X soc | deepsort_bmcv.soc  | extractor_int8_4b.bmodel | 0.08          | 0.16         |  5.43    |
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，preprocess_time、inference_time是特征提取模型平均每个crop的处理时间，postprocess_time是deepsort算法平均每帧的后处理时间；
