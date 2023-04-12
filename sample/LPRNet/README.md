@@ -51,8 +51,13 @@ LPRNet的优点可以总结为如下三点：
 ```bash
 # 安装unzip，若已安装请跳过
 sudo apt install unzip
+# 安装7z，若已安装请跳过
+sudo apt install p7zip
+sudo apt install p7zip-full
+
 chmod -R +x scripts/
 ./scripts/download.sh
+
 ```
 执行后，模型保存至`models/`，数据集下载并解压至`datasets/`
 ```
@@ -189,9 +194,9 @@ python3 tools/eval_ccpd.py --gt_path datasets/test_label.json --result_json cpp/
 | BM1684 PCIe  | lprnet_opencv.py | lprnet_fp32_1b.bmodel |   0.894       |
 | BM1684 PCIe  | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.887         |
 | BM1684 PCIe  | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.898         |
-| BM1684 PCIe  | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.882         |
-| BM1684 PCIe  | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.871         |
-| BM1684 PCIe  | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.878         |
+| BM1684 PCIe  | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.88         |
+| BM1684 PCIe  | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.873         |
+| BM1684 PCIe  | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.884         |
 | BM1684 PCIe  | lprnet_opencv.pcie | lprnet_fp32_1b.bmodel | 0.88         |
 | BM1684 PCIe  | lprnet_opencv.pcie | lprnet_int8_1b.bmodel | 0.873         |
 | BM1684 PCIe  | lprnet_opencv.pcie | lprnet_int8_4b.bmodel | 0.884         |
