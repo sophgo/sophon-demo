@@ -85,6 +85,7 @@ function compare_res(){
 }
 #e.g.: test_cpp opencv pcie c3d_int8_1b.bmodel 0.715
 function test_cpp(){
+    echo -e "\n########################\nCase Start: eval cpp\n########################"
     pushd cpp/c3d_$1
     if [ ! -d log ];then
         mkdir log
@@ -92,28 +93,37 @@ function test_cpp(){
     echo "testing cpp $1 $3:"
     chmod +x ./c3d_$1.$2
     ./c3d_$1.$2 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$3.log 2>&1
+    tail -n 15 log/$1_$3.log
     cd ../../tools/
+    echo "Evaluating..."
     res=$(python3 eval_ucf.py --result_json ../cpp/c3d_$1/results/$3_$1_cpp.json 2>&1)
+    echo -e "$res"
     array=(${res//=/ })
     acc=${array[1]}
     compare_res $acc $4
     popd
+    echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 
 #e.g.: test_python opencv c3d_int8_1b.bmodel 0.715
 function test_python(){
+    echo -e "\n########################\nCase Start: eval python\n########################"
     pushd python
     if [ ! -d log ];then
         mkdir log
     fi
     echo "testing python $1 $2:"
     python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2.log 2>&1
+    tail -n 15 log/$1_$2.log 
     cd ../tools/
+    echo "Evaluating..."
     res=$(python3 eval_ucf.py --result_json ../python/results/$2_$1_python.json 2>&1)
+    echo -e "$res"
     array=(${res//=/ })
     acc=${array[1]}
     compare_res $acc $3
     popd
+    echo -e "########################\nCase End: eval python\n########################\n"
 }
 
 #test pipeline:
