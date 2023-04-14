@@ -167,7 +167,7 @@ def main(args):
     logging.info("result saved in {}".format(os.path.join(output_dir, json_name)))
 	    
     # calculate speed  
-    cn = len(res_dict)    
+    cn = len(results_list)    
     logging.info("------------------ Inference Time Info ----------------------")
     decode_time = decode_time / cn
     preprocess_time = resnet.preprocess_time / cn
