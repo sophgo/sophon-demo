@@ -85,45 +85,51 @@ function test_python()
 }
 
 function eval_python()
-{  
+{ 
+  echo -e "\n########################\nCase Start: eval python\n########################" 
   if [ ! -d python/log ];then
     mkdir python/log
   fi
   python3 python/openpose_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id 0 > python/log/$1_$2_debug.log 2>&1
   judge_ret $? "python3 python/openpose_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id 0"
-  echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000.json --result_json results/$2_val2017_1000_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log"
-  echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  tail -n 15 python/log/$1_$2_debug.log
+  
+  echo "Evaluating..."
   res=$(python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000.json --result_json results/$2_val2017_1000_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
+  echo -e "$res"
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $3
+  echo -e "########################\nCase End: eval python\n########################\n"
 }
 
 function test_cpp()
 {
   pushd cpp/openpose_$2
-  ./openpose_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./openpose_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id $TPUID"
+  ./openpose_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./openpose_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID"
   popd
 }
 
 function eval_cpp()
 {
+  echo -e "\n########################\nCase Start: eval cpp\n########################"
   pushd cpp/openpose_$2
   if [ ! -d log ];then
     mkdir log
   fi
-  ./openpose_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./openpose_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3"
-  echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/person_keypoints_val2017_1000.json --result_json results/$3_val2017_1000_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log"
-  echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  ./openpose_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./openpose_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID"
+  tail -n 15 log/$1_$2_$3_debug.log
+
+  echo "Evaluating..."
   res=$(python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/person_keypoints_val2017_1000.json --result_json results/$3_val2017_1000_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
+  echo -e "$res"  
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $4
   popd
+  echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 
 function compile_nntc()
