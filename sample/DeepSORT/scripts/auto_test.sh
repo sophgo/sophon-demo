@@ -116,27 +116,31 @@ function test_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./deepsort_$2.$1 --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id $TPUID >> log/test.log 2>&1
-  judge_ret $? "./deepsort_$2.$1 --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id $TPUID"
+  ./deepsort_$2.$1 --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id=$TPUID >> log/test.log 2>&1
+  judge_ret $? "./deepsort_$2.$1 --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id=$TPUID"
   popd
 }
 
 function eval_cpp()
 {
+  echo -e "\n########################\nCase Start: eval cpp\n########################"
   pushd cpp/deepsort_$2
   if [ ! -d log ];then
     mkdir log
   fi
-  ./deepsort_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./deepsort_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
-  echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 ../../tools/eval_mot15.py --gt_file ../../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$3.txt 2>&1 | tee log/$1_$2_$3_eval.log"
-  echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  ./deepsort_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./deepsort_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1"
+  tail -n 20 log/$1_$2_$3_debug.log
+
+  echo "Evaluating..."
   res=$(python3 ../../tools/eval_mot15.py --gt_file ../../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$3.txt 2>&1 | tee log/$1_$2_$3_eval.log)
+  echo -e "$res"
+
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $4
   popd
+  echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 
 function test_python()
@@ -145,27 +149,30 @@ function test_python()
   if [ ! -d log ];then
     mkdir log
   fi
-  python3 deepsort_$1.py --input ../datasets/test_car_person_1080P.mp4 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id $TPUID >> log/test.log 2>&1
-  judge_ret $? "deepsort_$1.py --input ../datasets/test_car_person_1080P.mp4 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id $TPUID"
+  python3 deepsort_$1.py --input ../datasets/test_car_person_1080P.mp4 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id=$TPUID >> log/test.log 2>&1
+  judge_ret $? "deepsort_$1.py --input ../datasets/test_car_person_1080P.mp4 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id=$TPUID"
   popd
 }
 
 function eval_python()
 { 
+  echo -e "\n########################\nCase Start: eval python\n########################"
   pushd python
   if [ ! -d log ];then
     mkdir log
   fi
-  python3 deepsort_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_debug.log 2>&1
-  judge_ret $? "python3 deepsort_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_debug.log 2>&1"
-  echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 ../tools/eval_mot15.py --gt_file ../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$2.txt 2>&1 | tee log/$1_$2_eval.log"
-  echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  python3 deepsort_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id=$TPUID > log/$1_$2_debug.log 2>&1
+  judge_ret $? "python3 deepsort_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id=$TPUID > log/$1_$2_debug.log 2>&1"
+  tail -n 30 log/$1_$2_debug.log | head -n 20
+  
+  echo "Evaluating..."
   res=$(python3 ../tools/eval_mot15.py --gt_file ../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$2.txt 2>&1 | tee log/$1_$2_eval.log)
+  echo -e "$res"
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $3
   popd
+  echo -e "########################\nCase End: eval python\n########################\n"
 }
 
 if test $MODE = "compile_nntc"
