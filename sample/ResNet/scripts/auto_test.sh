@@ -114,27 +114,31 @@ function compare_res(){
 function test_cpp()
 {
   pushd cpp/resnet_$2
-  ./resnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id $TPUID
-  judge_ret $? "./resnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id $TPUID"
+  ./resnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID
+  judge_ret $? "./resnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID"
   popd
 }
 
 function eval_cpp()
 {
+  echo -e "\n########################\nCase Start: eval cpp\n########################"
   pushd cpp/resnet_$2
   if [ ! -d log ];then
     mkdir log
   fi
-  ./resnet_$2.$1 --input=../../datasets/imagenet_val_1k/img --bmodel=../../models/$TARGET/$3.bmodel --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./resnet_$2.$1 --input=../../datasets/imagenet_val_1k/img --bmodel=../../models/$TARGET/$3.bmodel --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
-  echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 ../../tools/eval_imagenet.py --gt_path ../../datasets/imagenet_val_1k/label.txt --result_json results/$3.bmodel_img_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log"
-  echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  ./resnet_$2.$1 --input=../../datasets/imagenet_val_1k/img --bmodel=../../models/$TARGET/$3.bmodel --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./resnet_$2.$1 --input=../../datasets/imagenet_val_1k/img --bmodel=../../models/$TARGET/$3.bmodel --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1"
+  tail -n 15 log/$1_$2_$3_debug.log
+  
+  echo "Evaluating..."
   res=$(python3 ../../tools/eval_imagenet.py --gt_path ../../datasets/imagenet_val_1k/label.txt --result_json results/$3.bmodel_img_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
+  echo -e "$res"
+  
   result=(${res#*ACC: })
   acc=${result: 0: 5}
   compare_res $acc $4
   popd
+  echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 
 function test_python()
@@ -145,18 +149,21 @@ function test_python()
 
 function eval_python()
 {  
+  echo -e "\n########################\nCase Start: eval python\n########################"
   if [ ! -d python/log ];then
     mkdir python/log
   fi
   python3 python/resnet_$1.py --input datasets/imagenet_val_1k/img --bmodel models/$TARGET/$2.bmodel --dev_id $TPUID > python/log/$1_$2.bmodel_debug.log 2>&1
   judge_ret $? " python3 python/resnet_$1.py --input datasets/imagenet_val_1k/img --bmodel models/$TARGET/$2.bmodel --dev_id $TPUID > python/log/$1_$2.bmodel_debug.log 2>&1"
-  echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --result_json results/$2.bmodel_img_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log"
-  echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  tail -n 15 python/log/$1_$2.bmodel_debug.log
+  
+  echo "Evaluating..."
   res=$(python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --result_json results/$2.bmodel_img_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
+  echo -e "$res"
   result=(${res#*ACC: })
   acc=${result: 0: 5}
   compare_res $acc $3
+  echo -e "########################\nCase End: eval python\n########################\n"
 }
 
 if test $MODE = "compile_nntc"
