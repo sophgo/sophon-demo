@@ -105,20 +105,24 @@ function test_cpp()
 
 function eval_cpp()
 {
+  echo -e "\n########################\nCase Start: eval cpp\n########################"
   pushd cpp/bytetrack_$2
   if [ ! -d log ];then
     mkdir log
   fi
   ./bytetrack_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/$3 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
   judge_ret $? "./bytetrack_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/$3 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
-  echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 ../../tools/eval_mot15.py --gt_file ../../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$3.txt 2>&1 | tee log/$1_$2_$3_eval.log"
-  echo "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  tail -n 15 log/$1_$2_$3_debug.log
+   
+  echo "Evaluating..."
   res=$(python3 ../../tools/eval_mot15.py --gt_file ../../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$3.txt 2>&1 | tee log/$1_$2_$3_eval.log)
+  echo -e "$res"
+
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $4
   popd
+  echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 
 function test_python()
@@ -134,20 +138,23 @@ function test_python()
 
 function eval_python()
 {
+  echo -e "\n########################\nCase Start: eval python\n########################"
   pushd python
   if [ ! -d log ];then
     mkdir log
   fi
   python3 bytetrack_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_debug.log 2>&1
   judge_ret $? "python3 bytetrack_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1  --bmodel_detector ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_debug.log 2>&1"
-  echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "python3 ../tools/eval_mot15.py --gt_file ../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$2.txt 2>&1 | tee log/$1_$2_eval.log"
-  echo "------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+  tail -n 20 log/$1_$2_debug.log
+
+  echo "Evaluating..."
   res=$(python3 ../tools/eval_mot15.py --gt_file ../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$2.txt 2>&1 | tee log/$1_$2_eval.log)
+  echo -e "$res"
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $3
   popd
+  echo -e "########################\nCase End: eval python\n########################\n"
 }
 
 if test $MODE = "pcie_test"
