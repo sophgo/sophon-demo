@@ -59,7 +59,7 @@ chmod -R +x scripts/
 │   ├── extractor_int8_4b.bmodel              # 使用TPU-NNTC编译，用于BM1684的INT8 BModel，batch_size=4
 │   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684的FP32 BModel，batch_size=1
 │   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684的INT8 BModel，batch_size=1
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 从YOLOv5例程中获取，用于BM1684的FP32 BModel，batch_size=4
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 从YOLOv5例程中获取，用于BM1684的INT8 BModel，batch_size=4
 ├── BM1684X
 │   ├── extractor_fp16_1b.bmodel              # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── extractor_fp16_4b.bmodel              # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=4
