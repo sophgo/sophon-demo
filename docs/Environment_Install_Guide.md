@@ -255,7 +255,7 @@ source /etc/profile
 
     使用指定的python3,通过交叉编译的方式,编译出包含bmcv,sophon-ffmpeg,sophon-opencv的SAIL,python3的安装方式可通过python官方文档获取,也可以从[此链接](http://219.142.246.77:65000/sharing/8MlSKnV8x)下载已经编译好的python3,本示例使用的python3路径为`python_3.8.2/bin/python3`,python3的动态库目录`python_3.8.2/lib`。
 
-    请参考[3.1 交叉编译环境搭建](#31-交叉编译环境搭建)获取libsophon、sophon-ffmpeg和sophon-opencv的交叉编译库包。
+    请参考[4.1 交叉编译环境搭建](#41-交叉编译环境搭建)获取libsophon、sophon-ffmpeg和sophon-opencv的交叉编译库包。
 
     ```bash
     # 请根据实际情况修改DPYTHON_EXECUTABLE、DCUSTOM_PY_LIBDIR、DLIBSOPHON_BASIC_PATH、DOPENCV_BASIC_PATH的路径
