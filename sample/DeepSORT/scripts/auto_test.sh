@@ -224,12 +224,12 @@ then
     test_cpp pcie bmcv extractor_int8_1b.bmodel
     test_cpp pcie bmcv extractor_int8_4b.bmodel
 
-    eval_python opencv extractor_fp32_1b.bmodel 0.43801157915751643
-    eval_python opencv extractor_fp32_4b.bmodel 0.43801157915751643
-    eval_python opencv extractor_fp16_1b.bmodel 0.43801157915751643
-    eval_python opencv extractor_fp16_4b.bmodel 0.43801157915751643
-    eval_python opencv extractor_int8_1b.bmodel 0.43162307845877423
-    eval_python opencv extractor_int8_4b.bmodel 0.43162307845877423
+    eval_python opencv extractor_fp32_1b.bmodel 0.43940906368536636
+    eval_python opencv extractor_fp32_4b.bmodel 0.43940906368536636
+    eval_python opencv extractor_fp16_1b.bmodel 0.43940906368536636
+    eval_python opencv extractor_fp16_4b.bmodel 0.43940906368536636
+    eval_python opencv extractor_int8_1b.bmodel 0.43601517268915946
+    eval_python opencv extractor_int8_4b.bmodel 0.43601517268915946
     eval_cpp pcie bmcv extractor_fp32_1b.bmodel 0.44200439209423037
     eval_cpp pcie bmcv extractor_fp32_4b.bmodel 0.44200439209423037
     eval_cpp pcie bmcv extractor_fp16_1b.bmodel 0.44200439209423037
@@ -279,18 +279,18 @@ then
     test_cpp soc bmcv extractor_int8_1b.bmodel
     test_cpp soc bmcv extractor_int8_4b.bmodel
 
-    eval_python opencv extractor_fp32_1b.bmodel 0.43801157915751643
-    eval_python opencv extractor_fp32_4b.bmodel 0.43801157915751643
-    eval_python opencv extractor_fp16_1b.bmodel 0.43801157915751643
-    eval_python opencv extractor_fp16_4b.bmodel 0.43801157915751643
-    eval_python opencv extractor_int8_1b.bmodel 0.43162307845877423
-    eval_python opencv extractor_int8_4b.bmodel 0.43162307845877423
-    eval_cpp soc bmcv extractor_fp32_1b.bmodel 0.44200439209423037
-    eval_cpp soc bmcv extractor_fp32_4b.bmodel 0.44200439209423037
-    eval_cpp soc bmcv extractor_fp16_1b.bmodel 0.44200439209423037
-    eval_cpp soc bmcv extractor_fp16_4b.bmodel 0.44200439209423037
-    eval_cpp soc bmcv extractor_int8_1b.bmodel 0.43761229786384503
-    eval_cpp soc bmcv extractor_int8_4b.bmodel 0.43761229786384503
+    eval_python opencv extractor_fp32_1b.bmodel 0.43940906368536636
+    eval_python opencv extractor_fp32_4b.bmodel 0.43940906368536636
+    eval_python opencv extractor_fp16_1b.bmodel 0.43940906368536636
+    eval_python opencv extractor_fp16_4b.bmodel 0.43940906368536636
+    eval_python opencv extractor_int8_1b.bmodel 0.43601517268915946
+    eval_python opencv extractor_int8_4b.bmodel 0.43601517268915946
+    eval_cpp soc bmcv extractor_fp32_1b.bmodel  0.44200439209423037
+    eval_cpp soc bmcv extractor_fp32_4b.bmodel  0.44200439209423037
+    eval_cpp soc bmcv extractor_fp16_1b.bmodel  0.44200439209423037
+    eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.44200439209423037
+    eval_cpp soc bmcv extractor_int8_1b.bmodel  0.43761229786384503
+    eval_cpp soc bmcv extractor_int8_4b.bmodel  0.43761229786384503
   fi
 fi
 

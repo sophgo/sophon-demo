@@ -147,8 +147,9 @@ def main():
             decode_time += time.time() - start_decode
             frame_num += 1
             img_batch.append(im)
-            if (frame_num % detector.batch_size == 0 or frame_num == len(image_paths))and len(img_batch): 
-                result_batch = update_tracker(detector, deepsort, img_batch, frame_num, mot_saver)
+            if (frame_num % detector.batch_size == 0 or frame_num == len(image_paths)) and len(img_batch): 
+                frame_id = frame_num + 1 - len(img_batch) # for 4 batch
+                result_batch = update_tracker(detector, deepsort, img_batch, frame_id, mot_saver)
                 img_batch = []
                 start_encode = time.time()
                 for result in result_batch:
@@ -176,12 +177,13 @@ def main():
                 frame_num += 1
                 img_batch.append(im)
             if (frame_num % detector.batch_size == 0 or flag == False) and len(img_batch): 
-                result_batch = update_tracker(detector, deepsort, img_batch, frame_num, mot_saver)
+                frame_id = frame_num + 1 - len(img_batch) # for 4 batch
+                result_batch = update_tracker(detector, deepsort, img_batch, frame_id, mot_saver)
                 img_batch = []
                 start_encode = time.time()
                 for result in result_batch:
-                    cv2.imwrite("results/video/"+str(save_id)+".jpg", result)
                     save_id += 1
+                    cv2.imwrite("results/video/"+str(save_id)+".jpg", result)
                     videoWriter.write(result)
                 encode_time += time.time() - start_encode
         cap.release()
