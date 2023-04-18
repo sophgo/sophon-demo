@@ -196,9 +196,9 @@ then
     eval_python opencv yolov7_v0.1_3output_fp32_1b.bmodel 0.5141659367922798
     eval_python opencv yolov7_v0.1_3output_int8_1b.bmodel 0.5054503987722289
     eval_python opencv yolov7_v0.1_3output_int8_4b.bmodel 0.5054503987722289
-    eval_python bmcv yolov7_v0.1_3output_fp32_1b.bmodel 0.49985099184064874
-    eval_python bmcv yolov7_v0.1_3output_int8_1b.bmodel 0.49492075451801204
-    eval_python bmcv yolov7_v0.1_3output_int8_4b.bmodel 0.49492075451801204
+    eval_python bmcv yolov7_v0.1_3output_fp32_1b.bmodel 0.504417540926352
+    eval_python bmcv yolov7_v0.1_3output_int8_1b.bmodel 0.49731983349296716
+    eval_python bmcv yolov7_v0.1_3output_int8_4b.bmodel 0.49731983349296716
     eval_cpp pcie bmcv yolov7_v0.1_3output_fp32_1b.bmodel 0.493618547647431
     eval_cpp pcie bmcv yolov7_v0.1_3output_int8_1b.bmodel 0.4865848847182539
     eval_cpp pcie bmcv yolov7_v0.1_3output_int8_4b.bmodel 0.4865848847182539
@@ -221,10 +221,10 @@ then
     test_cpp pcie bmcv yolov7_v0.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie bmcv yolov7_v0.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv yolov7_v0.1_3output_fp32_1b.bmodel 0.514165938340715
-    eval_python opencv yolov7_v0.1_3output_fp16_1b.bmodel 0.5142747966547465
-    eval_python opencv yolov7_v0.1_3output_int8_1b.bmodel 0.5092880300473043
-    eval_python opencv yolov7_v0.1_3output_int8_4b.bmodel 0.5051463948426905
+    eval_python opencv yolov7_v0.1_3output_fp32_1b.bmodel 0.5139793861023544
+    eval_python opencv yolov7_v0.1_3output_fp16_1b.bmodel 0.5136247112750388
+    eval_python opencv yolov7_v0.1_3output_int8_1b.bmodel 0.5060538624600311
+    eval_python opencv yolov7_v0.1_3output_int8_4b.bmodel 0.5049975014739588
     eval_python bmcv yolov7_v0.1_3output_fp32_1b.bmodel 0.5040489236493023
     eval_python bmcv yolov7_v0.1_3output_fp16_1b.bmodel 0.5039191983893554
     eval_python bmcv yolov7_v0.1_3output_int8_1b.bmodel 0.4962304124792047
@@ -258,12 +258,12 @@ then
     test_cpp soc bmcv yolov7_v0.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc bmcv yolov7_v0.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv yolov7_v0.1_3output_fp32_1b.bmodel 0.5128115310851916
+    eval_python opencv yolov7_v0.1_3output_fp32_1b.bmodel 0.5141659367922798
     eval_python opencv yolov7_v0.1_3output_int8_1b.bmodel 0.5054503987722289
     eval_python opencv yolov7_v0.1_3output_int8_4b.bmodel 0.5054503987722289
-    eval_python bmcv yolov7_v0.1_3output_fp32_1b.bmodel 0.49985099184064874
-    eval_python bmcv yolov7_v0.1_3output_int8_1b.bmodel 0.49492075451801204
-    eval_python bmcv yolov7_v0.1_3output_int8_4b.bmodel 0.49492075451801204
+    eval_python bmcv yolov7_v0.1_3output_fp32_1b.bmodel 0.504417540926352
+    eval_python bmcv yolov7_v0.1_3output_int8_1b.bmodel 0.49731983349296716
+    eval_python bmcv yolov7_v0.1_3output_int8_4b.bmodel 0.49731983349296716
     eval_cpp soc bmcv yolov7_v0.1_3output_fp32_1b.bmodel 0.493618547647431 
     eval_cpp soc bmcv yolov7_v0.1_3output_int8_1b.bmodel 0.4865848847182539
     eval_cpp soc bmcv yolov7_v0.1_3output_int8_4b.bmodel 0.4865848847182539
