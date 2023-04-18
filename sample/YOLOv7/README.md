@@ -24,7 +24,7 @@
 
 ## 1. 简介
 
-​`YOLOv7`是基于anchor的one-stage目标检测算法,在准确率和速度上超越了以往的YOLO系列；
+`YOLOv7`是基于anchor的one-stage目标检测算法,在准确率和速度上超越了以往的YOLO系列；
 ​本例程对[yolov7官方开源仓库](https://github.com/WongKinYiu/yolov7)v0.1版本的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
 
 ## 2. 特性
@@ -137,33 +137,33 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
 ```
 
-​执行上述命令会在`models/BM1684X/`下生成`yolov7_v0.1_3output_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+执行上述命令会在`models/BM1684X/`下生成`yolov7_v0.1_3output_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
 ```
 
-​执行上述命令会在`models/BM1684X/`下生成`yolov7_v0.1_3output_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+执行上述命令会在`models/BM1684X/`下生成`yolov7_v0.1_3output_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684X），如：
+本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684X），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684x
 ```
 
-​上述脚本会在`models/BM1684X`下生成`yolov7_v0.1_3output_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+上述脚本会在`models/BM1684X`下生成`yolov7_v0.1_3output_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 ## 5. 例程测试
 
@@ -190,13 +190,13 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | ------------ | ---------------- | ----------------------------------- | ------------- | -------- |
 | BM1684 PCIe  | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel | 0.514 | 0.699 |
 | BM1684 PCIe  | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel | 0.505 | 0.696 |
-| BM1684 PCIe  | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel | 0.500 | 0.682 |
-| BM1684 PCIe  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel | 0.495 | 0.682 |
+| BM1684 PCIe  | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel | 0.504 | 0.687 |
+| BM1684 PCIe  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel | 0.497 | 0.684 |
 | BM1684 PCIe  | yolov7_bmcv.pcie | yolov7_v0.1_3output_fp32_1b.bmodel | 0.494 | 0.696 |
 | BM1684 PCIe  | yolov7_bmcv.pcie | yolov7_v0.1_3output_int8_1b.bmodel | 0.487 | 0.691 |
-| BM1684X PCIe | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel | 0.514 | 0.699 |
+| BM1684X PCIe | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel | 0.514 | 0.700 |
 | BM1684X PCIe | yolov7_opencv.py | yolov7_v0.1_3output_fp16_1b.bmodel | 0.514 | 0.700 |
-| BM1684X PCIe | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel | 0.509 | 0.696 |
+| BM1684X PCIe | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel | 0.506 | 0.695 |
 | BM1684X PCIe | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel | 0.504 | 0.687 |
 | BM1684X PCIe | yolov7_bmcv.py   | yolov7_v0.1_3output_fp16_1b.bmodel | 0.504 | 0.688 |
 | BM1684X PCIe | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel | 0.496 | 0.681 |
@@ -230,8 +230,6 @@ bmrt_test --bmodel models/BM1684/yolov7_v0.1_3output_fp32_1b.bmodel
 | BM1684X/yolov7_v0.1_3output_fp16_4b.bmodel | 2.3 |
 | BM1684X/yolov7_v0.1_3output_int8_1b.bmodel | 1.0 |
 | BM1684X/yolov7_v0.1_3output_int8_4b.bmodel | 1.0 |
-
-
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
