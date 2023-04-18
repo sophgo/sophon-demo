@@ -84,24 +84,24 @@ python3 tools/eval_mot15.py --gt_file datasets/mot15_trainset/ADL-Rundle-6/gt/gt
 ```
 运行结果：
 ```bash
-MOTA = 0.4741465362347774
-     num_frames      IDF1      IDP      IDR      Rcll      Prcn    GT  MT  PT  ML   FP    FN  IDsw   FM      MOTA     MOTP
-acc         525  0.587467  0.64547  0.53903  0.657616  0.787473  5009   7  15   2  889  1715    30  103  0.474147  0.21907
+MOTA = 0.48532641245757635
+     num_frames    IDF1      IDP       IDR      Rcll      Prcn    GT  MT  PT  ML   FP    FN  IDsw  FM      MOTA    MOTP
+acc         525  0.5899  0.64848  0.541026  0.663406  0.795166  5009   8  14   2  856  1686    36  98  0.485326  0.2195
 ```
 ### 6.2 测试结果
 这里使用数据集ADL-Rundle-6，记录MOTA作为精度指标，精度测试结果如下：
 |   测试平台    |        测试程序      |           测试模型                   | MOTA |
 | ------------ | ------------------ | ----------------------------------  | ---- |
-| BM1684 SoC  | bytetrack_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 47.8 |
-| BM1684 SoC  | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 47.7 |
-| BM1684 SoC  | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 45.6 |
-| BM1684 SoC  | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 48.6 |
-| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 48.0 |
-| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 48.0 |
-| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 48.5 |
-| BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 45.9 |
-| BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 45.7 |
-| BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 47.0 |
+| BM1684 SoC  | bytetrack_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.478 |
+| BM1684 SoC  | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.477 |
+| BM1684 SoC  | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.456 |
+| BM1684 SoC  | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.486 |
+| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.480 |
+| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.480 |
+| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.485 |
+| BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.459 |
+| BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.457 |
+| BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.470 |
 
 
 > **测试说明**：

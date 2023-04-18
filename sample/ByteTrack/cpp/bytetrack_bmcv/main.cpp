@@ -125,6 +125,7 @@ int main(int argc, char* argv[]) {
     // initialize data buffer.
     vector<bm_image> batch_imgs;
     vector<YoloV5BoxVec> yolov5_boxes;
+    int id = 0;
 
     // TODO: merge image folder and video code
     //  test images
@@ -181,6 +182,7 @@ int main(int argc, char* argv[]) {
             CV_Assert(0 == yolov5.Detect(batch_imgs, yolov5_boxes));
             ts->save("yolov5 time");
             for (int i = 0; i < batch_imgs.size(); i++) {
+                id++;
                 //tracker, directly output tracked boxes.
                 ts->save("bytetrack time");
                 vector<STrack> output_stracks = bytetrack.update(yolov5_boxes[i]);
@@ -188,11 +190,11 @@ int main(int argc, char* argv[]) {
 
                 ts->save("encode time");
                 for (auto track_box : output_stracks) {
-                    string save_str = cv::format("%d,%d,%f,%f,%f,%f,1,-1,-1,-1\n", track_box.frame_id, track_box.track_id, track_box.tlwh[0], track_box.tlwh[1],
+                    string save_str = cv::format("%d,%d,%f,%f,%f,%f,1,-1,-1,-1\n", id, track_box.track_id, track_box.tlwh[0], track_box.tlwh[1],
                                                  track_box.tlwh[2], track_box.tlwh[3]);
                     mot_saver << save_str;
                 }
-                cout << output_stracks[i].frame_id << ", detect_nums: " << yolov5_boxes[i].size()<< "; track_nums: " << output_stracks.size() << endl;
+                cout << id << ", detect_nums: " << yolov5_boxes[i].size()<< "; track_nums: " << output_stracks.size() << endl;
 
 #if USE_OPENCV_DRAW_BOX
                 cv::Mat frame_to_draw;
@@ -211,7 +213,7 @@ int main(int argc, char* argv[]) {
                     bm_image_destroy(frame_drawed);
                     frame_drawed = frame;
                 }
-                string img_file = save_image_path + to_string(output_stracks[i].frame_id) + ".jpg";
+                string img_file = save_image_path + to_string(id) + ".jpg";
                 void* jpeg_data = NULL;
                 size_t out_size = 0;
                 int ret = bmcv_image_jpeg_enc(h, 1, &frame_drawed, &jpeg_data, &out_size);
