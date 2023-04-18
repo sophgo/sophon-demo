@@ -47,18 +47,14 @@ chmod -R +x scripts/
 ```bash
 ./models
 ├── BM1684
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 使用TPU-NNTC编译，用于BM1684的FP32 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 使用TPU-NNTC编译，用于BM1684的INT8 BModel，batch_size=1
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 使用TPU-NNTC编译，用于BM1684的INT8 BModel，batch_size=4
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684的INT8 BModel，batch_size=1
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 从YOLOv5例程中获取，用于BM1684的INT8 BModel，batch_size=4
 ├── BM1684X
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
-│── torch
-│   └── yolov5s_v6.1_3output.torchscript.pt   # trace后的torchscript模型
-└── onnx
-    └── yolov5s_v6.1_3output.onnx             # 导出的onnx动态模型
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的INT8 BModel，batch_size=1
+└──  └── yolov5s_v6.1_3output_int8_4b.bmodel  # 从YOLOv5例程中获取，用于BM1684X的INT8 BModel，batch_size=4
 ```
 下载的数据包括：
 ```
@@ -78,7 +74,7 @@ chmod -R +x scripts/
 ## 6. 精度测试
 ### 6.1 测试方法
 
-首先，参考[C++例程](cpp/README.md#32-测试MOT数据集)或[Python例程](python/README.md#22-测试MOT数据集)推理要测试的数据集，生成包含目标追踪结果的txt文件，注意修改数据集(datasets/mot15_trainset/ADL-Rundle-6/img1)。
+首先，参考[C++例程](cpp/README.md#32-测试MOT数据集)或[Python例程](python/README.md#22-测试MOT数据集)推理要测试的数据集，生成包含目标追踪结果的txt文件，注意修改数据集`datasets/mot15_trainset/ADL-Rundle-6/img1`。
 然后，使用`tools`目录下的`eval_mot15.py`脚本，将测试生成的txt文件与测试集标签txt文件进行对比，计算出目标追踪的一系列评价指标，在BM1684x SoC上运行命令：
 ```bash
 # 安装motmetrics，若已安装请跳过
@@ -100,16 +96,18 @@ acc         525  0.587467  0.64547  0.53903  0.657616  0.787473  5009   7  15   
 | BM1684 SoC  | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 47.7 |
 | BM1684 SoC  | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 45.6 |
 | BM1684 SoC  | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 48.6 |
-| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 47.8 |
-| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 47.8 |
-| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 47.4 |
+| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 48.0 |
+| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 48.0 |
+| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 48.5 |
 | BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 45.9 |
 | BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 45.7 |
 | BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 47.0 |
 
 
 > **测试说明**：
-1. SoC和PCIe的模型精度一致；
+1. batch_size=4和batch_size=1的模型精度一致；
+2. SoC和PCIe的模型精度一致；
+
 
 ## 7. 性能测试
 ### 7.1 bmrt_test

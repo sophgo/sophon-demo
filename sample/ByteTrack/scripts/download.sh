@@ -31,6 +31,7 @@ then
     python3 -m dfn --url http://219.142.246.77:65000/sharing/Z59yeHxl2
     unzip models.zip -d ../
     rm models.zip
+    rm -rf ../models/onnx ../models/torch ../models/BM1684_ext ../models/BM1684X_ext
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."

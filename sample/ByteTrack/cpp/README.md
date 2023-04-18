@@ -67,7 +67,7 @@ make
 编译完成后，会在bytetrack_bmcv目录下生成bytetrack_bmcv.soc。
 
 ## 3. 推理测试
-对于PCIe平台，可以直接在PCIe平台上推理测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据拷贝到SoC平台中测试。测试的参数及运行方式是一致的，下面主要以PCIe模式进行介绍。
+对于PCIe平台，可以直接在PCIe平台上推理测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据拷贝到SoC平台中测试。测试的参数及运行方式是一致的，下面主要以SoC模式进行介绍。
 
 ### 3.1 参数说明
 可执行程序默认有一套参数，请注意根据实际情况进行传参，具体参数说明如下：
@@ -96,7 +96,7 @@ MOT数据集测试实例如下，支持对整个文件夹里的所有图片进�
 ```bash
 ./bytetrack_bmcv.soc --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel --dev_id=0
 ```
-测试结束后，会将预测的帧保存在`results/images`下，预测的结果保存在`results/mot_eval/ADL-Rundle-6_extractor_fp32_1b.bmodel.txt`下，同时会打印推理耗时等信息。
+测试结束后，会将预测的帧保存在`results/images`下，预测的结果保存在`results/mot_eval/ADL-Rundle-6_yolov5s_v6.1_3output_int8_1b.bmodel.txt`下，同时会打印推理耗时等信息。
 
 ```bash
 ############################
