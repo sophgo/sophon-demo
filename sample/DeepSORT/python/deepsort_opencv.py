@@ -6,6 +6,7 @@
 # third-party components.
 #
 #===----------------------------------------------------------------------===#
+
 import sys
 sys.path.append("../../YOLOv5/python")
 from yolov5_opencv import YOLOv5
