@@ -1,4 +1,7 @@
+[简体中文](./README.md) | [English](./README_EN.md)
+
 ## sophon-demo介绍
+
 
 ## 简介
 Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移植例程。包括基于TPU-NNTC和TPU-MLIR的模型编译与量化，基于BMRuntime的推理引擎移植，以及基于BMCV/OpenCV的前后处理算法移植。
@@ -22,6 +25,8 @@ SophonSDK是算能科技基于其自主研发的AI芯片所定制的深度学习
 | [C3D](./sample/C3D/README.md) | 视频动作识别 | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [YOLOv8](./sample/YOLOv8/README.md) | 目标检测 | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [DeepSORT](./sample/DeepSORT/README.md) | 多目标跟踪 | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [ByteTrack](./sample/ByteTrack/README.md) | 多目标跟踪 | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | 目标检测 | C++ | FP32/FP16/INT8 | YES | BMCV|
 
 ## 版本说明
 | 版本 | 说明 | 

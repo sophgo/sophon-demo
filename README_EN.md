@@ -1,3 +1,5 @@
+[简体中文](./README.md) | [English](./README_EN.md)
+
 ## Introduction to sophon-demo
 
 ## Introduction
@@ -21,6 +23,9 @@ SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI
 | [OpenPose](./sample/OpenPose/README.md) | Human body key point detection | C++/Python | FP32/INT8 | YES | BMCV/OpenCV |
 | [C3D](./sample/C3D/README.md) | Video motion recognition | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [YOLOv8](./sample/YOLOv8/README.md) | Object detection | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [DeepSORT](./sample/DeepSORT/README.md) | MultiObject Tracker | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [ByteTrack](./sample/ByteTrack/README.md) | MultiObject Tracker | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | Object detection | C++ | FP32/FP16/INT8 | YES | BMCV|
 
 ## Release Notes
 | version | description | 
