@@ -79,7 +79,11 @@ function test_dpkg(){
       echo "$package_name is already installed."
   else
       echo "$package_name is not installed. Installing now..."
-      sudo apt-get install "$package_name"
+      if [ $MODE = "compile_nntc" ] || [ $MODE = "compile_mlir" ];then
+        apt-get install "$package_name"
+      else
+        sudo apt-get install "$package_name"
+      fi
   fi
 }
 
@@ -106,6 +110,7 @@ then
   fi
 fi
 
+test_sample ByteTrack
 test_sample YOLOv5
 test_sample YOLOv5_opt
 test_sample YOLOv7
@@ -115,8 +120,6 @@ test_sample C3D
 test_sample ResNet
 test_sample LPRNet
 test_sample DeepSORT
-test_sample ByteTrack
 test_sample OpenPose
-
 
 popd
