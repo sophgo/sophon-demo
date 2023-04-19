@@ -105,18 +105,21 @@ MOT数据集测试实例如下，支持对整个文件夹里的所有图片进�
 ############################
 SUMMARY: DeepSORT test
 ############################
-[         decode time]  loops:  100 avg: 10511 us #平均每帧的解码耗时                                  
-[         yolov5 time]  loops:  100 avg: 27008 us #目标检测模型平均每个batch的耗时                         
-[   yolov5 preprocess]  loops:  100 avg: 1496 us  #目标检测模型平均每个batch的预处理耗时                   
-[    yolov5 inference]  loops:  100 avg: 3277 us  #目标检测模型平均每个batch的推理耗时                     
-[  yolov5 postprocess]  loops:  100 avg: 22226 us #目标检测模型平均每个batch的后处理耗时                   
-[       deepsort time]  loops:  100 avg: 22753 us #deepsort单帧流程的耗时                  
-[      extractor time]  loops:  100 avg: 20856 us #单帧调用特征提取器的总耗时      
-[extractor preprocess]  loops:  100 avg: 227 us   #特征提取模型平均每个crop batch的预处理耗时      
-[ extractor inference]  loops:  100 avg: 2126 us  #特征提取模型平均每个crop batch的推理耗时        
-[deepsort postprocess]  loops:  100 avg: 3208 us  #deepsort平均每帧的的后处理耗时      
-[         encode time]  loops:  100 avg: 30637 us #平均每帧画框和编码的时间    
-avg_crops_per_batch: 8.579047                     #平均每帧的目标数      
+[         decode time]  loops:  100 avg: 10511 us               #平均每帧的解码耗时                                  
+[         yolov5 time]  loops:  100 avg: 27008 us               #目标检测模型平均每个batch的耗时                         
+[   yolov5 preprocess]  loops:  100 avg: 1496 us                #目标检测模型平均每个batch的预处理耗时                   
+[    yolov5 inference]  loops:  100 avg: 3277 us                #目标检测模型平均每个batch的推理耗时                     
+[  yolov5 postprocess]  loops:  100 avg: 22226 us               #目标检测模型平均每个batch的后处理耗时  
+[post 1: get output and decode]  loops:  100 avg: 15932 us
+[post 2: filter boxes]  loops:  100 avg: 5804 us
+[         post 3: nms]  loops:  100 avg: 32 us                 
+[       deepsort time]  loops:  100 avg: 22753 us               #deepsort单帧流程的耗时                  
+[      extractor time]  loops:  100 avg: 20856 us               #单帧调用特征提取器的总耗时      
+[extractor preprocess]  loops:  100 avg: 227 us                 #特征提取模型平均每个crop batch的预处理耗时      
+[ extractor inference]  loops:  100 avg: 2126 us                #特征提取模型平均每个crop batch的推理耗时        
+[deepsort postprocess]  loops:  100 avg: 3208 us                #deepsort平均每帧的的后处理耗时      
+[         encode time]  loops:  100 avg: 30637 us               #平均每帧画框和编码的时间    
+avg_crops_per_batch: 8.579047                                   #平均每帧的目标数      
 #VideoDecFFM exit 
 FeatureExtractor dtor ...
 YoloV5 dtor ...
@@ -133,18 +136,21 @@ YoloV5 dtor ...
 ############################
 SUMMARY: DeepSORT test
 ############################
-[         decode time]  loops:  100 avg: 1 us      #平均每帧的解码耗时
-[         yolov5 time]  loops:  100 avg: 27222 us  #目标检测模型平均每个batch的耗时 
-[   yolov5 preprocess]  loops:  100 avg: 1576 us   #目标检测模型平均每个batch的预处理耗时
-[    yolov5 inference]  loops:  100 avg: 3420 us   #目标检测模型平均每个batch的推理耗时
-[  yolov5 postprocess]  loops:  100 avg: 22217 us  #目标检测模型平均每个batch的后处理耗时
-[       deepsort time]  loops:  100 avg: 21292 us  #deepsort单帧流程的耗时
-[      extractor time]  loops:  100 avg: 19595 us  #单帧调用特征提取器的总耗时
-[extractor preprocess]  loops:  100 avg: 215 us    #特征提取模型平均每个crop batch的预处理耗时
-[ extractor inference]  loops:  100 avg: 2168 us   #特征提取模型平均每个crop batch的推理耗时
-[deepsort postprocess]  loops:  100 avg: 3208 us   #deepsort平均每帧的的后处理耗时 
-[         encode time]  loops:  100 avg: 30394 us  #平均每帧画框和编码的时间
-avg_crops_per_batch: 7.209814                      #平均每帧的目标数
+[         decode time]  loops:  100 avg: 1 us                   #平均每帧的解码耗时
+[         yolov5 time]  loops:  100 avg: 27222 us               #目标检测模型平均每个batch的耗时 
+[   yolov5 preprocess]  loops:  100 avg: 1576 us                #目标检测模型平均每个batch的预处理耗时
+[    yolov5 inference]  loops:  100 avg: 3420 us                #目标检测模型平均每个batch的推理耗时
+[  yolov5 postprocess]  loops:  100 avg: 22217 us               #目标检测模型平均每个batch的后处理耗时
+[post 1: get output and decode]  loops:  100 avg: 15932 us
+[post 2: filter boxes]  loops:  100 avg: 5804 us
+[         post 3: nms]  loops:  100 avg: 32 us    
+[       deepsort time]  loops:  100 avg: 21292 us               #deepsort单帧流程的耗时
+[      extractor time]  loops:  100 avg: 19595 us               #单帧调用特征提取器的总耗时
+[extractor preprocess]  loops:  100 avg: 215 us                 #特征提取模型平均每个crop batch的预处理耗时
+[ extractor inference]  loops:  100 avg: 2168 us                #特征提取模型平均每个crop batch的推理耗时
+[deepsort postprocess]  loops:  100 avg: 3208 us                #deepsort平均每帧的的后处理耗时 
+[         encode time]  loops:  100 avg: 30394 us               #平均每帧画框和编码的时间
+avg_crops_per_batch: 7.209814                                   #平均每帧的目标数
 #VideoDecFFM exit 
 FeatureExtractor dtor ...
 YoloV5 dtor ...
