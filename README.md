@@ -22,6 +22,8 @@ SophonSDK是算能科技基于其自主研发的AI芯片所定制的深度学习
 | [C3D](./sample/C3D/README.md) | 视频动作识别 | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [YOLOv8](./sample/YOLOv8/README.md) | 目标检测 | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [DeepSORT](./sample/DeepSORT/README.md) | 多目标跟踪 | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [ByteTrack](./sample/ByteTrack/README.md) | 多目标跟踪 | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | 目标检测 | C++ | FP32/FP16/INT8 | YES | BMCV|
 
 ## 版本说明
 | 版本 | 说明 | 
