@@ -28,6 +28,7 @@ do
       echo "soc-sdk is $SOCSDK";;
     a)
       SAIL_PATH=${OPTARG}
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
       echo "sail_path is $SAIL_PATH";;
     d)
       TPUID=${OPTARG}
