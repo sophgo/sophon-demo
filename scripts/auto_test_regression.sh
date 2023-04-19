@@ -109,7 +109,7 @@ then
       exit
   fi
 fi
-
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 test_sample ByteTrack
 test_sample YOLOv5
 test_sample YOLOv5_opt

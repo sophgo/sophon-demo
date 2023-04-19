@@ -35,6 +35,7 @@ do
       echo "using tpu $TPUID";;
     a)
       SAIL=${OPTARG}
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
       echo "sail is $SAIL";;  
     ?)
       usage
