@@ -37,7 +37,7 @@ YoloV5::~YoloV5() {
   }
 }
 
-int YoloV5::Init(float confThresh, float nmsThresh, const std::string& coco_names_file) {
+int YoloV5::Init(float confThresh, float nmsThresh, const std::string& tpu_kernel_module_path, const std::string& coco_names_file) {
   m_confThreshold = confThresh;
   m_nmsThreshold = nmsThresh;
   std::ifstream ifs(coco_names_file);
@@ -95,7 +95,7 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& coco_name
 
   // 6.tpukernel postprocess
   tpu_kernel_module_t tpu_module;
-  tpu_module = tpu_kernel_load_module_file(m_bmContext->handle(), "./tpu_kernel_module/libbm1684x_kernel_module.so");  
+  tpu_module = tpu_kernel_load_module_file(m_bmContext->handle(), tpu_kernel_module_path.c_str());  
   func_id = tpu_kernel_get_function(m_bmContext->handle(), tpu_module, "tpu_kernel_api_yolov5_detect_out");
   std::cout << "Using tpu_kernel yolo postprocession, kernel funtion id: " << func_id << std::endl;
   

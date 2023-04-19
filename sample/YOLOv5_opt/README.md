@@ -1,9 +1,6 @@
+[简体中文](./README.md) | [English](./README_EN.md)
+
 # YOLOv5_opt🚀
-
-<div align="center">
-
-## [简体中文](./README.md) | [English](./README_EN.md)
-</div>
 
 ## 目录
 
@@ -33,7 +30,7 @@
 * 支持图片和视频测试
  
 ## 3. 准备模型与数据
-建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。**本例程模型输出是最后三个卷积层的输出**，具体可参考[YOLOv5_tpukernel模型导出](./docs/YOLOv5_Export_Guide.md#)。
+建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。**本例程模型输出是最后三个卷积层的输出**，具体可参考[YOLOv5_tpukernel模型导出](./docs/YOLOv5_tpukernel_Export_Guide.md#)。
 
 ​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
@@ -118,7 +115,7 @@ chmod -R +x scripts/
 # 安装pycocotools，若已安装请跳过
 pip3 install pycocotools
 # 请根据实际情况修改程序路径和json文件路径
-python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json cpp/yolov5_tpukernel/results/yolov5s_tpukernel_fp32_1b.bmodel_val2017_1000_bmcv_cpp_result.json
+python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json cpp/yolov5_bmcv/results/yolov5s_tpukernel_fp32_1b.bmodel_val2017_1000_bmcv_cpp_result.json
 ```
 ### 6.2 测试结果
 在coco/val2017_1000数据集上，精度测试结果如下：
@@ -138,7 +135,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 使用bmrt_test测试模型的理论性能：
 ```bash
 # 请根据实际情况修改要测试的bmodel路径和devid参数
-bmrt_test --bmodel models/BM1684/yolov5s_tpukernel_fp32_1b.bmodel
+bmrt_test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel
 ```
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
@@ -170,7 +167,7 @@ bmrt_test --bmodel models/BM1684/yolov5s_tpukernel_fp32_1b.bmodel
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-3. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
+3. 1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 
 ## 8. FAQ

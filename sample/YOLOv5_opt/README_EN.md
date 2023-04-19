@@ -1,8 +1,6 @@
-# YOLOv5_opt🚀
-<div align="center">
+[简体中文](./README.md) | [English](./README_EN.md)
 
-## [简体中文](./README.md) | [English](./README_EN.md)
-</div>
+# YOLOv5_opt🚀
 
 ## Table of Contents
 
@@ -30,7 +28,7 @@ This example is based on [YOLOv5](../YOLOv5/README.md), using the tpu_kernel `tp
 * Supports image and video testing
 
 ## 3. Prepare Model and Data
-It is recommended to use TPU-MLIR to compile BModel. Pytorch models need to be exported to ONNX models before compilation. **The output of the model in this tutorial is the output of the last three convolutional layers**. For details, please refer to [YOLOv5_tpukernel_Export_Guide](./docs/YOLOv5_Export_Guide_EN.md#).
+It is recommended to use TPU-MLIR to compile BModel. Pytorch models need to be exported to ONNX models before compilation. **The output of the model in this tutorial is the output of the last three convolutional layers**. For details, please refer to [YOLOv5_tpukernel_Export_Guide](./docs/YOLOv5_tpukernel_Export_Guide.md#).
 
 At the same time, you need to prepare the dataset for testing. If you want to quantize the model, you also need to prepare the dataset for quantization.
 
@@ -113,7 +111,7 @@ Then, Use `tools/eval_coco.py` to calculate mAP, commands such as：
 # Skip this step if already installed.
 pip3 install pycocotools 
 # Please modify the relevant parameters according to the actual situation.
-python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json cpp/yolov5_tpukernel/results/yolov5s_tpukernel_fp32_1b.bmodel__bmcv_cpp_result.json
+python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json cpp/yolov5_bmcv/results/yolov5s_tpukernel_fp32_1b.bmodel__bmcv_cpp_result.json
 ```
 ### 6.2 Testing Result
 mAP on coco/val2017_1000 dataset:
@@ -132,7 +130,7 @@ mAP on coco/val2017_1000 dataset:
 ### 7.1 bmrt_test
 bmrt_test test BModel's theoretical inference time:
 ```bash
-bmrt_test --bmodel models/BM1684/yolov5s_tpukernel_fp32_1b.bmodel
+bmrt_test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel
 ```
 The `calculate time` in the test results is the time of model inference, and the multi-batch size model should be divided by the corresponding batch size to be the theoretical inference time of each image.
 The theoretical reasoning time of each model is tested, and the results are as follows:
@@ -165,7 +163,7 @@ On different platform, use different BModel test `datasets/val2017_1000`, set co
 > **Note**：  
 1. The time units are milliseconds (ms), and the statistical time is the average processing time of each image.
 2. Performance test results are volatile, and it is recommended to average multiple tests；
-3. CPU of BM1684/1684X SoC is 8 core ARM A53 42320 DMIPS @2.3GHz, Performance on PCIe can vary greatly depending on the CPU
+3. CPU of BM1684X SoC is 8 core ARM A53 42320 DMIPS @2.3GHz, Performance on PCIe can vary greatly depending on the CPU
 4. Image resolution has a great influence on decode time, inference results have a greater impact on postprocess time, different test images may have great differences, and different thresholds have a greater impact on postprocess time.
 
 ## 8. FAQ

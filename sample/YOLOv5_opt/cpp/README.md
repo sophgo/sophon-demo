@@ -1,3 +1,5 @@
+[简体中文](./README.md) | [English](./README_EN.md)
+
 # C++例程
 
 ## 目录
@@ -55,14 +57,14 @@ make
 编译完成后，会在yolov5_bmcv目录下生成yolov5_bmcv.soc。
 
 ## 3. 推理测试
-对于PCIe平台，可以直接在PCIe平台上推理测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据拷贝到SoC平台中测试。测试的参数及运行方式是一致的，下面主要以PCIe模式进行介绍。
+对于PCIe平台，可以直接在PCIe平台上推理测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据、`libbm1684x_kernel_module.so`拷贝到SoC平台中测试。测试的参数及运行方式是一致的，下面主要以PCIe模式进行介绍。
 
 ### 3.1 参数说明
 可执行程序默认有一套参数，请注意根据实际情况进行传参，具体参数说明如下：
 ```bash
-Usage: yolov5_bmcv.pcie [params]
+Usage: yolov5_bmcv.pcie [params] 
 
-        --bmodel (value:../../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel)
+        --bmodel (value:../../models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel)
                 bmodel file path
         --classnames (value:../../datasets/coco.names)
                 class names file path
@@ -76,13 +78,15 @@ Usage: yolov5_bmcv.pcie [params]
                 input path, images direction or video file path
         --nms_thresh (value:0.5)
                 iou threshold for nms
+        --tpu_kernel_module_path (value:./tpu_kernel_module/libbm1684x_kernel_module.so)
+                TPUKernel Shared Object
 ```
 **注意：** CPP传参与python不同，需要用等于号，例如`./yolov5_bmcv.pcie --bmodel=xxx`。
 
 ### 3.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-./yolov5_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id=0 --conf_thresh=0.5 --nms_thresh=0.5 --classnames=../../datasets/coco.names 
+./yolov5_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel --dev_id=0 --conf_thresh=0.5 --nms_thresh=0.5 --classnames=../../datasets/coco.names 
 ```
 测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov5s_v6.1_3output_fp32_1b.bmodel_test_bmcv_cpp_result.json`下，同时会打印预测结果、推理时间等信息。
 
@@ -91,7 +95,7 @@ Usage: yolov5_bmcv.pcie [params]
 ### 3.3 测试视频
 视频测试实例如下，支持对视频流进行测试。
 ```bash
-./yolov5_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel=../../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id=0 --conf_thresh=0.5 --nms_thresh=0.5 --classnames=../../datasets/coco.names
+./yolov5_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel=../../models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel --dev_id=0 --conf_thresh=0.5 --nms_thresh=0.5 --classnames=../../datasets/coco.names
 ```
 测试结束后，会将预测结果画在图片上并保存在`results/images`中，同时会打印预测结果、推理时间等信息。
 

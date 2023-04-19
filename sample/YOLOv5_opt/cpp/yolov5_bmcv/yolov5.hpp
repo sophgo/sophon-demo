@@ -84,7 +84,7 @@ class YoloV5 {
   public:
   YoloV5(std::shared_ptr<BMNNContext> context);
   virtual ~YoloV5();
-  int Init(float confThresh=0.5, float nmsThresh=0.5, const std::string& coco_names_file="");
+  int Init(float confThresh=0.5, float nmsThresh=0.5, const std::string& tpu_kernel_module_path="",  const std::string& coco_names_file="");
   void enableProfile(TimeStamp *ts);
   int batch_size();
   int Detect(const std::vector<bm_image>& images, std::vector<YoloV5BoxVec>& boxes);

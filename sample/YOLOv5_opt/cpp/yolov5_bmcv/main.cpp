@@ -27,7 +27,8 @@ int main(int argc, char *argv[]){
     "{nms_thresh | 0.5 | iou threshold for nms}"
     "{help | 0 | print help information.}"
     "{input | ../../datasets/test | input path, images direction or video file path}"
-    "{classnames | ../../datasets/coco.names | class names file path}";
+    "{classnames | ../../datasets/coco.names | class names file path}"
+    "{tpu_kernel_module_path | ./tpu_kernel_module/libbm1684x_kernel_module.so | TPUKernel Shared Object}";
   cv::CommandLineParser parser(argc, argv, keys);
   if (parser.get<bool>("help")) {
     parser.printMessage();
@@ -48,6 +49,11 @@ int main(int argc, char *argv[]){
     cout << "Cannot find classnames file." << endl;
     exit(1);
   }
+  string tpu_kernel_module_path = parser.get<string>("tpu_kernel_module_path");
+  if (stat(tpu_kernel_module_path.c_str(), &info) != 0) {
+    cout << "Cannot find TPUKernel Shared Object file." << endl;
+    exit(1);
+  }
   if (stat(input.c_str(), &info) != 0){
     cout << "Cannot find input path." << endl;
     exit(1);
@@ -66,6 +72,7 @@ int main(int argc, char *argv[]){
   CV_Assert(0 == yolov5.Init(
         parser.get<float>("conf_thresh"),
         parser.get<float>("nms_thresh"),
+        tpu_kernel_module_path,
         coco_names));
 
   // profiling
