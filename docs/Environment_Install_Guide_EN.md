@@ -1,3 +1,5 @@
+[简体中文](./Environment_Install_Guide.md) | [English](./Environment_Install_Guide_EN.md)
+
 # sophon-demo Environmental Installation Guide
 ## Contents
 * [sophon-demo Environmental Installation Guide](#sophon-demo-environmental-installation-guide)
@@ -322,13 +324,13 @@ Download the sophon-sail installation package from [the official website of Soph
 If you have installed PCIe accelerator card in arm platform, the development environment and running environment can be unified, you can directly build the development and running environment on the host.
 Here we provide the environment installation method for NeoKylin v10 machine, other types of machines please refer to the official development manual for details.
 ### 5.1 Installation of libsophon
-Download the libsophon installation package from[the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the installation package consists of a file where "$arch" is the hardware architecture of the current machine, and the current server's arch can be obtained using the following command.
+Download the libsophon installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the installation package consists of a file where "$arch" is the hardware architecture of the current machine, and the current server's arch can be obtained using the following command.
 ```
 uname -m
 ```
 Usually the corresponding hardware architecture is x86_64 for x86_64 machines and aarch64 for arm64 machines:
 ```
-libsophon_x.y.z_$arch.tar.gz，x.y.z表示版本号
+libsophon_x.y.z_$arch.tar.gz, x.y.z indicates the version number.
 ```
 It can be installed by following the steps below:
 
@@ -345,9 +347,7 @@ sudo ln -s /opt/sophon/driver-${x.y.z}/$bin /lib/firmware/bm1684_ddr_firmware.bi
 sudo ln -s /opt/sophon/driver-${x.y.z}/$bin /lib/firmware/bm1684_tcm_firmware.bin
 cd /opt/sophon/driver-${x.y.z}
 ```
-此处“$bin”是带有版本号的bin文件全名, 对于bm1684x板卡，如bm1684x.bin_v3.1.0-9734c1da-220802, 对于bm1684板卡，如bm1684_ddr.bin_v3.1.1-63a8614d-220906和bm1684_tcm.bin_v3.1.1-63a8614d-220906。
-
-Here "$bin" is the full name of the bin file with version number, for bm1684x boards, e.g. bm1684x.bin_v3.1.0-9734c1da-220802, for bm1684 boards, e.g. bm1684_ddr.bin_v3.1.1- 63a8614d-220906 and bm1684_tcm.bin_v3.1.1-63a8614d-220906.
+Here "$bin" is the full name of the bin file with version number, for bm1684x boards, e.g. bm1684x.bin_v3.1.0-9734c1da-220802, for bm1684 boards, e.g. bm1684_ddr.bin_v3.1.1-63a8614d-220906 and bm1684_tcm.bin_v3.1.1-63a8614d-220906.
 
 Then, you can compile the driver (no dependency on dkms here):.
 ```

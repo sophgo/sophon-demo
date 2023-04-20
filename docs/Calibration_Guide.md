@@ -1,3 +1,5 @@
+[简体中文](./Calibration_Guide.md) | [English](./Calibration_Guide_EN.md.md)
+
 # 模型量化
 更多模型量化教程请参考《TPU-NNTC开发参考手册》的“模型量化”(请从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)相应版本的SDK中获取)。
 
