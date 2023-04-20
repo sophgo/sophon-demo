@@ -1,3 +1,5 @@
+[简体中文](./Environment_Install_Guide.md) | [English](./Environment_Install_Guide_EN.md)
+
 # sophon-demo环境安装指南
 ## 目录
 * [sophon-demo环境安装指南](#sophon-demo环境安装指南)
