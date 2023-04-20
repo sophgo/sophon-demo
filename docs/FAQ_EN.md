@@ -1,3 +1,5 @@
+[简体中文](./FAQ.md) | [English](./FAQ_EN.md)
+
 # FAQ
 
 ## Directory
@@ -15,7 +17,7 @@ We have listed some common problems that users and developers will encounter dur
 
 
 ## 1 Environment installation related problems
-### 1.1 The installation of development and running environments of sophon-demo can be found in [related documentation](./Environment_Install_Guide.md).
+### 1.1 The installation of development and running environments of sophon-demo can be found in [related documentation](./Environment_Install_Guide_EN.md).
 
 ### 1.2 How Do I Use an SD Card to update Firmware in SoC Mode
 Download and decompress SophonSDK after v22.09.02, find sdcard swiping package in sophon-img folder, refer to [relative document](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/faq/html/devices/SOC/soc_firmware_update.html#id6) to refresh the firmware.
@@ -23,12 +25,12 @@ Download and decompress SophonSDK after v22.09.02, find sdcard swiping package i
 
 ## 2 Model derived related problems
 ### 2.1 How to jit.trace the Pytorch Model
-Some open source repositories provide scripts for model exports. If not provided, you need to learn from   [relative document](./torch.jit.trace_Guide.md) or [Pytorch official document](https://pytorch.org/docs/stable/jit.html) and write 'jit.trace' script. 'jit.trace' is usually done in torch environment and does not require a SophonSDK installation.
-- 'jit.trace' method of YOLOv5 model is available in [related documentation](../sample/YOLOv5/docs/YOLOv5_Export_Guide.md)
+Some open source repositories provide scripts for model exports. If not provided, you need to learn from   [relative document](./torch.jit.trace_Guide_EN.md) or [Pytorch official document](https://pytorch.org/docs/stable/jit.html) and write 'jit.trace' script. 'jit.trace' is usually done in torch environment and does not require a SophonSDK installation.
+- 'jit.trace' method of YOLOv5 model is available in [related documentation](../sample/YOLOv5/docs/YOLOv5_Export_Guide_EN.md)
 
 ## 3 Issues related to model compilation and quantization
 ### 3.1 Problems related to quantization using TPU-NNTC
-For details, see [documentation](./Calibration_Guide.md).
+For details, see [documentation](./Calibration_Guide_EN.md).
 
 ### 3.2 Long time to compile large models (such as resnet260) using TPU-NNTC
 It is possible that the resnet260 compilation took so long because the second search took too long. When compiling and optimizing, we conducted a group search on the results after the initial layergroup. This search result did not bring much benefit to the network performance like resnet, but would increase the time of compiling and optimizing. In order to solve such model problems, we increase the upper limit of secondary search and control the upper limit of secondary search through the following environment variables:
@@ -66,7 +68,7 @@ The current solution is to change the suffix of the input image to lower case. I
 
 ## 5 Accuracy test related issues
 ### 5.1 The inference result of FP32 BModel is inconsistent with that of the original model
-Under the premise that the pre and post processing is aligned with the original algorithm, the maximum error between the accuracy of FP32 BModel and the original model is usually less than 0.001, which will not affect the final prediction results. Refer to [related documentation](./FP32BModel_Precise_Alignment.md) for precision alignment of the FP32BModel.
+Under the premise that the pre and post processing is aligned with the original algorithm, the maximum error between the accuracy of FP32 BModel and the original model is usually less than 0.001, which will not affect the final prediction results. Refer to [related documentation](./FP32BModel_Precise_Alignment_EN.md) for precision alignment of the FP32BModel.
 
 ## 6 Performance test related issues
 ### 6.1 Part of FP32 BModel BM1684X performance is lower than BM1684

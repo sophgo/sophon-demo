@@ -1,4 +1,4 @@
-
+[简体中文](./FP32BModel_Precise_Alignment.md) | [English](./FP32BModel_Precise_Alignment_EN.md)
 
 # FP32 BModel精度对齐参考方法(Python)
 
