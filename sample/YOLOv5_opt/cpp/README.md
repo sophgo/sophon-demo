@@ -90,7 +90,7 @@ Usage: yolov5_bmcv.pcie [params]
 ```
 测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov5s_v6.1_3output_fp32_1b.bmodel_test_bmcv_cpp_result.json`下，同时会打印预测结果、推理时间等信息。
 
-![res](../pics/zidane_cpp_bmcv.jpg)
+![res](../../YOLOv5/pics/zidane_cpp_bmcv.jpg)
 
 ### 3.3 测试视频
 视频测试实例如下，支持对视频流进行测试。

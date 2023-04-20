@@ -19,7 +19,7 @@
 * [8. FAQ](#8-faq)
 
 ## 1. Introduction
-This example is based on [YOLOv5](../YOLOv5/README.md), using the tpu_kernel `tpu_kernel_api_yolov5_detect_out` operator on BM1684X to accelerate post-processing, the acceleration effect is remarkable.
+This example is based on [YOLOv5](../YOLOv5/README_EN.md), using the tpu_kernel `tpu_kernel_api_yolov5_detect_out` operator on BM1684X to accelerate post-processing, the acceleration effect is remarkable.
 ## 2. Features
 * Supports BM1684X (x86 PCIe, SoC)
 * Supports FP32, FP16(BM1684X), and INT8 model compilation and inference
@@ -28,7 +28,7 @@ This example is based on [YOLOv5](../YOLOv5/README.md), using the tpu_kernel `tp
 * Supports image and video testing
 
 ## 3. Prepare Model and Data
-It is recommended to use TPU-MLIR to compile BModel. Pytorch models need to be exported to ONNX models before compilation. **The output of the model in this tutorial is the output of the last three convolutional layers**. For details, please refer to [YOLOv5_tpukernel_Export_Guide](./docs/YOLOv5_tpukernel_Export_Guide.md#).
+It is recommended to use TPU-MLIR to compile BModel. Pytorch models need to be exported to ONNX models before compilation. **The output of the model in this tutorial is the output of the last three convolutional layers**. For details, please refer to [YOLOv5_tpukernel_Export_Guide](./docs/YOLOv5_tpukernel_Export_Guide_EN.md).
 
 At the same time, you need to prepare the dataset for testing. If you want to quantize the model, you also need to prepare the dataset for quantization.
 
@@ -167,4 +167,4 @@ On different platform, use different BModel test `datasets/val2017_1000`, set co
 4. Image resolution has a great influence on decode time, inference results have a greater impact on postprocess time, different test images may have great differences, and different thresholds have a greater impact on postprocess time.
 
 ## 8. FAQ
-Please refer to [FAQ](../../docs/FAQ.md) to see some frequently asked questions and answers.
+Please refer to [FAQ](../../docs/FAQ_EN.md) to see some frequently asked questions and answers.

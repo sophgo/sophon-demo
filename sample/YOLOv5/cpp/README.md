@@ -1,3 +1,5 @@
+[简体中文](./README.md) | [English](./README_EN.md)
+
 # C++例程
 
 ## 目录
@@ -17,6 +19,7 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
 | ---- | ------------- | -----------------------------------  |
 | 1    | yolov5_bmcv   | 使用FFmpeg解码、BMCV前处理、BMRT推理   |
+| 2    | yolov5_sail(暂未release)   | 使用SAIL解码、SAIL前处理、SAIL推理   |
 
 ## 1. 环境准备
 ### 1.1 x86/arm PCIe平台
@@ -30,7 +33,7 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 C++程序运行前需要编译可执行文件。
 ### 2.1 x86/arm PCIe平台
 可以直接在PCIe平台上编译程序：
-
+#### 2.1.1 bmcv
 ```bash
 cd cpp/yolov5_bmcv
 mkdir build && cd build
@@ -40,11 +43,22 @@ cd ..
 ```
 编译完成后，会在yolov5_bmcv目录下生成yolov5_bmcv.pcie。
 
+#### 2.1.2 sail
+
+```bash
+cd cpp/yolov5_sail
+mkdir build && cd build
+cmake ..
+make
+cd ..
+```
+编译完成后，会在yolov5_sail目录下生成yolov5_sail.pcie。
+
 ### 2.2 SoC平台
 通常在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件：
-
+#### 2.2.1 bmcv
 ```bash
 cd cpp/yolov5_bmcv
 mkdir build && cd build
@@ -54,11 +68,22 @@ make
 ```
 编译完成后，会在yolov5_bmcv目录下生成yolov5_bmcv.soc。
 
+#### 2.2.2 sail
+
+```bash
+cd cpp/yolov5_sail
+mkdir build && cd build
+#请根据实际情况修改-DSDK和-DSAIL_PATH的路径，需使用绝对路径。
+cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk -DSAIL_PATH=/path_to_sail/sophon-sail/build_soc/sophon-sail ..
+make
+```
+编译完成后，会在yolov5_sail目录下生成yolov5_sail.soc。
+
 ## 3. 推理测试
 对于PCIe平台，可以直接在PCIe平台上推理测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据拷贝到SoC平台中测试。测试的参数及运行方式是一致的，下面主要以PCIe模式进行介绍。
 
 ### 3.1 参数说明
-可执行程序默认有一套参数，请注意根据实际情况进行传参，具体参数说明如下：
+可执行程序默认有一套参数，请注意根据实际情况进行传参，`yolov5_bmcv.pcie与yolov5_sail.pcie参数相同。`以yolov5_bmcv.pcie为例，具体参数说明如下：
 ```bash
 Usage: yolov5_bmcv.pcie [params]
 
@@ -95,3 +120,14 @@ Usage: yolov5_bmcv.pcie [params]
 ```
 测试结束后，会将预测结果画在图片上并保存在`results/images`中，同时会打印预测结果、推理时间等信息。
 
+
+>**注意：**
+
+若在SoC模式下执行报错:
+```bash
+./yolov5_sail.soc: error while loading shared libraries: libsail.so: cannot open shared object file: No such file or directory
+```
+请设置如下环境变量:
+```bash
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+```

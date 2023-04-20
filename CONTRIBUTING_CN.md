@@ -1,3 +1,5 @@
+[简体中文](./CONTRIBUTING_CN.md) | [English](./CONTRIBUTING_EN.md)
+
 **介绍**
 
 Sophon Demo，欢迎各位开发者

@@ -1,4 +1,7 @@
+[简体中文](./README.md) | [English](./README_EN.md)
+
 ## sophon-demo介绍
+
 
 ## 简介
 Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移植例程。包括基于TPU-NNTC和TPU-MLIR的模型编译与量化，基于BMRuntime的推理引擎移植，以及基于BMCV/OpenCV的前后处理算法移植。
