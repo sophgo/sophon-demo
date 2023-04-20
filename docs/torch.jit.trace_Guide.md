@@ -1,3 +1,5 @@
+[简体中文](./torch.jit.trace_Guide.md) | [English](./torch.jit.trace_Guide_EN.md)
+
  ## 1. 什么是JIT（torch.jit）？
 
 答：JIT（Just-In-Time）是一组编译工具，用于弥合PyTorch研究与生产之间的差距。它允许创建可以在不依赖Python解释器的情况下运行的模型，并且可以更积极地进行优化。
