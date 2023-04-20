@@ -1,22 +1,20 @@
-[简体中文](./README.md) | [English](./README_EN.md)
-
 # YOLOv5
 
 ## Catalogue
 
 * [1. Introduction](#1-introduction)
 * [2. Characteristics](#2-characteristics)
-* [3. Prepare Models and Data](#3-prepare-models-and-data)
-* [4. Model Compilation](#4-model-compilation)
-  * [4.1 TPU-NNTC Compiling BModel](#41-tpu-nntc-compiling-bmodel)
-  * [4.2 TPU-MLIR Compiling BModel](#42-tpu-mlir-compiling-bmodel)
-* [5. Routine Test](#5-routine-test)
-* [6. Precision Test](#6-precision-test)
-  * [6.1 Testing Method](#61-testing-method)
-  * [6.2 Test Result](#62-test-result)
-* [7. Performance Testing](#7-performance-testing)
+* [3. Prepare Models and Data](#3-prepare models and data)
+* [4. Model Compilation](#4-model compilation)
+  * [4.1 TPU-NNTC Compiling BModel](#41-tpu-nntc compiling bmodel)
+  * [4.2 TPU-MLIR Compiling BModel](#42-tpu-mlir compiling bmodel)
+* [5. Routine Test](#5-routine test)
+* [6. Precision Test](#6-precision test)
+  * [6.1 Testing Method](#61-testing method)
+  * [6.2 Test Result](#62-test result)
+* [7. Performance Testing](#7-performance testing)
   * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 Program Performance](#72-program-performance)
+  * [7.2 Program Performance](#72-program performance)
 * [8. FAQ](#8-faq)
   
 ## 1. Introduction
@@ -32,7 +30,7 @@ YOLOv5 is a very classical One Stage target detection algorithm based on anchor.
 * Support for picture and video testing
  
 ## 3. Prepare Models and Data
-If you use BM1684 chip, it is recommended to use TPU-NNTC to compile BModel, Pytorch model to export to torchscript model or onnx model before compilation; if you use BM1684X chip, it is recommended to use TPU-MLIR to compile BModel, Pytorch model to export to onnx model before compilation. For more information, please see [YOLOv5 Model Export](./docs/YOLOv5_Export_Guide_EN.md).
+If you use BM1684 chip, it is recommended to use TPU-NNTC to compile BModel, Pytorch model to export to torchscript model or onnx model before compilation; if you use BM1684X chip, it is recommended to use TPU-MLIR to compile BModel, Pytorch model to export to onnx model before compilation. For more information, please see [YOLOv5 Model Export] (./ docs/YOLOv5_Export_Guide.md).
 
 At the same time, you need to prepare a dataset for testing and, if you quantify the model, a dataset for quantification.
 
@@ -78,73 +76,73 @@ The downloaded data include:
 The exported model needs to be compiled into BModel to run on SOPHON TPU. If you use the downloaded BModel, you can skip this section. If you use a BM1684 chip, it is recommended that you use TPU-NNTC to compile BModel;. If you use a BM1684X chip, it is recommended that you use TPU-MLIR to compile BModel.
 
 ### 4.1 TPU-NNTC Compiling BModel
-You need to install TPU-NNTC before compiling the model. For more information, please see [Building TPU-NNTC Environment](../../docs/Environment_Install_Guide_EN.md#1-tpu-nntc-environmental-installation). After installation, you need to enter the routine directory in the TPU-NNTC environment.
+You need to install TPU-NNTC before compiling the model. For more information, please see [Building TPU-NNTC Environment](../../docs/Environment_Install_Guide.md#1-tpu-nntc compiling bmodel). After installation, you need to enter the routine directory in the TPU-NNTC environment.
 
 - Generate FP32 BModel
 
-Use TPU-NNTC to compile the torchscript model after trace to FP32 BModel. For more information, please refer to "BMNETP usage" in the TPU-NNTC Development reference Manual (available from the corresponding version of SDK of [Sophgo official website](https://developer.sophgo.com/site/index/material/28/all.html)).
+Use TPU-NNTC to compile the torchscript model after trace to FP32 BModel. For more information, please refer to "BMNETP usage" in the TPU-NNTC Development reference Manual (available from the [Compute official website] (corresponding version of SDK of https://developer.sophgo.com/site/index/material/28/all.html)).
 
-This routine provides a script for TPU-NNTC to compile FP32 BModel in the `scripts` directory. Please modify the parameters such as torchscript model path, generated model directory and input size shapes in `gen_fp32bmodel_nntc.sh`, and specify the target platform on which BModel runs (BM1684 and BM1684X are supported) during execution, such as:
+This routine provides a script for TPU-NNTC to compile FP32 BModel in the `scripts` directory. Please modify the parameters such as torchscript model path, generated model directory and input size shapes in `gen_fp32bmodel_ nntc.sh`, and specify the target platform on which BModel runs (BM1684 and BM1684X are supported) during execution, such as:
 
 ```bash
 ./scripts/gen_fp32bmodel_nntc.sh BM1684
 ```
 
-Executing the above command will generate the `yolov5s_v6.1_3output_fp32_1b.bmodel` file under `models/BM1684/`, that is, the converted FP32 BModel.
+Executing the above command will generate the `yolov5s_v6.1_3output_fp32_ 1b.bmodel` file under `models/BM1684/`, that is, the converted FP32 BModel.
 
 - Generate INT8 BModel
 
-The method of quantifying torchscript models using TPU-NNTC can be found in the "Model quantification" of the TPU-NNTC Development reference Manual(available from the corresponding version of SDK of [Sophgo official website](https://developer.sophgo.com/site/index/material/28/all.html)), and [Model quantification considerations](../../docs/Calibration_Guide_EN.md#1-notice).
+The method of quantifying torchscript models using TPU-NNTC can be found in the "Model quantification" of the TPU-NNTC Development reference Manual(available from the [Calculator official website] (corresponding version of SDK of https://developer.sophgo.com/site/index/material/28/all.html)), and [Model quantification considerations](.. / docs/Calibration_Guide.md#1- notes).
 
-This routine provides a script for quantifying INT8 BModel by TPU-NNTC in the `scripts` directory. Please modify the parameters such as torchscript model path, generated model directory and input size shapes in `gen_int8bmodel_nntc.sh`, and enter the target platform of BModel during execution, such as:
+This routine provides a script for quantifying INT8 BModel by TPU-NNTC in the `scripts` directory. Please modify the parameters such as torchscript model path, generated model directory and input size shapes in `gen_int8bmodel_ nntc.sh`, and enter the target platform of BModel during execution, such as:
 
 ```shell
 ./scripts/gen_int8bmodel_nntc.sh BM1684
 ```
 
-The above script will generate files such as `yolov5s_v6.1_3output_int8_1b.bmodel` under `models/BM1684`, that is, the converted INT8 BModel.
+The above script will generate files such as `yolov5s_v6.1_3output_int8_ 1b.bmodel` under `models/BM1684`, that is, the converted INT8 BModel.
 
 ### 4.2 TPU-MLIR Compiling BModel
-You need to install TPU-MLIR before compiling the model. For more information, please see [TPU-MLIR Environment Building](../../docs/Environment_Install_Guide_EN.md#2-tpu-mlir-environmental-installation). After installation, you need to enter the routine directory in the TPU-MLIR environment. Use TPU-MLIR to compile the onnx model to BModel. For specific methods, please refer to "chapter 3.5" of the TPU-MLIR Quick start Manual. Compile the ONNX model (please obtain it from the corresponding version of SDK of [Sophgo official website](https://developer.sophgo.com/site/index/material/31/all.html)).
+You need to install TPU-MLIR before compiling the model. For more information, please see [TPU-MLIR Environment Building](.. /.. / docs/Environment_Install_Guide.md#2-tpu-mlir Environment Building). After installation, you need to enter the routine directory in the TPU-MLIR environment. Use TPU-MLIR to compile the onnx model to BModel. For specific methods, please refer to "3. 5" of the TPU-MLIR Quick start Manual. Compile the ONNX model (please obtain it from the [Calculator official website] (the corresponding version of SDK of https://developer.sophgo.com/site/index/material/31/all.html)).
 
 - Generate FP32 BModel
 
-This routine provides a script for TPU-MLIR to compile FP32 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp32bmodel_mlir.sh`, and specify the target platform on which BModel runs (BM1684X is supported) during execution, such as:
+This routine provides a script for TPU-MLIR to compile FP32 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp32bmodel_ mlir.sh`, and specify the target platform on which BModel runs (BM1684X is supported) during execution, such as:
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
 ```
 
-Executing the above command will generate the `yolov5s_v6.1_3output_fp32_1b.bmodel` file under `models/BM1684X/`, that is, the converted FP32 BModel.
+Executing the above command will generate the `yolov5s_v6.1_3output_fp32_ 1b.bmodel` file under `models/BM1684X/`, that is, the converted FP32 BModel.
 
 - Generate FP16 BModel
 
-This routine provides a script for TPU-MLIR to compile FP16 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp16bmodel_mlir.sh`, and specify the target platform on which BModel runs (BM1684X is supported) during execution, such as:
+This routine provides a script for TPU-MLIR to compile FP16 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp16bmodel_ mlir.sh`, and specify the target platform on which BModel runs (BM1684X is supported) during execution, such as:
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
 ```
 
-Executing the above command will generate the `yolov5s_v6.1_3output_fp16_1b.bmodel` file under `models/BM1684X/`, that is, the converted FP16 BModel.
+Executing the above command will generate the `yolov5s_v6.1_3output_fp16_ 1b.bmodel` file under `models/BM1684X/`, that is, the converted FP16 BModel.
 
 - Generate INT8 BModel
 
-This routine provides a script for quantifying INT8 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_int8bmodel_mlir.sh`, and enter the target platform of BModel (BM1684X is supported) during execution, such as:
+This routine provides a script for quantifying INT8 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_int8bmodel_ mlir.sh`, and enter the target platform of BModel (BM1684X is supported) during execution, such as:
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684x
 ```
 
-The above script will generate files such as `yolov5s_v6.1_3output_int8_1b.bmodel` under `models/BM1684X`, that is, the converted INT8 BModel.
+The above script will generate files such as `yolov5s_v6.1_3output_int8_ 1b.bmodel` under `models/BM1684X`, that is, the converted INT8 BModel.
 
 ## 5. Routine Test
-- [C++ Routine](./cpp/README_EN.md)
-- [Python Routine](./python/README_EN.md)
+- [C++ Routine](./cpp/README.md)
+- [Python Routine](./python/README.md)
 
 ## 6. Precision Test
 ### 6.1 Testing Method
 
-First of all, refer to [C++ routine](cpp/README_EN.md#32-image-test-demo) or [Python routine](python/README_EN.md#22-image-test-demo) to deduce the dataset to be tested, generate the predicted json file, and pay attention to modifying the dataset (datasets/coco/val2017_1000) and related parameters (conf_thresh=0.001, nms_thresh=0.6).
+First of all, refer to [C++ routine](cpp/README.md#32- test picture) or [Python routine](python/README.md#22- test picture) to deduce the dataset to be tested, generate the predicted json file, and pay attention to modifying the dataset (datasets/coco/val2017_1000) and related parameters (conf_thresh=0.001, nms_thresh=0.6).
 Then, use the `test generated .py` script under the `tools` directory to compare the json file generated by the test with the test set tag json file, and calculate the evaluation metrics for target detection. The command is as follows:
 ```bash
 # Install pycocotools, skip if it is already installed
@@ -203,9 +201,9 @@ The theoretical inference time of each model is tested, and the results are as f
 3. The test results of SoC and PCIe are basically the same.
 
 ### 7.2 Program Performance
-Refer to [C++ routine](cpp/README_EN.md) or [Python routine](python/README_EN.md) to run the program, and check the statistical decoding time, preprocessing time, inference time, post-processing time. The preprocessing time, inference time and post-processing time of C++ routine printing are the whole batch processing time, which needs to be divided by the corresponding batch size to get the processing time of each picture.
+Refer to [C++ routine](cpp/README.md) or [Python routine](python/README.md) to run the program, and check the statistical decoding time, preprocessing time, inference time, post-processing time. The preprocessing time, inference time and post-processing time of C++ routine printing are the whole batch processing time, which needs to be divided by the corresponding batch size to get the processing time of each picture.
 
-Use different routines and models to test `datasets/val2017_1000` and conf_thresh=0.5,nms_thresh=0.5 on different test platforms. The performance test results are as follows:
+Use different routines and models to test `datasets/val2017_ 1000` and conf_thresh=0.5,nms_thresh=0.5 on different test platforms. The performance test results are as follows:
 |Test Platform|  Test Program    |            Test model               |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ----------------------------------- | -------- | --------- | --------- | --------- |
 | BM1684 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 14.0     | 27.8      | 33.5      | 115       |
@@ -232,7 +230,7 @@ Use different routines and models to test `datasets/val2017_1000` and conf_thres
 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
 2. The performance test results are volatile to a certain extent, so it is recommended that the average value should be taken from multiple tests.
 3. BM1684/1684X SoC's master CPU are all 8-core ARM A53 42320 DMIPS @ 2.3GHz CPU performance on PCIe may vary greatly due to different PCIes.
-4. The image resolution has a great influence on the decoding time, the reasoning result has a great influence on the post-processing time, different test pictures may be different, and different thresholds have a great influence on the post-processing time.
+4. The image resolution has a great influence on the decoding time, the reasoning result has a great influence on the post-processing time, different test pictures may be different, and different thresholds have a great influence on the post-processing time.\`
 
 ## 8. FAQ
-Please refer to [FAQ](../../docs/FAQ_EN.md) to see some common questions and answers.
+Please refer to [FAQ](.. /.. / docs/FAQ.md) to see some common questions and answers.

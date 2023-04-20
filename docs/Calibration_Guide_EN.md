@@ -1,5 +1,3 @@
-[简体中文](./Calibration_Guide.md) | [English](./Calibration_Guide_EN.md.md)
-
 # Model quantization
 
 To find more about models quantify tutorial, please refer to the TPU - NNTC development reference (please visit sophgo website (https://developer.sophgo.com/site/index/material/28/all.html) to get the corresponding version of the SDK).

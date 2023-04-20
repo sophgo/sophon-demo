@@ -1,5 +1,3 @@
-[简体中文](./FP32BModel_Precise_Alignment.md) | [English](./FP32BModel_Precise_Alignment_EN.md)
-
 # FP32 BModel Precision Alignment Reference Method (Python)
 
 - [FP32 BModel Precision Alignment Reference Method (Python)](#fp32-bmodel-precision-alignment-reference-method-python)

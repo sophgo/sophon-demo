@@ -1,5 +1,3 @@
-[简体中文](./README.md) | [English](./README_EN.md)
-
 # Python Demo
 * [Python Demo](#python-demo)
     * [1. Environments Preparation](#1-environments-preparation)
@@ -20,7 +18,7 @@ A series of Python demos are provided under the python directory, the details ar
 ## 1. Environments Preparation
 ### 1.1 x86/arm PCIe Platform
 
-If you have installed a PCIe accelerator card (such as SC series accelerator card) on the x86/arm platform and use it to test these demos, you need to install libsophon, sophon-opencv, sophon-ffmpeg and sophon-sail. For specific steps, please refer to [Construction of Development and Runtime Environment of x86-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#3-x86-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of arm-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#5-arm-pcie-platform-development-and-runtime-environment-construction).
+If you have installed a PCIe accelerator card (such as SC series accelerator card) on the x86/arm platform and use it to test these demos, you need to install libsophon, sophon-opencv, sophon-ffmpeg and sophon-sail. For specific steps, please refer to [Construction of Development and Runtime Environment of x86-PCIe Platform](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建) or [Construction of Development and Runtime Environment of arm-PCIe Platform](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建).
 
 In addition, you may need to install other third-party libraries:
 ```bash
@@ -29,7 +27,7 @@ pip3 install 'opencv-python-headless<4.3'
 
 ### 1.2 SoC Platform
 
-If you use the SoC platform (such as SE, SM series edge devices), the corresponding libsophon, sophon-opencv and sophon-ffmpeg runtime packages have been pre-installed under `/opt/sophon/` after resetting the operating system. You also need to cross compile and install sophon-sail, for details, please refer to [Cross Compile and Install sophon-sail](../../../docs/Environment_Install_Guide_EN.md#42-cross-compiling-and-sophon-sail-installation)。
+If you use the SoC platform (such as SE, SM series edge devices), the corresponding libsophon, sophon-opencv and sophon-ffmpeg runtime packages have been pre-installed under `/opt/sophon/` after resetting the operating system. You also need to cross compile and install sophon-sail, for details, please refer to [Cross Compile and Install sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
 
 In addition, you may need to install other third-party libraries:
 ```bash

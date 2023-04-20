@@ -62,7 +62,7 @@ Sophon Developer Forum: https://developer.sophgo.com/forum/index.html
 
 ## Contribution
 
-Contributions are welcome. For more details, please refer to our [Contributor Wiki](./CONTRIBUTING_EN.md).
+Contributions are welcome. For more details, please refer to our [Contributor Wiki](./CONTRIBUTING_CN.md).
 
 ## License
 [Apache License 2.0](./LICENSE)
