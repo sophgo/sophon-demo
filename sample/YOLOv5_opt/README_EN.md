@@ -19,7 +19,7 @@
 * [8. FAQ](#8-faq)
 
 ## 1. Introduction
-This example is based on [YOLOv5](../YOLOv5/README_en.md), using the tpu_kernel `tpu_kernel_api_yolov5_detect_out` operator on BM1684X to accelerate post-processing, the acceleration effect is remarkable.
+This example is based on [YOLOv5](../YOLOv5/README_EN.md), using the tpu_kernel `tpu_kernel_api_yolov5_detect_out` operator on BM1684X to accelerate post-processing, the acceleration effect is remarkable.
 ## 2. Features
 * Supports BM1684X (x86 PCIe, SoC)
 * Supports FP32, FP16(BM1684X), and INT8 model compilation and inference
