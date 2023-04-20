@@ -20,7 +20,7 @@ C++ demo is provided in the cpp directory for reference, the details are as foll
 
 ## 1. Environments Preparation
 ### 1.1 x86/arm PCIe Platform
-If you have installed a PCIe accelerator card (such as an SC series accelerator card) on the x86/arm platform, you can directly use it as a development environment and a runtime environment. You need to install libsophon, sophon-opencv and sophon-ffmpeg. For specific steps, please refer to [Construction of Development and Runtime Environment of x86-PCIe Platform](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建) or [Construction of Development and Runtime Environment of arm-PCIe Platform](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建).
+If you have installed a PCIe accelerator card (such as an SC series accelerator card) on the x86/arm platform, you can directly use it as a development environment and a runtime environment. You need to install libsophon, sophon-opencv and sophon-ffmpeg. For specific steps, please refer to [Construction of Development and Runtime Environment of x86-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#3-x86-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of arm-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#5-arm-pcie-platform-development-and-runtime-environment-construction).
 
 ### 1.2 SoC Platform
 If you use the SoC platform (such as SE, SM series edge devices), the corresponding libsophon, sophon-opencv and sophon-ffmpeg runtime packages have been pre-installed under `/opt/sophon/` after resetting the operating system, and you can use it directly as runtime environment. Usually an x86 host is also required as a development environment for cross-compiling C++ programs.
@@ -41,7 +41,7 @@ cd ..
 After the compilation is complete, yolov5_bmcv.pcie will be generated in the yolov5_bmcv directory.
 
 ### 2.2 SoC Platform
-The cross-compilation program is usually on the x86 host. User need to use the SOPHON SDK to build a cross compilation environment on the x86 host, and package the header files and library files that the program depends on into the soc-sdk directory. For details, please refer to [Cross-Compilation Environment Construction](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建). This demo mainly depends on libsophon, sophon-opencv and sophon-ffmpeg runtime library packages.
+The cross-compilation program is usually on the x86 host. User need to use the SOPHON SDK to build a cross compilation environment on the x86 host, and package the header files and library files that the program depends on into the soc-sdk directory. For details, please refer to [Cross-Compilation Environment Construction](../../../docs/Environment_Install_Guide_EN.md#41-cross-compiling-environment-construction). This demo mainly depends on libsophon, sophon-opencv and sophon-ffmpeg runtime library packages.
 
 After the cross compilation environment is set up, use the cross compilation toolchain to compile and generate executable files:
 
