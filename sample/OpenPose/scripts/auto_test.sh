@@ -168,10 +168,13 @@ function compare_res(){
 
 pushd $top_dir
 
-if test $MODE = "compile"
+if test $MODE = "compile_mlir"
 then
   download
-  compile
+  compile_mlir
+elif test $MODE = "compile_nntc"
+  download
+  compile_nntc  
 elif test $MODE = "pcie_test"
 then
   build_pcie bmcv
