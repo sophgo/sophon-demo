@@ -51,13 +51,17 @@ def update_tracker(target_detector, deepsort, img_batch, frame_id, mot_saver):
         clss = []
         for idx in range(det.shape[0]):
             x1, y1, x2, y2, conf, cls = det[idx]
-            obj = [
-                int((x1+x2)/2), int((y1+y2)/2),
-                x2-x1, y2-y1
-            ]
-            bbox_xywh.append(obj)
-            confs.append(float(conf))
-            clss.append(int(cls))            
+            if x2 - x1 != 0 and y2 - y1 !=0:
+                obj = [
+                    int((x1+x2)/2), int((y1+y2)/2),
+                    x2-x1, y2-y1
+                ]
+                bbox_xywh.append(obj)
+                confs.append(float(conf))
+                clss.append(int(cls))       
+            else:
+                logging.info("Detector produced invalid boxes:x1={},y1={},x2={},y2={}, please check about it!".format(x1, y1, x2, y2))
+     
         bbox_xywh_batch.append(bbox_xywh)
         confs_batch.append(confs)
         clss_batch.append(clss)
