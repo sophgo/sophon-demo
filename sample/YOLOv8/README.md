@@ -198,10 +198,10 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 | BM1684/yolov8s_fp32_1b.bmodel  |   25.8            |
 | BM1684/yolov8s_int8_1b.bmodel  |   15.2            |
 | BM1684/yolov8s_int8_4b.bmodel  |   7.52            |
-| BM1684X/yolov8s_fp32_1b.bmodel |   29.7            |
-| BM1684X/yolov8s_fp16_1b.bmodel |   7.05            |
-| BM1684X/yolov8s_int8_1b.bmodel |   3.88            |
-| BM1684X/yolov8s_int8_4b.bmodel |   3.67            |
+| BM1684X/yolov8s_fp32_1b.bmodel |   28.9            |
+| BM1684X/yolov8s_fp16_1b.bmodel |   6.3             |
+| BM1684X/yolov8s_int8_1b.bmodel |   3.4             |
+| BM1684X/yolov8s_int8_4b.bmodel |   3.2             |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -228,10 +228,10 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 | BM1684X SoC | yolov8_opencv.py | yolov8s_fp16_1b.bmodel | 15.03 | 22.46 | 12.14 | 5.45  |
 | BM1684X SoC | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 14.99 | 22.40 | 9.18  | 5.37  |
 | BM1684X SoC | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 15.03 | 24.77 | 8.91  | 5.47  |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 2.69  | 2.23  | 31.25 | 5.52  |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel | 2.58  | 2.23  | 8.55  | 5.53  |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 2.67  | 2.24  | 5.65  | 5.43  |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_int8_4b.bmodel | 2.45  | 2.14  | 5.17  | 4.88  |
+| BM1684X SoC | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 3.0   | 2.2   | 31.0  | 5.4   |
+| BM1684X SoC | yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel | 3.0   | 2.2   | 8.5   | 5.4   |
+| BM1684X SoC | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 3.0   | 2.2   | 5.5   | 5.4   |
+| BM1684X SoC | yolov8_bmcv.py   | yolov8s_int8_4b.bmodel | 2.9   | 2.1   | 5.1   | 4.8   |
 | BM1684X SoC | yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel | 4.324 | 0.772 | 28.97 | 17.96 |
 | BM1684X SoC | yolov8_bmcv.soc  | yolov8s_fp16_1b.bmodel | 4.312 | 0.772 | 6.259 | 17.80 |
 | BM1684X SoC | yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel | 4.276 | 0.772 | 3.350 | 17.95 |
