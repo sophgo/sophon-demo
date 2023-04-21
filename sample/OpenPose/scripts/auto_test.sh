@@ -173,6 +173,7 @@ then
   download
   compile_mlir
 elif test $MODE = "compile_nntc"
+then
   download
   compile_nntc  
 elif test $MODE = "pcie_test"
