@@ -47,6 +47,19 @@ typedef struct {
   float anchor_scale[MAX_YOLO_INPUT_NUM];
   int clip_box;
 } tpu_kernel_api_yolov5NMS_t;
+
+typedef struct {
+  unsigned long long bottom_addr;
+  unsigned long long top_addr;
+  unsigned long long detected_num_addr;
+  int input_shape[3];
+  int keep_top_k;
+  float nms_threshold;
+  float confidence_threshold;
+  int agnostic_nms;
+  int max_hw;
+} tpu_kernel_api_yolov5NMS_v2_t;
+
 class YoloV5 {
   std::shared_ptr<BMNNContext> m_bmContext;
   std::shared_ptr<BMNNNetwork> m_bmNetwork;
@@ -65,8 +78,9 @@ class YoloV5 {
   int min_dim;
   bmcv_convert_to_attr converto_attr;
   
-  //tpu_kernel
+  // tpu_kernel
   tpu_kernel_api_yolov5NMS_t api[MAX_BATCH];
+  tpu_kernel_api_yolov5NMS_v2_t api_v2[MAX_BATCH];
   tpu_kernel_function_t func_id;
   bm_device_mem_t out_dev_mem[MAX_BATCH];
   bm_device_mem_t detect_num_mem[MAX_BATCH];
