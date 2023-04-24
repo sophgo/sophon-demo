@@ -95,13 +95,21 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& tpu_kerne
 
   // 6.tpukernel postprocess
   tpu_kernel_module_t tpu_module;
-  tpu_module = tpu_kernel_load_module_file(m_bmContext->handle(), tpu_kernel_module_path.c_str());  
-  func_id = tpu_kernel_get_function(m_bmContext->handle(), tpu_module, "tpu_kernel_api_yolov5_detect_out");
-  std::cout << "Using tpu_kernel yolo postprocession, kernel funtion id: " << func_id << std::endl;
+  tpu_module = tpu_kernel_load_module_file(m_bmContext->handle(), tpu_kernel_module_path.c_str()); 
+  if(output_num == 3){
+    func_id = tpu_kernel_get_function(m_bmContext->handle(), tpu_module, "tpu_kernel_api_yolov5_detect_out");
+    std::cout << "Using tpu_kernel_api_yolov5_detect_out, kernel funtion id: " << func_id << std::endl;
+  }else if(output_num == 1){
+    func_id = tpu_kernel_get_function(m_bmContext->handle(), tpu_module, "tpu_kernel_api_yolov5_out_without_decode");
+    std::cout << "Using tpu_kernel_api_yolov5_out_without_decode, kernel funtion id: " << func_id << std::endl;
+  }else{
+    std::cerr << "Unsupport output format!" << std::endl;
+    exit(1);
+  }
   
   int out_len_max = 25200 * 7;
   int input_num = m_bmNetwork->outputTensorNum();
-  int batch_num = 1; // 4b has bug, now only for 1b.
+  int batch_num = 1; // tpu_kernel_api_yolov5_detect_out now only support batchsize=1.
   
   // allocate device memory
   bm_handle_t handle = m_bmContext->handle();
@@ -113,14 +121,16 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& tpu_kerne
     output_tensor[i] = new float[out_len_max];
     for (int j = 0; j < input_num; j++) {
       api[i].bottom_addr[j] = bm_mem_get_device_addr(in_dev_mem[j]) + i * in_dev_mem[j].size / max_batch;
+      api_v2[i].bottom_addr = bm_mem_get_device_addr(in_dev_mem[j]) + i * in_dev_mem[j].size / max_batch;
     }
     ret = bm_malloc_device_byte(handle, &out_dev_mem[i], out_len_max * sizeof(float));
     assert(BM_SUCCESS == ret);
     ret = bm_malloc_device_byte(handle, &detect_num_mem[i], batch_num * sizeof(int32_t));
     assert(BM_SUCCESS == ret);
+
+    /*initialize api for tpu_kernel_api_yolov5_out*/
     api[i].top_addr = bm_mem_get_device_addr(out_dev_mem[i]);
     api[i].detected_num_addr = bm_mem_get_device_addr(detect_num_mem[i]);
-
     // config
     api[i].input_num = input_num;
     api[i].batch_num = batch_num;
@@ -142,9 +152,19 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& tpu_kerne
     for (int j = 0; j < input_num; j++) 
       api[i].anchor_scale[j] = m_net_h / m_bmNetwork->outputTensor(j)->get_shape()->dims[2];
     api[i].clip_box = 1;
-  }
 
-  
+    /*initialize api_v2 for tpu_kernel_api_yolov5_out_without_decode*/
+    api_v2[i].top_addr = bm_mem_get_device_addr(out_dev_mem[i]);
+    api_v2[i].detected_num_addr = bm_mem_get_device_addr(detect_num_mem[i]);
+    api_v2[i].input_shape[0] = 1; //only support batchsize=1
+    api_v2[i].input_shape[1] = m_bmNetwork->outputTensor(0)->get_shape()->dims[1];
+    api_v2[i].input_shape[2] = m_bmNetwork->outputTensor(0)->get_shape()->dims[2];
+    api_v2[i].keep_top_k = 200;
+    api_v2[i].nms_threshold = MAX(0.1, m_nmsThreshold);
+    api_v2[i].confidence_threshold = MAX(0.1, m_confThreshold);
+    api_v2[i].agnostic_nms = 0;
+    api_v2[i].max_hw = MAX(m_net_h, m_net_w);
+  }
 
   return 0;
 }
@@ -357,9 +377,13 @@ int YoloV5::post_process_tpu_kernel(const std::vector<bm_image>& images, std::ve
       tx1 = (int)((m_net_w - (int)(images[i].width * ratio)) / 2);
   }
 #endif
-    tpu_kernel_launch(m_bmContext->handle(), func_id, &api[i], sizeof(api[i]));
+    if(output_num == 3){
+      tpu_kernel_launch(m_bmContext->handle(), func_id, &api[i], sizeof(api[i]));
+    }else if(output_num == 1){
+      tpu_kernel_launch(m_bmContext->handle(), func_id, &api_v2[i], sizeof(api_v2[i]));
+    }
     bm_thread_sync(m_bmContext->handle());
-    bm_memcpy_d2s_partial_offset(m_bmContext->handle(), (void*)(detect_num + i), detect_num_mem[i], api[i].batch_num * sizeof(int32_t), 0);
+    bm_memcpy_d2s_partial_offset(m_bmContext->handle(), (void*)(detect_num + i), detect_num_mem[i],1 * sizeof(int32_t), 0); // only support batchsize=1
     bm_memcpy_d2s_partial_offset(m_bmContext->handle(), (void*)output_tensor[i], out_dev_mem[i], detect_num[i] * 7 * sizeof(float),
                                 0);  // 25200*7
     YoloV5BoxVec vec;
