@@ -6,14 +6,15 @@ pushd $top_dir
 TARGET="BM1684X"
 MODE="pcie_test"
 TPUID=0
+RENEW=0
 sail_list=("YOLOv5" "CenterNet") #c++ sail demo
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [-r Renew]" 1>&2 
 }
 
-while getopts ":m:t:s:a:d:" opt
+while getopts ":m:t:s:a:d:r:" opt
 do
   case $opt in 
     m)
@@ -31,6 +32,9 @@ do
     d)
       TPUID=${OPTARG}
       echo "using tpu $TPUID";;
+    r)
+      RENEW=${OPTARG}
+      echo "Renew datasets and models";;
     ?)
       usage
       exit 1;;
@@ -43,11 +47,16 @@ function test_sample(){
     echo "NOW: $1"
     echo "=============="
     chmod +x ./sample/$1/scripts/auto_test.sh
-    if [ -d ./sample/$1/datasets ];then
-        rm -r ./sample/$1/datasets
-    fi
-    if [ -d ./sample/$1/models ];then
-        rm -r ./sample/$1/models
+    if [ $RENEW != 0 ]; then
+      echo "Renew all datasets and models."
+      if [ -d ./sample/$1/datasets ];then
+          rm -r ./sample/$1/datasets
+      fi
+      if [ -d ./sample/$1/models ];then
+          rm -r ./sample/$1/models
+      fi
+    else
+      echo "Use current datasets and models."
     fi
     if [ ! -d ./log_auto_test_regression ];then
         mkdir log_auto_test_regression
@@ -87,7 +96,7 @@ function test_dpkg(){
   fi
 }
 
-# Confirm sophon-driver/sophon-libsophon/sophon-mw were previously installed.
+# Assume sophon-driver/sophon-libsophon/sophon-mw were previously installed.
 
 # dependencies
 test_dpkg unzip
