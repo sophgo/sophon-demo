@@ -81,7 +81,7 @@ Usage: yolov5_bmcv.pcie [params]
         --tpu_kernel_module_path (value:./tpu_kernel_module/libbm1684x_kernel_module.so)
                 TPUKernel Shared Object
 ```
-**注意：** CPP传参与python不同，需要用等于号，例如`./yolov5_bmcv.pcie --bmodel=xxx`。
+> **注意：** CPP传参与python不同，需要用等于号，例如`./yolov5_bmcv.pcie --bmodel=xxx`。
 
 ### 3.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。

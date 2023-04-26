@@ -81,7 +81,7 @@ Usage: yolov5_bmcv.pcie [params]
         --tpu_kernel_module_path (value:./tpu_kernel_module/libbm1684x_kernel_module.so)
                 TPUKernel Shared Object
 ```
-**Note:** The method of passing parameters in C++ is different from that in Python. The method of passing parameters in C++ needs to use the equal sign. For example `./yolov5_bmcv.pcie --bmodel=xxx`.
+> **Note:** The method of passing parameters in C++ is different from that in Python. The method of passing parameters in C++ needs to use the equal sign. For example `./yolov5_bmcv.pcie --bmodel=xxx`.
 
 ### 3.2 Image Test Demo
 The image test demo is as follows. It supports testing the entire image folder. The model supports fp32bmodel and int8bmodel, supports BM1684 and BM1684X, and supports single batch size or multiple batch sizes. Users can run model testing by passing in the corresponding model path parameters.
