@@ -30,11 +30,11 @@
 * 支持图片和视频测试
  
 ## 3. 准备模型与数据
-建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。本例程支持单输出和三输出模型，**三输出是源模型最后三个卷积层的输出，三输出模型导出方法参考[YOLOv5_tpukernel模型导出](./docs/YOLOv5_tpukernel_Export_Guide.md#)。**
+建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。本例程支持单输出和三输出模型，**建议采用三输出模型，性能更优。三输出是指源模型最后三个卷积层的输出，导出方法参考[YOLOv5_tpukernel模型导出](./docs/YOLOv5_tpukernel_Export_Guide.md#)。**
 
 ​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
-​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
+​本例程在`scripts`目录下提供了相关模型和数据集的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
 ```bash
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
@@ -160,8 +160,8 @@ bmrt_test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel
 | ----------- | ---------------- | --------------------------------| -------- | -------------- | ---------    | --------- |
 | BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_fp32_1b.bmodel | 4.35     | 0.76          | 18.7         | 1.09      |
 | BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_fp16_1b.bmodel | 4.34     | 0.76          | 5.41         | 1.08      |
-| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_int8_1b.bmodel | 4.35     | 0.76           | 2.53       | 1.08      |
-| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_int8_4b.bmodel | 4.22     | 0.73           | 2.40       | 1.06      |
+| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_int8_1b.bmodel | 4.35     | 0.76          | 2.53         | 1.08      |
+| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_int8_4b.bmodel | 4.22     | 0.73          | 2.40         | 1.06      |
 
 
 > **测试说明**：  
