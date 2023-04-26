@@ -122,9 +122,10 @@ mAP on coco/val2017_1000 dataset:
 | BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_tpukernel_int8_1b.bmodel | 0.333         | 0.519    |
 
 > **Note**:
-1. mAP of batch_size=4 BModel is the same as batch_size=1.
-2. mAP of platform SoC is the same as PCIe.
-3. AP@IoU=0.5:0.95 correspond to area=all.<
+> 1. mAP of batch_size=4 BModel is the same as batch_size=1.
+> 2. mAP of platform SoC is the same as PCIe.
+> 3. AP@IoU=0.5:0.95 correspond to area=all.
+> 4. To prevent TPU memory overflow due to enormous bboxes output, here we forcibly set `conf_thresh>=0.1, nms_thresh>=0.1`. Under the same parameters`(nms_thresh=0.6，conf_thresh=0.1)`, fp32 bmodel has `AP@IoU=0.5:0.95=0.345` in [YOLOv5 example](../YOLOv5/README.md)。
 
 ## 7. Performance Testing
 ### 7.1 bmrt_test
@@ -144,9 +145,9 @@ The theoretical reasoning time of each model is tested, and the results are as f
 | BM1684X/yolov5s_tpukernel_int8_4b.bmodel | 2.4               |
 
 > **Note**：  
-1. The performance test results have certain volatility.
-2. `calculate time` is converted to average inference time per image.
-3. The SoC and PCIe test results are basically the same.
+> 1. The performance test results have certain volatility.
+> 2. `calculate time` is converted to average inference time per image.
+> 3. The SoC and PCIe test results are basically the same.
 
 ### 7.2 Program Running Performance
 Refer to [C++ Example](cpp/README_EN.md), and view the statistics of decode time, preprocessing time, inference time, and postprocess time. C++ Example print entire batch time, which needs to be divided by the corresponding batch size to be the processing time of each image.
@@ -161,10 +162,10 @@ On different platform, use different BModel test `datasets/val2017_1000`, set co
 
 
 > **Note**：  
-1. The time units are milliseconds (ms), and the statistical time is the average processing time of each image.
-2. Performance test results are volatile, and it is recommended to average multiple tests；
-3. CPU of BM1684X SoC is 8 core ARM A53 42320 DMIPS @2.3GHz, Performance on PCIe can vary greatly depending on the CPU
-4. Image resolution has a great influence on decode time, inference results have a greater impact on postprocess time, different test images may have great differences, and different thresholds have a greater impact on postprocess time.
+> 1. The time units are milliseconds (ms), and the statistical time is the average processing time of each image.
+> 2. Performance test results are volatile, and it is recommended to average multiple tests；
+> 3. CPU of BM1684X SoC is 8 core ARM A53 42320 DMIPS @2.3GHz, Performance on PCIe can vary greatly depending on the CPU
+> 4. Image resolution has a great influence on decode time, inference results have a greater impact on postprocess time, different test images may have great differences, and different thresholds have a greater impact on postprocess time.
 
 ## 8. FAQ
 Please refer to [FAQ](../../docs/FAQ_EN.md) to see some frequently asked questions and answers.
