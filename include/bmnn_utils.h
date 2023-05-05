@@ -178,7 +178,6 @@ class BMNNTensor{
  *      3. Print Network information.
  */
 class BMNNNetwork : public NoCopyable {
-  const bm_net_info_t *m_netinfo;
   bm_tensor_t* m_inputTensors;
   bm_tensor_t* m_outputTensors;
   bm_handle_t  m_handle;
@@ -192,6 +191,7 @@ class BMNNNetwork : public NoCopyable {
 
   public:
   // Initialize a network for inference, including handle\netinfo\io tensors.
+  const bm_net_info_t *m_netinfo;
   BMNNNetwork(void *bmrt, const std::string& name):m_bmrt(bmrt) {
     m_handle = static_cast<bm_handle_t>(bmrt_get_bm_handle(bmrt));
     m_netinfo = bmrt_get_network_info(bmrt, name.c_str());
@@ -267,8 +267,11 @@ class BMNNNetwork : public NoCopyable {
       return m_max_batch;
   }
 
-  std::shared_ptr<BMNNTensor> inputTensor(int index){
+  std::shared_ptr<BMNNTensor> inputTensor(int index, int stage_idx=0){
     assert(index < m_netinfo->input_num);
+    for(int i = 0; i < m_netinfo->input_num; ++i) {
+      m_inputTensors[i].shape = m_netinfo->stages[stage_idx].input_shapes[i];
+    }
     return std::make_shared<BMNNTensor>(m_handle, m_netinfo->input_names[index],
         m_netinfo->input_scales[index], &m_inputTensors[index], is_soc);
   }
@@ -277,8 +280,11 @@ class BMNNNetwork : public NoCopyable {
     return m_netinfo->output_num;
   }
 
-  std::shared_ptr<BMNNTensor> outputTensor(int index){
+  std::shared_ptr<BMNNTensor> outputTensor(int index, int stage_idx=0){
     assert(index < m_netinfo->output_num);
+    for(int i = 0; i < m_netinfo->output_num; ++i) {
+      m_outputTensors[i].shape = m_netinfo->stages[stage_idx].output_shapes[i];
+    }
     return std::make_shared<BMNNTensor>(m_handle, m_netinfo->output_names[index],
         m_netinfo->output_scales[index], &m_outputTensors[index], is_soc);
   }
