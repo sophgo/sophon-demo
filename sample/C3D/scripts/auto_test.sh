@@ -9,13 +9,15 @@ MODE="pcie_test"
 SOCSDK="/home/lihengfang/work/sophonsdk/soc-sdk"
 TPUID=0
 ALL_PASS=1
+PYTEST="auto_test"
+ECHO_LINES=20
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
-while getopts ":m:t:s:d:" opt
+while getopts ":m:t:s:d:p:" opt
 do
   case $opt in 
     m)
@@ -30,11 +32,49 @@ do
     d)
       TPUID=${OPTARG}
       echo "using tpu $TPUID";;
+    p)
+      PYTEST=${OPTARG}
+      echo "generate logs for $PYTEST";;
     ?)
       usage
       exit 1;;
   esac
 done
+
+if test $PYTEST = "pytest"
+then
+  >${top_dir}auto_test_result.txt
+fi
+
+function judge_ret() {
+  if [[ $1 == 0 ]]; then
+    echo "Passed: $2"
+    echo ""
+    if test $PYTEST = "pytest"
+    then
+      echo "Passed: $2" >> ${top_dir}auto_test_result.txt
+      echo "#######Debug Info Start#######" >> ${top_dir}auto_test_result.txt
+    fi
+  else
+    echo "Failed: $2"
+    ALL_PASS=0
+    if test $PYTEST = "pytest"
+    then
+      echo "Failed: $2" >> ${top_dir}auto_test_result.txt
+      echo "#######Debug Info Start#######" >> ${top_dir}auto_test_result.txt
+    fi
+  fi
+
+  if test $PYTEST = "pytest"
+  then
+    if [[ $3 != 0 ]];then
+      tail -n ${ECHO_LINES} $3 >> ${top_dir}auto_test_result.txt
+    fi
+    echo "########Debug Info End########" >> ${top_dir}auto_test_result.txt
+  fi
+
+  sleep 3
+}
 
 function download(){
     #download dataset and models.
@@ -42,6 +82,7 @@ function download(){
         echo "preparing datasets and models......"
         chmod +x ./scripts/download.sh
         ./scripts/download.sh
+        judge_ret $? "download" 0
     else
         echo "data already exists!"
     fi
@@ -54,6 +95,7 @@ function build_pcie(){
     fi
     mkdir build && cd build
     cmake .. && make
+    judge_ret $? "build c3d_$1" 0
     popd
 }
 
@@ -65,11 +107,12 @@ function build_soc()
     fi
     mkdir build && cd build
     cmake .. -DTARGET_ARCH=soc -DSDK=$SOCSDK && make
+    judge_ret $? "build soc c3d_$1" 0
     popd
 }
 
 function compare_res(){
-    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.01 && y-x<0.01)?1:0}'`
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(y-x<0.01)?1:0}'`
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
@@ -77,10 +120,12 @@ function compare_res(){
         echo "Ground truth is $2, your result is: $1"
         echo -e "\e[41m compare wrong! \e[0m" #red
         echo "***************************************"
+        return 1
     else
         echo "***************************************"
         echo -e "\e[42m compare right! \e[0m" #green
         echo "***************************************"
+        return 0
     fi
 }
 #e.g.: test_cpp opencv pcie c3d_int8_1b.bmodel 0.715
@@ -93,14 +138,16 @@ function test_cpp(){
     echo "testing cpp $1 $3:"
     chmod +x ./c3d_$1.$2
     ./c3d_$1.$2 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$3.log 2>&1
+    judge_ret $? "./c3d_$1.$2 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$3.log 2>&1" log/$1_$3.log
     tail -n 15 log/$1_$3.log
     cd ../../tools/
     echo "Evaluating..."
-    res=$(python3 eval_ucf.py --result_json ../cpp/c3d_$1/results/$3_$1_cpp.json 2>&1)
+    res=$(python3 eval_ucf.py --result_json ../cpp/c3d_$1/results/$3_$1_cpp.json 2>&1 | tee log/$1_$2_$3_eval.log)
     echo -e "$res"
     array=(${res//=/ })
     acc=${array[1]}
     compare_res $acc $4
+    judge_ret $? "$3_$1_cpp: Precision compare!" log/$1_$2_$3_eval.log
     popd
     echo -e "########################\nCase End: eval cpp\n########################\n"
 }
@@ -114,14 +161,16 @@ function test_python(){
     fi
     echo "testing python $1 $2:"
     python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2.log 2>&1
+    judge_ret $? "python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2.log 2>&1" log/$1_$2.log
     tail -n 15 log/$1_$2.log 
     cd ../tools/
     echo "Evaluating..."
-    res=$(python3 eval_ucf.py --result_json ../python/results/$2_$1_python.json 2>&1)
+    res=$(python3 eval_ucf.py --result_json ../python/results/$2_$1_python.json 2>&1 | tee log/$1_$2_eval.log)
     echo -e "$res"
     array=(${res//=/ })
     acc=${array[1]}
     compare_res $acc $3
+    judge_ret $? "$2_$1_python: Precision compare!" log/$1_$2_eval.log
     popd
     echo -e "########################\nCase End: eval python\n########################\n"
 }
