@@ -24,10 +24,10 @@ void DeepSort::sort(bm_image& frame, vector<YoloV5Box>& dets, vector<TrackBox>& 
     DETECTIONS detections;
     for (YoloV5Box i : dets) {
         /*very important, if not this code, you will suffer from segmentation fault.*/
-        auto start_x = MIN(MAX(int(i.x), 0), frame.width);
-        auto start_y = MIN(MAX(int(i.y), 0), frame.height);
-        auto crop_w = MAX(MIN(int(i.width), frame.width - int(i.x)), 0);
-        auto crop_h = MAX(MIN(int(i.height), frame.height - int(i.y)), 0);
+        auto start_x = MIN(MAX(int(i.x), 0), frame.width - 16);
+        auto start_y = MIN(MAX(int(i.y), 0), frame.height - 16);
+        auto crop_w = MAX(MIN(int(i.width), frame.width - int(i.x)), 16); // vpp resize support width >= 16 
+        auto crop_h = MAX(MIN(int(i.height), frame.height - int(i.y)), 16); // vpp resize support height >= 16 
 
         DETECTBOX box(start_x, start_y, crop_w, crop_h);
         DETECTION_ROW d;
