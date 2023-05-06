@@ -107,7 +107,6 @@ int main(int argc, char *argv[]){
       id++;
       cout << id << "/" << cn << ", img_file: " << img_file << endl;
       ts->save("read image");
-      // cv::Mat img = cv::imread(img_file, cv::IMREAD_COLOR, dev_id);
       bm_image bmimg;
       picDec(h, img_file.c_str(), bmimg);
       ts->save("read image");
@@ -211,6 +210,10 @@ int main(int argc, char *argv[]){
     
     // save results
     size_t index = input.rfind("/");
+    if(index == input.length() - 1){
+      input = input.substr(0, input.length() - 1);
+      index = input.rfind("/");
+    }
     string dataset_name = input.substr(index + 1);
     index = bmodel_file.rfind("/");
     string model_name = bmodel_file.substr(index + 1);

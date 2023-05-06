@@ -17,7 +17,7 @@ C++ demo is provided in the cpp directory for reference, the details are as foll
 | No.  | C++ demo      | Description                                 |
 | ---- | ------------- | -----------------------------------  |
 | 1    | yolov5_bmcv   | Decoding with FFmpeg, preprocessing with BMCV, inference with BMRT   |
-| 2    | yolov5_sail(not released yet)   | Decoding with SAIL, preprocessing with SAIL, inference with SAIL   |
+| 2    | yolov5_sail   | Decoding with SAIL, preprocessing with SAIL, inference with SAIL   |
 
 ## 1. Environments Preparation
 ### 1.1 x86/arm PCIe Platform
