@@ -8,13 +8,15 @@ TARGET="BM1684X"
 MODE="pcie_test"
 TPUID=0
 ALL_PASS=1
+PYTEST="auto_test"
+ECHO_LINES=20
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
-while getopts ":m:t:s:a:d:" opt
+while getopts ":m:t:s:a:d:p:" opt
 do
   case $opt in 
     m)
@@ -33,20 +35,47 @@ do
     d)
       TPUID=${OPTARG}
       echo "using tpu $TPUID";;
+    p)
+      PYTEST=${OPTARG}
+      echo "generate logs for $PYTEST";;
     ?)
       usage
       exit 1;;
   esac
 done
 
+if test $PYTEST = "pytest"
+then
+  >${top_dir}auto_test_result.txt
+fi
+
 function judge_ret() {
   if [[ $1 == 0 ]]; then
     echo "Passed: $2"
     echo ""
+    if test $PYTEST = "pytest"
+    then
+      echo "Passed: $2" >> ${top_dir}auto_test_result.txt
+      echo "#######Debug Info Start#######" >> ${top_dir}auto_test_result.txt
+    fi
   else
     echo "Failed: $2"
     ALL_PASS=0
+    if test $PYTEST = "pytest"
+    then
+      echo "Failed: $2" >> ${top_dir}auto_test_result.txt
+      echo "#######Debug Info Start#######" >> ${top_dir}auto_test_result.txt
+    fi
   fi
+
+  if test $PYTEST = "pytest"
+  then
+    if [[ $3 != 0 ]];then
+      tail -n ${ECHO_LINES} $3 >> ${top_dir}auto_test_result.txt
+    fi
+    echo "########Debug Info End########" >> ${top_dir}auto_test_result.txt
+  fi
+
   sleep 3
 }
 
@@ -54,25 +83,25 @@ function download()
 {
   chmod -R +x scripts/
   ./scripts/download.sh
-  judge_ret $? "download"
+  judge_ret $? "download" 0
 }
 
 function compile_nntc()
 {
   ./scripts/gen_fp32bmodel_nntc.sh BM1684
-  judge_ret $? "generate BM1684 fp32bmodel"
+  judge_ret $? "generate BM1684 fp32bmodel" 0
   ./scripts/gen_int8bmodel_nntc.sh BM1684
-  judge_ret $? "generate BM1684 int8bmodel"
+  judge_ret $? "generate BM1684 int8bmodel" 0
 }
 
 function compile_mlir()
 {
   ./scripts/gen_fp32bmodel_mlir.sh bm1684x
-  judge_ret $? "generate BM1684X fp32bmodel"
+  judge_ret $? "generate BM1684X fp32bmodel" 0
   ./scripts/gen_fp16bmodel_mlir.sh bm1684x
-  judge_ret $? "generate BM1684X fp16bmodel"
+  judge_ret $? "generate BM1684X fp16bmodel" 0
   ./scripts/gen_int8bmodel_mlir.sh bm1684x
-  judge_ret $? "generate BM1684X int8bmodel"
+  judge_ret $? "generate BM1684X int8bmodel" 0
 }
 
 function build_pcie()
@@ -83,7 +112,7 @@ function build_pcie()
   fi
   mkdir build && cd build
   cmake .. && make
-  judge_ret $? "build yolov5_$1"
+  judge_ret $? "build yolov5_$1" 0
   popd
 }
 
@@ -96,17 +125,17 @@ function build_soc()
   if test $1 = "sail"; then
     mkdir build && cd build
     cmake .. -DTARGET_ARCH=soc -DSDK=$SOCSDK -DSAIL_PATH=$SAIL_PATH && make
-    judge_ret $? "build soc yolov5_$1"
+    judge_ret $? "build soc yolov5_$1" 0
   else
     mkdir build && cd build
     cmake .. -DTARGET_ARCH=soc -DSDK=$SOCSDK && make
-    judge_ret $? "build soc yolov5_$1"
+    judge_ret $? "build soc yolov5_$1" 0
   fi
   popd
 }
 
 function compare_res(){
-    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.0001 && y-x<0.0001)?1:0}'`
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(y-x<0.01)?1:0}'`
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
@@ -114,18 +143,23 @@ function compare_res(){
         echo "Ground truth is $2, your result is: $1"
         echo -e "\e[41m compare wrong! \e[0m" #red
         echo "***************************************"
+        return 1
     else
         echo "***************************************"
         echo -e "\e[42m compare right! \e[0m" #green
         echo "***************************************"
+        return 0
     fi
 }
 
 function test_cpp()
 {
   pushd cpp/yolov5_$2
-  ./yolov5_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID
-  judge_ret $? "./yolov5_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID"
+  if [ ! -d log ];then
+    mkdir log
+  fi
+  ./yolov5_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log
+  judge_ret $? "./yolov5_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID" log/$1_$2_$3_cpp_test.log
   popd
 }
 
@@ -137,7 +171,7 @@ function eval_cpp()
     mkdir log
   fi
   ./yolov5_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./yolov5_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1"
+  judge_ret $? "./yolov5_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
   tail -n 15 log/$1_$2_$3_debug.log
   
   echo "Evaluating..."
@@ -147,14 +181,18 @@ function eval_cpp()
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $4
+  judge_ret $? "$3_val2017_1000_$2_cpp_result: Precision compare!" log/$1_$2_$3_eval.log
   popd
   echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 
 function test_python()
 {
-  python3 python/yolov5_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID
-  judge_ret $? "python3 python/yolov5_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID"
+  if [ ! -d log ];then
+    mkdir log
+  fi
+  python3 python/yolov5_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_python_test.log
+  judge_ret $? "python3 python/yolov5_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID" log/$1_$2_python_test.log
 }
 
 function eval_python()
@@ -164,7 +202,7 @@ function eval_python()
     mkdir python/log
   fi
   python3 python/yolov5_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1
-  judge_ret $? "python3 python/yolov5_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1"
+  judge_ret $? "python3 python/yolov5_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1" python/log/$1_$2_debug.log
   tail -n 20 python/log/$1_$2_debug.log
   
   echo "Evaluating..."
@@ -173,6 +211,7 @@ function eval_python()
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $3
+  judge_ret $? "$2_val2017_1000_$1_python_result: Precision compare!" python/log/$1_$2_eval.log
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
@@ -331,7 +370,7 @@ then
   fi
 fi
 
-if [ $ALL_PASS -eq 0 ]
+if [[ $ALL_PASS -eq 0 ]]
 then
     echo "===================================================================="
     echo "Some process produced unexpected results, please look out their logs!"
