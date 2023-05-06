@@ -39,12 +39,11 @@ function gen_fp32bmodel_coco()
 }
 
 pushd $model_dir
+if [ ! -d $outdir ]; then
+    mkdir -p $outdir
+fi
 # batch_size=1
 gen_fp32bmodel_body_25 1
-# batch_size=4
-# gen_fp32bmodel_body_25 4
 # batch_size=1
 gen_fp32bmodel_coco 1
-# batch_size=4
-# gen_fp32bmodel_coco 4
 popd
