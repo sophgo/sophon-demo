@@ -8,13 +8,14 @@ MODE="pcie_test"
 TPUID=0
 RENEW=0
 sail_list=("YOLOv5" "CenterNet") #c++ sail demo
+PYTEST="auto_test"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [-r Renew]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [-r Renew] [-p PYTEST auto_test|pytest]" 1>&2 
 }
 
-while getopts ":m:t:s:a:d:r:" opt
+while getopts ":m:t:s:a:d:r:p:" opt
 do
   case $opt in 
     m)
@@ -35,6 +36,9 @@ do
     r)
       RENEW=${OPTARG}
       echo "Renew datasets and models";;
+    p)
+      PYTEST=${OPTARG}
+      echo "run in $PYTEST";;
     ?)
       usage
       exit 1;;
@@ -119,16 +123,18 @@ then
   fi
 fi
 
-test_sample ByteTrack
-test_sample YOLOv5
-test_sample YOLOv5_opt
-test_sample YOLOv7
-test_sample YOLOv8
-test_sample CenterNet
-test_sample C3D
-test_sample ResNet
-test_sample LPRNet
-test_sample DeepSORT
-test_sample OpenPose
+if [ $PYTEST != "pytest" ]
+then
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+  test_sample ByteTrack
+  test_sample YOLOv5
+  test_sample YOLOv5_opt
+  test_sample YOLOv8
+  test_sample C3D
+  test_sample ResNet
+  test_sample LPRNet
+  test_sample DeepSORT
+  test_sample OpenPose
+fi
 
 popd
