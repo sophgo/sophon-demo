@@ -1,12 +1,11 @@
 # Python例程
-* [Python例程](#python例程)
-    * [1. 环境准备](#1-环境准备)
-        * [1.1 x86 PCIe平台](#11-x86-pcie平台)
-        * [1.2 SoC平台](#12-soc平台)
-    * [2. 推理测试](#2-推理测试)
-        * [2.1 参数说明](#21-参数说明)
-        * [2.2 测试图片](#22-测试图片)
-        * [2.3 测试视频](#23-测试视频)
+* [1. 环境准备](#1-环境准备)
+    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    * [1.2 SoC平台](#12-soc平台)
+* [2. 推理测试](#2-推理测试)
+    * [2.1 参数说明](#21-参数说明)
+    * [2.2 测试图片](#22-测试图片)
+    * [2.3 测试视频](#23-测试视频)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -15,8 +14,8 @@ python目录下提供了一系列Python例程，具体情况如下：
 | 1    | openpose_opencv.py | 使用OpenCV解码、OpenCV前处理、SAIL推理 |
 
 ## 1. 环境准备
-### 1.1 x86 PCIe平台
-如果您在x86平台安装了PCIe加速卡（如SC系列加速卡），您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)。
+### 1.1 x86/arm PCIe平台
+如果您在x86平台安装了PCIe加速卡（如SC系列加速卡），您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
 
 此外您可能还需要安装其他第三方库：
 ```bash
@@ -42,7 +41,7 @@ usage: openpose_opencv.py [--input INPUT] [--bmodel BMODEL] [--dev_id DEV_ID]
 --dev_id: 用于推理的tpu设备id。
 ```
 ### 2.2 测试图片
-图片测试实例如下，支持对整个图片文件夹进行测试，模型支持fp32bmodel、int8bmodel，支持BM1684和BM1684X，支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
 python3 python/openpose_opencv.py --input datasets/test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel --dev_id 0
 ```
@@ -51,7 +50,7 @@ python3 python/openpose_opencv.py --input datasets/test --bmodel models/BM1684/p
 ![res](../pics/1_python_opencv.jpeg)
 
 ### 2.3 测试视频
-视频测试实例如下，支持对视频流进行测试，模型支持fp32bmodel、int8bmodel，支持BM1684和BM1684X，支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+视频测试实例如下，支持对视频流进行测试。
 ```bash
 python3 python/openpose_opencv.py --input datasets/dance_1080P.mp4 --bmodel models/BM1684/pose_coco_fp32_1b.bmodel --dev_id 0
 ```

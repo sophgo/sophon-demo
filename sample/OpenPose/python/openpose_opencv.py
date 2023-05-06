@@ -386,6 +386,8 @@ def main(args):
                 results_list.append(res_dict)    
 
         # save results
+        if args.input[-1] == '/':
+            args.input = args.input[:-1]
         json_name = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input)[-1] + "_opencv" + "_python_result.json"
         with open(os.path.join(output_dir, json_name), 'w') as jf:
             # json.dump(results_list, jf)

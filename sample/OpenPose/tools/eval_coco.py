@@ -16,7 +16,7 @@ from pycocotools.cocoeval import COCOeval
 
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--label_json', type=str, default='project/OpenPose/data/images/person_keypoints_val2017.json', help='path of label json')
+    parser.add_argument('--gt_path', type=str, default='project/OpenPose/data/images/person_keypoints_val2017.json', help='path of label json')
     parser.add_argument('--result_json', type=str, default='project/OpenPose/python/results/pose_coco_fp32_1b.bmodel_val2017_opencv_python_result.json', help='path of result json')
     parser.add_argument('--ann_type', type=str, default='keypoints', help='type of evaluation')
     args = parser.parse_args()
@@ -61,7 +61,7 @@ def convert_to_coco(json_file, cocoGt):
         json.dump(temp_json, fid)
     
 def main(args):
-    cocoGt = COCO(args.label_json)
+    cocoGt = COCO(args.gt_path)
     convert_to_coco(args.result_json, cocoGt)
     cocoDt = cocoGt.loadRes('temp.json')
 

@@ -115,24 +115,26 @@ int main(int argc, char** argv) {
         CV_Assert(0 == openpose.Detect(batch_imgs, vct_keypoints));
         for(int i = 0; i < batch_size; i++){
           cout << "keypoints.size: " << vct_keypoints[i].keypoints.size() << endl;
-          // save image
-          cv::Mat mat;
-          cv::bmcv::toMAT(&batch_imgs[i], mat);
-          OpenPosePostProcess::renderPoseKeypointsCpu(mat, vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
           string img_file = "results/images/" + batch_names[i];
-          cv::imwrite(img_file, mat);
-          bm_image_destroy(batch_imgs[i]);
-          // bm_image res_bmimg = OpenPosePostProcess::renderPoseKeypointsBmcv(h, batch_imgs[i], vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
-          // void* jpeg_data = NULL;
-          // size_t out_size = 0;
-          // int ret = bmcv_image_jpeg_enc(h, 1, &res_bmimg, &jpeg_data, &out_size);
-          // if (ret == BM_SUCCESS) {
-          //   FILE *fp = fopen(img_file.c_str(), "wb");
-          //   fwrite(jpeg_data, out_size, 1, fp);
-          //   fclose(fp);
-          // }
-          // free(jpeg_data);
-          // bm_image_destroy(res_bmimg);
+          // save image
+          // cv::Mat mat;
+          // cv::bmcv::toMAT(&batch_imgs[i], mat);
+          // OpenPosePostProcess::renderPoseKeypointsCpu(mat, vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
+          // cv::imwrite(img_file, mat);
+          // bm_image_destroy(batch_imgs[i]);
+
+          // bmcv save image
+          bm_image res_bmimg = OpenPosePostProcess::renderPoseKeypointsBmcv(h, batch_imgs[i], vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
+          void* jpeg_data = NULL;
+          size_t out_size = 0;
+          int ret = bmcv_image_jpeg_enc(h, 1, &res_bmimg, &jpeg_data, &out_size);
+          if (ret == BM_SUCCESS) {
+            FILE *fp = fopen(img_file.c_str(), "wb");
+            fwrite(jpeg_data, out_size, 1, fp);
+            fclose(fp);
+          }
+          free(jpeg_data);
+          bm_image_destroy(res_bmimg);
 
           // save result
           json res_json;
@@ -150,13 +152,27 @@ int main(int argc, char** argv) {
       CV_Assert(0 == openpose.Detect(batch_imgs, vct_keypoints));
       for(int i = 0; i < batch_imgs.size(); i++){
         cout << "keypoints.size: " << vct_keypoints[i].keypoints.size() << endl;
-        // save image 
-        cv::Mat mat;
-        cv::bmcv::toMAT(&batch_imgs[i], mat);
-        OpenPosePostProcess::renderPoseKeypointsCpu(mat, vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
         string img_file = "results/images/" + batch_names[i];
-        cv::imwrite(img_file, mat);
-        bm_image_destroy(batch_imgs[i]);
+        // save image 
+        // cv::Mat mat;
+        // cv::bmcv::toMAT(&batch_imgs[i], mat);
+        // OpenPosePostProcess::renderPoseKeypointsCpu(mat, vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
+        // cv::imwrite(img_file, mat);
+        // bm_image_destroy(batch_imgs[i]);
+
+        // bmcv save image
+        bm_image res_bmimg = OpenPosePostProcess::renderPoseKeypointsBmcv(h, batch_imgs[i], vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
+        void* jpeg_data = NULL;
+        size_t out_size = 0;
+        int ret = bmcv_image_jpeg_enc(h, 1, &res_bmimg, &jpeg_data, &out_size);
+        if (ret == BM_SUCCESS) {
+          FILE *fp = fopen(img_file.c_str(), "wb");
+          fwrite(jpeg_data, out_size, 1, fp);
+          fclose(fp);
+        }
+        free(jpeg_data);
+        bm_image_destroy(res_bmimg);
+
 
         // save result
         json res_json;
@@ -172,6 +188,10 @@ int main(int argc, char** argv) {
     
     // save results
     size_t index = input.rfind("/");
+    if(index == input.length() - 1){
+      input = input.substr(0, input.length() - 1);
+      index = input.rfind("/");
+    }
     string dataset_name = input.substr(index + 1);
     index = bmodel_file.rfind("/");
     string model_name = bmodel_file.substr(index + 1);
@@ -198,12 +218,23 @@ int main(int argc, char** argv) {
         for(int i = 0; i < batch_size; i++){
           id++;
           cout << id << ", keypoints.size: " << vct_keypoints[i].keypoints.size() << endl;
-          cv::Mat mat;
-          cv::bmcv::toMAT(&batch_imgs[i], mat);
-          OpenPosePostProcess::renderPoseKeypointsCpu(mat, vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
           string img_file = "results/images/" + to_string(id) + ".jpg";
-          cv::imwrite(img_file, mat);
-          bm_image_destroy(batch_imgs[i]);
+          // cv::Mat mat;
+          // cv::bmcv::toMAT(&batch_imgs[i], mat);
+          // OpenPosePostProcess::renderPoseKeypointsCpu(mat, vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
+          // cv::imwrite(img_file, mat);
+          // bm_image_destroy(batch_imgs[i]);
+          bm_image res_bmimg = OpenPosePostProcess::renderPoseKeypointsBmcv(h, batch_imgs[i], vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
+          void* jpeg_data = NULL;
+          size_t out_size = 0;
+          int ret = bmcv_image_jpeg_enc(h, 1, &res_bmimg, &jpeg_data, &out_size);
+          if (ret == BM_SUCCESS) {
+            FILE *fp = fopen(img_file.c_str(), "wb");
+            fwrite(jpeg_data, out_size, 1, fp);
+            fclose(fp);
+          }
+          free(jpeg_data);
+          bm_image_destroy(res_bmimg);
         }
         batch_imgs.clear();
         vct_keypoints.clear();
@@ -214,12 +245,23 @@ int main(int argc, char** argv) {
       for(int i = 0; i < batch_imgs.size(); i++){
         id++;
         cout << id << ", keypoints.size: " << vct_keypoints[i].keypoints.size() << endl;
-        cv::Mat mat;
-        cv::bmcv::toMAT(&batch_imgs[i], mat);
-        OpenPosePostProcess::renderPoseKeypointsCpu(mat, vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
         string img_file = "results/images/" + to_string(id) + ".jpg";
-        cv::imwrite(img_file, mat);
-        bm_image_destroy(batch_imgs[i]);
+        // cv::Mat mat;
+        // cv::bmcv::toMAT(&batch_imgs[i], mat);
+        // OpenPosePostProcess::renderPoseKeypointsCpu(mat, vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
+        // cv::imwrite(img_file, mat);
+        // bm_image_destroy(batch_imgs[i]);
+        bm_image res_bmimg = OpenPosePostProcess::renderPoseKeypointsBmcv(h, batch_imgs[i], vct_keypoints[i].keypoints,  vct_keypoints[i].shape, 0.05, 1.0, model_type);
+        void* jpeg_data = NULL;
+        size_t out_size = 0;
+        int ret = bmcv_image_jpeg_enc(h, 1, &res_bmimg, &jpeg_data, &out_size);
+        if (ret == BM_SUCCESS) {
+          FILE *fp = fopen(img_file.c_str(), "wb");
+          fwrite(jpeg_data, out_size, 1, fp);
+          fclose(fp);
+        }
+        free(jpeg_data);
+        bm_image_destroy(res_bmimg);
       }
       batch_imgs.clear();
       vct_keypoints.clear();

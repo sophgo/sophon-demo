@@ -1,15 +1,14 @@
 # C++例程
-* [C++例程](#c例程)
-    * [1. 环境准备](#1-环境准备)
-        * [1.1 x86 PCIe平台](#11-x86-pcie平台)
-        * [1.2 SoC平台](#12-soc平台)
-    * [2. 程序编译](#2-程序编译)
-        * [2.1 x86 PCIe平台](#21-x86-pcie平台)
-        * [2.2 SoC平台](#22-soc平台)
-    * [3. 推理测试](#3-推理测试)
-        * [3.1 参数说明](#31-参数说明)
-        * [3.2 测试图片](#32-测试图片)
-        * [3.3 测试视频](#33-测试视频)
+* [1. 环境准备](#1-环境准备)
+  * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+  * [1.2 SoC平台](#12-soc平台)
+* [2. 程序编译](#2-程序编译)
+  * [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
+  * [2.2 SoC平台](#22-soc平台)
+* [3. 推理测试](#3-推理测试)
+  * [3.1 参数说明](#31-参数说明)
+  * [3.2 测试图片](#32-测试图片)
+  * [3.3 测试视频](#33-测试视频)
 
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
@@ -17,15 +16,15 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 1    | openpose_bmcv   | 使用FFmpeg解码、BMCV前处理、BMRT推理   |
 
 ## 1. 环境准备
-### 1.1 x86 PCIe平台
-如果您在x86平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)。
+### 1.1 x86/arm PCIe平台
+如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
 
 ### 1.2 SoC平台
 如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
 
 ## 2. 程序编译
 C++程序运行前需要编译可执行文件。
-### 2.1 x86 PCIe平台
+### 2.1 x86/arm PCIe平台
 可以直接在PCIe平台上编译程序：
 ```bash
 cd cpp/openpose_bmcv
@@ -68,7 +67,7 @@ Usage: openpose_bmcv.pcie [params]
 **注意：** C++程序的传参方式与python不同，需要用等于号，例如`./openpose_bmcv.pcie --bmodel=xxx`。
 
 ### 3.2 测试图片
-图片测试实例如下，支持对整个图片文件夹进行测试，模型支持fp32bmodel、int8bmodel，支持BM1684和BM1684X，支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
 ./openpose_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0
 ```
@@ -77,7 +76,7 @@ Usage: openpose_bmcv.pcie [params]
 ![res](../pics/1_cpp_bmcv.jpeg)
 
 ### 3.3 测试视频
-视频测试实例如下，支持对视频流进行测试，模型支持fp32bmodel、int8bmodel，支持BM1684和BM1684X，支持单batch size或多batch size，通过传入相应的模型路径参数进行测试即可。
+视频测试实例如下，支持对视频流进行测试。
 ```bash
 ./openpose_bmcv.pcie --input=../../datasets/dance_1080P.mp4 --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0
 ```
