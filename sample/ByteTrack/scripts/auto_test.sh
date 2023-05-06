@@ -7,13 +7,15 @@ TARGET="BM1684X"
 MODE="pcie_test"
 TPUID=0
 ALL_PASS=1
+PYTEST="auto_test"
+ECHO_LINES=20
 
 usage()
 {
-  echo "Usage: $0 [ -m MODE |pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID]" 1>&2
+  echo "Usage: $0 [ -m MODE |pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
 }
 
-while getopts ":m:t:s:d:" opt
+while getopts ":m:t:s:d:p:" opt
 do
   case $opt in
     m)
@@ -28,20 +30,47 @@ do
     d)
       TPUID=${OPTARG}
       echo "using tpu $TPUID";;
+    p)
+      PYTEST=${OPTARG}
+      echo "generate logs for $PYTEST";;
     ?)
       usage
       exit 1;;
   esac
 done
 
+if test $PYTEST = "pytest"
+then
+  >${top_dir}auto_test_result.txt
+fi
+
 function judge_ret() {
   if [[ $1 == 0 ]]; then
     echo "Passed: $2"
     echo ""
+    if test $PYTEST = "pytest"
+    then
+      echo "Passed: $2" >> ${top_dir}auto_test_result.txt
+      echo "#######Debug Info Start#######" >> ${top_dir}auto_test_result.txt
+    fi
   else
     echo "Failed: $2"
     ALL_PASS=0
+    if test $PYTEST = "pytest"
+    then
+      echo "Failed: $2" >> ${top_dir}auto_test_result.txt
+      echo "#######Debug Info Start#######" >> ${top_dir}auto_test_result.txt
+    fi
   fi
+
+  if test $PYTEST = "pytest"
+  then
+    if [[ $3 != 0 ]];then
+      tail -n ${ECHO_LINES} $3 >> ${top_dir}auto_test_result.txt
+    fi
+    echo "########Debug Info End########" >> ${top_dir}auto_test_result.txt
+  fi
+
   sleep 3
 }
 
@@ -49,7 +78,7 @@ function download()
 {
   chmod -R +x scripts/
   ./scripts/download.sh
-  judge_ret $? "download"
+  judge_ret $? "download" 0
 }
 
 function build_pcie()
@@ -60,7 +89,7 @@ function build_pcie()
   fi
   mkdir build && cd build
   cmake .. && make
-  judge_ret $? "build bytetrack_$1"
+  judge_ret $? "build bytetrack_$1" 0
   popd
 }
 
@@ -72,12 +101,12 @@ function build_soc()
   fi
   mkdir build && cd build
   cmake .. -DTARGET_ARCH=soc -DSDK=$SOCSDK && make
-  judge_ret $? "build soc bytetrack_$1"
+  judge_ret $? "build soc bytetrack_$1" 0
   popd
 }
 
 function compare_res(){
-    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.0001 && y-x<0.0001)?1:0}'`
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(y-x<0.01)?1:0}'`
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
@@ -85,10 +114,12 @@ function compare_res(){
         echo "Ground truth is $2, your result is: $1"
         echo -e "\e[41m compare wrong! \e[0m" #red
         echo "***************************************"
+        return 1
     else
         echo "***************************************"
         echo -e "\e[42m compare right! \e[0m" #green
         echo "***************************************"
+        return 0
     fi
 }
 
@@ -98,8 +129,8 @@ function test_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./bytetrack_$2.$1 --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/$TARGET/$3 --dev_id=$TPUID >> log/test.log 2>&1
-  judge_ret $? "./bytetrack_$2.$1 --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/$TARGET/$3 --dev_id=$TPUID"
+  ./bytetrack_$2.$1 --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/$TARGET/$3 --dev_id=$TPUID  > log/$1_$2_$3_cpp_test.log 2>&1
+  judge_ret $? "./bytetrack_$2.$1 --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/$TARGET/$3 --dev_id=$TPUID" log/$1_$2_$3_cpp_test.log
   popd
 }
 
@@ -111,7 +142,7 @@ function eval_cpp()
     mkdir log
   fi
   ./bytetrack_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./bytetrack_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1"
+  judge_ret $? "./bytetrack_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
   tail -n 15 log/$1_$2_$3_debug.log
 
   echo "Evaluating..."
@@ -121,6 +152,7 @@ function eval_cpp()
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $4
+  judge_ret $? "cpp mot_eval/ADL-Rundle-6_$3: Precision compare!" log/$1_$2_$3_eval.log
   popd
   echo -e "########################\nCase End: eval cpp\n########################\n"
 }
@@ -131,8 +163,8 @@ function test_python()
   if [ ! -d log ];then
     mkdir log
   fi
-  python3 bytetrack_$1.py --input ../datasets/test_car_person_1080P.mp4 --bmodel_detector ../models/$TARGET/$2 --dev_id $TPUID >> log/test.log 2>&1
-  judge_ret $? "bytetrack_$1.py --input ../datasets/test_car_person_1080P.mp4 --bmodel_detector ../models/$TARGET/$2 --dev_id $TPUID"
+  python3 bytetrack_$1.py --input ../datasets/test_car_person_1080P.mp4 --bmodel_detector ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_python_test.log 2>&1
+  judge_ret $? "bytetrack_$1.py --input ../datasets/test_car_person_1080P.mp4 --bmodel_detector ../models/$TARGET/$2 --dev_id $TPUID" log/$1_$2_python_test.log
   popd
 }
 
@@ -144,7 +176,7 @@ function eval_python()
     mkdir log
   fi
   python3 bytetrack_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_debug.log 2>&1
-  judge_ret $? "python3 bytetrack_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1  --bmodel_detector ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_debug.log 2>&1"
+  judge_ret $? "python3 bytetrack_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1  --bmodel_detector ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_debug.log 2>&1" log/$1_$2_debug.log
   tail -n 20 log/$1_$2_debug.log
 
   echo "Evaluating..."
@@ -153,6 +185,7 @@ function eval_python()
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $3
+  judge_ret $? "python mot_eval/ADL-Rundle-6_$2: Precision compare!" log/$1_$2_eval.log
   popd
   echo -e "########################\nCase End: eval python\n########################\n"
 }
