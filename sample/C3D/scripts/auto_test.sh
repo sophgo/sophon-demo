@@ -140,9 +140,8 @@ function test_cpp(){
     ./c3d_$1.$2 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$3.log 2>&1
     judge_ret $? "./c3d_$1.$2 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$3.log 2>&1" log/$1_$3.log
     tail -n 15 log/$1_$3.log
-    cd ../../tools/
     echo "Evaluating..."
-    res=$(python3 eval_ucf.py --result_json ../cpp/c3d_$1/results/$3_$1_cpp.json 2>&1 | tee log/$1_$2_$3_eval.log)
+    res=$(python3 ../../tools/eval_ucf.py --result_json results/$3_$1_cpp.json --gt_path ../../datasets/ground_truth.json 2>&1 | tee log/$1_$2_$3_eval.log)
     echo -e "$res"
     array=(${res//=/ })
     acc=${array[1]}
@@ -163,9 +162,8 @@ function test_python(){
     python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2.log 2>&1
     judge_ret $? "python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2.log 2>&1" log/$1_$2.log
     tail -n 15 log/$1_$2.log 
-    cd ../tools/
     echo "Evaluating..."
-    res=$(python3 eval_ucf.py --result_json ../python/results/$2_$1_python.json 2>&1 | tee log/$1_$2_eval.log)
+    res=$(python3 ../tools/eval_ucf.py --result_json results/$2_$1_python.json --gt_path ../datasets/ground_truth.json 2>&1 | tee log/$1_$2_eval.log)
     echo -e "$res"
     array=(${res//=/ })
     acc=${array[1]}
