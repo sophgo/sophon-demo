@@ -349,11 +349,11 @@ def main(args):
         if not decoder.is_opened():
             raise Exception("can not open the video")
         video_name = os.path.splitext(os.path.split(args.input)[1])[0]
-        frame = sail.BMImage()
         cn = 0
         frame_list = []
         yolov8_handle = sail.Handle(args.dev_id)
         while True:
+            frame = sail.BMImage()
             start_time = time.time()
             ret = decoder.read(yolov8_handle, frame)
             if ret:
