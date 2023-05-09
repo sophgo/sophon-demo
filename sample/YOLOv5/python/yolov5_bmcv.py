@@ -341,10 +341,10 @@ def main(args):
         if not decoder.is_opened():
             raise Exception("can not open the video")
         video_name = os.path.splitext(os.path.split(args.input)[1])[0]
-        frame = sail.BMImage()
         cn = 0
         frame_list = []
         while True:
+            frame = sail.BMImage()
             start_time = time.time()
             ret = decoder.read(handle, frame)
             if ret:
