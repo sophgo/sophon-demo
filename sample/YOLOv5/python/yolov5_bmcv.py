@@ -249,9 +249,9 @@ def main(args):
     bmcv = sail.Bmcv(handle)
     
     # warm up 
-    bmimg = sail.BMImage(handle, 1080, 1920, sail.Format.FORMAT_YUV420P, sail.DATA_TYPE_EXT_1N_BYTE)
-    for i in range(10):
-        results = yolov5([bmimg])
+    # bmimg = sail.BMImage(handle, 1080, 1920, sail.Format.FORMAT_YUV420P, sail.DATA_TYPE_EXT_1N_BYTE)
+    # for i in range(10):
+    #     results = yolov5([bmimg])
     yolov5.init()
 
     decode_time = 0.0

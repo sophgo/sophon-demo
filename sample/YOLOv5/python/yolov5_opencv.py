@@ -204,8 +204,8 @@ def main(args):
     batch_size = yolov5.batch_size
     
     # warm up 
-    for i in range(10):
-        results = yolov5([np.zeros((640, 640, 3))])
+    # for i in range(10):
+    #     results = yolov5([np.zeros((640, 640, 3))])
     yolov5.init()
     
     decode_time = 0.0
