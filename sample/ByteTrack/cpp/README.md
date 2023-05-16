@@ -76,7 +76,7 @@ Usage: bytetrack_bmcv.soc [params]
 
         --bmodel_detector (value:../../models/BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel)
                 detector bmodel file path
-        --classnames (value:./bytetrack_bmcv/coco.names)
+        --classnames (value:./coco.names)
                 class names file path
         --dev_id (value:0)
                 TPU device id
