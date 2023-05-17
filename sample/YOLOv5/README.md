@@ -250,4 +250,4 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 
 ## 8. FAQ
-请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
+YOLOv5移植相关问题可参考[YOLOv5常见问题](./docs/YOLOv5_Common_Problems.md)，其他问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

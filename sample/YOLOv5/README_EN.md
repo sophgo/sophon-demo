@@ -245,4 +245,4 @@ Use different examples and models to test `datasets/val2017_1000` with `conf_thr
 > 4. The image resolution has a great influence on the decoding time, the reasoning result has a great influence on the post-processing time, different test pictures may be different, and different thresholds have a great influence on the post-processing time.
 
 ## 8. FAQ
-Please refer to [FAQ](../../docs/FAQ_EN.md) to see some common questions and answers.
+Please refer to [YOLOv5 Common Problems](./docs/YOLOv5_Common_Problems_EN.md) to see some problems of YOLOv5 inference.For other questions ,please refer to [FAQ](../../docs/FAQ_EN.md) to see some common questions and answers.
