@@ -29,7 +29,7 @@ class ByteTracker(object):
         # init time
         self.track_time = 0.0
 
-    def _tracker_update(self, bbox, scores, image):
+    def _tracker_update(self, bbox, scores, cls_id, image):
         start_time = time.time()
 
         online_targets = []
@@ -37,6 +37,7 @@ class ByteTracker(object):
             online_targets = self.tracker.update(
                 bbox,
                 scores,
+                cls_id,
                 [image.shape[0], image.shape[1]],
                 [image.shape[0], image.shape[1]],
             )
@@ -47,7 +48,7 @@ class ByteTracker(object):
             vertical = tlwh[2] / tlwh[3] > 1.6
             if tlwh[2] * tlwh[3] > self.min_box_area and not vertical:
                 results.append([tlwh[0], tlwh[1], tlwh[2],
-                               tlwh[3], online_target.score, online_target.track_id])
+                               tlwh[3], online_target.cls_id, online_target.track_id])
 
 
         self.track_time += time.time() - start_time
@@ -108,7 +109,7 @@ class BaseTrack(object):
 class STrack(BaseTrack):
     shared_kalman = KalmanFilter()
 
-    def __init__(self, tlwh, score):
+    def __init__(self, tlwh, score, cls_id):
 
         # wait activate
         self._tlwh = np.asarray(tlwh, dtype=np.float32)
@@ -117,6 +118,7 @@ class STrack(BaseTrack):
         self.is_activated = False
 
         self.score = score
+        self.cls_id = cls_id
         self.tracklet_len = 0
 
     def predict(self):
@@ -258,7 +260,7 @@ class BYTETracker(object):
         self.max_time_lost = self.buffer_size
         self.kalman_filter = KalmanFilter()
 
-    def update(self, bboxes, scores, img_info, img_size):
+    def update(self, bboxes, scores, cls_id, img_info, img_size):
         self.frame_id += 1
         activated_starcks = []
         refind_stracks = []
@@ -266,7 +268,7 @@ class BYTETracker(object):
         removed_stracks = []
         scores = np.array(scores)
         bboxes = np.array(bboxes)
-
+        cls_id = np.array(cls_id)
 
         # if output_results.shape[1] == 5:
         #     scores = output_results[:, 4]
@@ -288,11 +290,13 @@ class BYTETracker(object):
         dets = bboxes[remain_inds]
         scores_keep = scores[remain_inds]
         scores_second = scores[inds_second]
+        cls_keep = cls_id[remain_inds]
+        cls_second = cls_id[inds_second]
 
         if len(dets) > 0:
             '''Detections'''
-            detections = [STrack(STrack.tlbr_to_tlwh(tlbr), s) for
-                          (tlbr, s) in zip(dets, scores_keep)]
+            detections = [STrack(STrack.tlbr_to_tlwh(tlbr), s, c) for
+                          (tlbr, s, c) in zip(dets, scores_keep, cls_keep)]
         else:
             detections = []
 
@@ -329,8 +333,8 @@ class BYTETracker(object):
         # association the untrack to the low score detections
         if len(dets_second) > 0:
             '''Detections'''
-            detections_second = [STrack(STrack.tlbr_to_tlwh(tlbr), s) for
-                                 (tlbr, s) in zip(dets_second, scores_second)]
+            detections_second = [STrack(STrack.tlbr_to_tlwh(tlbr), s, c) for
+                                 (tlbr, s, c) in zip(dets_second, scores_second, cls_second)]
         else:
             detections_second = []
         r_tracked_stracks = [strack_pool[i]

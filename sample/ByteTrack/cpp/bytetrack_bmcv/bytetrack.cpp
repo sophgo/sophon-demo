@@ -62,8 +62,9 @@ vector<STrack> BYTETracker::update(const vector<YoloV5Box> &objects)
 			tlbr_[3] = objects[i].y + objects[i].height;
 
 			float score = objects[i].score;
+			int class_id = objects[i].class_id;
 
-			STrack strack(STrack::tlbr_to_tlwh(tlbr_), score);
+			STrack strack(STrack::tlbr_to_tlwh(tlbr_), score, class_id);
 			if (score >= track_thresh)
 			{
 				detections.push_back(strack);

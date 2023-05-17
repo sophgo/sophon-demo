@@ -60,7 +60,7 @@ void draw_opencv(int trackId,
     cv::Scalar color(colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
     cv::rectangle(frame, cv::Point(left, top), cv::Point(right, bottom), color, 2.5);
 
-    std::string label = cv::format("conf=%.2f,Id=%d", conf, trackId);
+    std::string label = cv::format("cls=%d,Id=%d", classId, trackId);
 
     // Display the label at the top of the bounding box
     int baseLine;
