@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
                 cv::Mat frame_to_draw;
                 cv::bmcv::toMAT(&batch_imgs[i], frame_to_draw);
                 for (auto bbox : output_stracks) {
-                    draw_opencv(bbox.track_id, bbox.state, bbox.score, bbox.tlwh[0], bbox.tlwh[1], bbox.tlwh[0] + bbox.tlwh[2],
+                    draw_opencv(bbox.track_id, bbox.class_id, bbox.score, bbox.tlwh[0], bbox.tlwh[1], bbox.tlwh[0] + bbox.tlwh[2],
                                     bbox.tlwh[1] + bbox.tlwh[3], frame_to_draw);
                 }
                 bm_image frame_drawed;
