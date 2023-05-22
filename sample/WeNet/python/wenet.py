@@ -293,7 +293,7 @@ if __name__ == '__main__':
                             max_len = len(hyp[1])
                     ctc_score.append(cur_ctc_score)
                     ctc_score = np.array(ctc_score, dtype=np.float32)
-                max_len = decoder_len - 2
+                max_len = args.decoder_len - 2
                 hyps_pad_sos_eos = np.ones(
                     (batch_size, beam_size, max_len + 2), dtype=np.int64) * IGNORE_ID
                 r_hyps_pad_sos_eos = np.ones(
@@ -308,7 +308,7 @@ if __name__ == '__main__':
                         r_hyps_pad_sos_eos[i][j][0:l] = [sos] + cand[::-1] + [eos]
                         hyps_lens_sos[i][j] = len(cand) + 1
                         k += 1
-                encoder_out = np.pad(encoder_out, [(0, 0),(0, decoder_len - encoder_out.shape[1]), (0, 0)], mode='constant', constant_values=0)
+                encoder_out = np.pad(encoder_out, [(0, 0),(0, args.decoder_len - encoder_out.shape[1]), (0, 0)], mode='constant', constant_values=0)
                 hyps_pad_sos_eos = hyps_pad_sos_eos.astype(np.int32)
                 r_hyps_pad_sos_eos = r_hyps_pad_sos_eos.astype(np.int32)
                 encoder_out_lens = np.full(batch_size, fill_value=encoder_out.shape[1], dtype=np.int32)
