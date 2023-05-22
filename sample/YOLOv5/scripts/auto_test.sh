@@ -88,20 +88,20 @@ function download()
 
 function compile_nntc()
 {
-  ./scripts/gen_fp32bmodel_nntc.sh BM1684
-  judge_ret $? "generate BM1684 fp32bmodel" 0
-  ./scripts/gen_int8bmodel_nntc.sh BM1684
-  judge_ret $? "generate BM1684 int8bmodel" 0
+  ./scripts/gen_fp32bmodel_nntc.sh $TARGET
+  judge_ret $? "generate $TARGET fp32bmodel" 0
+  ./scripts/gen_int8bmodel_nntc.sh $TARGET
+  judge_ret $? "generate $TARGET int8bmodel" 0
 }
 
 function compile_mlir()
 {
-  ./scripts/gen_fp32bmodel_mlir.sh bm1684x
-  judge_ret $? "generate BM1684X fp32bmodel" 0
-  ./scripts/gen_fp16bmodel_mlir.sh bm1684x
-  judge_ret $? "generate BM1684X fp16bmodel" 0
-  ./scripts/gen_int8bmodel_mlir.sh bm1684x
-  judge_ret $? "generate BM1684X int8bmodel" 0
+  ./scripts/gen_fp32bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET fp32bmodel" 0
+  ./scripts/gen_fp16bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET fp16bmodel" 0
+  ./scripts/gen_int8bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET int8bmodel" 0
 }
 
 function build_pcie()

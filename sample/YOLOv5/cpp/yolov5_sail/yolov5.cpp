@@ -23,7 +23,7 @@ const std::vector<std::vector<int>> colors = {
     {170, 0, 255},   {255, 0, 255},   {255, 0, 170},   {255, 0, 85},  {255, 0, 0},   {255, 0, 255}, {255, 85, 255},
     {255, 170, 255}, {255, 255, 255}, {170, 255, 255}, {85, 255, 255}};
 
-YoloV5::YoloV5(int dev_id, std::string bmodel_file):engine(){
+YoloV5::YoloV5(int dev_id, std::string bmodel_file) : engine() {
     engine = std::make_shared<sail::Engine>(dev_id);
     if (!engine->load(bmodel_file)) {
         std::cout << "Engine load bmodel " << bmodel_file << "failed" << endl;
@@ -55,11 +55,9 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& coco_name
     // 2. Initialize engine
     graph_names = engine->get_graph_names();
     std::string gh_info;
-    for_each(graph_names.begin(), graph_names.end(), [&](std::string& s) {
-        gh_info += "0: " + s + "; ";
-    });
+    for_each(graph_names.begin(), graph_names.end(), [&](std::string& s) { gh_info += "0: " + s + "; "; });
     std::cout << "grapgh name -> " << gh_info << "\n";
-    if(graph_names.size() > 1){
+    if (graph_names.size() > 1) {
         std::cout << "NetworkNumError, this net only accept one network!" << std::endl;
         exit(1);
     }
@@ -68,11 +66,9 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& coco_name
     input_names = engine->get_input_names(graph_names[0]);
     assert(input_names.size() > 0);
     std::string input_tensor_names;
-    for_each(input_names.begin(), input_names.end(), [&](std::string& s) {
-        input_tensor_names += "0: " + s + "; ";
-    });
+    for_each(input_names.begin(), input_names.end(), [&](std::string& s) { input_tensor_names += "0: " + s + "; "; });
     std::cout << "net input name -> " << input_tensor_names << "\n";
-    if(input_names.size() > 1){
+    if (input_names.size() > 1) {
         std::cout << "InputNumError, yolov5 has only one input!" << std::endl;
         exit(1);
     }
@@ -81,62 +77,60 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& coco_name
     output_names = engine->get_output_names(graph_names[0]);
     assert(output_names.size() > 0);
     std::string output_tensor_names;
-    for_each(output_names.begin(), output_names.end(), [&](std::string& s) {
-        output_tensor_names += "0: " + s + "; ";
-    });
+    for_each(output_names.begin(), output_names.end(),
+             [&](std::string& s) { output_tensor_names += "0: " + s + "; "; });
     std::cout << "net output name -> " << output_tensor_names << "\n";
- 
+
     // input shape of network 0
     input_shape = engine->get_input_shape(graph_names[0], input_names[0]);
     std::string input_tensor_shape;
-    for_each(input_shape.begin(), input_shape.end(), [&](int s) {
-        input_tensor_shape += std::to_string(s) + " ";
-    });
+    for_each(input_shape.begin(), input_shape.end(), [&](int s) { input_tensor_shape += std::to_string(s) + " "; });
     std::cout << "input tensor shape -> " << input_tensor_shape << "\n";
-    
+
     // output shapes of network 0
     output_shape.resize(output_names.size());
-    for(int i = 0; i < output_names.size(); i++){
+    for (int i = 0; i < output_names.size(); i++) {
         output_shape[i] = engine->get_output_shape(graph_names[0], output_names[i]);
         std::string output_tensor_shape;
-        for_each(output_shape[i].begin(), output_shape[i].end(), [&](int s) {
-            output_tensor_shape += std::to_string(s) + " ";
-        });
-        std::cout << "output tensor "<< i <<" shape -> " << output_tensor_shape << "\n";
+        for_each(output_shape[i].begin(), output_shape[i].end(),
+                 [&](int s) { output_tensor_shape += std::to_string(s) + " "; });
+        std::cout << "output tensor " << i << " shape -> " << output_tensor_shape << "\n";
     }
- 
+
     // data type of network input.
     input_dtype = engine->get_input_dtype(graph_names[0], input_names[0]);
-    std::cout << "input dtype -> "<< input_dtype << ", is fp32=" << ((input_dtype == BM_FLOAT32) ? "true" : "false") << "\n";
- 
+    std::cout << "input dtype -> " << input_dtype << ", is fp32=" << ((input_dtype == BM_FLOAT32) ? "true" : "false")
+              << "\n";
+
     // data type of network output.
     output_dtype = engine->get_output_dtype(graph_names[0], output_names[0]);
-    std::cout << "output dtype -> "<< output_dtype << ", is fp32=" << ((output_dtype == BM_FLOAT32) ? "true" : "false") << "\n";
+    std::cout << "output dtype -> " << output_dtype << ", is fp32=" << ((output_dtype == BM_FLOAT32) ? "true" : "false")
+              << "\n";
     std::cout << "===============================" << std::endl;
-    
+
     // 3. Initialize Network IO
     input_tensor = std::make_shared<sail::Tensor>(handle, input_shape, input_dtype, false, false);
     input_tensors[input_names[0]] = input_tensor.get();
     output_tensor.resize(output_names.size());
-    for(int i = 0; i < output_names.size(); i++){
-        output_tensor[i] = std::make_shared<sail::Tensor>(handle, output_shape[i], output_dtype, true,  true);
+    for (int i = 0; i < output_names.size(); i++) {
+        output_tensor[i] = std::make_shared<sail::Tensor>(handle, output_shape[i], output_dtype, true, true);
         output_tensors[output_names[i]] = output_tensor[i].get();
     }
     engine->set_io_mode(graph_names[0], sail::SYSO);
 
-    // Initialize net utils 
+    // Initialize net utils
     max_batch = input_shape[0];
     m_net_h = input_shape[2];
     m_net_w = input_shape[3];
     min_dim = output_shape[0].size();
     float input_scale = engine->get_input_scale(graph_names[0], input_names[0]);
     input_scale = input_scale * 1.0 / 255.f;
-    ab[0] = input_scale; 
-    ab[1] = 0; 
-    ab[2] = input_scale; 
-    ab[3] = 0; 
-    ab[4] = input_scale; 
-    ab[5] = 0; 
+    ab[0] = input_scale;
+    ab[1] = 0;
+    ab[2] = input_scale;
+    ab[3] = 0;
+    ab[4] = input_scale;
+    ab[5] = 0;
     return 0;
 }
 
@@ -152,14 +146,13 @@ int YoloV5::Detect(std::vector<sail::BMImage>& input_images, std::vector<YoloV5B
     int ret = 0;
     // 1. preprocess
     LOG_TS(m_ts, "yolov5 preprocess");
-    if(input_images.size() == 4 && max_batch == 4)
-    {
-       ret = pre_process<4>(input_images);
-    }else if(input_images.size() == 1 && max_batch == 1){
-       ret = pre_process(input_images[0]);
-    }else{
-      std::cout << "unsupport batch size!" << std::endl;
-      exit(1);
+    if (input_images.size() == 4 && max_batch == 4) {
+        ret = pre_process<4>(input_images);
+    } else if (input_images.size() == 1 && max_batch == 1) {
+        ret = pre_process(input_images[0]);
+    } else {
+        std::cout << "unsupport batch size!" << std::endl;
+        exit(1);
     }
     CV_Assert(ret == 0);
     LOG_TS(m_ts, "yolov5 preprocess");
@@ -178,111 +171,93 @@ int YoloV5::Detect(std::vector<sail::BMImage>& input_images, std::vector<YoloV5B
 }
 
 int YoloV5::pre_process(sail::BMImage& input) {
-    int stride[3];
-    bm_image_get_stride(input.data(), stride); //bmcv api
-    sail::BMImage rgb_img(engine->get_handle(), 
-                          input.height(), 
-                          input.width(), 
-                          FORMAT_RGB_PLANAR, 
-                          DATA_TYPE_EXT_1N_BYTE,
-                          stride);
+    int stride1[3], stride2[3];
+    bm_image_get_stride(input.data(), stride1);  // bmcv api
+    stride2[0] = FFALIGN(stride1[0], 64);
+    stride2[1] = FFALIGN(stride1[1], 64);
+    stride2[2] = FFALIGN(stride1[2], 64);
+    sail::BMImage rgb_img(engine->get_handle(), input.height(), input.width(), FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE,
+                          stride2);
     bmcv->convert_format(input, rgb_img);
-    sail::BMImage convert_img(engine->get_handle(), 
-                               input_shape[2], 
-                               input_shape[3], 
-                               FORMAT_RGB_PLANAR, 
-                               bmcv->get_bm_image_data_format(input_dtype));
+    sail::BMImage convert_img(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
+                              bmcv->get_bm_image_data_format(input_dtype));
 #if USE_ASPECT_RATIO
-        bool isAlignWidth = false;
-        float ratio = get_aspect_scaled_ratio(input.width(), input.height(), m_net_w, m_net_h, &isAlignWidth);
-        sail::PaddingAtrr pad = sail::PaddingAtrr();
-        pad.set_r(114);
-        pad.set_g(114);
-        pad.set_b(114);
-        if (isAlignWidth) {
-            unsigned int th = input.height()*ratio;
-            pad.set_h(th);
-            pad.set_w(m_net_w);
-            int ty1 = (int)((m_net_h - th) / 2);
-            pad.set_sty(ty1);
-            pad.set_stx(0);
-        }else{
-            pad.set_h(m_net_h);
-            unsigned int tw = input.width()*ratio;
-            pad.set_w(tw);
+    bool isAlignWidth = false;
+    float ratio = get_aspect_scaled_ratio(input.width(), input.height(), m_net_w, m_net_h, &isAlignWidth);
+    sail::PaddingAtrr pad = sail::PaddingAtrr();
+    pad.set_r(114);
+    pad.set_g(114);
+    pad.set_b(114);
+    if (isAlignWidth) {
+        unsigned int th = input.height() * ratio;
+        pad.set_h(th);
+        pad.set_w(m_net_w);
+        int ty1 = (int)((m_net_h - th) / 2);
+        pad.set_sty(ty1);
+        pad.set_stx(0);
+    } else {
+        pad.set_h(m_net_h);
+        unsigned int tw = input.width() * ratio;
+        pad.set_w(tw);
 
-            int tx1 = (int)((m_net_w - tw) / 2);
-            pad.set_sty(0);
-            pad.set_stx(tx1);
-        }
-    #if USE_BMCV_VPP_CONVERT
-        //Using BMCV api, align with yolov5_bmcv.
-        sail::BMImage resized_img(engine->get_handle(), 
-                                input_shape[2], 
-                                input_shape[3], 
-                                FORMAT_RGB_PLANAR, 
-                                DATA_TYPE_EXT_1N_BYTE);
-        bmcv_rect_t rect;
-        rect.start_x = 0;
-        rect.start_y = 0;
-        rect.crop_w = input.width();
-        rect.crop_h = input.height();
-        bmcv_padding_atrr_t padding;
-        padding.dst_crop_stx = pad.dst_crop_stx;
-        padding.dst_crop_sty = pad.dst_crop_sty;
-        padding.dst_crop_w   = pad.dst_crop_w;
-        padding.dst_crop_h   = pad.dst_crop_h;
-        padding.if_memset    = 1; 
-        padding.padding_r    = pad.padding_r;
-        padding.padding_g    = pad.padding_g;
-        padding.padding_b    = pad.padding_b;
-        auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(),
-                                                1, 
-                                                rgb_img.data(), 
-                                                &resized_img.data(),
-                                                &padding,
-                                                &rect);
-        assert(ret == 0);
-    #else
-        sail::BMImage resized_img = bmcv->vpp_crop_and_resize_padding(
-                                    rgb_img, 
-                                    0, 0, rgb_img.width(), rgb_img.height(), 
-                                    m_net_w, m_net_h, 
-                                    pad);
-    #endif
+        int tx1 = (int)((m_net_w - tw) / 2);
+        pad.set_sty(0);
+        pad.set_stx(tx1);
+    }
+#if USE_BMCV_VPP_CONVERT
+    // Using BMCV api, align with yolov5_bmcv.
+    sail::BMImage resized_img(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
+                              DATA_TYPE_EXT_1N_BYTE);
+    bmcv_rect_t rect;
+    rect.start_x = 0;
+    rect.start_y = 0;
+    rect.crop_w = input.width();
+    rect.crop_h = input.height();
+    bmcv_padding_atrr_t padding;
+    padding.dst_crop_stx = pad.dst_crop_stx;
+    padding.dst_crop_sty = pad.dst_crop_sty;
+    padding.dst_crop_w = pad.dst_crop_w;
+    padding.dst_crop_h = pad.dst_crop_h;
+    padding.if_memset = 1;
+    padding.padding_r = pad.padding_r;
+    padding.padding_g = pad.padding_g;
+    padding.padding_b = pad.padding_b;
+    auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(), 1, rgb_img.data(), &resized_img.data(),
+                                              &padding, &rect);
+    assert(ret == 0);
 #else
-        sail::BMImage resized_img = bmcv->crop_and_resize(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, RESIZE_STRATEGY);
+    sail::BMImage resized_img =
+        bmcv->vpp_crop_and_resize_padding(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, pad);
 #endif
-    bmcv->convert_to(resized_img, convert_img,
-                     std::make_tuple(std::make_pair(ab[0], ab[1]), std::make_pair(ab[2], ab[3]),
-                                     std::make_pair(ab[4], ab[5])));
+#else
+    sail::BMImage resized_img =
+        bmcv->crop_and_resize(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, RESIZE_STRATEGY);
+#endif
+    bmcv->convert_to(
+        resized_img, convert_img,
+        std::make_tuple(std::make_pair(ab[0], ab[1]), std::make_pair(ab[2], ab[3]), std::make_pair(ab[4], ab[5])));
     bmcv->bm_image_to_tensor(convert_img, *input_tensor.get());
     return 0;
 }
 
 template <std::size_t N>
 int YoloV5::pre_process(std::vector<sail::BMImage>& input) {
-    if(input.size() != N){
+    if (input.size() != N) {
         std::cout << "Unsupport batch size!" << std::endl;
         exit(1);
     }
     std::shared_ptr<sail::BMImage> resized_imgs_vec[N];
     sail::BMImageArray<N> resized_imgs;
-    sail::BMImageArray<N> convert_imgs(
-                                engine->get_handle(), 
-                                input_shape[2], 
-                                input_shape[3], 
-                                FORMAT_RGB_PLANAR, 
-                                bmcv->get_bm_image_data_format(input_dtype));
+    sail::BMImageArray<N> convert_imgs(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
+                                       bmcv->get_bm_image_data_format(input_dtype));
     for (size_t i = 0; i < input.size(); ++i) {
-        int stride[3];
-        bm_image_get_stride(input[i].data(), stride);//bmcv api
-        sail::BMImage rgb_img(engine->get_handle(), 
-                          input[i].height(), 
-                          input[i].width(), 
-                          FORMAT_RGB_PLANAR, 
-                          DATA_TYPE_EXT_1N_BYTE,
-                          stride);
+        int stride1[3], stride2[3];
+        bm_image_get_stride(input[i].data(), stride1);  // bmcv api
+        stride2[0] = FFALIGN(stride1[0], 64);
+        stride2[1] = FFALIGN(stride1[1], 64);
+        stride2[2] = FFALIGN(stride1[2], 64);
+        sail::BMImage rgb_img(engine->get_handle(), input[i].height(), input[i].width(), FORMAT_RGB_PLANAR,
+                              DATA_TYPE_EXT_1N_BYTE, stride2);
         bmcv->convert_format(input[i], rgb_img);
 
 #if USE_ASPECT_RATIO
@@ -293,27 +268,24 @@ int YoloV5::pre_process(std::vector<sail::BMImage>& input) {
         pad.set_g(114);
         pad.set_b(114);
         if (isAlignWidth) {
-            unsigned int th = input[i].height()*ratio;
+            unsigned int th = input[i].height() * ratio;
             pad.set_h(th);
             pad.set_w(m_net_w);
             int ty1 = (int)((m_net_h - th) / 2);
             pad.set_sty(ty1);
             pad.set_stx(0);
-        }else{
+        } else {
             pad.set_h(m_net_h);
-            unsigned int tw = input[i].width()*ratio;
+            unsigned int tw = input[i].width() * ratio;
             pad.set_w(tw);
             int tx1 = (int)((m_net_w - tw) / 2);
             pad.set_sty(0);
             pad.set_stx(tx1);
         }
-        resized_imgs_vec[i] = std::make_shared<sail::BMImage>(engine->get_handle(), 
-                                                            input_shape[2], 
-                                                            input_shape[3], 
-                                                            FORMAT_RGB_PLANAR, 
-                                                            DATA_TYPE_EXT_1N_BYTE);
-    #if USE_BMCV_VPP_CONVERT
-        //Using BMCV api, align with yolov5_bmcv.
+        resized_imgs_vec[i] = std::make_shared<sail::BMImage>(engine->get_handle(), input_shape[2], input_shape[3],
+                                                              FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE);
+#if USE_BMCV_VPP_CONVERT
+        // Using BMCV api, align with yolov5_bmcv.
         bmcv_rect_t rect;
         rect.start_x = 0;
         rect.start_y = 0;
@@ -322,36 +294,29 @@ int YoloV5::pre_process(std::vector<sail::BMImage>& input) {
         bmcv_padding_atrr_t padding;
         padding.dst_crop_stx = pad.dst_crop_stx;
         padding.dst_crop_sty = pad.dst_crop_sty;
-        padding.dst_crop_w   = pad.dst_crop_w;
-        padding.dst_crop_h   = pad.dst_crop_h;
-        padding.if_memset    = 1; 
-        padding.padding_r    = pad.padding_r;
-        padding.padding_g    = pad.padding_g;
-        padding.padding_b    = pad.padding_b;
-        auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(),
-                                                1, 
-                                                rgb_img.data(), 
-                                                &resized_imgs_vec[i].get()->data(),
-                                                &padding,
-                                                &rect);
+        padding.dst_crop_w = pad.dst_crop_w;
+        padding.dst_crop_h = pad.dst_crop_h;
+        padding.if_memset = 1;
+        padding.padding_r = pad.padding_r;
+        padding.padding_g = pad.padding_g;
+        padding.padding_b = pad.padding_b;
+        auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(), 1, rgb_img.data(),
+                                                  &resized_imgs_vec[i].get()->data(), &padding, &rect);
         assert(ret == 0);
-    #else
-        bmcv->vpp_crop_and_resize_padding(
-                                  &rgb_img.data(), 
-                                  &resized_imgs_vec[i].get()->data(), 
-                                  0, 0, rgb_img.width(), rgb_img.height(), 
-                                  m_net_w, m_net_h, 
-                                  pad);
-    #endif
+#else
+        bmcv->vpp_crop_and_resize_padding(&rgb_img.data(), &resized_imgs_vec[i].get()->data(), 0, 0, rgb_img.width(),
+                                          rgb_img.height(), m_net_w, m_net_h, pad);
+#endif
         resized_imgs.attach_from(i, *resized_imgs_vec[i].get());
 #else
-        sail::BMImage resized_img = bmcv->crop_and_resize(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, RESIZE_STRATEGY);
+        sail::BMImage resized_img =
+            bmcv->crop_and_resize(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, RESIZE_STRATEGY);
         resized_imgs.CopyFrom(i, resized_img);
 #endif
     }
-    bmcv->convert_to(resized_imgs, convert_imgs,
-                     std::make_tuple(std::make_pair(ab[0], ab[1]), std::make_pair(ab[2], ab[3]),
-                                     std::make_pair(ab[4], ab[5])));
+    bmcv->convert_to(
+        resized_imgs, convert_imgs,
+        std::make_tuple(std::make_pair(ab[0], ab[1]), std::make_pair(ab[2], ab[3]), std::make_pair(ab[4], ab[5])));
     bmcv->bm_image_to_tensor(convert_imgs, *input_tensor.get());
     return 0;
 }
@@ -436,7 +401,7 @@ int YoloV5::post_process(std::vector<sail::BMImage>& images, std::vector<YoloV5B
                 int area = feat_h * feat_w;
                 assert(feat_c == anchor_num);
                 int feature_size = feat_h * feat_w * nout;
-                output_data = reinterpret_cast<float*>(output_tensor[tidx]->sys_data());                
+                output_data = reinterpret_cast<float*>(output_tensor[tidx]->sys_data());
                 float* tensor_data = output_data + batch_idx * feat_c * area * nout;
                 for (int anchor_idx = 0; anchor_idx < anchor_num; anchor_idx++) {
                     float* ptr = tensor_data + anchor_idx * feature_size;
@@ -615,11 +580,10 @@ void YoloV5::draw_bmcv(int classId,
     int start_y = MIN(MAX(top, 0), frame.height());
     int crop_w = MAX(MIN(width, frame.width() - left), 0);
     int crop_h = MAX(MIN(height, frame.height() - top), 0);
-    auto color_tuple = std::make_tuple(colors[classId % colors_num][2], 
-                                    colors[classId % colors_num][1], 
-                                    colors[classId % colors_num][0]);
+    auto color_tuple = std::make_tuple(colors[classId % colors_num][2], colors[classId % colors_num][1],
+                                       colors[classId % colors_num][0]);
     bmcv->rectangle(frame, start_x, start_y, crop_w, crop_h, color_tuple, 3);
-    if (put_text_flag) { // only support YUV420P, puttext not used here.
+    if (put_text_flag) {  // only support YUV420P, puttext not used here.
         std::string label = m_class_names[classId] + ":" + cv::format("%.2f", conf);
         if (BM_SUCCESS != bmcv->putText(frame, label.c_str(), left, top, color_tuple, 2, 2)) {
             std::cout << "bmcv put text error !!!" << std::endl;
