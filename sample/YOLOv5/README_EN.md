@@ -75,51 +75,25 @@ The downloaded data include:
 ```
 
 ## 4. Model Compilation
-The exported model needs to be compiled into BModel to run on SOPHON TPU. If you use the downloaded BModel, you can skip this section. If you use a BM1684 chip, it is recommended that you use TPU-NNTC to compile BModel;. If you use a BM1684X chip, it is recommended that you use TPU-MLIR to compile BModel.
+The exported model needs to be compiled into BModel to run on SOPHON TPU. If you use the downloaded BModel, you can skip this section. It is recommended that you use TPU-MLIR to compile BModel.
 
-### 4.1 TPU-NNTC Compiling BModel
-You need to install TPU-NNTC before compiling the model. For more information, please see [Building TPU-NNTC Environment](../../docs/Environment_Install_Guide_EN.md#1-tpu-nntc-environmental-installation). After installation, you need to enter the example directory in the TPU-NNTC environment.
-
-- Generate FP32 BModel
-
-Use TPU-NNTC to compile the torchscript model after trace to FP32 BModel. For more information, please refer to "BMNETP usage" in the TPU-NNTC Development reference Manual (available from the corresponding version of SDK of [Sophgo official website](https://developer.sophgo.com/site/index/material/28/all.html)).
-
-This example provides a script for TPU-NNTC to compile FP32 BModel in the `scripts` directory. Please modify the parameters such as torchscript model path, generated model directory and input size shapes in `gen_fp32bmodel_nntc.sh`, and specify the target platform on which BModel runs (BM1684 and BM1684X are supported) during execution, such as:
-
-```bash
-./scripts/gen_fp32bmodel_nntc.sh BM1684
-```
-
-Executing the above command will generate the `yolov5s_v6.1_3output_fp32_1b.bmodel` file under `models/BM1684/`, that is, the converted FP32 BModel.
-
-- Generate INT8 BModel
-
-The method of quantifying torchscript models using TPU-NNTC can be found in the "Model quantification" of the TPU-NNTC Development reference Manual(available from the corresponding version of SDK of [Sophgo official website](https://developer.sophgo.com/site/index/material/28/all.html)), and [Model quantification considerations](../../docs/Calibration_Guide_EN.md#1-notice).
-
-This example provides a script for quantifying INT8 BModel by TPU-NNTC in the `scripts` directory. Please modify the parameters such as torchscript model path, generated model directory and input size shapes in `gen_int8bmodel_nntc.sh`, and enter the target platform of BModel during execution, such as:
-
-```shell
-./scripts/gen_int8bmodel_nntc.sh BM1684
-```
-
-The above script will generate files such as `yolov5s_v6.1_3output_int8_1b.bmodel` under `models/BM1684`, that is, the converted INT8 BModel.
-
-### 4.2 TPU-MLIR Compiling BModel
 You need to install TPU-MLIR before compiling the model. For more information, please see [TPU-MLIR Environment Building](../../docs/Environment_Install_Guide_EN.md#2-tpu-mlir-environmental-installation). After installation, you need to enter the example directory in the TPU-MLIR environment. Use TPU-MLIR to compile the onnx model to BModel. For specific methods, please refer to "chapter 3.5" of the TPU-MLIR Quick start Manual. Compile the ONNX model (please obtain it from the corresponding version of SDK of [Sophgo official website](https://developer.sophgo.com/site/index/material/31/all.html)).
 
 - Generate FP32 BModel
 
-This example provides a script for TPU-MLIR to compile FP32 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp32bmodel_mlir.sh`, and specify the target platform on which BModel runs (BM1684X is supported) during execution, such as:
+This example provides a script for TPU-MLIR to compile FP32 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp32bmodel_mlir.sh`, and specify the target platform on which BModel runs (**BM1684/BM1684X is supported**) during execution, such as:
 
 ```bash
+./scripts/gen_fp32bmodel_mlir.sh bm1684
+#or 
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
 ```
 
-Executing the above command will generate the `yolov5s_v6.1_3output_fp32_1b.bmodel` file under `models/BM1684X/`, that is, the converted FP32 BModel.
+Executing the above command will generate the `yolov5s_v6.1_3output_fp32_1b.bmodel` file under `models/BM1684 or models/BM1684X/`, that is, the converted FP32 BModel.
 
 - Generate FP16 BModel
 
-This example provides a script for TPU-MLIR to compile FP16 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp16bmodel_mlir.sh`, and specify the target platform on which BModel runs (BM1684X is supported) during execution, such as:
+This example provides a script for TPU-MLIR to compile FP16 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp16bmodel_mlir.sh`, and specify the target platform on which BModel runs (**BM1684X is supported**) during execution, such as:
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
@@ -129,13 +103,15 @@ Executing the above command will generate the `yolov5s_v6.1_3output_fp16_1b.bmod
 
 - Generate INT8 BModel
 
-This example provides a script for quantifying INT8 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_int8bmodel_mlir.sh`, and enter the target platform of BModel (BM1684X is supported) during execution, such as:
+This example provides a script for quantifying INT8 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_int8bmodel_mlir.sh`, and enter the target platform of BModel (**BM1684/BM1684X is supported**) during execution, such as:
 
 ```shell
+./scripts/gen_int8bmodel_mlir.sh bm1684
+# or
 ./scripts/gen_int8bmodel_mlir.sh bm1684x
 ```
 
-The above script will generate files such as `yolov5s_v6.1_3output_int8_1b.bmodel` under `models/BM1684X`, that is, the converted INT8 BModel.
+The above script will generate files such as `yolov5s_v6.1_3output_int8_1b.bmodel` under `models/BM1684 or models/BM1684X`, that is, the converted INT8 BModel.
 
 ## 5. Example Test
 - [C++ Example](./cpp/README_EN.md)

@@ -3,11 +3,13 @@ model_dir=$(dirname $(readlink -f "$0"))
 
 if [ ! $1 ]; then
     target=bm1684x
+    target_dir=BM1684X
 else
-    target=$1
+    target=${1,,}
+    target_dir=${target^^}
 fi
 
-outdir=../models/BM1684X
+outdir=../models/$target_dir
 
 function gen_mlir()
 {
@@ -37,7 +39,6 @@ function gen_int8bmodel()
         --quantize INT8 \
         --chip $target \
         --calibration_table yolov5s_cali_table \
-        --asymmetric \
         --model yolov5s_v6.1_3output_int8_$1b.bmodel
 
     mv yolov5s_v6.1_3output_int8_$1b.bmodel $outdir/
@@ -47,7 +48,7 @@ pushd $model_dir
 if [ ! -d $outdir ]; then
     mkdir -p $outdir
 fi
-# batch_size=1
+batch_size=1
 gen_mlir 1
 gen_cali_table 1
 gen_int8bmodel 1
