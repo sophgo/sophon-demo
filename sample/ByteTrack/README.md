@@ -115,7 +115,7 @@ acc         525  0.5899  0.64848  0.541026  0.663406  0.795166  5009   8  14   2
 本例程使用YOLOv5的目标检测模型，详情请参考[YOLOv5](../YOLOv5/README.md#71-bmrt_test)。
 
 ### 7.2 程序运行性能
-参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理、tracker更新时间。C++例程打印的预处理时间、推理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。这里**只统计平均每帧的track_time**，解码、目标检测模型的时间请参考[YOLOV5](../YOLOv5/README.md#72-程序运行性能)
+参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理、tracker更新时间。C++例程打印的预处理时间、推理时间、后处理为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。这里**只统计平均每帧的track_time**，解码、目标检测模型的时间请参考[YOLOV5](../YOLOv5/README.md#72-程序运行性能)
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/mot15_trainset/ADL-Rundle-6/img1`，性能测试结果如下：
 |   测试平台    |        测试程序      |           测试模型                   | track_time |

@@ -19,7 +19,7 @@
 using namespace std::chrono;
 using time_stamp_t = time_point<steady_clock, microseconds>;
 
-#define MAX_TAGS 128
+#define MAX_TAGS 2000
 #define MAX_RECORDS 2000
 
 #define LOG_TS(p_ts, tag) if ((p_ts)) (p_ts)->save((tag));
@@ -51,8 +51,11 @@ public:
     records_.reserve(MAX_TAGS);
 
     ts_ = new std::vector<time_stamp_t>[MAX_TAGS]();
-    for (int i = 0; i < MAX_TAGS; i++)
+    batch_sizes_ = new std::vector<int>[MAX_TAGS]();
+    for (int i = 0; i < MAX_TAGS; i++){
       ts_[i].reserve(MAX_RECORDS);
+      batch_sizes_->reserve(MAX_RECORDS);
+    }  
 
     num_tags_ = 0;
     base_ = time_point_cast<microseconds>(steady_clock::now());
@@ -62,19 +65,22 @@ public:
     delete []ts_;
   }
 
-  void save(const std::string &tag) {
+  void save(const std::string &tag, int batch_size=1) {
         time_stamp_t t = time_point_cast<microseconds>(steady_clock::now());
         std::unordered_map<std::string, std::vector<time_stamp_t> *>::iterator it = records_.find(tag);
         if (it == records_.end()) {
             if (num_tags_ == MAX_TAGS)
                 return;
             records_[tag] = &ts_[num_tags_++];
+            records_bs[tag] = &batch_sizes_[num_tags_++];
             tags_.push_back(tag);
         }
         records_[tag]->push_back(t);
-
+        records_bs[tag]->push_back(batch_size);
+        
         if (records_[tag]->size() > MAX_RECORDS) {
             records_[tag]->erase(records_[tag]->begin());
+            records_bs[tag]->erase(records_bs[tag]->begin());
         }
   }
 
@@ -108,8 +114,14 @@ public:
     std::cout << "############################" << std::endl;
     std::cout << "SUMMARY: " << head << std::endl;
     std::cout << "############################" << std::endl;
+
+    int max_align_size = 20;
+    for (size_t i = 0; i < tags_.size(); i++){
+      max_align_size = MAX(max_align_size, tags_[i].length());
+    }
     for (size_t i = 0; i < tags_.size(); i++) {
       std::vector<time_stamp_t> ts = *records_[tags_[i]];
+      std::vector<int> bs = *records_bs[tags_[i]];
       if (ts.size() % 2) {
         std::cout << "[" << tags_[i] << "] invalid records #: " 
                   << ts.size() << " us"<< std::endl;
@@ -117,10 +129,13 @@ public:
       }
       microseconds sum(0);
       for (size_t j = 0; j < ts.size(); j += 2) {
-        microseconds duration = duration_cast<microseconds>(ts[j + 1] - ts[j]);
+        if(bs[j + 1] != bs[j]){
+          std::cerr << "WARNING: invalid batch_size records!" << std::endl;
+        }
+        microseconds duration = duration_cast<microseconds>(ts[j + 1] - ts[j]) / bs[j];
         sum += duration;
       }
-      std::cout << "[" << std::setw(20) << tags_[i] << "] "
+      std::cout << "[" << std::setw(max_align_size) << tags_[i] << "] "
                 << " loops: "  << std::setw(4) << (ts.size() / 2) 
                 << " avg: " << (sum / (ts.size() / 2)).count() 
                 << " us"<< std::endl;
@@ -183,7 +198,10 @@ public:
   }
 
   std::unordered_map<std::string, std::vector<time_stamp_t> *> records_;
+  std::unordered_map<std::string, std::vector<int> *> records_bs;
+
   std::vector<std::string> tags_;
+  std::vector<int> *batch_sizes_;
   std::vector<time_stamp_t> *ts_;
   std::map<time_stamp_t, std::vector<struct TsInfo>> timeline_;
   int num_tags_;
