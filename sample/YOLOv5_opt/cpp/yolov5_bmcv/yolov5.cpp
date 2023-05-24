@@ -365,7 +365,6 @@ void YoloV5::draw_bmcv(bm_handle_t& handle,
 }
 
 int YoloV5::post_process_tpu_kernel(const std::vector<bm_image>& images, std::vector<YoloV5BoxVec>& detected_boxes) {
-
   for(int i = 0; i < max_batch; i++){
     int tx1 = 0, ty1 = 0;
 #if USE_ASPECT_RATIO
@@ -384,8 +383,10 @@ int YoloV5::post_process_tpu_kernel(const std::vector<bm_image>& images, std::ve
     }
     bm_thread_sync(m_bmContext->handle());
     bm_memcpy_d2s_partial_offset(m_bmContext->handle(), (void*)(detect_num + i), detect_num_mem[i],1 * sizeof(int32_t), 0); // only support batchsize=1
-    bm_memcpy_d2s_partial_offset(m_bmContext->handle(), (void*)output_tensor[i], out_dev_mem[i], detect_num[i] * 7 * sizeof(float),
+    if(detect_num[i] > 0){
+      bm_memcpy_d2s_partial_offset(m_bmContext->handle(), (void*)output_tensor[i], out_dev_mem[i], detect_num[i] * 7 * sizeof(float),
                                 0);  // 25200*7
+    }
     YoloV5BoxVec vec;
     detected_boxes.push_back(vec);
     for (int bid = 0; bid < detect_num[i]; bid++) {
