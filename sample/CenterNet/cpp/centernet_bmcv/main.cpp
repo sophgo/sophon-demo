@@ -6,229 +6,269 @@
 // third-party components.
 //
 //===----------------------------------------------------------------------===//
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <numeric>
-#include <chrono>
-#include <stdlib.h>
+#include <dirent.h>
 #include <string.h>
-#include "spdlog/spdlog.h"
-#include "cvwrapper.h"
-#include "engine.h"
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fstream>
+#include "json.hpp"
 #include "opencv2/opencv.hpp"
-#include "processor.h"
+#include "centernet.hpp"
+#include "ff_decode.hpp"
+#include <iomanip>
+using json = nlohmann::json;
+using namespace std;
 
-// 全局变量
-// 记录模型信息
-std::vector<std::string> gh_names;       // graph名
-std::vector<std::string> input_names;    // 网络输入名
-std::vector<int>         input_shape;    // 输入shape
-std::vector<std::string> output_names;   // 网络输出名
-std::vector<int>         output_shape;   // 输出shape
-bm_data_type_t           input_dtype;    // 输入数据类型
-bm_data_type_t           output_dtype;   // 输出数据类型
+#define DUMP_DECODE 0
 
-
-// 输出bmodel输出层信息
-void PrintModelInputInfo(sail::Engine& engine) {
-    // graph名
-    gh_names = engine.get_graph_names();
-    std::string gh_info;
-    for_each(gh_names.begin(), gh_names.end(), [&](std::string& s) {
-        gh_info += "0: " + s + "; ";
-    });
-    std::cout << "grapgh name -> " << gh_info << "\n";
-
-    // 网络输入名
-    input_names = engine.get_input_names(gh_names[0]);
-    assert(input_names.size() > 0);
-    std::string input_tensor_names;
-    for_each(input_names.begin(), input_names.end(), [&](std::string& s) {
-        input_tensor_names += "0: " + s + "; ";
-    });
-    std::cout << "net input name -> " << input_tensor_names << "\n";
-
-    // 网络输出名字
-    output_names = engine.get_output_names(gh_names[0]);
-    assert(output_names.size() > 0);
-    std::string output_tensor_names;
-    for_each(output_names.begin(), output_names.end(), [&](std::string& s) {
-        output_tensor_names += "0: " + s + "; ";
-    });
-    std::cout << "net output name -> " << output_tensor_names << "\n";
-
-    // 网络输入尺寸
-    input_shape = engine.get_input_shape(gh_names[0], input_names[0]);
-    std::string input_tensor_shape;
-    for_each(input_shape.begin(), input_shape.end(), [&](int s) {
-        input_tensor_shape += std::to_string(s) + " ";
-    });
-    std::cout << "input tensor shape -> " << input_tensor_shape << "\n";
-    
-    // 网络输出尺寸
-    output_shape = engine.get_output_shape(gh_names[0], output_names[0]);
-    std::string output_tensor_shape;
-    for_each(output_shape.begin(), output_shape.end(), [&](int s) {
-        output_tensor_shape += std::to_string(s) + " ";
-    });
-    std::cout << "output tensor shape -> " << output_tensor_shape << "\n";
-
-    // 网络输入数据类型
-    input_dtype = engine.get_input_dtype(gh_names[0], input_names[0]);
-    std::cout << "input dtype -> "<< input_dtype << ", is fp32=" << ((input_dtype == BM_FLOAT32) ? "true" : "false") << "\n";
-
-    // 网络输出数据类型
-    output_dtype = engine.get_output_dtype(gh_names[0], output_names[0]);
-    std::cout << "output dtype -> "<< output_dtype << ", is fp32=" << ((output_dtype == BM_FLOAT32) ? "true" : "false") << "\n";
-}
-
-
-
-int main(int argc, char** argv) {
-    const char *keys="{ bmodel | ../../data/models/BM1684/centernet_fp32_1b.bmodel | bmodel file path}"
-                     "{ tpu_id | 0    | TPU device id}"
-                     "{ conf   | 0.35 | confidence threshold for filter boxes}"
-                     "{ image  | ../../data/ctdet_test.jpg | input stream file path}"
-                     "{ help   | 0    | Print help information.}";
-
+int main(int argc, char* argv[]) {
+    cout.setf(ios::fixed);
+    // get params
+    const char* keys =
+        "{bmodel | ../../models/BM1684/centernet_fp32_1b.bmodel | bmodel file "
+        "path}"
+        "{dev_id | 0 | TPU device id}"
+        "{conf_thresh | 0.35 | confidence threshold for filter boxes}"
+        "{help | 0 | print help information.}"
+        "{input | ../../datasets/test | input path, images directory}"
+        "{classnames | ../../datasets/coco.names | class names file path}";
     cv::CommandLineParser parser(argc, argv, keys);
     if (parser.get<bool>("help")) {
         parser.printMessage();
         return 0;
     }
+    string bmodel_file = parser.get<string>("bmodel");
+    string input = parser.get<string>("input");
+    int dev_id = parser.get<int>("dev_id");
 
-    // 模型路径
-    std::string bmodel_file = parser.get<std::string>("bmodel");
-    // 图片名
-    std::string image_file  = parser.get<std::string>("image");
-    // 设备号
-    int tpu_id              = parser.get<int>("tpu_id");
-    // 置信度
-    float confidence        = parser.get<float>("conf");
-    // 测试次数
-    int test_loop           = 1;
-
-    // 生成engine，加载模型
-    sail::Engine engine(tpu_id);
-    if (!engine.load(bmodel_file)) {
-        // 加载模型失败
-        std::cout << "Engine load bmodel "<< bmodel_file << "failed" << "\n";
-        exit(0);
+    // check params
+    struct stat info;
+    if (stat(bmodel_file.c_str(), &info) != 0) {
+        cout << "Cannot find valid model file." << endl;
+        exit(1);
+    }
+    string coco_names = parser.get<string>("classnames");
+    if (stat(coco_names.c_str(), &info) != 0) {
+        cout << "Cannot find classnames file." << endl;
+        exit(1);
+    }
+    if (stat(input.c_str(), &info) != 0) {
+        cout << "Cannot find input path." << endl;
+        exit(1);
     }
 
-    // 输出模型信息
-    PrintModelInputInfo(engine);
+    // creat handle
+    BMNNHandlePtr handle = make_shared<BMNNHandle>(dev_id);
+    cout << "set device id: " << dev_id << endl;
+    bm_handle_t h = handle->handle();
 
-    sail::Handle handle = engine.get_handle();
-    sail::Tensor input_tensor(handle,  input_shape,  input_dtype,  false, false);
-    sail::Tensor output_tensor(handle, output_shape, output_dtype, true,  true);
+    // load bmodel
+    shared_ptr<BMNNContext> bm_ctx =
+        make_shared<BMNNContext>(handle, bmodel_file.c_str());
 
-    std::map<std::string, sail::Tensor*> input_tensors  = {{ input_names[0],  &input_tensor}}; 
-    std::map<std::string, sail::Tensor*> output_tensors = {{ output_names[0], &output_tensor}}; 
+    // initialize net
+    Centernet centernet(bm_ctx);
+    CV_Assert(0 ==
+              centernet.Init(parser.get<float>("conf_thresh"), coco_names));
 
-    engine.set_io_mode(gh_names[0], sail::SYSO);
-    sail::Bmcv bmcv(handle);
+    // profiling
+    TimeStamp centernet_ts;
+    TimeStamp* ts = &centernet_ts;
+    centernet.enableProfile(&centernet_ts);
 
-    // 根据网络输入类型确定网络图片输入类型
-    bm_image_data_format_ext img_dtype = bmcv.get_bm_image_data_format(input_dtype);
+    // get batch_size
+    int batch_size = centernet.batch_size();
 
-    CenterNetPreprocessor preprocessor(bmcv, input_shape[3], input_shape[2], 
-                                       engine.get_input_scale(gh_names[0], input_names[0]));
-    sail::Decoder decoder((const string)image_file, true, tpu_id);
-    CenterNetPostprocessor postprocessor(output_shape, confidence, engine.get_output_scale(gh_names[0], output_names[0]));
+    // creat save path
+    if (access("results", 0) != F_OK)
+        mkdir("results", S_IRWXU);
+    if (access("results/images", 0) != F_OK)
+        mkdir("results/images", S_IRWXU);
 
-    // 网络输入的batch
-    int input_batch_size = input_shape[0];
-
-    for (int i = 0; i < test_loop; i++) {
-        if (input_batch_size == 1) {
-            sail::BMImage imgs_0;
-            sail::BMImage imgs_1(handle, input_shape[2], input_shape[3],
-                                 FORMAT_BGR_PLANAR, img_dtype);
-            imgs_0 = decoder.read(handle);
-            sail::BMImage rgb_img = bmcv.convert_format(imgs_0);
-            std::cout << "Preprocess begin" << "\n";
-            bool  align_width;
-            float ratio;
-            preprocessor.Process(rgb_img, imgs_1, align_width, ratio);
-            bmcv.bm_image_to_tensor(imgs_1, input_tensor);
-            std::cout << "Preprocess end" << "\n";
-            std::cout << "Inference begin" << "\n";
-            engine.process(gh_names[0], input_tensors, output_tensors);
-            std::cout << "Inference end" << "\n";
-
-            std::cout << "Postprocess begin" << "\n";
-            float* output_data = reinterpret_cast<float*>(output_tensor.sys_data());
-            postprocessor.Process(output_data, align_width, ratio);
-            std::shared_ptr<std::vector<BMBBox>> pVectorBBox =
-                postprocessor.CenternetCorrectBBox(rgb_img.height(), rgb_img.width());
-            std::cout << "Postprocess end" << "\n";
-
-            for (auto iter = pVectorBBox->begin(); iter != pVectorBBox->end(); iter++) {
-                std::cout << "Got one object, confidence:" << iter->conf << "\n";
-                bmcv.rectangle(rgb_img, iter->x, iter->y,
-                                iter->w, iter->h, std::make_tuple(255, 0, 0), 3);
-            }
-            // save result
-            auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-            std::stringstream ss;
-            ss << std::put_time(std::localtime(&t), "%Y-%m-%d-%H-%M-%S");
-            bmcv.imwrite("./results/centernet_result_" + ss.str() + ".jpg", rgb_img);
-            std::cout << "save result" << "\n";
-        } else if (input_batch_size == 4) {
-            std::vector<sail::BMImage> imgs_0;
-            imgs_0.resize(4);
-            sail::BMImageArray<4> imgs_1(handle, input_shape[2], input_shape[3],
-                                          FORMAT_BGR_PLANAR, img_dtype);
-            // read 4 images from image files or a video file
-            std::vector<std::pair<int,int>> ost_size_list;
-            for (int j = 0; j < input_batch_size; ++j) {
-                int ret = decoder.read(handle, imgs_0[j]);
-                if (ret != 0) {
-                    std::cout << "read failed" << "\n";
-                }
-            }
-
-            bool align_width;
-            float ratio;
-            preprocessor.Process(imgs_0, imgs_1, align_width, ratio);
-            bmcv.bm_image_to_tensor(imgs_1, input_tensor);
-            std::cout << "Inference begin" << "\n";
-            engine.process(gh_names[0], input_tensors, output_tensors);
-            std::cout << "Inference end" << "\n";
-
-            std::cout << "Postprocess begin" << "\n";
-
-            float* output_data = reinterpret_cast<float*>(output_tensor.sys_data());
-            for (int b = 0; b < output_shape[0]; ++b) {
-                postprocessor.Process(output_data + b * postprocessor.GetBatchOffset(),
-                                      align_width, ratio);
-                std::shared_ptr<std::vector<BMBBox>> pVectorBBox =
-                        postprocessor.CenternetCorrectBBox(imgs_0[b].height(), imgs_0[b].width());
-                std::cout << "Postprocess end" << "\n";
-
-                // bm_image to cvmat, to avoid YUV444 case that can not draw
-                cv::Mat mat1;
-                cv::bmcv::toMAT(&imgs_0[b].data(), mat1);
-                for (auto iter = pVectorBBox->begin(); iter != pVectorBBox->end(); iter++) {
-                    std::cout << "Got one object, confidence:" << iter->conf << "\n";
-                    cv::rectangle(mat1,
-                                  cv::Point(iter->x, iter->y),
-                                  cv::Point(iter->x + iter->w, iter->y + iter->h),
-                                  cv::Scalar (255, 0, 0), 2);
-//                bmcv.rectangle(imgs_0[0], iter->x, iter->y,
-//                               iter->w, iter->h, std::make_tuple(255, 0, 0), 3);
-                }
-                // save result
-                auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-                std::stringstream ss;
-                ss << std::put_time(std::localtime(&t), "%Y-%m-%d-%H-%M-%S");
-                cv::imwrite("./results/centernet_result_" + ss.str() + "_b" + std::to_string(b) + ".jpg", mat1);
-//            bmcv.imwrite("centernet_result_" + ss.str() + ".jpg", imgs_0[0]);
-                std::cout << "save result" << "\n";
-            }
+    // test images
+    // get files
+    vector<string> files_vector;
+    DIR* pDir;
+    struct dirent* ptr;
+    pDir = opendir(input.c_str());
+    while ((ptr = readdir(pDir)) != 0) {
+        if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
+            files_vector.push_back(input + "/" + ptr->d_name);
         }
     }
+    closedir(pDir);
+
+    vector<bm_image> batch_imgs;
+    vector<string> batch_names;
+    vector<CenternetBoxVec> boxes;
+    vector<json> results_json;
+    int cn = files_vector.size();
+    int id = 0;
+    for (vector<string>::iterator iter = files_vector.begin();
+         iter != files_vector.end(); iter++) {
+        string img_file = *iter;
+        id++;
+        cout << id << "/" << cn << ", img_file: " << img_file << endl;
+        ts->save("read image");
+        // cv::Mat img = cv::imread(img_file, cv::IMREAD_COLOR, dev_id);
+        bm_image bmimg;
+        picDec(h, img_file.c_str(), bmimg);
+
+#if DUMP_DECODE
+        cv::Mat decode_out;
+        cv::bmcv::toMAT(&bmimg, decode_out);
+        // decode_out = img;
+       
+        uchar* array;
+        array = decode_out.data;
+        std::fstream f;
+        f.open("cv_decode.txt",std::ios::out);
+        for (int i = 0; i < decode_out.rows; i++){
+            for (int j = 0; j < decode_out.cols; j++){
+                f<< setw(6) << (int)*(array+j+i*decode_out.cols);
+            }
+            f << std::endl<<std::endl;
+        }
+        f.close();
+
+#endif
+        ts->save("read image");
+        size_t index = img_file.rfind("/");
+        string img_name = img_file.substr(index + 1);
+        batch_imgs.push_back(bmimg);
+        batch_names.push_back(img_name);
+        if ((int)batch_imgs.size() == batch_size) {
+            // predict
+            CV_Assert(0 == centernet.Detect(batch_imgs, boxes));
+
+            for (int i = 0; i < batch_size; i++) {
+                vector<json> bboxes_json;
+                if (batch_imgs[i].image_format != 0) {
+                    bm_image frame;
+                    bm_image_create(h, batch_imgs[i].height,
+                                    batch_imgs[i].width, FORMAT_YUV420P,
+                                    batch_imgs[i].data_type, &frame);
+                    bmcv_image_storage_convert(h, 1, &batch_imgs[i], &frame);
+                    bm_image_destroy(batch_imgs[i]);
+                    batch_imgs[i] = frame;
+                }
+                for (auto bbox : boxes[i]) {
+#if DEBUG
+                    cout << "  class id=" << bbox.class_id
+                         << ", score = " << bbox.score << " (x=" << bbox.x
+                         << ",y=" << bbox.y << ",w=" << bbox.width
+                         << ",h=" << bbox.height << ")" << endl;
+#endif
+                    // draw image
+                    centernet.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x,
+                                        bbox.y, bbox.width, bbox.height,
+                                        batch_imgs[i],centernet.m_confThreshold);
+
+                    // save result
+                    json bbox_json;
+                    bbox_json["category_id"] = bbox.class_id;
+                    bbox_json["score"] = bbox.score;
+                    bbox_json["bbox"] = {bbox.x, bbox.y, bbox.width,
+                                         bbox.height};
+                    bboxes_json.push_back(bbox_json);
+                }
+                json res_json;
+                res_json["image_name"] = batch_names[i];
+                res_json["bboxes"] = bboxes_json;
+                results_json.push_back(res_json);
+
+                // save image
+                void* jpeg_data = NULL;
+                size_t out_size = 0;
+                int ret = bmcv_image_jpeg_enc(h, 1, &batch_imgs[i], &jpeg_data,
+                                              &out_size);
+                if (ret == BM_SUCCESS) {
+                    string img_file = "results/images/" + batch_names[i];
+                    FILE* fp = fopen(img_file.c_str(), "wb");
+                    fwrite(jpeg_data, out_size, 1, fp);
+                    fclose(fp);
+                }
+                free(jpeg_data);
+                bm_image_destroy(batch_imgs[i]);
+            }
+            batch_imgs.clear();
+            batch_names.clear();
+            boxes.clear();
+        }
+    }
+    if (!batch_imgs.empty()) {
+        CV_Assert(0 == centernet.Detect(batch_imgs, boxes));
+        for (int i = 0; i < batch_imgs.size(); i++) {
+            vector<json> bboxes_json;
+            if (batch_imgs[i].image_format != 0) {
+                bm_image frame;
+                bm_image_create(h, batch_imgs[i].height, batch_imgs[i].width,
+                                FORMAT_YUV420P, batch_imgs[i].data_type,
+                                &frame);
+                bmcv_image_storage_convert(h, 1, &batch_imgs[i], &frame);
+                bm_image_destroy(batch_imgs[i]);
+                batch_imgs[i] = frame;
+            }
+            for (auto bbox : boxes[i]) {
+#if DEBUG
+                cout << "  class id=" << bbox.class_id
+                     << ", score = " << bbox.score << " (x=" << bbox.x
+                     << ",y=" << bbox.y << ",w=" << bbox.width
+                     << ",h=" << bbox.height << ")" << endl;
+#endif
+                centernet.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x,
+                                    bbox.y, bbox.width, bbox.height,
+                                    batch_imgs[i],centernet.m_confThreshold);
+                json bbox_json;
+                bbox_json["category_id"] = bbox.class_id;
+                bbox_json["score"] = bbox.score;
+                bbox_json["bbox"] = {bbox.x, bbox.y, bbox.width, bbox.height};
+                bboxes_json.push_back(bbox_json);
+            }
+            json res_json;
+            res_json["image_name"] = batch_names[i];
+            res_json["bboxes"] = bboxes_json;
+            results_json.push_back(res_json);
+            // save image
+            void* jpeg_data = NULL;
+            size_t out_size = 0;
+            int ret = bmcv_image_jpeg_enc(h, 1, &batch_imgs[i], &jpeg_data,
+                                          &out_size);
+            string img_file = "results/images/" + batch_names[i];
+            if (ret == BM_SUCCESS) {
+                FILE* fp = fopen(img_file.c_str(), "wb");
+                fwrite(jpeg_data, out_size, 1, fp);
+                fclose(fp);
+            }
+            free(jpeg_data);
+            bm_image_destroy(batch_imgs[i]);
+        }
+        batch_imgs.clear();
+        batch_names.clear();
+        boxes.clear();
+    }
+
+    // save results
+    size_t index = input.rfind("/");
+    if(index == input.length() - 1){
+        input = input.substr(0, input.length() - 1);
+        index = input.rfind("/");
+    }
+    string dataset_name = input.substr(index + 1);
+    index = bmodel_file.rfind("/");
+    string model_name = bmodel_file.substr(index + 1);
+    string json_file = "results/" + model_name + "_" + dataset_name +
+                       "_bmcv_cpp" + "_result.json";
+    cout << "================" << endl;
+    cout << "result saved in " << json_file << endl;
+    ofstream(json_file) << std::setw(4) << results_json;
+
+    // print speed
+    time_stamp_t base_time = time_point_cast<microseconds>(steady_clock::now());
+    centernet_ts.calbr_basetime(base_time);
+    centernet_ts.build_timeline("centernet test");
+    centernet_ts.show_summary("centernet test");
+    centernet_ts.clear();
+
     return 0;
 }
