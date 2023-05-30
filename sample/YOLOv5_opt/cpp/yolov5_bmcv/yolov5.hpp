@@ -46,7 +46,7 @@ typedef struct {
   float bias[MAX_YOLO_INPUT_NUM * MAX_YOLO_ANCHOR_NUM * 2];
   float anchor_scale[MAX_YOLO_INPUT_NUM];
   int clip_box;
-} tpu_kernel_api_yolov5NMS_t;
+}__attribute__((packed)) tpu_kernel_api_yolov5NMS_t;
 
 typedef struct {
   unsigned long long bottom_addr;
@@ -58,7 +58,7 @@ typedef struct {
   float confidence_threshold;
   int agnostic_nms;
   int max_hw;
-} tpu_kernel_api_yolov5NMS_v2_t;
+}__attribute__((packed)) tpu_kernel_api_yolov5NMS_v2_t;
 
 class YoloV5 {
   std::shared_ptr<BMNNContext> m_bmContext;
