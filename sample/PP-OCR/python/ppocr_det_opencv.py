@@ -14,6 +14,7 @@ import argparse
 import sophon.sail as sail
 import math
 import logging
+import time
 logging.basicConfig(level=logging.DEBUG)
 
 from shapely.geometry import Polygon
@@ -60,7 +61,6 @@ class DBPostProcess(object):
             img, contours, _ = outs[0], outs[1], outs[2]
         elif len(outs) == 2:
             contours, _ = outs[0], outs[1]
-
         num_contours = min(len(contours), self.max_candidates)
 
         boxes = []
@@ -75,15 +75,16 @@ class DBPostProcess(object):
                 score = self.box_score_fast(pred, points.reshape(-1, 2))
             else:
                 score = self.box_score_slow(pred, contour)
+
             if self.box_thresh > score:
                 continue
 
             box = self.unclip(points).reshape(-1, 1, 2)
             box, sside = self.get_mini_boxes(box)
+            
             if sside < self.min_size + 2:
                 continue
             box = np.array(box)
-
             box[:, 0] = np.clip(
                 np.round(box[:, 0] / width * dest_width), 0, dest_width)
             box[:, 1] = np.clip(
@@ -184,18 +185,18 @@ class DBPostProcess(object):
 
 class PPOCRv2Det(object):
     def __init__(self, args):
-        self.det_batch_size = args.det_batch_size
         # load bmodel
-        model_path = args.det_model
+        model_path = args.bmodel_det
         logging.info("using model {}".format(model_path))
-        self.net = sail.Engine(model_path, args.tpu_id, sail.IOMode.SYSIO)
+        self.net = sail.Engine(model_path, args.dev_id, sail.IOMode.SYSIO)
         self.graph_name = self.net.get_graph_names()[0]
         self.input_name = self.net.get_input_names(self.graph_name)[0]
         self.input_shape = self.net.get_input_shape(self.graph_name, self.input_name)
+        self.det_batch_size = self.input_shape[0]
         logging.info("load bmodel success!")
         #self.input_shape = self.net.get_max_input_shapes(self.graph_name)[self.input_name]
         # preprocess
-        self.det_limit_side_len = sorted(args.det_limit_side_len)
+        self.det_limit_side_len = sorted([self.input_shape[2], self.input_shape[3]])
         self.mean = np.array([0.485, 0.456, 0.406]).reshape((1, 1, 3)).astype('float32') * 255.0
         self.scale = np.array([1/0.229, 1/0.224, 1/0.225]).reshape((1, 1, 3)).astype('float32') * 1 / 255.0
 
@@ -206,6 +207,10 @@ class PPOCRv2Det(object):
                                             unclip_ratio=1.5,
                                             use_dilation=False,
                                             score_mode="fast")
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
+        
 
     def preprocess(self, img):
         h, w, _ = img.shape
@@ -223,10 +228,9 @@ class PPOCRv2Det(object):
         resize_w = int(w * ratio)
         resize_h = max(int(round(resize_h / 32) * 32), 32)
         resize_w = max(int(round(resize_w / 32) * 32), 32)
-            
+        
         if h != resize_h or w != resize_w:
             img = cv2.resize(img, (resize_w, resize_h))
-
         img = img.astype('float32')
         img = img - self.mean
         img = img * self.scale
@@ -234,12 +238,6 @@ class PPOCRv2Det(object):
 
         padding_im = np.zeros((3, limit_side_len, limit_side_len), dtype=np.float32)
         padding_im[:, 0 : resize_h, 0 : resize_w] = img
-        
-        # CHW to NCHW format
-        #padding_im = np.expand_dims(padding_im, axis=0)
-
-        #ratio_h = resize_h / float(h)
-        #ratio_w = resize_w / float(w)
 
         return padding_im, [h, w, resize_h, resize_w]
 
@@ -308,11 +306,14 @@ class PPOCRv2Det(object):
         img_input_list = []
         img_size_list = []
         # 对每张图片进行预处理
+        start_prep = time.time()
         for img in img_list:
             img, [src_h, src_w, resize_h, resize_w] = self.preprocess(img)
             img_input_list.append(img)
             img_size_list.append([src_h, src_w, resize_h, resize_w])
+        self.preprocess_time += time.time() - start_prep
         # 组batch操作
+        start_infer = time.time()
         outputs_list = []
         for beg_img_no in range(0, img_num, self.det_batch_size):
             end_img_no = min(img_num, beg_img_no + self.det_batch_size)
@@ -325,12 +326,15 @@ class PPOCRv2Det(object):
                 img_input = np.stack(img_input_list[beg_img_no:end_img_no])
                 outputs = self.predict(img_input)
                 outputs_list.extend(outputs)
+        self.inference_time += time.time() - start_infer
         # 对输出进行后处理
+        start_post = time.time()
         dt_boxes_list = []
         for id, outputs in enumerate(outputs_list):
             src_h, src_w, resize_h, resize_w = img_size_list[id]
             dt_boxes = self.postprocess(outputs, src_h, src_w, resize_h, resize_w)
             dt_boxes_list.append(dt_boxes)
+        self.postprocess_time += time.time() - start_post
         return dt_boxes_list
 
 def draw_text_det_res(dt_boxes, img_path):
@@ -347,21 +351,17 @@ def main(opt):
     ppocrv2_det = PPOCRv2Det(opt)
     # 读取得到的图片存放在这个list中
     img_list = []
-    for img_name in os.listdir(opt.img_path):
-        logging.info(img_name)
+    for img_name in os.listdir(opt.input):
         #label = img_name.split('.')[0]
-        img_file = os.path.join(opt.img_path, img_name)
+        img_file = os.path.join(opt.input, img_name)
         #print(img_file, label)
-        # src_img = cv2.imdecode(np.fromfile(img_file, dtype=np.uint8), -1)
-        src_img = cv2.imread(img_file)
+        src_img = cv2.imdecode(np.fromfile(img_file, dtype=np.uint8), -1)
         img_list.append(src_img)
     # 检测得到的结果
     dt_boxes_list = ppocrv2_det(img_list)
 
-    for img_name, dt_boxes in zip(os.listdir(opt.img_path), dt_boxes_list):
-        #logging.info(img_name)
-        #logging.info(dt_boxes)
-        image_file = os.path.join(opt.img_path, img_name)
+    for img_name, dt_boxes in zip(os.listdir(opt.input), dt_boxes_list):
+        image_file = os.path.join(opt.input, img_name)
         draw_im = draw_text_det_res(dt_boxes, image_file)
         img_name_pure = os.path.split(image_file)[-1]
         img_path = os.path.join(draw_img_save,
@@ -371,13 +371,9 @@ def main(opt):
 
 def parse_opt():
     parser = argparse.ArgumentParser(prog=__file__)
-    #parser.add_argument('--img-size', type=int, default=[48, 192], help='inference size (pixels)')
-    parser.add_argument('--tpu_id', type=int, default=0, help='tpu id')
-    parser.add_argument('--img_path', type=str, default='../data/images/ppocr_img/test', help='input image path')
-    parser.add_argument('--det_model', type=str, default='../data/models/BM1684/ch_PP-OCRv2_det_fp32_b1b4.bmodel', help='bmodel path')
-    parser.add_argument("--det_batch_size", type=int, default=4)
-    parser.add_argument('--det_limit_side_len', type=int, default=[960])
-    #parser.add_argument("--cls_thresh", type=float, default=0.9)
+    parser.add_argument('--dev_id', type=int, default=0, help='tpu card id')
+    parser.add_argument('--input', type=str, default='../datasets/cali_set_det', help='input image directory path')
+    parser.add_argument('--bmodel_det', type=str, default='../models/BM1684X/ch_PP-OCRv3_det_fp32_1b.bmodel', help='bmodel path')
     opt = parser.parse_args()
     return opt
 
