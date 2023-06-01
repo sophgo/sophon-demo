@@ -206,6 +206,14 @@ source /etc/profile
     ```bash
     sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
     ```
+    如果报错：`/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
+    这是由于您主机上的交叉编译工具链版本太高导致，可以通过如下命令重新安装：
+    ```bash
+    sudo apt remove cpp-*-aarch64-linux-gnu
+    sudo apt-get install gcc-7-aarch64-linux-gnu g++-7-aarch64-linux-gnu
+    sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-7 /usr/bin/aarch64-linux-gnu-gcc
+    sudo ln -s /usr/bin/aarch64-linux-gnu-g++-7 /usr/bin/aarch64-linux-gnu-g++
+    ```
 
 2. 打包libsophon
 
