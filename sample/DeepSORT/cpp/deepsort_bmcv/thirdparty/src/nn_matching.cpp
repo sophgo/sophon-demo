@@ -2,9 +2,10 @@
 
 using namespace Eigen;
 
+
 NearNeighborDisMetric::NearNeighborDisMetric(NearNeighborDisMetric::METRIC_TYPE metric,
                                              float matching_threshold,
-                                             int budget) {
+                                             int budget, int k_feature_dim) {
     if (metric == euclidean) {
         _metric = &NearNeighborDisMetric::_nneuclidean_distance;
     } else if (metric == cosine) {
@@ -14,6 +15,7 @@ NearNeighborDisMetric::NearNeighborDisMetric(NearNeighborDisMetric::METRIC_TYPE 
     this->mating_threshold = matching_threshold;
     this->budget = budget;
     this->samples.clear();
+    this->k_feature_dim = k_feature_dim;
 }
 
 DYNAMICM

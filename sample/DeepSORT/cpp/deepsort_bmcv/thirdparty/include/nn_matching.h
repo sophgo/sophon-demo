@@ -9,12 +9,12 @@
 class NearNeighborDisMetric {
    public:
     enum METRIC_TYPE { euclidean = 1, cosine };
-    NearNeighborDisMetric(METRIC_TYPE metric, float matching_threshold, int budget);
+    NearNeighborDisMetric(METRIC_TYPE metric, float matching_threshold, int budget, int k_feature_dim);
     DYNAMICM distance(const FEATURESS& features, const std::vector<int>& targets);
     //    void partial_fit(FEATURESS& features, std::vector<int> targets, std::vector<int> active_targets);
     void partial_fit(std::vector<TRACKER_DATA>& tid_feats, std::vector<int>& active_targets);
     float mating_threshold;
-
+    int k_feature_dim;
    private:
     typedef Eigen::VectorXf (NearNeighborDisMetric::*PTRFUN)(const FEATURESS&, const FEATURESS&);
     Eigen::VectorXf _nncosine_distance(const FEATURESS& x, const FEATURESS& y);

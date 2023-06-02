@@ -79,6 +79,8 @@ Usage: deepsort_bmcv.pcie [params]
                 extractor bmodel file path
         --classnames (value:./coco.names)
                 class names file path
+        --config (value:./deep_sort.yaml)
+                config params
         --dev_id (value:0)
                 TPU device id
         --help (value:true)
@@ -90,9 +92,7 @@ Usage: deepsort_bmcv.pcie [params]
 
 1. CPP传参与python不同，需要用等于号，例如`./deepsort_bmcv.pcie --bmodel_detector=xxx`。
 
-2. 如果您使用自己的特征提取模型，注意修改`deep_sort/include/dataType.h`中的特征维度`k_feature_dims`。
-
-3. 本例程不提供目标检测模型和卡尔曼滤波的自定义参数，相关参数可以在`deepsort.cpp`和`main.cpp`中修改。
+2. 目标检测模型和卡尔曼滤波的自定义参数，相关参数可以在`deep_sort.yaml`中修改。
 
 ### 3.2 测试MOT数据集
 MOT数据集测试实例如下，支持对整个文件夹里的所有图片进行测试。

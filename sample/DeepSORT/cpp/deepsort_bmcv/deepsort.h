@@ -35,9 +35,22 @@ struct TrackBox: YoloV5Box{
     int track_id;
 };
 
+struct deepsort_params{
+    // detector:
+    float conf_thresh;
+    float nms_thresh;
+    // extractor:
+    float max_dist;
+    float min_confidence;
+    float max_iou_distance;
+    float max_age;
+    float n_init;
+    float nn_budget;
+};
+
 class DeepSort {
    public:
-    DeepSort(std::shared_ptr<BMNNContext> context);
+    DeepSort(std::shared_ptr<BMNNContext> context, const deepsort_params& params);
     virtual ~DeepSort();
     void sort(bm_image& frame, vector<YoloV5Box>& dets, vector<TrackBox>& track_boxs, int frame_id);
 

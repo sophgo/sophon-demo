@@ -32,6 +32,8 @@ void FeatureExtractor::Init() {
     m_net_h = tensor->get_shape()->dims[2];
     m_net_w = tensor->get_shape()->dims[3];
 
+    // 3. get output feature dim
+    k_feature_dim = m_bmNetwork->outputTensor(0)->get_shape()->dims[1];
     // 4. initialize bmimages
     m_resized_imgs.resize(max_batch);
     m_converto_imgs.resize(max_batch);
@@ -188,6 +190,7 @@ int FeatureExtractor::post_process(DETECTIONS& det, int start, int crop_size) {
     // auto stream = m_bmNetwork->outputTensor(0)->get_cpu_data(); //why this code has bug?
 
     for (int i = start; i < start + crop_size; i++) {
+        det[i].feature.resize(1, k_feature_dim);
         memcpy(det[i].feature.data(), m_bmNetwork->outputTensor(0)->get_cpu_data() + (i - start) * k_feature_dim,
                k_feature_dim * sizeof(float));
         // for (int j = 0; j < k_feature_dim; j++)

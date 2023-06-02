@@ -18,12 +18,13 @@ class tracker {
     KalmanFilter* kf;
 
     int _next_idx;
-
+    int k_feature_dim;
    public:
     std::vector<Track> tracks;
     tracker(/*NearNeighborDisMetric* metric,*/
             float max_cosine_distance,
             int nn_budget,
+            int k_feature_dim, 
             float max_iou_distance = 0.7,
             int max_age = 30,
             int n_init = 3);

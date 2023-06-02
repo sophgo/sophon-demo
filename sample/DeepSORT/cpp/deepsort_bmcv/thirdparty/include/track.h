@@ -60,7 +60,8 @@ class Track {
           int class_id,
           int n_init,
           int max_age,
-          const FEATURE& feature);
+          const FEATURE& feature,
+          int k_feature_dim);
     void predit(KalmanFilter* kf);
     void update(KalmanFilter* const kf, const DETECTION_ROW& detection);
     void mark_missed();
@@ -71,6 +72,7 @@ class Track {
     int time_since_update;
     int track_id;
     int class_id;
+    int k_feature_dim;
     FEATURESS features;
     KAL_MEAN mean;
     KAL_COVA covariance;

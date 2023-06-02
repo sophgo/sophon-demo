@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <fstream>
 #include <regex>
+#include <sstream>
+#include <unordered_map>
 #include "deepsort.h"
 #include "ff_decode.hpp"
 #include "json.hpp"
@@ -20,7 +22,53 @@
 #define USE_OPENCV_DRAW_BOX 1
 using json = nlohmann::json;
 using namespace std;
-int cnt = 0;
+int cnt = 0; //for debug
+
+void deep_sort_yaml_parse(const std::string& config_path, deepsort_params& params) {
+    std::ifstream file(config_path);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open config file: " << config_path << std::endl;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+        std::stringstream ss(line);
+        std::string key, value;
+        std::getline(ss, key, ':');
+        std::getline(ss, value);
+        key = key.substr(key.find_first_not_of(" \t\r\n"));
+        value.erase(value.find_last_not_of(" \t\r\n") + 1);
+        if (key == "CONF_THRE") {
+            std::istringstream iss(value);
+            iss >> params.conf_thresh;
+        } else if (key == "NMS_THRE") {
+            std::istringstream iss(value);
+            iss >> params.nms_thresh;
+        } else if (key == "MAX_DIST") {
+            std::istringstream iss(value);
+            iss >> params.max_dist;
+        } else if (key == "MIN_CONFIDENCE") {
+            std::istringstream iss(value);
+            iss >> params.min_confidence;
+        } else if (key == "MAX_IOU_DISTANCE") {
+            std::istringstream iss(value);
+            iss >> params.max_iou_distance;
+        } else if (key == "MAX_AGE") {
+            std::istringstream iss(value);
+            iss >> params.max_age;
+        } else if (key == "N_INIT") {
+            std::istringstream iss(value);
+            iss >> params.n_init;
+        } else if (key == "NN_BUDGET") {
+            std::istringstream iss(value);
+            iss >> params.nn_budget;
+        }
+    }
+}
+
 vector<string> stringSplit(const string& str, char delim) {
     string s;
     s.append(1, delim);
@@ -69,7 +117,8 @@ int main(int argc, char* argv[]) {
         "{dev_id | 0 | TPU device id}"
         "{help | 0 | print help information.}"
         "{input | ../../datasets/test_car_person_1080P.mp4 | input path, video file path or image folder}"
-        "{classnames | ./coco.names | class names file path}";
+        "{classnames | ./coco.names | class names file path}"
+        "{config | ./deep_sort.yaml | config params}";
     cv::CommandLineParser parser(argc, argv, keys);
     if (parser.get<bool>("help")) {
         parser.printMessage();
@@ -78,7 +127,11 @@ int main(int argc, char* argv[]) {
     string bmodel_detector = parser.get<string>("bmodel_detector");
     string bmodel_extractor = parser.get<string>("bmodel_extractor");
     string input = parser.get<string>("input");
+    string classnames = parser.get<string>("classnames");
+    string config = parser.get<string>("config");
     int dev_id = parser.get<int>("dev_id");
+    deepsort_params params;
+    deep_sort_yaml_parse(config, params);
 
     // check params
     struct stat info;
@@ -94,6 +147,14 @@ int main(int argc, char* argv[]) {
         cout << "Cannot find input path." << endl;
         exit(1);
     }
+    if (stat(classnames.c_str(), &info) != 0) {
+        cout << "Cannot find classnames path." << endl;
+        exit(1);
+    }
+    if (stat(config.c_str(), &info) != 0) {
+        cout << "Cannot find config path." << endl;
+        exit(1);
+    }
 
     // creat handle
     BMNNHandlePtr handle = make_shared<BMNNHandle>(dev_id);
@@ -106,8 +167,8 @@ int main(int argc, char* argv[]) {
 
     // initialize net
     YoloV5 yolov5(bm_ctx_detector);
-    yolov5.Init(0.5, 0.5, parser.get<string>("classnames"));
-    DeepSort deepsort(bm_ctx_extractor);
+    yolov5.Init(params.conf_thresh, params.nms_thresh, classnames);
+    DeepSort deepsort(bm_ctx_extractor, params);
     // profiling
     TimeStamp deepsort_ts;
     TimeStamp* ts = &deepsort_ts;

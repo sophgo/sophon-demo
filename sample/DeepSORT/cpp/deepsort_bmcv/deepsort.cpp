@@ -7,11 +7,16 @@
 //
 //===----------------------------------------------------------------------===//
 #include "deepsort.h"
-DeepSort::DeepSort(std::shared_ptr<BMNNContext> context) {
+DeepSort::DeepSort(std::shared_ptr<BMNNContext> context,const deepsort_params& params) {
     std::cout << "deepsort ctor .." << std::endl;
     featureExtractor = new FeatureExtractor(context);
     featureExtractor->Init();
-    objTracker = new tracker(0.2, 100);
+    objTracker = new tracker(params.max_dist, 
+                             params.nn_budget, 
+                             featureExtractor->k_feature_dim,
+                             params.max_iou_distance,
+                             params.max_age,
+                             params.n_init);
 }
 
 DeepSort::~DeepSort() {
