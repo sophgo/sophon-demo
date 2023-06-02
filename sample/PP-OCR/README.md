@@ -126,26 +126,61 @@ TODO
 # 请根据实际情况修改要测试的bmodel路径和devid参数
 bmrt_test --bmodel models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel
 ```
+测试各个模型的理论推理时间，结果如下：
+
+|                  测试模型            |stage| calculate time(ms) |
+| ----------------------------------  |  ---| ----------------- |
+| BM1684/ch_PP-OCRv3_det_fp32.bmodel  |  1  | 15.4          |
+|                 ^                   |  2  | 59.7          |
+| BM1684/ch_PP-OCRv3_rec_fp32.bmodel  |  1  | 2.7           |
+|                 ^                   |  2  | 5.4           |
+|                 ^                   |  3  | 8.5           |
+|                 ^                   |  4  | 17.1          |
+| BM1684/ch_PP-OCRv3_cls_fp32.bmodel  |  1  | 0.3           |
+|                 ^                   |  1  | 0.7           |
+| BM1684X/ch_PP-OCRv3_det_fp32.bmodel |  1  | 14.9          |
+|                 ^                   |  2  | 57.8          |
+| BM1684X/ch_PP-OCRv3_rec_fp32.bmodel |  1  | 1.6           |
+|                 ^                   |  2  | 2.8           |
+|                 ^                   |  3  | 5.1           |
+|                 ^                   |  4  | 9.8           |
+| BM1684X/ch_PP-OCRv3_cls_fp32.bmodel |  1  | 0.2           |
+|                 ^                   |  2  | 0.3           |
+| BM1684X/ch_PP-OCRv3_det_fp16.bmodel |  1  | 3.3           |
+|                 ^                   |  2  | 12.3          |
+| BM1684X/ch_PP-OCRv3_rec_fp16.bmodel |  1  | 0.8           |
+|                 ^                   |  2  | 1.0           |
+|                 ^                   |  3  | 1.8           |
+|                 ^                   |  4  | 3.4           |
+| BM1684X/ch_PP-OCRv3_cls_fp16.bmodel |  1  | 0.1           |
+|                 ^                   |  2  | 0.2           |
+
+> **测试说明**：  
+> 1. 性能测试结果具有一定的波动性；
+> 2. SoC和PCIe的测试结果基本一致。
+> 3. `^`符号表示"同上"。
+
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看其打印的时间信息。
 在不同的测试平台上，使用不同的例程、模型测试`datasets/train_full_images_0`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
-|    测试平台  |     测试程序            |        测试模型            |decode_time|preprocess_time|inference_time|postprocess_time| 
-| ----------- | ----------------       | -------------------------- |  -------- | ---------     | ---------     | --------- |
-| BM1684 SoC  | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp32.bmodel| 37.96    |  25.51        |  25.08        |  13.04    |
-|             |                        | ch_PP-OCRv3_rec_fp32.bmodel|          |  0.60         |  4.11         |  1.37     |
-| BM1684 SoC  | ppocr_bmcv.soc         | ch_PP-OCRv3_det_fp32.bmodel| 7.31     |  5.26         |  14.65        |  3.16     |
-|             |                        | ch_PP-OCRv3_rec_fp32.bmodel|          |  0.96         |  3.05         |  3.11     |
-| BM1684X SoC | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp32.bmodel| 37.79    |  25.99        |  24.90        |  13.50    |
-|             |                        | ch_PP-OCRv3_rec_fp32.bmodel|          |  0.59         |  3.08         |  1.59     |
-| BM1684X SoC | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp16.bmodel| 37.58    |  25.79        |  14.16        |  13.30    |
-|             |                        | ch_PP-OCRv3_rec_fp16.bmodel|          |  0.59         |  2.10         |  1.59     |
-| BM1684X SoC | ppocr_bmcv.soc         | ch_PP-OCRv3_det_fp32.bmodel| 6.72     |  1.31         |  13.59        |  3.44     |
-|             |                        | ch_PP-OCRv3_rec_fp32.bmodel|          |  0.59         |  1.75         |  3.08     |
-| BM1684X SoC | ppocr_bmcv.soc         | ch_PP-OCRv3_det_fp16.bmodel| 6.72     |  1.30         |  2.78         |  3.53     |
-|             |                        | ch_PP-OCRv3_rec_fp16.bmodel|          |  0.38         |  0.64         |  3.08     |
+|    测试平台  |     测试程序            |        测试模型            |decode_time/crop_time|preprocess_time|inference_time|postprocess_time| 
+| ----------- | ----------------       | -------------------------- |  --------           | ---------     | ---------     | --------- |
+| BM1684 SoC  | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp32.bmodel| 37.96               |  25.51        |  25.08        |  13.04    |
+|     ^       |         ^              | ch_PP-OCRv3_rec_fp32.bmodel| 1.67                |  0.60         |  4.11         |  1.37     |
+| BM1684 SoC  | ppocr_bmcv.soc         | ch_PP-OCRv3_det_fp32.bmodel| 7.31                |  5.26         |  14.65        |  3.16     |
+|     ^       |         ^              | ch_PP-OCRv3_rec_fp32.bmodel| 1.45                |  0.96         |  3.05         |  3.11     |
+| BM1684X SoC | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp32.bmodel| 37.79               |  25.99        |  24.90        |  13.50    |
+|     ^       |         ^              | ch_PP-OCRv3_rec_fp32.bmodel| 1.67                |  0.59         |  3.08         |  1.59     |
+| BM1684X SoC | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp16.bmodel| 37.58               |  25.79        |  14.16        |  13.30    |
+|     ^       |         ^              | ch_PP-OCRv3_rec_fp16.bmodel| 1.67                |  0.59         |  2.10         |  1.59     |
+| BM1684X SoC | ppocr_bmcv.soc         | ch_PP-OCRv3_det_fp32.bmodel| 6.72                |  1.31         |  13.59        |  3.44     |
+|     ^       |         ^              | ch_PP-OCRv3_rec_fp32.bmodel| 2.08                |  0.59         |  1.75         |  3.08     |
+| BM1684X SoC | ppocr_bmcv.soc         | ch_PP-OCRv3_det_fp16.bmodel| 6.72                |  1.30         |  2.78         |  3.53     |
+|     ^       |         ^              | ch_PP-OCRv3_rec_fp16.bmodel| 2.00                |  0.38         |  0.64         |  3.08     |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 5. 测试程序串联运行`det`和`rec`模型，`det`模型对应decode_time，`rec`模型对应crop_time。

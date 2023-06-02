@@ -216,17 +216,17 @@ then
   if test $TARGET = "BM1684"
   then
     eval_python opencv fp32 0.
-    eval_python opencv int8 0.
+    # eval_python opencv int8 0.
     eval_cpp pcie bmcv fp32 0.
-    eval_cpp pcie bmcv int8 0.
+    # eval_cpp pcie bmcv int8 0.
   elif test $TARGET = "BM1684X"
   then
     eval_python opencv fp32 0.
     eval_python opencv fp16 0.
-    eval_python opencv int8 0.
+    # eval_python opencv int8 0.
     eval_cpp pcie bmcv fp32 0.
     eval_cpp pcie bmcv fp16 0.
-    eval_cpp pcie bmcv int8 0.
+    # eval_cpp pcie bmcv int8 0.
   fi
 elif test $MODE = "soc_build"
 then
@@ -238,17 +238,17 @@ then
   if test $TARGET = "BM1684"
   then
     eval_python opencv fp32 0.
-    eval_python opencv int8 0.
+    # eval_python opencv int8 0.
     eval_cpp soc bmcv fp32 0.
-    eval_cpp soc bmcv int8 0.
+    # eval_cpp soc bmcv int8 0.
   elif test $TARGET = "BM1684X"
   then
     eval_python opencv fp32 0.
     eval_python opencv fp16 0.
-    eval_python opencv int8 0.
+    # eval_python opencv int8 0.
     eval_cpp soc bmcv fp32 0.
     eval_cpp soc bmcv fp16 0.
-    eval_cpp soc bmcv int8 0. 
+    # eval_cpp soc bmcv int8 0. 
   fi
 fi
 
