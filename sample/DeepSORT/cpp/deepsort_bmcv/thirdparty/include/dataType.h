@@ -10,12 +10,11 @@
 #include <cstddef>
 #include <vector>
 
-const int k_feature_dim = 512;  // feature dim
 
 typedef Eigen::Matrix<float, 1, 4, Eigen::RowMajor> DETECTBOX;
 typedef Eigen::Matrix<float, -1, 4, Eigen::RowMajor> DETECTBOXSS;
-typedef Eigen::Matrix<float, 1, k_feature_dim, Eigen::RowMajor> FEATURE;
-typedef Eigen::Matrix<float, Eigen::Dynamic, k_feature_dim, Eigen::RowMajor> FEATURESS;
+typedef Eigen::Matrix<float, 1, Eigen::Dynamic, Eigen::RowMajor> FEATURE;
+typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> FEATURESS;
 // typedef std::vector<FEATURE> FEATURESS;
 
 // Kalmanfilter

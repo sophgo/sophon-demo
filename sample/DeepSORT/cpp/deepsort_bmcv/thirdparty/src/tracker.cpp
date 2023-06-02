@@ -10,21 +10,23 @@ using namespace std;
 #include <string>
 #endif
 
+
 tracker::tracker(/*NearNeighborDisMetric *metric,*/
                  float max_cosine_distance,
                  int nn_budget,
+                 int k_feature_dim,
                  float max_iou_distance,
                  int max_age,
                  int n_init) {
     this->metric =
-        new NearNeighborDisMetric(NearNeighborDisMetric::METRIC_TYPE::cosine, max_cosine_distance, nn_budget);
+        new NearNeighborDisMetric(NearNeighborDisMetric::METRIC_TYPE::cosine, max_cosine_distance, nn_budget, k_feature_dim);
     this->max_iou_distance = max_iou_distance;
     this->max_age = max_age;
     this->n_init = n_init;
-
     this->kf = new KalmanFilter();
     this->tracks.clear();
     this->_next_idx = 1;
+    this->k_feature_dim = k_feature_dim;
 }
 
 void tracker::predict() {
@@ -134,7 +136,7 @@ void tracker::_initiate_track(const DETECTION_ROW& detection) {
     KAL_COVA covariance = data.second;
 
     this->tracks.push_back(
-        Track(mean, covariance, this->_next_idx, detection.class_id, this->n_init, this->max_age, detection.feature));
+        Track(mean, covariance, this->_next_idx, detection.class_id, this->n_init, this->max_age, detection.feature, k_feature_dim));
     _next_idx += 1;
 }
 
