@@ -33,6 +33,7 @@ class TextSystem(object):
             self.text_classifier = predict_cls.PPOCRv2Cls(args)
         self.rec_thresh = args.rec_thresh
         self.crop_num = 0
+        self.crop_time = 0.0
     def __call__(self, img_list, cls=True):
         ori_img_list = img_list.copy()
         results_list = [{"dt_boxes":[], "text":[], "score":[]} for i in range(len(img_list))]
@@ -41,12 +42,14 @@ class TextSystem(object):
         img_dict = {"imgs":[], "dt_boxes":[], "pic_ids":[]}
         for id, dt_boxes in enumerate(dt_boxes_list):
             self.crop_num += len(dt_boxes)
+            start_crop = time.time()
             for bno in range(len(dt_boxes)):
                 tmp_box = copy.deepcopy(dt_boxes[bno])
                 img_crop = get_rotate_crop_image(ori_img_list[id], tmp_box)
                 img_dict["imgs"].append(img_crop)
                 img_dict["dt_boxes"].append(dt_boxes[bno])
                 img_dict["pic_ids"].append(id)
+            self.crop_time += time.time() - start_crop
 
         if self.use_angle_cls and cls:
             img_dict["imgs"], cls_res = self.text_classifier(img_dict["imgs"])
@@ -242,9 +245,11 @@ def main(opt):
         logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
         logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
     logging.info("------------------ Rec Predict Time Info ----------------------")
+    crop_time = ppocrv2_sys.crop_time / ppocrv2_sys.crop_num
     preprocess_time = ppocrv2_sys.text_recognizer.preprocess_time / ppocrv2_sys.crop_num
     inference_time = ppocrv2_sys.text_recognizer.inference_time / ppocrv2_sys.crop_num
     postprocess_time = ppocrv2_sys.text_recognizer.postprocess_time / ppocrv2_sys.crop_num
+    logging.info("crop_time(ms): {:.2f}".format(crop_time * 1000))
     logging.info("preprocess_time(ms): {:.2f}".format(preprocess_time * 1000))
     logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
     logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
