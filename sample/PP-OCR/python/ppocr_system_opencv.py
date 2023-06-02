@@ -249,6 +249,13 @@ def main(opt):
     logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
     logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
 
+def img_size_type(arg):
+    # 将字符串解析为列表类型
+    img_sizes = arg.strip('[]').split('],[')
+    img_sizes = [size.split(',') for size in img_sizes]
+    img_sizes = [[int(width), int(height)] for width, height in img_sizes]
+    return img_sizes
+
 def parse_opt():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--input', type=str, default='../datasets/cali_set_det', help='input image directory path')
@@ -259,7 +266,7 @@ def parse_opt():
     parser.add_argument('--det_limit_side_len', type=int, default=[640])
     # params for text recognizer
     parser.add_argument('--bmodel_rec', type=str, default='../models/BM1684X/ch_PP-OCRv3_rec_fp32.bmodel', help='recognizer bmodel path')
-    parser.add_argument('--img_size', type=int, default=[[320, 48],[640, 48]], help='You should set inference size [width,height] manually if using multi-stage bmodel.')
+    parser.add_argument('--img_size', type=img_size_type, default=[[320, 48],[640, 48]], help='You should set inference size [width,height] manually if using multi-stage bmodel.')
     parser.add_argument("--char_dict_path", type=str, default="../datasets/ppocr_keys_v1.txt")
     parser.add_argument("--use_space_char", type=bool, default=True)
     parser.add_argument("--rec_thresh", type=float, default=0.5)
