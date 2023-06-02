@@ -28,7 +28,7 @@ class FeatureExtractor {
     int max_batch;
     bmcv_convert_to_attr converto_attr;
     TimeStamp* m_ts;
-
+    int k_feature_dim = -1;
    private:
     int pre_process(const bm_image& image, std::vector<bmcv_rect_t> crop_rects);
     int post_process(DETECTIONS& det, int start, int crop_size);

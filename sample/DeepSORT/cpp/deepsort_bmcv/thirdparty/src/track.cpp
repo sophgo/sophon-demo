@@ -1,12 +1,14 @@
 #include "track.h"
 
+
 Track::Track(KAL_MEAN& mean,
              KAL_COVA& covariance,
              int track_id,
              int class_id,
              int n_init,
              int max_age,
-             const FEATURE& feature) {
+             const FEATURE& feature,
+             int k_feature_dim) {
     this->mean = mean;
     this->covariance = covariance;
     this->track_id = track_id;
@@ -16,8 +18,9 @@ Track::Track(KAL_MEAN& mean,
     this->time_since_update = 0;
     this->state = TrackState::Tentative;
     features = FEATURESS(1, k_feature_dim);
+    features.row(0).resize(k_feature_dim);
     features.row(0) = feature;  // features.rows() must = 0;
-
+    this->k_feature_dim = k_feature_dim;
     this->_n_init = n_init;
     this->_max_age = max_age;
 }
