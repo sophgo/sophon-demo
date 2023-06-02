@@ -22,7 +22,7 @@
 #define USE_OPENCV_DRAW_BOX 1
 using json = nlohmann::json;
 using namespace std;
-int cnt = 0; //for debug
+int cnt = 0;  // for debug
 
 void deep_sort_yaml_parse(const std::string& config_path, deepsort_params& params) {
     std::ifstream file(config_path);
@@ -143,10 +143,6 @@ int main(int argc, char* argv[]) {
         cout << "Cannot find valid extractor model file." << endl;
         exit(1);
     }
-    if (stat(input.c_str(), &info) != 0) {
-        cout << "Cannot find input path." << endl;
-        exit(1);
-    }
     if (stat(classnames.c_str(), &info) != 0) {
         cout << "Cannot find classnames path." << endl;
         exit(1);
@@ -203,6 +199,10 @@ int main(int argc, char* argv[]) {
     auto stringBuffer = stringSplit(input, '/');
     auto bmodel_extractor_name_buffer = stringSplit(bmodel_extractor, '/');
     auto bmodel_extractor_name = bmodel_extractor_name_buffer[bmodel_extractor_name_buffer.size() - 1];
+    if (stat(input.c_str(), &info) != 0) {
+        cout << "Cannot find input path." << endl;
+        exit(1);
+    }
     if (info.st_mode & S_IFDIR) {
         vector<string> correct_postfixes = {"jpg", "png"};
         getAllFiles(input, image_paths, correct_postfixes);
@@ -251,13 +251,14 @@ int main(int argc, char* argv[]) {
                 id++;
                 crop_total += yolov5_boxes[i].size();
 
-                //tracker, directly output tracked boxes.
+                // tracker, directly output tracked boxes.
                 vector<TrackBox> track_boxes;
                 ts->save("deepsort time");
                 deepsort.sort(batch_imgs[i], yolov5_boxes[i], track_boxes, id);
                 ts->save("deepsort time");
-                
-                cout << id << ", detect_nums: " << yolov5_boxes[i].size()<< "; track_nums: " << yolov5_boxes[i].size() << endl;
+
+                cout << id << ", detect_nums: " << yolov5_boxes[i].size() << "; track_nums: " << yolov5_boxes[i].size()
+                     << endl;
                 ts->save("encode time");
                 for (auto bbox : track_boxes) {
                     string save_str = cv::format("%d,%d,%d,%d,%d,%d,1,-1,-1,-1\n", id, bbox.track_id, bbox.x, bbox.y,
@@ -269,7 +270,7 @@ int main(int argc, char* argv[]) {
                 cv::bmcv::toMAT(&batch_imgs[i], frame_to_draw);
                 for (auto bbox : track_boxes) {
                     draw_opencv(bbox.track_id, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.x + bbox.width,
-                                    bbox.y + bbox.height, frame_to_draw);
+                                bbox.y + bbox.height, frame_to_draw);
                 }
                 bm_image frame_drawed;
                 cv::bmcv::toBMI(frame_to_draw, &frame_drawed);
@@ -288,8 +289,8 @@ int main(int argc, char* argv[]) {
                 bm_image_destroy(frame_drawed);
 #else
                 for (auto bbox : track_boxes[i]) {
-                    draw_bmcv(h, bbox.track_id, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width,
-                                     bbox.height, batch_imgs[i], true);
+                    draw_bmcv(h, bbox.track_id, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height,
+                              batch_imgs[i], true);
                 }
                 if (batch_imgs[i].image_format != 0) {
                     bm_image frame;
