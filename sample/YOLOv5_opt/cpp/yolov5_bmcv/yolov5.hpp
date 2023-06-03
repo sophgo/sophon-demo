@@ -21,16 +21,11 @@
 #define USE_OPENCV 1
 #define DEBUG 0
 #define MAX_BATCH 16
-struct YoloV5Box {
-  int x, y, width, height;
-  float score;
-  int class_id;
-};
 
-using YoloV5BoxVec = std::vector<YoloV5Box>;
-
-#define MAX_YOLO_INPUT_NUM 3
-#define MAX_YOLO_ANCHOR_NUM 3
+/*----------------------------------------*/
+/*You should not change kernel api params.*/
+#define MAX_YOLO_INPUT_NUM 8
+#define MAX_YOLO_ANCHOR_NUM 8
 typedef struct {
   unsigned long long bottom_addr[MAX_YOLO_INPUT_NUM];
   unsigned long long top_addr;
@@ -59,6 +54,16 @@ typedef struct {
   int agnostic_nms;
   int max_hw;
 }__attribute__((packed)) tpu_kernel_api_yolov5NMS_v2_t;
+/*----------------------------------------*/
+
+struct YoloV5Box {
+  int x, y, width, height;
+  float score;
+  int class_id;
+};
+
+using YoloV5BoxVec = std::vector<YoloV5Box>;
+
 
 class YoloV5 {
   std::shared_ptr<BMNNContext> m_bmContext;
