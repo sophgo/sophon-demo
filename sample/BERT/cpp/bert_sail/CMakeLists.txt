@@ -1,6 +1,7 @@
 
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project(bert_sail)
+include(${CMAKE_SOURCE_DIR}/../../../../cmake/common.cmake)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 message("cur dir: ${PROJECT_SOURCE_DIR}")
 
@@ -49,6 +50,8 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     
 elseif (${TARGET_ARCH} STREQUAL "soc")
     message( "${TARGET_ARCH} mode, starting......")
+    check_and_replace_path(SDK)
+    check_and_replace_path(SAIL_PATH)
     set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_ASM_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
@@ -65,13 +68,14 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     link_directories("${SDK}/lib/")
     include_directories("../../../../include/")
     # use sail headers
+    include_directories(${SAIL_PATH}/include)
     include_directories(${SAIL_PATH}/include/sail)
     # use sail
     set(SAIL_LIBS  ${SAIL_PATH}/lib/libsail.so)
     # sail为需要链接的库
     message("SDK: " ${SDK})
 
-    add_executable(bert_sail.soc libtorch_tokenizer/src/tokenizer.cpp libtorch_tokenizer/src/unilib/unicode.cpp libtorch_tokenizer/src/unilib/uninorms.cpp BERT_sail.cpp BERT_sail.hpp)
+    add_executable(bert_sail.soc libtorch_tokenizer/src/tokenizer.cpp libtorch_tokenizer/src/unilib/unicode.cpp libtorch_tokenizer/src/unilib/uninorms.cpp bert_sail.cpp bert_sail.hpp)
     target_link_libraries(bert_sail.soc ${BM_LIBS} ${OPENCV_LIBS}  ${JPU_LIBS} ${SAIL_LIBS})
   
     target_link_libraries(bert_sail.soc ${TORCH_LIBRARIES})
