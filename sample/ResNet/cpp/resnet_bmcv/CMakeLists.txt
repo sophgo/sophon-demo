@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(resnet_bmcv)
+include(${CMAKE_SOURCE_DIR}/../../../../cmake/common.cmake)
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 message("cur dir: ${PROJECT_SOURCE_DIR}")
@@ -37,6 +38,7 @@ if (${TARGET_ARCH} STREQUAL "pcie")
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     message( "${TARGET_ARCH} mode, starting......")
+    check_and_replace_path(SDK)
     set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_ASM_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
