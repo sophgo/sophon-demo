@@ -7,7 +7,7 @@ TARGET="BM1684X"
 MODE="pcie_test"
 TPUID=0
 RENEW=0
-sail_list=("YOLOv5" "CenterNet") #c++ sail demo
+sail_list=("YOLOv5" "CenterNet" "BERT") #c++ sail demo
 PYTEST="auto_test"
 
 usage() 
@@ -26,9 +26,11 @@ do
       echo "target is $TARGET";;
     s)
       SOCSDK=${OPTARG}
+      SOCSDK=$(readlink -f "$SOCSDK")
       echo "soc-sdk is $SOCSDK";;
     a)
       SAIL_PATH=${OPTARG}
+      SAIL_PATH=$(readlink -f "$SAIL_PATH")
       echo "sail_path is $SAIL_PATH";;
     d)
       TPUID=${OPTARG}
@@ -115,6 +117,7 @@ pip3 install dfn==1.0.2
 if [ $MODE = "pcie_test" ] || [ $MODE = "soc_test" ]
 then
   pip3 install pycocotools
+  pip3 install 'opencv-python-headless<4.3'
   res=$(pip3 list|grep sophon)
   if [ $? != 0 ];
   then
@@ -128,13 +131,16 @@ then
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
   test_sample ByteTrack
   test_sample YOLOv5
-  test_sample YOLOv5_opt
   test_sample YOLOv8
   test_sample C3D
-  test_sample ResNet
-  test_sample LPRNet
+  test_sample CenterNet
   test_sample DeepSORT
+  test_sample LPRNet
   test_sample OpenPose
+  test_sample ResNet
+  test_sample YOLOv5
+  test_sample YOLOv5_opt
+  test_sample YOLOv8
 fi
 
 popd

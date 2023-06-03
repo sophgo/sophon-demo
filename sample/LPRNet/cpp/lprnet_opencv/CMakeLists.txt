@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(lprnet_opencv C CXX)
+include(${CMAKE_SOURCE_DIR}/../../../../cmake/common.cmake)
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 message("cur dir: ${PROJECT_SOURCE_DIR}")
@@ -31,6 +32,7 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     target_link_libraries(lprnet_opencv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so})
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
+    check_and_replace_path(SDK)
     set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_ASM_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
