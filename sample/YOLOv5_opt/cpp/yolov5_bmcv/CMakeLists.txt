@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(yolov5)
+include(${CMAKE_SOURCE_DIR}/../../../../cmake/common.cmake)
 
 # set(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_BUILD_TYPE "Debug")
@@ -38,6 +39,7 @@ if (${TARGET_ARCH} STREQUAL "pcie")
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     message( "${TARGET_ARCH} mode, starting......")
+    check_and_replace_path(SDK)
     set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_ASM_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
