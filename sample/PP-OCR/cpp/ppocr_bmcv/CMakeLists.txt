@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(ppocr_bmcv)
+include(${CMAKE_SOURCE_DIR}/../../../../cmake/common.cmake)
 
 SET(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS "-O3")
@@ -35,6 +36,7 @@ if (${TARGET_ARCH} STREQUAL "x86")
     target_link_libraries(ppocr_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} -lpthread)
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
+    check_and_replace_path(SDK)
     set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_ASM_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
