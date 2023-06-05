@@ -8,6 +8,8 @@
 * [2. 特性](#2-特性)
 * [3. 准备模型与数据](#3-准备模型与数据)
 * [4. 模型编译](#4-模型编译)
+  * [4.1 TPU-NNTC编译BModel](#41-tpu-nntc编译bmodel)
+  * [4.2 TPU-MLIR编译BModel](#42-tpu-mlir编译bmodel)
 * [5. 例程测试](#5-例程测试)
 * [6. 精度测试](#6-精度测试)
   * [6.1 测试方法](#61-测试方法)
@@ -47,9 +49,9 @@ chmod -R +x scripts/
 ```
 ./models
 ├── BM1684
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=1
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=4
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 使用TPU-NNTC编译，用于BM1684的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 使用TPU-NNTC编译，用于BM1684的INT8 BModel，batch_size=1
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 使用TPU-NNTC编译，用于BM1684的INT8 BModel，batch_size=4
 ├── BM1684X
 │   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
