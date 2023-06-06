@@ -100,10 +100,12 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& tpu_kerne
   }
   tpu_kernel_module_t tpu_module;
   tpu_module = tpu_kernel_load_module_file(m_bmContext->handle(), tpu_kernel_module_path.c_str()); 
-  if(output_num == 3){
+  if(m_bmNetwork->outputTensor(0)->get_shape()->num_dims == 4){
     func_id = tpu_kernel_get_function(m_bmContext->handle(), tpu_module, "tpu_kernel_api_yolov5_detect_out");
     std::cout << "Using tpu_kernel_api_yolov5_detect_out, kernel funtion id: " << func_id << std::endl;
-  }else if(output_num == 1){
+  }else if(m_bmNetwork->outputTensor(0)->get_shape()->num_dims == 3){
+    std::cout << "Not support 1 output yet!" << std::endl;
+    exit(1);
     func_id = tpu_kernel_get_function(m_bmContext->handle(), tpu_module, "tpu_kernel_api_yolov5_out_without_decode");
     std::cout << "Using tpu_kernel_api_yolov5_out_without_decode, kernel funtion id: " << func_id << std::endl;
   }else{
@@ -153,8 +155,9 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& tpu_kerne
         it = copy(subvector1.begin(), subvector1.end(), it);
       }
     }
-    for (int j = 0; j < input_num; j++) 
+    for (int j = 0; j < input_num; j++) {
       api[i].anchor_scale[j] = m_net_h / m_bmNetwork->outputTensor(j)->get_shape()->dims[2];
+    }
     api[i].clip_box = 1;
 
     /*initialize api_v2 for tpu_kernel_api_yolov5_out_without_decode*/
@@ -380,10 +383,10 @@ int YoloV5::post_process_tpu_kernel(const std::vector<bm_image>& images, std::ve
       tx1 = (int)((m_net_w - (int)(images[i].width * ratio)) / 2);
   }
 #endif
-    if(output_num == 3){
+    if(m_bmNetwork->outputTensor(0)->get_shape()->num_dims == 4){
       tpu_kernel_launch(m_bmContext->handle(), func_id, &api[i], sizeof(api[i]));
-    }else if(output_num == 1){
-      tpu_kernel_launch(m_bmContext->handle(), func_id, &api_v2[i], sizeof(api_v2[i]));
+    }else if(m_bmNetwork->outputTensor(0)->get_shape()->num_dims == 3){
+      tpu_kernel_launch(m_bmContext->handle(), func_id, &api_v2[i], sizeof(api_v2[i])); //Not support yet.
     }
     bm_thread_sync(m_bmContext->handle());
     bm_memcpy_d2s_partial_offset(m_bmContext->handle(), (void*)(detect_num + i), detect_num_mem[i],1 * sizeof(int32_t), 0); // only support batchsize=1

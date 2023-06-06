@@ -30,7 +30,7 @@
 * 支持图片和视频测试
  
 ## 3. 准备模型与数据
-建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。本例程支持单输出和三输出模型，**建议采用三输出模型，性能更优。三输出是指源模型最后三个卷积层的输出，导出方法参考[YOLOv5_tpukernel模型导出](./docs/YOLOv5_tpukernel_Export_Guide.md#)。**
+建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。本例程暂不支持单输出模型，**建议采用多输出模型，性能更优。多输出是指源模型最后N个卷积层的输出(N <= 8)，导出方法参考[YOLOv5_tpukernel模型导出](./docs/YOLOv5_tpukernel_Export_Guide.md#)。**
 
 ​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 

@@ -28,7 +28,7 @@ This example is based on [YOLOv5](../YOLOv5/README_EN.md), using the tpu_kernel 
 * Supports image and video testing
 
 ## 3. Prepare Model and Data
-It is recommended to use TPU-MLIR to compile BModel, and the Pytorch model needs to be exported to an ONNX model before compilation. This example supports both single-output and three-output models, **but it is suggested to use the three-output model for better performance. Three-output refers to the output of the last three convolutional layers of the source model. To export, please refer to the [YOLOv5_tpukernel_Export_Guide](./docs/YOLOv5_tpukernel_Export_Guide_EN.md)。**
+It is recommended to use TPU-MLIR to compile BModel, and the Pytorch model needs to be exported to an ONNX model before compilation. This example do not support single-output model, **It is suggested to use the N-output model for better performance. N-output refers to the output of the last N convolutional layers of the source model (N <= 8). To export, please refer to the [YOLOv5_tpukernel_Export_Guide](./docs/YOLOv5_tpukernel_Export_Guide_EN.md)。**
 
 At the same time, you need to prepare the dataset for testing. If you want to quantize the model, you also need to prepare the dataset for quantization.
 
