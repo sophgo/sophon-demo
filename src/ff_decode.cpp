@@ -837,12 +837,9 @@ bm_status_t jpgDec(bm_handle_t& handle, string input_name, bm_image& img) {
             }
         }
 
-        bm_device_mem_t mem;
-        bm_malloc_device_byte(handle, &mem, height * width * 3);
-        bm_memcpy_s2d_partial(handle, mem, bgr_buffer, height * width * 3);
-
         bm_image_create(handle, height, width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &img);
-        bm_image_attach(img, &mem);
+        void* buffers[1] = {bgr_buffer};
+        bm_image_copy_host_to_device(img, buffers);
         goto Func_Exit;
     }
     // vpp_convert do not support YUV422P, use libyuv to filter
