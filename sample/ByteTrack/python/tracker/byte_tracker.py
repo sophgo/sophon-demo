@@ -253,7 +253,7 @@ class BYTETracker(object):
 
         self.frame_id = 0
         # self.det_thresh = args.track_thresh
-        self.det_thresh = self.track_thresh + 0.1
+        self.det_thresh = self.track_thresh
         self.buffer_size = int(frame_rate / 30.0 * self.track_buffer)
         self.max_time_lost = self.buffer_size
         self.kalman_filter = KalmanFilter()
