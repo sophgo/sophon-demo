@@ -60,8 +60,8 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& tpu_kerne
 
   // 3. get output
   output_num = m_bmNetwork->outputTensorNum();
-  assert(output_num == 1 || output_num == 3);
   min_dim = m_bmNetwork->outputTensor(0)->get_shape()->num_dims;
+  m_class_num = m_bmNetwork->outputTensor(0)->get_shape()->dims[1] / anchors.size() - 5;
 
   // 4. initialize bmimages
   m_resized_imgs.resize(max_batch);
