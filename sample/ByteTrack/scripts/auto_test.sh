@@ -205,12 +205,12 @@ then
     test_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel
     test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.4779397085246556
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.4765422239968058
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.4765422239968058
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.45637851866640045
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.48612497504491914
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.48612497504491914
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5140746656019166
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5040926332601318
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5040926332601318
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5022958674386104
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.5000998203234178
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.5000998203234178
 
   elif test $TARGET = "BM1684X"
   then
@@ -223,14 +223,14 @@ then
     test_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel
     test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.47973647434617683
-    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.4795368336993412
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.48532641245757635
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.48532641245757635
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.45857456578159317
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.4565781593132362
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.46995408265122784
-    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.46995408265122784
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5140746656019166
+    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.5142743062487523
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5226592134158514
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5226592134158514
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5028947893791176
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.5024955080854462
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.5244559792373727
+    eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.5244559792373727
   fi
 elif test $MODE = "soc_build"
 then
@@ -249,12 +249,12 @@ then
     test_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel
     test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.4779397085246556
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.4765422239968058
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.4765422239968058
-    eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.45637851866640045
-    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.48612497504491914
-    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.48612497504491914
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5140746656019166
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5040926332601318
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5040926332601318
+    eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5022958674386104
+    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.5000998203234178
+    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.5000998203234178
   elif test $TARGET = "BM1684X"
   then
     test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel
@@ -266,14 +266,14 @@ then
     test_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel
     test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.47973647434617683
-    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.4795368336993412
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.48532641245757635
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.48532641245757635
-    eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.45857456578159317
-    eval_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.4565781593132362
-    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.46995408265122784
-    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.46995408265122784
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5140746656019166
+    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.5142743062487523
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5226592134158514
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5226592134158514
+    eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5028947893791176
+    eval_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.5024955080854462
+    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.5244559792373727
+    eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.5244559792373727
   fi
 fi
 
