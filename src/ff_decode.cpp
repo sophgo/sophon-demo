@@ -315,7 +315,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out,
             bmcv_rect_t crop_rect = {0, 0, in->width, in->height};
             bmcv_image_vpp_convert(handle, 1, tmp, out, &crop_rect);
         }
-        bm_image_detach(tmp);
+        bm_image_destroy(tmp);
 
         if (!data_on_device_mem) {
             bm_free_device(handle, input_addr[0]);
@@ -892,7 +892,7 @@ Func_Exit:
     }
 
     if (dec_ctx) {
-        avcodec_close(dec_ctx);
+        avcodec_free_context(&dec_ctx);
     }
     if (bs_buffer) {
         av_free(bs_buffer);
