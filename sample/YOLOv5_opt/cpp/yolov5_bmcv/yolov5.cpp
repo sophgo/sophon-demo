@@ -399,7 +399,7 @@ int YoloV5::post_process_tpu_kernel(const std::vector<bm_image>& images, std::ve
     for (int bid = 0; bid < detect_num[i]; bid++) {
       YoloV5Box temp_bbox;
       temp_bbox.class_id = *(output_tensor[i] + 7 * bid + 1);
-      if (temp_bbox.class_id == -1) {
+      if (temp_bbox.class_id <= -1) {
         continue;
       }
       temp_bbox.score = *(output_tensor[i] + 7 * bid + 2);
