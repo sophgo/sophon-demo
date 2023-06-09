@@ -211,7 +211,14 @@ You need to build a cross-compilation environment on an x86 host using SOPHON SD
     ```bash
     sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
     ```
-
+    If you encount this error: `/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
+    You can install gcc with lower version.
+    ```bash
+    sudo apt remove cpp-*-aarch64-linux-gnu
+    sudo apt-get install gcc-7-aarch64-linux-gnu g++-7-aarch64-linux-gnu
+    sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-7 /usr/bin/aarch64-linux-gnu-gcc
+    sudo ln -s /usr/bin/aarch64-linux-gnu-g++-7 /usr/bin/aarch64-linux-gnu-g++
+    ```
 2. Package libsophon
 
     Download and unzip the sophon-img installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes libsophon_soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number.
