@@ -57,6 +57,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame *in, bm_image *out,
 bm_status_t picDec(bm_handle_t &handle, const char *path, bm_image &img);
 bm_status_t pngDec(bm_handle_t &handle, std::string input_name, bm_image &img);
 bm_status_t jpgDec(bm_handle_t &handle, std::string input_name, bm_image &img);
+bm_status_t bmpDec(bm_handle_t &handle, std::string input_name, bm_image &img);
 
 /**
  * video decode class
