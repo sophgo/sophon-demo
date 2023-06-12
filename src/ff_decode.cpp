@@ -125,6 +125,7 @@ bool string_start_with(const string& s, const string& prefix) {
 int map_avformat_to_bmformat(int avformat) {
     int format;
     switch (avformat) {
+        case AV_PIX_FMT_BGR24:
         case AV_PIX_FMT_RGB24:
             format = FORMAT_RGB_PACKED;
             break;
@@ -567,6 +568,13 @@ bool is_png(const char* filename) {
     return (file.good() && !std::memcmp(header, "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A", sizeof(header)));
 }
 
+bool is_bmp(const char* filename) {
+    std::ifstream file(filename, std::ios::binary);
+    char header[2];
+    file.read(header, sizeof(header));
+    return (file.good() && header[0] == 'B' && header[1] == 'M');
+}
+
 bm_status_t picDec(bm_handle_t& handle, const char* path, bm_image& img) {
     string input_name = path;
     if (is_jpg(path)) {
@@ -575,13 +583,17 @@ bm_status_t picDec(bm_handle_t& handle, const char* path, bm_image& img) {
     } else if (is_png(path)) {
         bm_status_t ret = pngDec(handle, input_name, img);
         return ret;
+    } else if (is_bmp(path)) {
+        bm_status_t ret = bmpDec(handle, input_name, img);
+        return ret;
     } else {
         fprintf(stderr, "not support pic format, only support jpg and png\n");
         exit(1);
     }
 }
 
-bm_status_t pngDec(bm_handle_t& handle, string input_name, bm_image& img) {
+
+bm_status_t bmpDec(bm_handle_t& handle, string input_name, bm_image& img) {
     FILE* infile = fopen(input_name.c_str(), "rb+");
     fseek(infile, 0, SEEK_END);
     int numBytes = ftell(infile);
@@ -600,8 +612,7 @@ bm_status_t pngDec(bm_handle_t& handle, string input_name, bm_image& img) {
         fprintf(stderr, "could not alloc av packet\n");
         exit(1);
     }
-    codec = avcodec_find_decoder(AV_CODEC_ID_PNG);
-    // codec = avcodec_find_decoder(AV_CODEC_ID_MJPEG);
+    codec = avcodec_find_decoder(AV_CODEC_ID_BMP);
     if (!codec) {
         fprintf(stderr, "Codec not found\n");
         exit(1);
@@ -624,7 +635,87 @@ bm_status_t pngDec(bm_handle_t& handle, string input_name, bm_image& img) {
 
     pkt->size = numBytes;
     pkt->data = (unsigned char*)bs_buffer;
-    // dec_ctx->pix_fmt = AV_PIX_FMT_RGB24;
+    if (pkt->size) {
+        int ret;
+        ret = avcodec_send_packet(dec_ctx, pkt);
+
+        if (ret < 0) {
+            fprintf(stderr, "Error sending a packet for decoding\n");
+            exit(1);
+        }
+
+        ret = avcodec_receive_frame(dec_ctx, frame);
+
+        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+            fprintf(stderr, "Error could not receive frame\n");
+            exit(1);
+        } else if (ret < 0) {
+            fprintf(stderr, "Error during decoding\n");
+            exit(1);
+        }
+
+        fflush(stdout);
+
+        data_on_device_mem = false;
+        avframe_to_bm_image(handle, frame, &img, false);
+        free(bs_buffer);
+        avcodec_free_context(&dec_ctx);
+        av_frame_free(&frame);
+        av_packet_free(&pkt);
+        return BM_SUCCESS;
+    } else {
+        fprintf(stderr, "Error decode bmp, can not read file size\n");
+        free(bs_buffer);
+        avcodec_free_context(&dec_ctx);
+        av_frame_free(&frame);
+        av_packet_free(&pkt);
+        return BM_ERR_FAILURE;
+    }
+}
+
+
+bm_status_t pngDec(bm_handle_t& handle, string input_name, bm_image& img) {
+    FILE* infile = fopen(input_name.c_str(), "rb+");
+    fseek(infile, 0, SEEK_END);
+    int numBytes = ftell(infile);
+    fseek(infile, 0, SEEK_SET);
+    uint8_t* bs_buffer = (uint8_t*)av_malloc(numBytes);
+    fread(bs_buffer, sizeof(uint8_t), numBytes, infile);
+    fclose(infile);
+
+    const AVCodec* codec;
+    AVCodecContext* dec_ctx = NULL;
+    AVPacket* pkt;
+    AVFrame* frame;
+
+    pkt = av_packet_alloc();
+    if (!pkt) {
+        fprintf(stderr, "could not alloc av packet\n");
+        exit(1);
+    }
+    codec = avcodec_find_decoder(AV_CODEC_ID_PNG);
+    if (!codec) {
+        fprintf(stderr, "Codec not found\n");
+        exit(1);
+    }
+    dec_ctx = avcodec_alloc_context3(codec);
+    if (!dec_ctx) {
+        fprintf(stderr, "Could not allocate video codec context\n");
+        exit(1);
+    }
+
+    if (avcodec_open2(dec_ctx, codec, NULL) < 0) {
+        fprintf(stderr, "Could not open codec\n");
+        exit(1);
+    }
+    frame = av_frame_alloc();
+    if (!frame) {
+        fprintf(stderr, "Could not allocate video frame\n");
+        exit(1);
+    }
+
+    pkt->size = numBytes;
+    pkt->data = (unsigned char*)bs_buffer;
     if (pkt->size) {
         int ret;
         ret = avcodec_send_packet(dec_ctx, pkt);
