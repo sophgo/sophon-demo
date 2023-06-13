@@ -10,6 +10,7 @@ class linear_assignment
 {
     linear_assignment();
     linear_assignment(const linear_assignment& );
+    virtual ~linear_assignment();
     linear_assignment& operator=(const linear_assignment&);
     static linear_assignment* instance;
 
