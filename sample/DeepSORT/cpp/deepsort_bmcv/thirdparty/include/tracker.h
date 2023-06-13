@@ -28,6 +28,7 @@ class tracker {
             float max_iou_distance = 0.7,
             int max_age = 30,
             int n_init = 3);
+    virtual ~tracker();
     void predict();
     void update(const DETECTIONS& detections);
     typedef DYNAMICM (tracker::*GATED_METRIC_FUNC)(std::vector<Track>& tracks,
