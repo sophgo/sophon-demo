@@ -29,6 +29,11 @@ tracker::tracker(/*NearNeighborDisMetric *metric,*/
     this->k_feature_dim = k_feature_dim;
 }
 
+tracker::~tracker() {
+    delete this->metric;
+    delete this->kf;
+}
+
 void tracker::predict() {
     for (Track& track : tracks) {
         track.predit(kf);
