@@ -220,16 +220,14 @@ bmrt_test --bmodel models/BM1684/yolov7_v0.1_3output_fp32_1b.bmodel
 
 |                  测试模型                   | calculate time(ms) |
 | ------------------------------------------- | ----------------- |
-| BM1684/yolov7_v0.1_3output_fp32_1b.bmodel  | 8.3 |
-| BM1684/yolov7_v0.1_3output_fp32_4b.bmodel  | 8.2 |
-| BM1684/yolov7_v0.1_3output_int8_1b.bmodel  | 4.9 |
-| BM1684/yolov7_v0.1_3output_int8_4b.bmodel  | 1.9 |
-| BM1684X/yolov7_v0.1_3output_fp32_1b.bmodel | 9.9 |
-| BM1684X/yolov7_v0.1_3output_fp32_4b.bmodel | 9.8 |
-| BM1684X/yolov7_v0.1_3output_fp16_1b.bmodel | 2.4 |
-| BM1684X/yolov7_v0.1_3output_fp16_4b.bmodel | 2.3 |
-| BM1684X/yolov7_v0.1_3output_int8_1b.bmodel | 1.0 |
-| BM1684X/yolov7_v0.1_3output_int8_4b.bmodel | 1.0 |
+| BM1684/yolov7_v0.1_3output_fp32_1b.bmodel  | 87.2 |
+| BM1684/yolov7_v0.1_3output_int8_1b.bmodel  | 48.9 |
+| BM1684/yolov7_v0.1_3output_int8_4b.bmodel  | 19.4 |
+| BM1684X/yolov7_v0.1_3output_fp32_1b.bmodel | 97.8 |
+| BM1684X/yolov7_v0.1_3output_fp16_1b.bmodel | 19.3 |
+| BM1684X/yolov7_v0.1_3output_fp16_4b.bmodel | 18.4 |
+| BM1684X/yolov7_v0.1_3output_int8_1b.bmodel | 9.1 |
+| BM1684X/yolov7_v0.1_3output_int8_4b.bmodel | 8.4 |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -243,27 +241,27 @@ bmrt_test --bmodel models/BM1684/yolov7_v0.1_3output_fp32_1b.bmodel
 
 |    测试平台  |     测试程序      |             测试模型                | decode_time | preprocess_time | inference_time | postprocess_time |
 | ----------- | ---------------- | ----------------------------------- | -------- | --------- | --------- | --------- |
-| BM1684 SoC  | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel | 17.8 | 27.8 | 93.9 | 144.0 |
-| BM1684 SoC  | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel | 16.3 | 23.8 | 70.3 | 143.2 |
-| BM1684 SoC  | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel | 14.6 | 25.1 | 41.2 | 148.2 |
-| BM1684 SoC  | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel | 3.0 | 3.0 | 88.9 | 139.9 |
-| BM1684 SoC  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel | 3.0 | 2.6 | 54.9 | 147.2 |
-| BM1684 SoC  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel | 2.8 | 2.4 | 24.5 | 150.8 |
-| BM1684 SoC  | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp32_1b.bmodel | 14.2| 1.9 | 82.9 | 20.5 |
-| BM1684 SoC  | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel | 14.7 | 1.7 | 48.7 | 21.9 |
-| BM1684 SoC  | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel | 14.5 | 1.6 | 19.3 | 21.5 |
-| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel | 15.0| 26.6 | 142.5 | 135.9 |
-| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_fp16_1b.bmodel | 3.2 | 24.7 | 39.5 | 133.4 |
-| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel | 15.0 | 22.3 | 22.3 | 132.1 |
-| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel | 18.5 | 22.4 | 18.7 | 107.7 |
-| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel | 2.6 | 2.3 | 114.9 | 133.7 |
-| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_fp16_1b.bmodel | 2.6 | 2.2 | 35.9 | 132.4 |
-| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel | 2.6 | 2.2 | 19.0 | 133.3|
-| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel | 2.4 | 2.1 | 17.9 | 149.5 |
-| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp32_1b.bmodel | 13.9 | 0.8 | 131.1 | 20.7 |
-| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp16_1b.bmodel | 13.9 | 0.8 | 29.4 | 20.7 |
-| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel | 13.9 | 0.8 | 12.6 | 20.8 |
-| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel | 12.3 | 0.7 | 9.5 | 18.7 |
+| BM1684 SoC  | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel | 17.8       | 27.8     | 93.9      | 144.0 |
+| BM1684 SoC  | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel | 16.3       | 23.8     | 70.3      | 143.2 |
+| BM1684 SoC  | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel | 14.6       | 25.1     | 41.2      | 148.2 |
+| BM1684 SoC  | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel | 3.0        | 3.0      | 88.9      | 139.9 |
+| BM1684 SoC  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel | 3.0        | 2.6      | 54.9      | 147.2 |
+| BM1684 SoC  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel | 2.8        | 2.4      | 24.5      | 150.8 |
+| BM1684 SoC  | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp32_1b.bmodel | 14.2       | 1.9      | 82.9      | 20.5 |
+| BM1684 SoC  | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel | 14.7       | 1.7      | 48.7      | 21.9 |
+| BM1684 SoC  | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel | 14.5       | 1.6      | 19.3      | 21.5 |
+| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel | 15.0       | 26.6     | 142.5     | 135.9 |
+| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_fp16_1b.bmodel | 3.2        | 24.7     | 39.5      | 133.4 |
+| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel | 15.0       | 22.3     | 22.3      | 132.1 |
+| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel | 18.5       | 22.4     | 18.7      | 107.7 |
+| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel | 2.6        | 2.3      | 114.9     | 133.7 |
+| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_fp16_1b.bmodel | 2.6        | 2.2      | 35.9      | 132.4 |
+| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel | 2.6        | 2.2      | 19.0      | 133.3|
+| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel | 2.4        | 2.1      | 17.9      | 149.5 |
+| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp32_1b.bmodel | 13.9       | 0.8      | 131.1     | 20.7 |
+| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp16_1b.bmodel | 13.9       | 0.8      | 29.4      | 20.7 |
+| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel | 13.9       | 0.8      | 12.6      | 20.8 |
+| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel | 12.3       | 0.7      | 9.5       | 18.7 |
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

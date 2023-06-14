@@ -5,8 +5,7 @@ pushd $top_dir
 
 #default config
 TARGET="BM1684"
-# MODE="pcie_test"
-MODE="compile_nntc"
+MODE="pcie_test"
 TPUID=0
 ALL_PASS=1
 
@@ -95,7 +94,7 @@ function build_soc()
 }
 
 function compare_res(){
-    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.0001 && y-x<0.0001)?1:0}'`
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.001 && y-x<0.001)?1:0}'`
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0

@@ -19,7 +19,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 # sail.set_print_flag(1)
 
-class YOLOv5:
+class YOLOv7:
     def __init__(self, args):
         # load bmodel
         self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
@@ -197,13 +197,13 @@ def main(args):
         os.mkdir(output_img_dir) 
     
     # initialize net
-    yolov5 = YOLOv5(args)
-    batch_size = yolov5.batch_size
+    yolov7 = YOLOv7(args)
+    batch_size = yolov7.batch_size
     
     # warm up 
     # for i in range(10):
-    #     results = yolov5([np.zeros((640, 640, 3))])
-    yolov5.init()
+    #     results = yolov7([np.zeros((640, 640, 3))])
+    yolov7.init()
     
     decode_time = 0.0
     # test images
@@ -233,7 +233,7 @@ def main(args):
                 filename_list.append(filename)
                 if len(img_list) == batch_size:
                     # predict
-                    results = yolov5(img_list)
+                    results = yolov7(img_list)
                     
                     for i, filename in enumerate(filename_list):
                         det = results[i]
@@ -259,7 +259,7 @@ def main(args):
                     filename_list.clear()
                     
         if len(img_list):
-            results = yolov5(img_list)
+            results = yolov7(img_list)
             for i, filename in enumerate(filename_list):
                 det = results[i]
                 det_draw = det[det[:, -2] > 0.25]
@@ -309,7 +309,7 @@ def main(args):
                 break
             frame_list.append(frame)
             if len(frame_list) == batch_size:
-                results = yolov5(frame_list)
+                results = yolov7(frame_list)
                 for i, frame in enumerate(frame_list):
                     det = results[i]
                     cn += 1
@@ -319,7 +319,7 @@ def main(args):
                     out.write(res_frame)
                 frame_list.clear()
         if len(frame_list):
-            results = yolov5(frame_list)
+            results = yolov7(frame_list)
             for i, frame in enumerate(frame_list):
                 det = results[i]
                 cn += 1
@@ -334,9 +334,9 @@ def main(args):
     # calculate speed  
     logging.info("------------------ Predict Time Info ----------------------")
     decode_time = decode_time / cn
-    preprocess_time = yolov5.preprocess_time / cn
-    inference_time = yolov5.inference_time / cn
-    postprocess_time = yolov5.postprocess_time / cn
+    preprocess_time = yolov7.preprocess_time / cn
+    inference_time = yolov7.inference_time / cn
+    postprocess_time = yolov7.postprocess_time / cn
     logging.info("decode_time(ms): {:.2f}".format(decode_time * 1000))
     logging.info("preprocess_time(ms): {:.2f}".format(preprocess_time * 1000))
     logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
