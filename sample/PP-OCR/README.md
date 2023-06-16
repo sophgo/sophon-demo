@@ -113,11 +113,29 @@ chmod -R +x scripts/
 
 ## 6. 精度测试
 ### 6.1 测试方法
-TODO
+当你运行了[C++推理](cpp/README.md#3-推理测试)或[Python推理](python/README.md#24-全流程推理测试)，生成了结果文件之后，你可以使用本例程的精度测试脚本`tools/eval_icdar.py`和Ground-truth文件`datasets/train_full_images_0.json`来计算结果文件的`F-score/precision/recall`，测试命令如下：
+
+```
+python3 tools/eval_icdar.py --gt_path datasets/train_full_images_0.json --result_json python/results/ppocr_system_results_b4.json
+```
+输出如下：
+```
+F-score: 0.57488, Precision: 0.80639, Recall: 0.44665
+```
 
 ### 6.2 测试结果
-TODO
+在ICDAR-2019数据集上，精度测试结果如下：
+|   测试平台    |      测试程序           |   模型精度   | F-score |
+| BM1684 PCIe  | ppocr_system_opencv.py  | fp32         | 0.575   |
+| BM1684 PCIe  | ppocr_bmcv.pcie         | fp32         | 0.573   |
+| BM1684X PCIe  | ppocr_system_opencv.py | fp32         | 0.575   |
+| BM1684X PCIe  | ppocr_system_opencv.py | fp16         | 0.575   |
+| BM1684X PCIe  | ppocr_bmcv.pcie        | fp32         | 0.572   |
+| BM1684X PCIe  | ppocr_bmcv.pcie        | fp16         | 0.572   |
 
+> **测试说明**：  
+> 1. 模型精度为fp32(fp16)，即代表检测模型和识别模型都是fp32(fp16)的精度。
+> 2. SoC和PCIe的模型精度一致；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test

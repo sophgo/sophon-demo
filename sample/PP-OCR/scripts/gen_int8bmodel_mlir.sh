@@ -1,6 +1,9 @@
 #!/bin/bash
 model_dir=$(cd `dirname $BASH_SOURCE[0]`/ && pwd)
 
+echo "Do not support int8 now."
+exit
+
 if [ ! $1 ]; then
     target=bm1684x
     target_dir=BM1684X

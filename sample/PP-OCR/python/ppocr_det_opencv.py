@@ -27,9 +27,9 @@ class DBPostProcess(object):
 
     def __init__(self,
                  thresh=0.3,
-                 box_thresh=0.7,
+                 box_thresh=0.6,
                  max_candidates=1000,
-                 unclip_ratio=2.0,
+                 unclip_ratio=1.5,
                  use_dilation=False,
                  score_mode="fast",
                  **kwargs):
@@ -54,7 +54,6 @@ class DBPostProcess(object):
 
         bitmap = _bitmap
         height, width = bitmap.shape
-
         outs = cv2.findContours((bitmap * 255).astype(np.uint8), cv2.RETR_LIST,
                                 cv2.CHAIN_APPROX_SIMPLE)
         if len(outs) == 3:
@@ -62,7 +61,6 @@ class DBPostProcess(object):
         elif len(outs) == 2:
             contours, _ = outs[0], outs[1]
         num_contours = min(len(contours), self.max_candidates)
-
         boxes = []
         scores = []
         for index in range(num_contours):
@@ -75,13 +73,10 @@ class DBPostProcess(object):
                 score = self.box_score_fast(pred, points.reshape(-1, 2))
             else:
                 score = self.box_score_slow(pred, contour)
-
             if self.box_thresh > score:
                 continue
-
             box = self.unclip(points).reshape(-1, 1, 2)
             box, sside = self.get_mini_boxes(box)
-            
             if sside < self.min_size + 2:
                 continue
             box = np.array(box)
@@ -179,7 +174,6 @@ class DBPostProcess(object):
                 mask = segmentation[batch_index]
             boxes, scores = self.boxes_from_bitmap(pred[batch_index], mask,
                                                    src_w, src_h)
-
             boxes_batch.append({'points': boxes})
         return boxes_batch
 
@@ -199,7 +193,7 @@ class PPOCRv2Det(object):
         self.det_limit_side_len = sorted([self.input_shape[2], self.input_shape[3]])
         self.mean = np.array([0.485, 0.456, 0.406]).reshape((1, 1, 3)).astype('float32') * 255.0
         self.scale = np.array([1/0.229, 1/0.224, 1/0.225]).reshape((1, 1, 3)).astype('float32') * 1 / 255.0
-
+        self.count = 0
         # postprocess
         self.postprocess_op = DBPostProcess(thresh=0.3,
                                             box_thresh=0.6,
@@ -226,8 +220,8 @@ class PPOCRv2Det(object):
                     break
         resize_h = int(h * ratio)
         resize_w = int(w * ratio)
-        resize_h = max(int(round(resize_h / 32) * 32), 32)
-        resize_w = max(int(round(resize_w / 32) * 32), 32)
+        resize_h = max(int(round(float(resize_h) / 32) * 32), 32)
+        resize_w = max(int(round(float(resize_w) / 32) * 32), 32)
         
         if h != resize_h or w != resize_w:
             img = cv2.resize(img, (resize_w, resize_h))
@@ -320,12 +314,16 @@ class PPOCRv2Det(object):
             if beg_img_no + self.det_batch_size > img_num:
                 for ino in range(beg_img_no, end_img_no):
                     img_input = np.expand_dims(img_input_list[ino], axis=0)
+                    # np.save("bin/det_preprocessed_{}".format(self.count), img_input)
                     outputs = self.predict(img_input)
                     outputs_list.extend(outputs)
+                    self.count+=1
             else:
                 img_input = np.stack(img_input_list[beg_img_no:end_img_no])
+                # np.save("bin/det_preprocessed_{}".format(self.count), img_input)
                 outputs = self.predict(img_input)
                 outputs_list.extend(outputs)
+                self.count+=1
         self.inference_time += time.time() - start_infer
         # 对输出进行后处理
         start_post = time.time()
@@ -350,8 +348,9 @@ def main(opt):
         os.makedirs(draw_img_save)
     ppocrv2_det = PPOCRv2Det(opt)
     # 读取得到的图片存放在这个list中
+    file_list = sorted(os.listdir(opt.input))
     img_list = []
-    for img_name in os.listdir(opt.input):
+    for img_name in file_list:
         #label = img_name.split('.')[0]
         img_file = os.path.join(opt.input, img_name)
         #print(img_file, label)
@@ -360,7 +359,7 @@ def main(opt):
     # 检测得到的结果
     dt_boxes_list = ppocrv2_det(img_list)
 
-    for img_name, dt_boxes in zip(os.listdir(opt.input), dt_boxes_list):
+    for img_name, dt_boxes in zip(file_list, dt_boxes_list):
         image_file = os.path.join(opt.input, img_name)
         draw_im = draw_text_det_res(dt_boxes, image_file)
         img_name_pure = os.path.split(image_file)[-1]
@@ -373,7 +372,7 @@ def parse_opt():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--dev_id', type=int, default=0, help='tpu card id')
     parser.add_argument('--input', type=str, default='../datasets/cali_set_det', help='input image directory path')
-    parser.add_argument('--bmodel_det', type=str, default='../models/BM1684X/ch_PP-OCRv3_det_fp32_1b.bmodel', help='bmodel path')
+    parser.add_argument('--bmodel_det', type=str, default='../models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel', help='bmodel path')
     opt = parser.parse_args()
     return opt
 

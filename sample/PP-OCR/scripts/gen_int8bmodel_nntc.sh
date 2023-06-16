@@ -1,5 +1,10 @@
 #!/bin/bash
 model_dir=$(dirname $(readlink -f "$0"))
+
+echo "Do not support int8 now."
+exit
+
+
 if [ ! $1 ]; then
     target="BM1684"
 else

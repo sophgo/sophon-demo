@@ -175,7 +175,8 @@ def main(opt):
     
     img_file_list = []
     batch_size = opt.batch_size
-    for img_name in os.listdir(opt.input):
+    file_list = sorted(os.listdir(opt.input))
+    for img_name in file_list:
         img_file = os.path.join(opt.input, img_name)
         img_file_list.append(img_file)
     
@@ -195,7 +196,7 @@ def main(opt):
         results_list = ppocrv2_sys(img_list)    
 
         for i, result in enumerate(results_list):
-            img_name = os.listdir(opt.input)[batch_idx+i]
+            img_name = file_list[batch_idx+i]
             logging.info(img_name)
             logging.info(result["text"])
             image_file = os.path.join(opt.input, img_name)
@@ -265,7 +266,7 @@ def parse_opt():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--input', type=str, default='../datasets/cali_set_det', help='input image directory path')
     parser.add_argument('--dev_id', type=int, default=0, help='tpu card id')
-    parser.add_argument("--batch_size", type=int, default=16, help='img num for a ppocr system process launch.')
+    parser.add_argument("--batch_size", type=int, default=4, help='img num for a ppocr system process launch.')
     # params for text detector
     parser.add_argument('--bmodel_det', type=str, default='../models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel', help='detector bmodel path')
     parser.add_argument('--det_limit_side_len', type=int, default=[640])

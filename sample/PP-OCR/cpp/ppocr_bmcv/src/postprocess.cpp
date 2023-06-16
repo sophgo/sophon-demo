@@ -177,7 +177,7 @@ std::vector<std::vector<float>> PostProcessor::Mat2Vector(cv::Mat mat)
 
 std::vector<std::vector<float>> PostProcessor::GetMiniBoxes(cv::RotatedRect box,float &ssid)
 {
-    ssid = std::max(box.size.width, box.size.height);
+    ssid = std::min(box.size.width, box.size.height);
     cv::Mat points;
     cv::boxPoints(box, points);
 
@@ -209,7 +209,14 @@ std::vector<std::vector<float>> PostProcessor::GetMiniBoxes(cv::RotatedRect box,
     return array;
 }
 
-std::vector<std::vector<std::vector<int>>> PostProcessor::BoxesFromBitmap(const cv::Mat pred, const cv::Mat bitmap, const float &box_thresh, const float &det_db_unclip_ratio, const bool &use_polygon_score) 
+std::vector<std::vector<std::vector<int>>> PostProcessor::BoxesFromBitmap(
+                                            const cv::Mat pred, 
+                                            const cv::Mat bitmap, 
+                                            const float &box_thresh, 
+                                            const float &det_db_unclip_ratio, 
+                                            const bool &use_polygon_score, 
+                                            const int& dest_width,
+                                            const int& dest_height) 
 {
     const int min_size = 3;
     const int max_candidates = 1000;
@@ -225,7 +232,6 @@ std::vector<std::vector<std::vector<int>>> PostProcessor::BoxesFromBitmap(const 
 
     int num_contours =
       contours.size() >= max_candidates ? max_candidates : contours.size();
-
     std::vector<std::vector<std::vector<int>>> boxes;
 
     for (int _i = 0; _i < num_contours; _i++) {
@@ -264,8 +270,6 @@ std::vector<std::vector<std::vector<int>>> PostProcessor::BoxesFromBitmap(const 
         if (ssid < min_size + 2)
             continue;
 
-        int dest_width = pred.cols;
-        int dest_height = pred.rows;
         std::vector<std::vector<int>> intcliparray;
 
         for (int num_pt = 0; num_pt < 4; num_pt++) {
@@ -279,7 +283,6 @@ std::vector<std::vector<std::vector<int>>> PostProcessor::BoxesFromBitmap(const 
         }
         boxes.push_back(intcliparray);
     }
-
     return boxes;
 }
 
@@ -290,11 +293,13 @@ std::vector<std::vector<int>> PostProcessor::OrderPointsClockwise(std::vector<st
     std::vector<std::vector<int>> leftmost = {box[0], box[1]};
     std::vector<std::vector<int>> rightmost = {box[2], box[3]};
 
-    if (leftmost[0][1] > leftmost[1][1])
-    std::swap(leftmost[0], leftmost[1]);
+    if (leftmost[0][1] > leftmost[1][1]){
+        std::swap(leftmost[0], leftmost[1]);
+    }
 
-    if (rightmost[0][1] > rightmost[1][1])
-    std::swap(rightmost[0], rightmost[1]);
+    if (rightmost[0][1] > rightmost[1][1]){
+        std::swap(rightmost[0], rightmost[1]);
+    }
 
     std::vector<std::vector<int>> rect = {leftmost[0], rightmost[0], rightmost[1],
                                         leftmost[1]};
@@ -302,7 +307,7 @@ std::vector<std::vector<int>> PostProcessor::OrderPointsClockwise(std::vector<st
 }
 
 OCRBoxVec PostProcessor::FilterTagDetRes(std::vector<std::vector<std::vector<int>>> boxes,
-                               float ratio_h, float ratio_w, bm_image input_bmimg) {
+                                        bm_image input_bmimg) {
     int oriimg_h = input_bmimg.height;
     int oriimg_w = input_bmimg.width;
 
@@ -310,9 +315,6 @@ OCRBoxVec PostProcessor::FilterTagDetRes(std::vector<std::vector<std::vector<int
     for (int n = 0; n < boxes.size(); n++) {
         boxes[n] = OrderPointsClockwise(boxes[n]);
         for (int m = 0; m < boxes[0].size(); m++) {
-            boxes[n][m][0] /= ratio_w;
-            boxes[n][m][1] /= ratio_h;
-
             boxes[n][m][0] = int(_min(_max(boxes[n][m][0], 0), oriimg_w - 1));
             boxes[n][m][1] = int(_min(_max(boxes[n][m][1], 0), oriimg_h - 1));
         }
@@ -324,7 +326,7 @@ OCRBoxVec PostProcessor::FilterTagDetRes(std::vector<std::vector<std::vector<int
                                 pow(boxes[n][0][1] - boxes[n][1][1], 2)));
         rect_height = int(sqrt(pow(boxes[n][0][0] - boxes[n][3][0], 2) +
                                 pow(boxes[n][0][1] - boxes[n][3][1], 2)));
-        if (rect_width <= 4 || rect_height <= 4)
+        if (rect_width <= 3 || rect_height <= 3)
             continue;
         OCRBox box;
         box.x1 = boxes[n][0][0];
