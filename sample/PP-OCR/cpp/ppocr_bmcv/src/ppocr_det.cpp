@@ -7,7 +7,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <string>
-
+#include "cnpy.h"
 #include "ppocr_det.hpp"
 #include "postprocess.hpp"
 #define USE_ZERO_PADDING 0 //Only 1684
@@ -17,6 +17,16 @@ using namespace std;
 //     int* size;
 //     bm_image_get_byte_size(input, size);
 // }
+double pythonRound(double number) {
+    double integer_part = 0.0;
+    double fractional_part = std::modf(number, &integer_part);
+
+    if (fractional_part > 0.5 || (fractional_part == 0.5 && fmod(integer_part, 2.0) == 1.0)) {
+        integer_part += 1.0;
+    }
+
+    return integer_part;
+}
 
 PPOCR_Detector::PPOCR_Detector(std::shared_ptr<BMNNContext> context):m_bmContext(context)
 {
@@ -177,72 +187,6 @@ int PPOCR_Detector::run(const std::vector<bm_image> &input_images, std::vector<O
     return ret;
 }
 
-int PPOCR_Detector::postForward(const std::vector<bm_image> &batch_input_bmimg, const std::vector<std::vector<int>> resize_vector, std::vector<OCRBoxVec>& batch_boxes){
-    m_ts->save("(per image)Det postprocess", batch_input_bmimg.size()); 
-    float min_score_thresh = 0.3;
-    bool use_dilation = false;
-    double det_db_box_thresh = 0.7;
-    double det_db_unclip_ratio = 2.0;
-
-    const double threshold = min_score_thresh * 255;
-    const double maxvalue = 255;
-    bool use_polygon_score = false;
-    
-    int output_num = m_bmNetwork->outputTensorNum();
-    std::vector<std::shared_ptr<BMNNTensor>> outputTensors(output_num);
-    for(int i=0; i<output_num; i++){
-        outputTensors[i] = m_bmNetwork->outputTensor(i, stage);
-        auto output_shape = outputTensors[i]->get_shape();
-        auto output_dims = output_shape->num_dims;
-        int batch_num = output_shape->dims[0];
-        out_net_h_ = output_shape->dims[2];
-        out_net_w_ = output_shape->dims[3];
-    #if 0
-        std::ifstream in("python_det_output.dat", std::ios::binary);
-        float* predict_batch = new float[1*1*640*640];
-        in.read(reinterpret_cast<char*>(predict_batch), 1*1*640*640*sizeof(float));
-        in.close();
-    #else
-        float* predict_batch = (float*)outputTensors[i]->get_cpu_data();
-    #endif
-        for(int i = 0; i < batch_num; i++)
-        {   
-            int resize_h = resize_vector[i][0];
-            int resize_w = resize_vector[i][1];
-
-            float ratio_h = float(resize_h) / float(batch_input_bmimg[i].height);
-            float ratio_w = float(resize_w) / float(batch_input_bmimg[i].width);
-
-            PostProcessor post_processor;
-
-            int n = out_net_h_ * out_net_w_;
-            std::vector<float> pred(n, 0.0);
-            std::vector<unsigned char> cbuf(n, ' ');
-
-
-            for (int j = i*n; j < (i+1)*n; j++) {
-                pred[j-i*n] = float(predict_batch[j]);
-                cbuf[j-i*n] = (unsigned char)((predict_batch[j]) * 255);
-            }
-
-            cv::Mat cbuf_map(out_net_h_, out_net_w_, CV_8UC1, (unsigned char *)cbuf.data());
-            cv::Mat pred_map(out_net_h_, out_net_w_, CV_32F, (float *)pred.data()); 
-            cv::Mat bit_map;
-            cv::threshold(cbuf_map, bit_map, threshold, maxvalue, cv::THRESH_BINARY);
-
-            std::vector<std::vector<std::vector<int>>> boxes = post_processor.BoxesFromBitmap(
-                    pred_map, bit_map, det_db_box_thresh, det_db_unclip_ratio, use_polygon_score);
-
-            OCRBoxVec ocrboxes = post_processor.FilterTagDetRes(boxes, ratio_h, ratio_w, batch_input_bmimg[i]);
-            batch_boxes.push_back(ocrboxes);
-        }
-    }
-
-    m_ts->save("(per image)Det postprocess", batch_input_bmimg.size()); 
-    return 0;
-}
-
-
 std::vector<std::vector<int>> PPOCR_Detector::preprocess_bmcv(const std::vector<bm_image> &input)
 {
     m_ts->save("(per image)Det preprocess", input.size()); 
@@ -310,13 +254,20 @@ std::vector<std::vector<int>> PPOCR_Detector::preprocess_bmcv(const std::vector<
     int image_n = input.size();
 
     bm_device_mem_t input_dev_mem;
-#if 0
-    std::ifstream in("python_det_input.dat", std::ios::binary);
-    float* python_det_input = new float[1*3*640*640];
-    in.read(reinterpret_cast<char*>(python_det_input), 1*3*640*640*sizeof(float));
-    assert(BM_SUCCESS == bm_malloc_device_byte(m_bmContext->handle(), &input_dev_mem, 1*3*640*640*sizeof(float)));
+
+#if 0 //debug code
+    // std::ifstream in("../../python/bin/det_preprocessed_{}.npy", std::ios::binary);
+    // float* python_det_input = new float[1*3*640*640];
+    // in.read(reinterpret_cast<char*>(python_det_input), 1*3*640*640*sizeof(float));
+    // assert(BM_SUCCESS == bm_malloc_device_byte(m_bmContext->handle(), &input_dev_mem, 1*3*640*640*sizeof(float)));
+    // assert(BM_SUCCESS == bm_memcpy_s2d(m_bmContext->handle(), input_dev_mem, python_det_input));
+    // in.close();
+    static int i = 0;
+    cnpy::NpyArray arr = cnpy::npy_load(cv::format("../../python/bin/det_preprocessed_%d.npy", i));
+    i++;
+    float* python_det_input = arr.data<float>();
+    assert(BM_SUCCESS == bm_malloc_device_byte(m_bmContext->handle(), &input_dev_mem, arr.shape[0]*3*640*640*sizeof(float)));
     assert(BM_SUCCESS == bm_memcpy_s2d(m_bmContext->handle(), input_dev_mem, python_det_input));
-    in.close();
 #else
     #if USE_ZERO_PADDING
         assert(BM_SUCCESS == bm_image_get_contiguous_device_mem(input.size(), padding_bmcv_.data(), &input_dev_mem));
@@ -344,14 +295,11 @@ std::vector<int> PPOCR_Detector::resize_padding_op_(bm_image src_img, bm_image &
     }else{
         ratio = 1;
     }
-
     int resize_h = int(h * ratio);
     int resize_w = int(w * ratio);
 
-    // resize_h = max(int(round(resize_h / 32) * 32), 32);
-    // resize_w = max(int(round(resize_w / 32) * 32), 32);
-    resize_h = max(int(round((float)resize_h / 32) * 32), 32);
-    resize_w = max(int(round((float)resize_w / 32) * 32), 32);
+    resize_h = max(int(pythonRound((float)resize_h / 32) * 32), 32);
+    resize_w = max(int(pythonRound((float)resize_w / 32) * 32), 32);
 
     std::vector<int> resize_hw;
     resize_hw.push_back(resize_h);
@@ -376,3 +324,72 @@ int PPOCR_Detector::batch_size()
 {
     return max_batch;
 };
+
+int PPOCR_Detector::postForward(const std::vector<bm_image> &batch_input_bmimg, const std::vector<std::vector<int>> resize_vector, std::vector<OCRBoxVec>& batch_boxes){
+    m_ts->save("(per image)Det postprocess", batch_input_bmimg.size()); 
+    float min_score_thresh = 0.3;
+    double det_db_box_thresh = 0.6;
+    double det_db_unclip_ratio = 1.5;
+
+    const double threshold = min_score_thresh * 255;
+    const double maxvalue = 255;
+    bool use_polygon_score = false;
+    
+    int output_num = m_bmNetwork->outputTensorNum();
+    std::vector<std::shared_ptr<BMNNTensor>> outputTensors(output_num);
+    for(int i=0; i<output_num; i++){
+        outputTensors[i] = m_bmNetwork->outputTensor(i, stage);
+        auto output_shape = outputTensors[i]->get_shape();
+        auto output_dims = output_shape->num_dims;
+        int batch_num = output_shape->dims[0];
+        out_net_h_ = output_shape->dims[2];
+        out_net_w_ = output_shape->dims[3];
+    #if 0
+        std::ifstream in("python_det_output.dat", std::ios::binary);
+        float* predict_batch = new float[1*1*640*640];
+        in.read(reinterpret_cast<char*>(predict_batch), 1*1*640*640*sizeof(float));
+        in.close();
+    #else
+        float* predict_batch = (float*)outputTensors[i]->get_cpu_data();
+    #endif
+        for(int i = 0; i < batch_num; i++)
+        {   
+            int resize_h = resize_vector[i][0];
+            int resize_w = resize_vector[i][1];
+            float ratio_h = float(resize_h) / float(batch_input_bmimg[i].height);
+            float ratio_w = float(resize_w) / float(batch_input_bmimg[i].width);
+
+            PostProcessor post_processor;
+
+            int n = out_net_h_ * out_net_w_;
+            std::vector<float> pred(n, 0.0);
+            std::vector<unsigned char> cbuf(n, ' ');
+
+
+            for (int j = i*n; j < (i+1)*n; j++) {
+                pred[j-i*n] = float(predict_batch[j]);
+                cbuf[j-i*n] = (unsigned char)((predict_batch[j]) * 255);
+            }
+
+            cv::Mat cbuf_map_(out_net_h_, out_net_w_, CV_8UC1, (unsigned char *)cbuf.data());
+            cv::Mat pred_map_(out_net_h_, out_net_w_, CV_32F, (float *)pred.data()); 
+            
+            cv::Rect crop_region(0, 0, resize_w, resize_h);
+            cv::Mat cbuf_map = cbuf_map_(crop_region);
+            cv::Mat pred_map = pred_map_(crop_region);
+            
+            cv::Mat bit_map;
+            cv::threshold(cbuf_map, bit_map, threshold, maxvalue, cv::THRESH_BINARY);
+
+            std::vector<std::vector<std::vector<int>>> boxes = post_processor.BoxesFromBitmap(
+                    pred_map, bit_map, det_db_box_thresh, det_db_unclip_ratio, use_polygon_score, batch_input_bmimg[i].width, batch_input_bmimg[i].height);
+
+            OCRBoxVec ocrboxes = post_processor.FilterTagDetRes(boxes, batch_input_bmimg[i]);
+            batch_boxes.push_back(ocrboxes);
+        }
+    }
+
+    m_ts->save("(per image)Det postprocess", batch_input_bmimg.size()); 
+    return 0;
+}
+

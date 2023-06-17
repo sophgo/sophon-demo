@@ -13,14 +13,14 @@ class PostProcessor {
     public:
         std::vector<std::vector<std::vector<int>>> BoxesFromBitmap(const cv::Mat pred, const cv::Mat bitmap,
                 const float &box_thresh, const float &det_db_unclip_ratio,
-                const bool &use_polygon_score);
+                const bool &use_polygon_score, const int& dest_width, const int& dest_height);
         std::vector<std::vector<float>> GetMiniBoxes(cv::RotatedRect box, float &ssid);
         float PolygonScoreAcc(std::vector<cv::Point> contour, cv::Mat pred);
         float BoxScoreFast(std::vector<std::vector<float>> box_array, cv::Mat pred);
         cv::RotatedRect UnClip(std::vector<std::vector<float>> box, const float &unclip_ratio);
         void GetContourArea(const std::vector<std::vector<float>> &box, float unclip_ratio, float &distance);
         OCRBoxVec FilterTagDetRes(std::vector<std::vector<std::vector<int>>> boxes,
-                                    float ratio_h, float ratio_w, bm_image input_bmimg);
+                                    bm_image input_bmimg);
         std::vector<std::vector<int>> OrderPointsClockwise(std::vector<std::vector<int>> pts);
     private:
         static bool XsortFp32(std::vector<float> a, std::vector<float> b);

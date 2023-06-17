@@ -168,8 +168,8 @@ function eval_cpp()
   echo "Evaluating..."
   res=$(python3 ../../tools/eval_icdar.py --gt_path ../../datasets/train_full_images_0.json --result_json results/ppocr_system_results_b4.json 2>&1 | tee log/$1_$2_$3_eval.log)
   echo -e "$res"
-  precision=$(echo "$res" | grep -oE "Precision: ([0-9.]+)" | cut -d ' ' -f 2)
-  compare_res $precision $4
+  f_score=$(echo "$res" | grep -oE "F-score: ([0-9.]+)" | cut -d ' ' -f 2)
+  compare_res $f_score $4
   judge_ret $? "$3_$2_cpp_result: Precision compare!" log/$1_$2_$3_eval.log
   popd
   echo -e "########################\nCase End: eval cpp\n########################\n"
@@ -192,8 +192,8 @@ function eval_python()
   echo "Evaluating..."
   res=$(python3 ../tools/eval_icdar.py --gt_path ../datasets/train_full_images_0.json --result_json results/ppocr_system_results_b4.json 2>&1 | tee log/$1_$2_eval.log)
   echo -e "$res"
-  precision=$(echo "$res" | grep -oE "Precision: ([0-9.]+)" | cut -d ' ' -f 2)
-  compare_res $precision $3
+  f_score=$(echo "$res" | grep -oE "F-score: ([0-9.]+)" | cut -d ' ' -f 2)
+  compare_res $f_score $3
   judge_ret $? "$2_$1_python_result: Precision compare!" log/$1_$2_eval.log
 
   popd
@@ -215,18 +215,14 @@ then
   download
   if test $TARGET = "BM1684"
   then
-    eval_python opencv fp32 0.
-    # eval_python opencv int8 0.
-    eval_cpp pcie bmcv fp32 0.
-    # eval_cpp pcie bmcv int8 0.
+    eval_python opencv fp32 0.57461
+    eval_cpp pcie bmcv fp32 0.57303
   elif test $TARGET = "BM1684X"
   then
-    eval_python opencv fp32 0.
-    eval_python opencv fp16 0.
-    # eval_python opencv int8 0.
-    eval_cpp pcie bmcv fp32 0.
-    eval_cpp pcie bmcv fp16 0.
-    # eval_cpp pcie bmcv int8 0.
+    eval_python opencv fp32 0.57422
+    eval_python opencv fp16 0.57488
+    eval_cpp pcie bmcv fp32 0.57194
+    eval_cpp pcie bmcv fp16 0.57153
   fi
 elif test $MODE = "soc_build"
 then
@@ -237,18 +233,14 @@ then
   download
   if test $TARGET = "BM1684"
   then
-    eval_python opencv fp32 0.
-    # eval_python opencv int8 0.
-    eval_cpp soc bmcv fp32 0.
-    # eval_cpp soc bmcv int8 0.
+    eval_python opencv fp32 0.57461
+    eval_cpp soc bmcv fp32 0.57303
   elif test $TARGET = "BM1684X"
   then
-    eval_python opencv fp32 0.
-    eval_python opencv fp16 0.
-    # eval_python opencv int8 0.
-    eval_cpp soc bmcv fp32 0.
-    eval_cpp soc bmcv fp16 0.
-    # eval_cpp soc bmcv int8 0. 
+    eval_python opencv fp32 0.57422
+    eval_python opencv fp16 0.57488
+    eval_cpp soc bmcv fp32 0.57194
+    eval_cpp soc bmcv fp16 0.57153
   fi
 fi
 
