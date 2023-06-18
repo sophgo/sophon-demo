@@ -14,6 +14,7 @@
 #include <memory>
 
 #include "bmruntime_interface.h"
+#include "bmruntime_cpp.h"
 // #include "bm_wrapper.hpp"
 
 /*
@@ -134,7 +135,24 @@ class BMNNTensor{
           pFP32[i] = pI8[i] * m_scale;
         }
         delete [] pI8;
-      } else{
+      }else if(m_tensor->dtype == BM_INT32){
+        int32_t *pI32=nullptr;
+        int tensor_size = bmrt_tensor_bytesize(m_tensor);
+        pI32 =new int32_t[tensor_size];
+        assert(pI32 != nullptr);
+
+        // dtype convert
+        pFP32 = new float[count];
+        assert(pFP32 != nullptr);
+        ret = bm_memcpy_d2s_partial(m_handle, pI32, m_tensor->device_mem, tensor_size);
+        assert(BM_SUCCESS ==ret);
+        for(int i = 0;i < count; ++ i) {
+          pFP32[i] = pI32[i] * m_scale;
+        }
+        delete [] pI32;
+        
+      }
+       else{
         std::cout << "NOT support dtype=" << m_tensor->dtype << std::endl;
       }
     }
@@ -227,7 +245,7 @@ class BMNNNetwork : public NoCopyable {
             max_size = out_size;
          }
       }
-      if(BM_FLOAT32 == m_netinfo->output_dtypes[i]) max_size *= 4;
+      max_size *= bmruntime::ByteSize(m_netinfo->output_dtypes[i]);
       auto ret =  bm_malloc_device_byte(m_handle, &m_outputTensors[i].device_mem, max_size);
 			assert(BM_SUCCESS == ret);
     }
