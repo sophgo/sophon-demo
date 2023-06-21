@@ -34,7 +34,7 @@ if [ ! -d $outdir ]; then
     mkdir -p $outdir
 fi
 # batch_size=1
-gen_mlir 1
-gen_fp16bmodel 1
+gen_mlir 4
+gen_fp16bmodel 4
 
 popd
