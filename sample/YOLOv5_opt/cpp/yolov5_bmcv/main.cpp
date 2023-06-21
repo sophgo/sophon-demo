@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
     "{help | 0 | print help information.}"
     "{input | ../../datasets/test | input path, images direction or video file path}"
     "{classnames | ../../datasets/coco.names | class names file path}"
-    "{tpu_kernel_module_path | ./tpu_kernel_module/libbm1684x_kernel_module.so | TPUKernel Shared Object}";
+    "{tpu_kernel_module_path | ../../tpu_kernel_module/libbm1684x_kernel_module.so | TPUKernel Shared Object}";
   cv::CommandLineParser parser(argc, argv, keys);
   if (parser.get<bool>("help")) {
     parser.printMessage();

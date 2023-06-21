@@ -37,7 +37,6 @@ function gen_int8bmodel()
         --quantize INT8 \
         --chip $target \
         --calibration_table yolov5s_cali_table \
-        --asymmetric \
         --model yolov5s_tpukernel_int8_$1b.bmodel
 
     mv yolov5s_tpukernel_int8_$1b.bmodel $outdir/
