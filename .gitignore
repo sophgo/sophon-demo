@@ -1,0 +1,52 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+env/
+build/
+dist/
+log/
+*.log
+*.npz
+datasets/
+models/
+results/
+*.zip
+*.tar
+*result.txt
+
+# Execute file
+*.soc
+*.pcie
+
+# Model file
+*.mlir
+*.onnx
+*.pt
+*.pth
+*.prototxt
+*.profile
+*cali_table
+*.bmodel.json
+*.bmodel
+*.bmodel.compiler_profile*
+
+# pyenv
+.python-version
+
+# dotenv
+.env
+
+# virtualenv
+.venv/
+venv/
+ENV/
+
+# VSCode settings
+.vscode
+
+# OSX dir files
+.DS_Store

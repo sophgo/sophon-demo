@@ -1,0 +1,2 @@
+scipy
+opencv-python-headless<4.3
