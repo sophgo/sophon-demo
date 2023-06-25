@@ -55,9 +55,8 @@ bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame *in, bm_image *out,
  * @brief picture decode. support jpg and png
  */
 bm_status_t picDec(bm_handle_t &handle, const char *path, bm_image &img);
-bm_status_t pngDec(bm_handle_t &handle, std::string input_name, bm_image &img);
-bm_status_t jpgDec(bm_handle_t &handle, std::string input_name, bm_image &img);
-bm_status_t bmpDec(bm_handle_t &handle, std::string input_name, bm_image &img);
+bm_status_t jpgDec(bm_handle_t& handle, uint8_t* bs_buffer, int numBytes, bm_image& img);
+bm_status_t miscDec(bm_handle_t& handle, uint8_t* bs_buffer, int numBytes, int type, bm_image& img);
 
 /**
  * video decode class
@@ -87,6 +86,7 @@ private:
     int width;
     int height;
     int pix_fmt;
+    bool data_on_device_mem = true;
 
     int video_stream_idx;
     int refcount;
