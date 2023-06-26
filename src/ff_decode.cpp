@@ -597,6 +597,10 @@ bm_status_t picDec(bm_handle_t& handle, const char* path, bm_image& img) {
     bm_status_t ret = BM_ERR_FAILURE;
 
     FILE* infile = fopen(path, "rb+");
+    if (infile == nullptr) {
+        av_log(NULL, AV_LOG_ERROR, "Open %s failed, please check if you have enough rights.\n", path);
+        return BM_ERR_FAILURE;
+    }
     fseek(infile, 0, SEEK_END);
     int numBytes = ftell(infile);
     fseek(infile, 0, SEEK_SET);
