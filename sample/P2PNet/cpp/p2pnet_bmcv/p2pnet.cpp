@@ -301,6 +301,10 @@ int P2Pnet::post_process(const std::vector<bm_image>& images,
 }
 
 void P2Pnet::draw_bmcv(bm_handle_t& handle, int px, int py, bm_image& frame) {
-  bmcv_rect_t rect = {px, py, 2, 2};
+  bmcv_rect_t rect;
+  rect.start_x = MIN(MAX(px, 0), frame.width);
+  rect.start_y = MIN(MAX(py, 0), frame.height);
+  rect.crop_w = MAX(MIN(2, frame.width - px), 0);
+  rect.crop_h = MAX(MIN(2, frame.height - py), 0);
   bmcv_image_draw_rectangle(handle, frame, 1, &rect, 3, 255, 0, 0);
 }
