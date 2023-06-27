@@ -13,7 +13,7 @@ outdir=../models/$target
 function gen_fp32bmodel()
 {
     python3 -m bmnetp  \
-            --model=../data/models/torch/bert4torch_jit.pt \
+            --model=../models/torch/bert4torch_jit.pt \
             --target=$target \
             --shapes=[[$1,256]] \
             --net_name=bert4torch \

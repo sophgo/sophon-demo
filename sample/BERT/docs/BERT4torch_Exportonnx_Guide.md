@@ -1,4 +1,5 @@
 # BERT4torch模型onnx导出
+torch==1.13.0
 '''
 import torch
 import torchvision

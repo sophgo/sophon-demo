@@ -11,7 +11,8 @@
 * [3. Inference testing](#3-Inference-testing)
     * [3.1 Parameter Description](#31-Parameter-Description)
     * [3.2 Test text](#32-Test-text)
-    * [3.3 Test dataset](#33-Test-dataset)
+    * [3.3 Test dev](#33-Test-dev)
+    * [3.4 Test dataset](#34-Test-dataset)
 
 C++routines are provided in the cpp directory for reference, as follows:
 |Sequence Number | C++Routine | Description|
@@ -22,16 +23,12 @@ C++routines are provided in the cpp directory for reference, as follows:
 ### 1.1 x86/arm PCIe platform
 If you have installed a PCIe accelerator card (such as an SC series accelerator card) on the x86/arm platform, you can directly use it as a development and runtime environment. You need to install libsophon, sophon opencv, and sophon ffmpeg. For specific steps, please refer to [Development and Runtime Environment Construction of x86 pcie Platform](../../../docs/Environment_install_Guide_EN.md#3-x86-pcie-Platform-Development-and-Runtime-Environment-Construction) or [Development and Runtime Environment Construction of arm pcie Platform](../../../docs/Environment_install_Guide_EN.md#5-arm-pcie-Platform-Development-and-Runtime-Environment-Construction).
 
-Install libtorch_tokenizer
-If you want to use lib_ For more functions of tokenize, please refer to download_ Boost. sh Download the boost dependency library
-If you want to use libtorch on PCIe, please refer to download_libtorch.sh
+
 
 ### 1.2 SoC Platform
 If you use the SoC platform (such as SE, SM series Edge device), the corresponding libsophon, sophon opencv, and sophon ffmpeg runtime library packages have been pre installed under '/opt/sophon/' after the reboot. You can directly use it as the runtime environment. Usually, an x86 host is also required as the development environment for cross compiling C++ programs.
 
-Install libtorch_tokenizer
-If you want to use lib_tokenize For more functions, please refer to download_Boost.sh Download the boost dependency library
-If you want to use libtorch in SOC, please compile the aarch64 version of libtorch yourself. This routine does not provide a solution.
+
 ## 2. Program Compilation
 C++programs need to compile executable files before running.
 ### 2.1 x86/arm PCIe platform
@@ -89,8 +86,16 @@ The text testing example is as follows, which supports testing files.
 ./bert_sail.pcie --input=../../datasets/china-people-daily-ner-corpus/test.txt --bmodel=../../models/BM1684/bert4torchoutput_fp32_1b.bmodel --dev_id=0 
 ```
 After the test is completed, information such as predicted results will be printed.
+### 3.3 Test the command line
+The text test example is as follows, which supports online command line testing.
+Enter a piece of text, such as, Zhang Fei, Liu Bei, Guan Yu, Taoyuan, Sanjieyi.
+Extract entities {('Zhang Fei', 'PER'), ('Guan Yu', 'PER'), ('Taoyuan', 'LOC'), ('Liu Bei', 'PER')}
+```bash
+./bert_sail.pcie --input=dev --bmodel=../../models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id=0 
+```
+Enter a text on the command line and output the result.
 
-### 3.3 Test Dataset
+### 3.4 Test Dataset
 The text testing example is as follows, which supports testing files.
 ```bash
 ./bert_sail.pcie --input=../../datasets/china-people-daily-ner-corpus、example.test --bmodel=../../models/BM1684/bert4torchoutput_fp32_1b.bmodel --dev_id=0 

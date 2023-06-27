@@ -8,7 +8,8 @@
 * [2. Inference testing](#2-Inference-testing)
     * [2.1 Parameter Description](#21-Parameter-Description)
     * [2.2 Test Text](#22-Test-Text)
-    * [2.3 Test Dataset](#23-Test-Dataset)
+    * [2.3 Dev Text](#23-Dev-Text)
+    * [2.4 Test Dataset](#24-Test-Dataset)
 
 A series of Python routines are provided in the Python directory, as follows:
 
@@ -23,7 +24,7 @@ If you have installed a PCIe accelerator card (such as the SC series accelerator
 
 In addition, you may also need to install other third-party libraries:
 ```bash
-pip3 install 'opencv-python-headless<4.3'
+pip3 install bert4torch
 ```
 
 ### 1.2 SoC Platform
@@ -51,12 +52,22 @@ usage: bert_sail.py [--input INPUT] [--bmodel BMODEL] [--dev_id DEV_ID]
 ### 2.2 Test Text
 The text test example is as follows
 ```bash
-python3 python/bert_sail.py --input "张飞" --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id 0 
+cd python
+python3 bert_sail.py --input ../datasets/china-people-daily-ner-corpus/test.txt --bmodel ../models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id 0 
 ```
 
 After the test is completed, output the results
 
-### 2.3 Test Dataset
+### 2.3 Dev Text
+The text test example is as follows, which supports online command line testing.
+Enter a piece of text, such as, Zhang Fei, Liu Bei, Guan Yu, Taoyuan, Sanjieyi.
+Extract entities {('Zhang Fei', 'PER'), ('Guan Yu', 'PER'), ('Taoyuan', 'LOC'), ('Liu Bei', 'PER')}
+```bash
+python3 bert_sail.py --input dev --bmodel .. /models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id 0 
+```
+The command line enters a text and outputs the result
+
+### 2.4 Test Dataset
 The example of image testing is as follows, which supports testing the entire image folder.
 ```bash
 python3 python/bert_sail.py --input datasets/test --bmodel models/BM1684//bert4torch_output_fp32_1b.bmodel --dev_id 0 
