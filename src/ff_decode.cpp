@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <fstream>
 #include <cstring>
+
+#define FF_ALIGN(x,a) (((x)+(a)-1)&~((a)-1))
 using namespace std;
 
 enum ff_decode_pic_types{
@@ -331,7 +333,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out,
         }
 
         if (data_five_denominator != -1) {
-            size = in->height * stride[1] / data_five_denominator;
+            size = FF_ALIGN(in->height,2) * stride[1] / data_five_denominator;
             if (data_on_device_mem) {
                 input_addr[1] = bm_mem_from_device((unsigned long long)in->data[5], size);
             } else {
@@ -341,7 +343,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out,
         }
 
         if (data_six_denominator != -1) {
-            size = in->height * stride[2] / data_six_denominator;
+            size = FF_ALIGN(in->height,2) * stride[2] / data_six_denominator;
             if (data_on_device_mem) {
                 input_addr[2] = bm_mem_from_device((unsigned long long)in->data[6], size);
             } else {
@@ -882,8 +884,8 @@ bm_status_t jpgDec(bm_handle_t& handle, uint8_t* bs_buffer, int numBytes, bm_ima
         I420Frame->linesize[2] = pFrame->linesize[2];
 
         I420Frame->data[0] = (uint8_t*)malloc(pFrame->linesize[0] * I420Frame->height * 2);
-        I420Frame->data[1] = (uint8_t*)malloc(pFrame->linesize[1] * I420Frame->height / 2);
-        I420Frame->data[2] = (uint8_t*)malloc(pFrame->linesize[2] * I420Frame->height / 2);
+        I420Frame->data[1] = (uint8_t*)malloc(pFrame->linesize[1] * FF_ALIGN(I420Frame->height,2) / 2);
+        I420Frame->data[2] = (uint8_t*)malloc(pFrame->linesize[2] * FF_ALIGN(I420Frame->height,2) / 2);
         libyuv::I422ToI420(pFrame->data[0], pFrame->linesize[0], pFrame->data[1], pFrame->linesize[1], pFrame->data[2],
                            pFrame->linesize[2], I420Frame->data[0], I420Frame->linesize[0], I420Frame->data[1],
                            I420Frame->linesize[1], I420Frame->data[2], I420Frame->linesize[2], I420Frame->width,
