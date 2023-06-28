@@ -7,7 +7,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <string>
-#include "cnpy.h"
+// #include "cnpy.h" //only for debug, and only x86.
 #include "ppocr_det.hpp"
 #include "postprocess.hpp"
 #define USE_ZERO_PADDING 0 //Only 1684
