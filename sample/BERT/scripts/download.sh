@@ -9,7 +9,7 @@ pushd $scripts_dir
 # datasets
 if [ ! -d "../datasets" ]; 
 then
-    python3 -m dfn --url http://disk-sophgo-vip.quickconnect.cn/sharing/4qdi3zIQm
+    python3 -m dfn --url http://disk-sophgo-vip.quickconnect.cn/sharing/a0geo4gVx
 
     unzip datasets.zip -d ../
     rm datasets.zip
@@ -21,7 +21,7 @@ fi
 # models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfn --url http://disk-sophgo-vip.quickconnect.cn/sharing/uFNxTRd8B
+    python3 -m dfn --url http://disk-sophgo-vip.quickconnect.cn/sharing/u8EzJBIA7
     unzip models.zip -d ../
     rm models.zip
     echo "models download!"

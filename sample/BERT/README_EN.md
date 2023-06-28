@@ -123,7 +123,7 @@ Then, use The 'eval_people.py' script in the 'tools' directory compares the txt 
 #Install seqeval, if already installed, please skip
 pip3 install seqeval
 #Please modify the program path and JSON file path according to the actual situation
-python3 tools/eval_people.py --gt_path datasets/china-people-daily-ner-corpus/people_result.txt --result_txt results/bert.output_fp32_1b.bmodel_sail_python_result.txt
+python3 tools/eval_people.py --test_path ../datasets/china-people-daily-ner-corpus/example.test --input_path ../python/results/bert4torch_output_fp16_8b.bmodel_sail_python_result.txt
 ```
 ### 6.2 test results
 On the China people daily ner corpus dataset, the accuracy test results are as follows:
@@ -183,7 +183,7 @@ Using different routines and models to test 'datasets/val2017' on different test
 | BM1684X SoC | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 109.60   | 3.5       | 87.76     | 18.36     |
 | BM1684X SoC | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 141.59   | 3.5       | 9.50      | 128.57    |
 | BM1684X SoC | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 27.64    | 3.4       | 5.84      | 18.325    |
-| BM1684X SoC | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    | 19.45    | 19.14     | 20.7      | 18.7      |
+| BM1684X SoC | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    | 19.45    | 19.14     | 0.028     | 0.022     |
 | BM1684X SoC | bert_sail.soc    | bert4torch_output_fp32_8b.bmodel    | 19.28    | 19.15     | 0.078     | 0.021     |
 | BM1684X SoC | bert_sail.soc    | bert4torch_output_fp16_1b.bmodel    | 19.87    | 19.59     | 0.218     | 0.020     |
 | BM1684X SoC | bert_sail.soc    | bert4torch_output_fp16_8b.bmodel    | 19.73    | 19.62     | 0.642     | 0.019     |

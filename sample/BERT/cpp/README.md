@@ -11,8 +11,8 @@
 * [3. 推理测试](#3-推理测试)
     * [3.1 参数说明](#31-参数说明)
     * [3.2 测试文本](#32-测试文本)
-    * [3.3 测试命令行](#32-测试命令行)
-    * [3.4 测试数据集](#33-测试数据集)
+    * [3.3 测试命令行](#33-测试命令行)
+    * [3.4 测试数据集](#34-测试数据集)
 
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
@@ -23,16 +23,10 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 ### 1.1 x86/arm PCIe平台
 如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
 
-安装libtorch_tokenizer
-如果想使用lib_tokenize的更多功能，请参照download_boost.sh下载boost依赖库
-如果想在pcie使用libtorch，请参照download_libtorch.sh
 
 ### 1.2 SoC平台
 如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
 
-安装libtorch_tokenizer
-如果想使用lib_tokenize的更多功能，请参照download_boost.sh下载boost依赖库
-如果想在soc使用libtorch，请自行编译aarch64版本libtorch，本例程不提供解决方案。
 ## 2. 程序编译
 C++程序运行前需要编译可执行文件。
 ### 2.1 x86/arm PCIe平台
@@ -93,14 +87,16 @@ Usage: bert_sail.pcie [params]
 ```
 测试结束后，会打印预测结果等信息。
 
-### 3.2 测试命令行
-文本测试实例如下，支持对文件进行测试。
+### 3.3 测试命令行
+文本测试实例如下，支持在线命令行测试。
+输入一条文本，如，张飞刘备关羽桃园三结义。
+抽取出实体 {('张飞', 'PER'), ('关羽', 'PER'), ('桃园', 'LOC'), ('刘备', 'PER')}
 ```bash
 ./bert_sail.pcie --input=dev --bmodel=../../models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id=0 
 ```
 命令行输入一个文本，输出结果.
 
-### 3.3 测试数据集
+### 3.4 测试数据集
 文本测试实例如下，支持对文件进行测试。
 ```bash
 ./bert_sail.pcie --input=../../datasets/china-people-daily-ner-corpus/example.test --bmodel=../../models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id=0 
