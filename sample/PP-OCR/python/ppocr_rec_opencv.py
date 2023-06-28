@@ -81,7 +81,7 @@ class PPOCRv2Rec(object):
         input_data = {self.input_name: np.array(tensor, dtype=np.float32)}
         outputs = self.net.process(self.graph_name, input_data)
         self.inference_time += time.time() - start_infer
-        return outputs['softmax_5.tmp_0_Softmax']
+        return list(outputs.values())[0]
 
     def postprocess(self, outputs):
         start_post = time.time()
