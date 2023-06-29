@@ -247,7 +247,6 @@ def main(args):
     
     handle = sail.Handle(args.dev_id)
     bmcv = sail.Bmcv(handle)
-    
     # warm up 
     # bmimg = sail.BMImage(handle, 1080, 1920, sail.Format.FORMAT_YUV420P, sail.DATA_TYPE_EXT_1N_BYTE)
     # for i in range(10):
@@ -390,8 +389,8 @@ def argsparser():
     parser.add_argument('--input', type=str, default='../datasets/test', help='path of input')
     parser.add_argument('--bmodel', type=str, default='../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel', help='path of bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
-    parser.add_argument('--conf_thresh', type=float, default=0.5, help='confidence threshold')
-    parser.add_argument('--nms_thresh', type=float, default=0.5, help='nms threshold')
+    parser.add_argument('--conf_thresh', type=float, default=0.001, help='confidence threshold')
+    parser.add_argument('--nms_thresh', type=float, default=0.6, help='nms threshold')
     args = parser.parse_args()
     return args
 

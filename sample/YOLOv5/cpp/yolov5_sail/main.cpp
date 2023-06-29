@@ -25,8 +25,8 @@ int main(int argc, char* argv[]) {
     const char* keys =
         "{bmodel | ../../models/BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel | bmodel file path}"
         "{dev_id | 0 | TPU device id}"
-        "{conf_thresh | 0.5 | confidence threshold for filter boxes}"
-        "{nms_thresh | 0.5 | iou threshold for nms}"
+        "{conf_thresh | 0.001 | confidence threshold for filter boxes}"
+        "{nms_thresh | 0.6 | iou threshold for nms}"
         "{help | 0 | print help information.}"
         "{input | ../../datasets/test | input path, images direction or video file path}"
         "{classnames | ../../datasets/coco.names | class names file path}";
