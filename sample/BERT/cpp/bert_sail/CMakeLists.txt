@@ -75,7 +75,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     # sail为需要链接的库
     message("SDK: " ${SDK})
 
-    add_executable(bert_sail.soc libtorch_tokenizer/src/tokenizer.cpp libtorch_tokenizer/src/unilib/unicode.cpp libtorch_tokenizer/src/unilib/uninorms.cpp bert_sail.cpp bert_sail.hpp)
+    add_executable(bert_sail.soc libtorch_tokenizer/src/tokenizer.cpp libtorch_tokenizer/src/unilib/unicode.cpp libtorch_tokenizer/src/unilib/uninorms.cpp bert_sail.cpp bert_sail.hpp main.cpp)
     target_link_libraries(bert_sail.soc ${BM_LIBS} ${OPENCV_LIBS}  ${JPU_LIBS} ${SAIL_LIBS})
   
     target_link_libraries(bert_sail.soc ${TORCH_LIBRARIES})
