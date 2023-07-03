@@ -61,14 +61,14 @@ optional arguments:
 ### 2.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-python3 python/yolov5_opencv.py --input datasets/test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 --tpu_kernel_module_path ../tpu_kernel_module/libbm1684x_kernel_module.so
+python3 python/yolov5_opencv.py --input datasets/test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 --tpu_kernel_module_path tpu_kernel_module/libbm1684x_kernel_module.so
 ```
 测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov5s_tpukernel_fp32_1b.bmodel_test_opencv_python_result.json`下，同时会打印预测结果、推理时间等信息。
 
 ### 2.3 测试视频
 视频测试实例如下，支持对视频流进行测试。
 ```bash
-python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 --tpu_kernel_module_path ../tpu_kernel_module/libbm1684x_kernel_module.so
+python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 --tpu_kernel_module_path tpu_kernel_module/libbm1684x_kernel_module.so
 ```
 测试结束后，会将预测的结果画在`results/test_car_person_1080P.avi`中，同时会打印预测结果、推理时间等信息。  
 `yolov5_bmcv.py`会将预测结果画在图片上并保存在`results/images`中。
