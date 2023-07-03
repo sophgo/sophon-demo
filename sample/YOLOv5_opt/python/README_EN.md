@@ -59,7 +59,7 @@ optional arguments:
 ### 2.2 Image Test Demo
 The image test demo is as follows. It supports testing the entire image folder. The model supports fp32bmodel and int8bmodel, supports BM1684 and BM1684X, and supports single batch size or multiple batch sizes. Users can run model testing by passing in the corresponding model path parameters.
 ```bash
-python3 python/yolov5_opencv.py --input datasets/test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 --tpu_kernel_module_path ../tpu_kernel_module/libbm1684x_kernel_module.so
+python3 python/yolov5_opencv.py --input datasets/test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 --tpu_kernel_module_path tpu_kernel_module/libbm1684x_kernel_module.so
 ```
 After the test, the predicted image will be saved in `results/images`, the predicted result will be saved in `results/yolov5s_tpukernel_fp32_1b.bmodel_test_opencv_python_result.json`, and information such as predicted results and inference time will be printed at the same time.
 
@@ -67,6 +67,6 @@ After the test, the predicted image will be saved in `results/images`, the predi
 ### 2.3 Video Test Demo
 The video test demo is as follows, which supports testing of video streams. The model supports fp32bmodel and int8bmodel, supports BM1684 and BM1684X, and supports single batch size or multiple batch sizes. Users can run model testing by passing in the corresponding model path parameters.
 ```bash
-python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 --tpu_kernel_module_path ../tpu_kernel_module/libbm1684x_kernel_module.so
+python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 --tpu_kernel_module_path tpu_kernel_module/libbm1684x_kernel_module.so
 ```
 After the test, the predicted results will be drawn in `results/test_car_person_1080P.avi`, and information such as predicted results and inference time will be printed at the same time.
