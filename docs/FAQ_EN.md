@@ -47,23 +47,23 @@ BMCV is a set of acceleration library provided by us, based on hardware VPP and 
 
 Compared with native OpenCV, Sophon OpenCV adopts different upsample algorithms for decoding using hardware-accelerated units in chips. The decoding and pre-processing methods of Sophon OpenCV are different from those of native OpenCV to some degree, which may affect the final prediction results, but usually does not have a significant impact on robust models.
 
-### 4.2 How do OpenCV-based Python routines call Sophon OpenCV for acceleration
-Using SophonSDK after v22.09.02, whether in PCIe or SoC mode, Python routines based on OpenCV use the installed native OpenCV by default. Sophon OpenCV can be used by setting environment variables:
+### 4.2 How do OpenCV-based Python demos call Sophon OpenCV for acceleration
+Using SophonSDK after v22.09.02, whether in PCIe or SoC mode, Python demos based on OpenCV use the installed native OpenCV by default. Sophon OpenCV can be used by setting environment variables:
 ```bash
 export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
 ```
 Note that the use of sophon-opencv may lead to differences in reasoning results.
 
-### 4.3 OpenCV-based C++ routines using Sophon OpenCV or native OpenCV
-The OpenCV-based C++ routine sets the OpenCV_DIR path in CMakeLists.txt, linking Sophon OpenCV's relevant headers and library files. To invoke native OpenCV, install native OpenCV and modify the link path.
+### 4.3 OpenCV-based C++ demos using Sophon OpenCV or native OpenCV
+The OpenCV-based C++ demo sets the OpenCV_DIR path in CMakeLists.txt, linking Sophon OpenCV's relevant headers and library files. To invoke native OpenCV, install native OpenCV and modify the link path.
 
-### 4.4 The C++ routine decoding video using ff_decode displays "vid reset unlock flock failed", but normal operation is not affected
+### 4.4 The C++ demo decoding video using ff_decode displays "vid reset unlock flock failed", but normal operation is not affected
 This is because the cache is not cleared in time, and the inference result is not affected. To solve the problem, run the following command:
 ```bash
 sudo rm /tmp/vid_*
 ```
 
-### 4.5 The C++ routine uses ff_decode to decode the input picture with the suffix uppercase times "not support pic format, only support jpg and png"
+### 4.5 The C++ demo uses ff_decode to decode the input picture with the suffix uppercase times "not support pic format, only support jpg and png"
 The current solution is to change the suffix of the input image to lower case. In the future, the image format will be determined directly by the image input, rather than by the name.
 
 ## 5 Accuracy test related issues
@@ -73,5 +73,19 @@ Under the premise that the pre and post processing is aligned with the original 
 ## 6 Performance test related issues
 ### 6.1 Part of FP32 BModel BM1684X performance is lower than BM1684
 The local memory of the BM1684X is half of that of the BM1684. The model with a large number of parameters may not be able to fit, which results in a large increase in the number of accessing ddr by gdma.
+
+### 6.2 Inference time of int8bmodel demo based on opencv-python is not faster than fp32bmodel
+The input data type of int8bmodel is int8 with a scale factor that is not equal to 1. The opencv-python demo based on numpy.array as input needs to perform a multiplication operation with the scale factor inside the inference interface. On the other hand, the scale factor of the input layer of fp32bmodel is 1, and there is no need to perform multiplication with the scale factor inside the inference interface. This part of the time may offset the time saved by model inference optimization. You can add `sail.set_print_flag(1)` in the code to print the specific inference time of the interface.
+
+If you want to use the opencv-python demo for deployment, it is recommended to keep the input and output layers of int8bmodel as floating-point calculations.
+
+### 6.3 Can sophon-demo be used for performance testing?
+It is not recommended. Sophon-demo provides a series of transplant demos for mainstream algorithms, and users can perform model algorithm transplantation and accuracy testing based on sophon-demo. However, the preprocessing/inference/post-processing of sophon-demo is serial, and even if multiple processes are opened, it is difficult to fully utilize the performance of CPU and TPU.  can run preprocessing/inference/post-processing on three threads respectively, maximizing parallelism. Therefore, it is recommended to use sophon-pipeline for performance testing.
+
+### 6.4 Performance testing results are lower than README
+If the performance drops more than 10% compared to the README, you need to confirm the product model. The sophon-demo demos are all based on standard products (such as SE-16) for testing. If you are using a low-end product (such as SE5-8), performance degradation is normal. The int8 computing power of SE5-16 is 17.6 TOPS, while that of SE5-8 is 10.6 TOPS, so there may be a loss of 2/5 of the performance.
+
+If you are also using a standard product and encounter performance degradation issues, you can report the issue to the Sophon team or create an issue on GitHub.
+
 
 ## 7 Other questions
