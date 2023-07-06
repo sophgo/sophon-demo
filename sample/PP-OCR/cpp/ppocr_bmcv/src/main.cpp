@@ -17,7 +17,7 @@
 using json = nlohmann::json;
 using namespace std;
 #define USE_ANGLE_CLS 0
-#define USE_OPENCV_WARP 1
+#define USE_OPENCV_WARP 0
 #define USE_OPENCV_DECODE 0
 //from PPaddleOCR github.
 cv::Mat GetRotateCropImage(const cv::Mat &srcimage,
@@ -104,7 +104,6 @@ cv::Mat GetRotateCropImage(const cv::Mat &srcimage,
         return crop_planar;
     }
 #else
-    //bmcv_warp_perspective cannot afford high parallelism, you can use this if you do not run another bmrt program.
     bm_image get_rotate_crop_image(bm_handle_t handle, bm_image input_bmimg_planar, OCRBox box) { 
         int crop_width = max((int)sqrt(pow(box.x1 - box.x2, 2) + pow(box.y1 - box.y2, 2)),
                             (int)sqrt(pow(box.x3 - box.x4, 2) + pow(box.y3 - box.y4, 2)));
@@ -129,7 +128,7 @@ cv::Mat GetRotateCropImage(const cv::Mat &srcimage,
 
         bm_image crop_bmimg;
         bm_image_create(handle, crop_height, crop_width, input_bmimg_planar.image_format, input_bmimg_planar.data_type, &crop_bmimg);
-        assert(BM_SUCCESS == bmcv_image_warp_perspective_with_coordinate(handle, 1, &coord, &input_bmimg_planar, &crop_bmimg));
+        assert(BM_SUCCESS == bmcv_image_warp_perspective_with_coordinate(handle, 1, &coord, &input_bmimg_planar, &crop_bmimg, 1));//bilinear interpolation.
 
         if ((float)crop_height / crop_width < 1.5) {
             return crop_bmimg;
@@ -151,7 +150,7 @@ cv::Mat GetRotateCropImage(const cv::Mat &srcimage,
             matrix_image.matrix->m[4] = rot_mat.at<double>(1, 1);
             matrix_image.matrix->m[5] = rot_mat.at<double>(1, 2) - crop_height / 2.0 + crop_width / 2.0;
 
-            assert(BM_SUCCESS == bmcv_image_warp_affine(handle, 1, &matrix_image, &crop_bmimg, &rot_bmimg));
+            assert(BM_SUCCESS == bmcv_image_warp_affine(handle, 1, &matrix_image, &crop_bmimg, &rot_bmimg, 1));//bilinear interpolation
             bm_image_destroy(crop_bmimg);
             return rot_bmimg;
         }
