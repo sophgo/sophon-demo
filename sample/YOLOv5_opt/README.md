@@ -105,11 +105,11 @@ chmod -R +x scripts/
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
-
+- [Python例程](./python/README.md)
 ## 6. 精度测试
 ### 6.1 测试方法
 
-首先，参考[C++例程](cpp/README.md#32-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(conf_thresh=0.1、nms_thresh=0.6)。  
+首先，参考[C++例程](cpp/README.md#32-测试图片)或者[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(conf_thresh=0.1、nms_thresh=0.6)。  
 然后，使用`tools`目录下的`eval_coco.py`脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
 ```bash
 # 安装pycocotools，若已安装请跳过
@@ -119,17 +119,26 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 ```
 ### 6.2 测试结果
 在coco/val2017_1000数据集上，精度测试结果如下：
-|   测试平台    |      测试程序     |              测试模型            |AP@IoU=0.5:0.95|AP@IoU=0.5|
-| ------------ | ---------------- | ---------------------------------| ------------- | -------- |
-| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_tpukernel_fp32_1b.bmodel | 0.347         | 0.528    |
-| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_tpukernel_fp16_1b.bmodel | 0.347         | 0.528    |
-| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_tpukernel_int8_1b.bmodel | 0.333         | 0.519    |
+|   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|
+| ------------ | ---------------- | ---------------------------------   | ------------- | -------- |
+| BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.353         | 0.536    |
+| BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.353         | 0.536    |
+| BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.339         | 0.527    |
+| BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.351         | 0.532    |
+| BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.351         | 0.532   |
+| BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.334         | 0.520    |
+| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.351         | 0.536    |
+| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.351         | 0.535    |
+| BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.337         | 0.526    |
+| BM1684X PCIe | yolov5_sail.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.351         | 0.536    |
+| BM1684X PCIe | yolov5_sail.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.351         | 0.535    |
+| BM1684X PCIe | yolov5_sail.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.337         | 0.526    |
 
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. SoC和PCIe的模型精度一致；
 > 3. AP@IoU=0.5:0.95为area=all对应的指标。
-> 4. 为避免因检测框输出太多导致TPU内存超限，这里强制设置`conf_thresh`和`nms_thresh>=0.1`，同样的参数下`(nms_thresh=0.6，conf_thresh=0.1)`，[原YOLOv5例程](../YOLOv5/README.md)fp32模型的`AP@IoU=0.5:0.95=0.345`。
+> 4. 为避免因检测框输出太多导致TPU内存超限，这里强制设置`conf_thresh和nms_thresh>=0.1`，同样的参数下`(nms_thresh=0.6，conf_thresh=0.1)`，[原YOLOv5例程](../YOLOv5/README.md)fp32模型的`AP@IoU=0.5:0.95=0.345`。
 ## 7. 性能测试
 ### 7.1 bmrt_test
 使用bmrt_test测试模型的理论性能：
@@ -142,10 +151,10 @@ bmrt_test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel
 
 |                  测试模型                   | calculate time(ms) |
 | ------------------------------------------- | ----------------- |
-| BM1684X/yolov5s_tpukernel_fp32_1b.bmodel | 18.7              |
-| BM1684X/yolov5s_tpukernel_fp16_1b.bmodel | 5.5               |
-| BM1684X/yolov5s_tpukernel_int8_1b.bmodel | 2.6               |
-| BM1684X/yolov5s_tpukernel_int8_4b.bmodel | 2.4               |
+| BM1684X/yolov5s_tpukernel_fp32_1b.bmodel | 19.6              |
+| BM1684X/yolov5s_tpukernel_fp16_1b.bmodel | 6.2               |
+| BM1684X/yolov5s_tpukernel_int8_1b.bmodel | 3.4               |
+| BM1684X/yolov5s_tpukernel_int8_4b.bmodel | 3.2               |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -157,12 +166,23 @@ bmrt_test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
 |    测试平台  |     测试程序      |             测试模型            |decode_time|preprocess_time|inference_time|postprocess_time| 
-| ----------- | ---------------- | --------------------------------| -------- | -------------- | ---------    | --------- |
-| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_fp32_1b.bmodel | 4.35     | 0.76          | 18.7         | 1.09      |
-| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_fp16_1b.bmodel | 4.34     | 0.76          | 5.41         | 1.08      |
-| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_int8_1b.bmodel | 4.35     | 0.76          | 2.53         | 1.08      |
-| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_int8_4b.bmodel | 4.22     | 0.73          | 2.40         | 1.06      |
-
+| ----------- | ---------------- | --------------------------------| -------- | -------------- | ---------      | --------- |
+| BM1684X SoC | yolov5_opencv.py | yolov5s_tpukernel_fp32_1b.bmodel | 15.0     | 22.4          | 36.16          | 2.18      |
+| BM1684X SoC | yolov5_opencv.py | yolov5s_tpukernel_fp16_1b.bmodel | 15.0     | 22.4          | 22.74          | 2.18      |
+| BM1684X SoC | yolov5_opencv.py | yolov5s_tpukernel_int8_1b.bmodel | 15.0     | 22.4          | 20.16          | 2.18      |
+| BM1684X SoC | yolov5_opencv.py | yolov5s_tpukernel_int8_4b.bmodel | 15.0     | 23.1          | 5.03           | 2.18      |
+| BM1684X SoC | yolov5_bmcv.py   | yolov5s_tpukernel_fp32_1b.bmodel | 3.1      | 2.4           | 25.42          | 2.18      |
+| BM1684X SoC | yolov5_bmcv.py   | yolov5s_tpukernel_fp16_1b.bmodel | 3.1      | 2.4           | 11.92          | 2.18      |
+| BM1684X SoC | yolov5_bmcv.py   | yolov5s_tpukernel_int8_1b.bmodel | 3.1      | 2.4           | 9.05           | 2.18      |
+| BM1684X SoC | yolov5_bmcv.py   | yolov5s_tpukernel_int8_4b.bmodel | 2.9      | 2.3           | 8.21           | 2.18      |
+| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_fp32_1b.bmodel | 4.7      | 0.8           | 19.67          | 1.20      |
+| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_fp16_1b.bmodel | 4.7      | 0.8           | 6.27           | 1.20      |
+| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_int8_1b.bmodel | 4.7      | 0.8           | 3.40           | 1.20      |
+| BM1684X SoC | yolov5_bmcv.soc  | yolov5s_tpukernel_int8_4b.bmodel | 4.7      | 0.8           | 3.17           | 1.20      |
+| BM1684X SoC | yolov5_sail.soc  | yolov5s_tpukernel_fp32_1b.bmodel | 2.8      | 3.1           | 19.70          | 1.38      |
+| BM1684X SoC | yolov5_sail.soc  | yolov5s_tpukernel_fp16_1b.bmodel | 2.8      | 3.1           | 6.30           | 1.38      |
+| BM1684X SoC | yolov5_sail.soc  | yolov5s_tpukernel_int8_1b.bmodel | 2.8      | 3.1           | 3.41           | 1.38      |
+| BM1684X SoC | yolov5_sail.soc  | yolov5s_tpukernel_int8_4b.bmodel | 2.6      | 2.5           | 3.18           | 1.38      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
