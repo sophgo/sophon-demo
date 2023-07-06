@@ -8,7 +8,6 @@
 #===----------------------------------------------------------------------===#
 # -*- coding: utf-8 -*- 
 import os
-from tracemalloc import start
 import cv2
 import numpy as np
 import argparse
@@ -17,7 +16,9 @@ import math
 import copy
 from PIL import Image, ImageDraw, ImageFont
 import logging
-logging.basicConfig(level=logging.DEBUG)
+import json
+import time
+logging.basicConfig(level=logging.INFO)
 
 import ppocr_det_opencv as predict_det
 import ppocr_rec_opencv as predict_rec
@@ -30,30 +31,25 @@ class TextSystem(object):
         self.use_angle_cls = args.use_angle_cls
         if self.use_angle_cls:
             self.text_classifier = predict_cls.PPOCRv2Cls(args)
-        
-        self.drop_score = args.drop_score
-        self.crop_image_res_index = 0
-        self.args = args
-        self.batch_size = 2
-
+        self.rec_thresh = args.rec_thresh
+        self.crop_num = 0
+        self.crop_time = 0.0
     def __call__(self, img_list, cls=True):
         ori_img_list = img_list.copy()
         results_list = [{"dt_boxes":[], "text":[], "score":[]} for i in range(len(img_list))]
         ori_img_list = img_list.copy()
         dt_boxes_list = self.text_detector(img_list)
-        #if dt_boxes is None:
-        #    return None, None
         img_dict = {"imgs":[], "dt_boxes":[], "pic_ids":[]}
         for id, dt_boxes in enumerate(dt_boxes_list):
-            #img_crop_list = []
-            #dt_boxes = sorted_boxes(dt_boxes)
+            self.crop_num += len(dt_boxes)
+            start_crop = time.time()
             for bno in range(len(dt_boxes)):
                 tmp_box = copy.deepcopy(dt_boxes[bno])
                 img_crop = get_rotate_crop_image(ori_img_list[id], tmp_box)
                 img_dict["imgs"].append(img_crop)
                 img_dict["dt_boxes"].append(dt_boxes[bno])
                 img_dict["pic_ids"].append(id)
-                #img_crop_list.append(img_crop)
+            self.crop_time += time.time() - start_crop
 
         if self.use_angle_cls and cls:
             img_dict["imgs"], cls_res = self.text_classifier(img_dict["imgs"])
@@ -63,7 +59,7 @@ class TextSystem(object):
         results_list = [{"dt_boxes":[], "text":[], "score":[]} for i in range(len(img_list))]
         for i, id in enumerate(rec_res.get("ids")):
             text, score = rec_res["res"][i]
-            if score >= self.drop_score:
+            if score >= self.rec_thresh:
                 pic_id = img_dict["pic_ids"][id]
                 results_list[pic_id]["dt_boxes"].append(img_dict["dt_boxes"][id])
                 results_list[pic_id]["text"].append(text)
@@ -72,16 +68,6 @@ class TextSystem(object):
         return results_list
 
 def get_rotate_crop_image(img, points):
-    '''
-    img_height, img_width = img.shape[0:2]
-    left = int(np.min(points[:, 0]))
-    right = int(np.max(points[:, 0]))
-    top = int(np.min(points[:, 1]))
-    bottom = int(np.max(points[:, 1]))
-    img_crop = img[top:bottom, left:right, :].copy()
-    points[:, 0] = points[:, 0] - left
-    points[:, 1] = points[:, 1] - top
-    '''
     assert len(points) == 4, "shape of points must be 4*2"
     img_crop_width = int(
         max(
@@ -91,6 +77,11 @@ def get_rotate_crop_image(img, points):
         max(
             np.linalg.norm(points[0] - points[3]),
             np.linalg.norm(points[1] - points[2])))
+    
+    # align with cpp
+    img_crop_width = max(16, img_crop_width)
+    img_crop_height = max(16, img_crop_height)
+    
     pts_std = np.float32([[0, 0], [img_crop_width, 0],
                           [img_crop_width, img_crop_height],
                           [0, img_crop_height]])
@@ -129,8 +120,8 @@ def draw_ocr_box_txt(image,
                      boxes,
                      txts,
                      scores=None,
-                     drop_score=0.5,
-                     font_path="../data/images/ppocr_img/fonts/simfang.ttf"):
+                     rec_thresh=0.5,
+                     font_path="../datasets/fonts/simfang.ttf"):
     h, w = image.height, image.width
     img_left = image.copy()
     img_right = Image.new('RGB', (w, h), (255, 255, 255))
@@ -141,7 +132,7 @@ def draw_ocr_box_txt(image,
     draw_left = ImageDraw.Draw(img_left)
     draw_right = ImageDraw.Draw(img_right)
     for idx, (box, txt) in enumerate(zip(boxes, txts)):
-        if scores is not None and scores[idx] < drop_score:
+        if scores is not None and scores[idx] < rec_thresh:
             continue
         color = (random.randint(0, 255), random.randint(0, 255),
                  random.randint(0, 255))
@@ -184,65 +175,110 @@ def main(opt):
     
     img_file_list = []
     batch_size = opt.batch_size
-    # for bid in range(0, batch_size, len())
-    for img_name in os.listdir(opt.img_path):
-        #logging.info(img_name)
-        #label = img_name.split('.')[0]
-        img_file = os.path.join(opt.img_path, img_name)
+    file_list = sorted(os.listdir(opt.input))
+    for img_name in file_list:
+        img_file = os.path.join(opt.input, img_name)
         img_file_list.append(img_file)
-        #print(img_file, label)
-        # src_img = cv2.imdecode(np.fromfile(img_file, dtype=np.uint8), -1)
     
+    decode_time = 0.0
+    result_json = dict()
     for batch_idx in range(0, len(img_file_list), batch_size):
         img_list = []
         # 不是整batch的，转化为1batch进行处理
         if batch_idx + batch_size >= len(img_file_list):
             batch_size = len(img_file_list) - batch_idx
         for idx in range(batch_size):
-            src_img = cv2.imread(img_file_list[batch_idx+idx])
+            start_time = time.time()
+            src_img = cv2.imdecode(np.fromfile(img_file_list[batch_idx+idx], dtype=np.uint8), -1)
+            decode_time += time.time() - start_time
             img_list.append(src_img)
 
-            results_list = ppocrv2_sys(img_list)    
+        results_list = ppocrv2_sys(img_list)    
 
         for i, result in enumerate(results_list):
-            img_name = os.listdir(opt.img_path)[batch_idx+i]
+            img_name = file_list[batch_idx+i]
             logging.info(img_name)
             logging.info(result["text"])
-            image_file = os.path.join(opt.img_path, img_name)
+            image_file = os.path.join(opt.input, img_name)
             image = Image.fromarray(cv2.cvtColor(img_list[i], cv2.COLOR_BGR2RGB))
+            
+            img_name_splited = img_name.split('.')[0]
+            result_json[img_name_splited] = []
+            for j in range(0, len(result["text"])):
+                result_json_per_box = dict()
+                result_json_per_box["illegibility"] = bool(result["score"][j] < opt.rec_thresh)
+                result_json_per_box["points"] = result["dt_boxes"][j].tolist()
+                result_json_per_box["score"] = float(result["score"][j])
+                result_json_per_box["transcription"] = result["text"][j]
+                result_json[img_name_splited].append(result_json_per_box)
             draw_img = draw_ocr_box_txt(
                     image,
                     result["dt_boxes"],
                     result["text"],
                     result["score"],
-                    drop_score=opt.drop_score)
+                    rec_thresh=opt.rec_thresh)
             img_name_pure = os.path.split(image_file)[-1]
             img_path = os.path.join(draw_img_save,
                                     "ocr_res_{}".format(img_name_pure))
             cv2.imwrite(img_path, draw_img[:, :, ::-1])
             logging.info("The visualized image saved in {}".format(img_path))
+    save_json = "results/ppocr_system_results_b" + str(opt.batch_size) + ".json"
+    with open(save_json, 'w') as jf:
+        json.dump(result_json, jf, indent=4, ensure_ascii=False)
+    logging.info("result saved in {}".format(save_json))
+    
+    # calculate speed  
+    logging.info("------------------ Det Predict Time Info ----------------------")
+    decode_time = decode_time / len(img_file_list)
+    preprocess_time = ppocrv2_sys.text_detector.preprocess_time / len(img_file_list)
+    inference_time = ppocrv2_sys.text_detector.inference_time / len(img_file_list)
+    postprocess_time = ppocrv2_sys.text_detector.postprocess_time / len(img_file_list)
+    logging.info("decode_time(ms): {:.2f}".format(decode_time * 1000))
+    logging.info("preprocess_time(ms): {:.2f}".format(preprocess_time * 1000))
+    logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
+    logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
+    if opt.use_angle_cls == True:
+        logging.info("------------------ Cls Predict Time Info ----------------------")
+        preprocess_time = ppocrv2_sys.text_classifier.preprocess_time / ppocrv2_sys.crop_num
+        inference_time = ppocrv2_sys.text_classifier.inference_time / ppocrv2_sys.crop_num
+        postprocess_time = ppocrv2_sys.text_classifier.postprocess_time / ppocrv2_sys.crop_num
+        logging.info("preprocess_time(ms): {:.2f}".format(preprocess_time * 1000))
+        logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
+        logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
+    logging.info("------------------ Rec Predict Time Info ----------------------")
+    crop_time = ppocrv2_sys.crop_time / ppocrv2_sys.crop_num
+    preprocess_time = ppocrv2_sys.text_recognizer.preprocess_time / ppocrv2_sys.crop_num
+    inference_time = ppocrv2_sys.text_recognizer.inference_time / ppocrv2_sys.crop_num
+    postprocess_time = ppocrv2_sys.text_recognizer.postprocess_time / ppocrv2_sys.crop_num
+    logging.info("crop_time(ms): {:.2f}".format(crop_time * 1000))
+    logging.info("preprocess_time(ms): {:.2f}".format(preprocess_time * 1000))
+    logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
+    logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
 
+def img_size_type(arg):
+    # 将字符串解析为列表类型
+    img_sizes = arg.strip('[]').split('],[')
+    img_sizes = [size.split(',') for size in img_sizes]
+    img_sizes = [[int(width), int(height)] for width, height in img_sizes]
+    return img_sizes
 
 def parse_opt():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--img_path', type=str, default='../data/images/ppocr_img/test', help='input image path')
-    parser.add_argument('--tpu_id', type=int, default=0, help='tpu id')
-    parser.add_argument("--batch_size", type=int, default=4)
+    parser.add_argument('--input', type=str, default='../datasets/cali_set_det', help='input image directory path')
+    parser.add_argument('--dev_id', type=int, default=0, help='tpu card id')
+    parser.add_argument("--batch_size", type=int, default=4, help='img num for a ppocr system process launch.')
     # params for text detector
-    parser.add_argument('--det_model', type=str, default='../data/models/BM1684/ch_PP-OCRv2_det_fp32_b1b4.bmodel', help='detector bmodel path')
-    parser.add_argument("--det_batch_size", type=int, default=1)
-    parser.add_argument('--det_limit_side_len', type=int, default=[960])
+    parser.add_argument('--bmodel_det', type=str, default='../models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel', help='detector bmodel path')
+    parser.add_argument('--det_limit_side_len', type=int, default=[640])
     # params for text recognizer
-    parser.add_argument('--rec_model', type=str, default='../data/models/BM1684/ch_PP-OCRv2_rec_fp32_b1b4.bmodel', help='recognizer bmodel path')
-    parser.add_argument('--img_size', type=int, default=[[320, 32],[640, 32],[1280, 32]], help='inference size (pixels)')
-    parser.add_argument("--rec_batch_size", type=int, default=1)
-    parser.add_argument("--char_dict_path", type=str, default="../data/ppocr_keys_v1.txt")
+    parser.add_argument('--bmodel_rec', type=str, default='../models/BM1684X/ch_PP-OCRv3_rec_fp32.bmodel', help='recognizer bmodel path')
+    parser.add_argument('--img_size', type=img_size_type, default=[[320, 48],[640, 48]], help='You should set inference size [width,height] manually if using multi-stage bmodel.')
+    parser.add_argument("--char_dict_path", type=str, default="../datasets/ppocr_keys_v1.txt")
     parser.add_argument("--use_space_char", type=bool, default=True)
-    parser.add_argument("--drop_score", type=float, default=0.5)
+    parser.add_argument("--rec_thresh", type=float, default=0.5)
     # params for text classifier
-    parser.add_argument("--use_angle_cls", type=bool, default=True)
-    parser.add_argument('--cls_model', type=str, default='../data/models/BM1684/ch_ppocr_mobile_v2.0_cls_fp32_b1b4.bmodel', help='classifier bmodel path')
-    parser.add_argument("--cls_batch_size", type=int, default=1)
+    parser.add_argument("--use_angle_cls", action='store_true')
+    parser.add_argument('--bmodel_cls', type=str, default='../models/BM1684X/ch_PP-OCRv3_cls_fp32.bmodel', help='classifier bmodel path')
     parser.add_argument("--label_list", type=list, default=['0', '180'])
     parser.add_argument("--cls_thresh", type=float, default=0.9)
 

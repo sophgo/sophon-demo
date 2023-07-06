@@ -14,21 +14,22 @@ import numpy as np
 import argparse
 import sophon.sail as sail
 import logging
+import time
 logging.basicConfig(level=logging.DEBUG)
-
 # input: x.1, [1, 3, 32, 124], float32, scale: 1
 class PPOCRv2Rec(object):
     def __init__(self, args):
-        self.rec_batch_size = args.rec_batch_size
         # load bmodel
-        model_path = args.rec_model
+        model_path = args.bmodel_rec
         logging.info("using model {}".format(model_path))
-        self.net = sail.Engine(model_path, args.tpu_id, sail.IOMode.SYSIO)
+        self.net = sail.Engine(model_path, args.dev_id, sail.IOMode.SYSIO)
         self.graph_name = self.net.get_graph_names()[0]
         self.input_name = self.net.get_input_names(self.graph_name)[0]
         self.input_shape = self.net.get_input_shape(self.graph_name, self.input_name)
+        self.rec_batch_size = self.input_shape[0] # Max batch size in model stages.
         logging.info("load bmodel success!")
         self.img_size = args.img_size
+        self.img_size = sorted(self.img_size, key=lambda x: x[0])
         self.img_ratio = [x[0]/x[1] for x in self.img_size]
         self.img_ratio = sorted(self.img_ratio)
         # 解析字符字典
@@ -40,19 +41,26 @@ class PPOCRv2Rec(object):
                 self.character.append(line)
         if args.use_space_char:
             self.character.append(" ")
-
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
+    
     def preprocess(self, img):
+        start_prep = time.time()
         h, w, _ = img.shape
         ratio = w / float(h)
         if ratio > self.img_ratio[-1]:
-            logging.debug("ratio out of range: h = %d, w = %d, ratio = %f"%(h, w, ratio))
-            return None
-        for max_ratio in self.img_ratio:
-            if ratio <= max_ratio:
-                resized_h = self.img_size[0][1]
-                resized_w = int(resized_h * ratio)
-                padding_w = int(resized_h * max_ratio)
-                break
+            logging.debug("Warning: ratio out of range: h = %d, w = %d, ratio = %f, bmodel with larger width is recommended."%(h, w, ratio))
+            resized_w = self.img_size[-1][0]
+            resized_h = self.img_size[-1][1]
+            padding_w = resized_w
+        else:          
+            for max_ratio in self.img_ratio:
+                if ratio <= max_ratio:
+                    resized_h = self.img_size[0][1]
+                    resized_w = int(resized_h * ratio)
+                    padding_w = int(resized_h * max_ratio)
+                    break
             
         if h != resized_h or w != resized_w:
             img = cv2.resize(img, (resized_w, resized_h))
@@ -64,19 +72,19 @@ class PPOCRv2Rec(object):
         padding_im = np.zeros((3, resized_h, padding_w), dtype=np.float32)
         padding_im[:, :, 0:resized_w] = img
         
-        # CHW to NCHW format
-        #padding_im = np.expand_dims(padding_im, axis=0)
-        # Convert the img to row-major order, also known as "C order":
-        #img = np.ascontiguousarray(img)
-
+        self.preprocess_time += time.time() - start_prep
         return padding_im
 
+
     def predict(self, tensor):
+        start_infer = time.time()
         input_data = {self.input_name: np.array(tensor, dtype=np.float32)}
         outputs = self.net.process(self.graph_name, input_data)
-        return outputs['save_infer_model/scale_0.tmp_1']
+        self.inference_time += time.time() - start_infer
+        return list(outputs.values())[0]
 
     def postprocess(self, outputs):
+        start_post = time.time()
         result_list = []
         #outputs = list(outputs.values())[0]
         preds_idx = outputs.argmax(axis = 2)
@@ -98,7 +106,7 @@ class PPOCRv2Rec(object):
                 pre_c = c
 
             result_list.append((''.join(char_list), np.mean(conf_list))) 
-
+        self.postprocess_time += time.time() - start_post
         return result_list
 
     def __call__(self, img_list):
@@ -145,11 +153,11 @@ def main(opt):
     ppocrv2_rec = PPOCRv2Rec(opt)
     Tp = 0
     img_list = []
-    for img_name in os.listdir(opt.img_path):
+    for img_name in os.listdir(opt.input):
         #print(file_name)
         #img_name = '川JK0707.jpg'
         label = img_name.split('.')[0]
-        img_file = os.path.join(opt.img_path, img_name)
+        img_file = os.path.join(opt.input, img_name)
         #print(img_file, label)
         src_img = cv2.imdecode(np.fromfile(img_file, dtype=np.uint8), -1)
         #print(src_img.shape)
@@ -158,17 +166,22 @@ def main(opt):
     rec_res = ppocrv2_rec(img_list)
 
     for i, id in enumerate(rec_res.get("ids")):
-        logging.info("img_name:{}, conf:{:.6f}, pred:{}".format(os.listdir(opt.img_path)[id], rec_res["res"][i][1], rec_res["res"][i][0]))
+        logging.info("img_name:{}, conf:{:.6f}, pred:{}".format(os.listdir(opt.input)[id], rec_res["res"][i][1], rec_res["res"][i][0]))
+
+def img_size_type(arg):
+    # 将字符串解析为列表类型
+    img_sizes = arg.strip('[]').split('],[')
+    img_sizes = [size.split(',') for size in img_sizes]
+    img_sizes = [[int(width), int(height)] for width, height in img_sizes]
+    return img_sizes
 
 def parse_opt():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--tpu_id', type=int, default=0, help='tpu id')
-    parser.add_argument('--img_path', type=str, default='../data/images/ppocr_img/imgs_words/ch', help='input image path')
-    parser.add_argument('--rec_model', type=str, default='../data/models/BM1684/ch_PP-OCRv2_rec_320_4b.bmodel', help='recognizer bmodel path')
-    parser.add_argument('--img_size', type=int, default=[[320, 32],[640, 32],[1280, 32]], help='inference size (pixels)')
-    # parser.add_argument('--img_size', type=int, default=[[320, 32]], help='inference size (pixels)')
-    parser.add_argument("--rec_batch_size", type=int, default=4)
-    parser.add_argument("--char_dict_path", type=str, default="../ppocr_keys_v1.txt")
+    parser.add_argument('--dev_id', type=int, default=0, help='tpu card id')
+    parser.add_argument('--input', type=str, default='../datasets/cali_set_rec', help='input image directory path')
+    parser.add_argument('--bmodel_rec', type=str, default='../models/BM1684X/ch_PP-OCRv3_rec_fp16.bmodel', help='recognizer bmodel path')
+    parser.add_argument('--img_size', type=img_size_type, default=[[640, 48],[320, 48]], help='You should set inference size [width,height] manually if using multi-stage bmodel.')
+    parser.add_argument("--char_dict_path", type=str, default="../datasets/ppocr_keys_v1.txt")
     parser.add_argument("--use_space_char", type=bool, default=True)
     opt = parser.parse_args()
     return opt
