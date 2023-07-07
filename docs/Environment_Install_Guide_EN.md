@@ -42,7 +42,7 @@ If you are using BM1684X, it is recommended to use TPU-MLIR to compile BModel. U
 
 2. Download and Unzip TPU-MLIR
 
-    Download the TPU-MLIR package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html) and unzip it, the package is named in the format tpu-mlir_vx.y.z-hash-date.tar.gz, where x.y.z indicates the version number.
+    Download the [Compatible](../README_EN.md#environment-dependencies) TPU-MLIR package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html) and unzip it, the package is named in the format tpu-mlir_vx.y.z-hash-date.tar.gz, where x.y.z indicates the version number.
     ```bash
     tar zxvf tpu-mlir_vx.y.z-<hash>-<date>.tar.gz
     ```
@@ -85,7 +85,7 @@ If you are using BM1684, it is recommended to use TPU-NNTC to compile BModel. Us
 
 2. Download and Unzip TPU-NNTC
 
-    Download the TPU-NNTC package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html) and unzip it, the package is named in the format tpu-nntc_vx.y.z-hash-date.tar.gz, where x.y.z indicates the version number.
+    Download the [Compatible](../README_EN.md#environment-dependencies) TPU-NNTC package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html) and unzip it, the package is named in the format tpu-nntc_vx.y.z-hash-date.tar.gz, where x.y.z indicates the version number.
     ```bash
     mkdir tpu-nntc
     # Unzip the package to tpu-nntc
@@ -114,7 +114,7 @@ This image is only for compiling and quantifying the model, please compile and r
 If you have installed a PCIe accelerator card on an x86 platform, the development environment and runtime environment can be the same, and you can build the development and runtime environment directly on the host computer.
 
 ### 3.1 Installation of libsophon
-Download the libsophon installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes:
+Download the [Compatible](../README_EN.md#environment-dependencies) libsophon installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes:
 * sophon-driver_x.y.z_amd64.deb
 * sophon-libsophon_x.y.z_amd64.deb
 * sophon-libsophon-dev_x.y.z_amd64.deb
@@ -133,7 +133,7 @@ For more information on libsophon, please refer to "LIBSOPHON Manual".
 
 ### 3.2 Installation of sophon-ffmpeg and sophon-opencv
 
-Download the sophon-mw installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes:
+Download the [Compatible](../README_EN.md#environment-dependencies) sophon-mw installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes:
 * sophon-mw-sophon-ffmpeg_x.y.z_amd64.deb
 * sophon-mw-sophon-ffmpeg-dev_x.y.z_amd64.deb
 * sophon-mw-sophon-opencv_x.y.z_amd64.deb
@@ -158,7 +158,7 @@ For more information on libsophon, please refer to "MULTIMEDIA User Manual", "Mu
 
 ### 3.3 Compilation and Installation of sophon-sail
 
-If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the package of sophon-sail from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
+If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of sophon-sail from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
 1. Unzip and enter the directory
 
     ```bash
@@ -221,7 +221,7 @@ You need to build a cross-compilation environment on an x86 host using SOPHON SD
     ```
 2. Package libsophon
 
-    Download and unzip the sophon-img installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes libsophon_soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number.
+    Download and unzip the [Compatible](../README_EN.md#environment-dependencies) sophon-img installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes libsophon_soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number.
 
 
     ```bash
@@ -236,7 +236,7 @@ You need to build a cross-compilation environment on an x86 host using SOPHON SD
 
 3. Package sophon-ffmpeg and sophon-opencv
 
-    Download and unzip the sophon-mw installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes libsophon_soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number.
+    Download and unzip the [Compatible](../README_EN.md#environment-dependencies) sophon-mw installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes libsophon_soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number.
     ```bash
     # unzip sophon-mw-soc_x.y.z_aarch64.tar.gz
     tar -zxf sophon-mw-soc_${x.y.z}_aarch64.tar.gz
@@ -253,7 +253,7 @@ Here, the cross-compilation environment has been built, and then you can use the
 
 If the demo depends on sophon-sail, sophon-sail needs to be compiled and installed, otherwise this section can be skipped. You need to cross-compile sophon-sail on an x86 host and install it on the SoC platform.
 
-Download the sophon-sail installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
+Download the [Compatible](../README_EN.md#environment-dependencies) sophon-sail installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
 1. Unzip and enter the directory
 
     ```bash
@@ -331,7 +331,7 @@ Download the sophon-sail installation package from [the official website of Soph
 If you have installed PCIe accelerator card in arm platform, the development environment and running environment can be unified, you can directly build the development and running environment on the host.
 Here we provide the environment installation method for NeoKylin v10 machine, other types of machines please refer to the official development manual for details.
 ### 5.1 Installation of libsophon
-Download the libsophon installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the installation package consists of a file where "$arch" is the hardware architecture of the current machine, and the current server's arch can be obtained using the following command.
+Download the [Compatible](../README_EN.md#environment-dependencies) libsophon installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the installation package consists of a file where "$arch" is the hardware architecture of the current machine, and the current server's arch can be obtained using the following command.
 ```
 uname -m
 ```
@@ -386,7 +386,7 @@ For other platform machines, please refer to the[libsophon installation tutorial
 For more information on libsophon, please refer to "LIBSOPHON Manual"
 
 ### 5.2 Installation of sophon-ffmpeg and sophon-opencv
-Download the installation package of sophon-mw from [the official website of sophongo](https://developer.sophgo.com/site/index/material/28/all.html),
+Download the [Compatible](../README_EN.md#environment-dependencies) installation package of sophon-mw from [the official website of sophongo](https://developer.sophgo.com/site/index/material/28/all.html),
 The installation package consists of one file:
 ```
 sophon-mw_x.y.z_aarch64.tar.gz，x.y.z indicates the version number
