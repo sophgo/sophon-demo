@@ -41,16 +41,16 @@ SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI
 
 ## Environment dependencies
 Sophon Demo mainly depends on tpu-mlir, tpu-nntc, libsophon, sophon-ffmpeg, sophon-opencv, sophon-sail, whose version requirements are as follows:  
-|sophon-demo|tpu-mlir |tpu-nntc |libsophon|sophon-ffmpeg|sophon-opencv|sophon-sail|
-|--------|------------| --------|---------|---------    |----------   | ------ |
-| 0.1.7 | >=1.2.2   | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.5.0 |
-| 0.1.6 | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.4.0 |
-| 0.1.5 | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.4.0 |
-| 0.1.4 | >=0.7.1     | >=3.1.5 | >=0.4.4 | >=0.5.1     | >=0.5.1    | >=3.3.0 |
-| 0.1.3 | >=0.7.1     | >=3.1.5 | >=0.4.4 | >=0.5.1     | >=0.5.1    | >=3.3.0 |
-| 0.1.2 | Not support | >=3.1.4 | >=0.4.3 | >=0.5.0     | >=0.5.0    | >=3.2.0 |
-| 0.1.1 | Not support | >=3.1.3 | >=0.4.2 | >=0.4.0     | >=0.4.0    | >=3.1.0 |
-| 0.1.0 | Not support | >=3.1.3 | >=0.3.0 | >=0.2.4     | >=0.2.4    | >=3.1.0 ||
+|sophon-demo|tpu-mlir |tpu-nntc |libsophon|sophon-ffmpeg|sophon-opencv|sophon-sail| Release Date |
+|--------|------------| --------|---------|---------    |----------   | ------ | ----------    |
+| 0.1.7 | >=1.2.2   | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.6.0   |  >=23.07.01 |
+| 0.1.6 | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.4.0 |  >=23.05.01 |
+| 0.1.5 | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.4.0 |  >=23.03.01 |
+| 0.1.4 | >=0.7.1     | >=3.1.5 | >=0.4.4 | >=0.5.1     | >=0.5.1    | >=3.3.0 |  >=22.12.01 |
+| 0.1.3 | >=0.7.1     | >=3.1.5 | >=0.4.4 | >=0.5.1     | >=0.5.1    | >=3.3.0 |    -        |
+| 0.1.2 | Not support | >=3.1.4 | >=0.4.3 | >=0.5.0     | >=0.5.0    | >=3.2.0 |    -        |
+| 0.1.1 | Not support | >=3.1.3 | >=0.4.2 | >=0.4.0     | >=0.4.0    | >=3.1.0 |    -        |
+| 0.1.0 | Not support | >=3.1.3 | >=0.3.0 | >=0.2.4     | >=0.2.4    | >=3.1.0 |    -        |
 > **Note**: The version requirements may vary from sample to sample, depending on the README of the routine, and other third-party libraries may need to be installed.
 
 ## Technical Data
