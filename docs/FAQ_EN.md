@@ -25,7 +25,7 @@ Download and decompress SophonSDK after v22.09.02, find sdcard swiping package i
 
 ## 2 Model derived related problems
 ### 2.1 How to jit.trace the Pytorch Model
-Some open source repositories provide scripts for model exports. If not provided, you need to learn from   [relative document](./torch.jit.trace_Guide_EN.md) or [Pytorch official document](https://pytorch.org/docs/stable/jit.html) and write 'jit.trace' script. 'jit.trace' is usually done in torch environment and does not require a SophonSDK installation.
+**You should use the torch vision of`1.8.0+cpu`to avoid model compilation failures due to the pytorch version.** Some open source repositories provide scripts for model exports. If not provided, you need to learn from   [relative document](./torch.jit.trace_Guide_EN.md) or [Pytorch official document](https://pytorch.org/docs/stable/jit.html) and write 'jit.trace' script. 'jit.trace' is usually done in torch environment and does not require a SophonSDK installation.
 - 'jit.trace' method of YOLOv5 model is available in [related documentation](../sample/YOLOv5/docs/YOLOv5_Export_Guide_EN.md)
 
 ## 3 Issues related to model compilation and quantization
@@ -62,9 +62,6 @@ This is because the cache is not cleared in time, and the inference result is no
 ```bash
 sudo rm /tmp/vid_*
 ```
-
-### 4.5 The C++ demo uses ff_decode to decode the input picture with the suffix uppercase times "not support pic format, only support jpg and png"
-The current solution is to change the suffix of the input image to lower case. In the future, the image format will be determined directly by the image input, rather than by the name.
 
 ## 5 Accuracy test related issues
 ### 5.1 The inference result of FP32 BModel is inconsistent with that of the original model

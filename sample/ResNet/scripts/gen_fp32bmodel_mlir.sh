@@ -3,18 +3,20 @@ model_dir=$(dirname $(readlink -f "$0"))
 
 if [ ! $1 ]; then
     target=bm1684x
+    target_dir=BM1684X
 else
-    target=$1
+    target=${1,,}
+    target_dir=${target^^}
 fi
 
-outdir=../models/BM1684X
+outdir=../models/$target_dir
 
 function gen_mlir()
 {
     model_transform.py \
         --model_name resnet50_$1b \
         --model_def ../models/onnx/resnet50_$1b.onnx \
-        --input_shapes [[$1,3,224,224]] \
+-       --input_shapes [[$1,3,224,224]] \
         --keep_aspect_ratio \
         --pixel_format rgb  \
         --mlir resnet50_$1b.mlir

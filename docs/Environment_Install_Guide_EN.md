@@ -4,8 +4,8 @@
 ## Contents
 * [sophon-demo Environmental Installation Guide](#sophon-demo-environmental-installation-guide)
   * [Contents](#contents)
-  * [1 TPU-NNTC Environmental Installation](#1-tpu-nntc-environmental-installation)
-  * [2 TPU-MLIR Environmental Installation](#2-tpu-mlir-environmental-installation)
+  * [1 TPU-MLIR Environmental Installation](#1-tpu-mlir-environmental-installation)
+  * [2 TPU-NNTC Environmental Installation](#2-tpu-nntc-environmental-installation)
   * [3 x86 PCIe Platform Development and Runtime Environment Construction](#3-x86-pcie-platform-development-and-runtime-environment-construction)
     * [3.1 Installation of libsophon](#31-installation-of-libsophon)
     * [3.2 Installation of sophon-ffmpeg and sophon-opencv](#32-installation-of-sophon-ffmpeg-and-sophon-opencv)
@@ -20,7 +20,50 @@
 
 The environments Sophon Demo relies on include the TPU-NNTC and TPU-MLIR environments for compiling and quantifying the models, the development environment for compiling C++ programs, and the runtime environment for deploying the programs.
 
-## 1 TPU-NNTC Environmental Installation
+## 1 TPU-MLIR Environmental Installation
+
+If you are using BM1684X, it is recommended to use TPU-MLIR to compile BModel. Usually, you need to install TPU-MLIR environment on an x86 host with Ubuntu 16.04/18.04/20.04 installed and running memory of 12GB or more. Here are the installation steps for TPU-MLIR environment:
+
+1. Installation of Docker
+
+   If you already have docker installed, skip this section.
+    ```bash
+    # Install docker
+    sudo apt-get install docker.io
+    # In docker, commands can be executed without root privileges
+    # Create docker user group,if there is already a docker user group, it will raise an error,this error can be ignored
+    sudo groupadd docker
+    # Add the current user to the docker group
+    sudo gpasswd -a ${USER} docker
+    # Switch current session to new group or re-login to restart X session
+    newgrp docker​ 
+    ```
+    > **Note**：You need to logout the system and then log back in, and then you can use docker without sudo.
+
+2. Download and Unzip TPU-MLIR
+
+    Download the TPU-MLIR package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html) and unzip it, the package is named in the format tpu-mlir_vx.y.z-hash-date.tar.gz, where x.y.z indicates the version number.
+    ```bash
+    tar zxvf tpu-mlir_vx.y.z-<hash>-<date>.tar.gz
+    ```
+
+3. Create and Enter Docker
+
+    The docker used by TPU-MLIR is sophgo/tpuc_dev:latest, the docker image and tpu-mlir have a binding relationship, in a few cases it is possible that tpu-mlir is updated and a new image is needed.
+    ```bash
+    # If the current system does not have the corresponding image, it will automatically download from docker hub
+    # Here will map current directory to /workspace directory in docker, users need to map the demo directory to docker according to the actual situation
+    # Myname is just an example of a name, please specify it as the name of the container you want
+    docker run --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:v2.1
+    # Now, you are already in docker, and in the /workspace directory
+    # Then, initializing the software environment
+    cd /workspace/tpu-mlir
+    source scripts/envsetup.sh
+    ```
+
+This image is only for compiling and quantifying the model, please compile and run the program in the development and runtime environment. For more tutorials on TPU-MLIR, please refer to the "TPU-MLIR Quick Start" and the "TPU-MLIR Technical Reference Manual" on [the official website of Sophgo](https://developer.sophgo.com/site/index/material/31/all.html).
+
+## 2 TPU-NNTC Environmental Installation
 
 If you are using BM1684, it is recommended to use TPU-NNTC to compile BModel. Usually, you need to install TPU-NNTC environment on an x86 host with Ubuntu 16.04/18.04/20.04 installed and running memory of 12GB or more. Here are the installation steps for TPU-NNTC environment:
 
@@ -66,49 +109,6 @@ If you are using BM1684, it is recommended to use TPU-NNTC to compile BModel. Us
     ```
 
 This image is only for compiling and quantifying the model, please compile and run the program in the development and runtime environment. For more tutorials on TPU-NNTC, please refer to the "TPU-NNTC Quick Start Guide" and the "TPU-NNTC Development Reference Manual" on [the official website of Sophgo](https://developer.sophgo.com/site/index/material/31/all.html).
-
-## 2 TPU-MLIR Environmental Installation
-
-If you are using BM1684X, it is recommended to use TPU-MLIR to compile BModel. Usually, you need to install TPU-MLIR environment on an x86 host with Ubuntu 16.04/18.04/20.04 installed and running memory of 12GB or more. Here are the installation steps for TPU-MLIR environment:
-
-1. Installation of Docker
-
-   If you already have docker installed, skip this section.
-    ```bash
-    # Install docker
-    sudo apt-get install docker.io
-    # In docker, commands can be executed without root privileges
-    # Create docker user group,if there is already a docker user group, it will raise an error,this error can be ignored
-    sudo groupadd docker
-    # Add the current user to the docker group
-    sudo gpasswd -a ${USER} docker
-    # Switch current session to new group or re-login to restart X session
-    newgrp docker​ 
-    ```
-    > **Note**：You need to logout the system and then log back in, and then you can use docker without sudo.
-
-2. Download and Unzip TPU-MLIR
-
-    Download the TPU-MLIR package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html) and unzip it, the package is named in the format tpu-mlir_vx.y.z-hash-date.tar.gz, where x.y.z indicates the version number.
-    ```bash
-    tar zxvf tpu-mlir_vx.y.z-<hash>-<date>.tar.gz
-    ```
-
-3. Create and Enter Docker
-
-    The docker used by TPU-MLIR is sophgo/tpuc_dev:latest, the docker image and tpu-mlir have a binding relationship, in a few cases it is possible that tpu-mlir is updated and a new image is needed.
-    ```bash
-    # If the current system does not have the corresponding image, it will automatically download from docker hub
-    # Here will map current directory to /workspace directory in docker, users need to map the demo directory to docker according to the actual situation
-    # Myname is just an example of a name, please specify it as the name of the container you want
-    docker run --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:v2.1
-    # Now, you are already in docker, and in the /workspace directory
-    # Then, initializing the software environment
-    cd /workspace/tpu-mlir
-    source scripts/envsetup.sh
-    ```
-
-This image is only for compiling and quantifying the model, please compile and run the program in the development and runtime environment. For more tutorials on TPU-MLIR, please refer to the "TPU-MLIR Quick Start" and the "TPU-MLIR Technical Reference Manual" on [the official website of Sophgo](https://developer.sophgo.com/site/index/material/31/all.html).
 
 ## 3 x86 PCIe Platform Development and Runtime Environment Construction
 If you have installed a PCIe accelerator card on an x86 platform, the development environment and runtime environment can be the same, and you can build the development and runtime environment directly on the host computer.

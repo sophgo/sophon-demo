@@ -40,19 +40,7 @@ YOLOv5不同版本的代码导出的YOLOv5模型的输出会有所不同，根�
         ....
 ```
 
-### 2.2 导出torchscript模型
-​Pytorch模型在编译前要经过`torch.jit.trace`，trace后的模型才能使用tpu-nntc编译BModel。YOLOv5官方仓库提供了模型导出脚本`export.py`，可以直接使用它导出torchscript模型：
-
-```bash
-# 下述脚本可能会根据不用版本的YOLOv5有所调整，请以官方仓库说明为准
-python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include torchscript
-```
-
-上述脚本会在原始pt模型所在目录下生成导出的torchscript模型，导出后可以修改模型名称以区分不同版本和输出类型，如`yolov5s_v6.1_3output.torchscript.pt`表示带有3个输出的JIT模型。
-
-**注意：** 导出的模型建议以`.pt`为后缀，以免在后续模型编译量化中发生错误。
-
-### 2.3 导出onnx模型
+### 2.2 导出onnx模型
 如果使用tpu-mlir编译模型，则必须先将Pytorch模型导出为onnx模型。YOLOv5官方仓库提供了模型导出脚本`export.py`，可以直接使用它导出onnx模型：
 
 ```bash
@@ -61,6 +49,3 @@ python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include onnx -
 ```
 
 上述脚本会在原始pt模型所在目录下生成导出的onnx模型，导出后可以修改模型名称以区分不同版本和输出类型，如`yolov5s_v6.1_3output.onnx`表示带有3个输出的onnx模型。
-
-## 3. 常见问题
-TODO

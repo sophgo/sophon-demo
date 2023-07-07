@@ -40,19 +40,7 @@ The output of the YOLOv5 model will be different for different versions of the Y
         ....
 ```
 
-### 2.2 Export the Torchscript Model
-The Pytorch model must go through `torch.jit.trace` before compilation, and the model after trace can use tpu-nntc to compile BModel.YOLOv5 official repository provides model export scripts`export.py`,you can use it directly to export the torchscript model:
-
-```bash
-# The following script may be adjusted based on different versions of YOLOv5. Please refer to the official repository instructions
-python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include torchscript
-```
-
-The above script generates the exported torchscript model in the directory where the original pt model resides. After exporting, the model name can be changed to distinguish between different versions and output types,such as`yolov5s_v6.1_3output.torchscript.pt`represents a JIT model with three outputs.
-
-**Attention:** The derived model is suggested to be suffixed with `.pt`,to avoid errors in subsequent model compilation quantization.
-
-### 2.3 Derive the onnx Model
+### 2.2 Derive the onnx Model
 If you compile the model using tpu-mlir, you must first export the Pytorch model as an onnx model.YOLOv5 official repository provides the model export script ,you can use it directly to derive the onnx model:
 
 ```bash
@@ -61,6 +49,3 @@ python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include onnx -
 ```
 
 The script generates the exported onnx model in the directory where the original pt model resides. After the export, you can modify the model name to distinguish between different versions and output types.For example,`yolov5s_v6.1_3output.onnx`represents an onnx model with 3 outputs.
-
-## 3. Common Problems
-TODO

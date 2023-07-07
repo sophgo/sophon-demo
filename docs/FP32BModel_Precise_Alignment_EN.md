@@ -193,7 +193,7 @@ python3 -m dfn --url http://219.142.246.77:65000/sharing/6KVmeVpej
 
 **Reproduction Steps**
 
-- Step 1: Download the relevant files. You can compile the FP32 BModel model in the development environment, or use the converted FP32 BModel directly.
+- Step 1: Download the relevant files. You can compile the FP32 BModel model in the `TPU-NNTC` development environment, or use the converted FP32 BModel directly.
 
   ```bash
   python3 -m bmnetp --model=resnet18_traced.pt --shapes=[1,3,224,224] --target="BM1684"

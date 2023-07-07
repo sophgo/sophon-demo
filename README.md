@@ -16,7 +16,7 @@ SophonSDK是算能科技基于其自主研发的AI芯片所定制的深度学习
 | [RetinaFace](./sample/RetinaFace/README.md) | 人脸检测          | C++/Python | FP32           | YES | BMCV/OpenCV |
 | [YOLOv5](./sample/YOLOv5/README.md)         | 目标检测          | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [yolact](./sample/yolact/README.md)         | 实例分割          | Python     | FP32           | YES | BMCV/OpenCV |
-| [PP-OCR](./sample/PP-OCR/README.md)         | OCR              | Python     | FP32           | YES | OpenCV |
+| [PP-OCR](./sample/PP-OCR/README.md)         | OCR              | C++/Python | FP32/FP16      | YES | BMCV/OpenCV |
 | [YOLOv34](./sample/YOLOv34/README.md)       | 目标检测          | C++/Python | FP32/INT8      | NO  | BMCV/OpenCV |
 | [YOLOX](./sample/YOLOX/README.md)           | 目标检测          | C++/Python | FP32/INT8      | YES | BMCV/OpenCV |
 | [SSD](./sample/SSD/README.md)               | 目标检测          | C++/Python | FP32/INT8      | YES | BMCV/OpenCV |
@@ -26,11 +26,12 @@ SophonSDK是算能科技基于其自主研发的AI芯片所定制的深度学习
 | [YOLOv8](./sample/YOLOv8/README.md)         | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [DeepSORT](./sample/DeepSORT/README.md)     | 多目标跟踪         | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [ByteTrack](./sample/ByteTrack/README.md)   | 多目标跟踪         | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
-| [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | 目标检测           | C++        | FP32/FP16/INT8 | YES | BMCV|
+| [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV|
 
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.1.7	 | 修复文档等问题，一些例程支持BM1684 mlir，重构PP-OCR、CenterNet例程，YOLOv5添加sail支持 |
 | 0.1.6	 | 修复文档等问题，新增ByteTrack、YOLOv5_opt例程 |
 | 0.1.5	 | 修复文档等问题，新增DeepSORT例程，重构ResNet、LPRNet例程 |
 | 0.1.4	 | 修复文档等问题，新增C3D、YOLOv8例程 |
@@ -43,6 +44,7 @@ SophonSDK是算能科技基于其自主研发的AI芯片所定制的深度学习
 Sophon Demo主要依赖tpu-mlir、tpu-nntc、libsophon、sophon-ffmpeg、sophon-opencv、sophon-sail，其版本要求如下：
 |sophon-demo|tpu-mlir |tpu-nntc |libsophon|sophon-ffmpeg|sophon-opencv|sophon-sail|
 |--------|------------| --------|---------|---------    |----------   | ------ |
+| 0.1.7 | >=1.2.2   | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.6.0 |
 | 0.1.6 | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.4.0 |
 | 0.1.5 | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.4.0 |
 | 0.1.4 | >=0.7.1     | >=3.1.5 | >=0.4.4 | >=0.5.1     | >=0.5.1    | >=3.3.0 |

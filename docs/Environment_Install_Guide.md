@@ -4,8 +4,8 @@
 ## 目录
 * [sophon-demo环境安装指南](#sophon-demo环境安装指南)
   * [目录](#目录)
-  * [1 TPU-NNTC环境搭建](#1-tpu-nntc环境搭建)
-  * [2 TPU-MLIR环境搭建](#2-tpu-mlir环境搭建)
+  * [1 TPU-MLIR环境搭建](#1-tpu-mlir环境搭建)
+  * [2 TPU-NNTC环境搭建](#2-tpu-nntc环境搭建)
   * [3 x86 PCIe平台的开发和运行环境搭建](#3-x86-pcie平台的开发和运行环境搭建)
     * [3.1 安装libsophon](#31-安装libsophon)
     * [3.2 安装sophon-ffmpeg和sophon-opencv](#32-安装sophon-ffmpeg和sophon-opencv)
@@ -20,8 +20,49 @@
 
 Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC、TPU-MLIR环境，用于编译C++程序的开发环境以及用于部署程序的运行环境。
 
-## 1 TPU-NNTC环境搭建
-如果您使用BM1684芯片，建议使用TPU-NNTC编译BModel。通常需要在x86主机上安装TPU-NNTC环境，x86主机已安装Ubuntu16.04/18.04/20.04系统，并且运行内存在12GB以上。TPU-NNTC环境安装步骤主要包括：
+## 1 TPU-MLIR环境搭建
+使用TPU-MLIR编译BModel，通常需要在x86主机上安装TPU-MLIR环境，x86主机已安装Ubuntu16.04/18.04/20.04系统，并且运行内存在12GB以上。TPU-MLIR环境安装步骤主要包括：
+
+1. 安装Docker
+
+   若已安装docker，请跳过本节。
+    ```bash
+    # 安装docker
+    sudo apt-get install docker.io
+    # docker命令免root权限执行
+    # 创建docker用户组，若已有docker组会报错，没关系可忽略
+    sudo groupadd docker
+    # 将当前用户加入docker组
+    sudo usermod -aG docker $USER
+    # 切换当前会话到新group或重新登录重启X会话
+    newgrp docker​ 
+    ```
+    > **提示**：需要logout系统然后重新登录，再使用docker就不需要sudo了。
+
+2. 下载并解压TPU-MLIR
+
+    从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)上下载TPU-MLIR的压缩包，命名如tpu-mlir_vx.y.z-hash-date.tar.gz，x.y.z表示版本号，并进行解压。
+    ```bash
+    tar zxvf tpu-mlir_vx.y.z-<hash>-<date>.tar.gz
+    ```
+
+3. 创建并进入docker
+
+    TPU-MLIR使用的docker是sophgo/tpuc_dev:2.2, docker镜像和tpu-mlir有绑定关系，少数情况下有可能更新了tpu-mlir，需要新的镜像。
+    ```bash
+    # 如果当前系统没有对应镜像，会自动从docker hub上下载
+    # 这里将本级目录映射到docker内的/workspace目录,用户需要根据实际情况将demo的目录映射到docker里面
+    # myname只是举个名字的例子, 请指定成自己想要的容器的名字
+    docker run --name myname -v $PWD:/workspace -it sophgo/tpuc_dev:v2.2
+    # 此时已经进入docker，并在/workspace目录下
+    # 初始化软件环境
+    cd /workspace/tpu-mlir_vx.y.z-<hash>-<date>
+    source ./envsetup.sh
+    ```
+此镜像仅用于编译和量化模型，程序编译和运行请在开发和运行环境中进行。更多TPU-MLIR的教程请参考[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)的《TPU-MLIR快速入门手册》和《TPU-MLIR开发参考手册》。
+
+## 2 TPU-NNTC环境搭建
+使用TPU-NNTC编译BModel，通常需要在x86主机上安装TPU-NNTC环境，x86主机已安装Ubuntu16.04/18.04/20.04系统，并且运行内存在12GB以上。TPU-NNTC环境安装步骤主要包括：
 
 1. 安装Docker
 
@@ -65,46 +106,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
     ```
 此镜像仅用于编译和量化模型，程序编译和运行请在开发和运行环境中进行。更多TPU-NNTC的教程请参考[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)的《TPU-NNTC快速入门指南》和《TPU-NNTC开发参考手册》。
 
-## 2 TPU-MLIR环境搭建
-如果您使用BM1684X芯片，建议使用TPU-MLIR编译BModel。通常需要在x86主机上安装TPU-MLIR环境，x86主机已安装Ubuntu16.04/18.04/20.04系统，并且运行内存在12GB以上。TPU-MLIR环境安装步骤主要包括：
 
-1. 安装Docker
-
-   若已安装docker，请跳过本节。
-    ```bash
-    # 安装docker
-    sudo apt-get install docker.io
-    # docker命令免root权限执行
-    # 创建docker用户组，若已有docker组会报错，没关系可忽略
-    sudo groupadd docker
-    # 将当前用户加入docker组
-    sudo usermod -aG docker $USER
-    # 切换当前会话到新group或重新登录重启X会话
-    newgrp docker​ 
-    ```
-    > **提示**：需要logout系统然后重新登录，再使用docker就不需要sudo了。
-
-2. 下载并解压TPU-MLIR
-
-    从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)上下载TPU-MLIR的压缩包，命名如tpu-mlir_vx.y.z-hash-date.tar.gz，x.y.z表示版本号，并进行解压。
-    ```bash
-    tar zxvf tpu-mlir_vx.y.z-<hash>-<date>.tar.gz
-    ```
-
-3. 创建并进入docker
-
-    TPU-MLIR使用的docker是sophgo/tpuc_dev:2.2, docker镜像和tpu-mlir有绑定关系，少数情况下有可能更新了tpu-mlir，需要新的镜像。
-    ```bash
-    # 如果当前系统没有对应镜像，会自动从docker hub上下载
-    # 这里将本级目录映射到docker内的/workspace目录,用户需要根据实际情况将demo的目录映射到docker里面
-    # myname只是举个名字的例子, 请指定成自己想要的容器的名字
-    docker run --name myname -v $PWD:/workspace -it sophgo/tpuc_dev:v2.2
-    # 此时已经进入docker，并在/workspace目录下
-    # 初始化软件环境
-    cd /workspace/tpu-mlir_vx.y.z-<hash>-<date>
-    source ./envsetup.sh
-    ```
-此镜像仅用于编译和量化模型，程序编译和运行请在开发和运行环境中进行。更多TPU-MLIR的教程请参考[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)的《TPU-MLIR快速入门手册》和《TPU-MLIR开发参考手册》。
 
 ## 3 x86 PCIe平台的开发和运行环境搭建
 如果您在x86平台安装了PCIe加速卡，开发环境与运行环境可以是统一的，您可以直接在宿主机上搭建开发和运行环境。

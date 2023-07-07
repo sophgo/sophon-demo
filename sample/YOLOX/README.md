@@ -76,7 +76,7 @@ trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如�
 
 您可以使用上一步下载的，位于data/models/torch/yolox_s.pt的pt模型，以及位于/data/image/lmdb的量化数据集，也可以使用自己trace完成的pt模型，和量化数据集。
 
-模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
+模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#2-tpu-nntc环境搭建)。
 
 ### 4.1 生成FP32 BModel
 

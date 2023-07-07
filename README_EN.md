@@ -25,11 +25,12 @@ SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI
 | [YOLOv8](./sample/YOLOv8/README.md) | Object detection | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [DeepSORT](./sample/DeepSORT/README.md) | MultiObject Tracker | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [ByteTrack](./sample/ByteTrack/README.md) | MultiObject Tracker | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
-| [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | Object detection | C++ | FP32/FP16/INT8 | YES | BMCV|
+| [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | Object detection | C++/Python | FP32/FP16/INT8 | YES | BMCV|
 
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.1.7	 | Fix documentation and other issues, some demos support BM1684 mlir, refactor PP-OCR/CenterNet, sail support YOLOv5. |
 | 0.1.6	 | Fix documentation and other issues, add ByteTrack/YOLOv5_opt samples. |
 | 0.1.5	 | Fix documentation and other issues, add DeepSORT sample, refactor ResNet/LPRNet samples. |
 | 0.1.4 | Fix documentation and other issues, add C3D and YOLOv8 samples |
@@ -42,6 +43,7 @@ SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI
 Sophon Demo mainly depends on tpu-mlir, tpu-nntc, libsophon, sophon-ffmpeg, sophon-opencv, sophon-sail, whose version requirements are as follows:  
 |sophon-demo|tpu-mlir |tpu-nntc |libsophon|sophon-ffmpeg|sophon-opencv|sophon-sail|
 |--------|------------| --------|---------|---------    |----------   | ------ |
+| 0.1.7 | >=1.2.2   | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.5.0 |
 | 0.1.6 | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.4.0 |
 | 0.1.5 | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.4.0 |
 | 0.1.4 | >=0.7.1     | >=3.1.5 | >=0.4.4 | >=0.5.1     | >=0.5.1    | >=3.3.0 |
