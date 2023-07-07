@@ -8,8 +8,6 @@
 * [2. Characteristics](#2-characteristics)
 * [3. Prepare Models and Data](#3-prepare-models-and-data)
 * [4. Model Compilation](#4-model-compilation)
-  * [4.1 TPU-NNTC Compiling BModel](#41-tpu-nntc-compiling-bmodel)
-  * [4.2 TPU-MLIR Compiling BModel](#42-tpu-mlir-compiling-bmodel)
 * [5. Example Test](#5-example-test)
 * [6. Precision Test](#6-precision-test)
   * [6.1 Testing Method](#61-testing-method)
@@ -32,7 +30,7 @@ YOLOv5 is a very classical One Stage target detection algorithm based on anchor.
 * Support for picture and video testing
  
 ## 3. Prepare Models and Data
-If you use BM1684 chip, it is recommended to use TPU-NNTC to compile BModel, Pytorch model to export to torchscript model or onnx model before compilation; if you use BM1684X chip, it is recommended to use TPU-MLIR to compile BModel, Pytorch model to export to onnx model before compilation. For more information, please see [YOLOv5 Model Export](./docs/YOLOv5_Export_Guide_EN.md).
+It is recommended to use TPU-MLIR to compile BModel, Pytorch model to export to onnx model before compilation. For more information, please see [YOLOv5 Model Export](./docs/YOLOv5_Export_Guide_EN.md).
 
 At the same time, you need to prepare a dataset for testing and, if you quantify the model, a dataset for quantification.
 
@@ -49,9 +47,9 @@ Downloaded models include:
 ```
 ./models
 ├── BM1684
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # Compiled with TPU-NNTC, FP32 BModel,batch_size=1 for BM1684
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # Compiled with TPU-NNTC, INT8 BModel,batch_size=1 for BM1684
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # Compiled with TPU-NNTC, INT8 BModel,batch_size=4 for BM1684
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # Compiled with TPU-MLIR, FP32 BModel,batch_size=1 for BM1684
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # Compiled with TPU-MLIR, INT8 BModel,batch_size=1 for BM1684
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # Compiled with TPU-MLIR, INT8 BModel,batch_size=4 for BM1684
 ├── BM1684X
 │   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # Compiled with TPU-MLIR, FP32 BModel,batch_size=1 for BM1684X
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # Compiled with TPU-MLIR, FP16 BModel,batch_size=1 for BM1684X
@@ -77,7 +75,7 @@ The downloaded data include:
 ## 4. Model Compilation
 The exported model needs to be compiled into BModel to run on SOPHON TPU. If you use the downloaded BModel, you can skip this section. It is recommended that you use TPU-MLIR to compile BModel.
 
-You need to install TPU-MLIR before compiling the model. For more information, please see [TPU-MLIR Environment Building](../../docs/Environment_Install_Guide_EN.md#2-tpu-mlir-environmental-installation). After installation, you need to enter the example directory in the TPU-MLIR environment. Use TPU-MLIR to compile the onnx model to BModel. For specific methods, please refer to "chapter 3.5" of the TPU-MLIR Quick start Manual. Compile the ONNX model (please obtain it from the corresponding version of SDK of [Sophgo official website](https://developer.sophgo.com/site/index/material/31/all.html)).
+You need to install TPU-MLIR before compiling the model. For more information, please see [TPU-MLIR Environment Building](../../docs/Environment_Install_Guide_EN.md#1-tpu-mlir-environmental-installation). After installation, you need to enter the example directory in the TPU-MLIR environment. Use TPU-MLIR to compile the onnx model to BModel. For specific methods, please refer to "chapter 3.5" of the TPU-MLIR Quick start Manual. Compile the ONNX model (please obtain it from the corresponding version of SDK of [Sophgo official website](https://developer.sophgo.com/site/index/material/31/all.html)).
 
 - Generate FP32 BModel
 

@@ -85,7 +85,7 @@ videos
 
 ​	darknet模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
 
-模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。
+模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#2-tpu-nntc环境搭建)。
 
 ### 4.1 生成FP32 BModel
 

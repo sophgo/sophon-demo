@@ -77,7 +77,7 @@ chmod -R +x scripts/
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
 
 ### 4.1 TPU-NNTC编译BModel
-模型编译前需要安装TPU-NNTC，具体可参考[TPU-NNTC环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。请注意，本例程编译模型使用的SDK需为最新的Release版本，安装好后需在TPU-NNTC环境中进入例程目录。
+模型编译前需要安装TPU-NNTC，具体可参考[TPU-NNTC环境搭建](../../docs/Environment_Install_Guide.md#2-tpu-nntc环境搭建)。请注意，本例程编译模型使用的SDK需为最新的Release版本，安装好后需在TPU-NNTC环境中进入例程目录。
 
 - 生成FP32 BModel
 

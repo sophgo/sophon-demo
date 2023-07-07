@@ -3,11 +3,13 @@ model_dir=$(dirname $(readlink -f "$0"))
 
 if [ ! $1 ]; then
     target=bm1684x
+    target_dir=BM1684X
 else
-    target=$1
+    target=${1,,}
+    target_dir=${target^^}
 fi
 
-outdir=../models/BM1684X
+outdir=../models/$target_dir
 
 function gen_mlir()
 {   
@@ -27,7 +29,7 @@ function gen_fp16bmodel()
     model_deploy.py \
         --mlir yolov8s_$1b.mlir \
         --quantize F32 \
-        --chip bm1684x \
+        --chip $target \
         --model yolov8s_fp32_$1b.bmodel
 
     mv yolov8s_fp32_$1b.bmodel $outdir/

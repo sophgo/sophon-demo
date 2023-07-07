@@ -1,10 +1,8 @@
-<font size=5> C3D </font>
+# C3D
 - [1. 简介](#1-简介)
 - [2. 特性](#2-特性)
 - [3. 准备模型与数据](#3-准备模型与数据)
 - [4. 模型编译](#4-模型编译)
-  - [4.1 TPU-NNTC编译BModel](#41-tpu-nntc编译bmodel)
-  - [4.2 TPU-MLIR编译BModel](#42-tpu-mlir编译bmodel)
 - [5. 例程测试](#5-例程测试)
 - [6. 精度测试](#6-精度测试)
   - [6.1 测试方法](#61-测试方法)
@@ -28,7 +26,7 @@ C3D是使用三维卷积进行视频动作识别的开荒者，论文链接：[L
 * 支持单batch和多batch模型推理
 * 支持视频文件夹测试
 ## 3. 准备模型与数据
-如果您使用BM1684芯片，建议使用TPU-NNTC编译BModel，Pytorch模型在编译前要导出成torchscript模型或onnx模型；如果您使用BM1684X芯片，建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。
+建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。
 
 本例程在`scripts`目录下提供了**所有相关的模型和数据集**的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型转换](#4-模型转换)进行模型转换。
 
@@ -46,10 +44,10 @@ chmod -R +x scripts/
 ```
 ./models
 ├── BM1684
-│   ├── c3d_fp32_1b.bmodel   # 使用TPU-NNTC编译，用于BM1684的FP32 BModel，batch_size=1
-│   ├── c3d_fp32_4b.bmodel   # 使用TPU-NNTC编译，用于BM1684的FP32 BModel，batch_size=4
-│   ├── c3d_int8_1b.bmodel   # 使用TPU-NNTC编译，用于BM1684的INT8 BModel，batch_size=1
-│   └── c3d_int8_4b.bmodel   # 使用TPU-NNTC编译，用于BM1684的INT8 BModel，batch_size=4
+│   ├── c3d_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1
+│   ├── c3d_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=4
+│   ├── c3d_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=1
+│   └── c3d_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=4
 ├── BM1684X
 │   ├── c3d_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
 │   ├── c3d_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=4
@@ -70,57 +68,25 @@ chmod -R +x scripts/
 
 
 ## 4. 模型编译
-导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。如果您使用BM1684芯片，建议使用TPU-NNTC编译BModel；如果您使用BM1684X芯片，建议使用TPU-MLIR编译BModel。
+导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
-### 4.1 TPU-NNTC编译BModel
-模型编译前需要安装TPU-NNTC，具体可参考[TPU-NNTC环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。安装好后需在TPU-NNTC环境中进入例程目录。
-
-- 生成FP32 BModel
-
-使用TPU-NNTC将trace后的torchscript模型编译为FP32 BModel，具体方法可参考《TPU-NNTC开发参考手册》的“BMNETP 使用”(请从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)相应版本的SDK中获取)。
-
-​本例程在`scripts`目录下提供了TPU-NNTC编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_nntc.sh`中的torchscript模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684和BM1684X），如：
-
-```bash
-./scripts/gen_fp32bmodel_nntc.sh BM1684
-```
-
-​执行上述命令会在`models/BM1684/`下生成`c3d_fp32_1b.bmodel`等文件，即转换好的FP32 BModel。
-
-- 生成INT8 BModel
-
-使用TPU-NNTC量化torchscript模型的方法可参考《TPU-NNTC开发参考手册》的“模型量化”(请从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)相应版本的SDK中获取)，以及[模型量化注意事项](../../docs/Calibration_Guide.md#1-注意事项)。
-
-​本例程在`scripts`目录下提供了TPU-NNTC量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_nntc.sh`中的torchscript模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台，如：
-
-```shell
-./scripts/gen_int8bmodel_nntc.sh BM1684
-```
-
-​上述脚本会在`datasets/`下生成`cali_set_lmdb/`量化数据集，在`models/BM1684`下生成`c3d_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
-
-**如果您不使用本例程的数据集**，本例程在`tools`目录下提供了准备lmdb数据的python脚本，用户可以根据脚本自己生成lmdb量化数据集。
-```bash
-cd tools
-python3 c3d_lmdb.py --input_path ../datasets/UCF_test_01 #for tpu-nntc, 需要在docker内进行。
-```
-执行后，会在datasets目录下产生`cali_set_lmdb`文件夹，可以作为量化模型使用的数据集。
-### 4.2 TPU-MLIR编译BModel
-模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#2-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
 
 ```bash
+./scripts/gen_fp32bmodel_mlir.sh bm1684
+#or
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
 ```
 
-​执行上述命令会在`models/BM1684X/`下生成`c3d_fp32_1b.bmodel`等文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`c3d_fp32_1b.bmodel`等文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
@@ -130,13 +96,15 @@ python3 c3d_lmdb.py --input_path ../datasets/UCF_test_01 #for tpu-nntc, 需要�
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684X），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
 
 ```shell
+./scripts/gen_int8bmodel_mlir.sh bm1684
+#或
 ./scripts/gen_int8bmodel_mlir.sh bm1684x
 ```
 
-​上述脚本会在`datasets/`下生成`cali_set_npy/`量化数据集，在`models/BM1684X`下生成`c3d_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+​上述脚本会在`datasets/`下生成`cali_set_npy/`量化数据集，在`models/BM1684`或`models/BM1684X/`下生成`c3d_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 **如果您不使用本例程的数据集**，本例程在`tools`目录下提供了准备npy数据的python脚本，用户可以根据脚本自己准备npy格式量化数据集。
 ```bash
@@ -163,11 +131,11 @@ python3 tools/eval_ucf.py --gt_path datasets/ground_truth.json --result_json cpp
 |   测试平台    |      测试程序     |    测试模型        | ACC |
 | ------------ | ---------------- | ------------------ | --- |
 | BM1684 PCIe  | c3d_opencv.py    | c3d_fp32_1b.bmodel |0.715|
-| BM1684 PCIe  | c3d_opencv.py    | c3d_int8_1b.bmodel |0.691|
+| BM1684 PCIe  | c3d_opencv.py    | c3d_int8_1b.bmodel |0.704|
 | BM1684 PCIe  | c3d_opencv.pcie  | c3d_fp32_1b.bmodel |0.715|
-| BM1684 PCIe  | c3d_opencv.pcie  | c3d_int8_1b.bmodel |0.691|
+| BM1684 PCIe  | c3d_opencv.pcie  | c3d_int8_1b.bmodel |0.704|
 | BM1684 PCIe  | c3d_bmcv.pcie    | c3d_fp32_1b.bmodel |0.715|
-| BM1684 PCIe  | c3d_bmcv.pcie    | c3d_int8_1b.bmodel |0.693|
+| BM1684 PCIe  | c3d_bmcv.pcie    | c3d_int8_1b.bmodel |0.700|
 | BM1684X PCIe | c3d_opencv.py    | c3d_fp32_1b.bmodel |0.715|
 | BM1684X PCIe | c3d_opencv.py    | c3d_fp16_1b.bmodel |0.715|
 | BM1684X PCIe | c3d_opencv.py    | c3d_int8_1b.bmodel |0.713|
@@ -194,10 +162,10 @@ bmrt_test --bmodel models/BM1684/c3d_fp32_1b.bmodel
 
 |          测试模型           | calculate time(ms) |
 | -------------------------- | ----------------- |
-| BM1684/c3d_fp32_1b.bmodel  | 55.5           |
-| BM1684/c3d_fp32_4b.bmodel  | 46.7           |
-| BM1684/c3d_int8_1b.bmodel  | 43.0            |
-| BM1684/c3d_int8_4b.bmodel  | 17.3             |
+| BM1684/c3d_fp32_1b.bmodel  | 64.4           |
+| BM1684/c3d_fp32_4b.bmodel  | 50.8           |
+| BM1684/c3d_int8_1b.bmodel  | 29.3            |
+| BM1684/c3d_int8_4b.bmodel  | 7.7             |
 | BM1684X/c3d_fp32_1b.bmodel | 75.4          |
 | BM1684X/c3d_fp32_4b.bmodel | 70.1           |
 | BM1684X/c3d_fp16_1b.bmodel | 9.4            |

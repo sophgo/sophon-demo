@@ -88,6 +88,24 @@ function download(){
     fi
 }
 
+function compile_nntc()
+{
+  ./scripts/gen_fp32bmodel_nntc.sh $TARGET
+  judge_ret $? "generate $TARGET fp32bmodel" 0
+  ./scripts/gen_int8bmodel_nntc.sh $TARGET
+  judge_ret $? "generate $TARGET int8bmodel" 0
+}
+
+function compile_mlir()
+{
+  ./scripts/gen_fp32bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET fp32bmodel" 0
+  ./scripts/gen_fp16bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET fp16bmodel" 0
+  ./scripts/gen_int8bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET int8bmodel" 0
+}
+
 function build_pcie(){
     pushd cpp/c3d_$1
     if [ -d build ]; then
@@ -177,31 +195,23 @@ function test_python(){
 if test $MODE = "compile_nntc"
 then
     download
-    chmod +x ./scripts/gen_fp32bmodel_nntc.sh
-    ./scripts/gen_fp32bmodel_nntc.sh 
-    chmod +x ./scripts/gen_int8bmodel_nntc.sh
-    ./scripts/gen_int8bmodel_nntc.sh 
+    compile_nntc
 elif test $MODE = "compile_mlir"
 then
     download
-    chmod +x ./scripts/gen_fp32bmodel_mlir.sh
-    ./scripts/gen_fp32bmodel_mlir.sh
-    chmod +x ./scripts/gen_fp16bmodel_mlir.sh
-    ./scripts/gen_fp16bmodel_mlir.sh 
-    chmod +x ./scripts/gen_int8bmodel_mlir.sh
-    ./scripts/gen_int8bmodel_mlir.sh  
+    compile_mlir
 elif test $MODE = "pcie_test"
 then
     download
     test_python opencv c3d_fp32_1b.bmodel 0.715356
     test_python opencv c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.6910 || gt=0.7097378
+    [ $TARGET = "BM1684" ] && gt=0.704119850187266 || gt=0.7097378
     test_python opencv c3d_int8_1b.bmodel $gt
     test_python opencv c3d_int8_4b.bmodel $gt
     build_pcie opencv
     test_cpp opencv pcie c3d_fp32_1b.bmodel 0.715356
     test_cpp opencv pcie c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.6910 || gt=0.7097378
+    [ $TARGET = "BM1684" ] && gt=0.704119850187266 || gt=0.7097378
     test_cpp opencv pcie c3d_int8_1b.bmodel $gt
     test_cpp opencv pcie c3d_int8_4b.bmodel $gt
     if test $TARGET = "BM1684X"
@@ -215,7 +225,7 @@ then
     build_pcie bmcv
     test_cpp bmcv pcie c3d_fp32_1b.bmodel 0.715356
     test_cpp bmcv pcie c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.692884 || gt=0.713483
+    [ $TARGET = "BM1684" ] && gt=0.700374531835206 || gt=0.713483
     test_cpp bmcv pcie c3d_int8_1b.bmodel $gt
     test_cpp bmcv pcie c3d_int8_4b.bmodel $gt
     if test $TARGET = "BM1684X"
@@ -232,12 +242,12 @@ then
     download
     test_python opencv c3d_fp32_1b.bmodel 0.715356
     test_python opencv c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.6910 || gt=0.711610
+    [ $TARGET = "BM1684" ] && gt=0.704119850187266 || gt=0.711610
     test_python opencv c3d_int8_1b.bmodel $gt
     test_python opencv c3d_int8_4b.bmodel $gt
     test_cpp opencv soc c3d_fp32_1b.bmodel 0.715356
     test_cpp opencv soc c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.6910 || gt=0.711610
+    [ $TARGET = "BM1684" ] && gt=0.704119850187266 || gt=0.711610
     test_cpp opencv soc c3d_int8_1b.bmodel $gt
     test_cpp opencv soc c3d_int8_4b.bmodel $gt
     if test $TARGET = "BM1684X"
@@ -250,7 +260,7 @@ then
     #############################################
     test_cpp bmcv soc c3d_fp32_1b.bmodel 0.715356
     test_cpp bmcv soc c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.692884 || gt=0.711610
+    [ $TARGET = "BM1684" ] && gt=0.700374531835206 || gt=0.711610
     test_cpp bmcv soc c3d_int8_1b.bmodel $gt
     test_cpp bmcv soc c3d_int8_4b.bmodel $gt
     if test $TARGET = "BM1684X"

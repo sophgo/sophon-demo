@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 #include <fstream>
 #include "resnet.hpp"
-#define USE_ASPECT_RATIO 1
+#define USE_ASPECT_RATIO 0
 #define DUMP_FILE 0
 
 using namespace std;

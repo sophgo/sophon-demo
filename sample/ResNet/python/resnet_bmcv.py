@@ -74,7 +74,7 @@ class Resnet(object):
         else:
             input_bmimg_bgr = input_bmimg
 
-        resize_bmimg = self.bmcv.resize(input_bmimg_bgr, self.net_w, self.net_h)
+        resize_bmimg = self.bmcv.resize(input_bmimg_bgr, self.net_w, self.net_h, sail.bmcv_resize_algorithm.BMCV_INTER_LINEAR)
         resize_bmimg_rgb = sail.BMImage(self.handle, self.net_h, self.net_w, \
                         sail.Format.FORMAT_RGB_PLANAR, resize_bmimg.dtype())
         self.bmcv.convert_format(resize_bmimg, resize_bmimg_rgb)

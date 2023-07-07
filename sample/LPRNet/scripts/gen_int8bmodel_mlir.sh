@@ -3,11 +3,13 @@ model_dir=$(dirname $(readlink -f "$0"))
 
 if [ ! $1 ]; then
     target=bm1684x
+    target_dir=BM1684X
 else
-    target=$1
+    target=${1,,}
+    target_dir=${target^^}
 fi
 
-outdir=../models/BM1684X
+outdir=../models/$target_dir
 
 function gen_mlir()
 {
@@ -37,7 +39,6 @@ function gen_int8bmodel()
         --quantize INT8 \
         --chip $target \
         --calibration_table lprnet_cali_table \
-        --asymmetric \
         --model lprnet_int8_$1b.bmodel
 
     mv lprnet_int8_$1b.bmodel $outdir/

@@ -3,11 +3,18 @@ model_dir=$(dirname $(readlink -f "$0"))
 
 if [ ! $1 ]; then
     target=bm1684x
+    target_dir=BM1684X
 else
-    target=$1
+    target=${1,,}
+    target_dir=${target^^}
+    if test $target = "bm1684"
+    then
+        echo "bm1684 do not support fp16"
+        exit
+    fi
 fi
 
-outdir=../models/BM1684X
+outdir=../models/$target_dir
 
 function gen_mlir()
 {

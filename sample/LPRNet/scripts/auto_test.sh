@@ -84,20 +84,20 @@ function download()
 
 function compile_nntc()
 {
-  ./scripts/gen_fp32bmodel_nntc.sh BM1684
-  judge_ret $? "generate BM1684 fp32bmodel" 0
-  ./scripts/gen_int8bmodel_nntc.sh BM1684
-  judge_ret $? "generate BM1684 int8bmodel" 0
+  ./scripts/gen_fp32bmodel_nntc.sh $TARGET
+  judge_ret $? "generate $TARGET fp32bmodel" 0
+  ./scripts/gen_int8bmodel_nntc.sh $TARGET
+  judge_ret $? "generate $TARGET int8bmodel" 0
 }
 
 function compile_mlir()
 {
-  ./scripts/gen_fp32bmodel_mlir.sh bm1684x
-  judge_ret $? "generate BM1684X fp32bmodel" 0
-  ./scripts/gen_fp16bmodel_mlir.sh bm1684x
-  judge_ret $? "generate BM1684X fp16bmodel" 0
-  ./scripts/gen_int8bmodel_mlir.sh bm1684x
-  judge_ret $? "generate BM1684X int8bmodel" 0
+  ./scripts/gen_fp32bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET fp32bmodel" 0
+  ./scripts/gen_fp16bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET fp16bmodel" 0
+  ./scripts/gen_int8bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET int8bmodel" 0
 }
 
 function build_pcie()
@@ -229,17 +229,17 @@ then
 
 
     eval_python opencv lprnet_fp32_1b.bmodel 0.894
-    eval_python opencv lprnet_int8_1b.bmodel 0.887
-    eval_python opencv lprnet_int8_4b.bmodel 0.898
+    eval_python opencv lprnet_int8_1b.bmodel 0.858
+    eval_python opencv lprnet_int8_4b.bmodel 0.881
     eval_python bmcv lprnet_fp32_1b.bmodel 0.88
-    eval_python bmcv lprnet_int8_1b.bmodel 0.873
-    eval_python bmcv lprnet_int8_4b.bmodel 0.884
-    eval_cpp pcie opencv lprnet_fp32_1b.bmodel 0.88
-    eval_cpp pcie opencv lprnet_int8_1b.bmodel 0.873
-    eval_cpp pcie opencv lprnet_int8_4b.bmodel 0.884
-    eval_cpp pcie bmcv lprnet_fp32_1b.bmodel 0.88
-    eval_cpp pcie bmcv lprnet_int8_1b.bmodel 0.873
-    eval_cpp pcie bmcv lprnet_int8_4b.bmodel 0.884
+    eval_python bmcv lprnet_int8_1b.bmodel 0.857
+    eval_python bmcv lprnet_int8_4b.bmodel 0.865
+    eval_cpp pcie opencv lprnet_fp32_1b.bmodel 0.88 
+    eval_cpp pcie opencv lprnet_int8_1b.bmodel 0.857
+    eval_cpp pcie opencv lprnet_int8_4b.bmodel 0.869
+    eval_cpp pcie bmcv lprnet_fp32_1b.bmodel 0.88 
+    eval_cpp pcie bmcv lprnet_int8_1b.bmodel 0.857
+    eval_cpp pcie bmcv lprnet_int8_4b.bmodel 0.869
 
   elif test $TARGET = "BM1684X"
   then
@@ -289,17 +289,17 @@ then
     test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test
 
     eval_python opencv lprnet_fp32_1b.bmodel 0.894
-    eval_python opencv lprnet_int8_1b.bmodel 0.887
-    eval_python opencv lprnet_int8_4b.bmodel 0.898
+    eval_python opencv lprnet_int8_1b.bmodel 0.858
+    eval_python opencv lprnet_int8_4b.bmodel 0.881
     eval_python bmcv lprnet_fp32_1b.bmodel 0.88
-    eval_python bmcv lprnet_int8_1b.bmodel 0.873
-    eval_python bmcv lprnet_int8_4b.bmodel 0.884
+    eval_python bmcv lprnet_int8_1b.bmodel 0.857
+    eval_python bmcv lprnet_int8_4b.bmodel 0.865
     eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.88 
-    eval_cpp soc opencv lprnet_int8_1b.bmodel 0.873
-    eval_cpp soc opencv lprnet_int8_4b.bmodel 0.884
+    eval_cpp soc opencv lprnet_int8_1b.bmodel 0.857
+    eval_cpp soc opencv lprnet_int8_4b.bmodel 0.869
     eval_cpp soc bmcv lprnet_fp32_1b.bmodel 0.88 
-    eval_cpp soc bmcv lprnet_int8_1b.bmodel 0.873
-    eval_cpp soc bmcv lprnet_int8_4b.bmodel 0.884
+    eval_cpp soc bmcv lprnet_int8_1b.bmodel 0.857
+    eval_cpp soc bmcv lprnet_int8_4b.bmodel 0.869
   elif test $TARGET = "BM1684X"
   then
     test_python opencv lprnet_fp32_1b.bmodel datasets/test

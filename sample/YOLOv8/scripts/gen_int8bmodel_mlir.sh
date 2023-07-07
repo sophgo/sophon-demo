@@ -3,11 +3,13 @@ model_dir=$(dirname $(readlink -f "$0"))
 
 if [ ! $1 ]; then
     target=bm1684x
+    target_dir=BM1684X
 else
-    target=$1
+    target=${1,,}
+    target_dir=${target^^}
 fi
 
-outdir=../models/BM1684X
+outdir=../models/$target_dir
 
 function gen_mlir()
 {
@@ -19,6 +21,8 @@ function gen_mlir()
         --scale 0.0039216,0.0039216,0.0039216 \
         --keep_aspect_ratio \
         --pixel_format rgb  \
+        --test_input ../datasets/test/dog.jpg \
+        --test_result yolov8s_top_outputs.npz \
         --mlir yolov8s_$1b.mlir
 }
 
@@ -35,9 +39,11 @@ function gen_int8bmodel()
     model_deploy.py \
         --mlir yolov8s_$1b.mlir \
         --quantize INT8 \
-        --chip bm1684x \
+        --chip $target \
         --quantize_table ../models/onnx/yolov8s_qtable \
         --calibration_table yolov8s_cali_table \
+        --test_input yolov8s_in_f32.npz \
+        --test_reference yolov8s_top_outputs.npz \
         --model yolov8s_int8_$1b.bmodel
 
     mv yolov8s_int8_$1b.bmodel $outdir/
