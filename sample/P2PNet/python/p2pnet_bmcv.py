@@ -219,14 +219,17 @@ def main(args):
     output_dir = './results'
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    else:
-        shutil.rmtree(output_dir)
-        os.makedirs(output_dir)
 
     p2pnet = P2PNet(args)
     frame_num = 0
     decode_time = 0.0
     if os.path.isdir(args.input) or is_img(args.input):
+        output_dir = './results/images'
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        else:
+            shutil.rmtree(output_dir)
+            os.makedirs(output_dir)
         input_list = add_input_img(args.input)
         img_num = len(input_list)
         filename_list = []
@@ -264,6 +267,12 @@ def main(args):
 
         logging.info("result saved in {}".format(output_dir))
     else:
+        output_dir = './results/video'
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        else:
+            shutil.rmtree(output_dir)
+            os.makedirs(output_dir)
         decoder = sail.Decoder(args.input, True, args.dev_id)
         if not decoder.is_opened():
             raise Exception("can not open the video")

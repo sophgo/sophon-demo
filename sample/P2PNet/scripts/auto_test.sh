@@ -163,7 +163,7 @@ function eval_cpp()
   tail -n 15 log/$1_$2_$3_debug.log
 
   echo "Evaluating..."
-  res=$(python3 ../../tools/eval_acc.py --gt_path ../../datasets/test/ground-truth --result_path results 2>&1 | tee log/$1_$2_$3_eval.log)
+  res=$(python3 ../../tools/eval_acc.py --gt_path ../../datasets/test/ground-truth --result_path results/images 2>&1 | tee log/$1_$2_$3_eval.log)
   echo -e "$res"
   array=(${res//=/ })
   acc=${array[1]}
@@ -197,7 +197,7 @@ function eval_python()
   tail -n 20 log/$1_$2_debug.log
 
   echo "Evaluating..."
-  res=$(python3 ../tools/eval_acc.py --gt_path ../datasets/test/ground-truth --result_path results 2>&1 | tee log/$1_$2_eval.log)
+  res=$(python3 ../tools/eval_acc.py --gt_path ../datasets/test/ground-truth --result_path results/images 2>&1 | tee log/$1_$2_eval.log)
   echo -e "$res"
   array=(${res//=/ })
   acc=${array[1]}

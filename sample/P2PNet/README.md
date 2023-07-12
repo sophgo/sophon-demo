@@ -117,7 +117,7 @@ chmod -R +x scripts/
 然后，使用`tools`目录下的`eval_acc.py`脚本，将测试生成的txt文件与测试集标签mat文件进行对比，计算出准确率信息，命令如下：
 ```bash
 # 请根据实际情况修改ground-truth和测试结果路径
-python3 tools/eval_acc.py --gt_path datasets/test/ground-truth --result_path python/results/
+python3 tools/eval_acc.py --gt_path datasets/test/ground-truth --result_path python/results/images
 ```
 ### 6.2 测试结果
 根据本例程提供的数据集，测试结果如下：

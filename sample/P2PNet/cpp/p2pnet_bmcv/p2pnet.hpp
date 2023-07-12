@@ -57,7 +57,6 @@ class P2Pnet {
   int batch_size();
   int Detect(const std::vector<bm_image>& images,
              std::vector<PPointVec>& boxes);
-  void draw_bmcv(bm_handle_t& handle, int px, int py, bm_image& frame);
 };
 
 #endif  //! P2PNET_H

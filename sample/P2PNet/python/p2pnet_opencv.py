@@ -179,14 +179,17 @@ def main(args):
     output_dir = './results'
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    else:
-        shutil.rmtree(output_dir)
-        os.makedirs(output_dir)
 
     p2pnet = P2PNet(args)
     decode_time = 0.0
     frame_num = 0
     if os.path.isdir(args.input) or is_img(args.input):
+        output_dir = './results/images'
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        else:
+            shutil.rmtree(output_dir)
+            os.makedirs(output_dir)
         input_list = add_input_img(args.input)
         img_num = len(input_list)
         filename_list = []
@@ -219,6 +222,12 @@ def main(args):
             filename_list.clear()
         logging.info("result saved in {}".format(output_dir))
     else:
+        output_dir = './results/video'
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        else:
+            shutil.rmtree(output_dir)
+            os.makedirs(output_dir)
         cap = cv2.VideoCapture()
         if not cap.open(args.input):
             raise Exception("can not open the video")
@@ -263,7 +272,7 @@ def main(args):
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--input', type=str, default="../datasets/test/images", help='input image path')
-    parser.add_argument('--bmodel', type=str, default="../models/BM1684X/p2pnet_bm1684x_int8_1b.bmodel", help='bmodel path')
+    parser.add_argument('--bmodel', type=str, default="../models/BM1684X/p2pnet_bm1684x_int8_4b.bmodel", help='bmodel path')
     parser.add_argument('--dev_id', type=int, default=0, help='device id')
     args = parser.parse_args()
     return args

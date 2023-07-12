@@ -53,15 +53,15 @@ usage: p2pnet_opencv.py [-h] [--input INPUT] [--bmodel BMODEL]
 ### 2.2 测试图像
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-python3 p2pnet_opencv.py --input ../datasets/test/images --bmodel ../models/BM1684/p2pnet_bm1684_fp32_1b.bmodel --dev_id 0
+python3 p2pnet_opencv.py --input ../datasets/test/images --bmodel ../models/BM1684X/p2pnet_bm1684x_int8_4b.bmodel --dev_id 0
 ```
-测试结束后，预测的图像和文本文件保存在`results`目录下，同时会打印预测结果、推理时间等信息。
+测试结束后，预测的图像和文本文件保存在`results/images/`目录下，同时会打印预测结果、推理时间等信息。
 
 ![res](../pics/crowd_python_opencv.jpg)
 
 ### 2.3 测试视频
 测试实例如下，支持对视频进行测试。
 ```bash
-python3 p2pnet_opencv.py --input ../datasets/video/video.avi --bmodel ../models/BM1684/p2pnet_bm1684_fp32_1b.bmodel --dev_id 0
+python3 p2pnet_opencv.py --input ../datasets/video/video.avi --bmodel ../models/BM1684X/p2pnet_bm1684x_int8_4b.bmodel --dev_id 0
 ```
-测试结束后，预测的图像和文本文件保存在`results`目录下，同时会打印预测结果、推理时间等信息。
+测试结束后，预测的图像和文本文件保存在`results/video/`目录下，同时会打印预测结果、推理时间等信息。

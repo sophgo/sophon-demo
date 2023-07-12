@@ -78,17 +78,17 @@ Usage: p2pnet_bmcv.pcie [params]
 ### 3.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-./p2pnet_bmcv.pcie --input=../../datasets/test/images --bmodel=../../models/BM1684/p2pnet_bm1684_fp32_1b.bmodel --dev_id=0
+./p2pnet_bmcv.pcie --input=../../datasets/test/images --bmodel=../../models/BM1684X/p2pnet_bm1684x_int8_4b.bmodel --dev_id=0
 ```
-测试结束后，会将预测的图片保存在`results/`下，预测的结果保存在与图片名同名的txt文件中，同时会打印预测结果、推理时间等信息。
+测试结束后，会将预测的图片保存在`results/images/`下，预测的结果保存在与图片名同名的txt文件中，同时会打印预测结果、推理时间等信息。
 
 ![res](../pics/crowd_cpp_bmcv.jpg)
 
 ### 3.3 测试视频
 视频测试实例如下，支持对视频流进行测试。
 ```bash
-./p2pnet_bmcv.pcie --input=../../datasets/video/video.avi --bmodel=../../models/BM1684/p2pnet_bm1684_fp32_1b.bmodel --dev_id=0
+./p2pnet_bmcv.pcie --input=../../datasets/video/video.avi --bmodel=../../models/BM1684X/p2pnet_bm1684x_int8_4b.bmodel --dev_id=0
 ```
-测试结束后，会将预测结果绘制在图片上并保存在`results/`中，同时会打印预测结果、推理时间等信息。
+测试结束后，会将预测结果绘制在图片上并保存在`results/video/`中，同时会打印预测结果、推理时间等信息。
 
 
