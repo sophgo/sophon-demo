@@ -6,347 +6,344 @@
 # third-party components.
 #
 #===----------------------------------------------------------------------===#
-import numpy as np
-import sophon.sail as sail
-import argparse
 import os
+import json
 import time
 import cv2
-
-def mkdir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-def nms(boxes, scores, nms_thr):
-    """Single class NMS implemented in Numpy."""
-    x1 = boxes[:, 0]
-    y1 = boxes[:, 1]
-    x2 = boxes[:, 2]
-    y2 = boxes[:, 3]
-
-    areas = (x2 - x1 + 1) * (y2 - y1 + 1)
-    order = scores.argsort()[::-1]
-
-    keep = []
-    while order.size > 0:
-        i = order[0]
-        keep.append(i)
-        xx1 = np.maximum(x1[i], x1[order[1:]])
-        yy1 = np.maximum(y1[i], y1[order[1:]])
-        xx2 = np.minimum(x2[i], x2[order[1:]])
-        yy2 = np.minimum(y2[i], y2[order[1:]])
-
-        w = np.maximum(0.0, xx2 - xx1 + 1)
-        h = np.maximum(0.0, yy2 - yy1 + 1)
-        inter = w * h
-        ovr = inter / (areas[i] + areas[order[1:]] - inter)
-
-        inds = np.where(ovr <= nms_thr)[0]
-        order = order[inds + 1]
-
-    return keep
+import argparse
+import numpy as np
+import sophon.sail as sail
+from postprocess_numpy import PostProcess
+from utils import COLORS, COCO_CLASSES
+import logging
+logging.basicConfig(level=logging.INFO)
+# sail.set_print_flag(1)
 
 
-def multiclass_nms(boxes, scores, nms_thr, score_thr, class_agnostic=True):
-    """Multiclass NMS implemented in Numpy"""
-    if class_agnostic:
-        nms_method = multiclass_nms_class_agnostic
-    else:
-        nms_method = multiclass_nms_class_aware
-    return nms_method(boxes, scores, nms_thr, score_thr)
-
-
-def multiclass_nms_class_aware(boxes, scores, nms_thr, score_thr):
-    """Multiclass NMS implemented in Numpy. Class-aware version."""
-    final_dets = []
-    num_classes = scores.shape[1]
-    for cls_ind in range(num_classes):
-        cls_scores = scores[:, cls_ind]
-        valid_score_mask = cls_scores > score_thr
-        if valid_score_mask.sum() == 0:
-            continue
-        else:
-            valid_scores = cls_scores[valid_score_mask]
-            valid_boxes = boxes[valid_score_mask]
-            keep = nms(valid_boxes, valid_scores, nms_thr)
-            if len(keep) > 0:
-                cls_inds = np.ones((len(keep), 1)) * cls_ind
-                dets = np.concatenate(
-                    [valid_boxes[keep], valid_scores[keep, None], cls_inds], 1
-                )
-                final_dets.append(dets)
-    if len(final_dets) == 0:
-        return None
-    return np.concatenate(final_dets, 0)
-
-
-def multiclass_nms_class_agnostic(boxes, scores, nms_thr, score_thr):
-    """Multiclass NMS implemented in Numpy. Class-agnostic version."""
-    cls_inds = scores.argmax(1)
-    cls_scores = scores[np.arange(len(cls_inds)), cls_inds]
-
-    valid_score_mask = cls_scores > score_thr
-    if valid_score_mask.sum() == 0:
-        return None
-    valid_scores = cls_scores[valid_score_mask]
-    valid_boxes = boxes[valid_score_mask]
-    valid_cls_inds = cls_inds[valid_score_mask]
-    keep = nms(valid_boxes, valid_scores, nms_thr)
-    if keep:
-        dets = np.concatenate(
-            [valid_boxes[keep], valid_scores[keep, None], valid_cls_inds[keep, None]], 1
-        )
-    return dets
-
-def process_padding_cv(input, resize_w,resize_h):
-    image_h = int(input.shape[0])
-    image_w = int(input.shape[1])
-  
-    scale_w = float(resize_w) / image_w
-    scale_h = float(resize_h) / image_h
-
-    temp_resize_w = resize_w
-    temp_resize_h = resize_h
-
-    min_radio = scale_h
-
-    if scale_w < scale_h:
-        temp_resize_h = int(image_h*scale_w)
-        min_radio = scale_w
-    else:
-        temp_resize_w = int(image_w*scale_h)
-
-    padded_img = np.ones((resize_h, resize_w, 3), dtype=np.uint8) * 114
-    resized_img = cv2.resize(
-        input,
-        (temp_resize_w, temp_resize_h),
-        interpolation=cv2.INTER_LINEAR,
-    ).astype(np.uint8)
-    padded_img[: temp_resize_h, : temp_resize_w] = resized_img
-    padded_img = padded_img.transpose((2,0,1))
-
-    return padded_img,min_radio
-
-def getImages_video(video_cap, batch_size, resize_w, resize_h):
-    ost_image_list = []
-    ratio_list = []
-    input_np =np.ones([batch_size,3,resize_h,resize_w])*114.0
-    for idx in range(batch_size):
-        ret,image_ost = video_cap.read()
-        output_image,min_ratio = process_padding_cv(image_ost, resize_w, resize_h)
-        ost_image_list.append(image_ost)
-        ratio_list.append(min_ratio)
-        input_np[idx] = output_image
-    return ost_image_list, input_np, ratio_list
-
-def getImages_pics(image_list, batch_size,resize_w,resize_h,start_idx):
-    ost_image_list = []
-    ratio_list = []
-    input_np =np.ones([batch_size,3,resize_h,resize_w])*114.0
-    for idx in range(batch_size):
-        image_ost = cv2.imread(image_list[start_idx+idx])
-        output_image,min_ratio = process_padding_cv(image_ost, resize_w, resize_h)
-        ost_image_list.append(image_ost)
-        ratio_list.append(min_ratio)
-        input_np[idx] = output_image
-    return ost_image_list, input_np, ratio_list
-
-
-class Detector(object):
-    def __init__(self, bmodel_path, tpu_id):
-        self.engine = sail.Engine(bmodel_path,tpu_id,sail.IOMode.SYSIO)
-        self.handle = self.engine.get_handle()
-        self.graph_name = self.engine.get_graph_names()[0]
-        self.input_name = self.engine.get_input_names(self.graph_name)[0]
-        self.output_name = self.engine.get_output_names(self.graph_name)[0]
-
-        self.input_shape = self.engine.get_input_shape(self.graph_name,self.input_name)
-
-        self.batch_size, self.c, self.height, self.width = self.input_shape
-
-
-    def inference(self,input_numpy):
-        return self.engine.process(self.graph_name, {self.input_name:input_numpy})[self.output_name]
-
-    def yolox_postprocess(self, outputs, input_w, input_h, p6=False):
-        grids = []
-        expanded_strides = []
-
-        if not p6:
-            strides = [8, 16, 32]
-        else:
-            strides = [8, 16, 32, 64]
-
-        hsizes = [input_h // stride for stride in strides]
-        wsizes = [input_w // stride for stride in strides]
-
-        for hsize, wsize, stride in zip(hsizes, wsizes, strides):
-            xv, yv = np.meshgrid(np.arange(wsize), np.arange(hsize))
-            grid = np.stack((xv, yv), 2).reshape(1, -1, 2)
-            grids.append(grid)
-            shape = grid.shape[:2]
-            expanded_strides.append(np.full((*shape, 1), stride))
-
-        grids = np.concatenate(grids, 1)
-        expanded_strides = np.concatenate(expanded_strides, 1)
-        outputs[..., :2] = (outputs[..., :2] + grids) * expanded_strides
-        outputs[..., 2:4] = np.exp(outputs[..., 2:4]) * expanded_strides
-
-        return outputs
+class YOLOx:
     
-    def get_detectresult(self,predictions,dete_threshold,nms_threshold):
-        boxes = predictions[:, :4]
-        scores = predictions[:, 4:5] * predictions[:, 5:]
+    def __init__(self, args):
+        # load bmodel
+        self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
+        logging.info("load {} success!".format(args.bmodel))
+        self.graph_name = self.net.get_graph_names()[0]
+        self.input_name = self.net.get_input_names(self.graph_name)[0]
+        self.output_names = self.net.get_output_names(self.graph_name)
+        self.input_shape = self.net.get_input_shape(self.graph_name, self.input_name)
 
-        boxes_xyxy = np.ones_like(boxes)
-        boxes_xyxy[:, 0] = boxes[:, 0] - boxes[:, 2]/2.
-        boxes_xyxy[:, 1] = boxes[:, 1] - boxes[:, 3]/2.
-        boxes_xyxy[:, 2] = boxes[:, 0] + boxes[:, 2]/2.
-        boxes_xyxy[:, 3] = boxes[:, 1] + boxes[:, 3]/2.
+        self.batch_size = self.input_shape[0]
+        self.net_h = self.input_shape[2]
+        self.net_w = self.input_shape[3]
+        self.input_size = [self.net_w,self.net_h]
+        
+        self.conf_thresh = args.conf_thresh
+        self.nms_thresh = args.nms_thresh
+        self.agnostic = False
+        self.multi_label = True
+        self.max_det = 1000
+        
+        self.postprocess = PostProcess(
+            conf_thresh=self.conf_thresh,
+            nms_thresh=self.nms_thresh,
+            agnostic=self.agnostic,
+            multi_label=self.multi_label,
+            max_det=self.max_det,
+        )
+        
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
+    
+    
+    def init(self):
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
 
-        dets = multiclass_nms(boxes_xyxy, scores, nms_thr=nms_threshold, score_thr=dete_threshold)
-        return dets
+           
+    def preprocess(self, ori_img):
+        """
+        pre-processing
+        Args:
+            img: numpy.ndarray -- (h,w,3)
 
+        Returns: (3,h,w) numpy.ndarray after pre-processing
+
+        """
+        letterbox_img, ratio, (tx1, ty1) = self.letterbox(
+            ori_img,
+            new_shape=(self.net_h, self.net_w),
+            color=(114, 114, 114),
+            auto=False,
+            scaleFill=False,
+            scaleup=True,
+            stride=32
+        )
+
+        img = letterbox_img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+        img = img.astype(np.float32)
+        # input_data = np.expand_dims(input_data, 0)
+        # img = np.ascontiguousarray(img / 255.0)
+        return img, ratio, (tx1, ty1) 
+    
+    
+    def letterbox(self, im, new_shape=(640, 640), color=(114, 114, 114), auto=False, scaleFill=False, scaleup=True, stride=32):
+        # Resize and pad image while meeting stride-multiple constraints
+        shape = im.shape[:2]  # current shape [height, width]
+        if isinstance(new_shape, int):
+            new_shape = (new_shape, new_shape)
+
+        # Scale ratio (new / old)
+        r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+        if not scaleup:  # only scale down, do not scale up (for better val mAP)
+            r = min(r, 1.0)
+
+        # Compute padding
+        ratio = r, r  # width, height ratios
+        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
+        if auto:  # minimum rectangle
+            dw, dh = np.mod(dw, stride), np.mod(dh, stride)  # wh padding
+        elif scaleFill:  # stretch
+            dw, dh = 0.0, 0.0
+            new_unpad = (new_shape[1], new_shape[0])
+            ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]  # width, height ratios
+
+
+        if shape[::-1] != new_unpad:  # resize
+            im = cv2.resize(im, new_unpad, interpolation=cv2.INTER_LINEAR)
+        top, bottom = 0, int(dh)
+        left, right = 0, int(dw)
+        im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
+        return im, ratio, (dw, dh)
+    
+    
+    def predict(self, input_img, img_num):
+        input_data = {self.input_name: input_img}
+        outputs = self.net.process(self.graph_name, input_data)
+        
+        # resort
+        out_keys = list(outputs.keys())
+        ord = []
+        for n in self.output_names:
+            for i, k in enumerate(out_keys):
+                if n == k:
+                    ord.append(i)
+                    break
+        out = [outputs[out_keys[i]][:img_num] for i in ord]
+        return out
+    
+      
+    def __call__(self, img_list):
+        img_num = len(img_list)
+        ori_size_list = []
+        preprocessed_img_list = []
+        ratio_list = []
+        txy_list = []
+        for ori_img in img_list:
+            ori_h, ori_w = ori_img.shape[:2]
+            ori_size_list.append((ori_w, ori_h))
+            start_time = time.time()
+            preprocessed_img, ratio, (tx1, ty1) = self.preprocess(ori_img)
+            self.preprocess_time += time.time() - start_time
+            preprocessed_img_list.append(preprocessed_img)
+            ratio_list.append(ratio)
+            txy_list.append([tx1, ty1])
+        
+        if img_num == self.batch_size:
+            input_img = np.stack(preprocessed_img_list)
+        else:
+            input_img = np.zeros(self.input_shape, dtype='float32')
+            input_img[:img_num] = np.stack(preprocessed_img_list)
+        
+        start_time = time.time()
+        outputs = self.predict(input_img, img_num)
+        self.inference_time += time.time() - start_time
+
+
+
+        start_time = time.time()
+        results = self.postprocess(outputs, self.input_size, ori_size_list, ratio_list, txy_list)
+        self.postprocess_time += time.time() - start_time
+
+        return results
+
+
+def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None):
+    for idx in range(len(boxes)):
+        x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
+        # logging.debug("class id={}, score={}, (x1={},y1={},x2={},y2={})".format(classes_ids[idx],conf_scores[idx], x1, y1, x2, y2))
+        if conf_scores[idx] < 0.25:
+            continue
+        if classes_ids is not None:
+            color = COLORS[int(classes_ids[idx]) + 1]
+        else:
+            color = (0, 0, 255)
+        cv2.rectangle(image, (x1, y1), (x2, y2), color, thickness=2)
+        if classes_ids is not None and conf_scores is not None:
+            classes_ids = classes_ids.astype(np.int8)
+            cv2.putText(image, COCO_CLASSES[classes_ids[idx] + 1] + ':' + str(round(conf_scores[idx], 2)),
+                        (x1, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness=2)
+        if masks is not None:
+            mask = masks[:, :, idx]
+            image[mask] = image[mask] * 0.5 + np.array(color) * 0.5
+        
+    return image
+
+def main(args):
+    # check params
+    if not os.path.exists(args.input):
+        raise FileNotFoundError('{} is not existed.'.format(args.input))
+    if not os.path.exists(args.bmodel):
+        raise FileNotFoundError('{} is not existed.'.format(args.bmodel))
+    
+    # creat save path
+    output_dir = "./results"
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    output_img_dir = os.path.join(output_dir, 'images')
+    if not os.path.exists(output_img_dir):
+        os.mkdir(output_img_dir) 
+    
+    # initialize net
+    yolox = YOLOx(args)
+    batch_size = yolox.batch_size
+    
+    # warm up 
+    # for i in range(10):
+    #     results = yolox([np.zeros((640, 640, 3))])
+    yolox.init()
+    
+    decode_time = 0.0
+    # test images
+    if os.path.isdir(args.input): 
+        img_list = []
+        filename_list = []
+        results_list = []
+        cn = 0
+        for root, dirs, filenames in os.walk(args.input):
+            for count,filename in enumerate(filenames):
+                if os.path.splitext(filename)[-1].lower() not in ['.jpg','.png','.jpeg','.bmp','.webp']:
+                    continue
+                img_file = os.path.join(root, filename)
+                cn += 1
+                logging.info("{}, img_file: {}".format(cn, img_file))
+                # decode
+                start_time = time.time()
+                src_img = cv2.imdecode(np.fromfile(img_file, dtype=np.uint8), -1)
+                if src_img is None:
+                    logging.error("{} imdecode is None.".format(img_file))
+                    continue
+                if len(src_img.shape) != 3:
+                    src_img = cv2.cvtColor(src_img, cv2.COLOR_GRAY2BGR)
+                decode_time += time.time() - start_time
+                
+                img_list.append(src_img)
+                filename_list.append(filename)
+                if len(img_list) == batch_size or count == len(filenames)-1:
+                    # predict
+                    results = yolox(img_list)
+                    
+                    for i, filename in enumerate(filename_list):
+                        det = results[i]
+                        # save image
+                        res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                        cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
+                        
+                        # save result
+                        res_dict = dict()
+                        res_dict['image_name'] = filename
+                        res_dict['bboxes'] = []
+                        for idx in range(det.shape[0]):
+                            bbox_dict = dict()
+                            x1, y1, x2, y2, score, category_id = det[idx]
+                            bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2 - x1,3)), float(round(y2 -y1, 3))]
+                            bbox_dict['category_id'] = int(category_id)
+                            bbox_dict['score'] = float(round(score,5))
+                            res_dict['bboxes'].append(bbox_dict)
+                        results_list.append(res_dict)
+                        
+                    img_list.clear()
+                    filename_list.clear()
+
+        # save results
+        if args.input[-1] == '/':
+            args.input = args.input[:-1]
+        json_name = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input)[-1] + "_opencv" + "_python_result.json"
+        with open(os.path.join(output_dir, json_name), 'w') as jf:
+            # json.dump(results_list, jf)
+            json.dump(results_list, jf, indent=4, ensure_ascii=False)
+        logging.info("result saved in {}".format(os.path.join(output_dir, json_name)))
+        
+    # test video
+    else:
+        cap = cv2.VideoCapture()
+        if not cap.open(args.input):
+            raise Exception("can not open the video")
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        # print(fps, size)
+        save_video = os.path.join(output_dir, os.path.splitext(os.path.split(args.input)[1])[0] + '.avi')
+        out = cv2.VideoWriter(save_video, fourcc, fps, size)
+        cn = 0
+        frame_list = []
+        while True:
+            start_time = time.time()
+            ret, frame = cap.read()
+            decode_time += time.time() - start_time
+            if not ret or frame is None:
+                break
+            frame_list.append(frame)
+            if len(frame_list) == batch_size:
+                results = yolox(frame_list)
+                for i, frame in enumerate(frame_list):
+                    det = results[i]
+                    cn += 1
+                    logging.info("{}, det nums: {}".format(cn, det.shape[0]))
+                    res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                    out.write(res_frame)
+                frame_list.clear()
+        if len(frame_list):
+            results = yolox(frame_list)
+            for i, frame in enumerate(frame_list):
+                det = results[i]
+                cn += 1
+                logging.info("{}, det nums: {}".format(cn, det.shape[0]))
+                res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                out.write(res_frame)
+        cap.release()
+        out.release()
+        logging.info("result saved in {}".format(save_video))
+        
+    # calculate speed  
+    logging.info("------------------ Predict Time Info ----------------------")
+    decode_time = decode_time / cn
+    preprocess_time = yolox.preprocess_time / cn
+    inference_time = yolox.inference_time / cn
+    postprocess_time = yolox.postprocess_time / cn
+    logging.info("decode_time(ms): {:.2f}".format(decode_time * 1000))
+    logging.info("preprocess_time(ms): {:.2f}".format(preprocess_time * 1000))
+    logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
+    logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
+    # average_latency = decode_time + preprocess_time + inference_time + postprocess_time
+    # qps = 1 / average_latency
+    # logging.info("average latency time(ms): {:.2f}, QPS: {:2f}".format(average_latency * 1000, qps))
+
+def argsparser():
+    parser = argparse.ArgumentParser(prog=__file__)
+    parser.add_argument('--input', type=str, default='./datasets/test', help='path of input')
+    parser.add_argument('--bmodel', type=str, default='./models/BM1684X/yolox_s_fp16_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--dev_id', type=int, default=0, help='dev id')
+    parser.add_argument('--conf_thresh', type=float, default=0.25, help='confidence threshold')
+    parser.add_argument('--nms_thresh', type=float, default=0.5, help='nms threshold')
+    args = parser.parse_args()
+    return args
 
 if __name__ == "__main__":
-    parse = argparse.ArgumentParser(description="Demo for YOLOX")
-    parse.add_argument('--is_video',default=0,type=int,help="input is video?")
-    parse.add_argument('--loops', default=16, type=int,help="only for video")
-    # parse.add_argument('--file_name',default="/workspace/bm168x_examples/sail/sc5_test2/data/zhuheqiao.mp4",type=str,help="video name or image_path")
-    parse.add_argument('--file_name',default="../images",type=str,help="video name or image_path")
-    parse.add_argument('--bmodel_path',default="../models/int8_1b.bmodel",type=str)
-    # parse.add_argument('--bmodel_path',default="/workspace/bm168x_examples/simple/yolox/data/yolox_s_fp32_bs1.bmodel",type=str)
-    parse.add_argument('--device_id',default=0,type=int)
-    parse.add_argument('--detect_threshold',default=0.25,type=float,required=False)
-    parse.add_argument('--nms_threshold',default=0.45,type=float, required=False)
-    parse.add_argument('--save_path', default='yolox_save_numpy', type=str)
+    args = argsparser()
+    main(args)
+    print('all done.')
 
-    opt= parse.parse_args()
 
-    yolox = Detector(opt.bmodel_path,opt.device_id)
-    batch_size = yolox.batch_size
-    net_w = yolox.width
-    net_h = yolox.height
-    save_path = opt.save_path
-
-    mkdir(save_path)
-
-    print("TPU: {}".format(opt.device_id))
-    print("Batch Size: {}".format(batch_size))
-    print("Network Input width: {}".format(net_w))
-    print("Network Input height: {}".format(net_h))
-    print("Save Path:{}".format(save_path))
-
-    output_result = {}
-
-    if opt.is_video:
-        print("Test video.........")
-        save_result_name = opt.file_name.split('/')[-1].split('.')[0]+'_'+opt.bmodel_path.split('/')[-1].split('.')[0]+'_py.txt'
-        save_result_name = os.path.join(save_path,save_result_name)
-
-        video_cap = cv2.VideoCapture(opt.file_name)
-        ost_h = video_cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        ost_w = video_cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-
-        for i in range(opt.loops):
-            ost_image,input_np,min_ratio = getImages_video(video_cap, batch_size, net_w, net_h)
-            start_time = time.time()
-            output_npy = yolox.inference(input_np)
-            end_time = time.time()
-            predictions = yolox.yolox_postprocess(output_npy, net_w, net_h)
-            print("Inference time use:{:.2f} ms, Batch size:{}, avg fps:{:.1f}".format((end_time-start_time)*1000,\
-                     batch_size,batch_size/(end_time-start_time)))
-            
-            for image_idx in range(batch_size):
-                dete_boxs = yolox.get_detectresult(predictions[image_idx],opt.detect_threshold, opt.nms_threshold)
-                if dete_boxs is not None:
-                    dete_boxs[:,0] /= min_ratio[image_idx]
-                    dete_boxs[:,1] /= min_ratio[image_idx]
-                    dete_boxs[:,2] /= min_ratio[image_idx]
-                    dete_boxs[:,3] /= min_ratio[image_idx]
-
-                    for dete_box in dete_boxs:
-                        cv2.rectangle(ost_image[image_idx],
-                            (int(dete_box[0]), int(dete_box[1])), 
-                            (int(dete_box[2]), int(dete_box[3])),
-                            (255, 255, 0), 4)
-            
-                #cv2.imwrite(os.path.join(save_path,"frame_{}_device_{}.jpg".format(i*batch_size+image_idx,opt.device_id)),ost_image[image_idx])
-                
-                image_name_temp = "frame_{}".format(i*batch_size+image_idx)
-                output_result.update({image_name_temp:dete_boxs})                    
-    else:
-        image_path = opt.file_name
-        if image_path[-1] == '/':
-            image_path = image_path[0:-1]
-        save_result_name = image_path.split("/")[-1]+"_"+opt.bmodel_path.split("/")[-1].split(".")[0]+"_py.txt"
-        save_result_name = os.path.join(save_path,save_result_name)
-
-        file_list = os.listdir(image_path)
-        image_list = []
-        for file_name in file_list:
-            ext_name = os.path.splitext(file_name)[-1]
-            if ext_name in ['.jpg','.png','.jpeg','.bmp','.JPEG','.JPG','.BMP']:
-                image_list.append(os.path.join(image_path,file_name))
-        if len(image_list) == 0:
-            print("Can not find any pictures!")
-            exit(1)
-        while len(image_list)%batch_size != 0:
-            image_list.append(image_list[0])
-
-        for index in range(0,len(image_list),batch_size):
-            ost_image,input_np,ratio_list = getImages_pics(image_list, batch_size, net_w, net_h,index)
-            # input_np =np.ones([batch_size,3,net_h,net_w])*114.0
-            # ratio_list = []
-            # ost_image = []
-            # for idx in range(batch_size):
-            #     image_ost = cv2.imread(image_list[index+idx])
-            #     output_image,min_ratio = process_padding_cv(image_ost, net_w, net_h)
-            #     ost_image.append(image_ost)
-            #     ratio_list.append(min_ratio)
-            #     input_np[idx] = output_image
-            
-            start_time = time.time()
-            output_npy = yolox.inference(input_np)
-            end_time = time.time()
-            print("Inference time use:{:.2f} ms, Batch size:{}, avg fps:{:.1f}".format((end_time-start_time)*1000,\
-                     batch_size,batch_size/(end_time-start_time)))
-            predictions = yolox.yolox_postprocess(output_npy, net_w, net_h)
-
-            for i in range(batch_size):
-                dete_boxs = yolox.get_detectresult(predictions[i],opt.detect_threshold, opt.nms_threshold)
-                if dete_boxs is not None:
-                    dete_boxs[:,0] /= ratio_list[i]
-                    dete_boxs[:,1] /= ratio_list[i]
-                    dete_boxs[:,2] /= ratio_list[i]
-                    dete_boxs[:,3] /= ratio_list[i]
-                    for dete_box in dete_boxs:
-                        cv2.rectangle(ost_image[i], 
-                            (int(dete_box[0]), int(dete_box[1])), 
-                            (int(dete_box[2]), int(dete_box[3])), 
-                            (0, 0, 255), 2)
-                #cv2.imwrite(os.path.join(save_path,"{}".format(image_list[index+i].split('/')[-1])),ost_image[i])
-                image_name_temp = image_list[index+i].split('/')[-1]
-                output_result.update({image_name_temp:dete_boxs})  
-
-    with open(save_result_name, "w+") as fp:
-        for key, values in output_result.items():
-            if values is None:
-                continue
-            for obj in values:
-                line_0 = "[{}]\n".format(key)
-                line_1 = "category={:.0f}\n".format(obj[5])
-                line_2 = "score={:.2f}\n".format(obj[4])
-                line_3 = "left={:.2f}\n".format(obj[0])
-                line_4 = "top={:.2f}\n".format(obj[1])
-                line_5 = "right={:.2f}\n".format(obj[2])
-                line_6 = "bottom={:.2f}\n\n".format(obj[3])
-                fp.write(line_0)
-                fp.write(line_1)
-                fp.write(line_2)
-                fp.write(line_3)
-                fp.write(line_4)
-                fp.write(line_5)
-                fp.write(line_6)
-        fp.close()
-        
