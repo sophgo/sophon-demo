@@ -1,151 +1,242 @@
+[简体中文](./README.md) | [English](./README_EN.md)
+
 # YOLOx
 
 ## 目录
-- [YOLOx](#yolox)
-  - [目录](#目录)
-  - [1.简介](#1简介)
-  - [2. 数据集](#2-数据集)
-  - [3. 准备模型与数据](#3-准备模型与数据)
-  - [4.模型编译](#4模型编译)
-    * [4.1 生成FP32 BModel](#41-生成fp32-bmodel)
-    * [4.2 生成INT8 BModel](#42-生成int8-bmodel)
-  - [5. 部署测试](#5-部署测试)
-    - [5.1 使用脚本对示例代码进行自动测试](#51-使用脚本对示例代码进行自动测试)
-    - [5.2 C++例程部署测试](#52-c例程部署测试)
-    - [5.3 Python例程部署测试](#53-python例程部署测试)
 
-## 1.简介
-
-YOLOx由旷世研究提出,是基于YOLO系列的改进。
+* [1. 简介](#1-简介)
+* [2. 特性](#2-特性)
+* [3. 准备模型与数据](#3-准备模型与数据)
+* [4. 模型编译](#4-模型编译)
+* [5. 例程测试](#5-例程测试)
+* [6. 精度测试](#6-精度测试)
+  * [6.1 测试方法](#61-测试方法)
+  * [6.2 测试结果](#62-测试结果)
+* [7. 性能测试](#7-性能测试)
+  * [7.1 bmrt_test](#71-bmrt_test)
+  * [7.2 程序运行性能](#72-程序运行性能)
+* [8. FAQ](#8-faq)
+  
+## 1. 简介
+YOLOx由旷世研究提出,是基于YOLO系列的改进，引入了解耦头和Anchor-free，提高算法整体的检测性能
 
 **论文地址** (https://arxiv.org/abs/2107.08430)
 
 **官方源码地址** (https://github.com/Megvii-BaseDetection/YOLOX)
 
-
-## 2. 数据集
-
-[MS COCO](http://cocodataset.org/#home),是微软构建的一个包含分类、检测、分割等任务的大型的数据集.
-
-> MS COCO提供了一些[API](https://github.com/cocodataset/cocoapi),方便对数据集的使用和模型评估,您可以使用pip安装` pip3 install pycocotools`,并使用COCO提供的API进行下载.
-
+## 2. 特性
+* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X)、INT8模型编译和推理
+* 支持基于BMCV、sail预处理的C++推理
+* 支持基于OpenCV和BMCV预处理的Python推理
+* 支持单batch和多batch模型推理
+* 支持图片和视频测试
+ 
 ## 3. 准备模型与数据
+推荐您使用新版编译工具链TPU-MLIR编译BModel，目前直接支持的框架有ONNX、Caffe和TFLite，其他框架的模型需要转换成onnx模型。如何将其他深度学习架构的网络模型转换成onnx, 可以参考onnx官网: https://github.com/onnx/tutorials ；YOLOX模型导出为onnx的方法可参考官方工具：https://github.com/Megvii-BaseDetection/YOLOX/tree/main/demo/ONNXRuntime
 
-Pytorch的模型在编译前要经过`torch.jit.trace`，trace后的模型才能用于编译BModel。trace的方法和原理可参考[torch.jit.trace参考文档](../../docs/torch.jit.trace_Guide.md)。
+旧版编译工具链TPU-NNTC更新维护较慢，不推荐您编译使用。
 
 同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
-本例程在`scripts`目录下提供了相关模型和数据集的下载脚本`download.sh`，运行后自动下载pt模型，数据集以及BModel，即可以跳过第4章节模型编译。您也可以使用下载得到的pt模型和量化数据集，或者自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换，生成BModel。
+本例程在`scripts`目录下提供了相关模型和数据集的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
+
 ```bash
-sudo apt-get update
-sudo apt-get upgrade
-sudo apt-get install unzip
-cd ./scripts
-chmod +x download.sh
-./download.sh
+# 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
+sudo apt install unzip
+chmod -R +x scripts/
+./scripts/download.sh
 ```
-执行后，模型保存至`data/models`，测试视频保存至`data/video`，图片数据集下载并解压至`data/image/`，图片数据集集标签文件保存至`data/ground_truths`
-其中，/data/image/lmdb为量化数据集，/data/image/val2017为测试集。
 
+下载的模型包括
 ```
-下载的模型包括：
-/data/models/torch/yolox_s.pt: trace后的模型
-/data/models/BM1684/yolox_s_fp32_1b.bmodel: 用于BM1684的FP32 BModel，batch_size=1
-/data/models/BM1684/yolox_s_fp32_4b.bmodel: 用于BM1684的FP32 BModel，batch_size=4
-/data/models/BM1684/yolox_s_int8_1b.bmodel: 用于BM1684的INT8 BModel，batch_size=1
-/data/models/BM1684/yolox_s_int8_4b.bmodel: 用于BM1684的INT8 BModel，batch_size=4
-/data/models/BM1684X/yolox_st_fp32_1b.bmodel: 用于BM1684X的FP32 BModel，batch_size=1
-/data/models/BM1684X/yolox_s_fp32_4b.bmodel: 用于BM1684X的FP32 BModel，batch_size=4
-/data/models/BM1684X/yolox_s_int8_1b.bmodel: 用于BM1684X的INT8 BModel，batch_size=1
-/data/models/BM1684X/yolox_s_int8_4b.bmodel: 用于BM1684X的INT8 BModel，batch_size=4
+./models
+├── BM1684
+│   ├── yolox_s_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1
+│   ├── yolox_s_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=4
+│   ├── yolox_s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=1
+│   └── yolox_s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=4
+├── BM1684X
+│   ├── yolox_s_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
+│   ├── yolox_s_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=4
+│   ├── yolox_s_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── yolox_s_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=4
+│   ├── yolox_s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
+│   └── yolox_s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+│── torch
+│   └── yolox_s.pt               # trace后的torchscript模型
+└── onnx
+    └── yolox_s.onnx             # 导出的onnx动态模型      
+    └── yolox_s.qtable           # 用于MLIR混精度移植的配置文件
+```
 
-下载的数据集包括：
-/data/image/lmdb：用于量化的lmdb数据集
-/data/image/val2017：用于测试的图片数据集
-
-下载的标签文件包括：
-/data/ground_truths/instances_val2017.json ：测试图片集val2017的标签文件
-
-下载的测试视频包括：
-/data/video/1080_1.mp4：1080p测试视频
+下载的数据包括：
+```
+./datasets
+├── test                                      # 测试图片
+├── test_car_person_1080P.mp4                 # 测试视频
+├── coco.names                                # coco类别名文件
+├── coco128                                   # coco128数据集，用于模型量化
+└── coco                                      
+    ├── val2017_1000                          # coco val2017_1000数据集：coco val2017中随机抽取的1000张样本
+    └── instances_val2017_1000.json           # coco val2017_1000数据集标签文件，用于计算精度评价指标  
 ```
 
 ## 4. 模型编译
+导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
-trace后的pytorch模型需要编译成BModel才能在SOPHON TPU上运行，如果直接使用上一步下载好的BModel可跳过本节。
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md##1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
-您可以使用上一步下载的，位于data/models/torch/yolox_s.pt的pt模型，以及位于/data/image/lmdb的量化数据集，也可以使用自己trace完成的pt模型，和量化数据集。
+- 生成FP32 BModel
 
-模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#2-tpu-nntc环境搭建)。
-
-### 4.1 生成FP32 BModel
-
-pytorch模型编译为FP32 BModel，具体方法可参考TPU-NNTC开发参考手册。
-
-本例程在`scripts`目录下提供了编译FP32 BModel的脚本。
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
 
 ```bash
-cd ./scripts
-chmod +x gen_fp32bmodel.sh
-./gen_fp32bmodel.sh
+./scripts/gen_fp32bmodel_mlir.sh bm1684
+#or
+./scripts/gen_fp32bmodel_mlir.sh bm1684x
 ```
 
-执行上述命令会在`data/models/`下生成BM1684和BM1684X下的1_batch和4_batch的fp32 bmodel文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`yolox_s_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
+- 生成FP16 BModel
 
-### 4.2 生成INT8 BModel
-
-不量化模型可跳过本节。
-
-pytorch模型的量化方法可参考TPU-NNTC开发参考手册。
-
-本例程在`scripts`目录下提供了量化INT8 BModel的脚本。
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
 
 ```bash
-cd ./scripts
-chmod +x gen_int8bmodel.sh
-./gen_int8bmodel.sh
+./scripts/gen_fp16bmodel_mlir.sh bm1684x
 ```
 
-执行上述命令会在`data/models/`下生成BM1684和BM1684X下的1_batch和4_batch的int8 bmodel文件，即转换好的int8 BModel。
+​执行上述命令会在`models/BM1684X/`下生成`yolox_s_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
-> **模型量化建议：**   
-1.尝试不同的iterations进行量化可能得到较明显的精度提升；  
-2.对输入输出层保留浮点计算可能得到较明显的精度提升。
+- 生成INT8 BModel
 
-## 5. 部署测试
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
 
-### 5.1 使用脚本对示例代码进行自动测试
+```shell
+./scripts/gen_int8bmodel_mlir.sh bm1684
+#或
+./scripts/gen_int8bmodel_mlir.sh bm1684x
+```
 
-此自动测试脚本需要在挂载有PCIe加速卡的x86主机或者sophon soc设备内进行
+​上述脚本会在`models/BM1684`或`models/BM1684X/`下生成`yolox_s_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
-准备好BModel与测试数据后：
 
+## 5. 例程测试
+- [C++例程](./cpp/README.md)
+- [Python例程](./python/README.md)
+
+## 6. 精度测试
+### 6.1 测试方法
+
+首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(conf_thresh=0.001、nms_thresh=0.6)。  
+然后，使用`tools`目录下的`eval_coco.py`脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
 ```bash
-cd scripts
-chmod +x auto_test.sh
-./auto_test.sh ${platform} ${target} ${tpu_id} ${sail_dir}
+# 安装pycocotools，若已安装请跳过
+pip3 install pycocotools
+# 请根据实际情况修改程序路径和json文件路径
+python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/yolox_s_fp32_1b.bmodel_val2017_1000_opencv_python_result.json
 ```
-其中platform指所在平台（x86 or soc），target是芯片型号（BM1684 or BM1684X），tpu_id指定tpu的id（使用bm-smi查看），sail_dir是sail的安装路径。如果最终输出 `Failed:`则表示执行失败，否则表示成功。并且在根路径下生成mAP文件夹，其中保存着mAP结果。
-例如 auto_test.sh x86 BM1684 0 /opt/sophon/sophon-sail 
 
-在x86上，auto_test.sh包括了cpp文件夹下c++程序的编译，运行和python文件夹下所有python程序的运行，以及mAP计算脚本的运行。
-在soc上，auto_test.sh包括了cpp文件夹下c++程序的运行和python文件夹下所有python程序的运行，以及mAP计算脚本的运行。
+### 6.2 测试结果
+在coco2017val_1000数据集上，精度测试结果如下：
+|   测试平台    |      测试程序     |        测试模型        | AP@IoU=0.5:0.95 | AP@IoU=0.5 |
+| ------------ | ---------------- | ---------------------- | --------------- | ---------- |
+| BM1684 PCIe  | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.366      |   0.530    |
+| BM1684 PCIe  | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.335      |   0.493    |
+| BM1684 PCIe  | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.363      |   0.525    |
+| BM1684 PCIe  | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.329      |   0.485    |
+| BM1684 PCIe  | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel |      0.364      |   0.534    |
+| BM1684 PCIe  | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel |      0.332      |   0.498    |
+| BM1684 PCIe  | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.351      |   0.516    |
+| BM1684 PCIe  | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.319      |   0.478    |
+| BM1684X PCIe | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.366      |   0.530    |
+| BM1684X PCIe | yolox_opencv.py  | yolox_s_fp16_1b.bmodel |      0.366      |   0.530    |
+| BM1684X PCIe | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.357      |   0.529    |
+| BM1684X PCIe | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.363      |   0.525    |
+| BM1684X PCIe | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel |      0.363      |   0.525    |
+| BM1684X PCIe | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.353      |   0.524    |
+| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel |      0.363      |   0.534    |
+| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_fp16_1b.bmodel |      0.363      |   0.534    |
+| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel |      0.351      |   0.527    |
+| BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.350      |   0.516    |
+| BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp16_1b.bmodel |      0.350      |   0.516    |
+| BM1684X PCIe | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.337      |   0.506    |
 
-在x86上执行此脚本，首先参见[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#2-x86-pcie平台的开发和运行环境搭建)，然后运行此脚本，其中${sail_dir}为上述环境搭建得到的sophon-sail安装路径，通常为/opt/sophon/sophon-sail。
+> **测试说明**：  
+> 1. batch_size=4和batch_size=1的模型精度一致；
+> 2. SoC和PCIe的模型精度一致；
+> 3. AP@IoU=0.5:0.95为area=all对应的指标。
 
-在soc上执行此脚本，首先需要在x86平台交叉编译出arm程序(参见[交叉编译环境搭建](../../docs/Environment_Install_Guide.md#31-交叉编译环境搭建).)，然后把生成的可执行文件移动到cpp文件夹下。之后设置环境变量
+## 7. 性能测试
+### 7.1 bmrt_test
+使用bmrt_test测试模型的理论性能：
 ```bash
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+# 请根据实际情况修改要测试的bmodel路径和devid参数
+bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 ```
- 再运行此脚本，其中${sail_dir}为上述环境搭建得到的build_soc/sophon-sail文件夹。
+测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
+测试各个模型的理论推理时间，结果如下：
 
+|          测试模型              | calculate time(ms) |
+| ---- ------------------------- | ----------------- |
+| BM1684/yolox_s_fp32_1b.bmodel  |       26.01       |
+| BM1684/yolox_s_fp32_4b.bmodel  |       25.62       |
+| BM1684/yolox_s_int8_1b.bmodel  |       16.54       |
+| BM1684/yolox_s_int8_4b.bmodel  |       11.72       |
+| BM1684X/yolox_s_fp32_1b.bmodel |       27.92       |
+| BM1684X/yolox_s_fp32_4b.bmodel |       25.63       |
+| BM1684X/yolox_s_fp16_1b.bmodel |       6.27        |
+| BM1684X/yolox_s_fp16_4b.bmodel |       6.15        |
+| BM1684X/yolox_s_int8_1b.bmodel |       3.86        |
+| BM1684X/yolox_s_int8_4b.bmodel |       3.69        |
 
+> **测试说明**：  
+> 1. 性能测试结果具有一定的波动性；
+> 2. `calculate time`已折算为平均每张图片的推理时间；
+> 3. SoC和PCIe的测试结果基本一致。
 
-### 5.2 C++例程部署测试
+### 7.2 程序运行性能
+参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
-详细步骤参考cpp下Readme.md
+在不同的测试平台上，使用不同的例程、模型测试`datasets/val2017_1000`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
+|    测试平台  |     测试程序      |     测试模型          |decode_time|preprocess_time|inference_time|postprocess_time| 
+| ----------- | ---------------- | --------------------- | -------- | -------------- | ---------     | --------- |
+| BM1684 SoC  | yolox_opencv.py | yolox_s_fp32_1b.bmodel | 3.29     | 13.77   | 40.40     | 75.62    |
+| BM1684 SoC  | yolox_opencv.py | yolox_s_int8_1b.bmodel | 3.28     | 13.86   | 43.68     | 76.78    |
+| BM1684 SoC  | yolox_opencv.py | yolox_s_int8_4b.bmodel | 4.07     | 14.73   | 38.44     | 74.24    |
+| BM1684 SoC  | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel | 3.70     | 2.88    | 28.16     | 75.79    |
+| BM1684 SoC  | yolox_bmcv.py   | yolox_s_int8_1b.bmodel | 2.64     | 2.45    | 18.75     | 75.86    |
+| BM1684 SoC  | yolox_bmcv.py   | yolox_s_int8_4b.bmodel | 2.58     | 2.30    | 13.86     | 74.06    |
+| BM1684 SoC  | yolox_bmcv.soc  | yolox_s_fp32_1b.bmodel | 4.52     | 1.72    | 25.78     | 2.71     |
+| BM1684 SoC  | yolox_bmcv.soc  | yolox_s_int8_1b.bmodel | 4.57     | 1.78    | 16.32     | 2.73     |
+| BM1684 SoC  | yolox_bmcv.soc  | yolox_s_int8_4b.bmodel | 4.57     | 1.73    | 11.58     | 2.61     |
+| BM1684 SoC  | yolox_sail.soc  | yolox_s_fp32_1b.bmodel | 2.58     | 3.91    | 26.24     | 2.10     |
+| BM1684 SoC  | yolox_sail.soc  | yolox_s_int8_1b.bmodel | 2.59     | 2.38    | 16.83     | 2.08     |
+| BM1684 SoC  | yolox_sail.soc  | yolox_s_int8_4b.bmodel | 2.51     | 2.31    | 11.97     | 2.10     |
+| BM1684X SoC | yolox_opencv.py | yolox_s_fp32_1b.bmodel | 3.37     | 13.56   | 52.09     | 77.07    |
+| BM1684X SoC | yolox_opencv.py | yolox_s_fp16_1b.bmodel | 3.38     | 13.43   | 29.83     | 78.84    |
+| BM1684X SoC | yolox_opencv.py | yolox_s_int8_1b.bmodel | 3.37     | 13.48   | 27.52     | 77.18    |
+| BM1684X SoC | yolox_opencv.py | yolox_s_int8_4b.bmodel | 3.84     | 15.42   | 28.95     | 76.63    |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel | 2.49     | 2.74    | 33.98     | 77.05    |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_fp16_1b.bmodel | 2.46     | 2.73    | 11.97     | 78.40    |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_int8_1b.bmodel | 2.44     | 2.76    | 9.37      | 77.40    |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_int8_4b.bmodel | 2.25     | 2.59    | 10.11     | 75.72    |
+| BM1684X SoC | yolox_bmcv.soc  | yolox_s_fp32_1b.bmodel | 4.28     | 0.95    | 29.05     | 2.68     |
+| BM1684X SoC | yolox_bmcv.soc  | yolox_s_fp16_1b.bmodel | 4.20     | 0.95    | 7.10      | 2.65     |
+| BM1684X SoC | yolox_bmcv.soc  | yolox_s_int8_1b.bmodel | 4.23     | 0.95    | 4.50      | 2.65     |
+| BM1684X SoC | yolox_bmcv.soc  | yolox_s_int8_4b.bmodel | 4.08     | 0.93    | 4.46      | 2.92     |
+| BM1684X SoC | yolox_sail.soc  | yolox_s_fp32_1b.bmodel | 2.37     | 3.67    | 29.50     | 2.05     |
+| BM1684X SoC | yolox_sail.soc  | yolox_s_fp16_1b.bmodel | 2.38     | 3.62    | 7.55      | 2.05     |
+| BM1684X SoC | yolox_sail.soc  | yolox_s_int8_1b.bmodel | 2.351    | 3.63    | 4.95      | 2.04     |
+| BM1684X SoC | yolox_sail.soc  | yolox_s_int8_4b.bmodel | 2.21     | 3.22    | 4.86      | 2.04     |
 
-### 5.3 Python例程部署测试
+> **测试说明**：  
+> 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
+> 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
+> 3. BM1684 SoC的测试平台为标准版SE5，BM1684X SoC的测试平台为标准版SE7
+> 4. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
+> 5. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 
-详细步骤参考python下Readme.md
+## 8. FAQ
+[常见问题解答](../../docs/FAQ.md)
