@@ -88,6 +88,8 @@ chmod -R +x scripts/
 ### 4.2 TPU-MLIR编译BModel
 模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#2-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
+注意：mlir版本需要>=0625的版本为v1.2.2。
+
 - 生成FP32 BModel
 
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
@@ -117,7 +119,7 @@ chmod -R +x scripts/
 ### 6.1 测试方法
 
 首先，参考[C++例程](cpp/README.md#32-测试文本)或[Python例程](python/README.md#22-测试文本)推理要测试的数据集，生成预测的txt文件，注意修改数据集(datasets/china-people-daily-ner-corpus)。  
-然后，使用`tools`目录下的`eval_people.py`脚本，将测试生成的txt文件与测试集标签txt文件进行对比，计算出目标检测的评价指标，命令如下：
+然后，使用`tools`目录下的`eval_people.py`脚本，将测试生成的txt文件与测试集标签txt文件进行对比，计算出NER的评价指标，命令如下：
 ```bash
 # 安装seqeval，若已安装请跳过
 pip3 install seqeval
@@ -159,11 +161,11 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 |                  测试模型                   | calculate time(ms) |
 | ------------------------------------------- | ----------------- |
 | BM1684/bert4torch_output_fp32_1b.bmodel     | 170.848           |
-| BM1684/bert4torch_output_fp32_8b.bmodel     | 1173.222          |
+| BM1684/bert4torch_output_fp32_8b.bmodel     | 146.653           |
 | BM1684X/bert4torch_output_fp32_1b.bmodel    | 91.473            |
 | BM1684X/bert4torch_output_fp16_1b.bmodel    | 8.643             |
-| BM1684X/bert4torch_output_fp32_8b.bmodel    | 699.825           |
-| BM1684X/bert4torch_output_fp16_8b.bmodel    | 45.805            |
+| BM1684X/bert4torch_output_fp32_8b.bmodel    | 87.478            |
+| BM1684X/bert4torch_output_fp16_8b.bmodel    | 5.726            |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -196,3 +198,5 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
+如果执行python例程bert_sail.py时报错"ImportError: /home/ljtang/miniconda3/lib/libstdc+.so.6: version `GLIBCXX_3.4.30' not found (required by /home/ljtang/miniconda3/envs/torch1.13/lib/python3.10/site-packages/sophon/sail.cpython-310-x86_64-linux-gnu.so)"，无法导入sophon.sail，使用”strings /usr/lib/x86_64-linux-gnu/libstdc+.so.6 | grep GLIBCXX“查询到兼容版本，使用命令”export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH“解决问题
+在解决完以上问题后，如果执行eval_people.py时报错”ImportError: xxx/miniconda3/envs/torch1.13/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by xxx/miniconda3/envs/torch1.13/lib/python3.10/site-packages/sophon/sail.cpython-310-x86_64-linux-gnu.so)“，在eval_people.py的” from python.bert_sail import dataset“之前增加”import sophon.sail as sail“解决问题
