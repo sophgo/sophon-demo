@@ -84,24 +84,29 @@ python3 tools/eval_mot15.py --gt_file datasets/mot15_trainset/ADL-Rundle-6/gt/gt
 ```
 运行结果：
 ```bash
-MOTA = 0.48532641245757635
-     num_frames    IDF1      IDP       IDR      Rcll      Prcn    GT  MT  PT  ML   FP    FN  IDsw  FM      MOTA    MOTP
-acc         525  0.5899  0.64848  0.541026  0.663406  0.795166  5009   8  14   2  856  1686    36  98  0.485326  0.2195
+MOTA = 0.5260531044120582
+     num_frames      IDF1       IDP       IDR      Rcll      Prcn    GT  MT  PT  ML   FP    FN  IDsw  FM      MOTA      MOTP
+acc         525  0.602846  0.733543  0.511679  0.614893  0.881511  5009  10  12   2  414  1929    31  60  0.526053  0.212196
 ```
 ### 6.2 测试结果
 这里使用数据集ADL-Rundle-6，记录MOTA作为精度指标，精度测试结果如下：
-|   测试平台     |        测试程序      |             测试模型                 |  MOTA |
-| ------------ | ------------------- | ----------------------------------  | ----- |
-| BM1684 PCIe  | bytetrack_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.514 |
-| BM1684 PCIe  | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.504 |
-| BM1684 PCIe  | bytetrack_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.502 |
-| BM1684 PCIe  | bytetrack_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.500 |
-| BM1684X PCIe | bytetrack_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.514 |
-| BM1684X PCIe | bytetrack_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.514 |
-| BM1684X PCIe | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.523 |
-| BM1684X PCIe | bytetrack_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.503 |
-| BM1684X PCIe | bytetrack_bmcv.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.502 |
-| BM1684X PCIe | bytetrack_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.524 |
+| 测试平台     | 测试程序              | 测试模型                            | MOTA  |
+| ------------ | --------------------- | ----------------------------------- | ----- |
+| BM1684 PCIe  | bytetrack_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.516 |
+| BM1684 PCIe  | bytetrack_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.514 |
+| BM1684 PCIe  | bytetrack_opencv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.512 |
+| BM1684 PCIe  | bytetrack_opencv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.504 |
+| BM1684 PCIe  | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.512 |
+| BM1684 PCIe  | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.504 |
+| BM1684X PCIe | bytetrack_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.516 |
+| BM1684X PCIe | bytetrack_opencv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.516 |
+| BM1684X PCIe | bytetrack_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.526 |
+| BM1684X PCIe | bytetrack_opencv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.508 |
+| BM1684X PCIe | bytetrack_opencv.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.508 |
+| BM1684X PCIe | bytetrack_opencv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.548 |
+| BM1684X PCIe | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.508 |
+| BM1684X PCIe | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.508 |
+| BM1684X PCIe | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.548 |
 
 
 > **测试说明**：
@@ -118,22 +123,29 @@ acc         525  0.5899  0.64848  0.541026  0.663406  0.795166  5009   8  14   2
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理、tracker更新时间。C++例程打印的预处理时间、推理时间、后处理为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。这里**只统计平均每帧的track_time**，解码、目标检测模型的时间请参考[YOLOV5](../YOLOv5/README.md#72-程序运行性能)
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/mot15_trainset/ADL-Rundle-6/img1`，性能测试结果如下：
-|   测试平台    |        测试程序      |           测试模型                   | track_time |
-| ------------ | ------------------ | ----------------------------------  | ---------- |
-| BM1684 SoC  | bytetrack_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 6.91 |
-| BM1684 SoC  | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 6.29 |
-| BM1684 SoC  | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 6.62 |
-| BM1684 SoC  | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.47 |
-| BM1684 SoC  | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.40 |
-| BM1684 SoC  | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 0.37 |
-| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 6.38 |
-| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 6.35 |
-| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 6.28 |
-| BM1684x SoC | bytetrack_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 6.55 |
-| BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.48 |
-| BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.48 |
-| BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.48 |
-| BM1684X SoC | bytetrack_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 0.47 |
+| 测试平台     | 测试程序              | 测试模型                            | track_time |
+| ------------ | --------------------- | ----------------------------------- | ---------- |
+| BM1684 PCIe  | bytetrack_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.81       |
+| BM1684 PCIe  | bytetrack_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.66       |
+| BM1684 PCIe  | bytetrack_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 0.60       |
+| BM1684 PCIe  | bytetrack_opencv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.80       |
+| BM1684 PCIe  | bytetrack_opencv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.61       |
+| BM1684 PCIe  | bytetrack_opencv.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 0.54       |
+| BM1684 PCIe  | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.22       |
+| BM1684 PCIe  | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.17       |
+| BM1684 PCIe  | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_int8_4b.bmodel | 0.13       |
+| BM1684x PCIe | bytetrack_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.73       |
+| BM1684x PCIe | bytetrack_opencv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.71       |
+| BM1684x PCIe | bytetrack_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.70       |
+| BM1684x PCIe | bytetrack_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 0.63       |
+| BM1684X PCIe | bytetrack_opencv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.78       |
+| BM1684X PCIe | bytetrack_opencv.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.65       |
+| BM1684X PCIe | bytetrack_opencv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.58       |
+| BM1684X PCIe | bytetrack_opencv.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 0.62       |
+| BM1684X PCIe | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.21       |
+| BM1684X PCIe | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.18       |
+| BM1684X PCIe | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.16       |
+| BM1684X PCIe | bytetrack_eigen.pcie  | yolov5s_v6.1_3output_int8_4b.bmodel | 0.15       |
 
 > **测试说明**：
 1. 时间单位均为毫秒(ms)；
