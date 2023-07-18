@@ -282,10 +282,6 @@ int main(int argc, char* argv[]) {
             bmcv_image_jpeg_enc(h, 1, &frame_drawed, &jpeg_data, &out_size);
         bm_image_destroy(frame_drawed);
 #else
-        for (auto bbox : track_boxes[i]) {
-          draw_bmcv(h, bbox.track_id, bbox.class_id, bbox.score, bbox.x, bbox.y,
-                    bbox.width, bbox.height, batch_imgs[i], true);
-        }
         if (batch_imgs[i].image_format != 0) {
           bm_image frame;
           bm_image_create(h, batch_imgs[i].height, batch_imgs[i].width,
@@ -293,6 +289,11 @@ int main(int argc, char* argv[]) {
           bmcv_image_storage_convert(h, 1, &batch_imgs[i], &frame);
           bm_image_destroy(batch_imgs[i]);
           batch_imgs[i] = frame;
+        }
+        for (auto& bbox : output_stracks) {
+          draw_bmcv(h, bbox.track_id, bbox.class_id, bbox.score,
+                    bbox.tlwh[0], bbox.tlwh[1], bbox.tlwh[2], bbox.tlwh[3],
+                    batch_imgs[i], true);
         }
         string img_file = save_image_path + to_string(id) + ".jpg";
         void* jpeg_data = NULL;
