@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(bytetrack_bmcv C CXX)
+project(bytetrack_opencv C CXX)
 include(${CMAKE_SOURCE_DIR}/../../../../cmake/common.cmake)
 SET(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS "-O3")
@@ -45,11 +45,6 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     include_directories(${LIBSOPHON_INCLUDE_DIRS})
     link_directories(${LIBSOPHON_LIB_DIRS})
 
-    # use Eigen
-    find_package(Eigen3 REQUIRED)
-    include_directories(${EIGEN3_INCLUDE_DIRS})
-    link_directories(${EIGEN3_LIB_DIRS})
-
     #link our own include and srcs
     include_directories("../../../../include/")
     include_sub_directories_recursively(${CMAKE_SOURCE_DIR})
@@ -57,8 +52,8 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     file(GLOB_RECURSE SRC_FILES "./thirdparty/*.cpp" "../../../YOLOv5/cpp/yolov5_bmcv/yolov5.cpp") # dont involve build/
     aux_source_directory(. SRC_FILES)
     aux_source_directory(../../../../src/ SRC_FILES)
-    add_executable(bytetrack_bmcv.pcie ${SRC_FILES})
-    target_link_libraries(bytetrack_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} -lpthread)
+    add_executable(bytetrack_opencv.pcie ${SRC_FILES})
+    target_link_libraries(bytetrack_opencv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} -lpthread)
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     check_and_replace_path(SDK)
@@ -69,7 +64,6 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     set(JPU_LIBS bmjpuapi bmjpulite)
     set(OPENCV_LIBS opencv_imgproc opencv_core opencv_highgui opencv_imgcodecs opencv_videoio)
     include_directories("../../../../include/")
-    include_directories(/usr/include/eigen3)
     include_sub_directories_recursively(${CMAKE_SOURCE_DIR})
     include_directories("../../../YOLOv5/cpp/yolov5_bmcv/")
     file(GLOB_RECURSE SRC_FILES "./thirdparty/*.cpp" "../../../YOLOv5/cpp/yolov5_bmcv/yolov5.cpp") # dont involve build/
@@ -82,8 +76,8 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     aux_source_directory(. SRC_FILES)
     aux_source_directory(../../../../src/ SRC_FILES)
 
-    add_executable(bytetrack_bmcv.soc ${SRC_FILES})
-    target_link_libraries(bytetrack_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS} ${JPU_LIBS} -lpthread -lavcodec -lavformat -lavutil)
+    add_executable(bytetrack_opencv.soc ${SRC_FILES})
+    target_link_libraries(bytetrack_opencv.soc ${BM_LIBS} ${OPENCV_LIBS} ${JPU_LIBS} -lpthread -lavcodec -lavformat -lavutil)
 else ()
     message( FATAL_ERROR  "not support mode, eg: soc/pcie, cur: ${TARGET_ARCH}")
 endif ()
