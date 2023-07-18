@@ -13,7 +13,7 @@ outdir=../models/$target_dir
 
 function gen_mlir()
 {
-    # use pt to cali, can achieve higher acc than onnx.
+    # use pt to cali can get higher acc than onnx.
     model_transform.py \
         --model_name resnet50_$1b \
         --model_def ../models/torch/resnet50-11ad3fa6.torchscript.pt \

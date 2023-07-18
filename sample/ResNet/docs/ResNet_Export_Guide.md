@@ -16,5 +16,5 @@ if __name__ == '__main__':
     model = resnet50()                           # 载入模型框架
     model.load_state_dict(torch.load("xxx.pth")) # xxx.pth表示.pth文件, 这一步载入模型权重
     model.eval()                                 # 设置模型为推理模式
-    torch.onnx.export(model, input, "xxx.onnx")  # xxx.pth表示.onnx文件, 这一步导出为onnx模型
+    torch.onnx.export(model, input, "xxx.onnx")  # xxx.onnx表示.onnx文件, 这一步导出为onnx模型
 ```
