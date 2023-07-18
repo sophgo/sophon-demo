@@ -27,7 +27,7 @@ KalmanFilter::KalmanFilter() {
   this->_std_weight_position = 1. / 20;
   this->_std_weight_velocity = 1. / 160;
 
-  opencv_kf = new cv::KalmanFilter(8, 4);
+  opencv_kf = std::make_unique<cv::KalmanFilter>(8, 4);
   // 设置状态转移矩阵
   opencv_kf->transitionMatrix =
       (cv::Mat_<float>(8, 8) << 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
@@ -40,7 +40,7 @@ KalmanFilter::KalmanFilter() {
        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0);
 }
 
-KalmanFilter::~KalmanFilter() { delete opencv_kf; }
+KalmanFilter::~KalmanFilter() {}
 
 std::pair<cv::Mat, cv::Mat> KalmanFilter::initiate(const cv::Mat& measurement) {
   cv::Mat mean_pos = measurement.clone();

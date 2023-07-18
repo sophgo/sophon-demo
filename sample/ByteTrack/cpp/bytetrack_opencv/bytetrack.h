@@ -10,15 +10,9 @@
 #ifndef BYTETRACK_H
 #define BYTETRACK_H
 
-#include "strack.h"
 #include "lapjv.h"
+#include "strack.h"
 #include "yolov5.hpp"
-
-struct SaveResult {
-  int frame_id;
-  int track_id;
-  std::vector<float> tlwh;
-};
 
 struct bytetrack_params {
   // detector:

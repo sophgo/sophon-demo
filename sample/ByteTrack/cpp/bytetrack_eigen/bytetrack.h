@@ -11,12 +11,6 @@
 #include "strack.h"
 #include "yolov5.hpp"
 
-struct SaveResult {
-  int frame_id;
-  int track_id;
-  vector<float> tlwh;
-};
-
 struct bytetrack_params {
   // detector:
   float conf_thresh;
