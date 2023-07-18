@@ -94,17 +94,6 @@ chmod -R +x scripts/
 ​执行上述命令会在`models/BM1684X/`下生成`ch_PP-OCRv3_det_fp16.bmodel`等文件，即转换好的FP16 BModel。
 
 - 本例程暂时不支持量化。
-<!-- - 生成INT8 BModel
-
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
-
-```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684
-#或
-./scripts/gen_int8bmodel_mlir.sh bm1684x
-```
-
-​上述脚本会在`models/BM1684`或`models/BM1684X/`下生成`ch_PP-OCRv3_det_int8.bmodel`等文件，即转换好的INT8 BModel。 -->
 
 ## 5. 推理测试
 * [C++例程](cpp/README.md)
