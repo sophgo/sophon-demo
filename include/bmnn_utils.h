@@ -110,6 +110,22 @@ class BMNNTensor{
         }
         ret = bm_mem_unmap_device_mem(m_handle, pI8, bm_mem_get_device_size(m_tensor->device_mem));
         assert(BM_SUCCESS == ret);
+      }else if (m_tensor->dtype == BM_INT32) {
+        int32_t * pI32 = nullptr;
+        unsigned long long  addr;
+        ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
+        assert(BM_SUCCESS == ret);
+        ret = bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem);
+        assert(BM_SUCCESS == ret);
+        pI32 = (int32_t*)addr;
+        // dtype convert
+        pFP32 = new float[count];
+        assert(pFP32 != nullptr);
+        for(int i = 0;i < count; ++ i) {
+          pFP32[i] = pI32[i] * m_scale;
+        }
+        ret = bm_mem_unmap_device_mem(m_handle, pI32, bm_mem_get_device_size(m_tensor->device_mem));
+        assert(BM_SUCCESS == ret);
       } else{
         std::cout << "NOT support dtype=" << m_tensor->dtype << std::endl;
       }
