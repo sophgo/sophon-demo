@@ -57,6 +57,8 @@ chmod -R +x scripts/
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1684_ext                                # 相关单输出模型，此处没有benchmark，用户自行使用。
+├── BM1684X_ext                               # 相关单输出模型，此处没有benchmark，用户自行使用。
 │── torch
 │   └── yolov5s_v6.1_3output.torchscript.pt   # trace后的torchscript模型
 └── onnx
