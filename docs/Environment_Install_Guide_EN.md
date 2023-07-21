@@ -309,7 +309,12 @@ Download the [Compatible](../README_EN.md#environment-dependencies) sophon-sail 
     ```bash
     sudo make install                               
     ```
-    Copy `sophon-sail` from the `build_soc` folder to the `/opt/sophon` directory of the target SOC machine, then return to the host for subsequent operations.
+    Copy `sophon-sail` from the `build_soc` folder to the `/opt/sophon` directory of the target SOC machine, and do: 
+    ```
+    echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib' >> ~/.bashrc
+    source ~/.bashrc
+    ```
+    then return to the host for subsequent operations.
 
 5. Generate python wheel, the path of the generated wheel package is `python/soc/dist`.
 
