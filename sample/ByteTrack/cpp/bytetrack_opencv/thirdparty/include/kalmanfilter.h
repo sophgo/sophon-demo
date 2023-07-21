@@ -10,6 +10,7 @@
 #ifndef KALMANFILTER_H
 #define KALMANFILTER_H
 #include <opencv2/opencv.hpp>
+#include <iostream>
 
 class KalmanFilter {
  public:
@@ -27,7 +28,7 @@ class KalmanFilter {
                           bool only_position = false);
 
  private:
-  cv::KalmanFilter* opencv_kf;
+  std::unique_ptr<cv::KalmanFilter> opencv_kf;
   float _std_weight_position;
   float _std_weight_velocity;
 };
