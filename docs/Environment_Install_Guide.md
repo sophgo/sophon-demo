@@ -305,7 +305,12 @@ source /etc/profile
     ```bash
     sudo make install                               
     ```
-    将`build_soc`文件夹下的`sophon-sail`拷贝至目标SOC的`/opt/sophon`目录下，然后返回编译机器进行后续操作。
+    将`build_soc`文件夹下的`sophon-sail`拷贝至目标SOC的`/opt/sophon`目录下，并在目标SOC下执行下面的操作：
+    ```
+    echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib' >> ~/.bashrc
+    source ~/.bashrc
+    ```
+    然后返回编译机器进行后续操作。
 
 5. 打包生成python wheel,生成的wheel包的路径为`python/soc/dist`
 
