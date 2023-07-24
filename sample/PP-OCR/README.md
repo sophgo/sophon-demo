@@ -169,7 +169,7 @@ bmrt_test --bmodel models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel
 
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看其打印的时间信息。
-在不同的测试平台上，使用不同的例程、模型测试`datasets/train_full_images_0`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
+在不同的测试平台上，使用不同的例程、模型测试`datasets/train_full_images_0`，性能测试结果如下：
 |    测试平台  |     测试程序            |        测试模型            |decode_time/crop_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ----------------       | -------------------------- |  --------           | ---------     | ---------     | --------- |
 | BM1684 SoC  | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp32.bmodel| 37.96               |  25.51        |  25.08        |  13.04    |
