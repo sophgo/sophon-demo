@@ -67,7 +67,7 @@ make
 编译完成后，会在yolov5_bmcv目录下生成yolov5_bmcv.soc。
 
 #### 2.2.2 sail
-
+如果您使用sophon-sail接口，需要参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)，给soc环境配置sophon-sail，然后进行如下步骤。
 ```bash
 cd cpp/yolov5_sail
 mkdir build && cd build

@@ -65,6 +65,7 @@ make
 ```
 After the compilation is complete, yolov5_bmcv.soc will be generated in the yolov5_bmcv directory.
 #### 2.2.2 sail
+If you use sophon-sail, you should refer to [cross compile sophon-sail](../../../docs/Environment_Install_Guide_EN.md#42-cross-compiling-and-sophon-sail-installation)，configure sophon-sail for your soc，then:
 ```bash
 cd cpp/yolov5_sail
 mkdir build && cd build
