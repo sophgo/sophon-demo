@@ -71,7 +71,7 @@ cd ..
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件：
 
 #### 2.2.1 sail
-
+如果您使用sophon-sail接口，需要参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)，给soc环境配置sophon-sail，然后进行如下步骤。
 ```bash
 cd cpp/bert_sail
 mkdir build && cd build

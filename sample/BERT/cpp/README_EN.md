@@ -49,6 +49,7 @@ Usually, programs are cross compiled on x86 hosts. You need to use the SOPHON SD
 After the cross compilation environment is established, use the cross compilation toolchain to compile and generate executable files:
 
 #### 2.2.1 sail
+If you use sophon-sail, you should refer to [cross compile sophon-sail](../../../docs/Environment_Install_Guide_EN.md#42-cross-compiling-and-sophon-sail-installation)，configure sophon-sail for your soc，then:
 
 ```bash
 cd cpp/bert_sail
