@@ -69,7 +69,7 @@ make
 编译完成后，会在centernet_bmcv目录下生成centernet_bmcv.soc。
 
 #### 2.2.2 sail
-
+如果您使用sophon-sail接口，需要参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)，给soc环境配置sophon-sail，然后进行如下步骤。
 ```bash
 cd cpp/centernet_sail
 mkdir build && cd build
