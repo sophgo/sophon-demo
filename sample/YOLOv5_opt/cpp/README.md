@@ -43,7 +43,7 @@ cd ..
 编译完成后，会在yolov5_bmcv目录下生成yolov5_bmcv.pcie。
 
 #### 2.1.2 sail
-
+如果您使用sophon-sail接口，需要[编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#33-编译安装sophon-sail)，然后进行如下步骤。
 ```bash
 cd cpp/yolov5_sail
 mkdir build && cd build

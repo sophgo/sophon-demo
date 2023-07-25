@@ -155,48 +155,10 @@ source /etc/profile
 更多sophon-mw信息请参考《MULTIMEDIA使用手册.pdf》、《MULTIMEDIA开发参考手册.pdf》。
 
 ### 3.3 编译安装sophon-sail
-如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
-1. 解压并进入目录
+如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。
 
-    ```bash
-    tar zxvf sophon-sail_x.y.z.tar.gz
-    cd sophon-sail
-    ```              
-
-2. 创建编译文件夹build,并进入build文件夹
-
-    ```bash
-    mkdir build && cd build 
-    ```                  
-
-3. 执行编译命令
-
-    ```bash
-    cmake ..                                   
-    make                                      
-    ```
-
-4. 安装SAIL动态库及头文件,编译结果将安装在`/opt/sophon`下面
-
-    ```bash
-    sudo make install                               
-    ```
-
-
-5. 打包生成python wheel,生成的wheel包的路径为`python/pcie/dist`
-
-    ```bash
-    cd ../python/pcie 
-    chmod +x sophon_pcie_whl.sh
-    ./sophon_pcie_whl.sh  
-    ```
-
-6. 安装python wheel  
-
-    ```bash
-    # 需根据实际生成的wheel包修改其文件名
-    pip3 install ./dist/sophon-*-py3-none-any.whl --force-reinstall 
-    ```
+需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号，参考sophon-sail文档，选择您需要的部分(C++/Python，PCIE MODE)进行安装。
+官网sophon-sail文档链接：https://doc.sophgo.com/sdk-docs/v23.05.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#sail
 
 
 ## 4 SoC平台的开发和运行环境搭建
@@ -249,84 +211,8 @@ source /etc/profile
 ### 4.2 交叉编译安装sophon-sail
 如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。需要在x86主机上交叉编译sophon-sail，并在SoC平台上安装。
 
-需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
-1. 解压并进入目录
-
-    ```bash
-    tar zxvf sophon-sail_x.y.z.tar.gz
-    cd sophon-sail
-    ```              
-
-2. 创建编译文件夹build,并进入build文件夹
-
-    ```bash
-    mkdir build && cd build 
-    ```                  
-
-3. 执行编译命令
-
-    使用指定的python3,通过交叉编译的方式,编译出包含bmcv,sophon-ffmpeg,sophon-opencv的SAIL,python3的安装方式可通过python官方文档获取,也可以从[此链接](http://219.142.246.77:65000/sharing/8MlSKnV8x)下载已经编译好的python3,本示例使用的python3路径为`python_3.8.2/bin/python3`,python3的动态库目录`python_3.8.2/lib`。
-
-    请参考[4.1 交叉编译环境搭建](#41-交叉编译环境搭建)获取libsophon、sophon-ffmpeg和sophon-opencv的交叉编译库包。
-
-    ```bash
-    # 请根据实际情况修改DPYTHON_EXECUTABLE、DCUSTOM_PY_LIBDIR、DLIBSOPHON_BASIC_PATH、DOPENCV_BASIC_PATH的路径
-     cmake -DBUILD_TYPE=soc  \
-        -DCMAKE_TOOLCHAIN_FILE=../cmake/BM168x_SOC/ToolChain_aarch64_linux.cmake \
-        -DPYTHON_EXECUTABLE=python_3.8.2/bin/python3 \
-        -DCUSTOM_PY_LIBDIR=python_3.8.2/lib \
-        -DLIBSOPHON_BASIC_PATH=libsophon_soc_${x.y.z}_aarch64/opt/sophon/libsophon-${x.y.z} \
-        -DFFMPEG_BASIC_PATH=sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z} \
-        -DOPENCV_BASIC_PATH=sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z} \
-        ..                                
-    make                                      
-    ```
-    编译参数：
-
-    * BUILD_TYPE : 编译的类型,目前有pcie和soc两种模式,pcie是编译在x86主机上可用的SAIL包,soc表示使用交叉编译的方式,在x86主机上编译soc上可用的SAIL包。默认pcie。
-    
-    * ONLY_RUNTIME : 编译结果是否只包含运行时,而不包含bmcv,sophon-ffmpeg,sophon-opencv,如果此编译选项为`ON`,这SAIL的编解码及Bmcv接口不可用,只有推理接口可用。默认`OFF`。
-    
-    * INSTALL_PREFIX : 执行make install时的安装路径,pcie模式下默认`/opt/sophon`,与libsophon的安装路径一致,交叉编译模式下默认`build_soc`。
-    
-    * PYTHON_EXECUTABLE : 编译使用的python3的路径名称(路径+名称),默认使用当前系统中默认的python3。
-    
-    * CUSTOM_PY_LIBDIR : 编译使用的python3的动态库的路径(只包含路径),默认使用当前系统中默认python3的动态库目录。
-    
-    * LIBSOPHON_BASIC_PATH : 交叉编译模式下,libsophon的路径,如果配置不正确则会编译失败。pcie模式下面此编译选项不生效。
-    
-    * FFMPEG_BASIC_PATH : 交叉编译模式下,sophon-ffmpeg的路径,如果配置不正确,且ONLY_RUNTIME为`ON`时会编译失败。pcie模式下面此编译选项不生效。
-    
-    * OPENCV_BASIC_PATH : 交叉编译模式下,sophon-opencv的路径,如果配置不正确,且ONLY_RUNTIME为`ON`时会编译失败。pcie模式下面此编译选项不生效。
-
-
-4. 安装SAIL动态库及头文件,编译结果将安装在`../build_soc`下面
-
-    ```bash
-    sudo make install                               
-    ```
-    将`build_soc`文件夹下的`sophon-sail`拷贝至目标SOC的`/opt/sophon`目录下，并在目标SOC下执行下面的操作：
-    ```
-    echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib' >> ~/.bashrc
-    source ~/.bashrc
-    ```
-    然后返回编译机器进行后续操作。
-
-5. 打包生成python wheel,生成的wheel包的路径为`python/soc/dist`
-
-    ```bash
-    cd ../python/soc 
-    chmod +x sophon_soc_whl.sh
-    ./sophon_soc_whl.sh  
-    ```
-
-5. 安装python wheel  
-
-    将生成的wheel包拷贝到目标SOC上,然后执行如下安装命令
-    ```bash
-    # 需根据实际生成的wheel包修改其文件名，x.y.z表示版本号
-    pip3 install sophon_arm-*-py3-none-any.whl --force-reinstall 
-    ```
+需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号，参考sophon-sail文档，选择您需要的部分(C++/Python，SOC MODE)进行安装。
+官网sophon-sail文档链接：https://doc.sophgo.com/sdk-docs/v23.05.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#sail
 
 ## 5 arm PCIe平台的开发和运行环境搭建
 如果您在arm平台安装了PCIe加速卡，开发环境与运行环境可以是统一的，您可以直接在宿主机上搭建开发和运行环境。
