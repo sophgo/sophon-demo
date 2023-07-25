@@ -42,7 +42,7 @@ cd ..
 After the compilation is complete, yolov5_bmcv.pcie will be generated in the yolov5_bmcv directory.
 
 #### 2.1.2 sail
-
+If you use sophon-sail, you should refer to [sophon-sail install guide](../../../docs/Environment_Install_Guide_EN.md#33-compilation-and-installation-of-sophon-sail)，configure sophon-sail for your sys，then:
 ```bash
 cd cpp/yolov5_sail
 mkdir build && cd build

@@ -159,48 +159,8 @@ For more information on libsophon, please refer to "MULTIMEDIA User Manual", "Mu
 ### 3.3 Compilation and Installation of sophon-sail
 
 If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of sophon-sail from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
-1. Unzip and enter the directory
-
-    ```bash
-    tar zxvf sophon-sail_x.y.z.tar.gz
-    cd sophon-sail
-    ```              
-
-2. Create the folder "build", and go to the "build" folder
-
-    ```bash
-    mkdir build && cd build 
-    ```                  
-
-3. Execute the compile command
-
-    ```bash
-    cmake ..                                   
-    make                                      
-    ```
-
-4. Install SAIL dynamic library and header files, the compiled result will be installed under `/opt/sophon`.
-
-    ```bash
-    sudo make install                               
-    ```
-
-
-5. Generate python wheel, the path of the generated wheel package is `python/pcie/dist`.
-
-    ```bash
-    cd ../python/pcie 
-    chmod +x sophon_pcie_whl.sh
-    ./sophon_pcie_whl.sh  
-    ```
-
-6. Install python wheel  
-
-    ```bash
-    # You need to change the file name according to the actual generated wheel package
-    pip3 install ./dist/sophon-master-py3-none-any.whl --force-reinstall 
-    ```
-
+Refer to docs in sophon-sail，choose the part you need (C++/Python，PCIE MODE) to install。
+Official sophon-sail guide link：https://doc.sophgo.com/sdk-docs/v23.05.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#sail
 
 ## 4 SoC Platform Development and Runtime Environment Construction
 For SoC platforms, the SophonSDK (>=v22.09.02) has been installed with the corresponding libsophon, sophon-opencv and sophon-ffmpeg runtime library packages integrated inside, located under `/opt/sophon/`, which can be used directly for the runtime environment. Programs are usually cross-compiled on x86 hosts to enable them to run on SoC platforms. SophonSDK firmware refresh methods can be found in the [FAQ document](./FAQ_EN.md#12-how-do-i-use-an-sd-card-to-update-firmware-in-soc-mode).
@@ -251,86 +211,9 @@ Here, the cross-compilation environment has been built, and then you can use the
 
 ### 4.2 Cross-compiling and sophon-sail Installation
 
-If the demo depends on sophon-sail, sophon-sail needs to be compiled and installed, otherwise this section can be skipped. You need to cross-compile sophon-sail on an x86 host and install it on the SoC platform.
-
-Download the [Compatible](../README_EN.md#environment-dependencies) sophon-sail installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
-1. Unzip and enter the directory
-
-    ```bash
-    tar zxvf sophon-sail_x.y.z.tar.gz
-    cd sophon-sail
-    ```              
-
-2. Create the folder "build", and go to the "build" folder
-
-    ```bash
-    mkdir build && cd build 
-    ```                  
-
-3. Execute the compile command
-
-    Use the specified python3 to compile SAIL with bmcv, sophon-ffmpeg, sophon-opencv by cross-compiling, the installation of python3 can be obtained from the official python documentation,or you can download the compiled python3 from [this link](http://219.142.246.77:65000/sharing/8MlSKnV8x) to download the compiled python3, the path of python3 used in this example is `python_3.8.2/bin/python3`, and the dynamic library directory of python3 is `python_3.8.2/lib`.
-
-    Please refer to [4.1 Cross-compiling Environment Construction](#41-cross-compiling-environment-construction) for the cross-compilation library packages of libsophon, sophon-ffmpeg and sophon-opencv.
-
-    ```bash
-    # Please modify the paths of DPYTHON_EXECUTABLE、DCUSTOM_PY_LIBDIR、DLIBSOPHON_BASIC_PATH、DOPENCV_BASIC_PATH according to the actual situation
-     cmake -DBUILD_TYPE=soc  \
-        -DCMAKE_TOOLCHAIN_FILE=../cmake/BM168x_SOC/ToolChain_aarch64_linux.cmake \
-        -DPYTHON_EXECUTABLE=python_3.8.2/bin/python3 \
-        -DCUSTOM_PY_LIBDIR=python_3.8.2/lib \
-        -DLIBSOPHON_BASIC_PATH=libsophon_soc_${x.y.z}_aarch64/opt/sophon/libsophon-${x.y.z} \
-        -DFFMPEG_BASIC_PATH=sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z} \
-        -DOPENCV_BASIC_PATH=sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z} \
-        ..                                
-    make                                      
-    ```
-    Compile parameters:
-
-    * BUILD_TYPE : The type of compilation. Currently, there are two modes: pcie and soc, pcie means to compile SAIL packages available on x86 host, soc means to use cross-compilation to compile SAIL packages which available on soc on x86 host. The default option is pcie.
-    
-    * ONLY_RUNTIME :  Whether the compilation result contains only runtime, but not bmcv, sophon-ffmpeg, sophon-opencv. if the option is `ON`, this SAIL codec and Bmcv interface is not available, only inference interface is available. The default option is `OFF`.
-    
-    * INSTALL_PREFIX : The installation path when make install is executed. The default option is `/opt/sophon` in pcie mode, same as libsophon's installation path, and the default option is `build_soc` in cross-compile mode.
-    
-    * PYTHON_EXECUTABLE : The path name of python3 used for compilation (path+name), the default option is python3 in current system.
-    
-    * CUSTOM_PY_LIBDIR : The path of the dynamic library of python3 used for compilation (path only), the default option is the default dynamic library directory of python3 on the current system.
-    
-    * LIBSOPHON_BASIC_PATH : The path of libsophon in cross-compile mode, if not configured correctly and, it will fail to compile. In pcie mode, this compile option does not work.
-    
-    * FFMPEG_BASIC_PATH : The path of sophon-ffmpeg in cross-compile mode, compile will fail if configured incorrectly and ONLY_RUNTIME is `ON`. In pcie mode, this compile option does not work.
-    
-    * OPENCV_BASIC_PATH : The path of sophon-opencv in cross-compile mode, compile will fail if configured incorrectly and ONLY_RUNTIME is `ON`. In pcie mode, this compile option does not work.
-
-
-4. Install SAIL dynamic libraries and header files, the compiled results will be installed under `../build_soc`
-
-    ```bash
-    sudo make install                               
-    ```
-    Copy `sophon-sail` from the `build_soc` folder to the `/opt/sophon` directory of the target SOC machine, and do: 
-    ```
-    echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib' >> ~/.bashrc
-    source ~/.bashrc
-    ```
-    then return to the host for subsequent operations.
-
-5. Generate python wheel, the path of the generated wheel package is `python/soc/dist`.
-
-    ```bash
-    cd ../python/soc 
-    chmod +x sophon_soc_whl.sh
-    ./sophon_soc_whl.sh  
-    ```
-
-5. Install python wheel  
-
-    Copy the generated wheel package to the target SOC, and then execute the following installation command
-    ```bash
-    # You need to modify the file name according to the actual generated wheel package, x.y.z indicates the version number
-    pip3 install sophon_arm-${x.y.z}-py3-none-any.whl --force-reinstall 
-    ```
+If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of sophon-sail from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
+Refer to docs in sophon-sail，choose the part you need (C++/Python，PCIE MODE) to install。
+Official sophon-sail guide link：https://doc.sophgo.com/sdk-docs/v23.05.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#sail
 
 ## 5 arm PCIe Platform Development and Runtime Environment Construction
 If you have installed PCIe accelerator card in arm platform, the development environment and running environment can be unified, you can directly build the development and running environment on the host.
