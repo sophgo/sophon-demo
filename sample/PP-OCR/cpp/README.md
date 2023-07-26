@@ -55,7 +55,7 @@ make
 对于PCIe平台，可以直接在PCIe平台上推理测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据拷贝到SoC平台中测试。测试的参数及运行方式是一致的，下面主要以PCIe模式进行介绍。
 
 ### 3.1 参数说明
-可执行程序默认有一套参数，请注意根据实际情况进行传参，`ppocr_bmcv.pcie与ppocr_bmcv.pcie参数相同。`以ppocr_bmcv.pcie为例，具体参数说明如下：
+可执行程序默认有一套参数，请注意根据实际情况进行传参，以ppocr_bmcv.pcie为例，具体参数说明如下：
 ```bash
 Usage: ppocr_bmcv.pcie [params] 
 
