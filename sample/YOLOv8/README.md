@@ -108,9 +108,9 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684
+./scripts/gen_int8bmodel_mlir.sh bm1684
 #or
-./scripts/gen_fp32bmodel_mlir.sh bm1684x
+./scripts/gen_int8bmodel_mlir.sh bm1684x
 ```
 
 ​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`yolov8s_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
