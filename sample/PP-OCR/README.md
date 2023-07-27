@@ -115,6 +115,7 @@ F-score: 0.57488, Precision: 0.80639, Recall: 0.44665
 ### 6.2 测试结果
 在ICDAR-2019数据集上，精度测试结果如下：
 |   测试平台    |      测试程序           |   模型精度   | F-score |
+|------------- | ----------------------- | -----------  | ------ |
 | BM1684 PCIe  | ppocr_system_opencv.py  | fp32         | 0.575   |
 | BM1684 PCIe  | ppocr_bmcv.pcie         | fp32         | 0.573   |
 | BM1684X PCIe  | ppocr_system_opencv.py | fp32         | 0.575   |
