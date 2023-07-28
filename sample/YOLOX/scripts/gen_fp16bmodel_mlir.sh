@@ -1,4 +1,6 @@
 #!/bin/bash
+model_dir=$(dirname $(readlink -f "$0"))
+
 if [ ! $1 ]; then
     target=bm1684x
     target_dir=BM1684X
