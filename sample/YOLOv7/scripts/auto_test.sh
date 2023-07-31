@@ -222,7 +222,7 @@ then
 
     eval_python opencv yolov7_v0.1_3output_fp32_1b.bmodel 0.5139793861023544
     eval_python opencv yolov7_v0.1_3output_fp16_1b.bmodel 0.5136247112750388
-    eval_python opencv yolov7_v0.1_3output_int8_1b.bmodel 0.5060538624600311
+    eval_python opencv yolov7_v0.1_3output_int8_1b.bmodel 0.5092880300473043
     eval_python opencv yolov7_v0.1_3output_int8_4b.bmodel 0.5049975014739588
     eval_python bmcv yolov7_v0.1_3output_fp32_1b.bmodel 0.5040489236493023
     eval_python bmcv yolov7_v0.1_3output_fp16_1b.bmodel 0.5039191983893554

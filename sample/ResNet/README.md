@@ -60,8 +60,7 @@ chmod +x ./scripts/*
 │   ├── resnet50-11ad3fa6.pth                         # 原始模型
 │   └── resnet50-11ad3fa6.torchscript.pt              # trace后的torchscript模型
 └── onnx
-    ├── resnet50_1b.onnx                               # 导出的onnx模型，batch_size=1
-    ├── resnet50_4b.onnx                               # 导出的onnx模型，batch_size=4 
+    ├── resnet50_dynamic.onnx                          # 导出的动态onnx模型
     └── resnet50_qtable                                # 量化效果不好时，可以使用该qtable设置敏感层
 ```
 
