@@ -60,8 +60,11 @@ chmod -R +x scripts/
 ├── BM1684_ext                                # 相关单输出模型，此处没有benchmark，用户自行使用。
 ├── BM1684X_ext                               # 相关单输出模型，此处没有benchmark，用户自行使用。
 │── torch
+│   ├── yolov5m_v6.1_1output_torchscript.pt   # 相关单输出模型，此处没有benchmark，用户自行使用。
 │   └── yolov5s_v6.1_3output.torchscript.pt   # trace后的torchscript模型
 └── onnx
+    ├── yolov5m_v6.1_1output_1b.onnx          # 相关单输出模型，此处没有benchmark，用户自行使用。
+    ├── yolov5m_v6.1_1output_4b.onnx          # 相关单输出模型，此处没有benchmark，用户自行使用。
     └── yolov5s_v6.1_3output.onnx             # 导出的onnx动态模型       
 ```
 下载的数据包括：

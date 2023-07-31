@@ -52,7 +52,8 @@ if (${TARGET_ARCH} STREQUAL "pcie")
 
     #link our own include and srcs
     include_directories("../../../../include/")
-    include_sub_directories_recursively(${CMAKE_SOURCE_DIR})
+    include_directories(".")
+    include_directories(${CMAKE_SOURCE_DIR}/thirdparty/include())
     include_directories("../../../YOLOv5/cpp/yolov5_bmcv/")
     file(GLOB_RECURSE SRC_FILES "./thirdparty/*.cpp" "../../../YOLOv5/cpp/yolov5_bmcv/yolov5.cpp") # dont involve build/
     aux_source_directory(. SRC_FILES)
@@ -70,7 +71,8 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     set(OPENCV_LIBS opencv_imgproc opencv_core opencv_highgui opencv_imgcodecs opencv_videoio)
     include_directories("../../../../include/")
     include_directories(/usr/include/eigen3)
-    include_sub_directories_recursively(${CMAKE_SOURCE_DIR})
+    include_directories(.)
+    include_directories(${CMAKE_SOURCE_DIR}/thirdparty/include())
     include_directories("../../../YOLOv5/cpp/yolov5_bmcv/")
     file(GLOB_RECURSE SRC_FILES "./thirdparty/*.cpp" "../../../YOLOv5/cpp/yolov5_bmcv/yolov5.cpp") # dont involve build/
     include_directories("${SDK}/include/")
