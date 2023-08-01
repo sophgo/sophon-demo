@@ -21,9 +21,9 @@ function gen_mlir()
         --mean 103.53,116.28,123.67 \
         --scale 0.01742919,0.017507,0.01712475 \
         --pixel_format rgb  \
-        --test_input ../datasets/cali_data/ILSVRC2012_val_00000555.jpg \
-        --test_result resnet50_$1b_top_outputs.npz \
-        --mlir resnet50_$1b.mlir
+        --mlir resnet50_$1b.mlir \
+        --test_input ../datasets/cali_data/ILSVRC2012_val_00000090.jpg \
+        --test_result resnet50_$1b_top_outputs.npz
 }
 
 function gen_cali_table()
@@ -47,9 +47,9 @@ function gen_int8bmodel()
         --quantize INT8 \
         --chip $target \
         --calibration_table resnet50_cali_table \
+        --model resnet50_int8_$1b.bmodel \
         --test_input resnet50_$1b_in_f32.npz \
-        --test_reference resnet50_$1b_top_outputs.npz \
-        --model resnet50_int8_$1b.bmodel
+        --test_reference resnet50_$1b_top_outputs.npz
         #--debug
 
     mv resnet50_int8_$1b.bmodel $outdir/
@@ -59,7 +59,7 @@ pushd $model_dir
 if [ ! -d $outdir ]; then
     mkdir -p $outdir
 fi
-# batch_size=1
+## batch_size=1
 gen_mlir 1
 gen_cali_table 1
 gen_int8bmodel 1
