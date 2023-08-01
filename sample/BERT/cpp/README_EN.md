@@ -34,6 +34,7 @@ C++programs need to compile executable files before running.
 ### 2.1 x86/arm PCIe platform
 You can directly compile programs on the PCIe platform:
 #### 2.1.1 sail
+If you use sophon-sail, you should refer to [sophon-sail install guide](../../../docs/Environment_Install_Guide_EN.md#33-compilation-and-installation-of-sophon-sail)，configure sophon-sail for your sys，then:
 ```bash
 cd cpp/bert_sail
 mkdir build && cd build
