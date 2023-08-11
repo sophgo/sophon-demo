@@ -13,7 +13,6 @@ outdir=../models/$target_dir
 
 function gen_mlir()
 {
-    # use pt to cali can get higher acc than onnx.
     model_transform.py \
         --model_name resnet50_$1b \
         --model_def ../models/torch/resnet50-11ad3fa6.torchscript.pt \
@@ -30,7 +29,6 @@ function gen_mlir()
 
 function gen_mlir_onnx()
 {
-    # use pt to cali, can achieve higher acc than onnx.
     model_transform.py \
         --model_name resnet50_$1b \
         --model_def ../models/onnx/resnet50_dynamic.onnx \
@@ -47,7 +45,6 @@ function gen_mlir_onnx()
 
 function gen_mlir_onnx_v2()
 {
-    # use pt to cali, can achieve higher acc than onnx.
     model_transform.py \
         --model_name resnet50_$1b \
         --model_def ../models/onnx/resnet50_dynamic.onnx \
