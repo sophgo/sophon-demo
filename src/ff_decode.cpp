@@ -505,9 +505,11 @@ AVFrame* VideoDecFFM::grabFrame() {
                     break;
                 }
                 usleep(10 * 1000);
-
                 continue;
             }
+            AVFrame* flush_frame = flushDecoder();
+            if(flush_frame)
+                return flush_frame;
             av_log(video_dec_ctx, AV_LOG_ERROR, "av_read_frame ret(%d) maybe eof...\n", ret);
             quit_flag = true;
             return NULL;
@@ -551,6 +553,18 @@ AVFrame* VideoDecFFM::grabFrame() {
         }
 
         break;
+    }
+    return frame;
+}
+
+AVFrame* VideoDecFFM::flushDecoder()
+{
+    av_frame_unref(frame);
+    int ret = avcodec_send_packet(video_dec_ctx, NULL);
+    ret = avcodec_receive_frame(video_dec_ctx, frame);
+    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret < 0)
+    {
+        return NULL;
     }
     return frame;
 }
