@@ -280,7 +280,7 @@ def main(args):
                 
                 bmimg_list.append(bmimg)
                 filename_list.append(filename)
-                if len(bmimg_list) == batch_size:
+                if (len(bmimg_list) == batch_size or cn == len(filenames)) and len(bmimg_list):
                     # predict
                     results = yolov5(bmimg_list)
                     
@@ -305,25 +305,6 @@ def main(args):
                         
                     bmimg_list.clear()
                     filename_list.clear()
-        if len(bmimg_list):
-            results = yolov5(bmimg_list)
-            for i, filename in enumerate(filename_list):
-                det = results[i]
-                save_path = os.path.join(output_img_dir, filename)
-                draw_bmcv(bmcv, bmimg_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
-                res_dict = dict()
-                res_dict['image_name'] = filename
-                res_dict['bboxes'] = []
-                for idx in range(det.shape[0]):
-                    bbox_dict = dict()
-                    x1, y1, x2, y2, score, category_id = det[idx]
-                    bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2 - x1,3)), float(round(y2 -y1, 3))]
-                    bbox_dict['category_id'] = int(category_id)
-                    bbox_dict['score'] = float(round(score,5))
-                    res_dict['bboxes'].append(bbox_dict)
-                results_list.append(res_dict)
-            bmimg_list.clear()
-            filename_list.clear()
             
         # save results
         if args.input[-1] == '/':
@@ -342,15 +323,17 @@ def main(args):
         video_name = os.path.splitext(os.path.split(args.input)[1])[0]
         cn = 0
         frame_list = []
-        while True:
+        end_flag = False
+        while not end_flag:
             frame = sail.BMImage()
             start_time = time.time()
             ret = decoder.read(handle, frame)
-            if ret:
-                break
             decode_time += time.time() - start_time
-            frame_list.append(frame)
-            if len(frame_list) == batch_size:
+            if ret: #differ from cv.
+                end_flag = True
+            else:
+                frame_list.append(frame)
+            if (len(frame_list) == batch_size or end_flag) and len(frame_list):
                 results = yolov5(frame_list)
                 for i, frame in enumerate(frame_list):
                     det = results[i]
@@ -359,14 +342,6 @@ def main(args):
                     save_path = os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg')
                     draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
                 frame_list.clear()
-        if len(frame_list):
-            results = yolov5(frame_list)
-            for i, frame in enumerate(frame_list):
-                det = results[i]
-                cn += 1
-                logging.info("{}, det nums: {}".format(cn, det.shape[0]))
-                save_path = os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg')
-                draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
         decoder.release()
         logging.info("result saved in {}".format(output_img_dir))
 
