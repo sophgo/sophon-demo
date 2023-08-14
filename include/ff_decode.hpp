@@ -107,5 +107,6 @@ private:
 
     void *vidPushImage();
     AVFrame *grabFrame();
+    AVFrame* flushDecoder();
     void closeDec();
 };
