@@ -234,7 +234,7 @@ def main(args):
                 
                 img_list.append(src_img)
                 filename_list.append(filename)
-                if len(img_list) == batch_size:
+                if (len(img_list) == batch_size or cn == len(filenames)) and len(img_list):
                     # predict
                     results = yolov5(img_list)
                     
@@ -259,26 +259,6 @@ def main(args):
                         
                     img_list.clear()
                     filename_list.clear()
-                    
-        if len(img_list):
-            results = yolov5(img_list)
-            for i, filename in enumerate(filename_list):
-                det = results[i]
-                res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
-                cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
-                res_dict = dict()
-                res_dict['image_name'] = filename
-                res_dict['bboxes'] = []
-                for idx in range(det.shape[0]):
-                    bbox_dict = dict()
-                    x1, y1, x2, y2, score, category_id = det[idx]
-                    bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2 - x1,3)), float(round(y2 -y1, 3))]
-                    bbox_dict['category_id'] = int(category_id)
-                    bbox_dict['score'] = float(round(score,5))
-                    res_dict['bboxes'].append(bbox_dict)
-                results_list.append(res_dict)
-            img_list.clear()
-            filename_list.clear()   
 
         # save results
         if args.input[-1] == '/':
@@ -302,14 +282,16 @@ def main(args):
         out = cv2.VideoWriter(save_video, fourcc, fps, size)
         cn = 0
         frame_list = []
-        while True:
+        end_flag = False
+        while not end_flag:
             start_time = time.time()
             ret, frame = cap.read()
             decode_time += time.time() - start_time
             if not ret or frame is None:
-                break
-            frame_list.append(frame)
-            if len(frame_list) == batch_size:
+                end_flag = True
+            else:
+                frame_list.append(frame)
+            if (len(frame_list) == batch_size or end_flag) and len(frame_list):
                 results = yolov5(frame_list)
                 for i, frame in enumerate(frame_list):
                     det = results[i]
@@ -318,14 +300,6 @@ def main(args):
                     res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
                     out.write(res_frame)
                 frame_list.clear()
-        if len(frame_list):
-            results = yolov5(frame_list)
-            for i, frame in enumerate(frame_list):
-                det = results[i]
-                cn += 1
-                logging.info("{}, det nums: {}".format(cn, det.shape[0]))
-                res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
-                out.write(res_frame)
         cap.release()
         out.release()
         logging.info("result saved in {}".format(save_video))
