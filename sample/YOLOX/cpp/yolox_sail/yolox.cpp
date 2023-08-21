@@ -403,11 +403,11 @@ int YoloX::post_process(std::vector<sail::BMImage>& images, std::vector<YoloXBox
     }
     
     // delete
-    delete grids_x_;
+    delete[] grids_x_;
     grids_x_ = NULL;
-    delete grids_y_;
+    delete[] grids_y_;
     grids_y_ = NULL;
-    delete expanded_strides_;
+    delete[] expanded_strides_;
     expanded_strides_ = NULL;
 
     return 0;
