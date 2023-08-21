@@ -343,11 +343,11 @@ int YoloX::post_process(const std::vector<bm_image>& images, std::vector<YoloXBo
     }
     
     // delete
-    delete grids_x_;
+    delete[] grids_x_;
     grids_x_ = NULL;
-    delete grids_y_;
+    delete[] grids_y_;
     grids_y_ = NULL;
-    delete expanded_strides_;
+    delete[] expanded_strides_;
     expanded_strides_ = NULL;
 
 
