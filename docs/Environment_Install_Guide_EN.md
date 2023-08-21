@@ -172,12 +172,19 @@ You need to build a cross-compilation environment on an x86 host using SOPHON SD
     sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
     ```
     If you encount this error: `/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
-    You can install gcc with lower version.
+    You can install gcc with lower version by downloading source from [release.linaro.org](https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/)
+
+    here we provide an example of ubuntu configuration：
     ```bash
     sudo apt remove cpp-*-aarch64-linux-gnu
-    sudo apt-get install gcc-7-aarch64-linux-gnu g++-7-aarch64-linux-gnu
-    sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-7 /usr/bin/aarch64-linux-gnu-gcc
-    sudo ln -s /usr/bin/aarch64-linux-gnu-g++-7 /usr/bin/aarch64-linux-gnu-g++
+
+    wget -nd https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+    
+    tar xvf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+    
+    export PATH=$PWD/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/:\$PATH >> ~/.bashrc
+    
+    source ~/.bashrc
     ```
 2. Package libsophon
 

@@ -171,12 +171,19 @@ source /etc/profile
     sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
     ```
     如果报错：`/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
-    这是由于您主机上的交叉编译工具链版本太高导致，可以通过如下命令重新安装：
+    这是由于您主机上的交叉编译工具链版本太高导致，可以在[linaro官方网站](https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/)下载不高于边缘设备gcc版本的交叉编译工具链。
+
+    这里提供一个ubuntu配置的例子：
     ```bash
     sudo apt remove cpp-*-aarch64-linux-gnu
-    sudo apt-get install gcc-7-aarch64-linux-gnu g++-7-aarch64-linux-gnu
-    sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-7 /usr/bin/aarch64-linux-gnu-gcc
-    sudo ln -s /usr/bin/aarch64-linux-gnu-g++-7 /usr/bin/aarch64-linux-gnu-g++
+
+    wget -nd https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+    
+    tar xvf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+    
+    export PATH=$PWD/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/:\$PATH >> ~/.bashrc
+    
+    source ~/.bashrc
     ```
 
 2. 打包libsophon
