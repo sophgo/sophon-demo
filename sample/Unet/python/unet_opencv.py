@@ -64,9 +64,9 @@ class UNet:
     
     def preprocess_opencv(self, input_img):
         input_img = cv2.resize(input_img, (self.net_w, self.net_h))
-        cv2.imwrite("preprocessed_opencv.jpg", input_img)
-        input_img = input_img.transpose((2, 0, 1))[::-1].astype(np.float32) / 255.0
-        input_img = np.ascontiguousarray(input_img)
+        # cv2.imwrite("preprocessed_opencv.jpg", input_img)
+        input_img = input_img.astype('float32')/255.0
+        input_img = np.transpose(input_img, (2, 0, 1))[::-1]
         return input_img
     
     def predict(self, input_tensor, img_num):

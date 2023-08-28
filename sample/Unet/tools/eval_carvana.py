@@ -19,6 +19,7 @@ def main(args):
     precision_list = []
     recall_list = []
     dice_list = []
+    iou_list = []
     eps = 1e-5
 
     for root, dir, filenames in os.walk(predicted_folder_path):
@@ -32,13 +33,13 @@ def main(args):
     for filename in img_name_list:
         predicted_name = os.path.join(predicted_folder_path, filename)
         predicted = np.array(Image.open(predicted_name).convert('L'))
-        predicted = predicted.reshape(1,1918 * 1280)
+        predicted = predicted.reshape(1, 1918 * 1280)
         mask_filename = os.path.join(mask_folder_path, filename.split('.')[0] + '_mask.gif')
         if not os.path.exists(mask_filename):
             continue
         valid_num += 1
-        print(valid_num)
-        mask = np.array(Image.open(mask_filename).convert('L')).reshape(1, 1918*1280)
+        print('Processing image {}...'.format(valid_num))
+        mask = np.array(Image.open(mask_filename).convert('L')).reshape(1, 1918 * 1280)
 
         predicted = predicted > 200
         mask = mask > 200
@@ -49,12 +50,26 @@ def main(args):
         precision = TP / (TP + FP + eps)
         recall = TP / (TP + FN + eps)
         dice = 2 * precision * recall / (precision + recall + eps)
+
+        intersection = np.sum(predicted & mask)
+        union = np.sum(predicted | mask)
+        iou = intersection / (union + eps)
+
         precision_list.append(precision)
         recall_list.append(recall)
         dice_list.append(dice)
+        iou_list.append(iou)
     
-    print('image num: {}'.format(valid_num))
-    print('precision = {}\nrecall = {}\ndice = {}\n'.format(np.mean(precision_list), np.mean(recall_list), np.mean(dice_list)))
+    mean_precision = np.mean(precision_list)
+    mean_recall = np.mean(recall_list)
+    mean_dice = np.mean(dice_list)
+    mean_iou = np.mean(iou_list)
+
+    print('Number of valid images: {}'.format(valid_num))
+    print('Mean Precision: {:.4f}'.format(mean_precision))
+    print('Mean Recall: {:.4f}'.format(mean_recall))
+    print('Mean Dice: {:.4f}'.format(mean_dice))
+    print('Mean IoU: {:.4f}'.format(mean_iou))
 
 
 def argsparser():
@@ -68,3 +83,4 @@ def argsparser():
 if __name__ == '__main__':
     args = argsparser()
     main(args)
+
