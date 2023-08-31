@@ -112,6 +112,12 @@ bmrt_test --bmodel {path_of_bmodel}
 | retinaface_opencv | fp32 |   4      |  89.2%  |  6.28ms    |  159.3     |
 | retinaface_bmcv   | fp32 |   1      |  89.0%  |  4.84ms    |  206.7     |
 | retinaface_bmcv   | fp32 |   4      |  87.1%  |  4.56ms    |  219.3     |
+| retinaface_opencv | fp16 |   1      |  89.2%  |  4.51ms    |  221.8     |
+| retinaface_bmcv   | fp16 |   1      |  88.8%  |  1.72ms    |  580.2     |
+| retinaface_opencv | int8 |   1      |  88.0%  |  3.91ms    |  255.8     |
+| retinaface_opencv | int8 |   4      |  88.0%  |  3.37ms    |  296.5     |
+| retinaface_bmcv   | int8 |   1      |  87.6%  |  1.54ms    |  649.0     |
+| retinaface_bmcv   | int8 |   4      |  84.8%  |  1.35ms    |  739.6     |
 
 在BM1684上，不同例程、不同模型的性能测试结果如下：
 |       例程        | 精度   |batch_size|  ACC    | infer_time | QPS        |
@@ -120,6 +126,10 @@ bmrt_test --bmodel {path_of_bmodel}
 | retinaface_opencv | fp32  |   4      |  89.1%  |  8.52ms    | 117.421905 |
 | retinaface_bmcv   | fp32  |   1      |  89.1%  |  6.66ms    | 150.184443 |
 | retinaface_bmcv   | fp32  |   4      |  89.1%  |  6.35ms    | 157.523946 |
+| retinaface_opencv | int8  |   1      |  87.4%  |  12.49ms   | 80.0       |
+| retinaface_opencv | int8  |   4      |  87.4%  |  8.86ms    | 112.9      |
+| retinaface_bmcv   | int8  |   1      |  87.5%  |  7.71ms    | 129.8      |
+| retinaface_bmcv   | int8  |   4      |  87.5%  |  4.84ms    | 206.7      |
 
 
 ```

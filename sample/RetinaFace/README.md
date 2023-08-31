@@ -8,8 +8,8 @@
   - [2. 数据集](#2-数据集)
   - [3. 准备环境与数据](#3-准备环境与数据)
   - [4. 模型转换](#4-模型转换)
-    - [4.1 生成fp32 bmodel](#41-生成fp32-bmodel)
   - [5. 例程测试](#5-例程测试)
+  - [6. 性能测试](#6-性能测试)
 
 ## 1. 简介
 本例程对[Retinaface]的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
@@ -45,9 +45,12 @@ chmod -R +x scripts/
 下载的模型包括：
 onnx/retinaface_mobilenet0.25.onnx: 原始模型
 BM1684/retinaface_mobilenet0.25_fp32_1b.bmodel: 用于BM1684的FP32 BModel，batch_size=1
-BM1684/retinaface_mobilenet0.25_fp32_4b.bmodel: 用于BM1684的FP32 BModel，batch_size=4
+BM1684/retinaface_mobilenet0.25_int8_1b.bmodel: 用于BM1684的INT8 BModel，batch_size=1
+BM1684/retinaface_mobilenet0.25_int8_4b.bmodel: 用于BM1684的INT8 BModel，batch_size=4
 BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel: 用于BM1684X的FP32 BModel，batch_size=1
-BM1684X/retinaface_mobilenet0.25_fp32_4b.bmodel: 用于BM1684X的FP32 BModel，batch_size=4
+BM1684X/retinaface_mobilenet0.25_fp16_1b.bmodel: 用于BM1684X的FP16 BModel，batch_size=1
+BM1684X/retinaface_mobilenet0.25_int8_1b.bmodel: 用于BM1684X的INT8 BModel，batch_size=1
+BM1684X/retinaface_mobilenet0.25_int8_4b.bmodel: 用于BM1684X的INT8 BModel，batch_size=4
 
 下载的数据包括：
 WIDERVAL: 测试集
@@ -70,20 +73,74 @@ station.avi: 测试视频
 请注意，该onnx所用版本为1.6.0，若环境中onnx版本过高，可能会出现编译失败的现象。
 
 ## 4. 模型转换
-模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
+导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
-模型编译前需要安装TPU-NNTC(>=3.1.0)，具体可参考[tpu-nntc环境搭建](../../docs/Environment_Install_Guide.md#2-tpu-nntc环境搭建)。
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
-### 4.1 生成fp32 bmodel
-模型编译为FP32 BModel，具体方法可参考[BMNETP 使用](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/nntc/html/usage/bmnetp.html)。
+- 生成FP32 BModel
 
-本例程在`scripts`目录下提供了编译FP32 BModel的脚本。请注意修改`gen_fp32bmodel.sh`中的模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684和BM1684X），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel.sh BM1684X
+./scripts/gen_fp32bmodel_mlir.sh bm1684
+#or
+./scripts/gen_fp32bmodel_mlir.sh bm1684x
 ```
-执行上述命令会在`data/models/BM1684X/`下生成`retinaface_mobilenet0.25_fp32_1b.bmodel、retinaface_mobilenet0.25_fp32_4b.bmodel、`文件，即转换好的FP32 BModel。
+
+​执行上述命令会在`data/models/BM1684`或`data/models/BM1684X/`下生成`retinaface_mobilenet0.25_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+
+- 生成FP16 BModel
+
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+
+```bash
+./scripts/gen_fp16bmodel_mlir.sh bm1684x
+```
+
+​执行上述命令会在`data/models/BM1684X/`下生成`retinaface_mobilenet0.25_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+
+- 生成INT8 BModel
+
+​本例程在`scripts`目录下提供了两种量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir_qtable.sh`和`gen_int8bmodel_mlir_sensitive_layer.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
+
+```shell
+./scripts/gen_int8bmodel_mlir_qtable.sh bm1684
+./scripts/gen_int8bmodel_mlir_sensitive_layer.sh bm1684
+#或
+./scripts/gen_int8bmodel_mlir_qtable.sh bm1684x
+./scripts/gen_int8bmodel_mlir_sensitive_layer.sh bm1684x
+```
+
+本例程在量化INT8 BModel使用了混合精度，可以修改`gen_int8bmodel_mlir_sensitive_layer.sh`中`--max_float_layers`参数或修改`gen_int8bmodel_mlir_qtable.sh`中`head`参数进一步提高模型精度，`head`参数可以提高后面参数值来使用更多的fp层。
+
+​上述脚本会在`data/models/BM1684`或`data/models/BM1684X/`下生成`retinaface_mobilenet0.25_int8_1b.bmodel`和`retinaface_mobilenet0.25_int8_4b.bmodel`等文件，即转换好的INT8 BModel。
 
 ## 5. 例程测试
 * [C++例程](cpp/README.md)
 * [Python例程](python/README.md)
+
+## 6. 性能测试
+可以使用bmrt_test测试模型的理论性能：
+```bash
+bmrt_test --bmodel {path_of_bmodel}
+```
+也可以参考[5. 例程测试](#5-例程测试)打印程序运行中的实际性能指标。  
+测试中性能指标存在一定的波动属正常现象。
+
+测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
+测试各个模型的理论推理时间，结果如下：
+
+|                      测试模型                    | calculate time(ms) |
+| ----------------------------------------------- | ----------------- |
+| BM1684/retinaface_mobilenet0.25_fp32_1b.bmodel  | 6.31               |
+| BM1684/retinaface_mobilenet0.25_int8_1b.bmodel  | 7.40               |
+| BM1684/retinaface_mobilenet0.25_int8_4b.bmodel  | 4.75               |
+| BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel | 3.81               |
+| BM1684X/retinaface_mobilenet0.25_fp16_1b.bmodel | 1.35               |
+| BM1684X/retinaface_mobilenet0.25_int8_1b.bmodel | 1.22               |
+| BM1684X/retinaface_mobilenet0.25_int8_4b.bmodel | 1.05               |
+
+> **测试说明**：  
+> 1. 性能测试结果具有一定的波动性；
+> 2. `calculate time`已折算为平均每张图片的推理时间；
+> 3. SoC和PCIe的测试结果基本一致。
