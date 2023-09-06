@@ -45,6 +45,7 @@ class SSD {
     int max_batch;
     int m_dev_id;
     TimeStamp *m_ts;
+    bm_tensor_t input_tensor;
     public:
         SSD(std::shared_ptr<BMNNContext> context, float conf_thre, float nms_thre, int m_dev_id);
         ~SSD();
