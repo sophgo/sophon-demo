@@ -91,7 +91,7 @@ Usage: yolov5_bmcv.pcie [params]
                 bmodel file path
         --classnames (value:../../datasets/coco.names)
                 class names file path
-        --conf_thresh (value:0.5)
+        --conf_thresh (value:0.001)
                 confidence threshold for filter boxes
         --dev_id (value:0)
                 TPU device id
@@ -99,7 +99,7 @@ Usage: yolov5_bmcv.pcie [params]
                 print help information.
         --input (value:../../datasets/test)
                 input path, images direction or video file path
-        --nms_thresh (value:0.5)
+        --nms_thresh (value:0.6)
                 iou threshold for nms
 ```
 > **注意：** CPP传参与python不同，需要用等于号，例如`./yolov5_bmcv.pcie --bmodel=xxx`。
