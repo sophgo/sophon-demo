@@ -107,5 +107,16 @@ python3 -m dfn --url http://219.142.246.77:65000/sharing/ThY1qIACq
 python3 -m dfn --url http://219.142.246.77:65000/sharing/K7iu7DeYG
 popd
 
+onnx_dir=$models_dir/onnx
+if [ ! -d "$onnx_dir" ]; then
+  echo "create models dir: $onnx_dir"
+  mkdir -p $onnx_dir
+fi
+
+pushd $onnx_dir
+python3 -m dfn --url http://disk-sophgo-vip.quickconnect.to/sharing/FqmNV8vvw
+python3 -m dfn --url http://disk-sophgo-vip.quickconnect.to/sharing/8MRP39JRq
+popd
+
 popd
 popd
