@@ -8,7 +8,7 @@ fi
 res=$(pip3 list|grep dfss)
 if [ $? != 0 ];
 then
-    pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple
+    pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 fi
 scripts_dir=$(dirname $(readlink -f "$0"))
 
