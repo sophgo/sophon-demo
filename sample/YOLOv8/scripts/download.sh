@@ -1,55 +1,34 @@
 #!/bin/bash
-pip3 install dfn==1.0.2
-# sudo apt install unzip
-
+res=$(dpkg -l|grep unzip)
+if [ $? != 0 ];
+then
+    echo "Please install unzip on your system!"
+    exit
+fi
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 scripts_dir=$(dirname $(readlink -f "$0"))
-# echo $scripts_dir
 
 pushd $scripts_dir
 # datasets
 if [ ! -d "../datasets" ]; 
 then
-    mkdir -p ../datasets/coco
-    # coco.names
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/Rul34bKDI
-    mv coco.names ../datasets
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/datasets_0918/datasets.zip
+    unzip datasets.zip -d ../
+    rm datasets.zip
 
-    # coco128.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/k7TnyA0kS
-    unzip coco128.zip -d ../datasets/
-    rm coco128.zip
-
-    # val2017_1000.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/rn5EXB0OF
-    unzip val2017_1000.zip -d ../datasets/coco
-    rm val2017_1000.zip
-
-    # instances_val2017_1000.json
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/nPWztHsTO
-    mv instances_val2017_1000.json ../datasets/coco
-
-    # test.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/WcrtDXMN6
-    unzip test.zip -d ../datasets/
-    rm test.zip
-
-    # # test_car_person_1080P.mp4
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/XyAx8A51K
-    mv test_car_person_1080P.mp4 ../datasets
-    
     echo "datasets download!"
 else
-    echo "datasets exist!"
+    echo "Datasets folder exist! Remove it if you need to update."
 fi
 
 # models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfn --url http://disk-sophgo-vip.quickconnect.cn/sharing/jVHGIR9uH
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8/models_0918/models.zip
     unzip models.zip -d ../
     rm models.zip
     echo "models download!"
 else
-    echo "models exist!"
+    echo "Models folder exist! Remove it if you need to update."
 fi
 popd
