@@ -5,18 +5,14 @@ then
     echo "Please install unzip on your system!"
     exit
 fi
-res=$(pip3 list|grep dfn)
-if [ $? != 0 ];
-then
-    pip3 install dfn
-fi
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 scripts_dir=$(dirname $(readlink -f "$0"))
 
 pushd $scripts_dir
 # datasets
 if [ ! -d "../datasets" ];
 then
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/ME5yZVVG3
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ByteTrack/datasets_0918/datasets.zip
     unzip datasets.zip -d ../
     rm datasets.zip
 
@@ -28,7 +24,7 @@ fi
 # models
 if [ ! -d "../models" ];
 then
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/Z59yeHxl2
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models_0918/models.zip
     unzip models.zip -d ../
     rm models.zip
     rm -rf ../models/onnx ../models/torch ../models/BM1684_ext ../models/BM1684X_ext
