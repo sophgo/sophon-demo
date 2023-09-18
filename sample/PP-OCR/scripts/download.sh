@@ -5,10 +5,10 @@ then
     echo "Please install unzip on your system!"
     exit
 fi
-res=$(pip3 list|grep dfn)
+res=$(pip3 list|grep dfss)
 if [ $? != 0 ];
 then
-    pip3 install dfn
+    pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple
 fi
 scripts_dir=$(dirname $(readlink -f "$0"))
 
@@ -16,7 +16,7 @@ pushd $scripts_dir
 # datasets
 if [ ! -d "../datasets" ]; 
 then
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/JWymbuanL
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/datasets_0918/datasets.zip
     unzip datasets.zip -d ../
     rm datasets.zip
 
@@ -28,10 +28,10 @@ fi
 # models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/NgoRmzlzW
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_0918/models.zip
     unzip models.zip -d ../
     rm models.zip
-    rm ../models/BM1684/ch_PP-OCRv3_*_int8.bmodel ../models/BM1684X/ch_PP-OCRv3_*_int8.bmodel
+    rm ../models/BM1684/ch_PP-OCRv3_*_int8.bmodel ../models/BM1684X/ch_PP-OCRv3_*_int8.bmodel #int8 has bad performance, if you want to test it, you can comment this line
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
