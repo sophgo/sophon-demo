@@ -17,7 +17,10 @@
 * [7. 性能测试](#7-性能测试)
   * [7.1 bmrt_test](#71-bmrt_test)
   * [7.2 程序运行性能](#72-程序运行性能)
-* [8. FAQ](#8-faq)
+* [8. YOLOv5 cpu opt](#8-yolov5-cpu-opt)
+  * [8.1 NMS优化项](#81-nms优化项)
+  * [8.2. 性能与精度测试](#82-性能与精度测试)
+* [9. FAQ](#9-faq)
   
 ## 1. 简介
 ​YOLOv5是非常经典的基于anchor的One Stage目标检测算法，因其优秀的精度和速度表现，在工程实践应用中获得了非常广泛的应用。本例程对[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)v6.1版本的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
@@ -30,6 +33,7 @@
 * 支持单batch和多batch模型推理
 * 支持1个输出和3个输出模型推理
 * 支持图片和视频测试
+* 支持NMS后处理CPU加速
  
 ## 3. 准备模型与数据
 建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型，如果您使用的tpu-mlir版本>=v1.3.0（即官网v23.07.01），可以直接使用torchscript模型。具体可参考[YOLOv5模型导出](./docs/YOLOv5_Export_Guide.md)。
@@ -135,7 +139,7 @@ pip3 install pycocotools
 python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/yolov5s_v6.1_3output_fp32_1b.bmodel_val2017_1000_opencv_python_result.json
 ```
 ### 6.2 测试结果
-在coco2017val_1000数据集上，精度测试结果如下：
+CPP设置`--use_cpu_opt=false`或python设置`--use_cpu_opt False`进行测试，在coco2017val_1000数据集上，精度测试结果如下：
 |   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ---------------- | ----------------------------------- | ------------- | -------- |
 | BM1684 PCIe  | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.377         | 0.580    |
@@ -192,7 +196,7 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
-在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
+CPP设置`--use_cpu_opt=false`或python设置`--use_cpu_opt False`进行测试，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
 |    测试平台  |     测试程序      |             测试模型                |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
 | BM1684 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 14.0     | 27.8          | 33.5          | 115       |
@@ -230,5 +234,43 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 > 3. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 
-## 8. FAQ
+## 8. YOLOv5 cpu opt
+本部分基于上述YOLOv5，优化了YOLOv5后处理NMS算法，在CPU上对其进行了加速。下面主要说明NMS后处理算法优化的内容和优化后性能精度结果。
+
+### 8.1. NMS优化项
+* 提前噪声anchor的过滤，放在其他所有操作前，后续操作只需要处理数量显著减少的候选框
+* 通过设置新阈值来优化掉anchor过滤中大量的sigmoid计算
+* 优化存储减少数据遍历，在解码输出时仅仅保留候选框坐标、置信度、最高类别分数和对应索引
+* 增大conf_thresh的值，过滤更多的噪声框
+* 去除其他一些冗余计算
+
+优化后NMS算法的时间瓶颈点在于模型输出的map大小，若尝试降低输出的map的高宽或通道数能够进一步降低NMS时间。
+ 
+### 8.2. 性能与精度测试
+
+在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.001，nms_thresh=0.6，NMS后处理算法改进前后性能测试结果如下：
+|    测试平台   |     测试程序      |             测试模型                | YOLOv5       | YOLOv5_cpu_opt|AP@IoU=0.5:0.95| 
+| ------------ | ---------------- | ----------------------------------- | ------------ | ------------- | ------------- |
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 23.53        | 7.57          | 0.331         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 21.75        | 5.83          | 0.331         |
+| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 212.82       | 22.01         | 0.332         |
+| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 209.50       | 21.80         | 0.327         |
+
+在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.01，nms_thresh=0.6，NMS后处理算法改进前后性能和精度测试结果如下：
+|    测试平台   |     测试程序      |             测试模型                | YOLOv5       | YOLOv5_cpu_opt|AP@IoU=0.5:0.95|
+| ------------ | ---------------- | ----------------------------------- | ------------ | ------------- | --------------|
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 20.46        | 5.92          | 0.329         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 18.58        | 4.16          | 0.329         |
+| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 122.28       | 8.75          | 0.330         |
+| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 116.11       | 8.69          | 0.325         |
+
+> **注意：** 由于sail实现的方式与CPP保持一致，所以python调用后有轻微掉点，但速度有较大的提升。
+
+> **测试说明**：  
+> 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
+> 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
+> 3. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz；
+> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+
+## 9. FAQ
 YOLOv5移植相关问题可参考[YOLOv5常见问题](./docs/YOLOv5_Common_Problems.md)，其他问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

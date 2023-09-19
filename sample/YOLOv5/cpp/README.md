@@ -101,8 +101,10 @@ Usage: yolov5_bmcv.pcie [params]
                 input path, images direction or video file path
         --nms_thresh (value:0.6)
                 iou threshold for nms
+        --use_cpu_opt (value:true)
+                accelerate cpu postprocess
 ```
-> **注意：** CPP传参与python不同，需要用等于号，例如`./yolov5_bmcv.pcie --bmodel=xxx`。
+> **注意：** CPP传参与python不同，需要用等于号，例如`./yolov5_bmcv.pcie --bmodel=xxx`。CPP和python目前都默认开启CPU后处理性能优化，为关闭该优化，CPP使用`--use_cpu_opt=false`。
 
 ### 3.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。

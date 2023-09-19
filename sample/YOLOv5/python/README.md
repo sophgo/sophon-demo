@@ -49,8 +49,12 @@ usage: yolov5_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 --bmodel: 用于推理的bmodel路径，默认使用stage 0的网络进行推理；
 --dev_id: 用于推理的tpu设备id；
 --conf_thresh: 置信度阈值；
---nms_thresh: nms阈值。
+--nms_thresh: nms阈值；
+--use_cpu_opt: 是否用CPU性能优化的后处理。
 ```
+
+> **注意：** CPP和python目前都默认开启CPU后处理性能优化，python调用的优化接口，依赖3.7.0版本之后的sophon-sail，如果您的sophon-sail版本没有该接口，可以添加参数`--use_cpu_opt False`来关闭该接口优化。
+
 ### 2.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash

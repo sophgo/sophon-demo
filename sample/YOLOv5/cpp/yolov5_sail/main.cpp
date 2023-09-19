@@ -29,7 +29,8 @@ int main(int argc, char* argv[]) {
         "{nms_thresh | 0.6 | iou threshold for nms}"
         "{help | 0 | print help information.}"
         "{input | ../../datasets/test | input path, images direction or video file path}"
-        "{classnames | ../../datasets/coco.names | class names file path}";
+        "{classnames | ../../datasets/coco.names | class names file path}"
+        "{use_cpu_opt | true | accelerate cpu postprocess}";
     cv::CommandLineParser parser(argc, argv, keys);
     if (parser.get<bool>("help")) {
         parser.printMessage();
@@ -38,6 +39,7 @@ int main(int argc, char* argv[]) {
     string bmodel_file = parser.get<string>("bmodel");
     string input = parser.get<string>("input");
     int dev_id = parser.get<int>("dev_id");
+    bool use_cpu_opt = parser.get<bool>("use_cpu_opt");
 
     // check params
     struct stat info;
@@ -61,7 +63,7 @@ int main(int argc, char* argv[]) {
     cout << "set device id: " << dev_id << endl;
 
     // initialize net
-    YoloV5 yolov5(dev_id, bmodel_file);
+    YoloV5 yolov5(dev_id, bmodel_file, use_cpu_opt);
     CV_Assert(0 == yolov5.Init(parser.get<float>("conf_thresh"), parser.get<float>("nms_thresh"), coco_names));
 
     // profiling

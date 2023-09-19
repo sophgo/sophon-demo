@@ -16,6 +16,7 @@ import sophon.sail as sail
 from postprocess_numpy import PostProcess
 from utils import COLORS, COCO_CLASSES
 import logging
+import ast
 logging.basicConfig(level=logging.INFO)
 # sail.set_print_flag(1)
 
@@ -37,17 +38,28 @@ class YOLOv5:
         
         self.conf_thresh = args.conf_thresh
         self.nms_thresh = args.nms_thresh
+        if args.use_cpu_opt:
+            self.use_cpu_opt = args.use_cpu_opt
+        else:
+            self.use_cpu_opt = False
         self.agnostic = False
         self.multi_label = True
         self.max_det = 1000
         
-        self.postprocess = PostProcess(
-            conf_thresh=self.conf_thresh,
-            nms_thresh=self.nms_thresh,
-            agnostic=self.agnostic,
-            multi_label=self.multi_label,
-            max_det=self.max_det,
-        )
+        if self.use_cpu_opt:
+            self.handle = sail.Handle(args.dev_id)
+            self.output_shapes = []
+            for output_name in self.output_names:
+                output_shape = self.net.get_output_shape(self.graph_name, output_name)
+                self.output_shapes.append(output_shape)
+        else:
+            self.postprocess = PostProcess(
+                conf_thresh=self.conf_thresh,
+                nms_thresh=self.nms_thresh,
+                agnostic=self.agnostic,
+                multi_label=self.multi_label,
+                max_det=self.max_det,
+            )
         
         self.preprocess_time = 0.0
         self.inference_time = 0.0
@@ -119,26 +131,36 @@ class YOLOv5:
         input_data = {self.input_name: input_img}
         outputs = self.net.process(self.graph_name, input_data)
         
-        # resort
-        out_keys = list(outputs.keys())
-        ord = []
-        for n in self.output_names:
-            for i, k in enumerate(out_keys):
-                if n == k:
-                    ord.append(i)
-                    break
-        out = [outputs[out_keys[i]][:img_num] for i in ord]
+        if self.use_cpu_opt:
+            out = {}
+            for name in outputs.keys():
+                # outputs_dict[name] = self.output_tensors[name].asnumpy()[:img_num] * self.output_scales[name]
+                out[name] = sail.Tensor(self.handle, outputs[name])
+        else:
+            # resort
+            out_keys = list(outputs.keys())
+            ord = []
+            for n in self.output_names:
+                for i, k in enumerate(out_keys):
+                    if n == k:
+                        ord.append(i)
+                        break
+            out = [outputs[out_keys[i]][:img_num] for i in ord]
         return out
     
     def __call__(self, img_list):
         img_num = len(img_list)
         ori_size_list = []
+        ori_w_list = []
+        ori_h_list = []
         preprocessed_img_list = []
         ratio_list = []
         txy_list = []
         for ori_img in img_list:
             ori_h, ori_w = ori_img.shape[:2]
             ori_size_list.append((ori_w, ori_h))
+            ori_w_list.append(ori_w)
+            ori_h_list.append(ori_h)
             start_time = time.time()
             preprocessed_img, ratio, (tx1, ty1) = self.preprocess(ori_img)
             self.preprocess_time += time.time() - start_time
@@ -157,7 +179,12 @@ class YOLOv5:
         self.inference_time += time.time() - start_time
         
         start_time = time.time()
-        results = self.postprocess(outputs, ori_size_list, ratio_list, txy_list)
+        if self.use_cpu_opt:
+            cpu_opt_process = sail.algo_yolov5_post_cpu_opt(self.output_shapes)
+            results = cpu_opt_process.process(outputs, ori_w_list, ori_h_list, [self.conf_thresh]*self.batch_size, [self.nms_thresh]*self.batch_size, True, True)
+            results = np.array(results)
+        else:
+            results = self.postprocess(outputs, ori_size_list, ratio_list, txy_list)
         self.postprocess_time += time.time() - start_time
 
         return results
@@ -241,7 +268,13 @@ def main(args):
                     for i, filename in enumerate(filename_list):
                         det = results[i]
                         # save image
-                        res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                        if args.use_cpu_opt:
+                            if len(det.shape) > 1:
+                                res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -2], conf_scores=det[:, -1])
+                            else:
+                                res_img = img_list[i]
+                        else:
+                            res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
                         cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
                         
                         # save result
@@ -250,7 +283,10 @@ def main(args):
                         res_dict['bboxes'] = []
                         for idx in range(det.shape[0]):
                             bbox_dict = dict()
-                            x1, y1, x2, y2, score, category_id = det[idx]
+                            if args.use_cpu_opt:
+                                x1, y1, x2, y2, category_id, score = det[idx]
+                            else:
+                                x1, y1, x2, y2, score, category_id = det[idx]
                             bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2 - x1,3)), float(round(y2 -y1, 3))]
                             bbox_dict['category_id'] = int(category_id)
                             bbox_dict['score'] = float(round(score,5))
@@ -297,7 +333,10 @@ def main(args):
                     det = results[i]
                     cn += 1
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
-                    res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                    if args.use_cpu_opt:
+                        res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -2], conf_scores=det[:, -1])
+                    else:
+                        res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
                     out.write(res_frame)
                 frame_list.clear()
         cap.release()
@@ -325,6 +364,7 @@ def argsparser():
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--conf_thresh', type=float, default=0.001, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.6, help='nms threshold')
+    parser.add_argument('--use_cpu_opt', type=ast.literal_eval, default=True, help='accelerate cpu postprocess')
     args = parser.parse_args()
     return args
 

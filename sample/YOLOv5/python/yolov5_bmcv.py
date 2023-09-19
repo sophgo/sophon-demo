@@ -43,6 +43,7 @@ class YOLOv5:
         
         self.output_tensors = {}
         self.output_scales = {}
+        self.output_shapes = []
         for output_name in self.output_names:
             output_shape = self.net.get_output_shape(self.graph_name, output_name)
             output_dtype = self.net.get_output_dtype(self.graph_name, output_name)
@@ -50,6 +51,7 @@ class YOLOv5:
             output = sail.Tensor(self.handle, output_shape, output_dtype, True, True)
             self.output_tensors[output_name] = output
             self.output_scales[output_name] = output_scale
+            self.output_shapes.append(output_shape)
         
         # check batch size 
         self.batch_size = self.input_shape[0]
@@ -67,6 +69,10 @@ class YOLOv5:
         # init postprocess
         self.conf_thresh = args.conf_thresh
         self.nms_thresh = args.nms_thresh
+        if args.use_cpu_opt:
+            self.use_cpu_opt = args.use_cpu_opt
+        else:
+            self.use_cpu_opt = False
         self.agnostic = False
         self.multi_label = True
         self.max_det = 1000
@@ -154,29 +160,36 @@ class YOLOv5:
         """
         input_tensors = {self.input_name: input_tensor} 
         self.net.process(self.graph_name, input_tensors, self.input_shapes, self.output_tensors)
-        outputs_dict = {}
-        for name in self.output_names:
-            # outputs_dict[name] = self.output_tensors[name].asnumpy()[:img_num] * self.output_scales[name]
-            outputs_dict[name] = self.output_tensors[name].asnumpy()[:img_num]
-        # resort
-        out_keys = list(outputs_dict.keys())
-        ord = []
-        for n in self.output_names:
-            for i, k in enumerate(out_keys):
-                if n in k:
-                    ord.append(i)
-                    break
-        out = [outputs_dict[out_keys[i]] for i in ord]
+        if self.use_cpu_opt:
+            out = self.output_tensors
+        else:
+            outputs_dict = {}
+            for name in self.output_names:
+                # outputs_dict[name] = self.output_tensors[name].asnumpy()[:img_num] * self.output_scales[name]
+                outputs_dict[name] = self.output_tensors[name].asnumpy()[:img_num]
+            # resort
+            out_keys = list(outputs_dict.keys())
+            ord = []
+            for n in self.output_names:
+                for i, k in enumerate(out_keys):
+                    if n in k:
+                        ord.append(i)
+                        break
+            out = [outputs_dict[out_keys[i]] for i in ord]
         return out
 
     def __call__(self, bmimg_list):
         img_num = len(bmimg_list)
         ori_size_list = []
+        ori_w_list = []
+        ori_h_list = []
         ratio_list = []
         txy_list = []
         if self.batch_size == 1:
             ori_h, ori_w =  bmimg_list[0].height(), bmimg_list[0].width()
             ori_size_list.append((ori_w, ori_h))
+            ori_w_list.append(ori_w)
+            ori_h_list.append(ori_h)
             start_time = time.time()      
             preprocessed_bmimg, ratio, txy = self.preprocess_bmcv(bmimg_list[0])
             self.preprocess_time += time.time() - start_time
@@ -192,6 +205,8 @@ class YOLOv5:
             for i in range(img_num):
                 ori_h, ori_w =  bmimg_list[i].height(), bmimg_list[i].width()
                 ori_size_list.append((ori_w, ori_h))
+                ori_w_list.append(ori_w)
+                ori_h_list.append(ori_h)
                 start_time = time.time()
                 preprocessed_bmimg, ratio, txy  = self.preprocess_bmcv(bmimg_list[i])
                 self.preprocess_time += time.time() - start_time
@@ -206,7 +221,12 @@ class YOLOv5:
         self.inference_time += time.time() - start_time
         
         start_time = time.time()
-        results = self.postprocess(outputs, ori_size_list, ratio_list, txy_list)
+        if self.use_cpu_opt:
+            cpu_opt_process = sail.algo_yolov5_post_cpu_opt(self.output_shapes)
+            results = cpu_opt_process.process(outputs, ori_w_list, ori_h_list, [self.conf_thresh]*self.batch_size, [self.nms_thresh]*self.batch_size, True, True)
+            results = np.array(results)
+        else:
+            results = self.postprocess(outputs, ori_size_list, ratio_list, txy_list)
         self.postprocess_time += time.time() - start_time
 
         return results
@@ -288,7 +308,11 @@ def main(args):
                         det = results[i]
                         # save image
                         save_path = os.path.join(output_img_dir, filename)
-                        draw_bmcv(bmcv, bmimg_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
+                        if args.use_cpu_opt:
+                            if len(det.shape) > 1:
+                                draw_bmcv(bmcv, bmimg_list[i], det[:,:4], classes_ids=det[:, -2], conf_scores=det[:, -1], save_path=save_path)
+                        else:
+                            draw_bmcv(bmcv, bmimg_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
                         
                         # save result
                         res_dict = dict()
@@ -296,7 +320,10 @@ def main(args):
                         res_dict['bboxes'] = []
                         for idx in range(det.shape[0]):
                             bbox_dict = dict()
-                            x1, y1, x2, y2, score, category_id = det[idx]
+                            if args.use_cpu_opt:
+                                x1, y1, x2, y2, category_id, score = det[idx]
+                            else:
+                                x1, y1, x2, y2, score, category_id = det[idx]
                             bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2 - x1,3)), float(round(y2 -y1, 3))]
                             bbox_dict['category_id'] = int(category_id)
                             bbox_dict['score'] = float(round(score,5))
@@ -340,7 +367,10 @@ def main(args):
                     cn += 1
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
                     save_path = os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg')
-                    draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
+                    if args.use_cpu_opt:
+                        draw_bmcv(bmcv, bmimg_list[i], det[:,:4], classes_ids=det[:, -2], conf_scores=det[:, -1], save_path=save_path)
+                    else:
+                        draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
                 frame_list.clear()
         decoder.release()
         logging.info("result saved in {}".format(output_img_dir))
@@ -366,6 +396,7 @@ def argsparser():
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--conf_thresh', type=float, default=0.001, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.6, help='nms threshold')
+    parser.add_argument('--use_cpu_opt', type=bool, default=True, help='accelerate cpu postprocess')
     args = parser.parse_args()
     return args
 
