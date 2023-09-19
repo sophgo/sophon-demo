@@ -115,6 +115,9 @@ Usage: yolov5_bmcv.pcie [params]
 
 ![res](../pics/zidane_cpp_bmcv.jpg)
 
+> **注意**：  
+> 1.cpp例程暂时没有在图片上写字。
+
 ### 3.3 测试视频
 视频测试实例如下，支持对视频流进行测试。
 ```bash

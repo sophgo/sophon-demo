@@ -780,11 +780,11 @@ void YoloV5::NMS(YoloV5BoxVec& dets, float nmsConfidence) {
 
     std::sort(dets.begin(), dets.end(), [](const YoloV5Box& a, const YoloV5Box& b) { return a.score < b.score; });
 
-    std::vector<float> areas(length);
+        std::vector<float> areas(length);
     for (int i = 0; i < length; i++) {
         areas[i] = dets[i].width * dets[i].height;
     }
-
+    
     while (index > 0) {
         int i = 0;
         while (i < index) {
@@ -794,9 +794,9 @@ void YoloV5::NMS(YoloV5BoxVec& dets, float nmsConfidence) {
             float bottom = std::min(dets[index].y + dets[index].height, dets[i].y + dets[i].height);
             float overlap = std::max(0.0f, right - left + 0.00001f) * std::max(0.0f, bottom - top + 0.00001f);
             if (overlap / (areas[index] + areas[i] - overlap) > nmsConfidence) {
-                areas.erase(areas.begin() + i);
-                dets.erase(dets.begin() + i);
-                index--;
+    areas.erase(areas.begin() + i);
+    dets.erase(dets.begin() + i);
+    index--;
             } else {
                 i++;
             }
@@ -852,7 +852,13 @@ void YoloV5::draw_bmcv(int classId,
     int crop_h = MAX(MIN(height, frame.height() - top), 0);
     auto color_tuple = std::make_tuple(colors[classId % colors_num][2], colors[classId % colors_num][1],
                                        colors[classId % colors_num][0]);
-    bmcv->rectangle(frame, start_x, start_y, crop_w, crop_h, color_tuple, 3);
+    int thickness = 2;
+    if(width < thickness * 2 || height < thickness * 2){
+        std::cout << "width or height too small, this rect will not be drawed: " << 
+              "[" << start_x << ", "<< start_y << ", " << crop_w << ", " << crop_h << "]" << std::endl;
+    } else{
+        bmcv->rectangle(frame, start_x, start_y, crop_w, crop_h, color_tuple, thickness);
+    }
     if (put_text_flag) {  // only support YUV420P, puttext not used here.
         std::string label = m_class_names[classId] + ":" + cv::format("%.2f", conf);
         if (BM_SUCCESS != bmcv->putText(frame, label.c_str(), left, top, color_tuple, 2, 2)) {

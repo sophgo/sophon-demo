@@ -448,7 +448,7 @@ int VideoDecFFM::openCodecContext(int* stream_idx,
     }
 
     /* find decoder for the stream */
-    decoder = avcodec_find_decoder(st->codecpar->codec_id);
+    decoder = const_cast<AVCodec*>(avcodec_find_decoder(st->codecpar->codec_id));
 
     if (!decoder) {
         av_log(NULL, AV_LOG_FATAL, "Failed to find %s codec\n", av_get_media_type_string(type));
@@ -776,7 +776,7 @@ bm_status_t jpgDec(bm_handle_t& handle, uint8_t* bs_buffer, int numBytes, bm_ima
     pFormatCtx->pb = avio_ctx;
 
     /* mjpeg demuxer */
-    iformat = av_find_input_format("mjpeg");
+    iformat = const_cast<AVInputFormat*>(av_find_input_format("mjpeg"));
     if (iformat == NULL) {
         av_log(NULL, AV_LOG_ERROR, "av_find_input_format failed.\n");
         ret = BM_ERR_FAILURE;
@@ -792,7 +792,8 @@ bm_status_t jpgDec(bm_handle_t& handle, uint8_t* bs_buffer, int numBytes, bm_ima
     }
 
     /* HW JPEG decoder: jpeg_bm */
-    pCodec = hardware_decode ? avcodec_find_decoder_by_name("jpeg_bm") : avcodec_find_decoder_by_name("mjpeg");
+    pCodec = hardware_decode ? const_cast<AVCodec*>(avcodec_find_decoder_by_name("jpeg_bm")) 
+                             : const_cast<AVCodec*>(avcodec_find_decoder_by_name("mjpeg"));
     if (pCodec == NULL) {
         av_log(NULL, AV_LOG_ERROR, "Codec not found.\n");
         ret = BM_ERR_FAILURE;

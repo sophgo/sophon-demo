@@ -22,18 +22,18 @@ A series of Python demos are provided under the python directory, the details ar
 
 If you have installed a PCIe accelerator card (such as SC series accelerator card) on the x86/arm platform and use it to test these demos, you need to install libsophon, sophon-opencv, sophon-ffmpeg and sophon-sail. For specific steps, please refer to [Construction of Development and Runtime Environment of x86-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#3-x86-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of arm-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#5-arm-pcie-platform-development-and-runtime-environment-construction).
 
-In addition, you may need to install other third-party libraries:
+In addition, you need to install other third-party libraries:
 ```bash
-pip3 install 'opencv-python-headless<4.3'
+pip3 install opencv-python-headless
 ```
 
 ### 1.2 SoC Platform
 
 If you use the SoC platform (such as SE, SM series edge devices), the corresponding libsophon, sophon-opencv and sophon-ffmpeg runtime packages have been pre-installed under `/opt/sophon/` after resetting the operating system. You also need to cross compile and install sophon-sail, for details, please refer to [Cross Compile and Install sophon-sail](../../../docs/Environment_Install_Guide_EN.md#42-cross-compiling-and-sophon-sail-installation)。
 
-In addition, you may need to install other third-party libraries:
+In addition, you need to install other third-party libraries:
 ```bash
-pip3 install 'opencv-python-headless<4.3'
+pip3 install opencv-python-headless<4.3
 ```
 
 ## 2. Inference Test
@@ -61,6 +61,9 @@ python3 python/yolov5_opencv.py --input datasets/test --bmodel models/BM1684/yol
 After the test, the predicted image will be saved in `results/images`, the predicted result will be saved in `results/yolov5s_v6.1_3output_fp32_1b.bmodel_test_opencv_python_result.json`, and information such as predicted results and inference time will be printed at the same time.
 
 ![res](../pics/zidane_python_opencv.jpg)
+> **Note**：  
+> 1.cpp example do not write on frame.
+
 
 ### 2.3 Video Test Demo
 The video test demo is as follows, which supports testing of video streams. The model supports fp32bmodel and int8bmodel, supports BM1684 and BM1684X, and supports single batch size or multiple batch sizes. Users can run model testing by passing in the corresponding model path parameters.
@@ -68,3 +71,4 @@ The video test demo is as follows, which supports testing of video streams. The 
 python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 --use_cpu_opt
 ```
 After the test, the predicted results will be drawn in `results/test_car_person_1080P.avi`, and information such as predicted results and inference time will be printed at the same time.
+`yolov5_bmcv.py` do not save results as video, it will save results as images in `results/images` instead. 

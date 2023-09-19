@@ -110,7 +110,8 @@ The image test demo is as follows. It supports testing the entire image folder. 
 ./yolov5_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id=0 --conf_thresh=0.5 --nms_thresh=0.5 --obj_thresh=0.5 --classnames=../../datasets/coco.names 
 ```
 After the test, the predicted images will be saved in `results/images`, the predicted results will be saved in `results/yolov5s_v6.1_3output_fp32_1b.bmodel_test_bmcv_cpp_result.json`, and the prediction results, inference time and other information will be printed at the same time.
-
+> **Note**：  
+> 1.cpp example do not write on frame.
 
 ![res](../pics/zidane_cpp_bmcv.jpg)
 

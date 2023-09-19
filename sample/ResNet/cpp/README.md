@@ -27,7 +27,7 @@ cpp目录下提供了一系列C++例程以供参考使用，具体情况如下�
 如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
 
 ## 2. 程序编译
-C++程序运行前需要编译可执行文件。
+C++程序运行前需要编译可执行文件，opencv和bmcv例程编译方法相同。
 ### 2.1 x86/arm PCIe平台
 可以直接在PCIe平台上编译程序：
 
@@ -58,7 +58,7 @@ cd ..
 对于PCIe平台，可以直接在PCIe平台上推理测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据拷贝到SoC平台中测试。测试的参数及运行方式是一致的，下面主要以PCIe模式进行介绍。
 
 ### 3.1 参数说明
-可执行程序默认有一套参数，请注意根据实际情况进行传参，`resnet_bmcv.pcie与resnet_sail.pcie参数相同。`具体参数说明如下：
+可执行程序默认有一套参数，请注意根据实际情况进行传参，`resnet_bmcv.pcie与resnet_opencv.pcie参数相同。`具体参数说明如下：
 
 ```bash
 usage:./resnet_opencv.pcie [params]

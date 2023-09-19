@@ -12,12 +12,12 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include "json.hpp"
-#include "opencv2/opencv.hpp"
+// #include "opencv2/opencv.hpp"
 #include "ff_decode.hpp"
 #include "yolov5.hpp"
 using json = nlohmann::json;
 using namespace std;
-
+#define WITH_ENCODE 1
 int main(int argc, char *argv[]){
   cout.setf(ios::fixed);
   // get params
@@ -97,6 +97,7 @@ int main(int argc, char *argv[]){
         }
     }
     closedir(pDir);
+    std::sort(files_vector.begin(), files_vector.end());
 
     vector<bm_image> batch_imgs;
     vector<string> batch_names;
@@ -126,6 +127,7 @@ int main(int argc, char *argv[]){
 
         for(int i = 0; i < batch_imgs.size(); i++){
           vector<json> bboxes_json;
+        #if WITH_ENCODE
           if (batch_imgs[i].image_format != 0){
             bm_image frame;
             bm_image_create(h, batch_imgs[i].height, batch_imgs[i].width, FORMAT_YUV420P, batch_imgs[i].data_type, &frame);
@@ -133,6 +135,7 @@ int main(int argc, char *argv[]){
             bm_image_destroy(batch_imgs[i]);
             batch_imgs[i] = frame;
           }
+        #endif
           for (auto bbox : boxes[i]) {
 #if DEBUG
             cout << "  class id=" << bbox.class_id << ", score = " << bbox.score << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")" << endl;
@@ -153,6 +156,7 @@ int main(int argc, char *argv[]){
           results_json.push_back(res_json);
 
           // save image
+        #if WITH_ENCODE
           void* jpeg_data = NULL;
           size_t out_size = 0;
           int ret = bmcv_image_jpeg_enc(h, 1, &batch_imgs[i], &jpeg_data, &out_size);
@@ -163,6 +167,7 @@ int main(int argc, char *argv[]){
             fclose(fp);
           }
           free(jpeg_data);
+        #endif
           bm_image_destroy(batch_imgs[i]);
         }
         batch_imgs.clear();

@@ -194,24 +194,24 @@ void RESNET::pre_process_image(const cv::Mat& img, std::vector<cv::Mat> *input_c
   } else {
     sample_resized = sample;
   }
-  cv::Mat sample_resized_rgb(cv::SophonDevice(this->m_dev_id));
+  cv::Mat sample_resized_rgb(m_net_h, m_net_w, CV_8UC3, cv::SophonDevice(this->m_dev_id));
   cv::cvtColor(sample_resized, sample_resized_rgb, cv::COLOR_BGR2RGB);
 
-  cv::Mat sample_float(cv::SophonDevice(this->m_dev_id));
+  cv::Mat sample_float(m_net_h, m_net_w, CV_32FC3, cv::SophonDevice(this->m_dev_id));
   sample_resized_rgb.convertTo(sample_float, CV_32FC3);
 
-  cv::Mat sample_multiply(cv::SophonDevice(this->m_dev_id));
-  cv::Mat sample_normalized(cv::SophonDevice(this->m_dev_id));
+  cv::Mat sample_multiply(m_net_h, m_net_w, CV_32FC3, cv::SophonDevice(this->m_dev_id));
+  cv::Mat sample_normalized(m_net_h, m_net_w, CV_32FC3, cv::SophonDevice(this->m_dev_id));
   cv::multiply(sample_float, m_std, sample_multiply);
   cv::add(sample_multiply, m_mean, sample_normalized);
 
-  // /*note: int8 in convert need mul input_scale*/
+  // // /*note: int8 in convert need mul input_scale*/
   if (m_input_tensor->get_dtype() == BM_INT8) {
-    cv::Mat sample_int8(cv::SophonDevice(this->m_dev_id));
+    cv::Mat sample_int8(m_net_h, m_net_w, CV_8SC1, cv::SophonDevice(this->m_dev_id));
     sample_normalized.convertTo(sample_int8, CV_8SC1, input_scale);
     cv::split(sample_int8, *input_channels);
   } else {
-    cv::Mat sample_fp32(cv::SophonDevice(this->m_dev_id));
+    cv::Mat sample_fp32(m_net_h, m_net_w, CV_32FC3, cv::SophonDevice(this->m_dev_id));
     sample_normalized.convertTo(sample_fp32, CV_32FC3, input_scale);
     cv::split(sample_fp32, *input_channels);
   }
