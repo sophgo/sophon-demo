@@ -37,6 +37,7 @@ class YoloV5 {
   //configuration
   float m_confThreshold= 0.5;
   float m_nmsThreshold = 0.5;
+  bool use_cpu_opt;
 
   std::vector<std::string> m_class_names;
   int m_class_num = 80; // default is coco names
@@ -51,13 +52,14 @@ class YoloV5 {
   private:
   int pre_process(const std::vector<bm_image>& images);
   int post_process(const std::vector<bm_image>& images, std::vector<YoloV5BoxVec>& boxes);
+  int post_process_cpu_opt(const std::vector<bm_image> &images, std::vector<YoloV5BoxVec>& detected_boxes);
   int argmax(float* data, int dsize);
   static float get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool *alignWidth);
   static float sigmoid(float x);
   void NMS(YoloV5BoxVec &dets, float nmsConfidence);
 
   public:
-  YoloV5(std::shared_ptr<BMNNContext> context);
+  YoloV5(std::shared_ptr<BMNNContext> context, bool use_cpu_opt=true);
   virtual ~YoloV5();
   int Init(float confThresh=0.5, float nmsThresh=0.5, const std::string& coco_names_file="");
   void enableProfile(TimeStamp *ts);
