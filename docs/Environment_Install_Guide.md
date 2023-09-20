@@ -221,6 +221,11 @@ source /etc/profile
 需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号，参考sophon-sail文档，选择您需要的部分(C++/Python，SOC MODE)进行安装。
 官网sophon-sail文档链接：https://doc.sophgo.com/sdk-docs/v23.05.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#sail
 
+在您按照教程将sophon-sail的库文件拷贝到目标soc上之后，您还需要设置以下环境变量：
+```bash
+sudo echo "export LD_LIBRARY_PATH=/opt/sophon/sophon-sail/lib/:$LD_LIBRARY_PATH" >> ~/.bashrc
+source ~/.bashrc
+```
 ## 5 arm PCIe平台的开发和运行环境搭建
 如果您在arm平台安装了PCIe加速卡，开发环境与运行环境可以是统一的，您可以直接在宿主机上搭建开发和运行环境。
 这里提供银河麒麟v10机器的环境安装方法，其他类型机器具体请参考官网开发手册。

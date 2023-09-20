@@ -222,6 +222,11 @@ If the demo depends on sophon-sail, you need to compile and install sophon-sail,
 Refer to docs in sophon-sail，choose the part you need (C++/Python，PCIE MODE) to install。
 Official sophon-sail guide link：https://doc.sophgo.com/sdk-docs/v23.05.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#sail
 
+After you have followed the tutorial and copied the library files of Sophon Sail to the target SoC, you also need to set the following environment variables:
+```bash
+sudo echo "export LD_LIBRARY_PATH=/opt/sophon/sophon-sail/lib/:$LD_LIBRARY_PATH" >> ~/.bashrc
+source ~/.bashrc
+```
 ## 5 arm PCIe Platform Development and Runtime Environment Construction
 If you have installed PCIe accelerator card in arm platform, the development environment and running environment can be unified, you can directly build the development and running environment on the host.
 Here we provide the environment installation method for NeoKylin v10 machine, other types of machines please refer to the official development manual for details.
