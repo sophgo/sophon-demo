@@ -19,7 +19,8 @@ ChatGLM2-6B 是开源中英双语对话模型 ChatGLM-6B 的第二代版本,相�
 
 该例程可以在下x86上正常运行，如果要在盒子上运行程序，除了编译外还需要修改内存，也可以使用我么们提供的刷机包，里面内置chatglm2_soc版本的程序，刷机包地址如下：
 ```
-http://219.142.246.77:65000/sharing/Gf5Nvrv0D
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+python3 -m dfss --url=open@sophgo.com:sophon-demo/chatglm/sdcard_chatglm2.zip
 ```
 
 ## 2. 准备模型
