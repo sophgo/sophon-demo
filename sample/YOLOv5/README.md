@@ -32,7 +32,7 @@
 * 支持图片和视频测试
  
 ## 3. 准备模型与数据
-建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。具体可参考[YOLOv5模型导出](./docs/YOLOv5_Export_Guide.md)。
+建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型，如果您使用的tpu-mlir版本>=v1.3.0（即官网v23.07.01），可以直接使用torchscript模型。具体可参考[YOLOv5模型导出](./docs/YOLOv5_Export_Guide.md)。
 
 ​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 

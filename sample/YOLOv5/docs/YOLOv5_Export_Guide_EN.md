@@ -49,3 +49,15 @@ python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include onnx -
 ```
 
 The script generates the exported onnx model in the directory where the original pt model resides. After the export, you can modify the model name to distinguish between different versions and output types.For example,`yolov5s_v6.1_3output.onnx`represents an onnx model with 3 outputs.
+
+### 2.3 Export Torchscript models
+The Pytorch model must go through `torch.jit.trace` before compiling, and the traced model can be compiled BModel using tpu-nntc. The official YOLOv5 repository provides the model export script `export.py`, which can be used directly to export torchscript models:
+
+```bash
+# The following script may be adjusted according to the different version of YOLOv5, please refer to the official repository description
+python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include torchscript
+```
+
+The above script will generate the exported torchscript model in the same directory as the original pt model, and after exporting, you can modify the model name to distinguish different versions and output types, such as `yolov5s.pt` to represent a JIT model with 3 convolution outputs.
+
+Note: It is recommended that exported models be suffixed with '.pt' to avoid errors in subsequent model compilation quantization.

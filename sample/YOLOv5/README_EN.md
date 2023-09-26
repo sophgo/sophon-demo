@@ -30,7 +30,7 @@ YOLOv5 is a very classical One Stage target detection algorithm based on anchor.
 * Support for picture and video testing
  
 ## 3. Prepare Models and Data
-It is recommended to use TPU-MLIR to compile BModel, Pytorch model to export to onnx model before compilation. For more information, please see [YOLOv5 Model Export](./docs/YOLOv5_Export_Guide_EN.md).
+It is recommended to use TPU-MLIR to compile BModel, Pytorch model to export to onnx model before compilation, if the tpu-mlir version you are using is >= v1.3.0 (i.e. official website v23.07.01), you can use the torchscript model directly. For more information, please see [YOLOv5 Model Export](./docs/YOLOv5_Export_Guide_EN.md).
 
 At the same time, you need to prepare a dataset for testing and, if you quantify the model, a dataset for quantification.
 
