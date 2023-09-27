@@ -61,7 +61,7 @@ class DeepSort(object):
     @staticmethod
     def _xywh_to_tlwh(bbox_xywh):
         bbox_tlwh = bbox_xywh.copy()
-        if bbox_tlwh is not None:
+        if len(bbox_tlwh):
             bbox_tlwh[:, 0] = bbox_xywh[:, 0] - bbox_xywh[:, 2]/2.
             bbox_tlwh[:, 1] = bbox_xywh[:, 1] - bbox_xywh[:, 3]/2.
             return bbox_tlwh
