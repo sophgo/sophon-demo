@@ -15,7 +15,7 @@ function gen_mlir()
 {
     model_transform.py \
         --model_name resnet50_$1b \
-        --model_def ../models/onnx/resnet50_dynamic.onnx \
+        --model_def ../models/torch/resnet50-11ad3fa6.torchscript.pt \
         --input_shapes [[$1,3,224,224]] \
         --keep_aspect_ratio \
         --pixel_format rgb  \
