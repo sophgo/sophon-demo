@@ -20,7 +20,7 @@ function gen_mlir()
 {
     model_transform.py \
         --model_name resnet50_$1b \
-        --model_def ../models/onnx/resnet50_$1b.onnx \
+        --model_def ../models/onnx/resnet50_dynamic.onnx \
         --input_shapes [[$1,3,224,224]] \
         --keep_aspect_ratio \
         --pixel_format rgb  \
