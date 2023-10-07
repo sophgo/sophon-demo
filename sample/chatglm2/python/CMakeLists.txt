@@ -25,7 +25,7 @@ if (${TARGET_ARCH} STREQUAL "pcie")
 
     set(PYBIND11_PYTHON_VERSION 3.7)
     add_definitions(-DDEBUG --std=c++17 -fPIC -Wall -Werror)
-    set(pybind11_DIR "/home/zhiyuanzhang/.local/lib/python3.8/site-packages/pybind11/share/cmake/pybind11")
+    set(pybind11_DIR "/usr/local/lib/python3.8/dist-packages/pybind11/share/cmake/pybind11")
     find_package(pybind11 REQUIRED CONFIG)
     pybind11_add_module(ChatGLM2 pybind.cpp)
     
@@ -60,7 +60,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
          COMMAND sudo ln -s ${source_file} ${target_link}
      )
  
-    set(pybind11_DIR "/home/zhiyuanzhang/.local/lib/python3.8/site-packages/pybind11/share/cmake/pybind11")
+    set(pybind11_DIR "/usr/local/lib/python3.8/dist-packages/pybind11/share/cmake/pybind11")
     find_package(pybind11 REQUIRED CONFIG)
     pybind11_add_module(ChatGLM2 pybind.cpp)
 

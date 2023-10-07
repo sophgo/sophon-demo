@@ -18,7 +18,7 @@ then
     mkdir -p ../models/BM1684X
     pushd ../models/BM1684X
     python3 -m dfss --url=open@sophgo.com:sophon-demo/chatglm/models/BM1684X/chatglm2-6b.bmodel
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/chatglm/models/BM1684X/tokenizer.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/chatglm/models/BM1684X/tokenizer.model
     popd
     echo "models download!"
 else
