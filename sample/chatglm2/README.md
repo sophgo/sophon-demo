@@ -21,11 +21,11 @@ ChatGLM2-6B 是开源中英双语对话模型 ChatGLM-6B 的第二代版本,相�
 
 NPU:7615 MiB
 
-VPN:2944 MiB 
+VPU:2944 MiB 
 
 VPP:4096 MiB
 
-[内存布局](./pic/memory.png)
+![内存布局](./pic/memory.png)
 
 ### 2.1 方式二
 直接使用我么们提供的刷机包，刷机包已经完成环境部署，并且内置chatglm2_soc版本的程序，刷机包地址如下：
