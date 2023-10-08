@@ -1,5 +1,5 @@
 #!/bin/bash
-pip3 install dfn
+pip3 install dfss
 # sudo apt install unzip
 
 scripts_dir=$(dirname $(readlink -f "$0"))
@@ -9,33 +9,9 @@ pushd $scripts_dir
 # datasets
 if [ ! -d "../datasets" ]; 
 then
-    mkdir -p ../datasets/coco
-    # coco.names
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/Rul34bKDI
-    mv coco.names ../datasets
-
-    # test.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/kHaKmNrSm
-    unzip test.zip -d ../datasets/
-    rm test.zip
-
-    # test_car_person_1080P.mp4
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/XyAx8A51K
-    mv test_car_person_1080P.mp4 ../datasets
-
-    # coco128.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/k7TnyA0kS
-    unzip coco128.zip -d ../datasets/
-    rm coco128.zip
-
-    # val2017_1000.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/rn5EXB0OF
-    unzip val2017_1000.zip -d ../datasets/coco
-    rm val2017_1000.zip
-
-    # instances_val2017_1000.json
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/nPWztHsTO
-    mv instances_val2017_1000.json ../datasets/coco
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/datasets_0918/datasets.zip
+    unzip datasets.zip -d ../
+    rm datasets.zip
 
     echo "datasets download!"
 else
@@ -45,8 +21,8 @@ fi
 # models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfn --url http://disk-sophgo-vip.quickconnect.cn/sharing/jwvSp4E5t
-    unzip models.zip -d ../
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOX/models_0918/models.zip
+    unzip models.zip -d ../models
     rm models.zip
     echo "models download!"
 else
