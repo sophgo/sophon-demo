@@ -49,7 +49,7 @@ int map_avformat_to_bmformat(int avformat);
 /**
  * @brief convert avformat to bm_image.
  */
-bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame *in, bm_image *out, bool is_jpeg);
+bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame *in, bm_image *out, bool is_jpeg, bool data_on_device_mem);
 
 /**
  * @brief picture decode. support jpg and png
