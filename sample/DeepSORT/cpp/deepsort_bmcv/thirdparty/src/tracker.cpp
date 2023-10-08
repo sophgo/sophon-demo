@@ -141,7 +141,7 @@ void tracker::_initiate_track(const DETECTION_ROW& detection) {
     KAL_COVA covariance = data.second;
 
     this->tracks.push_back(
-        Track(mean, covariance, this->_next_idx, detection.class_id, this->n_init, this->max_age, detection.feature, k_feature_dim));
+        Track(mean, covariance, this->_next_idx, detection.class_id, detection.tlwh, this->n_init, this->max_age, detection.feature, k_feature_dim));
     _next_idx += 1;
 }
 
