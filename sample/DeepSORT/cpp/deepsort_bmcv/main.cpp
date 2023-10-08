@@ -268,6 +268,10 @@ int main(int argc, char* argv[]) {
 #if USE_OPENCV_DRAW_BOX
                 cv::Mat frame_to_draw;
                 cv::bmcv::toMAT(&batch_imgs[i], frame_to_draw);
+                // for (auto bbox : yolov5_boxes[i]) {
+                //     draw_opencv(-1, 0, bbox.score, bbox.x, bbox.y, bbox.x + bbox.width,
+                //                 bbox.y + bbox.height, frame_to_draw);
+                // }
                 for (auto bbox : track_boxes) {
                     draw_opencv(bbox.track_id, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.x + bbox.width,
                                 bbox.y + bbox.height, frame_to_draw);

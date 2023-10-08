@@ -7,6 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 #include "deepsort.h"
+#define USE_ORIGIN_BOX 0
 DeepSort::DeepSort(std::shared_ptr<BMNNContext> context,const deepsort_params& params) {
     std::cout << "deepsort ctor .." << std::endl;
     featureExtractor = new FeatureExtractor(context);
@@ -55,7 +56,11 @@ void DeepSort::sort(bm_image& frame, vector<YoloV5Box>& dets, vector<TrackBox>& 
                 if ((!track.is_confirmed() || track.time_since_update > 1) && frame_id > 2) { //when frame_id < 2, there is no track.
                     continue;
                 }
+            #if USE_ORIGIN_BOX
+                DETECTBOX k = track.origin_box;
+            #else
                 DETECTBOX k = track.to_tlwh();
+            #endif
                 TrackBox tmp(k(0), k(1), k(2), k(3), 1., track.class_id, track.track_id);
                 track_boxs.push_back(tmp);
             }

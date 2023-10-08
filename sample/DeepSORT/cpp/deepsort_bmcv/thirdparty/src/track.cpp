@@ -5,6 +5,7 @@ Track::Track(KAL_MEAN& mean,
              KAL_COVA& covariance,
              int track_id,
              int class_id,
+             DETECTBOX origin_box,
              int n_init,
              int max_age,
              const FEATURE& feature,
@@ -13,6 +14,7 @@ Track::Track(KAL_MEAN& mean,
     this->covariance = covariance;
     this->track_id = track_id;
     this->class_id = class_id;
+    this->origin_box = origin_box;
     this->hits = 1;
     this->age = 1;
     this->time_since_update = 0;
@@ -44,7 +46,7 @@ void Track::update(KalmanFilter* const kf, const DETECTION_ROW& detection) {
     KAL_DATA pa = kf->update(this->mean, this->covariance, detection.to_xyah());
     this->mean = pa.first;
     this->covariance = pa.second;
-
+    this->origin_box = detection.tlwh;
     featuresAppendOne(detection.feature);
     //    this->features.row(features.rows()) = detection.feature;
     this->hits += 1;
