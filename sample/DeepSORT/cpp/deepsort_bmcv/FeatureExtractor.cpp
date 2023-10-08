@@ -60,9 +60,9 @@ void FeatureExtractor::Init() {
     converto_attr.alpha_0 = input_scale / 0.229;
     converto_attr.beta_0 = -0.485 / 0.229;
     converto_attr.alpha_1 = input_scale / 0.224;
-    converto_attr.beta_1 = -0.456 / 0.229;
+    converto_attr.beta_1 = -0.456 / 0.224;
     converto_attr.alpha_2 = input_scale / 0.225;
-    converto_attr.beta_2 = -0.406 / 0.229;
+    converto_attr.beta_2 = -0.406 / 0.225;
 }
 int FeatureExtractor::batch_size() {
     return max_batch;

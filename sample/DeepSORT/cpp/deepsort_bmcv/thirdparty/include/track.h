@@ -58,6 +58,7 @@ class Track {
           KAL_COVA& covariance,
           int track_id,
           int class_id,
+          DETECTBOX origin_box,
           int n_init,
           int max_age,
           const FEATURE& feature,
@@ -69,6 +70,7 @@ class Track {
     bool is_deleted();
     bool is_tentative();
     DETECTBOX to_tlwh();
+    DETECTBOX origin_box;
     int time_since_update;
     int track_id;
     int class_id;
