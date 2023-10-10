@@ -161,29 +161,24 @@ sail_array = sail_tensor.asnumpy()
 - pytorch原代码运行环境：需安装opencv-python、torchvision>=0.11.2、pytorch>=1.10.1
 - 移植代码运行环境：在PCIe模式下使用官网所提供的Docker镜像和SophonSDK，并安装Sophon Inference。
 
-**相关文件下载：**
-
-- pytorch原代码resnet_torch.py：http://219.142.246.77:65000/sharing/6KVmeVpej
-
-- 用于加载和对比数据的原代码resnet_torch_new.py：https://disk.sophgo.vip/sharing/GIFpZSEzF
-
-- 对齐前的移植代码resnet_sail.py：https://disk.sophgo.vip/sharing/maM2NLMud
-
-- 用于保存操作数据的移植代码resnet_sail_new.py：https://disk.sophgo.vip/sharing/1Lr9cBJwc
-
-- 对齐后的移植代码resnet_sail_align.py：https://disk.sophgo.vip/sharing/lHimf3GhS
-
-- trace后的原模型resnet18_traced.pt：http://219.142.246.77:65000/sharing/WPblk1NYM
-
-- 转换后的FP32 BModel：http://219.142.246.77:65000/sharing/FrtjihMtJ
-
-- 测试图片test.jpg：http://219.142.246.77:65000/sharing/J2XRl3jIN
-
-可通过以下方式下载：
+**相关文件可通过以下方式下载：**
 ```bash
-sudo pip3 install dfn
-python3 -m dfn --url http://219.142.246.77:65000/sharing/6KVmeVpej
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+python3 -m dfss --url=open@sophgo.com:sophon-demo/common/bmodel_align.zip
+unzip bmodel_align.zip
 ```
+**`bmodel_align`文件夹中的各个文件介绍如下：**
+```bash
+├── resnet_torch.py #pytorch源代码
+├── resnet_torch_new.py #用于加载和对比数据的源代码
+├── resnet_sail.py #对齐前的移植代码
+├── resnet_sail_new.py #用于保存操作数据的移植代码
+├── resnet_sail_align.py #对齐后的移植代码
+├── resnet18_fp32_b1.bmodel #转换后的FP32 BModel
+├── resnet18_traced.pt #trace后的原模型
+└── test.jpg #测试图片
+```
+
 **复现步骤：**
 
 - 步骤一：下载相关文件，可在`TPU-NNTC`开发环境中编译FP32 BModel模型，也可直接使用转换后的FP32 BModel。
