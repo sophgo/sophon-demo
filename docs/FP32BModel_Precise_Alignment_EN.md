@@ -167,28 +167,22 @@ sail_array = sail_tensor.asnumpy()
 - PyTorch original code running environment: opencv-python, torchvision>=0.11.2, pytorch>=1.10.1 are required.
 - Porting code running environment: SophonSDK and Sophon Inference need to be installed using the Docker image provided on the official website, and it needs to be run in PCIe mode.
 
-**Related file download:**
-
-- Pytorch original code `resnet_torch.py`：http://219.142.246.77:65000/sharing/6KVmeVpej
-
-- Code for loading and comparing data `resnet_torch_new.py`：https://disk.sophgo.vip/sharing/GIFpZSEzF
-
-- The original code for resnet `resnet_torch.py`：https://disk.sophgo.vip/sharing/maM2NLMud
-
-- Code for saving operation data in the migrated program `resnet_sail_new.py`：https://disk.sophgo.vip/sharing/1Lr9cBJwc
-
-- Aligned version of the ported code `resnet_sail_align.py`：https://disk.sophgo.vip/sharing/lHimf3GhS
-
-- Traced Model `resnet18_traced.pt`：http://219.142.246.77:65000/sharing/WPblk1NYM
-
-- Converted FP32 BModel：http://219.142.246.77:65000/sharing/FrtjihMtJ
-
-- Test picture `test.jpg`：http://219.142.246.77:65000/sharing/J2XRl3jIN
-
-You can download it through the following ways:
+**Download our test pack：**
 ```bash
-sudo pip3 install dfn
-python3 -m dfn --url http://219.142.246.77:65000/sharing/6KVmeVpej
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+python3 -m dfss --url=open@sophgo.com:sophon-demo/common/bmodel_align.zip
+unzip bmodel_align.zip
+```
+**files in directory `bmodel_align`：**
+```bash
+├── resnet_torch.py #pytorch source code
+├── resnet_torch_new.py #source code for load and compare data
+├── resnet_sail.py #original sail code for resnet
+├── resnet_sail_new.py #code for saving operation data
+├── resnet_sail_align.py #i/o data aligned code
+├── resnet18_fp32_b1.bmodel #FP32 BModel
+├── resnet18_traced.pt # torchscript model
+└── test.jpg #test image
 ```
 
 **Reproduction Steps**
