@@ -55,7 +55,7 @@ chmod -R +x scripts/
 │   └── ppyolov3_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
 │   
 └── onnx
-    ├── ppyolov3.onnx              # 导出的onnx模型   
+    ├── ppyolov3_1b.onnx           # 导出的1batch onnx模型   
     └── ppyolov3_4b.onnx           # 导出的4batch onnx模型    
 ```
 下载的数据包括：
@@ -70,7 +70,7 @@ chmod -R +x scripts/
 ```
 
 ## 4. 模型编译
-导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。如果您使用BM1684芯片，建议使用TPU-NNTC编译BModel；如果您使用BM1684X芯片，建议使用TPU-MLIR编译BModel。
+导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
 模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
@@ -84,7 +84,7 @@ chmod -R +x scripts/
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
 ```
 
-​执行上述命令会在`models/BM1684X/`下生成`ppyolov3_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`ppyolov3_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
@@ -106,7 +106,7 @@ chmod -R +x scripts/
 ./scripts/gen_int8bmodel_mlir.sh bm1684x
 ```
 
-​上述脚本会在`models/BM1684X`下生成`ppyolov3_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+​上述脚本会在`models/BM1684`或`models/BM1684X`下生成`ppyolov3_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 
 ## 5. 例程测试
@@ -128,11 +128,17 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 在coco2017val_1000数据集上，精度测试结果如下：
 |   测试平台   |      测试程序      |         测试模型        |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ------------------ | ----------------------- | ------------- | -------- |
-| BM1684 PCIe  | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel | 0.289         | 0.580    |
+| BM1684 PCIe  | ppyolov3_opencv.py | ppyolov3_fp32_1b.bmodel | 0.290         | 0.560    |
+| BM1684 PCIe  | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel | 0.267         | 0.536    |
+| BM1684 PCIe  | ppyolov3_bmcv.py   | ppyolov3_fp32_1b.bmodel | 0.289         | 0.559    |
 | BM1684 PCIe  | ppyolov3_bmcv.py   | ppyolov3_int8_1b.bmodel | 0.267         | 0.538    |
-| BM1684X PCIe | ppyolov3_opencv.py | ppyolov3_fp32_1b.bmodel | 0.305         | 0.591    |
-| BM1684X PCIe | ppyolov3_opencv.py | ppyolov3_fp16_1b.bmodel | 0.305         | 0.591    |
-| BM1684X PCIe | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel | 0.300         | 0.586    |
+| BM1684 PCIe  | ppyolov3_sail.pcie | ppyolov3_fp32_1b.bmodel | 0.282         | 0.554    |
+| BM1684 PCIe  | ppyolov3_sail.pcie | ppyolov3_int8_1b.bmodel | 0.258         | 0.525    |
+| BM1684 PCIe  | ppyolov3_bmcv.pcie | ppyolov3_fp32_1b.bmodel | 0.278         | 0.546    |
+| BM1684 PCIe  | ppyolov3_bmcv.pcie | ppyolov3_int8_1b.bmodel | 0.255         | 0.525    |
+| BM1684X PCIe | ppyolov3_opencv.py | ppyolov3_fp32_1b.bmodel | 0.290         | 0.560    |
+| BM1684X PCIe | ppyolov3_opencv.py | ppyolov3_fp16_1b.bmodel | 0.290         | 0.560    |
+| BM1684X PCIe | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel | 0.286         | 0.554    |
 | BM1684X PCIe | ppyolov3_bmcv.py   | ppyolov3_fp32_1b.bmodel | 0.289         | 0.559    |
 | BM1684X PCIe | ppyolov3_bmcv.py   | ppyolov3_fp16_1b.bmodel | 0.289         | 0.559    |
 | BM1684X PCIe | ppyolov3_bmcv.py   | ppyolov3_int8_1b.bmodel | 0.282         | 0.551    |
@@ -178,21 +184,33 @@ bmrt_test --bmodel models/BM1684/ppyolov3_fp32_1b.bmodel
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 |    测试平台 |     测试程序       |        测试模型         |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ------------------ | ----------------------- | --------- | ---------- | ----------- | ----------- |
-| BM1684 SoC  | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel | 3.75      | 59.37      | 59.68       | 99.58       |
+| BM1684 SoC  | ppyolov3_opencv.py | ppyolov3_fp32_1b.bmodel | 15.14     | 27.39      | 86.29       | 109.66      |
+| BM1684 SoC  | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel | 15.12     | 27.45      | 59.93       | 108.58      |
+| BM1684 SoC  | ppyolov3_opencv.py | ppyolov3_int8_4b.bmodel | 15.02     | 27.21      | 23.77       | 110.88      |
+| BM1684 SoC  | ppyolov3_bmcv.py   | ppyolov3_fp32_1b.bmodel | 3.58      | 2.24       | 83.10       | 108.04      |
 | BM1684 SoC  | ppyolov3_bmcv.py   | ppyolov3_int8_1b.bmodel | 3.55      | 2.23       | 56.66       | 107.76      |
-| BM1684 SoC  | ppyolov3_bmcv.soc  | ppyolov3_int8_1b.bmodel | 4.54      | 1.82       | 51.38       | 17.72       |
-| BM1684X SoC | ppyolov3_opencv.py | ppyolov3_fp32_1b.bmodel | 6.08      | 14.12      | 173.25      | 21.58       |
+| BM1684 SoC  | ppyolov3_bmcv.py   | ppyolov3_int8_4b.bmodel | 3.42      | 2.10       | 19.66       | 111.24      |
+| BM1684 SoC  | ppyolov3_sail.soc  | ppyolov3_fp32_1b.bmodel | 3.27      | 3.16       | 78.69       | 15.83       |
+| BM1684 SoC  | ppyolov3_sail.soc  | ppyolov3_int8_1b.bmodel | 3.30      | 3.15       | 52.26       | 15.80       |
+| BM1684 SoC  | ppyolov3_sail.soc  | ppyolov3_int8_4b.bmodel | 3.10      | 3.18       | 15.79       | 15.82       |
+| BM1684 SoC  | ppyolov3_bmcv.soc  | ppyolov3_fp32_1b.bmodel | 5.00      | 1.57       | 77.81       | 17.42       |
+| BM1684 SoC  | ppyolov3_bmcv.soc  | ppyolov3_int8_1b.bmodel | 5.05      | 1.57       | 51.38       | 17.39       |
+| BM1684 SoC  | ppyolov3_bmcv.soc  | ppyolov3_int8_4b.bmodel | 4.96      | 1.50       | 15.00       | 17.27       |
 | BM1684X SoC | ppyolov3_opencv.py | ppyolov3_fp16_1b.bmodel | 5.31      | 13.84      | 28.99       | 15.47       |
 | BM1684X SoC | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel | 5.28      | 13.43      | 19.88       | 13.32       |
-| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_fp32_1b.bmodel | 3.80      | 1.79       | 176.08      | 19.43       |
-| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_fp16_1b.bmodel | 3.96      | 1.83       | 25.00       | 17.59       |
-| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_int8_1b.bmodel | 3.89      | 1.77       | 15.65       | 14.36       |
-| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp32_1b.bmodel | 3.93      | 1.53       | 173.80      | 12.80       |
-| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp16_1b.bmodel | 3.89      | 1.54       | 22.61       | 12.78       |
-| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_int8_1b.bmodel | 3.86      | 1.49       | 13.54       | 12.64       |
-| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_fp32_1b.bmodel | 4.43      | 1.16       | 169.99      | 17.66       |
+| BM1684X SoC | ppyolov3_opencv.py | ppyolov3_int8_4b.bmodel | 3.50      | 8.75       | 21.73       | 15.87       |
+| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_fp32_1b.bmodel | 4.43      | 2.05       | 151.47      | 19.75       |
+| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_fp16_1b.bmodel | 4.60      | 2.10       | 23.85       | 18.12       |
+| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_int8_1b.bmodel | 4.56      | 2.08       | 16.83       | 15.93       |
+| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_int8_4b.bmodel | 4.27      | 2.01       | 15.83       | 16.41       |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp32_1b.bmodel | 3.93      | 1.53       | 148.40      | 12.80       |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp16_1b.bmodel | 3.89      | 1.54       | 20.21       | 12.78       |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_int8_1b.bmodel | 3.86      | 1.49       | 13.08       | 12.64       |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_int8_4b.bmodel | 3.85      | 1.79       | 12.87       | 8.88        |
+| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_fp32_1b.bmodel | 4.71      | 1.27       | 142.17      | 19.02       |
 | BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_fp16_1b.bmodel | 4.43      | 1.16       | 17.75       | 17.77       |
-| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_int8_1b.bmodel | 4.38      | 1.15       | 7.36        | 17.33       |
+| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_int8_1b.bmodel | 4.66      | 1.26       | 7.11        | 17.33       |
+| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_int8_4b.bmodel | 3.99      | 0.99       | 8.69        | 13.96       |
 
 
 > **测试说明**：  

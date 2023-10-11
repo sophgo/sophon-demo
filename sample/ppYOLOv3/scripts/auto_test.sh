@@ -245,10 +245,18 @@ then
     test_cpp pcie sail ppyolov3_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie sail ppyolov3_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv ppyolov3_int8_1b.bmodel 0.289
-    eval_python opencv ppyolov3_int8_4b.bmodel 0.289
-    eval_python bmcv ppyolov3_int8_1b.bmodel 0.267
-    eval_python bmcv ppyolov3_int8_4b.bmodel 0.267
+    eval_python opencv ppyolov3_fp32_1b.bmodel 0.2897385416651297
+    eval_python opencv ppyolov3_int8_1b.bmodel 0.2670986111804413
+    eval_python opencv ppyolov3_int8_4b.bmodel 0.26683264909232307
+    eval_python opencv ppyolov3_fp32_1b.bmodel 0.2893453872928928
+    eval_python bmcv ppyolov3_int8_1b.bmodel 0.26682032217352863
+    eval_python bmcv ppyolov3_int8_4b.bmodel 0.2653748797273236
+    eval_cpp pcie bmcv ppyolov3_fp32_1b.bmodel 0.27750373504736486
+    eval_cpp pcie bmcv ppyolov3_int8_1b.bmodel 0.2553557635395907
+    eval_cpp pcie bmcv ppyolov3_int8_4b.bmodel 0.25664622393508835
+    eval_cpp pcie sail ppyolov3_fp32_1b.bmodel 0.28171607462473214 
+    eval_cpp pcie sail ppyolov3_int8_1b.bmodel 0.2580853494695403 
+    eval_cpp pcie sail ppyolov3_int8_4b.bmodel 0.25636971441396483 
 
   elif test $TARGET = "BM1684X"
   then
@@ -269,22 +277,22 @@ then
     test_cpp pcie sail ppyolov3_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie sail ppyolov3_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv ppyolov3_fp32_1b.bmodel 0.305
-    eval_python opencv ppyolov3_fp16_1b.bmodel 0.305
-    eval_python opencv ppyolov3_int8_1b.bmodel 0.300
-    eval_python opencv ppyolov3_int8_4b.bmodel 0.300
-    eval_python bmcv ppyolov3_fp32_1b.bmodel 0.289
-    eval_python bmcv ppyolov3_fp16_1b.bmodel 0.289 
-    eval_python bmcv ppyolov3_int8_1b.bmodel 0.282
-    eval_python bmcv ppyolov3_int8_4b.bmodel 0.282
-    eval_cpp pcie bmcv ppyolov3_fp32_1b.bmodel 0.281
-    eval_cpp pcie bmcv ppyolov3_fp16_1b.bmodel 0.281
-    eval_cpp pcie bmcv ppyolov3_int8_1b.bmodel 0.274
-    eval_cpp pcie bmcv ppyolov3_int8_4b.bmodel 0.274
-    eval_cpp pcie sail ppyolov3_fp32_1b.bmodel 0.279 
-    eval_cpp pcie sail ppyolov3_fp16_1b.bmodel 0.278
-    eval_cpp pcie sail ppyolov3_int8_1b.bmodel 0.273 
-    eval_cpp pcie sail ppyolov3_int8_4b.bmodel 0.273 
+    eval_python opencv ppyolov3_fp32_1b.bmodel 0.28984093790678683
+    eval_python opencv ppyolov3_fp16_1b.bmodel 0.29006015224718007
+    eval_python opencv ppyolov3_int8_1b.bmodel 0.2856906988645913
+    eval_python opencv ppyolov3_int8_4b.bmodel 0.28518108739338366
+    eval_python bmcv ppyolov3_fp32_1b.bmodel 0.2888312711373306
+    eval_python bmcv ppyolov3_fp16_1b.bmodel 0.2892043456884715 
+    eval_python bmcv ppyolov3_int8_1b.bmodel 0.2824018245198323
+    eval_python bmcv ppyolov3_int8_4b.bmodel 0.2836965000893051
+    eval_cpp pcie bmcv ppyolov3_fp32_1b.bmodel 0.2788263370876941
+    eval_cpp pcie bmcv ppyolov3_fp16_1b.bmodel 0.2783117313920001
+    eval_cpp pcie bmcv ppyolov3_int8_1b.bmodel 0.27266243708292265
+    eval_cpp pcie bmcv ppyolov3_int8_4b.bmodel 0.27458104444826575
+    eval_cpp pcie sail ppyolov3_fp32_1b.bmodel 0.2812390581038994 
+    eval_cpp pcie sail ppyolov3_fp16_1b.bmodel 0.281455823221261
+    eval_cpp pcie sail ppyolov3_int8_1b.bmodel 0.27368030864894427 
+    eval_cpp pcie sail ppyolov3_int8_4b.bmodel 0.2746226844736633 
   fi
 elif test $MODE = "soc_build"
 then
@@ -312,10 +320,18 @@ then
     test_cpp soc sail ppyolov3_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc sail ppyolov3_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv ppyolov3_int8_1b.bmodel 0.289
-    eval_python opencv ppyolov3_int8_4b.bmodel 0.289
-    eval_python bmcv ppyolov3_int8_1b.bmodel 0.267
-    eval_python bmcv ppyolov3_int8_4b.bmodel 0.267
+    eval_python opencv ppyolov3_fp32_1b.bmodel 0.2897385416651297
+    eval_python opencv ppyolov3_int8_1b.bmodel 0.2670986111804413
+    eval_python opencv ppyolov3_int8_4b.bmodel 0.26683264909232307
+    eval_python opencv ppyolov3_fp32_1b.bmodel 0.2893453872928928
+    eval_python bmcv ppyolov3_int8_1b.bmodel 0.26682032217352863
+    eval_python bmcv ppyolov3_int8_4b.bmodel 0.2653748797273236
+    eval_cpp soc bmcv ppyolov3_fp32_1b.bmodel 0.27750373504736486
+    eval_cpp soc bmcv ppyolov3_int8_1b.bmodel 0.2553557635395907
+    eval_cpp soc bmcv ppyolov3_int8_4b.bmodel 0.25664622393508835
+    eval_cpp soc sail ppyolov3_fp32_1b.bmodel 0.28171607462473214 
+    eval_cpp soc sail ppyolov3_int8_1b.bmodel 0.2580853494695403 
+    eval_cpp soc sail ppyolov3_int8_4b.bmodel 0.25636971441396483 
   elif test $TARGET = "BM1684X"
   then
     test_python opencv ppyolov3_fp32_1b.bmodel datasets/test
@@ -335,22 +351,22 @@ then
     test_cpp soc sail ppyolov3_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc sail ppyolov3_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
     
-    eval_python opencv ppyolov3_fp32_1b.bmodel 0.305
-    eval_python opencv ppyolov3_fp16_1b.bmodel 0.305
-    eval_python opencv ppyolov3_int8_1b.bmodel 0.300
-    eval_python opencv ppyolov3_int8_4b.bmodel 0.300
-    eval_python bmcv ppyolov3_fp32_1b.bmodel 0.289
-    eval_python bmcv ppyolov3_fp16_1b.bmodel 0.289 
-    eval_python bmcv ppyolov3_int8_1b.bmodel 0.282
-    eval_python bmcv ppyolov3_int8_4b.bmodel 0.282
-    eval_cpp pcie bmcv ppyolov3_fp32_1b.bmodel 0.281
-    eval_cpp pcie bmcv ppyolov3_fp16_1b.bmodel 0.281
-    eval_cpp pcie bmcv ppyolov3_int8_1b.bmodel 0.274
-    eval_cpp pcie bmcv ppyolov3_int8_4b.bmodel 0.274
-    eval_cpp pcie sail ppyolov3_fp32_1b.bmodel 0.279 
-    eval_cpp pcie sail ppyolov3_fp16_1b.bmodel 0.278
-    eval_cpp pcie sail ppyolov3_int8_1b.bmodel 0.273 
-    eval_cpp pcie sail ppyolov3_int8_4b.bmodel 0.273 
+    eval_python opencv ppyolov3_fp32_1b.bmodel 0.28984093790678683
+    eval_python opencv ppyolov3_fp16_1b.bmodel 0.29006015224718007
+    eval_python opencv ppyolov3_int8_1b.bmodel 0.2856906988645913
+    eval_python opencv ppyolov3_int8_4b.bmodel 0.28518108739338366
+    eval_python bmcv ppyolov3_fp32_1b.bmodel 0.2888312711373306
+    eval_python bmcv ppyolov3_fp16_1b.bmodel 0.2892043456884715 
+    eval_python bmcv ppyolov3_int8_1b.bmodel 0.2824018245198323
+    eval_python bmcv ppyolov3_int8_4b.bmodel 0.2836965000893051
+    eval_cpp soc bmcv ppyolov3_fp32_1b.bmodel 0.2788263370876941
+    eval_cpp soc bmcv ppyolov3_fp16_1b.bmodel 0.2783117313920001
+    eval_cpp soc bmcv ppyolov3_int8_1b.bmodel 0.27266243708292265
+    eval_cpp soc bmcv ppyolov3_int8_4b.bmodel 0.27458104444826575
+    eval_cpp soc sail ppyolov3_fp32_1b.bmodel 0.2812390581038994 
+    eval_cpp soc sail ppyolov3_fp16_1b.bmodel 0.281455823221261
+    eval_cpp soc sail ppyolov3_int8_1b.bmodel 0.27368030864894427 
+    eval_cpp soc sail ppyolov3_int8_4b.bmodel 0.2746226844736633 
   fi
 fi
 
