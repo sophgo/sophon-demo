@@ -15,7 +15,7 @@ function gen_mlir()
 {
     model_transform.py \
         --model_name ppyolov3 \
-        --model_def ../models/onnx/ppyolov3.onnx \
+        --model_def ../models/onnx/ppyolov3_$1b.onnx \
         --input_shapes [[$1,3,608,608]] \
         --output_names Transpose_0,Transpose_2,Transpose_4 \
         --mean 123.675,116.28,103.53 \
@@ -47,8 +47,9 @@ if [ ! -d $outdir ]; then
 fi
 # batch_size=1
 gen_mlir 1
+gen_cali_table 1
 gen_int8bmodel 1
 # batch_size=4
-#gen_mlir 4
-#gen_int8bmodel 4
+gen_mlir 4
+gen_int8bmodel 4
 popd
