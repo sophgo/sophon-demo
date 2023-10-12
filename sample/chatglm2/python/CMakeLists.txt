@@ -82,7 +82,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc_base")
     
     add_definitions(-DDEBUG --std=c++17 -fPIC -Wall -Werror)
 
-    set(pybind11_DIR "/home/linaro/.local/lib/python3.8/site-packages/pybind11/share/cmake/pybind11")
+    set(pybind11_DIR "/usr/local/lib/python3.8/dist-packages/pybind11/share/cmake/pybind11")
     
     find_package(pybind11 REQUIRED CONFIG)
     pybind11_add_module(ChatGLM2 pybind.cpp)

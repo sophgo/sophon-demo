@@ -13,15 +13,15 @@
 ## 1. 简介
 ChatGLM2-6B 是开源中英双语对话模型 ChatGLM-6B 的第二代版本,相比于初代模型，具有更强大的性能，更长的上下文，更高的推理性能和更开放的协议，ChatGLM2-6B 权重对学术研究完全开放。
 
-该例程提供了三个版本,分别是C++、python、python_web版本，三个版本可以独立运行，支持在插有1684X系列加速卡的x86主机上运行，也可以SE7上运行。其中在SE7上运行需要额外进行环境配置，请参照[SE7下运行环境准备](#2-se7下运行环境准备)完成环境部署。
+该例程支持在SDK0301及以上的版本上运行，提供了三个版本,分别是C++、python、python_web版本，三个版本可以独立运行，支持在插有1684X系列加速卡的x86主机上运行，也可以SE7上运行。其中在SE7上运行需要额外进行环境配置，请参照[SE7下运行环境准备](#2-se7下运行环境准备)完成环境部署。
 
 ## 2. SE7下运行环境准备
 ### 2.1 方式一
 这是最推荐的方式，通过修改SE7的内存，使得满足chatGLM2运行条件。首先，下载根据[修改工具](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/SophonSDK_doc/zh/html/appendix/2_mem_edit_tools.html)将SE7的内存修改为：
 
-NPU:7615 MiB
+NPU:7360 MiB
 
-VPU:2944 MiB 
+VPU:2560 MiB 
 
 VPP:4096 MiB
 
@@ -33,8 +33,7 @@ VPP:4096 MiB
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 python3 -m dfss --url=open@sophgo.com:sophon-demo/chatglm/sdcard_chatglm2.zip
 ```
-在完成刷机后，代码程序在`/data`目录下。当然，还是建议您使用sophon-demo下的程序,它是最新版本的。
-
+刷机方式可以参考[刷机问题](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/faq/html/devices/SOC/soc_firmware_update.html?highlight=%E5%88%B7%E6%9C%BA),在完成刷机后，代码程序在`/data`目录下。当然，还是建议您使用sophon-demo下的程序,它是最新版本的。
 
 ## 3. 准备模型
 该模型目前只支持在1684X上运行，由于原始模型巨大，此示例暂不提供模型编译脚本，直接提供编译好的bmodel。如果需要进行模型编译，可以参考[sophgo
