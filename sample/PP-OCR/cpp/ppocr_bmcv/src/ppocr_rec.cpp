@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string>
 #include <map>
+#include <numeric>
 
 #include "ppocr_rec.hpp"
 PPOCR_Rec::PPOCR_Rec(std::shared_ptr<BMNNContext> context):m_bmContext(context)
@@ -142,7 +143,7 @@ int PPOCR_Rec::Init(const std::string &label_path)
     return 0;
 }
 
-int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &boxes_vec, std::vector<std::pair<int, int>> ids){
+int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &boxes_vec, std::vector<std::pair<int, int>> ids, bool beam_search, int beam_size){
     std::map<int, std::vector<bm_image>> rec_img_map;
     std::map<int, std::vector<std::pair<int, int>>> rec_id_map;
     int ret = 0;
@@ -184,7 +185,7 @@ int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &b
                 m_ts->save("(per crop)Rec inference", batch_images.size());
 
                 m_ts->save("(per crop)Rec postprocess", batch_images.size());
-                assert(0 == post_process(results));
+                assert(0 == post_process(results, beam_search, beam_size));
                 m_ts->save("(per crop)Rec postprocess", batch_images.size());
                 assert(max_batch == results.size());
                 for(int j = 0; j < results.size(); j++){
@@ -220,7 +221,7 @@ int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &b
             m_ts->save("(per crop)Rec inference", batch_images.size());
 
             m_ts->save("(per crop)Rec postprocess", batch_images.size());
-            assert(0 == post_process(results));
+            assert(0 == post_process(results, beam_search, beam_size));
             m_ts->save("(per crop)Rec postprocess", batch_images.size());
             for(int j = 0; j < batch_size_tmp; j++){
                 boxes_vec[batch_ids[j].first][batch_ids[j].second].rec_res = results[j].first;
@@ -238,7 +239,7 @@ int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &b
             m_ts->save("(per crop)Rec inference", 1);
 
             m_ts->save("(per crop)Rec postprocess", 1);
-            assert(0 == post_process(results));
+            assert(0 == post_process(results, beam_search, beam_size));
             m_ts->save("(per crop)Rec postprocess", 1);
             
             boxes_vec[batch_ids[i].first][batch_ids[i].second].rec_res = results[i].first;
@@ -357,11 +358,24 @@ std::vector<std::string> PPOCR_Rec::ReadDict(const std::string &path){
 }
 
 //get recognition results.
-int PPOCR_Rec::post_process(std::vector<std::pair<std::string, float>>& results)
-{
+struct BeamSearchCandidate {
+    std::vector<int> prefix;
+    float score;
+    std::vector<float> confs;
+    BeamSearchCandidate() : score(0.0f) {}
+    BeamSearchCandidate(const std::vector<int>& pref, float scr, const std::vector<float>& cfs) : prefix(pref), score(scr), confs(cfs) {}
+
+    bool operator<(const BeamSearchCandidate& other) const {
+        return score < other.score;
+    }
+};
+
+
+int PPOCR_Rec::post_process(std::vector<std::pair<std::string, float>>& results, bool beam_search, int beam_width) {
     int output_num = m_bmNetwork->outputTensorNum(); //Now only test for 1 output
     std::vector<std::shared_ptr<BMNNTensor>> outputTensors(output_num);
-    for(int i=0; i < output_num; i++){
+    
+    for(int i = 0; i < output_num; i++) {
         outputTensors[i] = m_bmNetwork->outputTensor(i, stage);
         auto output_shape = outputTensors[i]->get_shape();
         auto output_dims = output_shape->num_dims;
@@ -372,47 +386,120 @@ int PPOCR_Rec::post_process(std::vector<std::pair<std::string, float>>& results)
         float* predict_batch = nullptr;
         predict_batch = (float*)outputTensors[i]->get_cpu_data();
 
-        for(int m = 0; m < batch_num; m++)
-        {
-            std::string str_res;
-            int* argmax_idx = new int[outputdim_1];
-            float* max_value = new float[outputdim_1];
-            for (int n = 0; n < outputdim_1; n++){
-                argmax_idx[n] =
-                    int(PPOCR_Rec::argmax(&predict_batch[(m * outputdim_1 + n) * outputdim_2],
-                                        &predict_batch[(m * outputdim_1 + n + 1) * outputdim_2]));
-                max_value[n] =
-                    float(*std::max_element(&predict_batch[(m * outputdim_1 + n) * outputdim_2],
-                                            &predict_batch[(m * outputdim_1 + n + 1) * outputdim_2]));
-            }
+        for(int m = 0; m < batch_num; m++) {
+            if(beam_search){
+                const int k = beam_width; // Beam width
 
-            int last_index = 0;
-            float score = 0.f;
-            int count = 0;
-            for (int n = 0; n < outputdim_1; n++) {
-                // argmax_idx =
-                //     int(PPOCR_Rec::argmax(&predict_batch[(m * outputdim_1 + n) * outputdim_2],
-                //                         &predict_batch[(m * outputdim_1 + n + 1) * outputdim_2]));
-                // max_value =
-                //     float(*std::max_element(&predict_batch[(m * outputdim_1 + n) * outputdim_2],
-                //                             &predict_batch[(m * outputdim_1 + n + 1) * outputdim_2]));
-                
-                if (argmax_idx[n] > 0 && (!(n > 0 && argmax_idx[n] == last_index))) {
-                    score += max_value[n];
-                    count += 1;
-                    str_res += label_list_[argmax_idx[n]];
+                std::vector<std::pair<std::string, float>> beam_search_results; // 存储Beam Search的结果
+
+                std::vector<BeamSearchCandidate> beams;
+                beams.push_back(BeamSearchCandidate({}, 1.0f, {})); // 初始的候选序列
+
+                for (int t = 0; t < outputdim_1; t++) {
+                    std::vector<BeamSearchCandidate> new_beams;
+                    std::vector<float> next_char_probs;
+
+                    for (int c = 0; c < outputdim_2; c++){
+                        float token_score = predict_batch[(m * outputdim_1 + t) * outputdim_2 + c];
+                        next_char_probs.push_back(token_score);
+                    }
+
+                    std::vector<int> top_candidates(next_char_probs.size());
+                    std::iota(top_candidates.begin(), top_candidates.end(), 0);
+                    std::sort(top_candidates.begin(), top_candidates.end(),
+                        [&](int i, int j) { return next_char_probs[i] > next_char_probs[j]; });
+
+                    top_candidates.resize(k);
+
+                    for(const BeamSearchCandidate& beam: beams){
+                        for (int c = 0; c < top_candidates.size(); c++)
+                        {
+                            std::vector<int> new_prefix = beam.prefix;
+                            new_prefix.push_back(top_candidates[c]);
+                            float new_score = beam.score;
+                            new_score = new_score * next_char_probs[top_candidates[c]];
+                            std::vector<float> new_confs = beam.confs;
+                            new_confs.push_back(next_char_probs[top_candidates[c]]);
+                            new_beams.emplace_back(BeamSearchCandidate(new_prefix,new_score,new_confs));
+                        }
+                        
+                    }
+                    // std::sort(new_beams.begin(), new_beams.end());
+                    std::sort(new_beams.begin(), new_beams.end(), [](const BeamSearchCandidate& a, const BeamSearchCandidate& b) {
+                                                                        return a.score > b.score;
+                                                                        });
+                    new_beams.resize(k);
+                    beams = new_beams;
                 }
-                last_index = argmax_idx[n];
+                BeamSearchCandidate best_beam = beams[0];
+
+                std::string str_res;
+                std::vector<float> conf_list;
+
+                int pre_c = best_beam.prefix[0];
+                if (pre_c != 0){
+                    str_res = label_list_[pre_c];
+                    conf_list.push_back(best_beam.confs[0]);
+                }
+                for (int idx = 0; idx < best_beam.prefix.size(); idx++){
+                    if(pre_c == best_beam.prefix[idx] || best_beam.prefix[idx] == 0){
+                        if(best_beam.prefix[idx] == 0){
+                            pre_c = best_beam.prefix[idx];
+                        }
+                        continue;
+                    }
+                    str_res += label_list_[best_beam.prefix[idx]];
+                    conf_list.push_back(best_beam.confs[idx]);
+                    pre_c = best_beam.prefix[idx];
+                }
+                float score = std::accumulate(conf_list.begin(), conf_list.end(), 0.0) / conf_list.size();
+                if (isnan(score)){
+                    score = 0;
+                    str_res = "###";
+                }
+                results.push_back({str_res, score});
+            }else{
+                std::string str_res;
+                int* argmax_idx = new int[outputdim_1];
+                float* max_value = new float[outputdim_1];
+                for (int n = 0; n < outputdim_1; n++){
+                    argmax_idx[n] =
+                        int(PPOCR_Rec::argmax(&predict_batch[(m * outputdim_1 + n) * outputdim_2],
+                                            &predict_batch[(m * outputdim_1 + n + 1) * outputdim_2]));
+                    max_value[n] =
+                        float(*std::max_element(&predict_batch[(m * outputdim_1 + n) * outputdim_2],
+                                                &predict_batch[(m * outputdim_1 + n + 1) * outputdim_2]));
+                }
+
+                int last_index = 0;
+                float score = 0.f;
+                int count = 0;
+                for (int n = 0; n < outputdim_1; n++) {
+                    // argmax_idx =
+                    //     int(PPOCR_Rec::argmax(&predict_batch[(m * outputdim_1 + n) * outputdim_2],
+                    //                         &predict_batch[(m * outputdim_1 + n + 1) * outputdim_2]));
+                    // max_value =
+                    //     float(*std::max_element(&predict_batch[(m * outputdim_1 + n) * outputdim_2],
+                    //                             &predict_batch[(m * outputdim_1 + n + 1) * outputdim_2]));
+
+                    if (argmax_idx[n] > 0 && (!(n > 0 && argmax_idx[n] == last_index))) {
+                        score += max_value[n];
+                        count += 1;
+                        str_res += label_list_[argmax_idx[n]];
+                    }
+                    last_index = argmax_idx[n];
+                }
+                score /= count;
+                if (isnan(score)){
+                    score = 0;
+                    str_res = "###";
+                }
+                results.push_back({str_res, score});
+                free(argmax_idx);
+                free(max_value);
             }
-            score /= count;
-            if (isnan(score)){
-                score = 0;
-                str_res = "###";
-            }
-            results.push_back({str_res, score});
-            free(argmax_idx);
-            free(max_value);
         }
     }
+
     return 0;
 }
