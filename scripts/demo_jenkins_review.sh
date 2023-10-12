@@ -253,17 +253,39 @@ function build_soc_YOLOv8(){
     popd
 }
 
+pip3_install_package() {
+    local package_name="$1"
+    
+    for i in {1..5}; do
+        echo "Attempt $i: Installing $package_name"
+        
+        if pip3 show $package_name > /dev/null 2>&1; then
+            echo "$package_name is already installed."
+            return
+        fi
+
+        pip3 install $package_name --upgrade
+
+        if [ $? -eq 0 ]; then
+            echo "$package_name installed successfully."
+            return
+        else
+            echo "Failed to install $package_name. Retrying in 5 seconds..."
+            sleep 5
+        fi
+    done
+}
 
 echo "-------------------------Start Install dfss --------------------------------------"
-pip3 install dfss --upgrade
+pip3_install_package dfss
 echo "-------------------------Start apt install ---------------------------------------"
 apt_install
 echo "-------------------------Start Download soc-sdk-allin v23.07.01 ------------------"
 download_soc_sdk_allin v23.07.01
 echo "-------------------------Start build_soc_YOLOv5 ------------------"
 build_soc_YOLOv5 $SOC_SDK_PATH
-echo "-------------------------Start build_soc_BERT ------------------"
-build_soc_BERT $SOC_SDK_PATH
+# echo "-------------------------Start build_soc_BERT ------------------"
+# build_soc_BERT $SOC_SDK_PATH
 echo "-------------------------Start build_soc_C3D ------------------"
 build_soc_C3D $SOC_SDK_PATH
 echo "-------------------------Start build_soc_DeepSORT ------------------"
