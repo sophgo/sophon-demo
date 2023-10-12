@@ -79,6 +79,8 @@ class YOLOx:
             agnostic=self.agnostic,
             multi_label=self.multi_label,
             max_det=self.max_det,
+            input_h=self.net_h,
+            input_w=self.net_w
         )
         
         # init time
@@ -231,7 +233,7 @@ def draw_bmcv(bmcv, bmimg, boxes, classes_ids=None, conf_scores=None, save_path=
 
 def main(args):
     # check params
-    if not os.path.exists(args.input):
+    if not args.input.startswith("rtsp") and not args.input.startswith("rtmp") and not os.path.exists(args.input):
         raise FileNotFoundError('{} is not existed.'.format(args.input))
     if not os.path.exists(args.bmodel):
         raise FileNotFoundError('{} is not existed.'.format(args.bmodel))
@@ -347,6 +349,8 @@ def main(args):
         cn = 0
         frame_list = []
         while True:
+            if args.max_frames and cn > args.max_frames:
+                break
             frame = sail.BMImage()
             start_time = time.time()
             ret = decoder.read(handle, frame)
@@ -395,6 +399,7 @@ def argsparser():
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--conf_thresh', type=float, default=0.40, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.5, help='nms threshold')
+    parser.add_argument('--max_frames', type=int, default=None, help='max number of frames to process')
     args = parser.parse_args()
     return args
 
