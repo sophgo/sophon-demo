@@ -54,7 +54,7 @@ If you are using BM1684X, it is recommended to use TPU-MLIR to compile BModel. U
     # If the current system does not have the corresponding image, it will automatically download from docker hub
     # Here will map current directory to /workspace directory in docker, users need to map the demo directory to docker according to the actual situation
     # Myname is just an example of a name, please specify it as the name of the container you want
-    docker run --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:v2.1
+    docker run --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:latest
     # Now, you are already in docker, and in the /workspace directory
     # Then, initializing the software environment
     cd /workspace/tpu-mlir
