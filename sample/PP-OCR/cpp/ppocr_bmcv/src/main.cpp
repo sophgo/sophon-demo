@@ -196,7 +196,9 @@ int main(int argc, char* argv[]) {
         "{rec_thresh | 0.5 | recognize threshold}"
         "{labelnames | ../../datasets/ppocr_keys_v1.txt | class names file path}"
         "{dev_id | 0 | TPU device id}"
-        "{help | 0 | print help information.}";
+        "{help | 0 | print help information.}"
+        "{use_beam_search | false | beam search trigger}"
+        "{beam_size | 3 | beam size, default 3, available 1-40, only valid when using beam search}";
 
     cv::CommandLineParser parser(argc, argv, keys);
     if (parser.get<bool>("help")) {
@@ -212,7 +214,13 @@ int main(int argc, char* argv[]) {
     float rec_thresh = parser.get<float>("rec_thresh");
     assert(batch_size > 0);
     int dev_id = parser.get<int>("dev_id");
+    bool beam_search = parser.get<bool>("use_beam_search");
+    int beam_size = parser.get<int>("beam_size");
 
+    if(beam_size < 1 || beam_size > 40){
+        cout << "ERROR!!beam_size out of range, should be integer in range(1, 41)" << endl;
+        exit(1);
+    }
     // check params
     struct stat info;
     if (stat(bmodel_det.c_str(), &info) != 0) {
@@ -369,7 +377,7 @@ int main(int argc, char* argv[]) {
                 //
                 exit(1);
 #endif
-                CV_Assert(0 == ppocr_rec.run(batch_crops, batch_boxes, batch_ids));
+                CV_Assert(0 == ppocr_rec.run(batch_crops, batch_boxes, batch_ids, beam_search, beam_size));
                 for (int i = 0; i < batch_boxes.size(); i++) {
                     string save_file = "results/images/" + batch_names[i];
                     std::cout << "detect results: ";

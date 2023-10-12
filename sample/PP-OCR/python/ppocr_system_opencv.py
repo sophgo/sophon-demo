@@ -275,6 +275,8 @@ def parse_opt():
     parser.add_argument('--img_size', type=img_size_type, default=[[320, 48],[640, 48]], help='You should set inference size [width,height] manually if using multi-stage bmodel.')
     parser.add_argument("--char_dict_path", type=str, default="../datasets/ppocr_keys_v1.txt")
     parser.add_argument("--use_space_char", type=bool, default=True)
+    parser.add_argument('--use_beam_search', action='store_const', const=True, default=False, help='Enable beam search')
+    parser.add_argument("--beam_size", type=int, default=5, choices=range(1,41), help='Only valid when using beam search, valid range 1~40')
     parser.add_argument("--rec_thresh", type=float, default=0.5)
     # params for text classifier
     parser.add_argument("--use_angle_cls", action='store_true')
