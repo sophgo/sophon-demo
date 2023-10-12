@@ -9,11 +9,16 @@
     - [1.2 程序编译](#12-程序编译)
     - [1.3 参数说明](#13-参数说明)
     - [1.4 运行测试](#14-运行测试)
-  - [2 SoC平台 编译、运行](#2-soc平台-编译运行)
+  - [2 SoC平台 交叉编译、运行](#2-soc平台-交叉编译运行)
     - [2.1 环境配置](#21-环境配置)
     - [2.2 程序编译](#22-程序编译)
     - [2.3 程序参数说明](#23-程序参数说明)
     - [3.2 运行测试](#32-运行测试)
+  - [3 SoC平台 编译、运行](#3-soc平台-编译运行)
+    - [3.1 环境配置](#31-环境配置)
+    - [3.2 程序编译](#32-程序编译)
+    - [3.3 程序参数说明](#33-程序参数说明)
+    - [3.2 运行测试](#32-运行测试-1)
 
 
 ## 1. x86/arm PCIe平台 编译、运行
@@ -44,15 +49,13 @@ usage:./chatglm2.pcie [params]
         --help (value:0)
                 print help information.
 ```
-**注意：** CPP传参与python不同，需要用等于号，例如`./chatglm2.pcie --bmodel=xxx`。
-
 ### 1.4 运行测试
 ```bash
-./chatglm2.pcie --bmodel=../models/BM1684X/chatglm2-6b.bmodel --token=../models/BM1684X/tokenizer.model --dev_id=0
+./chatglm2.pcie --bmodel ../models/BM1684X/chatglm2-6b.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
 ```
 
 
-## 2 SoC平台 编译、运行
+## 2 SoC平台 交叉编译、运行
 ### 2.1 环境配置
 如果您使用SoC平台（目前可支持SE7），刷机后在`/opt/sophon/`下已经预装了相应的libsophon运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
 
@@ -76,5 +79,28 @@ cd ..
 
 ### 3.2 运行测试
 ```bash
-./chatglm2.soc --bmodel=../models/BM1684X/chatglm2-6b.bmodel --token=../models/BM1684X/tokenizer.model --dev_id=0
+./chatglm2.soc --bmodel ../models/BM1684X/chatglm2-6b.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
+```
+
+## 3 SoC平台 编译、运行
+### 3.1 环境配置
+如果您使用SoC平台（目前可支持SE7），刷机后在`/opt/sophon/`下已经预装了相应的libsophon运行库包，可直接使用它作为运行环境。如果将其作为开发环境，需要进入`/home/linaro/bsp-debs`路径下，安装开发包。
+```
+sudo dpkg -i sophon-soc-libsophon-dev_x.y.z_arm64.deb
+```
+### 3.2 程序编译
+本例程主要依赖libsophon运行库包,在SOC平台上安装好开发环境后，使用下面的命令编译生成可执行文件：
+```bash
+mkdir build && cd build
+cmake -DTARGET_ARCH=soc_base ..  
+make
+cd ..
+```
+编译完成后，会在cpp目录下生成chatglm2.soc。
+### 3.3 程序参数说明
+对于SoC平台，测试参数与PCIE是一致的。
+
+### 3.2 运行测试
+```bash
+./chatglm2.soc --bmodel ../models/BM1684X/chatglm2-6b.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
 ```

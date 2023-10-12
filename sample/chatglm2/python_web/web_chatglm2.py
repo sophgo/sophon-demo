@@ -13,7 +13,7 @@ class TokenWord(ctypes.Structure):
 
 class TPUChatglm:
     def __init__(self,args):
-        self.lib = ctypes.cdll.LoadLibrary('python_web/build/libChatGLM2.so')
+        self.lib = ctypes.cdll.LoadLibrary('build/libChatGLM2.so')
         self.device_id = args.dev_id
         self.bmodel_path = args.bmodel
         self.token_path = args.token
