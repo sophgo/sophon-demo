@@ -16,8 +16,8 @@ from pycocotools.cocoeval import COCOeval
 
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--gt_path', type=str, default='project/sophon-demo/sample/YOLOv5/datasets/coco2017val/annotations/instances_val2017.json', help='path of label json')
-    parser.add_argument('--result_json', type=str, default='project/sophon-demo/sample/YOLOv5/python/results/yolov5s_640_coco_v6.1_3output_fp32_1b.bmodel__opencv_python_result.json', help='path of result json')
+    parser.add_argument('--gt_path', type=str, default='datasets/coco/instances_val2017_1000.json', help='path of label json')
+    parser.add_argument('--result_json', type=str, default='results/ppyolov3_fp32_1b.bmodel_val2017_1000_opencv_python_result.json', help='path of result json')
     parser.add_argument('--ann_type', type=str, default='bbox', help='type of evaluation')
     args = parser.parse_args()
     return args
