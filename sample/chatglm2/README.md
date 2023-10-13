@@ -4,7 +4,7 @@
 - [ChatGLM2](#chatglm2)
   - [目录](#目录)
   - [1. 简介](#1-简介)
-  - [2. SE7下运行环境准备](#2-se7下运行环境准备)
+  - [2. 运行环境准备](#2-运行环境准备)
     - [2.1 方式一](#21-方式一)
     - [2.1 方式二](#21-方式二)
   - [3. 准备模型](#3-准备模型)
@@ -13,11 +13,11 @@
 ## 1. 简介
 ChatGLM2-6B 是开源中英双语对话模型 ChatGLM-6B 的第二代版本,相比于初代模型，具有更强大的性能，更长的上下文，更高的推理性能和更开放的协议，ChatGLM2-6B 权重对学术研究完全开放。
 
-该例程支持在SDK0301及以上的版本上运行，提供了三个版本,分别是C++、python、python_web版本，三个版本可以独立运行，支持在插有1684X系列加速卡的x86主机上运行，也可以SE7上运行。其中在SE7上运行需要额外进行环境配置，请参照[SE7下运行环境准备](#2-se7下运行环境准备)完成环境部署。
+该例程支持在V23.03.01(libsophon_0.4.6)及以上的SDK上运行，提供了三个版本,分别是C++、python、python_web版本，三个版本可以独立运行，支持在插有1684X系列加速卡的x86主机上运行，也可以SE7上运行。其中在SE7上运行需要额外进行环境配置，请参照[运行环境准备](#2-运行环境准备)完成环境部署。
 
-## 2. SE7下运行环境准备
+## 2. 运行环境准备
 ### 2.1 方式一
-这是最推荐的方式，通过修改SE7的内存，使得满足chatGLM2运行条件。首先，下载根据[修改工具](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/SophonSDK_doc/zh/html/appendix/2_mem_edit_tools.html)将SE7的内存修改为：
+这是最推荐的方式，对于1684X系列设备（如SE7），都可以通过这种方式完成环境准备，使得满足chatGLM2运行条件。首先，下载根据[修改工具](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/SophonSDK_doc/zh/html/appendix/2_mem_edit_tools.html)将设备的内存修改为：
 
 NPU:7360 MiB
 
@@ -27,8 +27,10 @@ VPP:4096 MiB
 
 ![内存布局](./pic/memory.png)
 
+**注意：**应该保留一定的系统内存用于设备编译。
+
 ### 2.1 方式二
-直接使用我么们提供的刷机包，刷机包已经完成环境部署，并且内置chatglm2_soc版本的程序，刷机包地址如下：
+这里特别提供SE7刷机包，刷机包已经完成环境部署，并且内置chatglm2_soc版本的程序，刷机包地址如下：
 ```
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 python3 -m dfss --url=open@sophgo.com:sophon-demo/chatglm/sdcard_chatglm2.zip
@@ -78,6 +80,7 @@ chmod -R +x scripts/
     └── download.sh                      #模型下载脚本
 ```
 
+**注意：**在下载模型前，应该保证存储空间大于12.5GB。
 
 ## 4. 例程测试
 
