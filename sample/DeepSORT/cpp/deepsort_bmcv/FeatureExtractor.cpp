@@ -187,19 +187,12 @@ bool FeatureExtractor::getRectsFeature(const bm_image& image, DETECTIONS& det) {
 
 int FeatureExtractor::post_process(DETECTIONS& det, int start, int crop_size) {
     CV_Assert(start + crop_size <= det.size());
-    // auto stream = m_bmNetwork->outputTensor(0)->get_cpu_data(); //why this code has bug?
-
+    auto output_tensor = m_bmNetwork->outputTensor(0);
+    float* stream = output_tensor->get_cpu_data();
     for (int i = start; i < start + crop_size; i++) {
         det[i].feature.resize(1, k_feature_dim);
-        memcpy(det[i].feature.data(), m_bmNetwork->outputTensor(0)->get_cpu_data() + (i - start) * k_feature_dim,
+        memcpy(det[i].feature.data(), stream + (i - start) * k_feature_dim,
                k_feature_dim * sizeof(float));
-        // for (int j = 0; j < k_feature_dim; j++)
-        // {
-        //     // det[i].feature[j] = *(m_bmNetwork->outputTensor(0)->get_cpu_data() + (i - start) * k_feature_dim + j);
-        //     //     det[i].feature[j] = stream[(i - start) * k_feature_dim + j];
-        //     std::cout << det[i].feature[j] << " ";
-        // }
     }
-    // std::cout << std::endl;
     return 0;
 }
