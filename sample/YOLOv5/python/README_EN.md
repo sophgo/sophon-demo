@@ -47,8 +47,12 @@ usage: yolov5_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 --bmodel: bmodel path for inference. By default, the stage 0 network is used for inference;
 --dev_id: tpu device id for inference;
 --conf_thresh: confidence threshold;
---nms_thresh: Non-Maximum Suppression threshold.
+--nms_thresh: Non-Maximum Suppression threshold;
+--use_cpu_opt: Whether to use CPU postprocessing performance optimization.
 ```
+
+> **Note:** Currently, both CPP and Python default to enabling CPU postprocessing performance optimization. The optimization interface called by Python relies on SOPHON sail after version 3.7.0. If your SOPHON sail version does not have this interface, you can add the parameter `--use_cpu_opt False` to disable the optimization.
+
 ### 2.2 Image Test Demo
 The image test demo is as follows. It supports testing the entire image folder. The model supports fp32bmodel and int8bmodel, supports BM1684 and BM1684X, and supports single batch size or multiple batch sizes. Users can run model testing by passing in the corresponding model path parameters.
 ```bash

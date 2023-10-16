@@ -23,7 +23,7 @@ const std::vector<std::vector<int>> colors = {
     {170, 0, 255},   {255, 0, 255},   {255, 0, 170},   {255, 0, 85},  {255, 0, 0},   {255, 0, 255}, {255, 85, 255},
     {255, 170, 255}, {255, 255, 255}, {170, 255, 255}, {85, 255, 255}};
 
-YoloV5::YoloV5(int dev_id, std::string bmodel_file) : engine() {
+YoloV5::YoloV5(int dev_id, std::string bmodel_file, bool use_cpu_opt) : engine(), use_cpu_opt(use_cpu_opt) {
     engine = std::make_shared<sail::Engine>(dev_id);
     if (!engine->load(bmodel_file)) {
         std::cout << "Engine load bmodel " << bmodel_file << "failed" << endl;
@@ -164,7 +164,10 @@ int YoloV5::Detect(std::vector<sail::BMImage>& input_images, std::vector<YoloV5B
 
     // 3. post process
     LOG_TS(m_ts, "yolov5 postprocess");
-    ret = post_process(input_images, boxes);
+    if (use_cpu_opt)
+        ret = post_process_cpu_opt(input_images, boxes);
+    else
+        ret = post_process(input_images, boxes);
     CV_Assert(ret == 0);
     LOG_TS(m_ts, "yolov5 postprocess");
     return ret;
@@ -438,6 +441,174 @@ int YoloV5::post_process(std::vector<sail::BMImage>& images, std::vector<YoloV5B
             float score = ptr[4];
             int class_id = argmax(&ptr[5], m_class_num);
             float confidence = ptr[class_id + 5];
+            if (confidence * score > m_confThreshold) {
+                float centerX = (ptr[0] + 1 - tx1) / ratio - 1;
+                float centerY = (ptr[1] + 1 - ty1) / ratio - 1;
+                float width = (ptr[2] + 0.5) / ratio;
+                float height = (ptr[3] + 0.5) / ratio;
+
+                YoloV5Box box;
+                box.x = int(centerX - width / 2);
+                if (box.x < 0)
+                    box.x = 0;
+                box.y = int(centerY - height / 2);
+                if (box.y < 0)
+                    box.y = 0;
+                box.width = width;
+                box.height = height;
+                box.class_id = class_id;
+                box.score = confidence * score;
+                yolobox_vec.push_back(box);
+            }
+        }
+        LOG_TS(m_ts, "post 2: filter boxes");
+
+        // printf("\n --> valid boxes number = %d\n", (int)yolobox_vec.size());
+
+        LOG_TS(m_ts, "post 3: nms");
+#if USE_MULTICLASS_NMS
+        std::vector<YoloV5BoxVec> class_vec(m_class_num);
+        for (auto& box : yolobox_vec) {
+            class_vec[box.class_id].push_back(box);
+        }
+        for (auto& cls_box : class_vec) {
+            NMS(cls_box, m_nmsThreshold);
+        }
+        yolobox_vec.clear();
+        for (auto& cls_box : class_vec) {
+            yolobox_vec.insert(yolobox_vec.end(), cls_box.begin(), cls_box.end());
+        }
+#else
+        NMS(yolobox_vec, m_nmsThreshold);
+#endif
+        LOG_TS(m_ts, "post 3: nms");
+
+        detected_boxes.push_back(yolobox_vec);
+    }
+
+    return 0;
+}
+
+int YoloV5::post_process_cpu_opt(std::vector<sail::BMImage>& images, std::vector<YoloV5BoxVec>& detected_boxes) {
+    YoloV5BoxVec yolobox_vec;
+    std::vector<cv::Rect> bbox_vec;
+
+    for (int batch_idx = 0; batch_idx < images.size(); ++batch_idx) {
+        yolobox_vec.clear();
+        auto& frame = images[batch_idx];
+        int frame_width = frame.width();
+        int frame_height = frame.height();
+
+        int tx1 = 0, ty1 = 0;
+#if USE_ASPECT_RATIO
+        bool is_align_width = false;
+        float ratio = get_aspect_scaled_ratio(frame.width(), frame.height(), m_net_w, m_net_h, &is_align_width);
+        if (is_align_width) {
+            ty1 = (int)((m_net_h - (int)(frame_height * ratio)) / 2);
+        } else {
+            tx1 = (int)((m_net_w - (int)(frame_width * ratio)) / 2);
+        }
+#endif
+
+        int min_idx = 0;
+        int box_num = 0;
+        for (int i = 0; i < output_names.size(); i++) {
+            assert(output_shape[i].size() == 3 || output_shape[i].size() == 5);
+            if (output_shape[i].size() == 5) {
+                box_num += output_shape[i][1] * output_shape[i][2] * output_shape[i][3];
+            }
+
+            if (min_dim > output_shape[i].size()) {
+                min_idx = i;
+                min_dim = output_shape[i].size();
+            }
+        }
+
+        auto out_tensor = output_tensor[min_idx];
+        int nout = out_tensor->shape()[min_dim - 1];
+        m_class_num = nout - 5;
+        int out_nout = 7;
+        float transformed_m_confThreshold = - std::log(1 / m_confThreshold - 1);
+
+        float* output_data = nullptr;
+        std::vector<float> decoded_data;
+
+        if (min_dim == 3 && output_names.size() != 1) {
+            std::cout << "--> WARNING: the current bmodel has redundant outputs" << std::endl;
+            std::cout << "             you can remove the redundant outputs to improve performance" << std::endl;
+            std::cout << std::endl;
+        }
+
+        if (min_dim == 5) {
+            LOG_TS(m_ts, "post 1: get output and decode");
+            const std::vector<std::vector<std::vector<int>>> anchors{
+                {{10, 13}, {16, 30}, {33, 23}}, {{30, 61}, {62, 45}, {59, 119}}, {{116, 90}, {156, 198}, {373, 326}}};
+            const int anchor_num = anchors[0].size();
+            assert(output_names.size() == (int)anchors.size());
+            assert(box_num > 0);
+            if((int)decoded_data.size() != box_num*out_nout){
+                decoded_data.resize(box_num*out_nout);
+            }
+            float* dst = decoded_data.data();
+            for (int tidx = 0; tidx < output_names.size(); ++tidx) {
+                int feat_c = output_tensor[tidx]->shape()[1];
+                int feat_h = output_tensor[tidx]->shape()[2];
+                int feat_w = output_tensor[tidx]->shape()[3];
+                int area = feat_h * feat_w;
+                assert(feat_c == anchor_num);
+                int feature_size = feat_h * feat_w * nout;
+                output_data = reinterpret_cast<float*>(output_tensor[tidx]->sys_data());
+                float* tensor_data = output_data + batch_idx * feat_c * area * nout;
+                for (int anchor_idx = 0; anchor_idx < anchor_num; anchor_idx++) {
+                    float* ptr = tensor_data + anchor_idx * feature_size;
+                    for (int i = 0; i < area; i++) {
+                        if(ptr[4] <= transformed_m_confThreshold){
+                            ptr += nout;
+                            continue;
+                        }
+                        dst[0] = (sigmoid(ptr[0]) * 2 - 0.5 + i % feat_w) / feat_w * m_net_w;
+                        dst[1] = (sigmoid(ptr[1]) * 2 - 0.5 + i / feat_w) / feat_h * m_net_h;
+                        dst[2] = pow((sigmoid(ptr[2]) * 2), 2) * anchors[tidx][anchor_idx][0];
+                        dst[3] = pow((sigmoid(ptr[3]) * 2), 2) * anchors[tidx][anchor_idx][1];
+                        dst[4] = sigmoid(ptr[4]);
+                        dst[5] = ptr[5];
+                        dst[6] = 5;
+                        for(int d = 6; d < nout; d++){
+                            if(ptr[d] > dst[5]){
+                                dst[5] = ptr[d];
+                                dst[6] = d;
+                            }
+                        }
+                        dst[5] = sigmoid(dst[5]);
+                        dst[6] -= 5;
+                        dst += out_nout;
+                        ptr += nout;
+                    }
+                }
+            }
+            output_data = decoded_data.data();
+            box_num = (dst - output_data) / out_nout;
+            LOG_TS(m_ts, "post 1: get output and decode");
+        } else {
+            LOG_TS(m_ts, "post 1: get output");
+            assert(box_num == 0 || box_num == out_tensor->shape()[1]);
+            box_num = out_tensor->shape()[1];
+            output_data = reinterpret_cast<float*>(output_tensor[0]->sys_data()) + batch_idx * box_num * nout;
+            LOG_TS(m_ts, "post 1: get output");
+        }
+
+        LOG_TS(m_ts, "post 2: filter boxes");
+        for (int i = 0; i < box_num; i++) {
+            float* ptr = output_data + i * out_nout;
+            float score = ptr[4];
+            int class_id = ptr[6];
+            float confidence = ptr[5];
+            if(min_dim != 5){
+                ptr = output_data + i * nout;
+                score = ptr[4];
+                class_id = argmax(&ptr[5], m_class_num);
+                confidence = ptr[class_id + 5];
+            }
             if (confidence * score > m_confThreshold) {
                 float centerX = (ptr[0] + 1 - tx1) / ratio - 1;
                 float centerY = (ptr[1] + 1 - ty1) / ratio - 1;
