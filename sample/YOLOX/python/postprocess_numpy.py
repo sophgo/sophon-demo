@@ -92,9 +92,7 @@ class PostProcess:
         for i in range(len(outputs)):
             
             outputs[i][..., :2] = (outputs[i][..., :2] + grids) * expanded_strides
-            np.savetxt("python_center.txt",outputs[i][...,:2],fmt="%.4f")
             outputs[i][..., 2:4] = np.exp(outputs[i][..., 2:4]) * expanded_strides
-            
             outputs[i][..., 5:] *= outputs[i][..., 4:5]
         
         return outputs
