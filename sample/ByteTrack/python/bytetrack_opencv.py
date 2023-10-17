@@ -68,15 +68,15 @@ def update_tracker(target_detector, bytetrack, img_batch, frame_id, mot_saver):
     for i in range(len(img_batch)):
         detect_num = len(bbox_batch[i])
         outputs = bytetrack._tracker_update(
-            bbox_batch[i], confs_batch[i], img_batch[i])
+            bbox_batch[i], confs_batch[i], clss_batch[i], img_batch[i])
         logging.info("{}, detect_nums: {}; track_nums: {}".format(
             bytetrack.frame_id, detect_num, len(outputs)))
         bboxes2draw = []
         current_ids = []
         for value in list(outputs):
-            x1, y1, width, high, conf, track_id = value
+            x1, y1, width, high, cls_id, track_id = value
             bboxes2draw.append(
-                (int(x1), int(y1), int(x1+width), int(y1+high), round(conf,2), track_id)
+                (int(x1), int(y1), int(x1+width), int(y1+high), cls_id, track_id)
             )
             current_ids.append(track_id)
             save_str = "{},{},{},{},{},{},1,-1,-1,-1\n".format(
