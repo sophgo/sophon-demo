@@ -58,7 +58,7 @@ usage: web_chatglm2.py [--bmodel BMODEL] [--token TOKEN] [--dev_id DEV_ID]
 ### 1.4 运行测试
 
 ```bash 
-python3 web_chatglm2.py --bmodel ../models/BM1684X/chatglm2-6b.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
+python3 web_chatglm2.py --bmodel ../models/BM1684X/chatglm2-6b_f16.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
 ```
 接着，会弹出```Running on local URL:  http://0.0.0.0:7860```信息，通过ip+端口号即可访问web页面。
 
@@ -93,7 +93,7 @@ cd ..
 ### 2.4 运行测试
 
 ```bash 
-python3 web_chatglm2.py --bmodel ../models/BM1684X/chatglm2-6b.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
+python3 web_chatglm2.py --bmodel ../models/BM1684X/chatglm2-6b_f16.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
 ```
 接着，会弹出```Running on local URL:  http://0.0.0.0:7860```信息，通过ip+端口号即可访问web页面。
 
@@ -126,6 +126,6 @@ cd ..
 ### 3.4 运行测试
 
 ```bash 
-python3 web_chatglm2.py --bmodel ../models/BM1684X/chatglm2-6b.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
+python3 web_chatglm2.py --bmodel ../models/BM1684X/chatglm2-6b_f16.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
 ```
 接着，会弹出```Running on local URL:  http://0.0.0.0:7860```信息，通过ip+端口号即可访问web页面。
