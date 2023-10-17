@@ -59,7 +59,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc_base")
     add_definitions(-DDEBUG --std=c++17 -fPIC -Wall -Werror)
     
     add_executable(chatglm2.soc main.cpp)
-    target_link_libraries(chatglm2.soc bmrt bmlib sentencepiece)
+    target_link_libraries(chatglm2.soc bmrt bmlib sentencepiece dl pthread)
 
 else ()
     message( FATAL_ERROR  "not support mode, eg: soc/pcie, cur: ${TARGET_ARCH}")
