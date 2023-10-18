@@ -51,7 +51,7 @@ usage:./chatglm2.pcie [params]
 ```
 ### 1.4 运行测试
 ```bash
-./chatglm2.pcie --bmodel ../models/BM1684X/chatglm2-6b.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
+./chatglm2.pcie --bmodel ../models/BM1684X/chatglm2-6b_f16.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
 ```
 
 
@@ -79,7 +79,7 @@ cd ..
 
 ### 3.2 运行测试
 ```bash
-./chatglm2.soc --bmodel ../models/BM1684X/chatglm2-6b.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
+./chatglm2.soc --bmodel ../models/BM1684X/chatglm2-6b_f16.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
 ```
 
 ## 3 SoC平台 编译、运行
@@ -102,5 +102,5 @@ cd ..
 
 ### 3.2 运行测试
 ```bash
-./chatglm2.soc --bmodel ../models/BM1684X/chatglm2-6b.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
+./chatglm2.soc --bmodel ../models/BM1684X/chatglm2-6b_f16.bmodel --token ../models/BM1684X/tokenizer.model --dev_id 0
 ```
