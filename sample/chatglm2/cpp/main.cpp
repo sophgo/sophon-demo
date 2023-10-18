@@ -15,7 +15,7 @@
 
 int main(int argc, char **argv) {
  
-    std::string bmodel = "../models/BM1684X/chatglm2-6b.bmodel";
+    std::string bmodel = "../models/BM1684X/chatglm2-6b_f16.bmodel";
     std::string token = "../models/BM1684X/tokenizer.model";
     int dev_id = 0;
 
