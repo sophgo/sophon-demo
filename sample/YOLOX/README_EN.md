@@ -202,26 +202,26 @@ Refer to [C++ example](cpp/README_EN.md) or [Python example](python/README_EN.md
 Use different examples and models to test `datasets/val2017_1000` with `conf_thresh=0.5,nms_thresh=0.5` on different test platforms. The performance test results are shown as follows:
 |Test Platform|  Test Program    |             Test model              |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
-| BM1684 SoC  | yolox_opencv.py | yolox_s_fp32_1b.bmodel | 3.29     | 13.77   | 40.40     | 75.62    |
-| BM1684 SoC  | yolox_opencv.py | yolox_s_int8_1b.bmodel | 3.28     | 13.86   | 43.68     | 76.78    |
-| BM1684 SoC  | yolox_opencv.py | yolox_s_int8_4b.bmodel | 4.07     | 14.73   | 38.44     | 74.24    |
-| BM1684 SoC  | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel | 3.70     | 2.88    | 28.16     | 75.79    |
-| BM1684 SoC  | yolox_bmcv.py   | yolox_s_int8_1b.bmodel | 2.64     | 2.45    | 18.75     | 75.86    |
-| BM1684 SoC  | yolox_bmcv.py   | yolox_s_int8_4b.bmodel | 2.58     | 2.30    | 13.86     | 74.06    |
+| BM1684 SoC  | yolox_opencv.py | yolox_s_fp32_1b.bmodel | 15.18     | 14.06   | 39.70     | 4.15    |
+| BM1684 SoC  | yolox_opencv.py | yolox_s_int8_1b.bmodel | 15.20     | 13.86   | 43.68     | 4.07    |
+| BM1684 SoC  | yolox_opencv.py | yolox_s_int8_4b.bmodel | 15.18     | 15.25   | 38.06     | 5.90    |
+| BM1684 SoC  | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel | 3.70     | 2.88    | 28.16     | 3.99    |
+| BM1684 SoC  | yolox_bmcv.py   | yolox_s_int8_1b.bmodel | 3.50     | 2.22    | 18.75     | 3.84    |
+| BM1684 SoC  | yolox_bmcv.py   | yolox_s_int8_4b.bmodel | 3.38     | 2.06    | 13.31     | 4.72    |
 | BM1684 SoC  | yolox_bmcv.soc  | yolox_s_fp32_1b.bmodel | 4.52     | 1.72    | 25.78     | 2.71     |
 | BM1684 SoC  | yolox_bmcv.soc  | yolox_s_int8_1b.bmodel | 4.57     | 1.78    | 16.32     | 2.73     |
 | BM1684 SoC  | yolox_bmcv.soc  | yolox_s_int8_4b.bmodel | 4.57     | 1.73    | 11.58     | 2.61     |
 | BM1684 SoC  | yolox_sail.soc  | yolox_s_fp32_1b.bmodel | 2.58     | 3.91    | 26.24     | 2.10     |
 | BM1684 SoC  | yolox_sail.soc  | yolox_s_int8_1b.bmodel | 2.59     | 2.38    | 16.83     | 2.08     |
 | BM1684 SoC  | yolox_sail.soc  | yolox_s_int8_4b.bmodel | 2.51     | 2.31    | 11.97     | 2.10     |
-| BM1684X SoC | yolox_opencv.py | yolox_s_fp32_1b.bmodel | 3.37     | 13.56   | 52.09     | 77.07    |
-| BM1684X SoC | yolox_opencv.py | yolox_s_fp16_1b.bmodel | 3.38     | 13.43   | 29.83     | 78.84    |
-| BM1684X SoC | yolox_opencv.py | yolox_s_int8_1b.bmodel | 3.37     | 13.48   | 27.52     | 77.18    |
-| BM1684X SoC | yolox_opencv.py | yolox_s_int8_4b.bmodel | 3.84     | 15.42   | 28.95     | 76.63    |
-| BM1684X SoC | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel | 2.49     | 2.74    | 33.98     | 77.05    |
-| BM1684X SoC | yolox_bmcv.py   | yolox_s_fp16_1b.bmodel | 2.46     | 2.73    | 11.97     | 78.40    |
-| BM1684X SoC | yolox_bmcv.py   | yolox_s_int8_1b.bmodel | 2.44     | 2.76    | 9.37      | 77.40    |
-| BM1684X SoC | yolox_bmcv.py   | yolox_s_int8_4b.bmodel | 2.25     | 2.59    | 10.11     | 75.72    |
+| BM1684X SoC | yolox_opencv.py | yolox_s_fp32_1b.bmodel | 14.96    | 13.56   | 44.02     | 4.35    |
+| BM1684X SoC | yolox_opencv.py | yolox_s_fp16_1b.bmodel | 15.00    | 13.43   | 22.38     | 4.35    |
+| BM1684X SoC | yolox_opencv.py | yolox_s_int8_1b.bmodel | 14.94    | 12.87   | 20.00     | 4.35    |
+| BM1684X SoC | yolox_opencv.py | yolox_s_int8_4b.bmodel | 14.87    | 15.42   | 20.14     | 6.35    |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel | 2.97     | 2.23    | 30.17     | 4.21     |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_fp16_1b.bmodel | 3.03     | 2.23    | 8.55      | 4.27     |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_int8_1b.bmodel | 2.97     | 2.23    | 6.12      | 4.22     |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_int8_4b.bmodel | 2.90     | 2.09    | 5.56      | 5.45     |
 | BM1684X SoC | yolox_bmcv.soc  | yolox_s_fp32_1b.bmodel | 4.28     | 0.95    | 29.05     | 2.68     |
 | BM1684X SoC | yolox_bmcv.soc  | yolox_s_fp16_1b.bmodel | 4.20     | 0.95    | 7.10      | 2.65     |
 | BM1684X SoC | yolox_bmcv.soc  | yolox_s_int8_1b.bmodel | 4.23     | 0.95    | 4.50      | 2.65     |
@@ -240,3 +240,6 @@ Use different examples and models to test `datasets/val2017_1000` with `conf_thr
 
 ## 8. FAQ
 [Frequently Asked Questions](../../docs/FAQ_EN.md)
+
+## 9. Acknowledgments
+* Thanks to "Ling Yun Zhi Xin" for optimizing YOLOX's python demo

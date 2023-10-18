@@ -74,6 +74,8 @@ class YOLOx:
         self.multi_label = True
         self.max_det = 1000
         self.postprocess = PostProcess(
+            input_h=self.net_h,
+            input_w=self.net_w, 
             conf_thresh=self.conf_thresh,
             nms_thresh=self.nms_thresh,
             agnostic=self.agnostic,
