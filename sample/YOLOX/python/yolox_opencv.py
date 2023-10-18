@@ -43,11 +43,13 @@ class YOLOx:
         self.max_det = 1000
         
         self.postprocess = PostProcess(
+            input_h=self.net_h,
+            input_w=self.net_w,
             conf_thresh=self.conf_thresh,
             nms_thresh=self.nms_thresh,
             agnostic=self.agnostic,
             multi_label=self.multi_label,
-            max_det=self.max_det,
+            max_det=self.max_det
         )
         
         self.preprocess_time = 0.0
@@ -110,12 +112,18 @@ class YOLOx:
             ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]  # width, height ratios
 
 
-        if shape[::-1] != new_unpad:  # resize
-            im = cv2.resize(im, new_unpad, interpolation=cv2.INTER_LINEAR)
-        top, bottom = 0, int(dh)
-        left, right = 0, int(dw)
-        im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
-        return im, ratio, (dw, dh)
+        # opt
+        padded_img = np.ones((new_shape[1],new_shape[0],3),dtype=np.uint8) *114
+        padded_img[:new_unpad[1],:new_unpad[0]] = cv2.resize(im, new_unpad, interpolation=cv2.INTER_LINEAR)
+        return padded_img, ratio, (dw, dh)
+
+        # if shape[::-1] != new_unpad:  # resize
+        #     im = cv2.resize(im, new_unpad, interpolation=cv2.INTER_LINEAR)
+
+        # top, bottom = 0, int(dh)
+        # left, right = 0, int(dw)
+        # im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
+        # return im, ratio, (dw, dh) 
     
     
     def predict(self, input_img, img_num):
@@ -333,8 +341,8 @@ def main(args):
 
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--input', type=str, default='./datasets/test', help='path of input')
-    parser.add_argument('--bmodel', type=str, default='./models/BM1684X/yolox_s_fp16_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--input', type=str, default='../datasets/test', help='path of input')
+    parser.add_argument('--bmodel', type=str, default='../models/BM1684X/yolox_s_fp16_4b.bmodel', help='path of bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--conf_thresh', type=float, default=0.25, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.5, help='nms threshold')
