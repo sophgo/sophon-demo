@@ -9,19 +9,18 @@ else
     target_dir=${target^^}
 fi
 
-outdir=../data/models/$target_dir
+outdir=../models/$target_dir
 
 function gen_mlir()
 {
     model_transform.py \
         --model_name yolov4_416_coco \
-        --model_def ../data/models/onnx/yolov4_1_3_416_416_static.onnx \
+        --model_def ../models/onnx/yolov4_$1b.onnx \
         --input_shapes [[$1,3,416,416]] \
         --mean 0.0,0.0,0.0 \
         --scale 0.0039216,0.0039216,0.0039216 \
-        --test_input ../data/images/dog.jpg \
+        --test_input ../datasets/test/dog.jpg \
         --test_result tmp.npz \
-        --output_names /models.149/conv102/Conv_output_0,/models.160/conv110/Conv_output_0,/models.138/conv94/Conv_output_0 \
         --mlir yolov4_416_$1b.mlir
 }
 
@@ -31,11 +30,11 @@ function gen_fp32bmodel()
         --mlir yolov4_416_$1b.mlir \
         --quantize F32 \
         --chip $target \
-        --test_input ../data/images/dog.jpg \
+        --test_input ../datasets/test/dog.jpg \
         --test_reference tmp.npz \
-        --model yolov4_416_fp32_$1b.bmodel
+        --model yolov4_fp32_$1b.bmodel
 
-    mv yolov4_416_fp32_$1b.bmodel $outdir/
+    mv yolov4_fp32_$1b.bmodel $outdir/
 }
 
 pushd $model_dir

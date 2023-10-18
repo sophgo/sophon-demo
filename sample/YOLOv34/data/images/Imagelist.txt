@@ -1,5 +1,0 @@
-../../../data/images/person.jpg
-../../../data/images/dog.jpg
-../../../data/images/bus.jpg
-../../../data/images/zidane.jpg
-../../../data/images/horses.jpg

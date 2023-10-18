@@ -1,5 +1,0 @@
-easydict
-opencv-python
-pillow
-pyyaml
-opencv-python-headless
