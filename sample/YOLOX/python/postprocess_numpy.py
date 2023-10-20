@@ -10,13 +10,36 @@ import numpy as np
 import cv2
 
 class PostProcess:
-    def __init__(self, conf_thresh=0.001, nms_thresh=0.7, agnostic=False, multi_label=True, max_det=300):
+    def __init__(self, input_h, input_w, conf_thresh=0.001, nms_thresh=0.7, agnostic=False, multi_label=True, max_det=300, p6=False):
+        self.input_h = input_h
+        self.input_w = input_w
         self.conf_thresh = conf_thresh
         self.nms_thresh = nms_thresh
         self.agnostic_nms = agnostic
         self.multi_label = multi_label
         self.max_det = max_det
         self.nms = pseudo_torch_nms()
+
+        self.grids = []
+        self.expanded_strides = []
+
+        if not p6:
+            strides = [8,16,32]
+        else:
+            strides = [8,16,32,64]
+
+        hsizes = [input_h // stride for stride in strides]
+        wsizes = [input_w // stride for stride in strides]
+
+        for hsize, wsize, stride in zip(hsizes, wsizes, strides):
+            xv, yv = np.meshgrid(np.arange(wsize),np.arange(hsize))
+            grid = np.stack((xv,yv),2).reshape(1,-1,2)
+            self.grids.append(grid)
+            shape = grid.shape[:2]
+            self.expanded_strides.append(np.full((*shape,1),stride))
+
+        self.grids = np.concatenate(self.grids,1)
+        self.expanded_strides = np.concatenate(self.expanded_strides,1)
     
 
     def  __call__(self, preds_batch, input_size, org_size_batch, ratios_batch, txy_batch):
@@ -36,7 +59,7 @@ class PostProcess:
             print('preds_batch type: '.format(type(preds_batch)))
             raise NotImplementedError
         
-        dets = self.decode(preds_batch[0], *input_size)
+        dets = self.decode(preds_batch[0])
         
         
 
@@ -66,38 +89,17 @@ class PostProcess:
         return outs
 
 
-    def decode(self, outputs, input_w, input_h, p6=False):
-        grids = []
-        expanded_strides = []
-
-        if not p6:
-            strides = [8,16,32]
-        else:
-            strides = [8,16,32,64]
-
-        hsizes = [input_h // stride for stride in strides]
-        wsizes = [input_w // stride for stride in strides]
-
-        for hsize, wsize, stride in zip(hsizes, wsizes, strides):
-            xv, yv = np.meshgrid(np.arange(wsize),np.arange(hsize))
-            grid = np.stack((xv,yv),2).reshape(1,-1,2)
-            grids.append(grid)
-            shape = grid.shape[:2]
-            expanded_strides.append(np.full((*shape,1),stride))
-        
-        grids = np.concatenate(grids,1)
-        expanded_strides = np.concatenate(expanded_strides,1)
-
-
+    def decode(self, outputs):
         for i in range(len(outputs)):
-            
+            valid_indices = np.where(outputs[..., 4] > self.conf_thresh)[1]
+            expanded_strides = self.expanded_strides[:, valid_indices, :]
+            grids = self.grids[:, valid_indices, :]
+            outputs = outputs[:, valid_indices, :]
             outputs[i][..., :2] = (outputs[i][..., :2] + grids) * expanded_strides
             outputs[i][..., 2:4] = np.exp(outputs[i][..., 2:4]) * expanded_strides
             outputs[i][..., 5:] *= outputs[i][..., 4:5]
         
         return outputs
-
-
 
 
 # numpy multiclass nms implementation from original yolov5 repo torch implementation
