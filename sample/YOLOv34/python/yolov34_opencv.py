@@ -6,76 +6,331 @@
 # third-party components.
 #
 #===----------------------------------------------------------------------===#
-#-*-coding:utf-8-*-
-from __future__ import division
-from cProfile import label
-# from other.function_other import *
-import argparse
 import os
+import json
 import time
 import cv2
+import argparse
+import numpy as np
+import sophon.sail as sail
+from postprocess_numpy import PostProcess
+from utils import COLORS, COCO_CLASSES
+import logging
+logging.basicConfig(level=logging.INFO)
+# sail.set_print_flag(1)
 
-from detector import DetectFactory
+class YOLO:
+    def __init__(self, args):
+        # load bmodel
+        self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
+        logging.info("load {} success!".format(args.bmodel))
+        self.graph_name = self.net.get_graph_names()[0]
+        self.input_name = self.net.get_input_names(self.graph_name)[0]
+        self.output_names = self.net.get_output_names(self.graph_name)
+        self.input_shape = self.net.get_input_shape(self.graph_name, self.input_name)
+        if len(self.output_names) not in [1, 3]:
+            raise ValueError('only suport 1 or 3 outputs, but got {} outputs bmodel'.format(len(self.output_names)))
 
-from configs.config import update_config
-
-from utils.logger import logger
-
-opt = None
-save_path = os.path.join(os.path.dirname(
-    __file__), "result_imgs", os.path.basename(__file__).split('.')[0])
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# args = update_config(BASE_DIR + "/configs/yolov3_416.yml")
-# args = update_config(BASE_DIR + "/configs/yolov3_608.yml")
-# args = update_config(BASE_DIR + "/configs/yolov4_416.yml")
-# args = update_config(BASE_DIR + "/configs/yolov4_608.yml")
-
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser(
-        description="Demo of YOLOV3/4 with preprocess by PIL")
-
-    parser.add_argument('--cfgfile',
-                        type=str,
-                        default="./configs/yolov4_416.yml",
-                        required=False,
-                        help='config file path.')
-
-    parser.add_argument('--input',
-                        type=str,
-                        default="../data/images/person.jpg",
-                        required=False,
-                        help='input pic file path.')    
+        self.batch_size = self.input_shape[0]
+        self.net_h = self.input_shape[2]
+        self.net_w = self.input_shape[3]       
+        self.conf_thresh = args.conf_thresh
+        self.nms_thresh = args.nms_thresh
+        if "yolov4" in args.bmodel:
+            anchors = [[12, 16, 19, 36, 40, 28], [36, 75, 76, 55, 72, 146], [142, 110, 192, 243, 459, 401]]
+        else:
+            anchors = [[10, 13, 16, 30, 33, 23], [30, 61, 62, 45, 59, 119], [116, 90, 156, 198, 373, 326]]
+        self.agnostic = False
+        self.multi_label = True
+        self.max_det = 1000
+        
+        self.postprocess = PostProcess(anchors,
+            conf_thresh=self.conf_thresh,
+            nms_thresh=self.nms_thresh,
+            agnostic=self.agnostic,
+            multi_label=self.multi_label,
+            max_det=self.max_det,
+        )
+        
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
     
-    opt = parser.parse_args()
+    def init(self):
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
+            
+    def preprocess(self, ori_img):
+        """
+        pre-processing
+        Args:
+            img: numpy.ndarray -- (h,w,3)
 
-    save_path = os.path.join(
-        save_path, time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
-    )
+        Returns: (3,h,w) numpy.ndarray after pre-processing
 
-    os.makedirs(save_path, exist_ok=True)
+        """
+        letterbox_img, ratio, (tx1, ty1) = self.letterbox(
+            ori_img,
+            new_shape=(self.net_h, self.net_w),
+            color=(114, 114, 114),
+            auto=False,
+            scaleFill=False,
+            scaleup=True,
+            stride=32
+        )
+        img = letterbox_img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+        img = img.astype(np.float32)
+        # input_data = np.expand_dims(input_data, 0)
+        img = np.ascontiguousarray(img / 255.0)
+        return img, ratio, (tx1, ty1) 
+    
+    def letterbox(self, im, new_shape=(640, 640), color=(114, 114, 114), auto=False, scaleFill=False, scaleup=True, stride=32):
+        # Resize and pad image while meeting stride-multiple constraints
+        shape = im.shape[:2]  # current shape [height, width]
+        if isinstance(new_shape, int):
+            new_shape = (new_shape, new_shape)
 
-    args = update_config(opt.cfgfile)
+        # Scale ratio (new / old)
+        r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+        if not scaleup:  # only scale down, do not scale up (for better val mAP)
+            r = min(r, 1.0)
 
-    # 1.load yolov3/4-coco model
-    detector = DetectFactory(name=args.DETECTOR.NAME, config=args.DETECTOR)
-    logger.info("Yolov3/4 model load successful!")
+        # Compute padding
+        ratio = r, r  # width, height ratios
+        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
+        if auto:  # minimum rectangle
+            dw, dh = np.mod(dw, stride), np.mod(dh, stride)  # wh padding
+        elif scaleFill:  # stretch
+            dw, dh = 0.0, 0.0
+            new_unpad = (new_shape[1], new_shape[0])
+            ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]  # width, height ratios
 
-    # 2. read image
-    frame = cv2.imread(opt.input)
+        dw /= 2  # divide padding into 2 sides
+        dh /= 2
 
-    # assert frame is None
+        if shape[::-1] != new_unpad:  # resize
+            im = cv2.resize(im, new_unpad, interpolation=cv2.INTER_LINEAR)
+        top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
+        left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+        im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
+        return im, ratio, (dw, dh)
+    
+    def predict(self, input_img, img_num):
+        input_data = {self.input_name: input_img}
+        outputs = self.net.process(self.graph_name, input_data)
+        
+        # resort
+        out_keys = list(outputs.keys())
+        ord = []
+        for n in self.output_names:
+            for i, k in enumerate(out_keys):
+                if n == k:
+                    ord.append(i)
+                    break
+        out = [outputs[out_keys[i]][:img_num] for i in ord]
+        return out
+    
+    def __call__(self, img_list):
+        img_num = len(img_list)
+        ori_size_list = []
+        preprocessed_img_list = []
+        ratio_list = []
+        txy_list = []
+        for ori_img in img_list:
+            ori_h, ori_w = ori_img.shape[:2]
+            ori_size_list.append((ori_w, ori_h))
+            start_time = time.time()
+            preprocessed_img, ratio, (tx1, ty1) = self.preprocess(ori_img)
+            self.preprocess_time += time.time() - start_time
+            preprocessed_img_list.append(preprocessed_img)
+            ratio_list.append(ratio)
+            txy_list.append([tx1, ty1])
+        
+        if img_num == self.batch_size:
+            input_img = np.stack(preprocessed_img_list)
+        else:
+            input_img = np.zeros(self.input_shape, dtype='float32')
+            input_img[:img_num] = np.stack(preprocessed_img_list)
+            
+        start_time = time.time()
+        outputs = self.predict(input_img, img_num)
+        self.inference_time += time.time() - start_time
+        
+        start_time = time.time()
+        results = self.postprocess(outputs, ori_size_list, ratio_list, txy_list)
+        self.postprocess_time += time.time() - start_time
 
-    logger.info(frame.shape)
+        return results
 
-    # 3. inference
-    detected_boxes, result_image = detector.detect(frame)
+def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None):
+    for idx in range(len(boxes)):
+        x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
+        logging.debug("class id={}, score={}, (x1={},y1={},x2={},y2={})".format(classes_ids[idx],conf_scores[idx], x1, y1, x2, y2))
+        if conf_scores[idx] < 0.25:
+            continue
+        if classes_ids is not None:
+            color = COLORS[int(classes_ids[idx]) + 1]
+        else:
+            color = (0, 0, 255)
+        cv2.rectangle(image, (x1, y1), (x2, y2), color, thickness=2)
+        if classes_ids is not None and conf_scores is not None:
+            classes_ids = classes_ids.astype(np.int8)
+            cv2.putText(image, COCO_CLASSES[classes_ids[idx] + 1] + ':' + str(round(conf_scores[idx], 2)),
+                        (x1, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness=2)
+        if masks is not None:
+            mask = masks[:, :, idx]
+            image[mask] = image[mask] * 0.5 + np.array(color) * 0.5
+        
+    return image
+   
+def main(args):
+    # check params
+    if not os.path.exists(args.input):
+        raise FileNotFoundError('{} is not existed.'.format(args.input))
+    if not os.path.exists(args.bmodel):
+        raise FileNotFoundError('{} is not existed.'.format(args.bmodel))
+    
+    # creat save path
+    output_dir = "./results"
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    output_img_dir = os.path.join(output_dir, 'images')
+    if not os.path.exists(output_img_dir):
+        os.mkdir(output_img_dir) 
+    
+    # initialize net
+    yolov34 = YOLO(args)
+    batch_size = yolov34.batch_size
+    
+    # warm up 
+    # for i in range(10):
+    #     results = yolov34([np.zeros((640, 640, 3))])
+    yolov34.init()
+    
+    decode_time = 0.0
+    # test images
+    if os.path.isdir(args.input): 
+        img_list = []
+        filename_list = []
+        results_list = []
+        cn = 0
+        for root, dirs, filenames in os.walk(args.input):
+            for filename in filenames:
+                if os.path.splitext(filename)[-1].lower() not in ['.jpg','.png','.jpeg','.bmp','.webp']:
+                    continue
+                img_file = os.path.join(root, filename)
+                cn += 1
+                logging.info("{}, img_file: {}".format(cn, img_file))
+                # decode
+                start_time = time.time()
+                src_img = cv2.imdecode(np.fromfile(img_file, dtype=np.uint8), -1)
+                if src_img is None:
+                    logging.error("{} imdecode is None.".format(img_file))
+                    continue
+                if len(src_img.shape) != 3:
+                    src_img = cv2.cvtColor(src_img, cv2.COLOR_GRAY2BGR)
+                decode_time += time.time() - start_time
+                
+                img_list.append(src_img)
+                filename_list.append(filename)
+                if (len(img_list) == batch_size or cn == len(filenames)) and len(img_list):
+                    # predict
+                    results = yolov34(img_list)
+                    
+                    for i, filename in enumerate(filename_list):
+                        det = results[i]
+                        # save image
+                        res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                        cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
+                        
+                        # save result
+                        res_dict = dict()
+                        res_dict['image_name'] = filename
+                        res_dict['bboxes'] = []
+                        for idx in range(det.shape[0]):
+                            bbox_dict = dict()
+                            x1, y1, x2, y2, score, category_id = det[idx]
+                            bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2 - x1,3)), float(round(y2 -y1, 3))]
+                            bbox_dict['category_id'] = int(category_id)
+                            bbox_dict['score'] = float(round(score,5))
+                            res_dict['bboxes'].append(bbox_dict)
+                        results_list.append(res_dict)
+                        
+                    img_list.clear()
+                    filename_list.clear()
 
-    # 4. print result bbox info
-    logger.info(detected_boxes)
+        # save results
+        if args.input[-1] == '/':
+            args.input = args.input[:-1]
+        json_name = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input)[-1] + "_opencv" + "_python_result.json"
+        with open(os.path.join(output_dir, json_name), 'w') as jf:
+            # json.dump(results_list, jf)
+            json.dump(results_list, jf, indent=4, ensure_ascii=False)
+        logging.info("result saved in {}".format(os.path.join(output_dir, json_name)))
+        
+    # test video
+    else:
+        cap = cv2.VideoCapture()
+        if not cap.open(args.input):
+            raise Exception("can not open the video")
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        # print(fps, size)
+        save_video = os.path.join(output_dir, os.path.splitext(os.path.split(args.input)[1])[0] + '.avi')
+        out = cv2.VideoWriter(save_video, fourcc, fps, size)
+        cn = 0
+        frame_list = []
+        end_flag = False
+        while not end_flag:
+            start_time = time.time()
+            ret, frame = cap.read()
+            decode_time += time.time() - start_time
+            if not ret or frame is None:
+                end_flag = True
+            else:
+                frame_list.append(frame)
+            if (len(frame_list) == batch_size or end_flag) and len(frame_list):
+                results = yolov34(frame_list)
+                for i, frame in enumerate(frame_list):
+                    det = results[i]
+                    cn += 1
+                    logging.info("{}, det nums: {}".format(cn, det.shape[0]))
+                    res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                    out.write(res_frame)
+                frame_list.clear()
+        cap.release()
+        out.release()
+        logging.info("result saved in {}".format(save_video))
+        
+    # calculate speed  
+    logging.info("------------------ Predict Time Info ----------------------")
+    decode_time = decode_time / cn
+    preprocess_time = yolov34.preprocess_time / cn
+    inference_time = yolov34.inference_time / cn
+    postprocess_time = yolov34.postprocess_time / cn
+    logging.info("decode_time(ms): {:.2f}".format(decode_time * 1000))
+    logging.info("preprocess_time(ms): {:.2f}".format(preprocess_time * 1000))
+    logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
+    logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
+    # average_latency = decode_time + preprocess_time + inference_time + postprocess_time
+    # qps = 1 / average_latency
+    # logging.info("average latency time(ms): {:.2f}, QPS: {:2f}".format(average_latency * 1000, qps))
 
-    # 5. save result image
-    cv2.imwrite(os.path.join(save_path, os.path.splitext(os.path.split(opt.input)[-1])[0] + "_result.jpg"), result_image)
+def argsparser():
+    parser = argparse.ArgumentParser(prog=__file__)
+    parser.add_argument('--input', type=str, default='../datasets/test', help='path of input')
+    parser.add_argument('--bmodel', type=str, default='../models/BM1684/yolov3_fp32_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--dev_id', type=int, default=0, help='dev id')
+    parser.add_argument('--conf_thresh', type=float, default=0.001, help='confidence threshold')
+    parser.add_argument('--nms_thresh', type=float, default=0.6, help='nms threshold')
+    args = parser.parse_args()
+    return args
+
+if __name__ == "__main__":
+    args = argsparser()
+    main(args)
+    print('all done.')
