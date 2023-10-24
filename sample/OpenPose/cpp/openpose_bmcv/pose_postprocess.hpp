@@ -14,6 +14,7 @@
 #include "openpose.hpp"
 #include "bmnn_utils.h"
 #include "pose_postprocess.hpp"
+#include <thread>
 
 class PoseBlob : public NoCopyable, public std::enable_shared_from_this<PoseBlob> {
     int m_count;
@@ -44,6 +45,17 @@ public:
 };
 using PoseBlobPtr = std::shared_ptr<PoseBlob>;
 
+typedef struct {
+  unsigned long long input_data_addr;
+  unsigned long long num_output_data_addr;
+  unsigned long long output_data_addr;
+  int input_c;
+  int input_h;
+  int input_w;
+  int max_peak_num;
+  float nms_thresh;
+} __attribute__((packed)) tpu_api_openpose_part_nms_postprocess_t;
+
 class OpenPosePostProcess {
 public:
     OpenPosePostProcess();
@@ -52,12 +64,31 @@ public:
 
     static int Nms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, float threshold);
 
+    static int kernel_part_nms(bm_device_mem_t input_data, int input_h, int input_w, int max_peak_num,
+                            float threshold, int* num_result, float* score_out_result,
+                            int* coor_out_result, PoseKeyPoints::EModelType model_type, bm_handle_t handle, tpu_kernel_function_t func_id);
+
+    static int resize_multi_channel(float* input, float* output,
+                            bm_device_mem_t out_addr, int input_height,
+                            int input_width, cv::Size outSize, bool use_memcpy,
+                            int start_chan_idx, int end_chan_idx, bm_handle_t handle);
+
     static void connectBodyPartsCpu(std::vector<float> &poseKeypoints, const float *const heatMapPtr,
                                     const float *const peaksPtr, const cv::Size &heatMapSize, const int maxPeaks,
                                     const int interMinAboveThreshold, const float interThreshold,
                                     const int minSubsetCnt,
                                     const float minSubsetScore, const float scaleFactor,
                                     std::vector<int> &keypointShape, PoseKeyPoints::EModelType model_type);
+
+    static void connectBodyPartsKernel(
+        std::vector<float>& poseKeypoints,
+        const float* const heatMapPtr, const int* const num_result,
+        const float* const score_out_result, const int* const coor_out_result,
+        const float* const peaksPtr, const cv::Size& heatMapSize,
+        const int maxPeaks, const int interMinAboveThreshold,
+        const float interThreshold, const int minSubsetCnt,
+        const float minSubsetScore, const float scaleFactor, std::vector<int>& keypointShape, 
+        PoseKeyPoints::EModelType model_type);
 
     static void renderKeypointsCpu(cv::Mat &frame, const std::vector<float> &keypoints, std::vector<int> keyshape,
                                    const std::vector<unsigned int> &pairs, const std::vector<float> colors,
@@ -78,6 +109,11 @@ public:
     static int getKeyPoints(std::shared_ptr<BMNNTensor> tensorPtr, const std::vector<bm_image> &images,
                             std::vector<PoseKeyPoints> &body_keypoints, PoseKeyPoints::EModelType model_type, 
                             float nms_threshold);
+
+    static void getKeyPointsTPUKERNEL(
+        std::shared_ptr<BMNNTensor> tensorPtr, const std::vector<bm_image>& images,
+        std::vector<PoseKeyPoints>& body_keypoints,
+        PoseKeyPoints::EModelType  model_type, float nms_threshold, bool restore_half_img_size, bm_handle_t handle, tpu_kernel_function_t func_id);
 
     static std::vector<unsigned int> getPosePairs(PoseKeyPoints::EModelType model_type);
 

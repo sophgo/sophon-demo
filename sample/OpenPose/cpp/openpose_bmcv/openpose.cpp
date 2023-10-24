@@ -26,7 +26,7 @@ OpenPose::~OpenPose() {
   }
 }
 
-int OpenPose::Init(){
+int OpenPose::Init(bool use_tpu_kernel_post){
   //1. get network
   m_bmNetwork = m_bmContext->network(0);
 
@@ -85,7 +85,18 @@ int OpenPose::Init(){
   converto_attr.beta_2 = -128 * input_scale;
 
   nms_threshold = 0.05;
-  
+
+  if (use_tpu_kernel_post) {
+      tpu_kernel_module_t tpu_module;
+      std::string tpu_kernel_module_path =
+          "../../tpu_kernel_module/"
+          "libbm1684x_kernel_module.so";
+      tpu_module = tpu_kernel_load_module_file(m_bmContext->handle(),
+                                               tpu_kernel_module_path.c_str());
+      func_id = tpu_kernel_get_function(
+          m_bmContext->handle(), tpu_module,
+          "tpu_kernel_api_openpose_part_nms_postprocess");
+  }
   return 0;
 }
 
@@ -101,7 +112,7 @@ PoseKeyPoints::EModelType OpenPose::get_model_type(){
   return m_model_type;
 };
 
-int OpenPose::Detect(const vector<bm_image>& input_images, vector<PoseKeyPoints>& vct_keypoints){
+int OpenPose::Detect(const vector<bm_image>& input_images, vector<PoseKeyPoints>& vct_keypoints, bool use_tpu_kernel_post, bool restore_half_img_size){
   int ret = 0;
   //3. preprocess
   LOG_TS(ts_, "openpose preprocess");
@@ -115,7 +126,7 @@ int OpenPose::Detect(const vector<bm_image>& input_images, vector<PoseKeyPoints>
   LOG_TS(ts_, "openpose inference");
   //5. post process
   LOG_TS(ts_, "openpose postprocess");
-  ret = post_process(input_images, vct_keypoints);
+  ret = post_process(input_images, vct_keypoints, use_tpu_kernel_post, restore_half_img_size);
   CV_Assert(ret == 0);
   LOG_TS(ts_, "openpose postprocess");
   return ret;
@@ -169,9 +180,12 @@ int OpenPose::pre_process(const std::vector<bm_image>& images){
   return 0;
 }
 
-int OpenPose::post_process(const vector<bm_image> &images, vector<PoseKeyPoints>& vct_keypoints){
+int OpenPose::post_process(const vector<bm_image> &images, vector<PoseKeyPoints>& vct_keypoints, bool use_tpu_kernel_post, bool restore_half_img_size){
   auto out_tensor = m_bmNetwork->outputTensor(0);
-  OpenPosePostProcess::getKeyPoints(out_tensor, images, vct_keypoints, m_model_type, nms_threshold);
+  if (use_tpu_kernel_post)
+    OpenPosePostProcess::getKeyPointsTPUKERNEL(out_tensor, images, vct_keypoints, m_model_type, nms_threshold, restore_half_img_size, m_bmContext->handle(), func_id);
+  else
+    OpenPosePostProcess::getKeyPoints(out_tensor, images, vct_keypoints, m_model_type, nms_threshold);
   return 0;
 }
 
