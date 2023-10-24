@@ -26,7 +26,9 @@ int main(int argc, char** argv) {
   const char *keys = "{help | 0 | print help information.}"
     "{dev_id | 0 | TPU device id}"
     "{bmodel | ../../models/BM1684/pose_coco_fp32_1b.bmodel | bmodel file path}"
-    "{input | ../../datasets/test | input path, images direction or video file path}";
+    "{input | ../../datasets/test | input path, images direction or video file path}"
+    "{use_tpu_kernel_post | false | whether to use tpu kernel postprocess}"
+    "{restore_half_img_size | false | whether to restore half size of image in kernel postprocess}";
   cv::CommandLineParser parser(argc, argv, keys);
   if (parser.get<bool>("help")) {
     parser.printMessage();
@@ -35,6 +37,12 @@ int main(int argc, char** argv) {
   string bmodel_file = parser.get<string>("bmodel");
   string input = parser.get<string>("input");
   int dev_id = parser.get<int>("dev_id");
+  bool use_tpu_kernel_post = parser.get<bool>("use_tpu_kernel_post");
+  bool restore_half_img_size = parser.get<bool>("restore_half_img_size");
+  if (use_tpu_kernel_post)
+    cout << "Using kernel postprocess." << endl;
+  if (restore_half_img_size)
+    cout << "Restore half size of image in kernel postprocess." << endl;
 
   // check params
   struct stat info;
@@ -57,7 +65,7 @@ int main(int argc, char** argv) {
 
   // initialize net
   OpenPose openpose(bm_ctx);
-  CV_Assert(0 == openpose.Init());
+  CV_Assert(0 == openpose.Init(use_tpu_kernel_post));
 
   // profiling
   TimeStamp openpose_ts;
@@ -112,7 +120,7 @@ int main(int argc, char** argv) {
       batch_imgs.push_back(bmimg);
       batch_names.push_back(img_name);
       if (batch_imgs.size() == batch_size) {
-        CV_Assert(0 == openpose.Detect(batch_imgs, vct_keypoints));
+        CV_Assert(0 == openpose.Detect(batch_imgs, vct_keypoints, use_tpu_kernel_post, restore_half_img_size));
         for(int i = 0; i < batch_size; i++){
           cout << "keypoints.size: " << vct_keypoints[i].keypoints.size() << endl;
           string img_file = "results/images/" + batch_names[i];
@@ -149,7 +157,7 @@ int main(int argc, char** argv) {
     }
     if (!batch_imgs.empty()){
       // predict
-      CV_Assert(0 == openpose.Detect(batch_imgs, vct_keypoints));
+      CV_Assert(0 == openpose.Detect(batch_imgs, vct_keypoints, use_tpu_kernel_post, restore_half_img_size));
       for(int i = 0; i < batch_imgs.size(); i++){
         cout << "keypoints.size: " << vct_keypoints[i].keypoints.size() << endl;
         string img_file = "results/images/" + batch_names[i];
@@ -214,7 +222,7 @@ int main(int argc, char** argv) {
         break;
       batch_imgs.push_back(*img);
       if (batch_imgs.size() == batch_size) {
-        CV_Assert(0 == openpose.Detect(batch_imgs, vct_keypoints));
+        CV_Assert(0 == openpose.Detect(batch_imgs, vct_keypoints, use_tpu_kernel_post, restore_half_img_size));
         for(int i = 0; i < batch_size; i++){
           id++;
           cout << id << ", keypoints.size: " << vct_keypoints[i].keypoints.size() << endl;
@@ -241,7 +249,7 @@ int main(int argc, char** argv) {
       }
     }
     if (!batch_imgs.empty()){
-      CV_Assert(0 == openpose.Detect(batch_imgs, vct_keypoints));
+      CV_Assert(0 == openpose.Detect(batch_imgs, vct_keypoints, use_tpu_kernel_post, restore_half_img_size));
       for(int i = 0; i < batch_imgs.size(); i++){
         id++;
         cout << id << ", keypoints.size: " << vct_keypoints[i].keypoints.size() << endl;
