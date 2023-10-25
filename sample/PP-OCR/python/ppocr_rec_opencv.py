@@ -44,6 +44,8 @@ class PPOCRv2Rec(object):
         self.preprocess_time = 0.0
         self.inference_time = 0.0
         self.postprocess_time = 0.0
+        self.beam_search = args.use_beam_search
+        self.beam_size = args.beam_size
     
     def preprocess(self, img):
         start_prep = time.time()
@@ -83,29 +85,72 @@ class PPOCRv2Rec(object):
         self.inference_time += time.time() - start_infer
         return list(outputs.values())[0]
 
-    def postprocess(self, outputs):
+    def postprocess(self, outputs, beam_search=False, beam_width=5):
         start_post = time.time()
         result_list = []
-        #outputs = list(outputs.values())[0]
-        preds_idx = outputs.argmax(axis = 2)
-        preds_prob = outputs.max(axis=2)
-        for batch_idx, pred_idx in enumerate(preds_idx):
-            char_list = []
-            conf_list = []
-            pre_c = pred_idx[0]
-            if pre_c != 0:
-                char_list.append(self.character[pre_c])
-                conf_list.append(preds_prob[batch_idx][0])
-            for idx, c in enumerate(pred_idx):
-                if (pre_c == c) or (c == 0):
-                    if c == 0:
-                        pre_c = c
-                    continue
-                char_list.append(self.character[c])
-                conf_list.append(preds_prob[batch_idx][idx])
-                pre_c = c
 
-            result_list.append((''.join(char_list), np.mean(conf_list))) 
+        if beam_search:
+            max_seq_len, num_classes = outputs.shape[1], outputs.shape[2]
+
+            for batch_idx in range(outputs.shape[0]):
+                beams = [{'prefix': [], 'score': 1.0, 'confs':[]}] 
+
+                for t in range(max_seq_len):
+                    new_beams = []
+
+                    for beam in beams:
+
+                        next_char_probs = outputs[batch_idx, t]
+                        top_candidates = np.argsort(-next_char_probs)[:beam_width]
+
+                        for c in top_candidates:
+                                new_prefix = beam['prefix'] + [c]
+                                new_score = beam['score'] * next_char_probs[c]
+                                new_confs = beam['confs'] + [next_char_probs[c]]
+                                new_beams.append({'prefix': new_prefix, 'score': new_score, 'confs':new_confs})
+
+                    new_beams.sort(key=lambda x: -x['score'])
+                    beams = new_beams[:beam_width]
+
+                best_beam = max(beams, key=lambda x: x['score'])
+
+                char_list = []
+                conf_list = []
+                pre_c = best_beam['prefix'][0]
+                if pre_c != 0:
+                    char_list.append(self.character[pre_c])
+                    conf_list.append(best_beam['confs'][0])
+                for idx, c in enumerate(best_beam['prefix']):
+                    if (pre_c==c) or (c==0):
+                        if c ==0:
+                            pre_c = c
+                        continue
+                    char_list.append(self.character[c])
+                    conf_list.append(best_beam['confs'][idx])
+                    pre_c = c
+                result_list.append((''.join(char_list), np.mean(conf_list)))
+
+        else:  # original postprocess
+            preds_idx = outputs.argmax(axis=2)
+            preds_prob = outputs.max(axis=2)
+            for batch_idx, pred_idx in enumerate(preds_idx):
+                char_list = []
+                conf_list = []
+                pre_c = pred_idx[0]
+                if pre_c != 0:
+                    char_list.append(self.character[pre_c])
+                    conf_list.append(preds_prob[batch_idx][0])
+                for idx, c in enumerate(pred_idx):
+                    if (pre_c == c) or (c == 0):
+                        if c == 0:
+                            pre_c = c
+                        continue
+                    char_list.append(self.character[c])
+                    conf_list.append(preds_prob[batch_idx][idx])
+                    pre_c = c
+
+                result_list.append((''.join(char_list), np.mean(conf_list)))
+
         self.postprocess_time += time.time() - start_post
         return result_list
 
@@ -125,7 +170,7 @@ class PPOCRv2Rec(object):
                 for img_input in img_dict[size_w]["imgs"]:
                     img_input = np.expand_dims(img_input, axis=0)
                     outputs = self.predict(img_input)
-                    res = self.postprocess(outputs)
+                    res = self.postprocess(outputs,self.beam_search,self.beam_size)
                     img_dict[size_w]["res"].extend(res)
             else:
                 img_num = len(img_dict[size_w]["imgs"])
@@ -135,12 +180,12 @@ class PPOCRv2Rec(object):
                         for ino in range(beg_img_no, end_img_no):
                             img_input = np.expand_dims(img_dict[size_w]["imgs"][ino], axis=0)
                             outputs = self.predict(img_input)
-                            res = self.postprocess(outputs)
+                            res = self.postprocess(outputs,self.beam_search,self.beam_size)
                             img_dict[size_w]["res"].extend(res)   
                     else:
                         img_input = np.stack(img_dict[size_w]["imgs"][beg_img_no:end_img_no])
                         outputs = self.predict(img_input)
-                        res = self.postprocess(outputs)
+                        res = self.postprocess(outputs,self.beam_search,self.beam_size)
                         img_dict[size_w]["res"].extend(res)
 
         rec_res = {"res":[], "ids":[]}
@@ -183,6 +228,8 @@ def parse_opt():
     parser.add_argument('--img_size', type=img_size_type, default=[[640, 48],[320, 48]], help='You should set inference size [width,height] manually if using multi-stage bmodel.')
     parser.add_argument("--char_dict_path", type=str, default="../datasets/ppocr_keys_v1.txt")
     parser.add_argument("--use_space_char", type=bool, default=True)
+    parser.add_argument('--use_beam_search', action='store_const', const=True, default=False, help='Enable beam search')
+    parser.add_argument("--beam_size", type=int, default=5, choices=range(1,41), help='Only valid when using beam search, valid range 1~40')
     opt = parser.parse_args()
     return opt
 

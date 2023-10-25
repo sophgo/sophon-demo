@@ -27,9 +27,9 @@ class PPOCR_Rec
         PPOCR_Rec(std::shared_ptr<BMNNContext> context);
         virtual ~PPOCR_Rec();
         int Init(const std::string &label_path);
-        int run(std::vector<bm_image> input_bmimgs, std::vector<OCRBoxVec> &boxes, std::vector<std::pair<int, int>> ids);
+        int run(std::vector<bm_image> input_bmimgs, std::vector<OCRBoxVec> &boxes, std::vector<std::pair<int, int>> ids, bool beam_search, int beam_size);
         int preprocess_bmcv(const std::vector<bm_image> batch_bmimgs, int stage_w);
-        int post_process(std::vector<std::pair<std::string, float>>& results);
+        int post_process(std::vector<std::pair<std::string, float>>& results, bool beam_search=false, int beam_width=3);
 
         template <class ForwardIterator>
         inline static size_t argmax(ForwardIterator first, ForwardIterator last) {
