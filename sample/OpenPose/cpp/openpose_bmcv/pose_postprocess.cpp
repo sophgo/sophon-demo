@@ -205,6 +205,47 @@ int OpenPosePostProcess::Nms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, floa
     }
 }
 
+int OpenPosePostProcess::kernel_part_nms(
+    bm_device_mem_t input_data, int input_h, int input_w, int max_peak_num,
+    float threshold, int* num_result, float* score_out_result,
+    int* coor_out_result, PoseKeyPoints::EModelType model_type, bm_handle_t handle, tpu_kernel_function_t func_id) {
+    tpu_api_openpose_part_nms_postprocess_t api;
+    api.input_c = getNumberBodyParts(model_type);
+
+    bm_device_mem_t output_data, output_num;
+    assert(BM_SUCCESS == bm_malloc_device_byte(
+                            handle, &output_data,
+                            sizeof(float) * api.input_c * input_h * input_w));
+    assert(BM_SUCCESS == bm_malloc_device_byte(handle,
+                                                &output_num,
+                                                sizeof(int) * api.input_c));
+    api.input_data_addr = bm_mem_get_device_addr(input_data);
+    api.output_data_addr = bm_mem_get_device_addr(output_data);
+    api.num_output_data_addr = bm_mem_get_device_addr(output_num);
+
+    api.input_h = input_h;
+    api.input_w = input_w;
+    api.max_peak_num = max_peak_num;
+    api.nms_thresh = threshold;
+
+    assert(BM_SUCCESS == tpu_kernel_launch(handle,
+                                            func_id, &api, sizeof(api)));
+    bm_thread_sync(handle);
+
+    bm_memcpy_d2s_partial(handle, num_result, output_num,
+                            sizeof(int) * api.input_c);
+    const int peak_num = num_result[api.input_c - 1];
+    bm_memcpy_d2s_partial(handle, score_out_result,
+                            input_data, peak_num * sizeof(float));
+    bm_memcpy_d2s_partial_offset(handle, coor_out_result,
+                                input_data, peak_num * sizeof(int),
+                                peak_num * sizeof(float));
+
+    bm_free_device(handle, input_data);
+    bm_free_device(handle, output_data);
+    bm_free_device(handle, output_num);
+}
+
 std::vector<unsigned int> OpenPosePostProcess::getPosePairs(PoseKeyPoints::EModelType model_type) {
     switch (model_type) {
         case PoseKeyPoints::EModelType::BODY_25:
@@ -545,6 +586,291 @@ void OpenPosePostProcess::connectBodyPartsCpu(std::vector<float>& poseKeypoints,
     }
 }
 
+void OpenPosePostProcess::connectBodyPartsKernel(
+    std::vector<float>& poseKeypoints,
+    const float* const heatMapPtr, const int* const num_result,
+    const float* const score_out_result, const int* const coor_out_result,
+    const float* const peaksPtr, const cv::Size& heatMapSize,
+    const int maxPeaks, const int interMinAboveThreshold,
+    const float interThreshold, const int minSubsetCnt,
+    const float minSubsetScore, const float scaleFactor, std::vector<int>& keypointShape, 
+    PoseKeyPoints::EModelType modelType) {
+    keypointShape.resize(3);
+    const auto bodyPartPairs = getPosePairs(modelType);
+    const auto mapIdx = getPoseMapIdx(modelType);
+    const auto numberBodyParts = getNumberBodyParts(modelType);  // COCO 18 points
+
+    const auto numberBodyPartPairs = bodyPartPairs.size() / 2;
+
+    std::vector<std::pair<std::vector<int>, double>>
+        subset;  // Vector<int> = Each body part + body parts counter; double =
+                // subsetScore
+    const auto subsetCounterIndex = numberBodyParts;
+    const auto subsetSize = numberBodyParts + 1;
+    const auto heatMapOffset = heatMapSize.area();
+
+    for (auto pairIndex = 0u; pairIndex < numberBodyPartPairs; pairIndex++) {
+        const auto bodyPartA = bodyPartPairs[2 * pairIndex];
+        const auto bodyPartB = bodyPartPairs[2 * pairIndex + 1];
+        const auto nA = bodyPartA > 0
+                            ? num_result[bodyPartA] - num_result[bodyPartA - 1]
+                            : num_result[bodyPartA];
+        const auto nB = bodyPartB > 0
+                            ? num_result[bodyPartB] - num_result[bodyPartB - 1]
+                            : num_result[bodyPartB];
+        const auto kernel_candidateA_offset =
+            (bodyPartA > 0 ? num_result[bodyPartA - 1] : 0);
+        const auto kernel_candidateB_offset =
+            (bodyPartB > 0 ? num_result[bodyPartB - 1] : 0);
+
+        // add parts into the subset in special case
+        if (nA == 0 || nB == 0) {
+        // Change w.r.t. other
+        if (nA == 0)  // nB == 0 or not
+        {
+            for (auto i = 1; i <= nB; i++) {
+            bool num = false;
+            const auto indexB = bodyPartB;
+            for (auto j = 0u; j < subset.size(); j++) {
+                const auto off = kernel_candidateB_offset + i;
+                if (subset[j].first[indexB] == off) {
+                num = true;
+                break;
+                }
+            }
+            if (!num) {
+                std::vector<int> rowVector(subsetSize, 0);
+                rowVector[bodyPartB] = kernel_candidateB_offset + i;
+                rowVector[subsetCounterIndex] =
+                    1;  // last number in each row is the parts number of that
+                        // person
+                const auto subsetScore =
+                    score_out_result[kernel_candidateB_offset + i - 1];
+                subset.emplace_back(std::make_pair(rowVector, subsetScore));
+            }
+            }
+        } else  // if (nA != 0 && nB == 0)
+        {
+            for (auto i = 1; i <= nA; i++) {
+            bool num = false;
+            const auto indexA = bodyPartA;
+            for (auto j = 0u; j < subset.size(); j++) {
+                const auto off = kernel_candidateA_offset + i;
+                if (subset[j].first[indexA] == off) {
+                num = true;
+                break;
+                }
+            }
+            if (!num) {
+                std::vector<int> rowVector(subsetSize, 0);
+                rowVector[bodyPartA] = kernel_candidateA_offset + i;
+                rowVector[subsetCounterIndex] =
+                    1;  // last number in each row is the parts number of that
+                        // person
+                const auto subsetScore =
+                    score_out_result[kernel_candidateA_offset + i - 1];
+                subset.emplace_back(std::make_pair(rowVector, subsetScore));
+            }
+            }
+        }
+        } else  // if (nA != 0 && nB != 0)
+        {
+        std::vector<std::tuple<double, int, int>> temp;
+        const auto numInter = 10;
+        const auto* const mapX =
+            heatMapPtr + mapIdx[2 * pairIndex] * heatMapOffset;
+        const auto* const mapY =
+            heatMapPtr + mapIdx[2 * pairIndex + 1] * heatMapOffset;
+        for (auto i = 1; i <= nA; i++) {
+            for (auto j = 1; j <= nB; j++) {
+            const auto dX = (coor_out_result[kernel_candidateB_offset + j - 1] %
+                            heatMapSize.width) -
+                            (coor_out_result[kernel_candidateA_offset + i - 1] %
+                            heatMapSize.width);
+            const auto dY = (coor_out_result[kernel_candidateB_offset + j - 1] /
+                            heatMapSize.width) -
+                            (coor_out_result[kernel_candidateA_offset + i - 1] /
+                            heatMapSize.width);
+            const auto normVec = float(std::sqrt(dX * dX + dY * dY));
+            // If the peaksPtr are coincident. Don't connect them.
+            if (normVec > 1e-6) {
+                const auto sX = coor_out_result[kernel_candidateA_offset + i - 1] %
+                                heatMapSize.width;
+                const auto sY = coor_out_result[kernel_candidateA_offset + i - 1] /
+                                heatMapSize.width;
+                const auto vecX = dX / normVec;
+                const auto vecY = dY / normVec;
+
+                auto sum = 0.;
+                auto count = 0;
+                for (auto lm = 0; lm < numInter; lm++) {
+                const auto mX = fastMin(heatMapSize.width - 1,
+                                        intRound(sX + lm * dX / numInter));
+                const auto mY = fastMin(heatMapSize.height - 1,
+                                        intRound(sY + lm * dY / numInter));
+                const auto idx = mY * heatMapSize.width + mX;
+                const auto score = (vecX * mapX[idx] + vecY * mapY[idx]);
+                if (score > interThreshold) {
+                    sum += score;
+                    count++;
+                }
+                }
+
+                // parts score + connection score
+                if (count > interMinAboveThreshold)
+                temp.emplace_back(std::make_tuple(sum / count, i, j));
+            }
+            }
+        }
+
+        // select the top minAB connection, assuming that each part occur only
+        // once sort rows in descending order based on parts + connection score
+        if (!temp.empty())
+            std::sort(temp.begin(), temp.end(),
+                    std::greater<std::tuple<float, int, int>>());
+
+        std::vector<std::tuple<int, int, double>> connectionK;
+
+        const auto minAB = fastMin(nA, nB);
+        std::vector<int> occurA(nA, 0);
+        std::vector<int> occurB(nB, 0);
+        auto counter = 0;
+        for (auto row = 0u; row < temp.size(); row++) {
+            const auto score = std::get<0>(temp[row]);
+            const auto x = std::get<1>(temp[row]);
+            const auto y = std::get<2>(temp[row]);
+            if (!occurA[x - 1] && !occurB[y - 1]) {
+            connectionK.emplace_back(std::make_tuple(kernel_candidateA_offset + x,
+                                                    kernel_candidateB_offset + y,
+                                                    score));
+            counter++;
+            if (counter == minAB) break;
+            occurA[x - 1] = 1;
+            occurB[y - 1] = 1;
+            }
+        }
+
+        // Cluster all the body part candidates into subset based on the part
+        // connection initialize first body part connection 15&16
+        if (pairIndex == 0) {
+            for (const auto connectionKI : connectionK) {
+            std::vector<int> rowVector(numberBodyParts + 3, 0);
+            const auto indexA = std::get<0>(connectionKI);
+            const auto indexB = std::get<1>(connectionKI);
+            const auto score = std::get<2>(connectionKI);
+            rowVector[bodyPartPairs[0]] = indexA;
+            rowVector[bodyPartPairs[1]] = indexB;
+            rowVector[subsetCounterIndex] = 2;
+            // add the score of parts and the connection
+            const auto subsetScore = score_out_result[indexA - 1] +
+                                    score_out_result[indexB - 1] + score;
+            subset.emplace_back(std::make_pair(rowVector, subsetScore));
+            }
+        }
+        // Add ears connections (in case person is looking to opposite direction
+        // to camera)
+        else if ((numberBodyParts == 18 &&
+                    (pairIndex == 17 || pairIndex == 18)) ||
+                ((numberBodyParts == 19 || (numberBodyParts == 25) ||
+                    numberBodyParts == 59 || numberBodyParts == 65) &&
+                    (pairIndex == 18 || pairIndex == 19))) {
+            for (const auto& connectionKI : connectionK) {
+            const auto indexA = std::get<0>(connectionKI);
+            const auto indexB = std::get<1>(connectionKI);
+            for (auto& subsetJ : subset) {
+                auto& subsetJFirst = subsetJ.first[bodyPartA];
+                auto& subsetJFirstPlus1 = subsetJ.first[bodyPartB];
+                if (subsetJFirst == indexA && subsetJFirstPlus1 == 0)
+                subsetJFirstPlus1 = indexB;
+                else if (subsetJFirstPlus1 == indexB && subsetJFirst == 0)
+                subsetJFirst = indexA;
+            }
+            }
+        } else {
+            if (!connectionK.empty()) {
+            // A is already in the subset, find its connection B
+            for (auto i = 0u; i < connectionK.size(); i++) {
+                const auto indexA = std::get<0>(connectionK[i]);
+                const auto indexB = std::get<1>(connectionK[i]);
+                const auto score = std::get<2>(connectionK[i]);
+                auto num = 0;
+                for (auto j = 0u; j < subset.size(); j++) {
+                if (subset[j].first[bodyPartA] == indexA) {
+                    subset[j].first[bodyPartB] = indexB;
+                    num++;
+                    subset[j].first[subsetCounterIndex] =
+                        subset[j].first[subsetCounterIndex] + 1;
+                    subset[j].second =
+                        subset[j].second + score_out_result[indexB - 1] + score;
+                }
+                }
+                // if can not find partA in the subset, create a new subset
+                if (num == 0) {
+                std::vector<int> rowVector(subsetSize, 0);
+                rowVector[bodyPartA] = indexA;
+                rowVector[bodyPartB] = indexB;
+                rowVector[subsetCounterIndex] = 2;
+                const auto subsetScore = score_out_result[indexA - 1] +
+                                        score_out_result[indexB - 1] + score;
+                subset.emplace_back(std::make_pair(rowVector, subsetScore));
+                }
+            }
+            }
+        }
+        }
+    }
+
+    // Delete people below the following thresholds:
+    // a) minSubsetCnt: removed if less than minSubsetCnt body parts
+    // b) minSubsetScore: removed if global score smaller than this
+    // c) POSE_MAX_PEOPLE: keep first POSE_MAX_PEOPLE people above thresholds
+    auto numberPeople = 0;
+    std::vector<int> validSubsetIndexes;
+    validSubsetIndexes.reserve(fastMin((size_t)POSE_MAX_PEOPLE, subset.size()));
+    for (auto index = 0u; index < subset.size(); index++) {
+        const auto subsetCounter = subset[index].first[subsetCounterIndex];
+        const auto subsetScore = subset[index].second;
+        if (subsetCounter >= minSubsetCnt &&
+            (subsetScore / subsetCounter) > minSubsetScore) {
+        numberPeople++;
+        validSubsetIndexes.emplace_back(index);
+        if (numberPeople == POSE_MAX_PEOPLE) break;
+        } else if (subsetCounter < 1)
+        printf(
+            "Bad subsetCounter. Bug in this function if this happens. %d, %s, %s",
+            __LINE__, __FUNCTION__, __FILE__);
+    }
+
+    // Fill and return poseKeypoints
+    keypointShape = { numberPeople, (int)numberBodyParts, 3 };
+    if (numberPeople > 0)
+        poseKeypoints.resize(numberPeople * (int)numberBodyParts * 3);
+    else
+        poseKeypoints.clear();
+
+    for (auto person = 0u; person < validSubsetIndexes.size(); person++)
+    {
+        const auto& subsetI = subset[validSubsetIndexes[person]].first;
+        for (auto bodyPart = 0u; bodyPart < numberBodyParts; bodyPart++)
+        {
+            const auto baseOffset = person * numberBodyParts * 3 + bodyPart * 3;
+            const auto bodyPartIndex = subsetI[bodyPart];
+            if (bodyPartIndex > 0)
+            {
+                poseKeypoints[baseOffset] = (coor_out_result[bodyPartIndex - 1] % heatMapSize.width) * scaleFactor;
+                poseKeypoints[baseOffset + 1] = (coor_out_result[bodyPartIndex - 1] / heatMapSize.width) * scaleFactor;
+                poseKeypoints[baseOffset + 2] = score_out_result[bodyPartIndex - 1];
+            }
+            else
+            {
+                poseKeypoints[baseOffset] = 0.f;
+                poseKeypoints[baseOffset + 1] = 0.f;
+                poseKeypoints[baseOffset + 2] = 0.f;
+            }
+        }
+    }
+}
+
 void OpenPosePostProcess::renderKeypointsCpu(cv::Mat& frame, const std::vector<float>& keypoints, std::vector<int> keyshape, const std::vector<unsigned int>& pairs,
                         const std::vector<float> colors, const float thicknessCircleRatio, const float thicknessLineRatioWRTCircle,
                         const float threshold, float scale)
@@ -818,6 +1144,138 @@ int OpenPosePostProcess::getKeyPoints(std::shared_ptr<BMNNTensor>  outputTensorP
         // cv::imwrite("res.jpg", image);
         poseKeyPoints.modeltype = model_type;
         body_keypoints.push_back(poseKeyPoints);
+    }
+}
+
+int OpenPosePostProcess::resize_multi_channel(
+    float* input, float* output, bm_device_mem_t out_addr, int input_height,
+    int input_width, cv::Size outSize, bool use_memcpy, int start_chan_idx,
+    int end_chan_idx, bm_handle_t handle) {
+    int input_ch_area = input_height * input_width;
+    for (int ch = start_chan_idx; ch < end_chan_idx; ++ch) {
+        cv::Mat src(input_height, input_width, CV_32F, input + input_ch_area * ch);
+        cv::Mat dst(outSize.height, outSize.width, CV_32F,
+                    output + outSize.height * outSize.width * ch);
+        cv::resize(src, dst, outSize, 0, 0, cv::INTER_CUBIC);
+    }
+
+    if (use_memcpy)
+        bm_memcpy_s2d_partial(
+            handle, out_addr,
+            output + outSize.height * outSize.width * start_chan_idx,
+            sizeof(float) * outSize.height * outSize.width *
+                (end_chan_idx - start_chan_idx));
+    return 0;
+}
+
+void OpenPosePostProcess::getKeyPointsTPUKERNEL(
+    std::shared_ptr<BMNNTensor> tensorPtr, const std::vector<bm_image>& images,
+        std::vector<PoseKeyPoints>& body_keypoints,
+        PoseKeyPoints::EModelType  model_type, float nms_threshold, bool restore_half_img_size, bm_handle_t handle, tpu_kernel_function_t func_id) {
+    // OpenPosePostProcess postProcess;
+    int chan_num = tensorPtr->get_shape()->dims[1];
+    int net_output_height = tensorPtr->get_shape()->dims[2];
+    int net_output_width = tensorPtr->get_shape()->dims[3];
+
+    int ch_area = net_output_height * net_output_width;
+    int batch_byte_size = chan_num * net_output_height * net_output_width;
+    for(int batch_idx = 0; batch_idx < images.size(); ++batch_idx) {
+        bm_image image = images[batch_idx];
+        float* base = tensorPtr->get_cpu_data() + batch_byte_size * batch_idx;
+
+        cv::Size originSize(image.width, image.height);
+        cv::Size nmsSize(image.width, image.height);
+        if (restore_half_img_size) {
+            nmsSize.height = image.height >> 1;
+            nmsSize.width = image.width >> 1;
+        }
+
+        PoseBlobPtr resizedBlob =
+            std::make_shared<PoseBlob>(1, chan_num, nmsSize.height, nmsSize.width);
+
+        std::vector<std::thread> peak_channel_resize_threads;
+        int part_nms_chan_num = getNumberBodyParts(model_type);
+
+        bm_device_mem_t resize_output_map_whole_device_mem;
+        unsigned long long resize_output_map_whole_device_mem_addr;
+        assert(BM_SUCCESS ==
+                bm_malloc_device_byte(handle,
+                                    &resize_output_map_whole_device_mem,
+                                    sizeof(float) * nmsSize.height * nmsSize.width *
+                                        part_nms_chan_num));
+        resize_output_map_whole_device_mem_addr =
+            bm_mem_get_device_addr(resize_output_map_whole_device_mem);
+        bm_device_mem_t resize_output_map_device_mem;
+
+        int interval = 3;
+        for (int ch = 0; ch < part_nms_chan_num; ch += interval) {
+            interval =
+                ch + interval > part_nms_chan_num ? part_nms_chan_num - ch : interval;
+            bm_set_device_mem(&resize_output_map_device_mem,
+                            sizeof(float) * nmsSize.height * nmsSize.width * interval,
+                            resize_output_map_whole_device_mem_addr +
+                                ch * sizeof(float) * nmsSize.height * nmsSize.width);
+            peak_channel_resize_threads.emplace_back(
+                &OpenPosePostProcess::resize_multi_channel, base,
+                resizedBlob->data(), resize_output_map_device_mem, net_output_height,
+                net_output_width, nmsSize, true, ch, ch + interval, handle);
+        }
+
+        int* num_result = new int[resizedBlob->channels()];
+        float* score_out_result = nullptr;
+        int* coor_out_result = nullptr;
+        if (model_type == PoseKeyPoints::EModelType::COCO_18) {
+            score_out_result = new float[18 * (POSE_MAX_PEOPLE + 1) * 3];
+            coor_out_result = new int[18 * (POSE_MAX_PEOPLE + 1) * 3];
+        } else {
+            score_out_result = new float[25 * (POSE_MAX_PEOPLE + 1) * 3];
+            coor_out_result = new int[25 * (POSE_MAX_PEOPLE + 1) * 3];
+        }
+
+        for (std::thread& t : peak_channel_resize_threads) {
+            t.join();
+        }
+        std::thread part_nms_thread(&OpenPosePostProcess::kernel_part_nms,
+                                    resize_output_map_whole_device_mem,
+                                    nmsSize.height, nmsSize.width, POSE_MAX_PEOPLE,
+                                    0.05, num_result, score_out_result,
+                                    coor_out_result, model_type, handle, func_id);
+
+        interval = 5;
+        std::vector<std::thread> connect_channel_resize_threads;
+        for (int ch = part_nms_chan_num; ch < chan_num; ch += interval) {
+            interval = ch + interval > chan_num ? chan_num - ch : interval;
+            connect_channel_resize_threads.emplace_back(
+                &OpenPosePostProcess::resize_multi_channel, base,
+                resizedBlob->data(), resize_output_map_device_mem, net_output_height,
+                net_output_width, nmsSize, false, ch, ch + interval, handle);
+        }
+
+        for (std::thread& t : connect_channel_resize_threads) {
+            t.join();
+        }
+        part_nms_thread.join();
+
+        PoseKeyPoints poseKeyPoints;
+        poseKeyPoints.width = originSize.width;
+        poseKeyPoints.height = originSize.height;
+        connectBodyPartsKernel(poseKeyPoints.keypoints, resizedBlob->data(), num_result,
+                                score_out_result, coor_out_result, nullptr, nmsSize,
+                                POSE_MAX_PEOPLE, 9, 0.05, 3, 0.4, 1, poseKeyPoints.shape, model_type);
+
+        for (int i = 0; i < poseKeyPoints.keypoints.size(); i += 3) {
+            poseKeyPoints.keypoints[i] =
+                poseKeyPoints.keypoints[i] * originSize.width / nmsSize.width;
+            poseKeyPoints.keypoints[i + 1] =
+                poseKeyPoints.keypoints[i + 1] * originSize.height /
+                nmsSize.height;
+        }
+        poseKeyPoints.modeltype = model_type;
+        body_keypoints.push_back(poseKeyPoints);
+
+        delete[] num_result;
+        delete[] score_out_result;
+        delete[] coor_out_result;
     }
 }
 
