@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
     "{help | 0 | print help information.}"
     "{input | ../../datasets/test | input path, images direction or video file path}"
     "{classnames | ../../datasets/coco.names | class names file path}"
-    "{use_cpu_opt | true | accelerate cpu postprocess}";
+    "{use_cpu_opt | false | accelerate cpu postprocess}";
   cv::CommandLineParser parser(argc, argv, keys);
   if (parser.get<bool>("help")) {
     parser.printMessage();

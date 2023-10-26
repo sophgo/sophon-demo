@@ -24,7 +24,7 @@
 #define DEBUG 0
 
 struct YoloV5Box {
-    int x, y, width, height;
+    float x, y, width, height;
     float score;
     int class_id;
 };
