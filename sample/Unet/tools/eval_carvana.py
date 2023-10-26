@@ -3,6 +3,8 @@ import numpy as np
 import cv2
 import argparse
 from PIL import Image
+import logging
+logging.basicConfig(level=logging.INFO)
 
 def main(args):
     predicted_folder_path = args.pred_path
@@ -70,7 +72,8 @@ def main(args):
     print('Mean Recall: {:.4f}'.format(mean_recall))
     print('Mean Dice: {:.4f}'.format(mean_dice))
     print('Mean IoU: {:.4f}'.format(mean_iou))
-
+    
+    logging.info("mAcc = {}".format(mean_precision))
 
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
