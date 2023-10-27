@@ -14,23 +14,26 @@ SophonSDK是算能科技基于其自主研发的AI芯片所定制的深度学习
 | [LPRNet](./sample/LPRNet/README.md)         | 车牌识别          | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [ResNet](./sample/ResNet/README.md)         | 图像分类          | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [RetinaFace](./sample/RetinaFace/README.md) | 人脸检测          | C++/Python | FP32           | YES | BMCV/OpenCV |
-| [YOLOv5](./sample/YOLOv5/README.md)         | 目标检测          | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [yolact](./sample/yolact/README.md)         | 实例分割          | Python     | FP32           | YES | BMCV/OpenCV |
 | [PP-OCR](./sample/PP-OCR/README.md)         | OCR              | C++/Python | FP32/FP16      | YES | BMCV/OpenCV |
+| [OpenPose](./sample/OpenPose/README.md)     | 人体关键点检测     | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [C3D](./sample/C3D/README.md)               | 视频动作识别       | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [DeepSORT](./sample/DeepSORT/README.md)     | 多目标跟踪         | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [ByteTrack](./sample/ByteTrack/README.md)   | 多目标跟踪         | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
+| [CenterNet](./sample/CenterNet/README.md)   | 目标检测、姿态识别 | C++/Python | FP32/FP16/INT8 | YES | BMCV |
+| [YOLOv5](./sample/YOLOv5/README.md)         | 目标检测          | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [YOLOv34](./sample/YOLOv34/README.md)       | 目标检测          | C++/Python | FP32/INT8      | NO  | BMCV/OpenCV |
 | [YOLOX](./sample/YOLOX/README.md)           | 目标检测          | C++/Python | FP32/INT8      | YES | BMCV/OpenCV |
 | [SSD](./sample/SSD/README.md)               | 目标检测          | C++/Python | FP32/INT8      | YES | BMCV/OpenCV |
-| [CenterNet](./sample/CenterNet/README.md)   | 目标检测、姿态识别 | C++/Python | FP32/FP16/INT8 | YES | BMCV |
-| [OpenPose](./sample/OpenPose/README.md)     | 人体关键点检测     | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
-| [C3D](./sample/C3D/README.md)               | 视频动作识别       | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [YOLOv8](./sample/YOLOv8/README.md)         | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
-| [DeepSORT](./sample/DeepSORT/README.md)     | 多目标跟踪         | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
-| [ByteTrack](./sample/ByteTrack/README.md)   | 多目标跟踪         | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
-| [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV|
+| [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV|
+| [BERT](./sample/BERT/README.md)             | 语言模型           | C++/Python | FP32/FP16      | YES | BMCV|
+| [ChatGLM2](./sample/chatglm2/README.md)     | 语言模型           | C++/Python | FP16/INT8/INT4 | YES | BMCV|
 
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.1.8  | 完善修复文档、代码问题，新增BERT、ppYOLOv3、ChatGLM2，重构YOLOX，PP-OCR添加beam search，OpenPose添加tpu-kernel后处理加速，更新SFTP下载方式。|
 | 0.1.7	 | 修复文档等问题，一些例程支持BM1684 mlir，重构PP-OCR、CenterNet例程，YOLOv5添加sail支持 |
 | 0.1.6	 | 修复文档等问题，新增ByteTrack、YOLOv5_opt例程 |
 | 0.1.5	 | 修复文档等问题，新增DeepSORT例程，重构ResNet、LPRNet例程 |
@@ -44,7 +47,8 @@ SophonSDK是算能科技基于其自主研发的AI芯片所定制的深度学习
 Sophon Demo主要依赖tpu-mlir、tpu-nntc、libsophon、sophon-ffmpeg、sophon-opencv、sophon-sail，其版本要求如下：
 |sophon-demo|tpu-mlir |tpu-nntc |libsophon|sophon-ffmpeg|sophon-opencv|sophon-sail| 发布日期   |
 |--------|------------| --------|---------|---------    |----------   | ------    | --------  |
-| 0.1.7 | >=1.2.2   | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0      | >=3.6.0    | >=23.07.01|
+| 0.1.8 | >=1.2.2     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.6.0   | >=23.07.01|
+| 0.1.7 | >=1.2.2     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.6.0   | >=23.07.01|
 | 0.1.6 | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.4.0    | >=23.05.01|
 | 0.1.5 | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0    | >=3.4.0    | >=23.03.01|
 | 0.1.4 | >=0.7.1     | >=3.1.5 | >=0.4.4 | >=0.5.1     | >=0.5.1    | >=3.3.0    | >=22.12.01|
