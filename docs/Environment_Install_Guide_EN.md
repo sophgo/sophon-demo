@@ -51,7 +51,7 @@ If you are using BM1684X, it is recommended to use TPU-MLIR to compile BModel. U
 
     The docker used by TPU-MLIR is sophgo/tpuc_dev:latest, the docker image and tpu-mlir have a binding relationship, in a few cases it is possible that tpu-mlir is updated and a new image is needed.
     ```bash
-    # If the current system does not have the corresponding image, it will automatically download from docker hub
+    docker pull sophgo/tpuc_dev:latest
     # Here will map current directory to /workspace directory in docker, users need to map the demo directory to docker according to the actual situation
     # Myname is just an example of a name, please specify it as the name of the container you want
     docker run --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:latest
