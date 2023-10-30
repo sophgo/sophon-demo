@@ -31,7 +31,7 @@ function gen_mlir_onnx()
 {
     model_transform.py \
         --model_name resnet50_$1b \
-        --model_def ../models/onnx/resnet50_dynamic.onnx \
+        --model_def ../models/onnx/resnet_dynamic.onnx \
         --input_shapes [[$1,3,224,224]] \
         --mean 103.53,116.28,123.67 \
         --scale 0.01742919,0.017507,0.01712475 \
@@ -47,7 +47,7 @@ function gen_mlir_onnx_v2()
 {
     model_transform.py \
         --model_name resnet50_$1b \
-        --model_def ../models/onnx/resnet50_dynamic.onnx \
+        --model_def ../models/onnx/resnet_dynamic.onnx \
         --input_shapes [[$1,3,224,224]] \
 	--resize_dims 256,256 \
         --mean 123.67,116.28,103.53 \
