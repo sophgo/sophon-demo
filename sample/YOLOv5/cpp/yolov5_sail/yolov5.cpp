@@ -226,7 +226,7 @@ int YoloV5::pre_process(sail::BMImage& input) {
     padding.padding_g = pad.padding_g;
     padding.padding_b = pad.padding_b;
     auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(), 1, rgb_img.data(), &resized_img.data(),
-                                              &padding, &rect, BMCV_INTER_NEAREST);
+                                              &padding, &rect, RESIZE_STRATEGY);
     assert(ret == 0);
 #else
     sail::BMImage resized_img =
