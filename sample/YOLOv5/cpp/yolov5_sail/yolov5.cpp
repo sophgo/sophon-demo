@@ -560,7 +560,11 @@ int YoloV5::post_process_cpu_opt(std::vector<sail::BMImage>& images, std::vector
         auto out_tensor = output_tensor[min_idx];
         int nout = out_tensor->shape()[min_dim - 1];
         m_class_num = nout - 5;
+#if USE_MULTICLASS_NMS
+        int out_nout = nout;
+#else
         int out_nout = 7;
+#endif
         float transformed_m_confThreshold = - std::log(1 / m_confThreshold - 1);
 
         float* output_data = nullptr;
@@ -604,6 +608,10 @@ int YoloV5::post_process_cpu_opt(std::vector<sail::BMImage>& images, std::vector
                         dst[2] = pow((sigmoid(ptr[2]) * 2), 2) * anchors[tidx][anchor_idx][0];
                         dst[3] = pow((sigmoid(ptr[3]) * 2), 2) * anchors[tidx][anchor_idx][1];
                         dst[4] = sigmoid(ptr[4]);
+#if USE_MULTICLASS_NMS
+                        for(int d = 5; d < nout; d++)
+                            dst[d] = ptr[d];
+#else
                         dst[5] = ptr[5];
                         dst[6] = 5;
                         for(int d = 6; d < nout; d++){
@@ -612,8 +620,8 @@ int YoloV5::post_process_cpu_opt(std::vector<sail::BMImage>& images, std::vector
                                 dst[6] = d;
                             }
                         }
-                        dst[5] = sigmoid(dst[5]);
                         dst[6] -= 5;
+#endif
                         dst += out_nout;
                         ptr += nout;
                     }
@@ -631,9 +639,44 @@ int YoloV5::post_process_cpu_opt(std::vector<sail::BMImage>& images, std::vector
         }
 
         LOG_TS(m_ts, "post 2: filter boxes");
+        int max_wh = 7680;
+        bool agnostic = false;
         for (int i = 0; i < box_num; i++) {
             float* ptr = output_data + i * out_nout;
             float score = ptr[4];
+            float box_transformed_m_confThreshold = - std::log(score / m_confThreshold - 1);
+            if(min_dim != 5)
+                box_transformed_m_confThreshold = m_confThreshold / score;
+#if USE_MULTICLASS_NMS
+            assert(min_dim == 5);
+            float centerX = ptr[0];
+            float centerY = ptr[1];
+            float width = ptr[2];
+            float height = ptr[3];
+            for (int j = 0; j < m_class_num; j++) {
+                float confidence = ptr[5 + j];
+                int class_id = j;
+                if (confidence > box_transformed_m_confThreshold)
+                {
+                    YoloV5Box box;
+                    if (!agnostic)
+                        box.x = centerX - width / 2 + class_id * max_wh;
+                    else
+                        box.x = centerX - width / 2;
+                    if (box.x < 0) box.x = 0;
+                    if (!agnostic)
+                        box.y = centerY - height / 2 + class_id * max_wh;
+                    else
+                        box.y = centerY - height / 2;
+                    if (box.y < 0) box.y = 0;
+                    box.width = width;
+                    box.height = height;
+                    box.class_id = class_id;
+                    box.score = sigmoid(confidence) * score;
+                    yolobox_vec.push_back(box);
+                }
+            }
+#else
             int class_id = ptr[6];
             float confidence = ptr[5];
             if(min_dim != 5){
@@ -642,46 +685,69 @@ int YoloV5::post_process_cpu_opt(std::vector<sail::BMImage>& images, std::vector
                 class_id = argmax(&ptr[5], m_class_num);
                 confidence = ptr[class_id + 5];
             }
-            if (confidence * score > m_confThreshold) {
-                float centerX = (ptr[0] + 1 - tx1) / ratio - 1;
-                float centerY = (ptr[1] + 1 - ty1) / ratio - 1;
-                float width = (ptr[2] + 0.5) / ratio;
-                float height = (ptr[3] + 0.5) / ratio;
+            if (confidence > box_transformed_m_confThreshold) {
+                float centerX = ptr[0];
+                float centerY = ptr[1];
+                float width = ptr[2];
+                float height = ptr[3];
 
                 YoloV5Box box;
-                box.x = int(centerX - width / 2);
-                if (box.x < 0)
+                if (!agnostic)
+                    box.x = centerX - width / 2 + class_id * max_wh;
+                else
+                    box.x = centerX - width / 2;
+                if (box.x < 0) 
                     box.x = 0;
-                box.y = int(centerY - height / 2);
+                if (!agnostic)
+                    box.y = centerY - height / 2 + class_id * max_wh;
+                else
+                    box.y = centerY - height / 2;
                 if (box.y < 0)
                     box.y = 0;
                 box.width = width;
                 box.height = height;
                 box.class_id = class_id;
+                if(min_dim == 5)
+                    confidence = sigmoid(confidence);
                 box.score = confidence * score;
                 yolobox_vec.push_back(box);
             }
+#endif
         }
         LOG_TS(m_ts, "post 2: filter boxes");
 
         // printf("\n --> valid boxes number = %d\n", (int)yolobox_vec.size());
 
         LOG_TS(m_ts, "post 3: nms");
-#if USE_MULTICLASS_NMS
-        std::vector<YoloV5BoxVec> class_vec(m_class_num);
-        for (auto& box : yolobox_vec) {
-            class_vec[box.class_id].push_back(box);
-        }
-        for (auto& cls_box : class_vec) {
-            NMS(cls_box, m_nmsThreshold);
-        }
-        yolobox_vec.clear();
-        for (auto& cls_box : class_vec) {
-            yolobox_vec.insert(yolobox_vec.end(), cls_box.begin(), cls_box.end());
-        }
-#else
         NMS(yolobox_vec, m_nmsThreshold);
-#endif
+        if (!agnostic)
+            for (auto& box : yolobox_vec){
+                box.x -= box.class_id * max_wh;
+                box.y -= box.class_id * max_wh;
+                box.x = (box.x - tx1) / ratio;
+                if (box.x < 0) box.x = 0;
+                box.y = (box.y - ty1) / ratio;
+                if (box.y < 0) box.y = 0;
+                box.width = (box.width) / ratio;
+                if (box.x + box.width >= frame_width)
+                    box.width = frame_width - box.x;
+                box.height = (box.height) / ratio;
+                if (box.y + box.height >= frame_height)
+                    box.height = frame_height - box.y;
+            }
+        else
+            for (auto& box : yolobox_vec){
+                box.x = (box.x - tx1) / ratio;
+                if (box.x < 0) box.x = 0;
+                box.y = (box.y - ty1) / ratio;
+                if (box.y < 0) box.y = 0;
+                box.width = (box.width) / ratio;
+                if (box.x + box.width >= frame_width)
+                    box.width = frame_width - box.x;
+                box.height = (box.height) / ratio;
+                if (box.y + box.height >= frame_height)
+                    box.height = frame_height - box.y;
+            }
         LOG_TS(m_ts, "post 3: nms");
 
         detected_boxes.push_back(yolobox_vec);

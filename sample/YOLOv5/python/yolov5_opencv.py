@@ -364,7 +364,7 @@ def argsparser():
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--conf_thresh', type=float, default=0.001, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.6, help='nms threshold')
-    parser.add_argument('--use_cpu_opt', type=ast.literal_eval, default=False, help='accelerate cpu postprocess')
+    parser.add_argument('--use_cpu_opt', action="store_true", default=False, help='accelerate cpu postprocess')
     args = parser.parse_args()
     return args
 
