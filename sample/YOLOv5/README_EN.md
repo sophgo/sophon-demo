@@ -241,23 +241,47 @@ Based on the YOLOv5 mentioned above, this section optimizes the YOLOv5 postproce
 The time bottleneck of the optimized NMS algorithm lies in the size of the output map. Attempting to reduce the height or width or number of channels of the output map can further reduce the NMS computation time.
 
 ### 8.2. Performance and Precision Test
-Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.001,nms_thresh=0.6` on different test platforms, c++ example set `--use_cpu_opt=true`, python example set `--use_cpu_opt` to use nms acceleration. The performance test results before and after the improvement of the NMS post-processing algorithm are as follows:
+Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.001,nms_thresh=0.6` on different test platforms, c++ example set `--use_cpu_opt=true`, python example set `--use_cpu_opt` to use nms acceleration. The performance and accuracy test results before and after the improvement of the NMS post-processing algorithm are as follows:
 | Test Platform|   Test Program   |             Test model              | YOLOv5       | YOLOv5_cpu_opt|AP@IoU=0.5:0.95| 
 | ------------ | ---------------- | ----------------------------------- | ------------ | ------------- | ------------- |
-| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 23.53        | 7.57          | 0.331         |
-| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 21.75        | 5.83          | 0.331         |
-| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 212.82       | 22.01         | 0.332         |
-| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 209.50       | 21.80         | 0.327         |
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 35.6         | 22.9          | 0.375         |
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 33.8         | 20.5          | 0.339         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 34.6         | 21.1          | 0.375         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 33.9         | 18.9          | 0.339         |
+| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 210.1        | 98.5          | 0.341         |
+| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 209.7        | 100.2         | 0.336         |
 
 Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.01,nms_thresh=0.6` on different test platforms, c++ example set `--use_cpu_opt=true`, python example set `--use_cpu_opt` to use nms acceleration. The performance and accuracy test results before and after the improvement of the NMS post-processing algorithm are as follows:
 | Test Platform|   Test Program   |             Test model              | YOLOv5       | YOLOv5_cpu_opt|AP@IoU=0.5:0.95|
 | ------------ | ---------------- | ----------------------------------- | ------------ | ------------- | --------------|
-| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 20.46        | 5.92          | 0.329         |
-| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 18.58        | 4.16          | 0.329         |
-| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 122.28       | 8.75          | 0.330         |
-| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 116.11       | 8.69          | 0.325         |
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 18.1         | 7.5           | 0.373         |
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 17.8         | 7.2           | 0.337         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 16.3         | 5.8           | 0.373         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 16.0         | 5.5           | 0.337         |
+| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 118.8        | 23.0          | 0.339         |
+| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 116.5        | 23.1          | 0.334         |
 
 > **Note:** Due to the consistency between the implementation of sail and CPP, there were slight drops after Python calls, but there is a significant improvement in speed.
+
+If using single-class NMS, by setting the macro `USE_MULTICLASS_NMS 0` in the `yolov5.cpp` file or setting cpu opt function parameter `input_use_multiclass_nms=False` and YOLOv5 member variable `multi_label=False` in both `yolov5_opencv.py` and `yolov5_bmcv.py` files, it can improve post-processing performance with slight loss of accuracy. Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.001,nms_thresh=0.6`, c++ example set `--use_cpu_opt=true`, python example set `--use_cpu_opt` to use nms acceleration. The performance and accuracy test results before and after the improvement of the NMS post-processing algorithm are as follows:
+| Test Platform|   Test Program   |             Test model              | YOLOv5       | YOLOv5_cpu_opt|AP@IoU=0.5:0.95|
+| ------------ | ---------------- | ----------------------------------- | ------------ | ------------- | ------------- |
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 23.5         | 10.2          | 0.369         |
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 23.1         | 9.9           | 0.332         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 21.6         | 8.5           | 0.369         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 21.3         | 8.1           | 0.332         |
+| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 147.3        | 33.3          | 0.335         |
+| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 147.8        | 33.3          | 0.330         |
+
+If using single-class NMS, by setting the macro `USE_MULTICLASS_NMS 0` in the `yolov5.cpp` file or setting cpu opt function parameter `input_use_multiclass_nms=False` and YOLOv5 member variable `multi_label=False` in both `yolov5_opencv.py` and `yolov5_bmcv.py` files, it can improve post-processing performance with slight loss of accuracy. Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.01,nms_thresh=0.6`, c++ example set `--use_cpu_opt=true`, python example set `--use_cpu_opt` to use nms acceleration. The performance and accuracy test results before and after the improvement of the NMS post-processing algorithm are as follows:
+| Test Platform|   Test Program   |             Test model              | YOLOv5       | YOLOv5_cpu_opt|AP@IoU=0.5:0.95|
+| ------------ | ---------------- | ----------------------------------- | ------------ | ------------- | ------------- |
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 17.6         | 6.2           | 0.367         |
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 17.5         | 6.1           | 0.330         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 15.8         | 4.5           | 0.367         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 15.7         | 4.3           | 0.330         |
+| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 114.7        | 9.7           | 0.333         |
+| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 114.2        | 9.6           | 0.327         |
 
 > **Test Description**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
