@@ -15,6 +15,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 | 序号 |  Python例程      | 说明                                |
 | ---- | ---------------- | -----------------------------------  |
 | 1    | deepsort_opencv.py | 使用OpenCV解码、OpenCV前处理、SAIL推理 |
+| 2    | deepsort_bmcv.py | 使用sail进行解码、预处理、推理和后处理|
 
 ## 1. 环境准备
 ### 1.1 x86/arm PCIe平台
@@ -38,7 +39,7 @@ pip3 install -r requirements.txt
 ```
 
 ## 2. 推理测试
-python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
+python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。bmcv例程与opencv运行方式相同，下面以opencv例程为例。
 
 **注意**：本例程依赖YOLOv5例程，在SOC平台上测试时应保证sophon-demo代码仓完整。
 ### 2.1 参数说明
