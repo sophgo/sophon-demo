@@ -196,13 +196,13 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1684 PCIe  | yolov7_bmcv.pcie | yolov7_v0.1_3output_int8_1b.bmodel | 0.487 | 0.691 |
 | BM1684X PCIe | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel | 0.514 | 0.700 |
 | BM1684X PCIe | yolov7_opencv.py | yolov7_v0.1_3output_fp16_1b.bmodel | 0.514 | 0.700 |
-| BM1684X PCIe | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel | 0.506 | 0.695 |
+| BM1684X PCIe | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel | 0.511 | 0.698 |
 | BM1684X PCIe | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel | 0.504 | 0.687 |
 | BM1684X PCIe | yolov7_bmcv.py   | yolov7_v0.1_3output_fp16_1b.bmodel | 0.504 | 0.688 |
-| BM1684X PCIe | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel | 0.496 | 0.681 |
+| BM1684X PCIe | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel | 0.501 | 0.687 |
 | BM1684X PCIe | yolov7_bmcv.pcie | yolov7_v0.1_3output_fp32_1b.bmodel | 0.493 | 0.696 |
 | BM1684X PCIe | yolov7_bmcv.pcie | yolov7_v0.1_3output_fp16_1b.bmodel | 0.494 | 0.696 |
-| BM1684X PCIe | yolov7_bmcv.pcie | yolov7_v0.1_3output_int8_1b.bmodel | 0.488 | 0.692 |
+| BM1684X PCIe | yolov7_bmcv.pcie | yolov7_v0.1_3output_int8_1b.bmodel | 0.492 | 0.698 |
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
 2. SoC和PCIe的模型精度一致；

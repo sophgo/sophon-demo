@@ -7,7 +7,7 @@ else
     target=$1
 fi
 
-outdir=../models/BM1684X
+outdir=../models/$target_dir
 
 function gen_mlir()
 {
@@ -38,7 +38,7 @@ function gen_int8bmodel()
         --chip $target \
         --quantize_table ../models/onnx/yolov7_qtable \
         --calibration_table yolov7_cali_table \
-        --model yolov7_v0.1_3output_int8_$1b.bmodel
+        --model yolov7_v0.1_3output_int8_$1b.bmodel 
 
     mv yolov7_v0.1_3output_int8_$1b.bmodel $outdir/
 }
@@ -55,7 +55,6 @@ gen_int8bmodel 1
 
 # batch_size=4
 gen_mlir 4
-gen_cali_table 4
 gen_int8bmodel 4
 
 popd
