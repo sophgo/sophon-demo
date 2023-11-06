@@ -134,9 +134,9 @@ int main(int argc, char *argv[])
             string img_file = *iter;
             cout << id << "/" << cn << ", img_file: " << img_file << endl;
             sail::BMImage bmimg;
-            ts->save("read image");
+            ts->save("decode time");
             sail::Decoder decoder((const string)img_file, true, dev_id);
-            ts->save("read image");
+            ts->save("decode time");
             int ret = decoder.read(handle, bmimg);
             if (ret != 0)
             {

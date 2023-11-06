@@ -101,9 +101,9 @@ int main(int argc, char** argv) {
              iter != files_vector.end(); iter++) {
             string img_file = *iter;
             // cout << img_file << endl;
-            ts->save("read image");
+            ts->save("decode time");
             cv::Mat img = cv::imread(img_file, cv::IMREAD_COLOR, dev_id);
-            ts->save("read image");
+            ts->save("decode time");
             size_t index = img_file.rfind("/");
             string img_name = img_file.substr(index + 1);
             batch_imgs.push_back(img);
