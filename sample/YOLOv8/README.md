@@ -188,15 +188,15 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 在不同的测试平台上，使用不同的例程、模型测试`datasets/val2017_1000`，conf_thresh=0.25，nms_thresh=0.7，性能测试结果如下：
 |    测试平台  |     测试程序      |        测试模型        |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ---------------------- | -------- | --------- | --------- | --------- |
-| BM1684 SoC  | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 15.90 | 23.54 | 31.30 | 5.50  |
-| BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 15.09 | 23.06 | 33.31 | 5.47  | 
-| BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 15.18 | 25.36 | 25.39 | 5.59  |
-| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 2.99  | 3.00  | 27.90 | 5.31  |
-| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 2.98  | 2.45  | 17.28 | 5.40  |
-| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_int8_4b.bmodel | 2.83  | 2.28  | 9.26  | 4.87  |
-| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel | 5.245 | 2.478 | 25.92 | 17.94 |
-| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel | 4.982 | 1.680 | 15.10 | 17.58 |
-| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel | 4.931 | 1.623 | 7.492 | 17.49 |
+| BM1684 SoC  | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 15.90 | 23.54 | 31.30 | 5.00  |
+| BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 15.09 | 23.06 | 22.10 | 4.97  | 
+| BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 15.18 | 25.36 | 25.39 | 5.09  |
+| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 3.55  | 2.81  | 29.13 | 4.81  |
+| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 3.55  | 2.79  | 18.98 | 4.90  |
+| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_int8_4b.bmodel | 3.43  | 2.61  | 9.78  | 4.44  |
+| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel | 4.928 | 1.560 | 27.00 | 17.59 |
+| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel | 4.930 | 1.560 | 15.10 | 17.58 |
+| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel | 4.809 | 1.491 | 8.089 | 17.34 |
 | BM1684X SoC | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 15.03 | 22.98 | 34.80 | 5.45  |
 | BM1684X SoC | yolov8_opencv.py | yolov8s_fp16_1b.bmodel | 15.03 | 22.46 | 12.14 | 5.45  |
 | BM1684X SoC | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 14.99 | 22.40 | 9.18  | 5.37  |
