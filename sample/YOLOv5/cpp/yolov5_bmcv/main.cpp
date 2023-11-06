@@ -108,10 +108,10 @@ int main(int argc, char *argv[]){
       string img_file = *iter; 
       id++;
       cout << id << "/" << cn << ", img_file: " << img_file << endl;
-      ts->save("read image");
+      ts->save("decode time");
       bm_image bmimg;
       picDec(h, img_file.c_str(), bmimg);
-      ts->save("read image");
+      ts->save("decode time");
       size_t index = img_file.rfind("/");
       string img_name = img_file.substr(index + 1);
       batch_imgs.push_back(bmimg);

@@ -77,10 +77,10 @@ int main(int argc, char *argv[]) {
       exit(-1);
     }
     ts->save("resnet overall");
-    ts->save("read image");
+    ts->save("decode time");
     // decode jpg
     cv::Mat img = cv::imread(input);
-    ts->save("read image");
+    ts->save("decode time");
     batch_imgs.push_back(img);
     size_t index = input.rfind("/");
     string img_name = input.substr(index + 1);
@@ -109,9 +109,9 @@ int main(int argc, char *argv[]) {
     ts->save("resnet overall");
     for (iter = files_vector.begin(); iter != files_vector.end(); iter++) {
       string img_file = *iter;
-      ts->save("read image");
+      ts->save("decode time");
       cv::Mat img = cv::imread(img_file, cv::IMREAD_COLOR, dev_id);
-      ts->save("read image");
+      ts->save("decode time");
       size_t index = img_file.rfind("/");
       string img_name = img_file.substr(index + 1);
       batch_imgs.push_back(img);
