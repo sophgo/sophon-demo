@@ -217,10 +217,10 @@ int main(int argc, char** argv) {
             string img_name = img_file.substr(img_file.rfind("/")+1);
             id++;
             cout << id << "/" << cn << ", img_file: " << img_file << endl;
-            ts->save("read image");
+            ts->save("decode time");
             sail::Decoder decoder((const string)img_file, true, dev_id);
             imgs_0 = decoder.read(handle);
-            ts->save("read image");
+            ts->save("decode time");
             sail::BMImage rgb_img = bmcv.convert_format(imgs_0);
             std::cout << "Preprocess begin" << "\n";
             bool  align_width;
@@ -291,10 +291,10 @@ int main(int argc, char** argv) {
                 name_list.push_back(img_name);
                 id++;
                 cout << id << "/" << cn << ", img_file: " << img_file << endl;
-                ts->save("read image");
+                ts->save("decode time");
                 sail::Decoder decoder((const string)img_file, true, dev_id);
                 int ret = decoder.read(handle, imgs_0[j]);
-                ts->save("read image");
+                ts->save("decode time");
                 if (ret != 0) {
                     std::cout << "read failed" << "\n";
                 }

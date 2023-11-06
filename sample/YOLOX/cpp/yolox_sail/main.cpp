@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
                 batch_names.push_back(img_name); //batch_names has real batch_size
                 id++;
                 cout << id << "/" << cn << ", img_file: " << img_file << endl;
-                ts->save("read image");
+                ts->save("decode time");
                 
                 // sail imread
                 sail::Decoder decoder((const string)img_file, true, dev_id);
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
             #if DEBUG
                 cout<<"batch img:"<<batch_imgs[i].format()<<" "<<batch_imgs[i].dtype()<<endl;
             #endif
-                ts->save("read image");
+                ts->save("decode time");
                 iter++;
             }
             iter--;
