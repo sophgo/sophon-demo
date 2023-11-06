@@ -92,3 +92,5 @@ int8bmodel的输入层数据类型是int8，scale不等1，基于opencv-python�
 如果您使用的产品也是标准版，也遇到了性能下降的问题，可以将问题反馈给算能工作人员或者在github上创建issue。
 
 ## 7 其他问题
+### 7.1 编译时出现`Unkown CMake command "add_compile_definitions".`
+这是你的cmake没有add_compile_definition这个函数，可以修改cmakelist相关接口，或者升级cmake到3.12之后。
