@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
                 batch_names.push_back(img_name); //batch_names has real batch_size
                 id++;
                 cout << id << "/" << cn << ", img_file: " << img_file << endl;
-                ts->save("read image");
+                ts->save("decode time");
             #if USE_OPENCV_DECODE
                 cvmats[i] = cv::imread(img_file, cv::IMREAD_COLOR, dev_id);
                 bmcv.mat_to_bm_image(cvmats[i], batch_imgs[i]);
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
             #if DEBUG
                 cout<<"batch img:"<<batch_imgs[i].format()<<" "<<batch_imgs[i].dtype()<<endl;
             #endif
-                ts->save("read image");
+                ts->save("decode time");
 
                 iter++;
             }
