@@ -162,7 +162,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000
 | BM1684X SoC  | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |   0.420  |  0.697 |
 | BM1684X SoC  | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |   0.418  |  0.697 |
 
-若设置`use_tpu_kernel_post`为`true`，在coco val2017_1000数据集上，精度测试结果如下：
+若设置`performance_opt=tpu_kernel_opt`，在coco val2017_1000数据集上，精度测试结果如下：
 |   测试平台    |      测试程序       |        测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ------------------ | -----------------------  | ------------- | -------- |
 | BM1684X PCIe | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |  0.419   |  0.696 |
@@ -172,7 +172,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000
 | BM1684X SoC  | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |  0.419   |  0.696 |
 | BM1684X SoC  | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  0.418   |  0.694 |
 
-若设置`use_tpu_kernel_post`和`restore_half_img_size`为`true`，在coco val2017_1000数据集上，精度测试结果如下：
+若设置`performance_opt=tpu_kernel_half_img_size_opt`，在coco val2017_1000数据集上，精度测试结果如下：
 |   测试平台    |      测试程序       |        测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ------------------ | -----------------------  | ------------- | -------- |
 | BM1684X PCIe | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |  0.389   |  0.665 |
@@ -181,6 +181,18 @@ python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000
 | BM1684X SoC  | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  0.389   |  0.665 |
 | BM1684X SoC  | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |  0.389   |  0.665 |
 | BM1684X SoC  | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  0.390   |  0.668 |
+
+若设置`performance_opt=cpu_opt`，在coco val2017_1000数据集上，精度测试结果如下：
+|   测试平台    |      测试程序       |        测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
+| ------------ | ------------------ | -----------------------  | ------------- | -------- |
+| BM1684 SoC   | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  0.393   |  0.666 |
+| BM1684 SoC   | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  0.384   |  0.659 |
+| BM1684X PCIe | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |  0.391   |  0.667 |
+| BM1684X PCIe | openpose_bmcv.pcie | pose_coco_fp16_1b.bmodel |  0.391   |  0.667 |
+| BM1684X PCIe | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |  0.394   |  0.668 |
+| BM1684X SoC  | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  0.391   |  0.667 |
+| BM1684X SoC  | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |  0.391   |  0.667 |
+| BM1684X SoC  | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  0.394   |  0.668 |
  
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
@@ -233,7 +245,7 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 | BM1684X SoC | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  4.76   |  0.45  | 9.37    | 293.81   |
 | BM1684X SoC | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel |  4.67   |  0.43  | 9.25    | 296.2    |
 
-若设置`use_tpu_kernel_post`为`true`，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
+若设置`performance_opt=tpu_kernel_opt`，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 |    测试平台  |      测试程序       |       测试模型           |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ------------------ | ------------------------ | -------- | --------- | --------- | --------- |
 | BM1684X SoC | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  4.56   |  0.46  | 252.02   | 51.58   |
@@ -241,13 +253,24 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 | BM1684X SoC | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  4.60   |  0.47  | 9.37     | 50.43   |
 | BM1684X SoC | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel |  4.47   |  0.42  | 9.28     | 50.38    |
 
-  若设置`use_tpu_kernel_post`和`restore_half_img_size`为`true`，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
+  若设置`performance_opt=tpu_kernel_half_img_size_opt`，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 |    测试平台  |      测试程序       |       测试模型           |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ------------------ | ------------------------ | -------- | --------- | --------- | --------- |
 | BM1684X SoC | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  4.54   |  0.46  | 252.01  | 10.65   |
 | BM1684X SoC | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |  4.56   |  0.46  | 19.03   | 10.66   |
 | BM1684X SoC | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  4.60   |  0.46  | 9.37    | 10.43   |
 | BM1684X SoC | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel |  4.50   |  0.42  | 9.27    | 10.69   |
+
+若设置`performance_opt=cpu_opt`，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
+|    测试平台  |      测试程序       |       测试模型           |decode_time|preprocess_time|inference_time|postprocess_time| 
+| ----------- | ------------------ | ------------------------ | -------- | --------- | --------- | --------- |
+| BM1684 SoC  | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  5.10   |  1.30  | 125.39  | 37.80   |
+| BM1684 SoC  | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  5.17   |  1.30  | 62.93   | 39.16   |
+| BM1684 SoC  | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel |  5.04   |  1.22  | 15.74   | 39.02   |
+| BM1684X SoC | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  4.52   |  0.45  | 251.99  | 36.65   |
+| BM1684X SoC | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |  4.57   |  0.46  | 19.01   | 37.18   |
+| BM1684X SoC | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  4.52   |  0.46  | 9.37    | 36.39   |
+| BM1684X SoC | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel |  4.40   |  0.41  | 9.27    | 35.87   |
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

@@ -68,6 +68,12 @@ public:
                             float threshold, int* num_result, float* score_out_result,
                             int* coor_out_result, PoseKeyPoints::EModelType model_type, bm_handle_t handle, tpu_kernel_function_t func_id);
 
+    static int cpuOptNms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, float threshold);
+
+    static void cpuOptNmsFunc(float* ptr, float* top_ptr, int length, int h, int w,
+            int max_peaks, float threshold, int plane_offset,
+            int top_plane_offset);
+
     static int resize_multi_channel(float* input, float* output,
                             bm_device_mem_t out_addr, int input_height,
                             int input_width, cv::Size outSize, bool use_memcpy,
@@ -109,6 +115,9 @@ public:
     static int getKeyPoints(std::shared_ptr<BMNNTensor> tensorPtr, const std::vector<bm_image> &images,
                             std::vector<PoseKeyPoints> &body_keypoints, PoseKeyPoints::EModelType model_type, 
                             float nms_threshold);
+
+    static int getKeyPointsCPUOpt(std::shared_ptr<BMNNTensor>  tensorPtr, const std::vector<bm_image> &images,
+            std::vector<PoseKeyPoints> &body_keypoints, PoseKeyPoints::EModelType model_type, float nms_threshold);
 
     static void getKeyPointsTPUKERNEL(
         std::shared_ptr<BMNNTensor> tensorPtr, const std::vector<bm_image>& images,

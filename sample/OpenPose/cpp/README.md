@@ -64,10 +64,8 @@ Usage: openpose_bmcv.pcie [params]
                 print help information.
         --input (value:../../datasets/test)
                 input path, images direction or video file path
-        --use_tpu_kernel_post (value:false)
-                whether to use tpu kernel postprocess
-        --restore_half_img_size (value:false)
-                whether to restore half size of image in kernel postprocess
+        --performance_opt (value:no_opt)
+                performance optimization type, supporting [tpu_kernel_opt, tpu_kernel_half_img_size_opt, cpu_opt, no_opt]
 ```
 **注意：** C++程序的传参方式与python不同，需要用等于号，例如`./openpose_bmcv.pcie --bmodel=xxx`。
 
@@ -78,18 +76,22 @@ Usage: openpose_bmcv.pcie [params]
 ```
 仅在BM1684X芯片上，若需要使用tpu_kernel后处理来加速，则可以使用以下命令。
 ```bash
-./openpose_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0 --use_tpu_kernel_post=true
+./openpose_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0 --performance_opt=tpu_kernel_opt
 ```
 进一步，若在后处理中仅仅放大输出特征图到原图一半，精度轻微下降的同时性能能够大幅提高，使用以下命令。
 ```bash
-./openpose_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0 --use_tpu_kernel_post=true --restore_half_img_size=true
+./openpose_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0 --performance_opt=tpu_kernel_half_img_size_opt
+```
+若需要使用针对CPU的后处理性能优化来加速，同时伴随精度轻微下降，可以使用以下命令。
+```bash
+./openpose_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0 --performance_opt=cpu_opt
 ```
 测试结束后，会将预测的图片保存在`results/images`下，预测的关键点坐标保存在`results/pose_coco_fp32_1b.bmodel.bmodel_test_bmcv_cpp_result.json`下，同时会打印预测结果、推理时间等信息。
 
 ![res](../pics/1_cpp_bmcv.jpeg)
 
 ### 3.3 测试视频
-视频测试实例如下，支持对视频流进行测试。在BM1684X芯片上，后处理加速命令与3.2中类似。
+视频测试实例如下，支持对视频流进行测试。在BM1684X芯片上，后处理加速命令与3.2中类似，若使用CPU后处理加速也与3.2中类似。
 ```bash
 ./openpose_bmcv.pcie --input=../../datasets/dance_1080P.mp4 --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0
 ```
