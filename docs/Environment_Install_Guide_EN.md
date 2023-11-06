@@ -182,7 +182,7 @@ You need to build a cross-compilation environment on an x86 host using SOPHON SD
     
     tar xvf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
     
-    export PATH=$PWD/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/:\$PATH >> ~/.bashrc
+    echo "export PATH=$PWD/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/:$PATH" >> ~/.bashrc
     
     source ~/.bashrc
     ```
