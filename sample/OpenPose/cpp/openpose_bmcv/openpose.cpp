@@ -112,7 +112,7 @@ PoseKeyPoints::EModelType OpenPose::get_model_type(){
   return m_model_type;
 };
 
-int OpenPose::Detect(const vector<bm_image>& input_images, vector<PoseKeyPoints>& vct_keypoints, bool use_tpu_kernel_post, bool restore_half_img_size){
+int OpenPose::Detect(const vector<bm_image>& input_images, vector<PoseKeyPoints>& vct_keypoints, std::string& performance_opt){
   int ret = 0;
   //3. preprocess
   LOG_TS(ts_, "openpose preprocess");
@@ -126,7 +126,7 @@ int OpenPose::Detect(const vector<bm_image>& input_images, vector<PoseKeyPoints>
   LOG_TS(ts_, "openpose inference");
   //5. post process
   LOG_TS(ts_, "openpose postprocess");
-  ret = post_process(input_images, vct_keypoints, use_tpu_kernel_post, restore_half_img_size);
+  ret = post_process(input_images, vct_keypoints, performance_opt);
   CV_Assert(ret == 0);
   LOG_TS(ts_, "openpose postprocess");
   return ret;
@@ -180,10 +180,12 @@ int OpenPose::pre_process(const std::vector<bm_image>& images){
   return 0;
 }
 
-int OpenPose::post_process(const vector<bm_image> &images, vector<PoseKeyPoints>& vct_keypoints, bool use_tpu_kernel_post, bool restore_half_img_size){
+int OpenPose::post_process(const vector<bm_image> &images, vector<PoseKeyPoints>& vct_keypoints, std::string& performance_opt){
   auto out_tensor = m_bmNetwork->outputTensor(0);
-  if (use_tpu_kernel_post)
-    OpenPosePostProcess::getKeyPointsTPUKERNEL(out_tensor, images, vct_keypoints, m_model_type, nms_threshold, restore_half_img_size, m_bmContext->handle(), func_id);
+  if (performance_opt == "tpu_kernel_opt" || performance_opt == "tpu_kernel_half_img_size_opt")
+    OpenPosePostProcess::getKeyPointsTPUKERNEL(out_tensor, images, vct_keypoints, m_model_type, nms_threshold, performance_opt == "tpu_kernel_half_img_size_opt", m_bmContext->handle(), func_id);
+  else if (performance_opt == "cpu_opt")
+    OpenPosePostProcess::getKeyPointsCPUOpt(out_tensor, images, vct_keypoints, m_model_type, nms_threshold);
   else
     OpenPosePostProcess::getKeyPoints(out_tensor, images, vct_keypoints, m_model_type, nms_threshold);
   return 0;

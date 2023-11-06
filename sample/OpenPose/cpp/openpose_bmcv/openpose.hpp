@@ -47,13 +47,13 @@ public:
   OpenPose(std::shared_ptr<BMNNContext> context);
   ~OpenPose();
   int Init(bool use_tpu_kernel_post);
-  int Detect(const std::vector<bm_image>& input_images, std::vector<PoseKeyPoints>& vct_keypoints, bool use_tpu_kernel_post, bool restore_half_img_size);
+  int Detect(const std::vector<bm_image>& input_images, std::vector<PoseKeyPoints>& vct_keypoints, std::string& performance_opt);
   void enableProfile(TimeStamp *ts);
   int batch_size();
   PoseKeyPoints::EModelType get_model_type();
 private:
   int pre_process(const std::vector<bm_image>& images);
-  int post_process(const std::vector<bm_image>& images, std::vector<PoseKeyPoints>& vct_keypoints, bool use_tpu_kernel_post, bool restore_half_img_size);
+  int post_process(const std::vector<bm_image>& images, std::vector<PoseKeyPoints>& vct_keypoints, std::string& performance_opt);
 };
 
 #endif /* OpenPose_HPP */
