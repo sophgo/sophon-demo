@@ -117,11 +117,11 @@ int main(int argc, char* argv[]) {
                 string img_name = img_file.substr(img_file.rfind("/")+1); 
                 id++;
                 cout << id << "/" << cn << ", img_file: " << img_file << endl;
-                ts->save("read image");
+                ts->save("decode time");
                 // ffmpeg decode 
                 bm_image bmimg;
                 picDec(h, img_file.c_str(), bmimg);
-                ts->save("read image");
+                ts->save("decode time");
 #if DEBUG
                 cout<<"batch img:"<<batch_imgs[i].format()<<" "<<batch_imgs[i].dtype()<<endl;
 #endif

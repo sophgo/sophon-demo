@@ -97,7 +97,7 @@ QPS = 625
 SUMMARY: lprnet detect
 ############################
 [      lprnet overall]  loops:    1 avg: 1600402 us
-[          read image]  loops:  100 avg: 388 us
+[          decode time]  loops:  100 avg: 388 us
 [           detection]  loops:  100 avg: 1178 us
 [  lprnet pre-process]  loops:  100 avg: 151 us
 [    lprnet inference]  loops:  100 avg: 745 us
