@@ -220,14 +220,14 @@ then
   download
   if test $TARGET = "BM1684"
   then
-    # test_python opencv resnet50_fp32_1b.bmodel datasets/imagenet_val_1k/img
-    # test_python opencv resnet50_int8_4b.bmodel datasets/imagenet_val_1k/img
-    # test_python bmcv resnet50_fp32_1b.bmodel datasets/imagenet_val_1k/img
-    # test_python bmcv resnet50_int8_4b.bmodel datasets/imagenet_val_1k/img
-    # test_cpp pcie opencv resnet50_fp32_1b.bmodel ../../datasets/imagenet_val_1k/img
-    # test_cpp pcie opencv resnet50_int8_4b.bmodel ../../datasets/imagenet_val_1k/img
-    # test_cpp pcie bmcv resnet50_fp32_1b.bmodel ../../datasets/imagenet_val_1k/img
-    # test_cpp pcie bmcv resnet50_int8_4b.bmodel ../../datasets/imagenet_val_1k/img
+    test_python opencv resnet50_fp32_1b.bmodel datasets/imagenet_val_1k/img
+    test_python opencv resnet50_int8_4b.bmodel datasets/imagenet_val_1k/img
+    test_python bmcv resnet50_fp32_1b.bmodel datasets/imagenet_val_1k/img
+    test_python bmcv resnet50_int8_4b.bmodel datasets/imagenet_val_1k/img
+    test_cpp pcie opencv resnet50_fp32_1b.bmodel ../../datasets/imagenet_val_1k/img
+    test_cpp pcie opencv resnet50_int8_4b.bmodel ../../datasets/imagenet_val_1k/img
+    test_cpp pcie bmcv resnet50_fp32_1b.bmodel ../../datasets/imagenet_val_1k/img
+    test_cpp pcie bmcv resnet50_int8_4b.bmodel ../../datasets/imagenet_val_1k/img
 
     eval_python opencv resnet50_fp32_1b 80.10
     eval_python opencv resnet50_int8_1b 78.70
@@ -341,7 +341,54 @@ then
     eval_cpp soc bmcv resnet50_fp16_1b 78.60
     eval_cpp soc bmcv resnet50_int8_1b 77.80
     eval_cpp soc bmcv resnet50_int8_4b 77.80
+  elif test $TARGET = "BM1688"
+  then
+    test_python opencv resnet50_fp32_1b.bmodel datasets/imagenet_val_1k/img
+    test_python opencv resnet50_int8_4b.bmodel datasets/imagenet_val_1k/img
+    test_python bmcv resnet50_fp32_1b.bmodel datasets/imagenet_val_1k/img
+    test_python bmcv resnet50_int8_4b.bmodel datasets/imagenet_val_1k/img
+    test_cpp soc bmcv resnet50_fp32_1b.bmodel ../../datasets/imagenet_val_1k/img
+    test_cpp soc bmcv resnet50_int8_4b.bmodel ../../datasets/imagenet_val_1k/img
+    test_python opencv resnet50_fp32_1b.bmodel datasets/imagenet_val_1k/img
+    test_python opencv resnet50_int8_4b.bmodel datasets/imagenet_val_1k/img
+    test_python bmcv resnet50_fp32_1b.bmodel datasets/imagenet_val_1k/img
+    test_python bmcv resnet50_int8_4b.bmodel datasets/imagenet_val_1k/img
+    test_cpp soc bmcv resnet50_fp32_1b.bmodel ../../datasets/imagenet_val_1k/img
+    test_cpp soc bmcv resnet50_int8_4b.bmodel ../../datasets/imagenet_val_1k/img
 
+    eval_python opencv resnet50_fp32_1b 79.90
+    eval_python opencv resnet50_fp16_1b 79.90
+    eval_python opencv resnet50_int8_1b 79.90
+    eval_python opencv resnet50_int8_4b 79.90
+    eval_python bmcv resnet50_fp32_1b 79.80
+    eval_python bmcv resnet50_fp16_1b 79.80
+    eval_python bmcv resnet50_int8_1b 80.00
+    eval_python bmcv resnet50_int8_4b 80.00
+    eval_cpp soc opencv resnet50_fp32_1b 79.90
+    eval_cpp soc opencv resnet50_fp16_1b 79.90
+    eval_cpp soc opencv resnet50_int8_1b 79.90
+    eval_cpp soc opencv resnet50_int8_4b 79.90 
+    eval_cpp soc bmcv resnet50_fp32_1b 79.80
+    eval_cpp soc bmcv resnet50_fp16_1b 79.80
+    eval_cpp soc bmcv resnet50_int8_1b 80.00
+    eval_cpp soc bmcv resnet50_int8_4b 80.00
+    
+    eval_python opencv resnet50_fp32_1b_2core 80.10
+    eval_python opencv resnet50_fp16_1b_2core 80.10
+    eval_python opencv resnet50_int8_1b_2core 79.80
+    eval_python opencv resnet50_int8_4b_2core 79.80
+    eval_python bmcv resnet50_fp32_1b_2core 79.80
+    eval_python bmcv resnet50_fp16_1b_2core 79.80
+    eval_python bmcv resnet50_int8_1b_2core 80.00
+    eval_python bmcv resnet50_int8_4b_2core 80.00
+    eval_cpp soc opencv resnet50_fp32_1b_2core 79.90
+    eval_cpp soc opencv resnet50_fp16_1b_2core 79.90
+    eval_cpp soc opencv resnet50_int8_1b_2core 80.00
+    eval_cpp soc opencv resnet50_int8_4b_2core 80.00 
+    eval_cpp soc bmcv resnet50_fp32_1b_2core 79.80
+    eval_cpp soc bmcv resnet50_fp16_1b_2core 79.80
+    eval_cpp soc bmcv resnet50_int8_1b_2core 80.00
+    eval_cpp soc bmcv resnet50_int8_4b_2core 80.00
   fi
 fi
 

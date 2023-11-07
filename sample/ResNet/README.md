@@ -16,7 +16,7 @@
 * [8. FAQ](#8-faq)
     
 ## 1. 简介
-本例程对[torchvision Resnet](https://pytorch.org/vision/stable/models.html)的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
+本例程对[torchvision Resnet](https://pytorch.org/vision/stable/models.html)的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
 
 **论文:** [Resnet论文](https://arxiv.org/abs/1512.03385)
 
@@ -25,8 +25,8 @@
 在此非常感谢Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun等人的贡献。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X)、INT8模型编译和推理
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1688/BM1684X)、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -56,6 +56,15 @@ chmod +x ./scripts/*
 │   ├── resnet50_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── resnet50_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── resnet50_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1688
+│   ├── resnet50_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
+│   ├── resnet50_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
+│   ├── resnet50_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
+│   ├── resnet50_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
+│   ├── resnet50_fp16_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+│   ├── resnet50_fp32_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
+│   ├── resnet50_int8_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
+│   └── resnet50_int8_4b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=2
 ├── torch
 │   ├── resnet50-11ad3fa6.pth                         # 原始模型
 │   └── resnet50-11ad3fa6.torchscript.pt              # trace后的torchscript模型
@@ -75,43 +84,39 @@ chmod +x ./scripts/*
 ```
 
 ## 4. 模型编译
-导出的模型需要编译成BModel才能在SOPHON TPU上运行，建议使用TPU-MLIR编译BModel。
+导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
 模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684
-#or
-./scripts/gen_fp32bmodel_mlir.sh bm1684x
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`resnet50_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`等文件夹下生成`resnet50_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
 ```
 
-​执行上述命令会在`models/BM1684X/`下生成`resnet50_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`resnet50_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684
-#或
-./scripts/gen_int8bmodel_mlir.sh bm1684x
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​上述脚本会在`models/BM1684`或`models/BM1684X/`下生成`resnet50_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+​上述脚本会在`models/BM1684`等文件夹下生成`resnet50_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 ## 5. 例程测试
 * [C++例程](cpp/README.md)
@@ -150,11 +155,23 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 | BM1684X PCIe | resnet_bmcv.pcie   | resnet50_fp32_1b.bmodel  | 80.00  |
 | BM1684X PCIe | resnet_bmcv.pcie   | resnet50_fp16_1b.bmodel  | 80.00  |
 | BM1684X PCIe | resnet_bmcv.pcie   | resnet50_int8_1b.bmodel  | 79.40  |
+| BM1688 SoC   | resnet_bmcv.soc    | resnet50_fp32_1b.bmodel  | 79.80  |
+| BM1688 SoC   | resnet_bmcv.soc    | resnet50_fp16_1b.bmodel  | 79.80  |
+| BM1688 SoC   | resnet_bmcv.soc    | resnet50_int8_1b.bmodel  | 80.00  |
+| BM1688 SoC   | resnet_opencv.soc  | resnet50_fp32_1b.bmodel  | 79.90  |
+| BM1688 SoC   | resnet_opencv.soc  | resnet50_fp16_1b.bmodel  | 79.90  |
+| BM1688 SoC   | resnet_opencv.soc  | resnet50_int8_1b.bmodel  | 79.90  |
+| BM1688 SoC   | resnet_bmcv.py     | resnet50_fp32_1b.bmodel  | 79.80  |
+| BM1688 SoC   | resnet_bmcv.py     | resnet50_fp16_1b.bmodel  | 79.80  |
+| BM1688 SoC   | resnet_bmcv.py     | resnet50_int8_1b.bmodel  | 80.00  |
+| BM1688 SoC   | resnet_opencv.py   | resnet50_fp32_1b.bmodel  | 79.90  |
+| BM1688 SoC   | resnet_opencv.py   | resnet50_fp16_1b.bmodel  | 79.90  |
+| BM1688 SoC   | resnet_opencv.py   | resnet50_int8_1b.bmodel  | 79.90  |
 
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
 2. SoC和PCIe的模型准确率一致；
-
+3. 单core和多core的模型准确率一致；
 ## 7. 性能测试
 ### 7.1 bmrt_test
 使用bmrt_test测试模型的理论性能：

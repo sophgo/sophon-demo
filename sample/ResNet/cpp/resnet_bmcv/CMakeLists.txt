@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(resnet_bmcv)
 include(${CMAKE_SOURCE_DIR}/../../../../cmake/common.cmake)
-
+set(CMAKE_BUILD_TYPE "Debug")
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 message("cur dir: ${PROJECT_SOURCE_DIR}")
 
@@ -43,7 +43,6 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     set(CMAKE_ASM_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
     set(BM_LIBS bmlib bmrt bmcv yuv)
-    set(JPU_LIBS bmjpuapi bmjpulite)
     set(OPENCV_LIBS opencv_imgproc opencv_core opencv_highgui opencv_imgcodecs opencv_videoio)
     include_directories("../../../../include/")
     include_directories("${SDK}/include/")

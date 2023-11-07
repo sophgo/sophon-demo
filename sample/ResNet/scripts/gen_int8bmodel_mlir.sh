@@ -88,6 +88,18 @@ function gen_int8bmodel()
         #--debug
 
     mv resnet50_int8_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir resnet50_$1b.mlir \
+            --quantize INT8 \
+            --chip $target \
+            --model resnet50_int8_$1b_2core.bmodel \
+            --calibration_table resnet50_cali_table \
+            --test_input resnet50_$1b_in_f32.npz \
+            --test_reference resnet50_$1b_top_outputs.npz \
+            --num_core 2
+        mv resnet50_int8_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir

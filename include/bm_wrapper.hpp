@@ -14,12 +14,32 @@
 #define _BM_WRAPPER_HPP_
 
 #include "bmruntime_interface.h"
-#include "bmcv_api.h"
 #include "bmcv_api_ext.h"
 #include "bmlib_runtime.h"
 #include <sys/time.h>
 #include <iostream>
 #include <vector>
+#include <string.h>
+#ifndef BMCV_VERSION_MAJOR
+#define BMCV_VERSION_MAJOR 1
+#endif
+/*for multi version compatible*/
+#if BMCV_VERSION_MAJOR > 1
+typedef bmcv_padding_attr_t bmcv_padding_atrr_t;
+/**
+ * @name    bm_image_destroy
+ * @brief   To solve incompatible issue in a2 sdk.
+ * @ingroup bmcv
+ *
+ * @param [image]        input bm_image
+ * @retval BM_SUCCESS    change success.
+ * @retval other values  change failed.
+ */
+static inline bm_status_t bm_image_destroy(bm_image& image){
+  return bm_image_destroy(&image);
+}
+#endif
+
 /* Define this macro in advance to enable following APIs */
 #ifdef USE_OPENCV
 
@@ -86,17 +106,17 @@ static inline bm_status_t bm_image_from_mat (bm_handle_t           &bm_handle,
 
 /* Define USE_FFMPEG macro in advance to enable following APIs */
 #ifdef USE_FFMPEG
-
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-#include <libswscale/swscale.h>
-#include <libavutil/imgutils.h>
-#include <libavformat/avformat.h>
-#include <libavfilter/buffersink.h>
-#include <libavfilter/buffersrc.h>
-#include <libavutil/opt.h>
-#include <libavutil/pixdesc.h>
-
+extern "C"{
+  #include <libavformat/avformat.h>
+  #include <libavcodec/avcodec.h>
+  #include <libswscale/swscale.h>
+  #include <libavutil/imgutils.h>
+  #include <libavformat/avformat.h>
+  #include <libavfilter/buffersink.h>
+  #include <libavfilter/buffersrc.h>
+  #include <libavutil/opt.h>
+  #include <libavutil/pixdesc.h>
+}
 typedef struct{
         bm_image *bmImg;
         uint8_t* buf0;
@@ -302,7 +322,7 @@ static inline bm_status_t bm_image_from_frame (bm_handle_t       &bm_handle,
 		   DATA_TYPE_EXT_1N_BYTE,
 		   &out);
 
-    bm_image_dev_mem_alloc(out);
+    bm_image_alloc_dev_mem(out);
     bmcv_rect_t crop_rect = {0, 0, in.width, in.height};
     bmcv_image_vpp_convert(bm_handle, 1, cmp_bmimg, &out, &crop_rect);
     bm_image_destroy(cmp_bmimg);
@@ -515,7 +535,11 @@ static inline bm_status_t bm_image_destroy_batch (bm_image *image, int batch_num
 
   // deinit bm image
   for (int i = 0; i < batch_num; i++) {
+  #if BMCV_VERSION_MAJOR > 1
+    bm_image_destroy (&image[i]);
+  #else
     bm_image_destroy (image[i]);
+  #endif
   }
 
   return res;

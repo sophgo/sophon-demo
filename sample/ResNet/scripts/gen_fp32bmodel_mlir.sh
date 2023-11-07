@@ -19,6 +19,8 @@ function gen_mlir()
         --input_shapes [[$1,3,224,224]] \
         --keep_aspect_ratio \
         --pixel_format rgb  \
+        --test_input ../datasets/cali_data/ILSVRC2012_val_00000555.jpg \
+        --test_result resnet50_$1b_top_outputs.npz \
         --mlir resnet50_$1b.mlir
 }
 
@@ -28,9 +30,22 @@ function gen_fp32bmodel()
         --mlir resnet50_$1b.mlir \
         --quantize F32 \
         --chip $target \
-        --model resnet50_fp32_$1b.bmodel
+        --model resnet50_fp32_$1b.bmodel \
+        --test_input resnet50_$1b_in_f32.npz \
+        --test_reference resnet50_$1b_top_outputs.npz
 
     mv resnet50_fp32_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir resnet50_$1b.mlir \
+            --quantize F32 \
+            --chip $target \
+            --model resnet50_fp32_$1b_2core.bmodel \
+            --num_core 2 \
+            --test_input resnet50_$1b_in_f32.npz \
+            --test_reference resnet50_$1b_top_outputs.npz
+        mv resnet50_fp32_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir

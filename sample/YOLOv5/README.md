@@ -21,11 +21,11 @@
 * [9. FAQ](#9-faq)
   
 ## 1. 简介
-​YOLOv5是非常经典的基于anchor的One Stage目标检测算法，因其优秀的精度和速度表现，在工程实践应用中获得了非常广泛的应用。本例程对[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)v6.1版本的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
+​YOLOv5是非常经典的基于anchor的One Stage目标检测算法，因其优秀的精度和速度表现，在工程实践应用中获得了非常广泛的应用。本例程对[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)v6.1版本的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X)、INT8模型编译和推理
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -59,6 +59,15 @@ chmod -R +x scripts/
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1688
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_fp16_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+│   ├── yolov5s_v6.1_3output_fp32_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
+│   ├── yolov5s_v6.1_3output_int8_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
+│   └── yolov5s_v6.1_3output_int8_4b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=2
 ├── BM1684_ext                                # 相关单输出模型，此处没有benchmark，用户自行使用。
 ├── BM1684X_ext                               # 相关单输出模型，此处没有benchmark，用户自行使用。
 │── torch
@@ -88,37 +97,33 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684
-#or
-./scripts/gen_fp32bmodel_mlir.sh bm1684x
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`yolov5s_v6.1_3output_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`等文件夹下生成`yolov5s_v6.1_3output_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
 ```
 
-​执行上述命令会在`models/BM1684X/`下生成`yolov5s_v6.1_3output_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`yolov5s_v6.1_3output_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684
-#或
-./scripts/gen_int8bmodel_mlir.sh bm1684x
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​上述脚本会在`models/BM1684`或`models/BM1684X/`下生成`yolov5s_v6.1_3output_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+​上述脚本会在`models/BM1684`等文件夹下生成`yolov5s_v6.1_3output_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 
 ## 5. 例程测试
@@ -160,7 +165,18 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 | BM1684X PCIe | yolov5_sail.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.374         | 0.572    |
 | BM1684X PCIe | yolov5_sail.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.374         | 0.572    |
 | BM1684X PCIe | yolov5_sail.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.357         | 0.562    |
-
+| BM1688 soc   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.362         | 0.569    |
+| BM1688 soc   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.362         | 0.569    |
+| BM1688 soc   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.344         | 0.560    |
+| BM1688 soc   | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.362         | 0.569    |
+| BM1688 soc   | yolov5_sail.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.362         | 0.569    |
+| BM1688 soc   | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.344         | 0.560    |
+| BM1688 soc   | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.378         | 0.579    |
+| BM1688 soc   | yolov5_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.377         | 0.579    |
+| BM1688 soc   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.358         | 0.571    |
+| BM1688 soc   | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.374         | 0.573    |
+| BM1688 soc   | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.374         | 0.573    |
+| BM1688 soc   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.356         | 0.565    |
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. SoC和PCIe的模型精度一致；
