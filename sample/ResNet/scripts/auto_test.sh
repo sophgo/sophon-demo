@@ -299,17 +299,17 @@ then
     test_cpp soc bmcv resnet50_int8_4b.bmodel ../../datasets/imagenet_val_1k/img
 
     eval_python opencv resnet50_fp32_1b 80.10
-    eval_python opencv resnet50_int8_1b 78.30
-    eval_python opencv resnet50_int8_4b 78.30
-    eval_python bmcv resnet50_fp32_1b 77.50   
-    eval_python bmcv resnet50_int8_1b 76.10
-    eval_python bmcv resnet50_int8_4b 76.10
+    eval_python opencv resnet50_int8_1b 78.70
+    eval_python opencv resnet50_int8_4b 78.70
+    eval_python bmcv resnet50_fp32_1b 79.90   
+    eval_python bmcv resnet50_int8_1b 78.50
+    eval_python bmcv resnet50_int8_4b 78.50
     eval_cpp soc opencv resnet50_fp32_1b 80.20 
-    eval_cpp soc opencv resnet50_int8_1b 78.70
-    eval_cpp soc opencv resnet50_int8_4b 78.70 
-    eval_cpp soc bmcv resnet50_fp32_1b 78.50 
-    eval_cpp soc bmcv resnet50_int8_1b 76.90
-    eval_cpp soc bmcv resnet50_int8_4b 76.90 
+    eval_cpp soc opencv resnet50_int8_1b 78.20
+    eval_cpp soc opencv resnet50_int8_4b 78.20 
+    eval_cpp soc bmcv resnet50_fp32_1b 79.90
+    eval_cpp soc bmcv resnet50_int8_1b 78.50
+    eval_cpp soc bmcv resnet50_int8_4b 78.50
   elif test $TARGET = "BM1684X"
   then
     test_python opencv resnet50_fp32_1b.bmodel datasets/imagenet_val_1k/img
