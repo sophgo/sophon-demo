@@ -186,18 +186,18 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 在不同的测试平台上，使用不同的例程、模型测试`datasets/imagenet_val_1k`，性能测试结果如下：
 |    测试平台  |     测试程序        |        测试模型       |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ------------------ | --------------------- | -------- | --------- | --------- | --------- |
-| BM1684 SoC  | resnet_opencv.py   | resnet50_fp32_1b.bmodel | 10.28    | 8.06      | 9.03      | 0.31      |
-| BM1684 SoC  | resnet_opencv.py   | resnet50_int8_1b.bmodel | 10.19    | 7.95      | 5.91      | 0.33      |
-| BM1684 SoC  | resnet_opencv.py   | resnet50_int8_4b.bmodel | 10.06    | 8.00      | 3.24      | 0.11      |
-| BM1684 SoC  | resnet_bmcv.py     | resnet50_fp32_1b.bmodel | 1.34     | 1.52      | 6.90      | 0.25      |
-| BM1684 SoC  | resnet_bmcv.py     | resnet50_int8_1b.bmodel | 1.35     | 1.52      | 4.05      | 0.24      |
-| BM1684 SoC  | resnet_bmcv.py     | resnet50_int8_4b.bmodel | 1.19     | 1.43      | 1.24      | 0.10      |
-| BM1684 SoC  | resnet_opencv.soc  | resnet50_fp32_1b.bmodel | 1.47     | 6.23      | 6.49      | 0.14      |
-| BM1684 SoC  | resnet_opencv.soc  | resnet50_int8_1b.bmodel | 1.47     | 6.27      | 3.64      | 0.15      |
-| BM1684 SoC  | resnet_opencv.soc  | resnet50_int8_4b.bmodel | 1.29     | 6.26      | 1.11      | 0.12      |
-| BM1684 SoC  | resnet_bmcv.soc    | resnet50_fp32_1b.bmodel | 3.90     | 2.45      | 6.49      | 0.11      |
-| BM1684 SoC  | resnet_bmcv.soc    | resnet50_int8_1b.bmodel | 2.91     | 2.45      | 3.63      | 0.13      |
-| BM1684 SoC  | resnet_bmcv.soc    | resnet50_int8_4b.bmodel | 2.85     | 2.41      | 1.11      | 0.11      |
+| BM1684 SoC  | resnet_opencv.py   | resnet50_fp32_1b.bmodel | 10.11    | 7.60      | 8.79      | 0.31      |
+| BM1684 SoC  | resnet_opencv.py   | resnet50_int8_1b.bmodel | 10.09    | 7.61      | 6.37      | 0.29      |
+| BM1684 SoC  | resnet_opencv.py   | resnet50_int8_4b.bmodel | 10.06    | 7.66      | 3.24      | 0.11      |
+| BM1684 SoC  | resnet_bmcv.py     | resnet50_fp32_1b.bmodel | 1.66     | 0.96      | 6.85      | 0.25      |
+| BM1684 SoC  | resnet_bmcv.py     | resnet50_int8_1b.bmodel | 1.66     | 0.96      | 4.40      | 0.24      |
+| BM1684 SoC  | resnet_bmcv.py     | resnet50_int8_4b.bmodel | 1.45     | 0.83      | 1.36      | 0.10      |
+| BM1684 SoC  | resnet_opencv.soc  | resnet50_fp32_1b.bmodel | 1.36     | 5.87      | 6.36      | 0.09      |
+| BM1684 SoC  | resnet_opencv.soc  | resnet50_int8_1b.bmodel | 1.35     | 5.80      | 3.90      | 0.09      |
+| BM1684 SoC  | resnet_opencv.soc  | resnet50_int8_4b.bmodel | 1.15     | 5.88      | 1.23      | 0.07      |
+| BM1684 SoC  | resnet_bmcv.soc    | resnet50_fp32_1b.bmodel | 2.50     | 2.50      | 6.35      | 0.11      |
+| BM1684 SoC  | resnet_bmcv.soc    | resnet50_int8_1b.bmodel | 2.53     | 2.50      | 3.89      | 0.11      |
+| BM1684 SoC  | resnet_bmcv.soc    | resnet50_int8_4b.bmodel | 2.44     | 2.44      | 1.22      | 0.09      |
 | BM1684X SoC | resnet_opencv.py   | resnet50_fp32_1b.bmodel | 4.03     | 8.57      | 11.41     | 0.30      |
 | BM1684X SoC | resnet_opencv.py   | resnet50_fp16_1b.bmodel | 1.85     | 8.49      | 4.29      | 0.29      |
 | BM1684X SoC | resnet_opencv.py   | resnet50_int8_1b.bmodel | 1.83     | 8.33      | 3.61      | 0.29      |
