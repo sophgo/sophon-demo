@@ -69,10 +69,11 @@ class YOLOv5:
         # init postprocess
         self.conf_thresh = args.conf_thresh
         self.nms_thresh = args.nms_thresh
-        if args.use_cpu_opt:
+        if 'use_cpu_opt' in getattr(args, '__dict__', {}):
             self.use_cpu_opt = args.use_cpu_opt
         else:
             self.use_cpu_opt = False
+        
         self.agnostic = False
         self.multi_label = True
         self.max_det = 1000
