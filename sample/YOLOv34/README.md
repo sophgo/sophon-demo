@@ -142,7 +142,7 @@ chmod -R +x scripts/
 ./scripts/yolov4_int8bmodel_mlir.sh bm1684x
 ```
 
-​上述脚本会在`models/BM1684`或`models/BM1684X/`下生成`yolov4_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+​上述脚本会在`models/BM1684`或`models/BM1684X/`下生成`yolov4_int8_1b.bmodel`等文件，即转换好的INT8 BModel。建议在转换1684 int8 4b模型时,在脚本中model_deploy.py参数中添加qtable，即--quantize_table ../models/yolov4_4b_int8_qtable \。
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
