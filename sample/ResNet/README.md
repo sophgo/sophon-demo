@@ -170,8 +170,8 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
-2. SoC和PCIe的模型准确率一致；
-3. 单core和多core的模型准确率一致；
+2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
+
 ## 7. 性能测试
 ### 7.1 bmrt_test
 使用bmrt_test测试模型的理论性能：
