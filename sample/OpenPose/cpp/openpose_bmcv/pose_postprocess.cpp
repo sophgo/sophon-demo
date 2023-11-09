@@ -246,6 +246,101 @@ int OpenPosePostProcess::kernel_part_nms(
     bm_free_device(handle, output_num);
 }
 
+void OpenPosePostProcess::cpuOptNmsFunc(float* ptr, float* top_ptr, int length, int h,
+                                  int w, int max_peaks, float threshold,
+                                  int plane_offset, int top_plane_offset) {
+    for (int c = 0; c < length; c++) {
+        int num_peaks = 0;
+        for (int y = 1; y < h - 1 && num_peaks != max_peaks; ++y) {
+            for (int x = 1; x < w - 1 && num_peaks != max_peaks; ++x) {
+                float value = ptr[y * w + x];
+                if (value > threshold) {
+                    const float topLeft = ptr[(y - 1) * w + x - 1];
+                    const float top = ptr[(y - 1) * w + x];
+                    const float topRight = ptr[(y - 1) * w + x + 1];
+                    const float left = ptr[y * w + x - 1];
+                    const float right = ptr[y * w + x + 1];
+                    const float bottomLeft = ptr[(y + 1) * w + x - 1];
+                    const float bottom = ptr[(y + 1) * w + x];
+                    const float bottomRight = ptr[(y + 1) * w + x + 1];
+                    if (value > topLeft && value > top && value > topRight &&
+                        value > left && value > right && value > bottomLeft &&
+                        value > bottom && value > bottomRight) {
+                        // 计算亚像素坐标
+                        float xAcc = 0;
+                        float yAcc = 0;
+                        float scoreAcc = 0;
+                        for (int kx = -3; kx <= 3; ++kx) {
+                            int ux = x + kx;
+                            if (ux >= 0 && ux < w) {
+                                for (int ky = -3; ky <= 3; ++ky) {
+                                    int uy = y + ky;
+                                    if (uy >= 0 && uy < h) {
+                                        float score = ptr[uy * w + ux];
+                                        xAcc += ux * score;
+                                        yAcc += uy * score;
+                                        scoreAcc += score;
+                                    }
+                                }
+                            }
+                        }  
+                        xAcc /= scoreAcc;
+                        yAcc /= scoreAcc;
+                        scoreAcc = value;
+                        top_ptr[(num_peaks + 1) * 3 + 0] = xAcc;
+                        top_ptr[(num_peaks + 1) * 3 + 1] = yAcc;
+                        top_ptr[(num_peaks + 1) * 3 + 2] = scoreAcc;
+                        num_peaks++;
+                    }
+                }
+            }
+    }
+    top_ptr[0] = num_peaks;
+    ptr += plane_offset;
+    top_ptr += top_plane_offset;
+  }
+}
+
+
+int OpenPosePostProcess::cpuOptNms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, float threshold)
+{
+    //maxPeaks就是最大人数，+1是为了第一位存个数
+    //算法，是每个点，如果大于阈值，同时大于上下左右值的时候，则认为是峰值
+
+    //算法很简单，featuremap的任意一个点，其上下左右和斜上下左右，都小于自身，就认为是要的点
+    //然后以该点区域，选择7*7区域，按照得分值和x、y来计算最合适的亚像素坐标
+
+    int w = bottom_blob->width();
+    int h = bottom_blob->height();
+    int C = bottom_blob->channels();
+    int N = bottom_blob->num();
+    int plane_offset = w * h;
+    float* ptr = bottom_blob->data();
+    float* top_ptr = top_blob->data();
+    int top_plane_offset = top_blob->width() * top_blob->height();
+    int max_peaks = top_blob->height() - 1;
+
+	for (int n = 0; n < N; ++n) {
+        const int numThreads = 8;
+        int length = C / numThreads;
+        int last = C % length;
+        std::vector<std::thread> threads;
+    	for (int c = 0; c < numThreads - 1; ++c) {
+        threads.emplace_back(
+            &OpenPosePostProcess::cpuOptNmsFunc, ptr + c * length * plane_offset,
+            top_ptr + c * length * top_plane_offset, length, h, w, max_peaks,
+            threshold, plane_offset, top_plane_offset);
+        }
+        threads.emplace_back(&OpenPosePostProcess::cpuOptNmsFunc, ptr + (numThreads - 1) * length * plane_offset,
+                         top_ptr + (numThreads - 1) * length * top_plane_offset,
+                         last ? last : length, h, w, max_peaks, threshold,
+                         plane_offset, top_plane_offset);
+        for (std::thread& t : threads) {
+            t.join();
+        }
+    }
+}
+
 std::vector<unsigned int> OpenPosePostProcess::getPosePairs(PoseKeyPoints::EModelType model_type) {
     switch (model_type) {
         case PoseKeyPoints::EModelType::BODY_25:
@@ -1139,6 +1234,63 @@ int OpenPosePostProcess::getKeyPoints(std::shared_ptr<BMNNTensor>  outputTensorP
         connectBodyPartsCpu(poseKeyPoints.keypoints, resizedBlob->data(), nms_blob->data(), originSize,
                             POSE_MAX_PEOPLE, 9, 0.05, 3, 0.4, 1, poseKeyPoints.shape,
                             model_type);
+
+        // renderPoseKeypointsCpu(image, poseKeyPoints.keypoints, poseKeyPoints.shape, 0.05, 1.0);
+        // cv::imwrite("res.jpg", image);
+        poseKeyPoints.modeltype = model_type;
+        body_keypoints.push_back(poseKeyPoints);
+    }
+}
+
+int OpenPosePostProcess::getKeyPointsCPUOpt(std::shared_ptr<BMNNTensor>  outputTensorPtr, const std::vector<bm_image> &images,
+        std::vector<PoseKeyPoints> &body_keypoints, PoseKeyPoints::EModelType model_type, float nms_threshold) {
+    OpenPosePostProcess postProcess;
+    // int n = outputTensorPtr->get_num();
+    int chan_num = outputTensorPtr->get_shape()->dims[1];
+    int net_output_height = outputTensorPtr->get_shape()->dims[2];
+    int net_output_width = outputTensorPtr->get_shape()->dims[3];
+#if DEBUG
+    std::cout << n << ", " << images.size() <<std::endl;
+#endif
+    int batch_byte_size = chan_num * net_output_height * net_output_width;
+    int ch_area = net_output_height * net_output_width;
+    for(int batch_idx = 0;batch_idx < images.size(); ++batch_idx) {
+        float *base = outputTensorPtr->get_cpu_data() + batch_byte_size * batch_idx;
+        bm_image image = images[batch_idx];
+        cv::Size originSize(image.width, image.height);
+        cv::Size nmsSize(image.width >> 1, image.height >> 1);
+#if DEBUG
+        std::cout << originSize.height << ", " << originSize.width << std::endl;
+#endif
+        PoseBlobPtr resizedBlob = std::make_shared<PoseBlob>(1, chan_num, nmsSize.height, nmsSize.width);
+        for (int ch = 0; ch < chan_num; ++ch) {
+            cv::Mat src(net_output_height, net_output_width, CV_32F, base +  ch_area * ch);
+            cv::Mat dst(resizedBlob->height(), resizedBlob->width(), CV_32F,
+                    resizedBlob->data() + nmsSize.height * nmsSize.width * ch);
+            cv::resize(src, dst, nmsSize, 0, 0, cv::INTER_CUBIC);
+        }
+        PoseBlobPtr nms_blob;
+        if (model_type == PoseKeyPoints::EModelType::COCO_18) {
+            nms_blob = std::make_shared<PoseBlob>(1, 56, POSE_MAX_PEOPLE + 1, 3);
+        } else {
+            nms_blob = std::make_shared<PoseBlob>(1, 77, POSE_MAX_PEOPLE + 1, 3);
+        }
+
+        postProcess.cpuOptNms(resizedBlob, nms_blob, nms_threshold);
+
+        PoseKeyPoints poseKeyPoints;
+        poseKeyPoints.width = nmsSize.width;
+        poseKeyPoints.height = nmsSize.height;
+        connectBodyPartsCpu(poseKeyPoints.keypoints, resizedBlob->data(), nms_blob->data(), nmsSize,
+                            POSE_MAX_PEOPLE, 9, 0.05, 3, 0.4, 1, poseKeyPoints.shape,
+                            model_type);
+        for (int i = 0; i < poseKeyPoints.keypoints.size(); i += 3) {
+            poseKeyPoints.keypoints[i] =
+                poseKeyPoints.keypoints[i] * originSize.width / nmsSize.width;
+            poseKeyPoints.keypoints[i + 1] =
+                poseKeyPoints.keypoints[i + 1] * originSize.height /
+                nmsSize.height;
+    }
 
         // renderPoseKeypointsCpu(image, poseKeyPoints.keypoints, poseKeyPoints.shape, 0.05, 1.0);
         // cv::imwrite("res.jpg", image);
