@@ -241,6 +241,12 @@ then
     eval_python opencv fp16 0.57488
     eval_cpp soc bmcv fp32 0.57194
     eval_cpp soc bmcv fp16 0.57153
+  elif test $TARGET = "BM1688"
+  then
+    eval_python opencv fp32 0.57490
+    eval_python opencv fp16 0
+    eval_cpp soc bmcv fp32 0
+    eval_cpp soc bmcv fp16 0
   fi
 fi
 

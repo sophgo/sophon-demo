@@ -77,6 +77,45 @@ function gen_fp16bmodel()
     mv ch_PP-OCRv3_rec_fp16_$1b_640.bmodel $outdir/
 
 }
+function gen_fp16bmodel_multicore()
+{
+    model_deploy.py \
+        --mlir ch_PP-OCRv3_det_$1b.mlir \
+        --quantize F16 \
+        --chip $target \
+        --num_core $2 \
+        --model ch_PP-OCRv3_det_fp16_$1b_$2core.bmodel
+
+    mv ch_PP-OCRv3_det_fp16_$1b_$2core.bmodel $outdir/
+    
+    model_deploy.py \
+        --mlir ch_PP-OCRv3_cls_$1b.mlir \
+        --quantize F16 \
+        --chip $target \
+        --num_core $2 \
+        --model ch_PP-OCRv3_cls_fp16_$1b_$2core.bmodel
+
+    mv ch_PP-OCRv3_cls_fp16_$1b_$2core.bmodel $outdir/
+
+    model_deploy.py \
+        --mlir ch_PP-OCRv3_rec_$1b_320.mlir \
+        --quantize F16 \
+        --chip $target \
+        --num_core $2 \
+        --model ch_PP-OCRv3_rec_fp16_$1b_320_$2core.bmodel
+
+    mv ch_PP-OCRv3_rec_fp16_$1b_320_$2core.bmodel $outdir/
+
+    model_deploy.py \
+        --mlir ch_PP-OCRv3_rec_$1b_640.mlir \
+        --quantize F16 \
+        --chip $target \
+        --num_core $2 \
+        --model ch_PP-OCRv3_rec_fp16_$1b_640_$2core.bmodel
+
+    mv ch_PP-OCRv3_rec_fp16_$1b_640_$2core.bmodel $outdir/
+}
+
 
 pushd $model_dir
 if [ ! -d $outdir ]; then
@@ -97,4 +136,19 @@ model_tool --combine $outdir/ch_PP-OCRv3_cls_fp16_*.bmodel -o $outdir/ch_PP-OCRv
 rm -r $outdir/ch_PP-OCRv3_cls_fp16_*.bmodel
 model_tool --combine $outdir/ch_PP-OCRv3_rec_fp16_*.bmodel -o $outdir/ch_PP-OCRv3_rec_fp16.bmodel
 rm -r $outdir/ch_PP-OCRv3_rec_fp16_*.bmodel
+
+# if test $target = "bm1688";then
+#     echo "Generating multicore models..."
+#     gen_fp16bmodel_multicore 1 2
+#     gen_fp16bmodel_multicore 4 2
+#     echo "Combining bmodels..."
+#     model_tool --combine $outdir/ch_PP-OCRv3_det_fp16_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_det_fp16_2core.bmodel
+#     rm -r $outdir/ch_PP-OCRv3_det_fp16_*b_*.bmodel
+#     model_tool --combine $outdir/ch_PP-OCRv3_cls_fp16_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_cls_fp16_2core.bmodel
+#     rm -r $outdir/ch_PP-OCRv3_cls_fp16_*b_*.bmodel
+#     model_tool --combine $outdir/ch_PP-OCRv3_rec_fp16_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_rec_fp16_2core.bmodel
+#     rm -r $outdir/ch_PP-OCRv3_rec_fp16_*b_*.bmodel
+# fi
+
+
 popd
