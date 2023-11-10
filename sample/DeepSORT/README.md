@@ -19,8 +19,8 @@
 ​本例程使用[YOLOv5](../YOLOv5/README.md)中的目标检测模型，并对[Deep Sort with PyTorch](https://github.com/ZQPei/deep_sort_pytorch)的特征提取模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X)、INT8模型编译和推理
+* 支持BM1688(SoC)/BM1684X(x86 PCIe、SoC)/BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1688/BM1684X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -64,10 +64,18 @@ chmod -R +x scripts/
 │   ├── extractor_fp32_4b.bmodel              # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=4
 │   ├── extractor_int8_1b.bmodel              # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   ├── extractor_int8_4b.bmodel              # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
-│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684的FP16 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684的FP32 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684的INT8 BModel，batch_size=1
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 从YOLOv5例程中获取，用于BM1684的INT8 BModel，batch_size=4
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的INT8 BModel，batch_size=1
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1688
+│   ├── extractor_fp16_1b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
+│   ├── extractor_fp16_4b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4
+│   ├── extractor_fp32_1b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
+│   ├── extractor_fp32_4b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4
+│   ├── extractor_int8_1b.bmodel              # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
+│   ├── extractor_int8_4b.bmodel              # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4
+│   └── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1688的INT8 BModel，batch_size=1
 ├── onnx
 │   └── extractor.onnx                        # 由ckpt.t7导出的onnx模型
 └── torch
@@ -88,37 +96,34 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684
-#or
-./scripts/gen_fp32bmodel_mlir.sh bm1684x
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`extractor_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`等文件夹下生成`extractor_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
 ```
 
-​执行上述命令会在`models/BM1684X/`下生成`extractor_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`extractor_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684
-#或
-./scripts/gen_int8bmodel_mlir.sh bm1684x
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​上述脚本会在`models/BM1684`或`models/BM1684X/`下生成`extractor_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+​上述脚本会在`models/BM1684`等文件夹下生成`extractor_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+
 
 
 ## 5. 例程测试
@@ -156,7 +161,12 @@ acc         525  0.524889  0.544908  0.506289  0.687163  0.739579  5009  10  12 
 | BM1684X PCIe | deepsort_bmcv.pcie | extractor_fp32_1b.bmodel | 0.442 |
 | BM1684X PCIe | deepsort_bmcv.pcie | extractor_fp16_1b.bmodel | 0.442 |
 | BM1684X PCIe | deepsort_bmcv.pcie | extractor_int8_1b.bmodel | 0.437 |
-
+| BM1688 SoC   | deepsort_opencv.py | extractor_fp32_1b.bmodel | 0.441 |
+| BM1688 SoC   | deepsort_opencv.py | extractor_fp16_1b.bmodel | 0.441 |
+| BM1688 SoC   | deepsort_opencv.py | extractor_int8_1b.bmodel | 0.440 |
+| BM1688 SoC   | deepsort_bmcv.soc  | extractor_fp32_1b.bmodel | 0.430 |
+| BM1688 SoC   | deepsort_bmcv.soc  | extractor_fp16_1b.bmodel | 0.430 |
+| BM1688 SoC   | deepsort_bmcv.soc  | extractor_int8_1b.bmodel | 0.429 |
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
 2. SoC和PCIe的模型精度一致；

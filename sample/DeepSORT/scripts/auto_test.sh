@@ -324,6 +324,33 @@ then
     eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.44200439209423037
     eval_cpp soc bmcv extractor_int8_1b.bmodel  0.43761229786384503
     eval_cpp soc bmcv extractor_int8_4b.bmodel  0.43761229786384503
+  elif test $TARGET = "BM1688"
+  then
+    test_python opencv extractor_fp32_1b.bmodel
+    test_python opencv extractor_fp32_4b.bmodel
+    test_python opencv extractor_fp16_1b.bmodel
+    test_python opencv extractor_fp16_4b.bmodel
+    test_python opencv extractor_int8_1b.bmodel
+    test_python opencv extractor_int8_4b.bmodel
+    test_cpp soc bmcv extractor_fp32_1b.bmodel
+    test_cpp soc bmcv extractor_fp32_4b.bmodel
+    test_cpp soc bmcv extractor_fp16_1b.bmodel
+    test_cpp soc bmcv extractor_fp16_4b.bmodel
+    test_cpp soc bmcv extractor_int8_1b.bmodel
+    test_cpp soc bmcv extractor_int8_4b.bmodel
+
+    eval_python opencv extractor_fp32_1b.bmodel 0.441
+    eval_python opencv extractor_fp32_4b.bmodel 0.441
+    eval_python opencv extractor_fp16_1b.bmodel 0.441
+    eval_python opencv extractor_fp16_4b.bmodel 0.441
+    eval_python opencv extractor_int8_1b.bmodel 0.440
+    eval_python opencv extractor_int8_4b.bmodel 0.440
+    eval_cpp soc bmcv extractor_fp32_1b.bmodel  0.430
+    eval_cpp soc bmcv extractor_fp32_4b.bmodel  0.430
+    eval_cpp soc bmcv extractor_fp16_1b.bmodel  0.430
+    eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.430
+    eval_cpp soc bmcv extractor_int8_1b.bmodel  0.429
+    eval_cpp soc bmcv extractor_int8_4b.bmodel  0.429
   fi
 fi
 

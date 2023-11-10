@@ -15,8 +15,8 @@
 PP-OCRv3，是百度飞桨团队开源的超轻量OCR系列模型，包含文本检测、文本分类、文本识别模型，是PaddleOCR工具库的重要组成之一。支持中英文数字组合识别、竖排文本识别、长文本识别，其性能及精度较之前的PP-OCR版本均有明显提升。本例程对[PaddleOCR-release-2.6](https://github.com/PaddlePaddle/PaddleOCR/tree/release/2.6)的`ch_PP-OCRv3_xx`系列模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X)模型编译和推理
+* 支持BM1688(SoC)/BM1684X(x86 PCIe、SoC)/BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1688/BM1684X)模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV的Python推理
 * 支持单batch、多batch、组合batch模型推理
@@ -73,25 +73,23 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684
-#or
-./scripts/gen_fp32bmodel_mlir.sh bm1684x
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`ch_PP-OCRv3_det_fp32.bmodel`等文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`等文件夹下生成`ch_PP-OCRv3_det_fp32.bmodel`等文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x/bm1688
 ```
 
-​执行上述命令会在`models/BM1684X/`下生成`ch_PP-OCRv3_det_fp16.bmodel`等文件，即转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`ch_PP-OCRv3_det_fp16.bmodel`等文件，即转换好的FP16 BModel。
 
 - 本例程暂时不支持量化。
 
@@ -122,6 +120,11 @@ F-score: 0.57488, Precision: 0.80639, Recall: 0.44665
 | BM1684X PCIe  | ppocr_system_opencv.py | fp16         | 0.575   |
 | BM1684X PCIe  | ppocr_bmcv.pcie        | fp32         | 0.572   |
 | BM1684X PCIe  | ppocr_bmcv.pcie        | fp16         | 0.572   |
+| BM1688 SoC    | ppocr_system_opencv.py | fp32         | 0.575   |
+| BM1688 SoC    | ppocr_system_opencv.py | fp16         | 0.574   |
+| BM1688 SoC    | ppocr_bmcv.pcie        | fp32         | 0.556   |
+| BM1688 SoC    | ppocr_bmcv.pcie        | fp16         | 0.555   |
+
 
 > **测试说明**：  
 > 1. 模型精度为fp32(fp16)，即代表检测模型和识别模型都是fp32(fp16)的精度。
