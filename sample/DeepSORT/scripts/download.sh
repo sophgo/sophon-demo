@@ -1,5 +1,5 @@
 #!/bin/bash
-res=$(dpkg -l|grep unzip)
+res=$(which unzip)
 if [ $? != 0 ];
 then
     echo "Please install unzip on your system!"
@@ -26,7 +26,11 @@ if [ ! -d "../models" ];
 then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/DeepSORT/models_0918/models.zip
     unzip models.zip -d ../
-    rm models.zip
+    pushd ../models/
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/DeepSORT/models_231110/BM1688.zip
+    unzip BM1688.zip
+    popd
+    rm models.zip BM1688.zip
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."

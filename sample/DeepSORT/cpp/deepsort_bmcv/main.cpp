@@ -24,6 +24,15 @@ using json = nlohmann::json;
 using namespace std;
 int cnt = 0;  // for debug
 
+void printBox(YoloV5Box box){
+    std::cout<<"x: "<<box.x
+             <<"; y: "<<box.y
+             <<"; width: "<<box.width
+             <<"; height: "<<box.height
+             <<"; score: "<<box.score
+             <<"; class_id: "<<box.class_id<<std::endl;
+}
+
 void deep_sort_yaml_parse(const std::string& config_path, deepsort_params& params) {
     std::ifstream file(config_path);
     if (!file.is_open()) {
@@ -250,32 +259,40 @@ int main(int argc, char* argv[]) {
             for (int i = 0; i < batch_imgs.size(); i++) {
                 id++;
                 crop_total += yolov5_boxes[i].size();
-
+        #if DEEPSORT_DEBUG
+            std::cout<<"detect bboxes: "<<std::endl;
+            for(auto& bbox: yolov5_boxes[i]){
+                printBox(bbox);
+            }
+        #endif
                 // tracker, directly output tracked boxes.
                 vector<TrackBox> track_boxes;
                 ts->save("deepsort time");
                 deepsort.sort(batch_imgs[i], yolov5_boxes[i], track_boxes, id);
                 ts->save("deepsort time");
-
+        #if DEEPSORT_DEBUG
+            std::cout<<"track bboxes: "<<std::endl;
+            for(auto& bbox: track_boxes){
+                printBox(bbox);
+            }
+        #endif
                 cout << id << ", detect_nums: " << yolov5_boxes[i].size() << "; track_nums: " << yolov5_boxes[i].size()
                      << endl;
                 ts->save("encode time");
                 for (auto bbox : track_boxes) {
-                    string save_str = cv::format("%d,%d,%d,%d,%d,%d,1,-1,-1,-1\n", id, bbox.track_id, bbox.x, bbox.y,
+                    string save_str = cv::format("%d,%d,%f,%f,%f,%f,1,-1,-1,-1\n", id, bbox.track_id, bbox.x, bbox.y,
                                                  bbox.width, bbox.height);
                     mot_saver << save_str;
                 }
 #if USE_OPENCV_DRAW_BOX
                 cv::Mat frame_to_draw;
                 cv::bmcv::toMAT(&batch_imgs[i], frame_to_draw);
-                // for (auto bbox : yolov5_boxes[i]) {
-                //     draw_opencv(-1, 0, bbox.score, bbox.x, bbox.y, bbox.x + bbox.width,
-                //                 bbox.y + bbox.height, frame_to_draw);
-                // }
                 for (auto bbox : track_boxes) {
                     draw_opencv(bbox.track_id, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.x + bbox.width,
                                 bbox.y + bbox.height, frame_to_draw);
                 }
+            // string cv_img_file = save_image_path + to_string(id) + "cv.jpg";
+            // cv::imwrite(cv_img_file, frame_to_draw);
                 bm_image frame_drawed;
                 cv::bmcv::toBMI(frame_to_draw, &frame_drawed);
                 if (frame_drawed.image_format != FORMAT_YUV420P) {

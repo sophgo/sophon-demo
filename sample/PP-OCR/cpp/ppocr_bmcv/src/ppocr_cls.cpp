@@ -225,7 +225,8 @@ int PPOCR_Cls::preprocess_bmcv(std::vector<bm_image> &input)
                                             FORMAT_BGR_PLANAR,
                                             DATA_TYPE_EXT_FLOAT32,
                                             &crop_bmcv_[i]);
-        bmcv_image_crop(m_bmContext->handle(), 1, &rect_t, linear_trans_bmcv_[i], &crop_bmcv_[i]);
+        // bmcv_image_crop(m_bmContext->handle(), 1, &rect_t, linear_trans_bmcv_[i], &crop_bmcv_[i]);
+        bmcv_image_vpp_convert(m_bmContext->handle(), 1, linear_trans_bmcv_[i], &crop_bmcv_[i], &rect_t);
         bmcv_copy_to_atrr_t  atrr_t = {0, 0, 0, 0, 0, 1};
         bmcv_image_copy_to(m_bmContext->handle(), atrr_t, crop_bmcv_[i], padding_bmcv_[i]);
     }

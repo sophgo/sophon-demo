@@ -84,6 +84,45 @@ function gen_fp32bmodel()
     # mv ch_PP-OCRv3_rec_fp32_$1b_960.bmodel $outdir/
 }
 
+function gen_fp32bmodel_multicore()
+{
+    model_deploy.py \
+        --mlir ch_PP-OCRv3_det_$1b.mlir \
+        --quantize F32 \
+        --chip $target \
+        --num_core $2 \
+        --model ch_PP-OCRv3_det_fp32_$1b_$2core.bmodel
+
+    mv ch_PP-OCRv3_det_fp32_$1b_$2core.bmodel $outdir/
+    
+    model_deploy.py \
+        --mlir ch_PP-OCRv3_cls_$1b.mlir \
+        --quantize F32 \
+        --chip $target \
+        --num_core $2 \
+        --model ch_PP-OCRv3_cls_fp32_$1b_$2core.bmodel
+
+    mv ch_PP-OCRv3_cls_fp32_$1b_$2core.bmodel $outdir/
+
+    model_deploy.py \
+        --mlir ch_PP-OCRv3_rec_$1b_320.mlir \
+        --quantize F32 \
+        --chip $target \
+        --num_core $2 \
+        --model ch_PP-OCRv3_rec_fp32_$1b_320_$2core.bmodel
+
+    mv ch_PP-OCRv3_rec_fp32_$1b_320_$2core.bmodel $outdir/
+
+    model_deploy.py \
+        --mlir ch_PP-OCRv3_rec_$1b_640.mlir \
+        --quantize F32 \
+        --chip $target \
+        --num_core $2 \
+        --model ch_PP-OCRv3_rec_fp32_$1b_640_$2core.bmodel
+
+    mv ch_PP-OCRv3_rec_fp32_$1b_640_$2core.bmodel $outdir/
+}
+
 pushd $model_dir
 if [ ! -d $outdir ]; then
     mkdir -p $outdir
@@ -103,5 +142,18 @@ model_tool --combine $outdir/ch_PP-OCRv3_cls_fp32_*.bmodel -o $outdir/ch_PP-OCRv
 rm -r $outdir/ch_PP-OCRv3_cls_fp32_*.bmodel
 model_tool --combine $outdir/ch_PP-OCRv3_rec_fp32_*.bmodel -o $outdir/ch_PP-OCRv3_rec_fp32.bmodel
 rm -r $outdir/ch_PP-OCRv3_rec_fp32_*.bmodel
+
+# if test $target = "bm1688";then
+#     echo "Generating multicore models..."
+#     gen_fp32bmodel_multicore 1 2
+#     gen_fp32bmodel_multicore 4 2
+#     echo "Combining bmodels..."
+#     model_tool --combine $outdir/ch_PP-OCRv3_det_fp32_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_det_fp32_2core.bmodel
+#     rm -r $outdir/ch_PP-OCRv3_det_fp32_*b_*.bmodel
+#     model_tool --combine $outdir/ch_PP-OCRv3_cls_fp32_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_cls_fp32_2core.bmodel
+#     rm -r $outdir/ch_PP-OCRv3_cls_fp32_*b_*.bmodel
+#     model_tool --combine $outdir/ch_PP-OCRv3_rec_fp32_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_rec_fp32_2core.bmodel
+#     rm -r $outdir/ch_PP-OCRv3_rec_fp32_*b_*.bmodel
+# fi
 
 popd

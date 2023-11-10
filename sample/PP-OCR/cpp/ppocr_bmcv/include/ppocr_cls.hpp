@@ -9,6 +9,7 @@
 // Define USE_OPENCV for enabling OPENCV related funtions in bm_wrapper.hpp
 #define USE_OPENCV 1
 #include "bmnn_utils.h"
+#include "ppocr_det.hpp"
 
 class PPOCR_Cls
 {   
