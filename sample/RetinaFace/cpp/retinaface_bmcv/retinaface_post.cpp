@@ -384,9 +384,9 @@ void RetinaFacePostProcess::run(
     auto count = bmrt_shape_count(&output_shape);
     output_sizes.push_back(count / output_shape.dims[0]);
   }
-  float* cls_data = preds[output_names_map["cls"]];
-  float *land_data = preds[output_names_map["land"]];
-  float *loc_data = preds[output_names_map["loc"]];
+  float* cls_data = preds[output_names_map[net_info.output_names[1]]];
+  float *land_data = preds[output_names_map[net_info.output_names[2]]];
+  float *loc_data = preds[output_names_map[net_info.output_names[0]]];
 
   const int num_layer = 3;
   const size_t steps[] = {8, 16, 32};
