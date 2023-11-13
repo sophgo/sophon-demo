@@ -13,7 +13,7 @@ then
     mkdir -p ../datasets
     # test dataset
     # test input_test
-    python3 -m dfn --url https://disk.sophgo.vip/sharing/vrhe4fWii
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/segformer/datasets.zip
     unzip datasets.zip -d ../
     rm datasets.zip
     echo "datasets download!"
@@ -25,7 +25,7 @@ fi
 # models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfn --url https://disk.sophgo.vip/sharing/I8gk8jq10
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/segformer/models.zip
     ls -al
     unzip models.zip -d ../
     rm models.zip
