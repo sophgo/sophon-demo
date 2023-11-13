@@ -24,7 +24,7 @@ RetinaFace: Single-stage Dense Face Localisation in the Wild，提出了一种�
 
 (3) 在IJB-C测试集中，RetinaFace使state-of-the-art 方法(Arcface)在人脸识别中的结果得到提升（FAR=1e6，TAR=85.59%）。
 
-(4) 采用轻量级的backbone 网络，RetinaFace能在单个CPU上实时运行VGA分辨率的图像。
+(4) 采用轻量级的backbone 网络，RetinaFace能在单个处理器上实时运行VGA分辨率的图像。
 
 
 ## 2. 数据集

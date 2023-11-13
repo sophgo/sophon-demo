@@ -191,7 +191,7 @@ Using different routines and models to test 'datasets/val2017' on different test
 >**Test Instructions**:
 1. The time unit is milliseconds (ms), and the statistical time is the average processing time of each text;
 2. The performance test results have certain volatility, and it is recommended to take the average value after multiple tests;
-3. The main control CPUs of the BM1684/1684X SoC are all 8-core ARM A53 42320 DMIPS @ 2.3GHz, and the performance on PCIe may vary significantly due to different CPUs;
+3. The main control processors of the BM1684/1684X SoC are all 8-core ARM A53 42320 DMIPS @ 2.3GHz, and the performance on PCIe may vary significantly due to different processors;
 
 ## 8. FAQ
 Please refer to [FAQ](../../docs/FAQ_EN.md) for some common questions and answers.

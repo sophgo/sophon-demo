@@ -85,7 +85,7 @@ int8bmodel的输入层数据类型是int8，scale不等1，基于opencv-python�
 如果要使用opencv-python例程进行部署，建议将int8bmodel的输入、输出层保留为浮点计算。
 
 ### 6.3 sophon-demo能否用于性能压测
-不建议。sophon-demo提供一系列主流算法的移植例程，用户可以根据sophon-demo进行模型算法移植和精度测试。但sophon-demo的前处理/推理/后处理是串行的，即使开多个进程也很难将CPU和TPU的性能充分发挥出来。[sophon-pipeline](https://github.com/sophgo/sophon-pipeline)能够将前处理/推理/后处理分别运行在3个线程上，最大化的实现并行，因此建议使用sophon-pipeline进行性能压测。
+不建议。sophon-demo提供一系列主流算法的移植例程，用户可以根据sophon-demo进行模型算法移植和精度测试。但sophon-demo的前处理/推理/后处理是串行的，即使开多个进程也很难将TPU的性能充分发挥出来。[sophon-pipeline](https://github.com/sophgo/sophon-pipeline)能够将前处理/推理/后处理分别运行在3个线程上，最大化的实现并行，因此建议使用sophon-pipeline进行性能压测。
 
 ### 6.4 测试性能相比README下降
 如果性能下降超过10%，需要确认产品型号，sophon-demo的各个例程都是基于标准版的产品（如SE-16）来测试的，如果您使用的是低配版产品（如SE5-8），性能下降是正常的，SE5-16的int8算力是17.6TOPS，SE5-8是10.6TOPS，所以大概会有2/5的性能损失。

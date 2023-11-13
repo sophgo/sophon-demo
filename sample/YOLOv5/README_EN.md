@@ -31,7 +31,7 @@ YOLOv5 is a very classical One Stage target detection algorithm based on anchor.
 * Support single batch and multi-batch model inference
 * Support 1 output and 3 output model inference
 * Support for picture and video testing
-* Support NMS postprocessing CPU acceleration
+* Support NMS postprocessing acceleration
  
 ## 3. Prepare Models and Data
 It is recommended to use TPU-MLIR to compile BModel, Pytorch model to export to onnx model before compilation, if the tpu-mlir version you are using is >= v1.3.0 (i.e. official website v23.07.01), you can use the torchscript model directly. For more information, please see [YOLOv5 Model Export](./docs/YOLOv5_Export_Guide_EN.md).
@@ -231,12 +231,12 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. Use
 > **Test Description**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
 > 2. The performance test results are volatile to a certain extent, so it is recommended that the average value should be taken from multiple tests.
-> 3. BM1684/1684X SoC's master CPU are all 8-core ARM A53 42320 DMIPS @ 2.3GHz CPU performance on PCIe may vary greatly due to different PCIes.
+> 3. BM1684/1684X SoC's processors are all 8-core ARM A53 42320 DMIPS @ 2.3GHz, performance on PCIe may vary greatly due to different processors.
 > 4. The image resolution has a great influence on the decoding time, the reasoning result has a great influence on the post-processing time, different test pictures may be different, and different thresholds have a great influence on the post-processing time.
 
 ## 8. YOLOv5 cpu opt
 
-Based on the YOLOv5 mentioned above, this section optimizes the YOLOv5 postprocessing algorithm NMS and accelerated it on the CPU. The following mainly explains the content and performance accuracy results of NMS optimization.
+Based on the YOLOv5 mentioned above, this section optimizes the YOLOv5 postprocessing algorithm NMS. The following mainly explains the content and performance accuracy results of NMS optimization.
 
 ### 8.1. NMS Optimization Item
 * Place the operation that filters the noise anchors before all other operations. Subsequent operations only need to process candidate boxes with significantly reduced numbers
@@ -293,7 +293,7 @@ If using single-class NMS, by setting the macro `USE_MULTICLASS_NMS 0` in the `y
 > **Test Description**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
 > 2. The performance test results are volatile to a certain extent, so it is recommended that the average value should be taken from multiple tests.
-> 3. BM1684/1684X SoC's master CPU are all 8-core ARM A53 42320 DMIPS @ 2.3GHz.
+> 3. BM1684/1684X SoC's processors are all 8-core ARM A53 42320 DMIPS @ 2.3GHz.
 > 4. The image resolution has a great influence on the decoding time, the reasoning result has a great influence on the post-processing time, different test pictures may be different, and different thresholds have a great influence on the post-processing time.
 
 ## 9. FAQ

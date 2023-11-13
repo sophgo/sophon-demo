@@ -6,16 +6,9 @@
 
  ## 2. 如何得到JIT模型？
 
-答：在已有PyTorch的Python模型（基类为torch.nn.Module）的情况下，通过torch.jit.trace得到；traced_model=torch.jit.trace(python_model, torch.rand(input_shape))，然后再用traced_model.save(‘jit.pt’)保存下来。
+答：在已有PyTorch的Python模型（基类为torch.nn.Module）的情况下，通过torch.jit.trace得到；traced_model=torch.jit.trace(python_model, torch.rand(input_shape))，然后再用traced_model.save(‘jit.pt’)保存下来。注意在trace前，加载PyTorch的源模型时，使用map_location参数：torch.load(python_model, map_location = ‘cpu’)。
 
 ## 3. 为什么不能使用torch.jit.script得到JIT模型？
 
 答：BMNETP暂时不支持带有控制流操作（如if语句或循环）的JIT模型，但torch.jit.script可以产生这类模型，而torch.jit.trace却不可以，仅跟踪和记录张量上的操作，不会记录任何控制流操作。
 
-## 4. 为什么不能是GPU模型？
-
-答：BMNETP的编译过程不支持。
-
-## 5. 如何将GPU模型转成CPU模型？
-
-答：在加载PyTorch的Python模型时，使用map_location参数：torch.load(python_model, map_location = ‘cpu’)。
