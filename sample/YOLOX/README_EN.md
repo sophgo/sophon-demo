@@ -235,7 +235,7 @@ Use different examples and models to test `datasets/val2017_1000` with `conf_thr
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
 > 2. The performance test results are volatile to a certain extent, so it is recommended that the average value should be taken from multiple tests.
 > 3. test platform of BM1684 SoC is standard SE5, and test platform of BM1684X SoC is standard SE7
-> 4. BM1684/1684X SoC's master CPU are all 8-core ARM A53 42320 DMIPS @ 2.3GHz CPU performance on PCIe may vary greatly due to different PCIes.
+> 4. BM1684/1684X SoC's processors are all 8-core ARM A53 42320 DMIPS @ 2.3GHz, performance on PCIe may vary greatly due to different processors.
 > 5. The image resolution has a great influence on the decoding time, the reasoning result has a great influence on the post-processing time, different test pictures may be different, and different thresholds have a great influence on the post-processing time.
 
 ## 8. FAQ

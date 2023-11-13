@@ -173,7 +173,7 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为1秒音频处理的时间(本例程用到的测试音频总时长442.955s)；
 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-3. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
+3. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 
 ## 8. FAQ  
 1. ImportError: xxxx/libstdc++.so.6: version `GLIBCXX_3.4.30' not found: 常出现在pcie模式下，原因是编译好的ctc decoder与本机的环境不适配。  
