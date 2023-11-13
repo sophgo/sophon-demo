@@ -45,7 +45,7 @@ Sophon OpenCV inherits and optimizes native OpenCV, modifies native mat, increas
 
 BMCV is a set of acceleration library provided by us, based on hardware VPP and TPU for image processing and some mathematical operations. It is a library of C interface. At the bottom of our modified Sophon OpenCV, hardware-accelerated operations use the interface of BMCV as well.
 
-Compared with native OpenCV, Sophon OpenCV adopts different upsample algorithms for decoding using hardware-accelerated units in chips. The decoding and pre-processing methods of Sophon OpenCV are different from those of native OpenCV to some degree, which may affect the final prediction results, but usually does not have a significant impact on robust models.
+Compared with native OpenCV, Sophon OpenCV adopts different upsample algorithms for decoding using hardware-accelerated units in TPU. The decoding and pre-processing methods of Sophon OpenCV are different from those of native OpenCV to some degree, which may affect the final prediction results, but usually does not have a significant impact on robust models.
 
 ### 4.2 How do OpenCV-based Python demos call Sophon OpenCV for acceleration
 Using SophonSDK after v22.09.02, whether in PCIe or SoC mode, Python demos based on OpenCV use the installed native OpenCV by default. Sophon OpenCV can be used by setting environment variables:

@@ -19,7 +19,7 @@ SegFormer是一种用于语义分割的简单、高效和强大的方法。SegFo
 * 支持图片和视频测试
 
 ## 3. 准备模型与数据
-如果您使用BM1684芯片，建议使用TPU-NNTC编译BModel，目前官方的Segfomer只有pth预训练模型，pth模型在编译前要导出成onnx模型；如果您使用BM1684X芯片，建议使用TPU-MLIR编译BModel，pth模型在编译前要导出成onnx模型。具体可参考[Segformer模型导出](./docs/Segformer_Export_Guide.md)。
+如果您使用BM1684，建议使用TPU-NNTC编译BModel，目前官方的Segfomer只有pth预训练模型，pth模型在编译前要导出成onnx模型；如果您使用BM1684X，建议使用TPU-MLIR编译BModel，pth模型在编译前要导出成onnx模型。具体可参考[Segformer模型导出](./docs/Segformer_Export_Guide.md)。
 
 同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 

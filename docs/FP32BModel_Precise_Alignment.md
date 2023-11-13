@@ -11,7 +11,7 @@
 关于精度对齐，有几点需要说明：
 
 - 原始模型转FP32 BModel存在一定的精度误差，如果开启精度对比(cmp=True)，且精度对比通过，FP32 BModel的最大误差通常在0.001以下，不会对最终的预测结果造成影响。
-- Sophon OpenCV使用芯片中的硬件加速单元进行解码，相比原生OpenCV采用了不同的upsample算法。若移植的Python代码中使用Sophon OpenCV或SAIL进行解码和前后处理，解码和前后处理的方式与原生的OpenCV存在一定差异，可能影响最终的预测结果，但通常不会对鲁棒性好的模型造成明显影响。
+- Sophon OpenCV使用TPU中的硬件加速单元进行解码，相比原生OpenCV采用了不同的upsample算法。若移植的Python代码中使用Sophon OpenCV或SAIL进行解码和前后处理，解码和前后处理的方式与原生的OpenCV存在一定差异，可能影响最终的预测结果，但通常不会对鲁棒性好的模型造成明显影响。
 - debian9系统的SoC模式(如SE5盒子)默认使用Sophon OpenCV，ubuntu系统的SoC模式和PCIe模式默认使用原生OpenCV，可以通过设置环境变量使用Sophon OpenCV。
 - 我们通常使用静态尺寸的bmodel，如果原程序中的模型输入尺寸是不固定的，建议修改原程序中的预处理操作，使原程序的模型输入尺寸与bmodel一致，再进行精度对齐。
 

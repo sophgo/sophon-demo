@@ -74,7 +74,7 @@ Usage: openpose_bmcv.pcie [params]
 ```bash
 ./openpose_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0
 ```
-仅在BM1684X芯片上，若需要使用tpu_kernel后处理来加速，则可以使用以下命令。
+仅在BM1684X上，若需要使用tpu_kernel后处理来加速，则可以使用以下命令。
 ```bash
 ./openpose_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0 --performance_opt=tpu_kernel_opt
 ```
@@ -91,7 +91,7 @@ Usage: openpose_bmcv.pcie [params]
 ![res](../pics/1_cpp_bmcv.jpeg)
 
 ### 3.3 测试视频
-视频测试实例如下，支持对视频流进行测试。在BM1684X芯片上，后处理加速命令与3.2中类似，若使用CPU后处理加速也与3.2中类似。
+视频测试实例如下，支持对视频流进行测试。在BM1684X上，后处理加速命令与3.2中类似，若使用CPU后处理加速也与3.2中类似。
 ```bash
 ./openpose_bmcv.pcie --input=../../datasets/dance_1080P.mp4 --bmodel=../../models/BM1684/pose_coco_fp32_1b.bmodel --dev_id=0
 ```

@@ -6,7 +6,7 @@
 ## 简介
 Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移植例程。包括基于TPU-NNTC和TPU-MLIR的模型编译与量化，基于BMRuntime的推理引擎移植，以及基于BMCV/OpenCV的前后处理算法移植。
 
-SophonSDK是算能科技基于其自主研发的AI芯片所定制的深度学习SDK，涵盖了神经网络推理阶段所需的模型优化、高效运行时支持等能力，为深度学习应用开发和部署提供易用、高效的全栈式解决方案。目前可兼容第三代BM1684芯片，并支持第四代BM1684X芯片。
+SophonSDK是算能科技基于其自主研发的深度学习处理器所定制的深度学习SDK，涵盖了神经网络推理阶段所需的模型优化、高效运行时支持等能力，为深度学习应用开发和部署提供易用、高效的全栈式解决方案。目前可兼容第三代BM1684处理器，并支持第四代BM1684X处理器。
 
 ## 目录结构与说明
 | 目录                                        | 算法类别         | 编程语言    | BModel | 支持多batch | 预处理库 |
@@ -14,6 +14,7 @@ SophonSDK是算能科技基于其自主研发的AI芯片所定制的深度学习
 | [LPRNet](./sample/LPRNet/README.md)         | 车牌识别          | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [ResNet](./sample/ResNet/README.md)         | 图像分类          | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [RetinaFace](./sample/RetinaFace/README.md) | 人脸检测          | C++/Python | FP32           | YES | BMCV/OpenCV |
+| [segformer](./sample/segformer/README.md)   | 语义分割           | C++/Python | FP32/FP16      | YES | BMCV/OpenCV |
 | [yolact](./sample/yolact/README.md)         | 实例分割          | Python     | FP32           | YES | BMCV/OpenCV |
 | [PP-OCR](./sample/PP-OCR/README.md)         | OCR              | C++/Python | FP32/FP16      | YES | BMCV/OpenCV |
 | [OpenPose](./sample/OpenPose/README.md)     | 人体关键点检测     | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
@@ -25,6 +26,7 @@ SophonSDK是算能科技基于其自主研发的AI芯片所定制的深度学习
 | [YOLOv34](./sample/YOLOv34/README.md)       | 目标检测          | C++/Python | FP32/INT8      | NO  | BMCV/OpenCV |
 | [YOLOX](./sample/YOLOX/README.md)           | 目标检测          | C++/Python | FP32/INT8      | YES | BMCV/OpenCV |
 | [SSD](./sample/SSD/README.md)               | 目标检测          | C++/Python | FP32/INT8      | YES | BMCV/OpenCV |
+| [YOLOv7](./sample/YOLOv7/README.md)         | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV|
 | [YOLOv8](./sample/YOLOv8/README.md)         | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV|
 | [BERT](./sample/BERT/README.md)             | 语言模型           | C++/Python | FP32/FP16      | YES | BMCV|
@@ -33,6 +35,7 @@ SophonSDK是算能科技基于其自主研发的AI芯片所定制的深度学习
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.1.9	 | 修复文档等问题，新增segformer、YOLOv7例程，重构YOLOv34，YOLOv5、ResNet、PP-OCR、DeepSORT适配BM1688，OpenPose后处理加速，chatglm2添加编译方法和int8/int4量化。|
 | 0.1.8  | 完善修复文档、代码问题，新增BERT、ppYOLOv3、ChatGLM2，重构YOLOX，PP-OCR添加beam search，OpenPose添加tpu-kernel后处理加速，更新SFTP下载方式。|
 | 0.1.7	 | 修复文档等问题，一些例程支持BM1684 mlir，重构PP-OCR、CenterNet例程，YOLOv5添加sail支持 |
 | 0.1.6	 | 修复文档等问题，新增ByteTrack、YOLOv5_opt例程 |
