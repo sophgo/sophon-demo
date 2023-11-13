@@ -1,7 +1,6 @@
 #!/bin/bash
-pip3 install dfn
 sudo apt install unzip
-
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 script_dir=$(dirname $(readlink -f "$0"))
 echo $script_dir
 
