@@ -6,248 +6,244 @@
 // third-party components.
 //
 //===----------------------------------------------------------------------===//
-/* Copyright 2019-2025 by Bitmain Technologies Inc. All rights reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-
-==============================================================================*/
-// #include <boost/filesystem.hpp>
-#include <condition_variable>
-#include <chrono>
-#include <mutex>
-#include <thread>
-#include <iomanip>
-#include <iostream>
 #include <fstream>
-#include <string>
-#include "yolov3.hpp"
-#include "utils.hpp"
+#include <string.h>
+#include <dirent.h>
 #include <unistd.h>
-// namespace fs = boost::filesystem;
+#include <sys/stat.h>
+#include "json.hpp"
+#include "opencv2/opencv.hpp"
+#include "ff_decode.hpp"
+#include "yolov34.hpp"
+using json = nlohmann::json;
 using namespace std;
-using time_stamp_t = time_point<steady_clock, microseconds>;
 
-static void detect(YOLO &net, vector<cv::Mat>& images,
-                                      vector<string> names, TimeStamp *ts) {
-  ts->save("detection overall");
-  ts->save("stage 1: pre-process");
-  net.preForward(images);
-  ts->save("stage 1: pre-process");
-  ts->save("stage 2: detection  ");
-  net.forward();
-  ts->save("stage 2: detection  ");
-  ts->save("stage 3:post-process");
-  vector<vector<yolov3_DetectRect>> dets = net.postForward();
-  ts->save("stage 3:post-process");
-  ts->save("detection overall");
-
-  // string save_folder = "result_imgs";
-  // if (!fs::exists(save_folder)) {
-  //   fs::create_directory(save_folder);
-  // }
-
-  string save_folder = "result_imgs";
-  if (0 != access(save_folder.c_str(), 0)) {
-    system("mkdir -p result_imgs");
-  }
-
-  for (size_t i = 0; i < images.size(); i++) {
-    for (size_t j = 0; j < dets[i].size(); j++) {
-      int x_min = dets[i][j].left;
-      int x_max = dets[i][j].right;
-      int y_min = dets[i][j].top;
-      int y_max = dets[i][j].bot;
-
-      std::cout << "Category: " << dets[i][j].category
-        << " Score: " << dets[i][j].score << " : " << x_min <<
-        "," << y_min << "," << x_max << "," << y_max << std::endl;
-
-      cv::Rect rc;
-      rc.x = x_min;
-      rc.y = y_min;;
-      rc.width = x_max - x_min;
-      rc.height = y_max - y_min;
-      cv::rectangle(images[i], rc, cv::Scalar(255, 0, 0), 2, 1, 0);
-    }
-    cv::imwrite(save_folder + "/" + names[i], images[i]);
-  }
-}
-
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]){
   cout.setf(ios::fixed);
-
-  if (argc < 8) {
-    cout << "USAGE:" << endl;
-    cout << "  " << argv[0] << " image <image list> <cfg file> <bmodel file> <test count> <device id> <conf thresh> <nms thresh>" << endl;
-    cout << "  " << argv[0] << " video <video list> <cfg file> <bmodel file> <test count> <device id> <conf thresh> <nms thresh>" << endl;
-    exit(1);
+  // get params
+  const char *keys="{bmodel | ../../models/BM1684X/yolov3_fp32_1b.bmodel | bmodel file path}"
+    "{dev_id | 0 | TPU device id}"
+    "{conf_thresh | 0.001 | confidence threshold for filter boxes}"
+    "{nms_thresh | 0.6 | iou threshold for nms}"
+    "{help | 0 | print help information.}"
+    "{input | ../../datasets/test | input path, images direction or video file path}"
+    "{classnames | ../../datasets/coco.names | class names file path}";
+  cv::CommandLineParser parser(argc, argv, keys);
+  if (parser.get<bool>("help")) {
+    parser.printMessage();
+    return 0;
   }
-
-  bool is_video = false;
-  if (strcmp(argv[1], "video") == 0) {
-    is_video = true;
-  } else if (strcmp(argv[1], "image") == 0) {
-    is_video = false;
-  } else {
-    cout << "Wrong input type, neither image nor video." << endl;
-    exit(1);
+  string bmodel_file = parser.get<string>("bmodel");
+  int anchors_type = 1;
+  if (bmodel_file.find("yolov4") == string::npos){
+    anchors_type = 0;
   }
+  string input = parser.get<string>("input");
+  int dev_id = parser.get<int>("dev_id");
 
-  string image_list = argv[2];
-  if (!is_video && (0 != access(image_list.c_str(), 0))) {
-    cout << "Cannot find input image file." << endl;
-    exit(1);
-  }
-
-  string cfg_file = argv[3];
-  if (0 != access(cfg_file.c_str(), 0)) {
-    cout << "Cannot find config file." << endl;
-    exit(1);
-  }
-
-  string bmodel_file = argv[4];
-  if (0 != access(bmodel_file.c_str(), 0)) {
+  // check params
+  struct stat info;
+  if (stat(bmodel_file.c_str(), &info) != 0) {
     cout << "Cannot find valid model file." << endl;
     exit(1);
   }
-
-  uint32_t test_loop;
-  test_loop = stoull(string(argv[5]), nullptr, 0);
-  if (test_loop < 1 && is_video) {
-    cout << "test loop must large 0." << endl;
+  string coco_names = parser.get<string>("classnames");
+  if (stat(coco_names.c_str(), &info) != 0) {
+    cout << "Cannot find classnames file." << endl;
+    exit(1);
+  }
+  if (stat(input.c_str(), &info) != 0){
+    cout << "Cannot find input path." << endl;
     exit(1);
   }
 
-  // set device id
-  std::string dev_str = argv[6];
-  std::stringstream checkdevid(dev_str);
-  double t;
-  if (!(checkdevid >> t)) {
-    std::cout << "Is not a valid dev ID: " << dev_str << std::endl;
-    exit(1);
-  }
-  int dev_id = std::stoi(dev_str);
-  std::cout << "set device id: " << dev_id << std::endl;
- 
-  int max_dev_id = 0;
-  bm_dev_getcount(&max_dev_id);
-  if (dev_id >= max_dev_id) {
-        std::cout << "ERROR: Input device id="<< dev_id
-        << " exceeds the maximum number " << max_dev_id << std::endl;
-        exit(-1);
-  }
+  // creat handle
+  BMNNHandlePtr handle = make_shared<BMNNHandle>(dev_id);
+  cout << "set device id: "  << dev_id << endl;
+  bm_handle_t h = handle->handle();
+
+  // load bmodel
+  shared_ptr<BMNNContext> bm_ctx = make_shared<BMNNContext>(handle, bmodel_file.c_str());
+
+  // initialize net
+  Yolo yolov34(bm_ctx);
+  CV_Assert(0 == yolov34.Init(
+        parser.get<float>("conf_thresh"),
+        parser.get<float>("nms_thresh"),
+        coco_names, anchors_type));
+
+  // profiling
+  TimeStamp yolov34_ts;
+  TimeStamp *ts = &yolov34_ts;
+  yolov34.enableProfile(&yolov34_ts);
+
+  // get batch_size
+  int batch_size = yolov34.batch_size();
+
+  // creat save path
+  if (access("results", 0) != F_OK)
+    mkdir("results", S_IRWXU);
+  if (access("results/images", 0) != F_OK)
+    mkdir("results/images", S_IRWXU);
   
-  float conf_thresh = std::stof(argv[7]);
-  float nms_thresh = std::stof(argv[8]);
-  std::cout << "confidence threshold:" <<  conf_thresh << ", nms threshold: " << nms_thresh << std::endl;
+  // test images
+  if (info.st_mode & S_IFDIR){
+    // get files
+    vector<string> files_vector;
+    DIR *pDir;
+    struct dirent* ptr;
+    pDir = opendir(input.c_str());
+    while((ptr = readdir(pDir))!=0) {
+        if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0){
+            files_vector.push_back(input + "/" + ptr->d_name);
+        }
+    }
+    closedir(pDir);
 
-  YOLO net(cfg_file, bmodel_file, dev_id, conf_thresh, nms_thresh);
-  int batch_size = net.getBatchSize();
-  TimeStamp ts;
-  net.enableProfile(&ts);
-  char image_path[1024] = {0};
-  ifstream fp_img_list(image_list);
-  if (!is_video) {
-    vector<cv::Mat> batch_imgs;
+    vector<bm_image> batch_imgs;
     vector<string> batch_names;
-    while(fp_img_list.getline(image_path, 1024)) {
-      ts.save("decode overall");
-      ts.save("stage 0: decode");
-      cv::Mat img = cv::imread(image_path, cv::IMREAD_COLOR, dev_id);
-      ts.save("stage 0: decode");
-      if (img.empty()) {
-         cout << "read image error!" << endl;
-         exit(1);
-      }
-      ts.save("decode overall");
-
-      // fs::path fs_path(image_path);
-      std::string image_path_s = image_path;
-      size_t index = image_path_s.rfind("/");
-      string img_name = image_path_s.substr(index + 1);
-
-      // string img_name = fs_path.filename().string();
-      batch_imgs.push_back(img);
+    vector<YoloBoxVec> boxes;
+    vector<json> results_json;
+    int cn = files_vector.size();
+    int id = 0;
+    for (vector<string>::iterator iter = files_vector.begin(); iter != files_vector.end(); iter++){
+      string img_file = *iter; 
+      id++;
+      cout << id << "/" << cn << ", img_file: " << img_file << endl;
+      ts->save("decode time");
+      bm_image bmimg;
+      picDec(h, img_file.c_str(), bmimg);
+      ts->save("decode time");
+      size_t index = img_file.rfind("/");
+      string img_name = img_file.substr(index + 1);
+      batch_imgs.push_back(bmimg);
       batch_names.push_back(img_name);
-      if (static_cast<int>(batch_imgs.size()) == batch_size) {
-        detect(net, batch_imgs, batch_names, &ts);
+      
+      iter++;
+      bool end_flag = (iter == files_vector.end());
+      iter--;
+      if ((batch_imgs.size() == batch_size || end_flag) && !batch_imgs.empty()) {
+        // predict
+        CV_Assert(0 == yolov34.Detect(batch_imgs, boxes));
+
+        for(int i = 0; i < batch_imgs.size(); i++){
+          vector<json> bboxes_json;
+          if (batch_imgs[i].image_format != 0){
+            bm_image frame;
+            bm_image_create(h, batch_imgs[i].height, batch_imgs[i].width, FORMAT_YUV420P, batch_imgs[i].data_type, &frame);
+            bmcv_image_storage_convert(h, 1, &batch_imgs[i], &frame);
+            bm_image_destroy(batch_imgs[i]);
+            batch_imgs[i] = frame;
+          }
+          for (auto bbox : boxes[i]) {
+#if DEBUG
+            cout << "  class id=" << bbox.class_id << ", score = " << bbox.score << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")" << endl;
+#endif
+            // draw image
+              yolov34.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i]);
+
+            // save result
+            json bbox_json;
+            bbox_json["category_id"] = bbox.class_id;
+            bbox_json["score"] = bbox.score;
+            bbox_json["bbox"] = {bbox.x, bbox.y, bbox.width, bbox.height};
+            bboxes_json.push_back(bbox_json);
+          }
+          json res_json;
+          res_json["image_name"] = batch_names[i];
+          res_json["bboxes"] = bboxes_json;
+          results_json.push_back(res_json);
+
+          // save image
+          void* jpeg_data = NULL;
+          size_t out_size = 0;
+          int ret = bmcv_image_jpeg_enc(h, 1, &batch_imgs[i], &jpeg_data, &out_size);
+          if (ret == BM_SUCCESS) {
+            string img_file = "results/images/" + batch_names[i];
+            FILE *fp = fopen(img_file.c_str(), "wb");
+            fwrite(jpeg_data, out_size, 1, fp);
+            fclose(fp);
+          }
+          free(jpeg_data);
+          bm_image_destroy(batch_imgs[i]);
+        }
         batch_imgs.clear();
         batch_names.clear();
+        boxes.clear();
       }
     }
-  } else {
-    vector <cv::VideoCapture> caps;
-    vector <string> cap_srcs;
-    while(fp_img_list.getline(image_path, 1024)) {
-      cv::VideoCapture cap(image_path, cv::CAP_ANY, dev_id);
-      cap.set(cv::CAP_PROP_OUTPUT_YUV, 1);
-      caps.push_back(cap);
-      cap_srcs.push_back(image_path);
+    
+    // save results
+    size_t index = input.rfind("/");
+    if(index == input.length() - 1){
+      input = input.substr(0, input.length() - 1);
+      index = input.rfind("/");
     }
-
-    if ((int)caps.size() != batch_size) {
-      cout << "video num should equal model's batch size" << endl;
-      exit(1);
-    }
-
-    uint32_t batch_id = 0;
-    uint32_t run_frame_no = test_loop;
-    uint32_t frame_id = 0;
-    while(1) {
-      if (frame_id == run_frame_no) {
-        break;
+    string dataset_name = input.substr(index + 1);
+    index = bmodel_file.rfind("/");
+    string model_name = bmodel_file.substr(index + 1);
+    string json_file = "results/" + model_name + "_" + dataset_name + "_bmcv_cpp" + "_result.json";
+    cout << "================" << endl;
+    cout << "result saved in " << json_file << endl;
+    ofstream(json_file) << std::setw(4) << results_json;
+  }
+  
+  // test video
+  else {
+    VideoDecFFM decoder;
+    decoder.openDec(&h, input.c_str());
+    int id = 0;
+    vector<bm_image> batch_imgs;
+    vector<YoloBoxVec> boxes;
+    bool end_flag = false;
+    while(!end_flag){
+      bm_image *img = decoder.grab();
+      if (!img){
+        end_flag=true;
+      }else {
+        batch_imgs.push_back(*img);
       }
-      vector<cv::Mat> batch_imgs;
-      vector<string> batch_names;
-      ts.save("decode overall");
-      ts.save("stage 0: decode");
-      for (size_t i = 0; i < caps.size(); i++) {
-         if (caps[i].isOpened()) {
-           int w = int(caps[i].get(cv::CAP_PROP_FRAME_WIDTH));
-           int h = int(caps[i].get(cv::CAP_PROP_FRAME_HEIGHT));
-           cv::Mat img;
-           caps[i] >> img;
-           if (img.rows != h || img.cols != w) {
-             break;
-           }
-           batch_imgs.push_back(img);
-           batch_names.push_back(to_string(batch_id) + "_" +
-                            to_string(i) + "_video.jpg");
-           batch_id++;
-         }else{
-           cout << "VideoCapture " << i << " "
-                   << cap_srcs[i] << " open failed!" << endl;
-         }
+      if ((batch_imgs.size() == batch_size || end_flag) && !batch_imgs.empty()) {
+        CV_Assert(0 == yolov34.Detect(batch_imgs, boxes));
+        for(int i = 0; i < batch_imgs.size(); i++){
+          id++;
+          cout << id << ", det_nums: " << boxes[i].size() << endl;
+          if (batch_imgs[i].image_format != 0){
+            bm_image frame;
+            bm_image_create(h, batch_imgs[i].height, batch_imgs[i].width, FORMAT_YUV420P, batch_imgs[i].data_type, &frame);
+            bmcv_image_storage_convert(h, 1, &batch_imgs[i], &frame);
+            bm_image_destroy(batch_imgs[i]);
+            batch_imgs[i] = frame;
+          }
+          for (auto bbox : boxes[i]) {
+#if DEBUG
+            cout << "  class id=" << bbox.class_id << ", score = " << bbox.score << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")" << endl;
+#endif
+            yolov34.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i], false);
+          }
+          string img_file = "results/images/" + to_string(id) + ".jpg";
+          void* jpeg_data = NULL;
+          size_t out_size = 0;
+          int ret = bmcv_image_jpeg_enc(h, 1, &batch_imgs[i], &jpeg_data, &out_size);
+          if (ret == BM_SUCCESS) {
+            FILE *fp = fopen(img_file.c_str(), "wb");
+            fwrite(jpeg_data, out_size, 1, fp);
+            fclose(fp);
+          }
+          free(jpeg_data);
+          bm_image_destroy(batch_imgs[i]);
+        }
+        batch_imgs.clear();
+        boxes.clear();
       }
-      if ((int)batch_imgs.size() < batch_size) {
-        break;
-      }
-      ts.save("stage 0: decode");
-      ts.save("decode overall");
-      detect(net, batch_imgs, batch_names, &ts);
-      batch_imgs.clear();
-      batch_names.clear();
-      frame_id += 1;
     }
   }
-
+  // print speed
   time_stamp_t base_time = time_point_cast<microseconds>(steady_clock::now());
-  ts.calbr_basetime(base_time);
-  ts.build_timeline("yolo detect");
-  ts.show_summary("detect ");
-  ts.clear();
-
-  std::cout << std::endl;
+  yolov34_ts.calbr_basetime(base_time);
+  yolov34_ts.build_timeline("yolov34 test");
+  yolov34_ts.show_summary("yolov34 test");
+  yolov34_ts.clear();
 
   return 0;
 }
