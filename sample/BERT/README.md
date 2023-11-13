@@ -29,7 +29,7 @@ A simple training framework that recreates bert4keras in PyTorch. bert4torch
 * 支持文本测试
  
 ## 3. 准备模型与数据
-如果您使用BM1684芯片，建议使用TPU-NNTC编译BModel，Pytorch模型在编译前要导出成torchscript模型或onnx模型；如果您使用BM1684X芯片，建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。具体可参考[BERT模型导出](./docs/BERT4torch_Exportonnx_Guide.md)。
+如果您使用BM1684，建议使用TPU-NNTC编译BModel，Pytorch模型在编译前要导出成torchscript模型或onnx模型；如果您使用BM1684X，建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。具体可参考[BERT模型导出](./docs/BERT4torch_Exportonnx_Guide.md)。
 
 ​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
@@ -67,7 +67,7 @@ chmod -R +x scripts/
 ```
 
 ## 4. 模型编译
-导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。如果您使用BM1684芯片，建议使用TPU-NNTC编译BModel；如果您使用BM1684X芯片，建议使用TPU-MLIR编译BModel。
+导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。如果您使用BM1684，建议使用TPU-NNTC编译BModel；如果您使用BM1684X，建议使用TPU-MLIR编译BModel。
 
 ### 4.1 TPU-NNTC编译BModel
 模型编译前需要安装TPU-NNTC，具体可参考[TPU-NNTC环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。安装好后需在TPU-NNTC环境中进入例程目录。

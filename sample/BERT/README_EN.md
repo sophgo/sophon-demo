@@ -29,7 +29,7 @@ A simple training framework that recreates bert4keras in PyTorch. bert4torch
 * Support text testing
 
 ## 3. Prepare models and data
-If you are using the BM1684 chip, it is recommended to use TPU-NNTC to compile the BModel. The Python model should be exported as a torchscript model or onnx model before compilation; If you are using the BM1684X chip, it is recommended to compile the BModel using TPU-MLIR, and the Python model should be exported as an onnx model before compilation. For details, please refer to [BERT-Model-Export](./docs/BERT4torch_Exportonnx_Guide.md).
+If you are using BM1684, it is recommended to use TPU-NNTC to compile the BModel. The Python model should be exported as a torchscript model or onnx model before compilation; If you are using BM1684X, it is recommended to compile the BModel using TPU-MLIR, and the Python model should be exported as an onnx model before compilation. For details, please refer to [BERT-Model-Export](./docs/BERT4torch_Exportonnx_Guide.md).
 
 At the same time, you need to prepare a dataset for testing, and if quantifying the model, you also need to prepare a dataset for quantification.
 
@@ -69,7 +69,7 @@ The downloaded data includes:
 ```
 
 ## 4. Model Compilation
-The exported model needs to be compiled into BModel to run on SOPHON TPU. If you use the downloaded BModel, you can skip this section. If you use the BM1684 chip, it is recommended to use TPU-NNTC to compile BModel; If you are using the BM1684X chip, it is recommended to compile the BModel using TPU-MLIR.
+The exported model needs to be compiled into BModel to run on SOPHON TPU. If you use the downloaded BModel, you can skip this section. If you use BM1684, it is recommended to use TPU-NNTC to compile BModel; If you are using BM1684X, it is recommended to compile the BModel using TPU-MLIR.
 
 ### 4.1 TPU-NNTC Compilation BModel
 Before model compilation, it is necessary to install TPU-NNTC. For details, please refer to the [TPU-NNTC-environment-setup](../../docs/Environment_install_Guide_EN.md#1-TPU-NNTC-Environmental-Installation). After installation, you need to enter the routine directory in the TPU-NNTC environment.
