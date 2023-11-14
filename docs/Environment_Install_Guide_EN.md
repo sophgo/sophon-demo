@@ -219,7 +219,7 @@ Here, the cross-compilation environment has been built, and then you can use the
 ### 4.2 Cross-compiling and sophon-sail Installation
 
 If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of sophon-sail from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
-Refer to docs in sophon-sail，choose the part you need (C++/Python，PCIE MODE) to install。
+Refer to docs in sophon-sail，choose the part you need (C++/Python，PCIE MODE) to install, you should choose compile option with opencv and ffmpeg.
 Official sophon-sail guide link：https://doc.sophgo.com/sdk-docs/v23.05.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#sail
 
 After you have followed the tutorial and copied the library files of Sophon Sail to the target SoC, you also need to set the following environment variables:
