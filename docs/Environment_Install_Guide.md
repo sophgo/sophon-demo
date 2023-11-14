@@ -218,7 +218,7 @@ source /etc/profile
 ### 4.2 交叉编译安装sophon-sail
 如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。需要在x86主机上交叉编译sophon-sail，并在SoC平台上安装。
 
-需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号，参考sophon-sail文档，选择您需要的部分(C++/Python，SOC MODE)进行安装。
+需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号，参考sophon-sail文档，选择您需要的部分(C++/Python，SOC MODE)进行安装，注意需要选择包含ffmpeg和opencv的编译方式。
 官网sophon-sail文档链接：https://doc.sophgo.com/sdk-docs/v23.05.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#sail
 
 在您按照教程将sophon-sail的库文件拷贝到目标soc上之后，您还需要设置以下环境变量：
