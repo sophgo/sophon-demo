@@ -191,11 +191,7 @@ function test_python()
   if [ ! -d log ];then
     mkdir log
   fi
-<<<<<<< HEAD
-  python3 python/yolov5_$1.py --input $3 --bmodel models/$TARGET/$2 --conf_thresh=0.5 --nms_thresh=0.5 --dev_id $TPUID > log/$1_$2_python_test.log
-=======
   python3 python/yolov5_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.5 --nms_thresh 0.5 > log/$1_$2_python_test.log
->>>>>>> for SDK1.1, YOLOv5 and ResNet adapt to BM1688.
   judge_ret $? "python3 python/yolov5_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID" log/$1_$2_python_test.log
 }
 
