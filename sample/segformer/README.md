@@ -34,6 +34,7 @@ chmod -R +x scripts/
 ./scripts/download.sh
 ```
 下载的模型包括：
+```
 ./models
 ├── BM1684
 │   ├── segformer.b0.512x1024.city.160k_fp32_1b.bmodel # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1
@@ -42,8 +43,9 @@ chmod -R +x scripts/
 │   ├── segformer.b0.512x1024.city.160k_fp16_1b.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 └── onnx
     └── segformer.b0.512x1024.city.160k.onnx # pt导出的onnx动态模型
-
+```
 下载的数据包括：
+```
 ./datasets
 ├── cali                                #量化图片
 │   ├── xxx.png                                                                                 
@@ -55,8 +57,7 @@ chmod -R +x scripts/
 │   ├── gtFine                          #评价图片
 │   └── leftImg8bit                     #测试图片
 └── cityscapes_video.avi           #测试视频
-
-
+```
 ## 4. 模型编译
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
