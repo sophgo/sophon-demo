@@ -61,6 +61,8 @@ Usage: ppocr_bmcv.pcie [params]
 
         --batch_size (value:4)
                 ppocr system batchsize
+        --beam_size (value:3)
+                beam size, default 3, available 1-40, only valid when using beam search
         --bmodel_cls (value:../../models/BM1684X/ch_PP-OCRv3_cls_fp32.bmodel)
                 cls bmodel file path, unsupport now.
         --bmodel_det (value:../../models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel)
@@ -69,14 +71,16 @@ Usage: ppocr_bmcv.pcie [params]
                 rec bmodel file path
         --dev_id (value:0)
                 TPU device id
-        --rec_thresh (value:0.5)
-                recognize threshold
         --help (value:true)
                 print help information.
         --input (value:../../datasets/cali_set_det)
                 input path, images directory
         --labelnames (value:../../datasets/ppocr_keys_v1.txt)
                 class names file path
+        --rec_thresh (value:0.5)
+                recognize threshold
+        --use_beam_search (value:false)
+                beam search trigger
 ```
 > **注意：** CPP传参与python不同，需要用等于号，例如`./ppocr_bmcv.pcie --bmodel=xxx`。
 
