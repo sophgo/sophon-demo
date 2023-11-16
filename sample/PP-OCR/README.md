@@ -52,6 +52,13 @@ chmod -R +x scripts/
 │   ├── ch_PP-OCRv3_det_fp32.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   ├── ch_PP-OCRv3_rec_fp16.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   ├── ch_PP-OCRv3_rec_fp32.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
+│   BM1688
+│   ├── ch_PP-OCRv3_cls_fp16.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
+│   ├── ch_PP-OCRv3_cls_fp32.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
+│   ├── ch_PP-OCRv3_det_fp16.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
+│   ├── ch_PP-OCRv3_det_fp32.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
+│   ├── ch_PP-OCRv3_rec_fp16.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
+|   └── ch_PP-OCRv3_rec_fp32.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
 ├── onnx # 原始模型的onnx版本
 └── paddle # 原始模型的paddlepaddle版本
 ```
