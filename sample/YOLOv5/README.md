@@ -264,17 +264,17 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 ### 8.2. 性能与精度测试
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.001，nms_thresh=0.6，cpp设置`--use_cpu_opt=true`或python设置`--use_cpu_opt`，NMS后处理算法改进前后性能和精度测试结果如下：
-|    测试平台   |     测试程序      |             测试模型                | YOLOv5       | YOLOv5_cpu_opt|AP@IoU=0.5:0.95| 
-| ------------ | ---------------- | ----------------------------------- | ------------ | ------------- | ------------- |
-| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 35.6         | 22.9          | 0.375         |
-| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 33.8         | 20.5          | 0.339         |
-| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 34.6         | 21.1          | 0.375         |
-| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 33.9         | 18.9          | 0.339         |
-| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 210.1        | 98.5          | 0.341         |
-| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 209.7        | 100.2         | 0.336         |
+|    测试平台   |     测试程序      |             测试模型                | YOLOv5 postprocess_time | YOLOv5_cpu_opt postprocess_time |AP@IoU=0.5:0.95| 
+| ------------ | ---------------- | ----------------------------------- | ----------------------- | ------------------------------- | ------------- |
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 35.6                    | 22.9                            | 0.375         |
+| BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 33.8                    | 20.5                            | 0.339         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 34.6                    | 21.1                            | 0.375         |
+| BM1684 SoC   | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 33.9                    | 18.9                            | 0.339         |
+| BM1684 SoC   | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 210.1                   | 98.5                            | 0.341         |
+| BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 209.7                   | 100.2                           | 0.336         |
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.01，nms_thresh=0.6，cpp设置`--use_cpu_opt=true`或python设置`--use_cpu_opt`，NMS后处理算法改进前后性能和精度测试结果如下：
-|    测试平台   |     测试程序      |             测试模型                | YOLOv5       | YOLOv5_cpu_opt|AP@IoU=0.5:0.95|
+|    测试平台   |     测试程序      |             测试模型                | YOLOv5 postprocess_time | YOLOv5_cpu_opt postprocess_time |AP@IoU=0.5:0.95|
 | ------------ | ---------------- | ----------------------------------- | ------------ | ------------- | --------------|
 | BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 18.1         | 7.5           | 0.373         |
 | BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 17.8         | 7.2           | 0.337         |
@@ -286,7 +286,7 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 > **注意：** 由于sail实现的方式与CPP保持一致，所以python调用后有轻微掉点，但速度有较大的提升。
 
 若使用单类NMS，即设置`yolov5.cpp`文件中的宏`USE_MULTICLASS_NMS 0`或设置文件`yolov5_opencv.py`、`yolov5_bmcv.py`中的cpu opt接口的参数`input_use_multiclass_nms=False`和YOLOv5成员变量`multi_label=False`，在轻微损失精度的情况下能够提高后处理性能，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.001，nms_thresh=0.6，cpp设置`--use_cpu_opt=true`或python设置`--use_cpu_opt`，NMS后处理算法改进前后性能和精度测试结果如下：
-|    测试平台   |     测试程序      |             测试模型                | YOLOv5       | YOLOv5_cpu_opt|AP@IoU=0.5:0.95| 
+|    测试平台   |     测试程序      |             测试模型                | YOLOv5 postprocess_time | YOLOv5_cpu_opt postprocess_time |AP@IoU=0.5:0.95| 
 | ------------ | ---------------- | ----------------------------------- | ------------ | ------------- | ------------- |
 | BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 23.5         | 10.2          | 0.369         |
 | BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 23.1         | 9.9           | 0.332         |
@@ -296,7 +296,7 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 | BM1684 SoC   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 147.8        | 33.3          | 0.330         |
 
 若使用单类NMS，即设置`yolov5.cpp`文件中的宏`USE_MULTICLASS_NMS 0`或设置文件`yolov5_opencv.py`、`yolov5_bmcv.py`中的cpu opt接口的参数`input_use_multiclass_nms=False`和YOLOv5成员变量`multi_label=False`，在轻微损失精度的情况下能够提高后处理性能，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.01，nms_thresh=0.6，cpp设置`--use_cpu_opt=true`或python设置`--use_cpu_opt`，NMS后处理算法改进前后性能和精度测试结果如下：
-|    测试平台   |     测试程序      |             测试模型                | YOLOv5       | YOLOv5_cpu_opt|AP@IoU=0.5:0.95|
+|    测试平台   |     测试程序      |             测试模型                | YOLOv5 postprocess_time | YOLOv5_cpu_opt postprocess_time |AP@IoU=0.5:0.95|
 | ------------ | ---------------- | ----------------------------------- | ------------ | ------------- | --------------|
 | BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 17.6         | 6.2           | 0.367         |
 | BM1684 SoC   | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 17.5         | 6.1           | 0.330         |
