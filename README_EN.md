@@ -5,7 +5,7 @@
 ## Introduction
 Sophon Demo is developed based on the SophonSDK interface and provides a series of samples for mainstream algorithms. It includes model compilation and quantization based on TPU-NNTC and TPU-MLIR, inference engine porting based on BMRuntime, and pre and post-processing algorithm migration based on BMCV/OpenCV.
 
-SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI processor, covering model optimization, efficient runtime support, and other capabilities required for the inference phase of neural networks, providing an easy-to-use and efficient full-stack solution for deep learning application development and deployment. It is currently compatible with the third-generation BM1684 processor and supports the fourth-generation BM1684X processor.
+SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI processor, covering model optimization, efficient runtime support, and other capabilities required for the inference phase of neural networks, providing an easy-to-use and efficient full-stack solution for deep learning application development and deployment. It is currently compatible with BM1684/BM1684X/BM1688.
 
 ## Directory Structure and Description
 | contents                                    | category                  | code       |  BModel       | multi-batch | preprocess |
@@ -30,11 +30,12 @@ SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI
 | [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | Object Detection        | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV|
 | [BERT](./sample/BERT/README.md)             | Language               | C++/Python | FP32/FP16      | YES | -|
 | [ChatGLM2](./sample/chatglm2/README.md)     | Language               | C++/Python | FP16/INT8/INT4 | YES | -|
+| [Llama2](./sample/Llama2/README.md)         | Language               | C++        | FP16/INT8/INT4 | YES | -|
 
 ## Release Notes
 | version | description | 
 |---|---|
-| 0.1.9	 | Fix documentation and other issues, add segformer/YOLOv7, refactor YOLOv34/YOLOv5/ResNet/PP-OCR/DeepSORT adapt to BM1688, OpenPose postprocess acceleration, chatglm2 support int8/int4 and add compile method in readme.|
+| 0.1.9	 | Fix documentation and other issues, add segformer/YOLOv7/Llama2, refactor YOLOv34/YOLOv5/ResNet/PP-OCR/DeepSORT adapt to BM1688, OpenPose postprocess acceleration, chatglm2 support int8/int4 and add compile method in readme.|
 | 0.1.8  | Fix documentation and other issues, added BERT/ppYOLOv3/ChatGLM2, refactor YOLOX, added beam search to PP-OCR, added tpu-kernel post-processing acceleration to OpenPose, and updated the SFTP download method.|
 | 0.1.7	 | Fix documentation and other issues, some demos support BM1684 mlir, refactor PP-OCR/CenterNet, sail support YOLOv5. |
 | 0.1.6	 | Fix documentation and other issues, add ByteTrack/YOLOv5_opt samples. |
