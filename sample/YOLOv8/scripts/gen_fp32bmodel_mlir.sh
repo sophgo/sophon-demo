@@ -24,7 +24,7 @@ function gen_mlir()
         --mlir yolov8s_$1b.mlir
 }
 
-function gen_fp16bmodel()
+function gen_fp32bmodel()
 {
     model_deploy.py \
         --mlir yolov8s_$1b.mlir \
@@ -41,6 +41,6 @@ if [ ! -d $outdir ]; then
 fi
 # batch_size=1
 gen_mlir 1
-gen_fp16bmodel 1
+gen_fp32bmodel 1
 
 popd
