@@ -29,8 +29,9 @@ then
     pushd ../models/
     python3 -m dfss --url=open@sophgo.com:sophon-demo/DeepSORT/models_231110/BM1688.zip
     unzip BM1688.zip
+    rm BM1688.zip
     popd
-    rm models.zip BM1688.zip
+    rm models.zip 
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
