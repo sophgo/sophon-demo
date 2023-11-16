@@ -101,9 +101,8 @@ python3 ppocr_cls_opencv.py --input ../datasets/cali_set_rec --bmodel_cls ../mod
 ## 2.3 文本识别分类推理测试：
 ppocr_rec_opencv.py参数说明如下：
 ```bash
-usage: ppocr_rec_opencv.py [-h] [--dev_id DEV_ID] [--input INPUT] [--bmodel_rec BMODEL_REC]
-                           [--img_size IMG_SIZE] [--char_dict_path CHAR_DICT_PATH]
-                           [--use_space_char USE_SPACE_CHAR]
+usage: ppocr_rec_opencv.py [-h] [--dev_id DEV_ID] [--input INPUT] [--bmodel_rec BMODEL_REC] [--img_size IMG_SIZE] [--char_dict_path CHAR_DICT_PATH] [--use_space_char USE_SPACE_CHAR] [--use_beam_search]
+                           [--beam_size {1~40}]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -111,10 +110,11 @@ optional arguments:
   --input INPUT         input image directory path
   --bmodel_rec BMODEL_REC
                         recognizer bmodel path
-  --img_size IMG_SIZE   You should set inference size [width, height] manually if using
-                        multi-stage bmodel.
+  --img_size IMG_SIZE   You should set inference size [width,height] manually if using multi-stage bmodel.
   --char_dict_path CHAR_DICT_PATH
   --use_space_char USE_SPACE_CHAR
+  --use_beam_search     Enable beam search
+  --beam_size {1~40}    Only valid when using beam search, valid range 1~40
 ```
 
 文本识别测试实例如下：
@@ -126,14 +126,10 @@ python3 ppocr_rec_opencv.py --input ../datasets/cali_set_rec --bmodel_rec ../mod
 ## 2.4 全流程推理测试：
 ppocr_system_opencv.py参数说明如下：
 ```bash
-usage: ppocr_system_opencv.py [-h] [--input INPUT] [--dev_id DEV_ID]
-                              [--batch_size BATCH_SIZE] [--bmodel_det BMODEL_DET]
-                              [--det_limit_side_len DET_LIMIT_SIDE_LEN]
-                              [--bmodel_rec BMODEL_REC] [--img_size IMG_SIZE]
-                              [--char_dict_path CHAR_DICT_PATH]
-                              [--use_space_char USE_SPACE_CHAR] [--rec_thresh REC_THRESH]
-                              [--use_angle_cls] [--bmodel_cls BMODEL_CLS]
-                              [--label_list LABEL_LIST] [--cls_thresh CLS_THRESH]
+usage: ppocr_system_opencv.py [-h] [--input INPUT] [--dev_id DEV_ID] [--batch_size BATCH_SIZE] [--bmodel_det BMODEL_DET] [--det_limit_side_len DET_LIMIT_SIDE_LEN] [--bmodel_rec BMODEL_REC] [--img_size IMG_SIZE]
+                              [--char_dict_path CHAR_DICT_PATH] [--use_space_char USE_SPACE_CHAR] [--use_beam_search]
+                              [--beam_size {1~40}] [--rec_thresh REC_THRESH] [--use_angle_cls]
+                              [--bmodel_cls BMODEL_CLS] [--label_list LABEL_LIST] [--cls_thresh CLS_THRESH]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -146,10 +142,11 @@ optional arguments:
   --det_limit_side_len DET_LIMIT_SIDE_LEN
   --bmodel_rec BMODEL_REC
                         recognizer bmodel path
-  --img_size IMG_SIZE   You should set inference size [width,height] manually if using
-                        multi-stage bmodel.
+  --img_size IMG_SIZE   You should set inference size [width,height] manually if using multi-stage bmodel.
   --char_dict_path CHAR_DICT_PATH
   --use_space_char USE_SPACE_CHAR
+  --use_beam_search     Enable beam search
+  --beam_size {1~40}    Only valid when using beam search, valid range 1~40
   --rec_thresh REC_THRESH
   --use_angle_cls
   --bmodel_cls BMODEL_CLS

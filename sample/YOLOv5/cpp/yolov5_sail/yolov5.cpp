@@ -230,7 +230,7 @@ int YoloV5::pre_process(sail::BMImage& input) {
     assert(ret == 0);
 #else
     sail::BMImage resized_img =
-        bmcv->vpp_crop_and_resize_padding(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, pad);
+        bmcv->vpp_crop_and_resize_padding(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, pad, RESIZE_STRATEGY);
 #endif
 #else
     sail::BMImage resized_img =
@@ -304,11 +304,11 @@ int YoloV5::pre_process(std::vector<sail::BMImage>& input) {
         padding.padding_g = pad.padding_g;
         padding.padding_b = pad.padding_b;
         auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(), 1, rgb_img.data(),
-                                                  &resized_imgs_vec[i].get()->data(), &padding, &rect);
+                                                  &resized_imgs_vec[i].get()->data(), &padding, &rect, RESIZE_STRATEGY);
         assert(ret == 0);
 #else
         bmcv->vpp_crop_and_resize_padding(&rgb_img.data(), &resized_imgs_vec[i].get()->data(), 0, 0, rgb_img.width(),
-                                          rgb_img.height(), m_net_w, m_net_h, pad);
+                                          rgb_img.height(), m_net_w, m_net_h, pad, RESIZE_STRATEGY);
 #endif
         resized_imgs.attach_from(i, *resized_imgs_vec[i].get());
 #else
