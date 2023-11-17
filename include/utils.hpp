@@ -111,7 +111,7 @@ public:
       for (size_t j = 0; j < ts.size(); j += 2) {
         microseconds duration = duration_cast<microseconds>(ts[j + 1] - ts[j]);
         std::cout << "[" << std::setw(20) << tags_[i] << "] - iteration <" << (j / 2) << "> : "
-                  << duration.count() << " us" << std::endl;
+                  << duration.count() / 1000.0 << " ms" << std::endl;
         sum += duration;
       }
     }
@@ -145,8 +145,8 @@ public:
       }
       std::cout << "[" << std::setw(max_align_size) << tags_[i] << "] "
                 << " loops: "  << std::setw(4) << (ts.size() / 2) 
-                << " avg: " << (sum / (ts.size() / 2)).count() 
-                << " us"<< std::endl;
+                << " avg: " << (sum / (ts.size() / 2)).count() / 1000.0
+                << " ms"<< std::endl;
     }
   }
 
