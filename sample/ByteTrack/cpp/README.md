@@ -129,16 +129,17 @@ MOT数据集测试实例如下，支持对整个文件夹里的所有图片进�
 ############################
 SUMMARY: ByteTrack test
 ############################
-[         decode time]  loops:  100 avg: 7211 us  #平均每帧的解码耗时
-[         yolov5 time]  loops:  100 avg: 24169 us #目标检测模型平均每个batch的耗时
-[   yolov5 preprocess]  loops:  100 avg: 1324 us  #目标检测模型平均每个batch的预处理耗时
-[    yolov5 inference]  loops:  100 avg: 3889 us  #目标检测模型平均每个batch的推理耗时
-[  yolov5 postprocess]  loops:  100 avg: 18945 us #目标检测模型平均每个batch的后处理耗时
-[post 1: get output and decode]  loops:  100 avg: 12583 us
-[post 2: filter boxes]  loops:  100 avg: 6191 us
-[         post 3: nms]  loops:  100 avg: 32 us
-[      bytetrack time]  loops:  100 avg: 480 us   #bytetrack平均每帧更新tracker耗时
-#VideoDecFFM exit
+[                  decode time]  loops:  593 avg: 0.031000 ms  #平均每帧的解码耗时            
+[                  yolov5 time]  loops:  148 avg: 80.840000 ms #目标检测模型平均每个batch的耗时   
+[            yolov5 preprocess]  loops:  148 avg: 6.382000 ms  #目标检测模型平均每个batch的预处理耗时
+[             yolov5 inference]  loops:  148 avg: 13.519000 ms #目标检测模型平均每个batch的推理耗时 
+[           yolov5 postprocess]  loops:  148 avg: 60.927000 ms #目标检测模型平均每个batch的后处理耗时
+[post 1: get output and decode]  loops:  592 avg: 15.159000 ms
+[         post 2: filter boxes]  loops:  592 avg: 0.028000 ms
+[                  post 3: nms]  loops:  592 avg: 0.027000 ms
+[               bytetrack time]  loops:  592 avg: 0.229000 ms  #bytetrack平均每帧更新tracker耗时
+[                  encode time]  loops:  592 avg: 31.154000 ms #平均每帧编码耗时
+#VideoDecFFM exit 
 YoloV5 dtor ...
 ```
 
@@ -147,21 +148,4 @@ YoloV5 dtor ...
 ```bash
 ./bytetrack_opencv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel --dev_id=0
 ```
-测试结束后，会将预测结果画在图片上并保存在`results/video`中，预测的结果保存在`results/mot_eval/test_car_person_1080P.mp4_yolov5s_v6.1_3output_int8_1b.bmodel.txt`下，同时会打印推理耗时等信息。
-
-```bash
-############################
-SUMMARY: ByteTrack test
-############################
-[         decode time]  loops:  100 avg: 3 us      #平均每帧的解码耗时
-[         yolov5 time]  loops:  100 avg: 24334 us  #目标检测模型平均每个batch的耗时
-[   yolov5 preprocess]  loops:  100 avg: 1374 us   #目标检测模型平均每个batch的预处理耗时
-[    yolov5 inference]  loops:  100 avg: 3965 us   #目标检测模型平均每个batch的推理耗时
-[  yolov5 postprocess]  loops:  100 avg: 18986 us  #目标检测模型平均每个batch的后处理耗时
-[post 1: get output and decode]  loops:  100 avg: 12583 us
-[post 2: filter boxes]  loops:  100 avg: 6237 us
-[         post 3: nms]  loops:  100 avg: 29 us
-[      bytetrack time]  loops:  100 avg: 461 us    #bytetrack平均每帧更新tracker耗时
-#VideoDecFFM exit
-YoloV5 dtor ...
-```
+测试结束后，会将预测结果画在图片上并保存在`results/video`中，预测的结果保存在`results/mot_eval/test_car_person_1080P.mp4_yolov5s_v6.1_3output_int8_1b.bmodel.txt`下，同时会打印推理耗时等信息，打印的信息条目可以参考3.2中的解释。
