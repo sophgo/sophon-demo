@@ -109,7 +109,8 @@ chmod -R +x scripts/
 ### 6.1 测试方法
 当你运行了[C++推理](cpp/README.md#3-推理测试)或[Python推理](python/README.md#24-全流程推理测试)，生成了结果文件之后，你可以使用本例程的精度测试脚本`tools/eval_icdar.py`和Ground-truth文件`datasets/train_full_images_0.json`来计算结果文件的`F-score/precision/recall`，测试命令如下：
 
-```
+```bash
+pip3 install -r python/requirements.txt #如果已经装好不必再装。
 python3 tools/eval_icdar.py --gt_path datasets/train_full_images_0.json --result_json python/results/ppocr_system_results_b4.json
 ```
 输出如下：
