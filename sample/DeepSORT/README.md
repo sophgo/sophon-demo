@@ -16,14 +16,14 @@
 * [8. FAQ](#8-faq)
   
 ## 1. 简介
-​本例程使用[YOLOv5](../YOLOv5/README.md)中的目标检测模型，并对[Deep Sort with PyTorch](https://github.com/ZQPei/deep_sort_pytorch)的特征提取模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
+​本例程使用[YOLOv5](../YOLOv5/README.md)中的目标检测模型，并对[Deep Sort with PyTorch](https://github.com/ZQPei/deep_sort_pytorch)的特征提取模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688上进行推理测试。
 
 ## 2. 特性
 * 支持BM1688(SoC)/BM1684X(x86 PCIe、SoC)/BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1688/BM1684X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV预处理的Python推理
-* 支持单batch和多batch模型推理
+* 支持单batch和多batch模型推理s
 * 支持MOT格式数据集(即图片文件夹)和单视频测试
  
 ## 3. 准备模型与数据
