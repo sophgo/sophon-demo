@@ -10,21 +10,20 @@ import numpy as np
 import cv2
 
 class PostProcess:
-    def __init__(self, cfg, conf_thresh=0.5, nms_thresh=0.5, keep_top_k=200):
-        self.cfg = cfg
+    def __init__(self, conf_thresh=0.5, nms_thresh=0.5, keep_top_k=200):
 
         self.conf_thresh = conf_thresh
         self.nms_thres = nms_thresh
         self.keep_top_k = keep_top_k
-        self.width = cfg['width']
-        self.height = cfg['height']
-        self.conv_ws = cfg['conv_ws']
-        self.conv_hs = cfg['conv_hs']
-        self.aspect_ratios = cfg['aspect_ratios']
-        self.scales = cfg['scales']
-        self.variances = cfg['variances']
+        self.conv_ws = [69, 35, 18, 9, 5]
+        self.conv_hs = [69, 35, 18, 9, 5]
+        self.scales = [24, 48, 96, 192, 384]
+        self.variances = [0.1 ,0.2]
+        self.aspect_ratios = [1, 0.5, 2]
+        self.width = 550
+        self.height = 550
         self.priors = self.make_priors()
-
+        
     def make_priors(self):
         """ Note that priors are [x,y,width,height] where (x,y) is the center of the box. """
         prior_data = []
@@ -38,7 +37,7 @@ class PostProcess:
 
                     for ar in self.aspect_ratios:
                         ar = np.sqrt(ar)
-
+                        
                         w = scale * ar / self.width
                         h = scale / ar / self.height
 
@@ -49,8 +48,9 @@ class PostProcess:
 
         self.priors = np.array(prior_data).reshape(-1, 4)
         return self.priors
-
+        
     def decode(self, loc, priors, img_w, img_h):
+        # bbox [x_right, y_up, w, h]
         boxes = np.concatenate(
             (
                 priors[:, :2] + loc[:, :2] * self.variances[0] * priors[:, 2:],
@@ -58,6 +58,8 @@ class PostProcess:
             ),
             1,
         )
+        
+        # bbox [x_mid, y_mid, w, h]
         boxes[:, :2] -= boxes[:, 2:] / 2
         # boxes[:, 2:] += boxes[:, :2]
 
@@ -66,7 +68,7 @@ class PostProcess:
         np.where(boxes[:, 1] < 0, 0, boxes[:, 1])
         np.where(boxes[:, 2] > 1, 1, boxes[:, 2])
         np.where(boxes[:, 3] > 1, 1, boxes[:, 3])
-
+        # new_x = (new_x < 0) ? 0 : new_x;
         # decode to img size
         boxes[:, 0] *= img_w
         boxes[:, 1] *= img_h
@@ -75,8 +77,6 @@ class PostProcess:
         return boxes
 
     def sanitize_coordinates_numpy(self, _x1, _x2, img_size, padding=0):
-        # _x1 = _x1 * img_size
-        # _x2 = _x2 * img_size
         x1 = np.minimum(_x1, _x2)
         x2 = np.maximum(_x1, _x2)
         x1 = np.clip(x1 - padding, a_min=0, a_max=1000000)
@@ -135,7 +135,18 @@ class PostProcess:
         Returns: classid, conf_scores, boxes, masks for a image
 
         """
+        
+        """
+        pt: 
+        conf_preds
+        proto_data
+        loc_data
+        mask_data
+        """
+
+        org_size = org_size[0] if type(org_size) != tuple else org_size
         img_w, img_h = org_size
+
         if loc_data.ndim == 3:
             loc_data = loc_data.squeeze(0)
             conf_preds = conf_preds.squeeze(0)
@@ -143,11 +154,12 @@ class PostProcess:
             proto_data = proto_data.squeeze(0)
 
         cur_scores = conf_preds[:, 1:]
+ 
         classid = np.argmax(cur_scores, axis=1)
         conf_scores = cur_scores[range(cur_scores.shape[0]), classid]
 
         # filte by conf_thresh
-        keep = conf_scores > self.conf_thresh
+        keep = (conf_scores > self.conf_thresh)
         conf_scores = conf_scores[keep]
         classid = classid[keep]
         loc_data = loc_data[keep, :]
@@ -155,7 +167,7 @@ class PostProcess:
         masks = mask_data[keep, :]
 
         boxes = self.decode(loc_data, prior_data, img_w, img_h)
-
+        
         if len(boxes) == 0:
             return [],[],[],[]
 
@@ -166,13 +178,14 @@ class PostProcess:
         new_conf_scores = []
         new_boxes = []
         new_masks = []
+
         for i,cls in enumerate(unique_id):
             cls_loc = (classid == cls)
             classid_cls = classid[cls_loc]
             conf_scores_cls = conf_scores[cls_loc]
             boxes_cls = boxes[cls_loc]
             masks_cls = masks[cls_loc]
-
+            # set keep_top_k here for fast process
             ind_nms = cv2.dnn.NMSBoxes(boxes_cls.tolist(), conf_scores_cls.tolist(),
                                    self.conf_thresh, self.nms_thres, top_k=self.keep_top_k)
             # opencv return (5,1) or (5, ) in different version
@@ -189,11 +202,26 @@ class PostProcess:
         conf_scores = np.concatenate(new_conf_scores)
         boxes = np.concatenate(new_boxes)
         masks = np.concatenate(new_masks)
+        
+        # keep_top_k
+        sorted_indices = np.argsort(conf_scores)[::-1]
+        box_num = len(conf_scores)
+        classid = classid[sorted_indices][:min(box_num, self.keep_top_k)]
+        conf_scores = conf_scores[sorted_indices][:min(box_num, self.keep_top_k)]
+        boxes = boxes[sorted_indices][:min(box_num, self.keep_top_k)]
+        masks = masks[sorted_indices][:min(box_num, self.keep_top_k)]
 
         masks = np.matmul(proto_data, masks.T)
         masks = 1 / (1 + np.exp(-masks))
         # Scale masks up to the full image
-        masks = cv2.resize(masks, (img_w, img_h), interpolation=cv2.INTER_LINEAR)
+        masks_group = []
+        batch_mask = int(np.ceil(masks.shape[-1] / 512))
+
+        for batch_idx in range(batch_mask):
+            mask_batch = cv2.resize(masks[:,:,512*batch_idx:min(512*(batch_idx+1), masks.shape[-1])], (img_w, img_h), interpolation=cv2.INTER_LINEAR)
+            masks_group.append(mask_batch)
+
+        masks = np.concatenate(masks_group, axis=-1)
         # [h,w,n], but get [h,w] when masks shape is [h,w,1]
         if len(masks.shape) != 3:
             masks = masks[:, :, np.newaxis]
@@ -221,6 +249,7 @@ class PostProcess:
         """
         classid_list, conf_scores_list, boxes_list, masks_list = [], [], [], []
         loc_data_batch, conf_preds_batch, mask_data_batch, proto_data_batch = preds_batch
+
         for i in range(len(org_size_list)):
             loc_data = loc_data_batch[i]
             conf_preds = conf_preds_batch[i]
