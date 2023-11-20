@@ -1,129 +1,69 @@
-# YOLACT Python例程
+[简体中文](./README.md) | [English](./README_EN.md)
+
+# Python例程
+
+## 目录
+
+* [1. 环境准备](#1-环境准备)
+    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    * [1.2 SoC平台](#12-soc平台)
+* [2. 推理测试](#2-推理测试)
+    * [2.1 参数说明](#21-参数说明)
+    * [2.2 测试图片](#22-测试图片)
+    * [2.3 测试视频](#23-测试视频)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
-| #    | 样例文件           | 说明                                                    |
-| ---- | ------------------ | ------------------------------------------------------- |
-| 1    | yolact_bmcv.py     | 使用SAIL解码、BMCV前处理、SAIL推理、OpenCV后处理        |
-| 2    | yolact_opencv.py   | 使用OpenCV解码、OpenCV前处理、SAIL推理、OpenCV后处理    |
-| 3    | yolact_trace_pt.py | 使用OpenCV解码、OpenCV前处理、PyTorch推理、OpenCV后处理 |
-| 4    | yolact_onnx.py     | 使用OpenCV解码、OpenCV前处理、ONNX推理、OpenCV后处理    |
+| 序号 |  Python例程      | 说明                                |
+| ---- | ---------------- | -----------------------------------  |
+| 1    | yolact_opencv.py | 使用OpenCV解码、OpenCV前处理、SAIL推理 |
+| 2    | yolact_bmcv.py   | 使用SAIL解码、BMCV前处理、SAIL推理 |
 
-python目录结构如下：
+## 1. 环境准备
+### 1.1 x86/arm PCIe平台
 
-```bash
-python
-├── configs
-│   ├── yolact_base.cfg				# yolact_base模型配置文件
-│   ├── yolact_darknet53.cfg		# yolact_darknet53模型配置文件
-│   ├── yolact_im700.cfg			# yolact_im700模型配置文件
-│   └── yolact_resnet50.cfg			# yolact_resnet50模型配置文件
-├── __init__.py
-├── yolact_bmcv.py					
-├── yolact_onnx.py					
-├── yolact_opencv.py
-├── yolact_trace_pt.py
-└── yolact_utils					
-    ├── __init__.py
-    ├── onnx_inference.py
-    ├── postprocess_numpy.py		# numpy后处理
-    ├── preprocess_bmcv.py			# bmcv前处理
-    ├── preprocess_numpy.py			# numpy前处理
-    ├── sophon_inference.py
-    └── utils.py
-```
-
-## 1. x86 PCIe平台
-
-### 1.1 环境准备
-
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装libsophon(>=0.3.0)、sophon-opencv(>=0.2.4)、sophon-ffmpeg(>=0.2.4)和sophon-sail(>=3.1.0)。具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)。
+如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
 
 此外您可能还需要安装其他第三方库：
-
 ```bash
-pip3 install opencv-python-headless==4.6.0.66
+pip3 install 'opencv-python-headless<4.3'
 ```
 
-### 1.2 测试命令
+### 1.2 SoC平台
 
-python例程不需要编译，可以直接运行。yolact_opencv.py和yolact_bmcv.py的命令参数相同，以yolact_bmcv.py为例，参数说明如下：
+如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。您还需要交叉编译安装sophon-sail，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
 
-```bash
-usage: yolact_bmcv.py [-h] [--cfgfile CFGFILE] [--model MODEL] [--dev_id DEV_ID] [--conf_thresh CONF_THRESH] [--nms_thresh NMS_THRESH] [--keep KEEP] [--is_video IS_VIDEO] [--input_path INPUT_PATH] [--output_dir OUTPUT_DIR] [--video_detect_frame_num VIDEO_DETECT_FRAME_NUM]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --cfgfile CFGFILE     model config file					# 模型.cfg配置文件
-  --model MODEL         bmodel path							# 模型bmodel文件。如果is_video为True，只支持使用batchsize=1的模型
-  --dev_id DEV_ID       device id							# 设备id
-  --conf_thresh CONF_THRESH
-                        confidence threshold				# conf阈值，默认为0.5
-  --nms_thresh NMS_THRESH
-                        nms threshold						# nms阈值，默认为0.5
-  --keep KEEP           keep top-k							# top-k数量，默认为100
-  --is_video IS_VIDEO   input is video?						# 输入数据是否为视频，0：输入为图像，1：输入为视频。默认为0。
-  --input_path INPUT_PATH
-                        input path							# 输入图像或视频路径 	
-  --output_dir OUTPUT_DIR
-                        output image directory				# 结果图像保存的文件夹路径，默认保存在results/results_{script}文件夹下。{script}为bmcv或opencv
-  --video_detect_frame_num VIDEO_DETECT_FRAME_NUM
-                        detect frame number of video		# 当检测视频时，检测和保存结果的视频帧数，默认为10
-```
-
-请根据目标平台、模型精度、选择相应的bmodel，测试示例如下：
-
-```bash
-cd ${YOLACT}/python
-# yolact_cv.py使用方法与yolact_bmcv.py一致，如果使用yolact_cv.py，结果将保存在results/results_cv目录下；如果使用yolact_bmcv.py，结果将保存在results/results_bmcv目录下。
-
-# 以yoloact base 1684X为例
-# image
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_1b.bmodel --input_path ../data/images/
-
-# video 只支持使用batchsize=1的模型
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_1b.bmodel --is_video 1 --input_path ../data/videos/road.mp4 --video_detect_frame_num 10
-
-# PCIe模式下如果需要使用yolact_trace_pt.py、yolact_onnx.py测试，请自行安装pytorch、onnx环境
-# 如果使用yolact_trace_pt.py测试，<model>为JIT模型路径，结果将保存在results/results_trace_pt目录下
-# 如果使用yolact_onnx.py,<model>为ONNX模型路径，结果将保存在results/results_onnx目录下
-```
-
-## 2. SoC平台
-
-### 2.1 环境准备
-
-如果您使用SoC平台测试本例程，您需要交叉编译安装sophon-sail(>=3.1.0)，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
 此外您可能还需要安装其他第三方库：
-
 ```bash
-pip3 install opencv-python==3.4.10.37
-pip3 install opencv-python-headless
+pip3 install 'opencv-python-headless<4.3'
 ```
 
-### 2.2 测试命令
-
-SoC平台的测试方法与x86 PCIe平台相同，请参考[1.2 测试命令](#12-测试命令)。
-
-将python文件夹和data文件夹拷贝到SE5中同一目录下，测试示例如下：
-
+## 2. 推理测试
+python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
+### 2.1 参数说明
+yolact_opencv.py和yolact_bmcv.py的参数一致，以yolact_opencv.py为例：
 ```bash
-cd ${YOLACT}/python
-# yolact_cv.py使用方法与yolact_bmcv.py一致，如果使用yolact_cv.py，结果将保存在results/results_cv目录下；如果使用yolact_bmcv.py，结果将保存在results/results_bmcv目录下。
-
-# 以yoloact base 1684X为例
-# image
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_1b.bmodel --input_path ../data/images/
-
-# video 只支持使用batchsize=1的模型
-python3 yolact_bmcv.py --cfgfile configs/yolact_base.cfg --model ../data/models/BM1684X/yolact_base_54_800000_fp32_1b.bmodel --is_video 1 --input_path ../data/videos/road.mp4 --video_detect_frame_num 10
-
-# SoC模式下不具备pytorch、onnx环境，不建议使用yolact_trace_pt.py、yolact_onnx.py测试
+usage: yolact_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
+                        [--conf_thresh CONF_THRESH] [--nms_thresh NMS_THRESH]
+--input: 测试数据路径，可输入整个图片文件夹的路径或者视频路径；
+--bmodel: 用于推理的bmodel路径，默认使用stage 0的网络进行推理；
+--dev_id: 用于推理的tpu设备id；
+--conf_thresh: 置信度阈值；
+--nms_thresh: nms阈值。
 ```
+### 2.2 测试图片
+图片测试实例如下，支持对整个图片文件夹进行测试。
+```bash
+python3 python/yolact_opencv.py --input datasets/test --bmodel models/BM1684/yolact_bm1684_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5
+```
+测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolact_bm1684_fp32_1b.bmodel_test_opencv_python_result.json`下，同时会打印预测结果、推理时间等信息。
 
-## 3. 其他
+![res](../pics/zidane_python_opencv.jpg)
 
-> **使用SAIL模块的注意事项：**对于INT8 BModel来说，当输入输出为int8时，含有scale，需要在处理时将输入输出乘以相应的scale。使用SAIL接口推理时，当sail.Engine.process()接口输入为numpy时，SAIL内部会自动乘以scale，用户无需操作；而输入为Tensor时，需要手动在数据送入推理接口前乘以scale。
->
-> 这是因为Tensor作为输入的话，一般图像来源就是bm_image，这样就可以直接调用vpp进行scale等操作，所以推理之前由用户乘以scale更高效；而在python接口中，当numpy作为输入的话，推理之前没办法调用vpp，sail内部使用SSE指令进行了加速。
-
+### 2.3 测试视频
+视频测试实例如下，支持对视频流进行测试。
+```bash
+python3 python/yolact_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1684/yolact_bm1684_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5
+```
+测试结束后，会将预测的结果画在`results/test_car_person_1080P.avi`中，同时会打印预测结果、推理时间等信息。  
+`yolact_opencv.py`会将预测结果画在图片上并保存在`results/images`中。
