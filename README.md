@@ -29,9 +29,11 @@ SophonSDK是算能科技基于其自主研发的深度学习处理器所定制�
 | [YOLOv7](./sample/YOLOv7/README.md)         | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV|
 | [YOLOv8](./sample/YOLOv8/README.md)         | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV|
-| [BERT](./sample/BERT/README.md)             | 语言模型           | C++/Python | FP32/FP16      | YES | BMCV|
-| [ChatGLM2](./sample/chatglm2/README.md)     | 语言模型           | C++/Python | FP16/INT8/INT4 | YES | BMCV|
-| [Llama2](./sample/Llama2/README.md)         | 语言模型           | C++        | FP16/INT8/INT4 | YES | -|
+| [ppYOLOv3](./sample/ppYOLOv3/README.md)     | 目标检测           | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV|
+| [WeNet](./sample/WeNet/README.md)           | 语音识别           | C++/Python | FP32/FP16      | YES | -   |
+| [BERT](./sample/BERT/README.md)             | 语言模型           | C++/Python | FP32/FP16      | YES | -   |
+| [ChatGLM2](./sample/chatglm2/README.md)     | 语言模型           | C++/Python | FP16/INT8/INT4 | YES | -   |
+| [Llama2](./sample/Llama2/README.md)         | 语言模型           | C++        | FP16/INT8/INT4 | YES | -   |
 
 ## 版本说明
 | 版本    | 说明 | 
@@ -39,7 +41,7 @@ SophonSDK是算能科技基于其自主研发的深度学习处理器所定制�
 | 0.1.9	 | 修复文档等问题，新增segformer、YOLOv7、Llama2例程，重构YOLOv34，YOLOv5、ResNet、PP-OCR、DeepSORT适配BM1688，OpenPose后处理加速，chatglm2添加编译方法和int8/int4量化。|
 | 0.1.8  | 完善修复文档、代码问题，新增BERT、ppYOLOv3、ChatGLM2，重构YOLOX，PP-OCR添加beam search，OpenPose添加tpu-kernel后处理加速，更新SFTP下载方式。|
 | 0.1.7	 | 修复文档等问题，一些例程支持BM1684 mlir，重构PP-OCR、CenterNet例程，YOLOv5添加sail支持 |
-| 0.1.6	 | 修复文档等问题，新增ByteTrack、YOLOv5_opt例程 |
+| 0.1.6	 | 修复文档等问题，新增ByteTrack、YOLOv5_opt、WeNet例程 |
 | 0.1.5	 | 修复文档等问题，新增DeepSORT例程，重构ResNet、LPRNet例程 |
 | 0.1.4	 | 修复文档等问题，新增C3D、YOLOv8例程 |
 | 0.1.3	 | 新增OpenPose例程，重构YOLOv5例程（包括适配arm PCIe、支持TPU-MLIR编译BM1684X模型、使用ffmpeg组件替换opencv解码等） |
