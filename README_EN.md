@@ -28,9 +28,11 @@ SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI
 | [YOLOv7](./sample/YOLOv7/README.md)         | Object Detection        | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV|
 | [YOLOv8](./sample/YOLOv8/README.md)         | Object Detection        | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV |
 | [YOLOv5_opt](./sample/YOLOv5_opt/README.md) | Object Detection        | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV|
-| [BERT](./sample/BERT/README.md)             | Language               | C++/Python | FP32/FP16      | YES | -|
-| [ChatGLM2](./sample/chatglm2/README.md)     | Language               | C++/Python | FP16/INT8/INT4 | YES | -|
-| [Llama2](./sample/Llama2/README.md)         | Language               | C++        | FP16/INT8/INT4 | YES | -|
+| [ppYOLOv3](./sample/ppYOLOv3/README.md)     | Object Detection           | C++/Python | FP32/FP16/INT8 | YES | BMCV/OpenCV|
+| [WeNet](./sample/WeNet/README.md)           | Speech Recognition         | C++/Python | FP32/FP16      | YES | -   |
+| [BERT](./sample/BERT/README.md)             | Language                   | C++/Python | FP32/FP16      | YES | -   |
+| [ChatGLM2](./sample/chatglm2/README.md)     | Language                   | C++/Python | FP16/INT8/INT4 | YES | -   |
+| [Llama2](./sample/Llama2/README.md)         | Language                   | C++        | FP16/INT8/INT4 | YES | -   |
 
 ## Release Notes
 | version | description | 
@@ -38,7 +40,7 @@ SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI
 | 0.1.9	 | Fix documentation and other issues, add segformer/YOLOv7/Llama2, refactor YOLOv34/YOLOv5/ResNet/PP-OCR/DeepSORT adapt to BM1688, OpenPose postprocess acceleration, chatglm2 support int8/int4 and add compile method in readme.|
 | 0.1.8  | Fix documentation and other issues, added BERT/ppYOLOv3/ChatGLM2, refactor YOLOX, added beam search to PP-OCR, added tpu-kernel post-processing acceleration to OpenPose, and updated the SFTP download method.|
 | 0.1.7	 | Fix documentation and other issues, some demos support BM1684 mlir, refactor PP-OCR/CenterNet, sail support YOLOv5. |
-| 0.1.6	 | Fix documentation and other issues, add ByteTrack/YOLOv5_opt samples. |
+| 0.1.6	 | Fix documentation and other issues, add ByteTrack/YOLOv5_opt/WeNet samples. |
 | 0.1.5	 | Fix documentation and other issues, add DeepSORT sample, refactor ResNet/LPRNet samples. |
 | 0.1.4 | Fix documentation and other issues, add C3D and YOLOv8 samples |
 | 0.1.3 | Add OpenPose sample, refactor YOLOv5 sample (including adapting arm PCIe, supporting TPU-MLIR to compile BM1684X model, using ffmpeg component to replace opencv decoding, etc.) |
