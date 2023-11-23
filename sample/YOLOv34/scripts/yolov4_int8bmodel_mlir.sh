@@ -45,6 +45,19 @@ function gen_int8bmodel()
         #--quantize_table ../models/yolov4_4b_int8_qtable \
 
     mv yolov4_int8_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir yolov4_416_$1b.mlir \
+            --calibration_table yolov4_cali_table \
+            --quantize INT8 \
+            --chip $target \
+            --test_input ../datasets/test/dog.jpg \
+            --test_reference tmp.npz \
+            --model yolov4_int8_$1b_2core.bmodel \
+            --num_core 2 
+
+        mv yolov4_int8_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir

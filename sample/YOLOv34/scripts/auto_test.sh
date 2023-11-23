@@ -498,6 +498,75 @@ then
     eval_cpp soc sail yolov4_fp16_1b.bmodel 0.24715251586618836
     eval_cpp soc sail yolov4_int8_1b.bmodel 0.23207870486180743 
     eval_cpp soc sail yolov4_int8_4b.bmodel 0.23092078998731425 
+  elif test $TARGET = "BM1688"
+  then
+    test_python opencv yolov3_fp32_1b.bmodel datasets/test
+    test_python opencv yolov3_int8_4b.bmodel datasets/test
+    test_python bmcv yolov3_fp32_1b.bmodel datasets/test
+    test_python bmcv yolov3_int8_4b.bmodel datasets/test
+    test_cpp soc bmcv yolov3_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv yolov3_int8_4b.bmodel ../../datasets/test
+    test_cpp soc sail yolov3_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc sail yolov3_int8_4b.bmodel ../../datasets/test
+    test_python opencv yolov3_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python opencv yolov3_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolov3_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolov3_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolov3_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolov3_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc sail yolov3_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc sail yolov3_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    
+    eval_python opencv yolov3_fp32_1b.bmodel 0.47067938105420654
+    eval_python opencv yolov3_fp16_1b.bmodel 0.47058393631571005
+    eval_python opencv yolov3_int8_1b.bmodel 0.4454269452645311
+    eval_python opencv yolov3_int8_4b.bmodel 0.4454269452645311
+    eval_python bmcv yolov3_fp32_1b.bmodel 0.45810570099893505
+    eval_python bmcv yolov3_fp16_1b.bmodel 0.4582569041268784
+    eval_python bmcv yolov3_int8_1b.bmodel 0.43533974214986876
+    eval_python bmcv yolov3_int8_4b.bmodel 0.43533974214986876
+    eval_cpp soc bmcv yolov3_fp32_1b.bmodel 0.4461306562762746
+    eval_cpp soc bmcv yolov3_fp16_1b.bmodel 0.4458266476021808
+    eval_cpp soc bmcv yolov3_int8_1b.bmodel 0.4269113112724515
+    eval_cpp soc bmcv yolov3_int8_4b.bmodel 0.4269113112724515
+    eval_cpp soc sail yolov3_fp32_1b.bmodel 0.4461306562762746
+    eval_cpp soc sail yolov3_fp16_1b.bmodel 0.4458266476021808
+    eval_cpp soc sail yolov3_int8_1b.bmodel 0.4269113112724515
+    eval_cpp soc sail yolov3_int8_4b.bmodel 0.4269113112724515
+
+    test_python opencv yolov4_fp32_1b.bmodel datasets/test
+    test_python opencv yolov4_int8_4b.bmodel datasets/test
+    test_python bmcv yolov4_fp32_1b.bmodel datasets/test
+    test_python bmcv yolov4_int8_4b.bmodel datasets/test
+    test_cpp soc bmcv yolov4_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv yolov4_int8_4b.bmodel ../../datasets/test
+    test_cpp soc sail yolov4_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc sail yolov4_int8_4b.bmodel ../../datasets/test
+    test_python opencv yolov4_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python opencv yolov4_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolov4_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolov4_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolov4_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolov4_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc sail yolov4_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc sail yolov4_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    eval_python opencv yolov4_fp32_1b.bmodel 0.25203026855911836
+    eval_python opencv yolov4_fp16_1b.bmodel 0.2519212256627636
+    eval_python opencv yolov4_int8_1b.bmodel 0.23368842036037576
+    eval_python opencv yolov4_int8_4b.bmodel 0.23368842036037576
+    eval_python bmcv yolov4_fp32_1b.bmodel 0.24382584373876187
+    eval_python bmcv yolov4_fp16_1b.bmodel 0.24424650826218103
+    eval_python bmcv yolov4_int8_1b.bmodel 0.2264664789368982
+    eval_python bmcv yolov4_int8_4b.bmodel 0.2264664789368982
+    eval_cpp soc bmcv yolov4_fp32_1b.bmodel 0.24678471040047345
+    eval_cpp soc bmcv yolov4_fp16_1b.bmodel 0.24737630315278233
+    eval_cpp soc bmcv yolov4_int8_1b.bmodel 0.22929578290926206
+    eval_cpp soc bmcv yolov4_int8_4b.bmodel 0.22929578290926206
+    eval_cpp soc sail yolov4_fp32_1b.bmodel 0.24643350255307597
+    eval_cpp soc sail yolov4_fp16_1b.bmodel 0.24737630315278233
+    eval_cpp soc sail yolov4_int8_1b.bmodel 0.22929578290926206
+    eval_cpp soc sail yolov4_int8_4b.bmodel 0.22929578290926206
   fi
 fi
 
