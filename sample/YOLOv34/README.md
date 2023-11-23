@@ -18,15 +18,15 @@
   
 ## 1. 简介
 
-作为一种经典的单阶段目标检测框架，YOLO系列的目标检测算法得到了学术界与工业界们的广泛关注。由于YOLO系列属于单阶段目标检测，因而具有较快的推理速度，能够更好的满足现实场景的需求。随着YOLOv3算法的出现，使得YOLO系列的检测算达到了高潮。YOLOv4则是在YOLOv3算法的基础上增加了很多实用的技巧，使得它的速度与精度都得到了极大的提升。
+作为一种经典的单阶段目标检测框架，YOLO系列的目标检测算法得到了学术界与工业界们的广泛关注。由于YOLO系列属于单阶段目标检测，因而具有较快的推理速度，能够更好的满足现实场景的需求。随着YOLOv3算法的出现，使得YOLO系列的检测算达到了高潮。YOLOv4则是在YOLOv3算法的基础上增加了很多实用的技巧，使得它的速度与精度都得到了极大的提升。本例程对YOLOv4和YOLOv3模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
 
 
 **参考repo:** [yolov34]([GitHub - AlexeyAB/darknet: YOLOv4 / Scaled-YOLOv4 / YOLO - Neural Networks for Object Detection (Windows and Linux version of Darknet )](https://github.com/AlexeyAB/darknet))
 
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X)、INT8模型编译和推理
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -66,6 +66,23 @@ chmod -R +x scripts/
 │   ├── yolov4_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── yolov4_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── yolov4_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1688
+│   ├── yolov3_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
+│   ├── yolov3_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
+│   ├── yolov3_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
+│   ├── yolov3_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4
+│   ├── yolov4_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
+│   ├── yolov4_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
+│   ├── yolov4_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
+│   ├── yolov4_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4
+│   ├── yolov3_fp32_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
+│   ├── yolov3_fp16_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+│   ├── yolov3_int8_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
+│   ├── yolov3_int8_4b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=2
+│   ├── yolov4_fp32_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
+│   ├── yolov4_fp16_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+│   ├── yolov4_int8_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
+│   └── yolov4_int8_4b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=2
 └── onnx
     ├── yolov3.onnx             # 导出的yolov3 onnx动态模型       
     ├── yolov4_1b.onnx          # 导出的yolov4 1batch onnx模型  
@@ -90,59 +107,51 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`yolov3_fp32bmodel_mlir.sh`和`yolov4_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```bash
-./scripts/yolov3_fp32bmodel_mlir.sh bm1684
-#or
-./scripts/yolov3_fp32bmodel_mlir.sh bm1684x
+./scripts/yolov3_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`yolov3_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`下生成`yolov3_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 ```bash
-./scripts/yolov4_fp32bmodel_mlir.sh bm1684
-#or
-./scripts/yolov4_fp32bmodel_mlir.sh bm1684x
+./scripts/yolov4_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`yolov4_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`下生成`yolov4_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`yolov3_fp16bmodel_mlir.sh`和`yolov4_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
 
 ```bash
-./scripts/yolov3_fp16bmodel_mlir.sh bm1684x
+./scripts/yolov3_fp16bmodel_mlir.sh bm1684x #bm1688
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`yolov3_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 ```bash
-./scripts/yolov4_fp16bmodel_mlir.sh bm1684x
+./scripts/yolov4_fp16bmodel_mlir.sh bm1684x #bm1688
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`yolov4_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`yolov3_int8bmodel_mlir.sh`和`yolov4_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
 
 ```shell
-./scripts/yolov3_int8bmodel_mlir.sh bm1684
-#或
-./scripts/yolov3_int8bmodel_mlir.sh bm1684x
+./scripts/yolov3_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​上述脚本会在`models/BM1684`或`models/BM1684X/`下生成`yolov3_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+​上述脚本会在`models/BM1684`下生成`yolov3_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 ```shell
-./scripts/yolov4_int8bmodel_mlir.sh bm1684
-#或
-./scripts/yolov4_int8bmodel_mlir.sh bm1684x
+./scripts/yolov4_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​上述脚本会在`models/BM1684`或`models/BM1684X/`下生成`yolov4_int8_1b.bmodel`等文件，即转换好的INT8 BModel。建议在转换1684 int8 4b模型时,在脚本中model_deploy.py参数中添加qtable，即--quantize_table ../models/yolov4_4b_int8_qtable \。
+​上述脚本会在`models/BM1684`下生成`yolov4_int8_1b.bmodel`等文件，即转换好的INT8 BModel。建议在转换1684 int8 4b模型时,在脚本中model_deploy.py参数中添加qtable，即--quantize_table ../models/yolov4_4b_int8_qtable \。
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
@@ -183,6 +192,18 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1684X PCIe | yolov34_sail.pcie | yolov3_fp32_1b.bmodel | 0.446         | 0.649    |
 | BM1684X PCIe | yolov34_sail.pcie | yolov3_fp16_1b.bmodel | 0.446         | 0.649    |
 | BM1684X PCIe | yolov34_sail.pcie | yolov3_int8_1b.bmodel | 0.427         | 0.641    |
+| BM1688 SoC   | yolov34_opencv.py | yolov3_fp32_1b.bmodel | 0.471         | 0.663    |
+| BM1688 SoC   | yolov34_opencv.py | yolov3_fp16_1b.bmodel | 0.471         | 0.663    |
+| BM1688 SoC   | yolov34_opencv.py | yolov3_int8_1b.bmodel | 0.445         | 0.656    |
+| BM1688 SoC   | yolov34_bmcv.py   | yolov3_fp32_1b.bmodel | 0.458         | 0.657    |
+| BM1688 SoC   | yolov34_bmcv.py   | yolov3_fp16_1b.bmodel | 0.458         | 0.657    |
+| BM1688 SoC   | yolov34_bmcv.py   | yolov3_int8_1b.bmodel | 0.435         | 0.650    |
+| BM1688 SoC   | yolov34_bmcv.soc  | yolov3_fp32_1b.bmodel | 0.446         | 0.649    |
+| BM1688 SoC   | yolov34_bmcv.soc  | yolov3_fp16_1b.bmodel | 0.446         | 0.649    |
+| BM1688 SoC   | yolov34_bmcv.soc  | yolov3_int8_1b.bmodel | 0.427         | 0.641    |
+| BM1688 SoC   | yolov34_sail.soc  | yolov3_fp32_1b.bmodel | 0.446         | 0.649    |
+| BM1688 SoC   | yolov34_sail.soc  | yolov3_fp16_1b.bmodel | 0.446         | 0.649    |
+| BM1688 SoC   | yolov34_sail.soc  | yolov3_int8_1b.bmodel | 0.427         | 0.641    |
 
 在coco2017val_1000数据集上，**推理时设置参数：--conf_thresh=0.3 --nms_thresh=0.5**，yolov4精度测试结果如下：
 |   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|
@@ -207,11 +228,23 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1684X PCIe | yolov34_sail.pcie | yolov4_fp32_1b.bmodel | 0.247         | 0.523    |
 | BM1684X PCIe | yolov34_sail.pcie | yolov4_fp16_1b.bmodel | 0.247         | 0.524    |
 | BM1684X PCIe | yolov34_sail.pcie | yolov4_int8_1b.bmodel | 0.232         | 0.496    |
+| BM1688 SoC   | yolov34_opencv.py | yolov4_fp32_1b.bmodel | 0.252         | 0.526    |
+| BM1688 SoC   | yolov34_opencv.py | yolov4_fp16_1b.bmodel | 0.252         | 0.526    |
+| BM1688 SoC   | yolov34_opencv.py | yolov4_int8_1b.bmodel | 0.234         | 0.495    |
+| BM1688 SoC   | yolov34_bmcv.py   | yolov4_fp32_1b.bmodel | 0.244         | 0.509    |
+| BM1688 SoC   | yolov34_bmcv.py   | yolov4_fp16_1b.bmodel | 0.244         | 0.509    |
+| BM1688 SoC   | yolov34_bmcv.py   | yolov4_int8_1b.bmodel | 0.226         | 0.475    |
+| BM1688 SoC   | yolov34_bmcv.soc  | yolov4_fp32_1b.bmodel | 0.247         | 0.521    |
+| BM1688 SoC   | yolov34_bmcv.soc  | yolov4_fp16_1b.bmodel | 0.247         | 0.521    |
+| BM1688 SoC   | yolov34_bmcv.soc  | yolov4_int8_1b.bmodel | 0.229         | 0.491    |
+| BM1688 SoC   | yolov34_sail.soc  | yolov4_fp32_1b.bmodel | 0.246         | 0.520    |
+| BM1688 SoC   | yolov34_sail.soc  | yolov4_fp16_1b.bmodel | 0.247         | 0.521    |
+| BM1688 SoC   | yolov34_sail.soc  | yolov4_int8_1b.bmodel | 0.229         | 0.491    |
 
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
-> 2. SoC和PCIe的模型精度一致；
-> 3. AP@IoU=0.5:0.95为area=all对应的指标。
+> 2. BM1688 1core和BM1688 2core的模型精度基本一致；
+> 3. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -225,20 +258,36 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 
 |                  测试模型                   | calculate time(ms) |
 | ------------------------------------------- | ----------------- |
-| BM1684/yolov3_fp32_1b.bmodel  | 102.2              |
-| BM1684/yolov3_int8_1b.bmodel  | 53.7               |
-| BM1684/yolov3_int8_4b.bmodel  | 19.3               |
-| BM1684X/yolov3_fp32_1b.bmodel | 146.5              |
-| BM1684X/yolov3_fp16_1b.bmodel | 21.3               |
-| BM1684X/yolov3_int8_1b.bmodel | 8.9                |
-| BM1684X/yolov3_int8_4b.bmodel | 8.8                |
-| BM1684/yolov4_fp32_1b.bmodel  | 77.5               |
-| BM1684/yolov4_int8_1b.bmodel  | 28.6               |
-| BM1684/yolov4_int8_4b.bmodel  | 13.4               |
-| BM1684X/yolov4_fp32_1b.bmodel | 67.2               |
-| BM1684X/yolov4_fp16_1b.bmodel | 13.2               |
-| BM1684X/yolov4_int8_1b.bmodel | 5.9                |
-| BM1684X/yolov4_int8_4b.bmodel | 5.5               |
+| BM1684/yolov3_fp32_1b.bmodel        | 102.2              |
+| BM1684/yolov3_int8_1b.bmodel        | 53.7               |
+| BM1684/yolov3_int8_4b.bmodel        | 19.3               |
+| BM1684X/yolov3_fp32_1b.bmodel       | 146.5              |
+| BM1684X/yolov3_fp16_1b.bmodel       | 21.3               |
+| BM1684X/yolov3_int8_1b.bmodel       | 8.9                |
+| BM1684X/yolov3_int8_4b.bmodel       | 8.8                |
+| BM1688/yolov3_fp32_1b.bmodel        | 773.9              |
+| BM1688/yolov3_fp16_1b.bmodel        | 136.9              |
+| BM1688/yolov3_int8_1b.bmodel        | 32.9               |
+| BM1688/yolov3_int8_4b.bmodel        | 29.7               |
+| BM1688/yolov3_fp32_1b_2core.bmodel  | 694.2              |
+| BM1688/yolov3_fp16_1b_2core.bmodel  | 89.9               |
+| BM1688/yolov3_int8_1b_2core.bmodel  | 25.8               |
+| BM1688/yolov3_int8_4b_2core.bmodel  | 17.8               |
+| BM1684/yolov4_fp32_1b.bmodel        | 77.5               |
+| BM1684/yolov4_int8_1b.bmodel        | 28.6               |
+| BM1684/yolov4_int8_4b.bmodel        | 13.4               |
+| BM1684X/yolov4_fp32_1b.bmodel       | 67.2               |
+| BM1684X/yolov4_fp16_1b.bmodel       | 13.2               |
+| BM1684X/yolov4_int8_1b.bmodel       | 5.9                |
+| BM1684X/yolov4_int8_4b.bmodel       | 5.5                |
+| BM1688/yolov4_fp32_1b.bmodel        | 375.3              |
+| BM1688/yolov4_fp16_1b.bmodel        | 94.0               |
+| BM1688/yolov4_int8_1b.bmodel        | 18.1               |
+| BM1688/yolov4_int8_4b.bmodel        | 15.5               |
+| BM1688/yolov4_fp32_1b_2core.bmodel  | 277.5              |
+| BM1688/yolov4_fp16_1b_2core.bmodel  | 63.8               |
+| BM1688/yolov4_int8_1b_2core.bmodel  | 15.5               |
+| BM1688/yolov4_int8_4b_2core.bmodel  | 9.4                |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -279,6 +328,22 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 | BM1684X SoC | yolov34_sail.soc  | yolov3_fp16_1b.bmodel | 3.9      | 1.5           | 32.5          | 14.8       |
 | BM1684X SoC | yolov34_sail.soc  | yolov3_int8_1b.bmodel | 4.0      | 1.6           | 16.2          | 14.8       |
 | BM1684X SoC | yolov34_sail.soc  | yolov3_int8_4b.bmodel | 3.9      | 1.4           | 15.4          | 9.8        |
+| BM1688 SoC  | yolov34_opencv.py | yolov3_fp32_1b.bmodel | 19.3     | 35.6          | 786.4         | 218.9      |
+| BM1688 SoC  | yolov34_opencv.py | yolov3_fp16_1b.bmodel | 19.2     | 29.6          | 147.1         | 212.6      |
+| BM1688 SoC  | yolov34_opencv.py | yolov3_int8_1b.bmodel | 19.2     | 28.7          | 43.2          | 215.8      |
+| BM1688 SoC  | yolov34_opencv.py | yolov3_int8_4b.bmodel | 19.3     | 31.8          | 40.6          | 219.6      |
+| BM1688 SoC  | yolov34_bmcv.py   | yolov3_fp32_1b.bmodel | 4.6      | 5.0           | 780.3         | 227.6      |
+| BM1688 SoC  | yolov34_bmcv.py   | yolov3_fp16_1b.bmodel | 4.6      | 5.0           | 143.3         | 227.2      |
+| BM1688 SoC  | yolov34_bmcv.py   | yolov3_int8_1b.bmodel | 4.6      | 5.0           | 39.2          | 227.8      |
+| BM1688 SoC  | yolov34_bmcv.py   | yolov3_int8_4b.bmodel | 4.4      | 4.7           | 35.6          | 239.9      |
+| BM1688 SoC  | yolov34_bmcv.soc  | yolov3_fp32_1b.bmodel | 9.7      | 1.9           | 772.7         | 28.0       |
+| BM1688 SoC  | yolov34_bmcv.soc  | yolov3_fp16_1b.bmodel | 6.0      | 1.9           | 135.7         | 28.1       |
+| BM1688 SoC  | yolov34_bmcv.soc  | yolov3_int8_1b.bmodel | 6.0      | 1.9           | 31.8          | 28.3       |
+| BM1688 SoC  | yolov34_bmcv.soc  | yolov3_int8_4b.bmodel | 5.8      | 1.8           | 29.4          | 28.1       |
+| BM1688 SoC  | yolov34_sail.soc  | yolov3_fp32_1b.bmodel | 7.6      | 4.9           | 774.0         | 25.7       |
+| BM1688 SoC  | yolov34_sail.soc  | yolov3_fp16_1b.bmodel | 4.0      | 4.9           | 137.0         | 25.7       |
+| BM1688 SoC  | yolov34_sail.soc  | yolov3_int8_1b.bmodel | 4.2      | 5.0           | 33.1          | 26.0       |
+| BM1688 SoC  | yolov34_sail.soc  | yolov3_int8_4b.bmodel | 4.0      | 4.7           | 30.6          | 25.8       |
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.3，nms_thresh=0.5，yolov4性能测试结果如下：
 |    测试平台  |     测试程序      |             测试模型                |decode_time|preprocess_time|inference_time|postprocess_time| 
@@ -311,6 +376,22 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 | BM1684X SoC | yolov34_sail.soc  | yolov4_fp16_1b.bmodel | 3.5      | 8.7           | 15.9          | 4.4        |
 | BM1684X SoC | yolov34_sail.soc  | yolov4_int8_1b.bmodel | 3.2      | 6.2           | 8.3           | 2.5        |
 | BM1684X SoC | yolov34_sail.soc  | yolov4_int8_4b.bmodel | 3.2      | 2.3           | 8.3           | 3.1        |
+| BM1688 SoC  | yolov34_opencv.py | yolov4_fp32_1b.bmodel | 19.1     | 16.0          | 380.3         | 61.8       |
+| BM1688 SoC  | yolov34_opencv.py | yolov4_fp16_1b.bmodel | 19.5     | 15.6          | 99.3          | 63.0       |
+| BM1688 SoC  | yolov34_opencv.py | yolov4_int8_1b.bmodel | 19.2     | 15.7          | 23.2          | 61.7       |
+| BM1688 SoC  | yolov34_opencv.py | yolov4_int8_4b.bmodel | 19.3     | 18.1          | 21.0          | 64.6       |
+| BM1688 SoC  | yolov34_bmcv.py   | yolov4_fp32_1b.bmodel | 4.6      | 3.9           | 378.4         | 61.9       |
+| BM1688 SoC  | yolov34_bmcv.py   | yolov4_fp16_1b.bmodel | 4.6      | 3.9           | 97.2          | 62.0       |
+| BM1688 SoC  | yolov34_bmcv.py   | yolov4_int8_1b.bmodel | 4.5      | 4.0           | 21.3          | 61.8       |
+| BM1688 SoC  | yolov34_bmcv.py   | yolov4_int8_4b.bmodel | 4.3      | 3.6           | 18.4          | 61.8       |
+| BM1688 SoC  | yolov34_bmcv.soc  | yolov4_fp32_1b.bmodel | 5.9      | 1.4           | 374.1         | 11.2       |
+| BM1688 SoC  | yolov34_bmcv.soc  | yolov4_fp16_1b.bmodel | 5.9      | 1.4           | 92.9          | 11.2       |
+| BM1688 SoC  | yolov34_bmcv.soc  | yolov4_int8_1b.bmodel | 5.8      | 1.4           | 17.0          | 11.2       |
+| BM1688 SoC  | yolov34_bmcv.soc  | yolov4_int8_4b.bmodel | 5.7      | 1.3           | 15.2          | 11.0       |
+| BM1688 SoC  | yolov34_sail.soc  | yolov4_fp32_1b.bmodel | 4.0      | 3.5           | 374.9         | 10.0       |
+| BM1688 SoC  | yolov34_sail.soc  | yolov4_fp16_1b.bmodel | 4.1      | 3.7           | 93.8          | 10.1       |
+| BM1688 SoC  | yolov34_sail.soc  | yolov4_int8_1b.bmodel | 4.2      | 3.6           | 17.8          | 10.1       |
+| BM1688 SoC  | yolov34_sail.soc  | yolov4_int8_4b.bmodel | 4.0      | 3.3           | 15.8          | 10.0       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
