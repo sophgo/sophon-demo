@@ -31,8 +31,18 @@ function gen_fp32bmodel()
         --quantize F32 \
         --chip $target \
         --model lprnet_fp32_$1b.bmodel
-
     mv lprnet_fp32_$1b.bmodel $outdir/
+    
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir lprnet_$1b.mlir \
+            --quantize F32 \
+            --chip $target \
+            --num_core 2 \
+            --model lprnet_fp32_$1b_2core.bmodel
+
+        mv lprnet_fp32_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir

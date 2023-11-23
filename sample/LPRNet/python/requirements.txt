@@ -1,1 +1,1 @@
-opencv-python-headless<=4.3
+opencv-python-headless
