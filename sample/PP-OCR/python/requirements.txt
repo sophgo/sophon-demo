@@ -1,4 +1,4 @@
-opencv-python-headless<=4.3
+opencv-python-headless
 shapely
 pyclipper
 pillow<=9.5.0

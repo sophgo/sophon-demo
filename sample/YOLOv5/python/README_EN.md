@@ -33,7 +33,7 @@ If you use the SoC platform (such as SE, SM series edge devices), the correspond
 
 In addition, you need to install other third-party libraries:
 ```bash
-pip3 install opencv-python-headless<4.3
+pip3 install opencv-python-headless
 ```
 
 ## 2. Inference Test
