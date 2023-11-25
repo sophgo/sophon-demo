@@ -23,7 +23,7 @@
 * 支持FP32、FP16(BM1688/BM1684X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV预处理的Python推理
-* 支持单batch和多batch模型推理s
+* 支持单batch和多batch模型推理
 * 支持MOT格式数据集(即图片文件夹)和单视频测试
  
 ## 3. 准备模型与数据
