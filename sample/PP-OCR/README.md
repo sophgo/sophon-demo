@@ -124,19 +124,19 @@ F-score: 0.57488, Precision: 0.80639, Recall: 0.44665
 |------------- | ----------------------- | -----------  | ------ |
 | BM1684 PCIe  | ppocr_system_opencv.py  | fp32         | 0.575   |
 | BM1684 PCIe  | ppocr_bmcv.pcie         | fp32         | 0.573   |
-| BM1684X PCIe  | ppocr_system_opencv.py | fp32         | 0.575   |
-| BM1684X PCIe  | ppocr_system_opencv.py | fp16         | 0.575   |
-| BM1684X PCIe  | ppocr_bmcv.pcie        | fp32         | 0.572   |
-| BM1684X PCIe  | ppocr_bmcv.pcie        | fp16         | 0.572   |
-| BM1688 SoC    | ppocr_system_opencv.py | fp32         | 0.575   |
-| BM1688 SoC    | ppocr_system_opencv.py | fp16         | 0.574   |
-| BM1688 SoC    | ppocr_bmcv.pcie        | fp32         | 0.556   |
-| BM1688 SoC    | ppocr_bmcv.pcie        | fp16         | 0.555   |
+| BM1684X PCIe | ppocr_system_opencv.py  | fp32         | 0.575   |
+| BM1684X PCIe | ppocr_system_opencv.py  | fp16         | 0.575   |
+| BM1684X PCIe | ppocr_bmcv.pcie         | fp32         | 0.572   |
+| BM1684X PCIe | ppocr_bmcv.pcie         | fp16         | 0.572   |
+| BM1688 SoC   | ppocr_system_opencv.py  | fp32         | 0.575   |
+| BM1688 SoC   | ppocr_system_opencv.py  | fp16         | 0.574   |
+| BM1688 SoC   | ppocr_bmcv.soc          | fp32         | 0.570   |
+| BM1688 SoC   | ppocr_bmcv.soc          | fp16         | 0.569   |
 
 
 > **测试说明**：  
 > 1. 模型精度为fp32(fp16)，即代表检测模型和识别模型都是fp32(fp16)的精度。
-> 2. SoC和PCIe的模型精度一致；
+> 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
