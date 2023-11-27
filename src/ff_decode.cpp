@@ -215,6 +215,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out,
             data_four_denominator = 1;
             data_five_denominator = -1;
             data_six_denominator = -1;
+            break;
         case AV_PIX_FMT_GRAY8:
             plane = 1;
             data_four_denominator = -1;
