@@ -10,7 +10,6 @@
 #include <string>
 #include <assert.h>
 #include "bmruntime_cpp.h"
-#include "bmcv_api.h"
 #include "wrapper.h"
 
 using namespace bmruntime;

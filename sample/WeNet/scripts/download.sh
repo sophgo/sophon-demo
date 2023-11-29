@@ -14,7 +14,7 @@ if [ ! -d "../datasets" ];
 then
     mkdir -p ../datasets
     python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/datasets/aishell_S0764.zip
-    unzip aishell_S0764.zip -d ../
+    unzip aishell_S0764.zip -d ../datasets/
     rm aishell_S0764.zip
 
     echo "datasets download!"
@@ -25,7 +25,7 @@ fi
 # models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/models_0918/models.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/models_231129/models.zip
     unzip models.zip -d ../
     rm models.zip
     echo "models download!"

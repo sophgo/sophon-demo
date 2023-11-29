@@ -148,11 +148,14 @@ if __name__ == '__main__':
     context = 7
     decoding_chunk_size = 16
     num_decoding_left_chunks = 5
-
+    
     args = get_args()
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s %(message)s')
-
+    test_audio_num = 0
+    with open(args.input, 'r') as finput:
+        lines = finput.readlines()
+        test_audio_num = len(lines)
     with open(args.config, 'r') as fin:
         configs = yaml.load(fin, Loader=yaml.FullLoader)
 
@@ -182,9 +185,8 @@ if __name__ == '__main__':
                            test_conf,
                            bpe_model=None,
                            partition=False)
-    preprocess_time = time.time() - start_time
-
     test_data_loader = DataLoader(test_dataset, batch_size=None, num_workers=0)
+    preprocess_time = time.time() - start_time
 
     # Init encoder and decoder
     encoder = SophonInference(model_path=args.encoder_bmodel, device_id=args.dev_id, input_mode=0)
@@ -214,10 +216,12 @@ if __name__ == '__main__':
     d_k = configs["encoder_conf"]["output_size"] // head
     
     encoder_inference_time = 0.0
+    encoder_infenence_count = 0
     decoder_inference_time = 0.0
     postprocess_time = 0.0
     # Start speech recognition
     with torch.no_grad(), open(args.result_file, 'w') as fout:
+        start_enumerate = time.time()
         for _, batch in enumerate(test_data_loader):
             keys, feats, _, feats_lengths, _ = batch
             feats, feats_lengths = feats.numpy(), feats_lengths.numpy()
@@ -235,7 +239,9 @@ if __name__ == '__main__':
             
             num_frames = feats.shape[1]
             result = ""
+            preprocess_time += time.time() - start_enumerate
             for cur in range(0, num_frames - context + 1, stride):
+                start_time = time.time()
                 end = min(cur + decoding_window, num_frames)
                 chunk_xs = feats[:, cur:end, :]
                 if chunk_xs.shape[1] < decoding_window:
@@ -243,19 +249,26 @@ if __name__ == '__main__':
                     chunk_xs = chunk_xs.astype(np.float32)
                 chunk_lens = np.full(batch_size, fill_value=chunk_xs.shape[1], dtype=np.int32)
 
-                encoder_input = [chunk_lens, att_cache, cnn_cache, chunk_xs, cache_mask, offset]
-                start_time = time.time()
-                out_dict = encoder.infer_numpy(encoder_input)
-                encoder_inference_time += time.time() - start_time
+                encoder_input = {"chunk_lens": chunk_lens, "att_cache": att_cache, "cnn_cache": cnn_cache, 
+                                 "chunk_xs": chunk_xs, "cache_mask": cache_mask, "offset": offset}
+                preprocess_time += time.time() - start_time
                 
-                chunk_out = out_dict["chunk_out"]
-                chunk_log_probs = out_dict["log_probs"]
-                chunk_log_probs_idx = out_dict["log_probs_idx"].astype(np.int32)
-                att_cache = out_dict['r_att_cache']
-                cnn_cache = out_dict['r_cnn_cache']
-                offset = out_dict['r_offset'].astype(np.int32)
-                cache_mask = out_dict['r_cache_mask']
-                chunk_out_lens = out_dict['chunk_out_lens'].astype(np.int32)
+                start_time = time.time()
+                out_dict_ = encoder.infer_numpy_dict(encoder_input)
+                encoder_inference_time += time.time() - start_time
+                encoder_infenence_count += 1
+                out_dict = {  
+                    key[:-len("_f32")] if "_f32" in key else key: value for key, value in out_dict_.items()  
+                }
+                  
+                chunk_log_probs = out_dict["log_probs_TopK"]
+                chunk_log_probs_idx = out_dict["log_probs_idx_TopK"].astype(np.int32)
+                chunk_out = out_dict["chunk_out_LayerNormalization"]
+                chunk_out_lens = out_dict['/Div_output_0_Div'].astype(np.int32)
+                offset = out_dict['r_offset_Unsqueeze'].astype(np.int32)
+                att_cache = out_dict['r_att_cache_Concat']
+                cnn_cache = out_dict['r_cnn_cache_Concat']
+                cache_mask = out_dict['r_cache_mask_Slice']
 
                 encoder_out.append(chunk_out)
                 beam_log_probs.append(chunk_log_probs)
@@ -265,7 +278,7 @@ if __name__ == '__main__':
                 start_time = time.time()
                 chunk_hyps, _ = ctc_decoding(chunk_log_probs, chunk_log_probs_idx, chunk_out_lens, vocabulary)
                 postprocess_time += time.time() - start_time
-                print(chunk_hyps)
+                # print(chunk_hyps)
                 result += chunk_hyps[0]
            
             encoder_out = np.concatenate(encoder_out, axis=1)
@@ -316,11 +329,15 @@ if __name__ == '__main__':
                 postprocess_time += time.time() - start_time
 
                 start_time = time.time()
-                out_dict = decoder.infer_numpy(decoder_input)
+                out_dict_ = decoder.infer_numpy(decoder_input)
                 decoder_inference_time += time.time() - start_time
 
+                out_dict = {  
+                    key[:-len("_f32")] if "_f32" in key else key: value for key, value in out_dict_.items()  
+                }
+                
                 start_time = time.time()  
-                best_index = out_dict["best_index"].astype(np.int32)
+                best_index = out_dict["best_index_ArgMax"].astype(np.int32)
                 best_sents = []
                 k = 0
                 for idx in best_index:
@@ -338,10 +355,14 @@ if __name__ == '__main__':
                     content = result
                 logging.info('{} {}'.format(key, content))
                 fout.write('{} {}\n'.format(key, content))
+            start_enumerate = time.time()
                 
-    logging.info("------------------ Predict Time Info ----------------------")
+    
     total_data_time = calculate_total_time(args.input)
-    logging.info("preprocess_time(ms): {:.4f}".format((preprocess_time / total_data_time) * 1000))
-    logging.info("encoder_inference_time(ms): {:.4f}".format((encoder_inference_time / total_data_time) * 1000))
-    logging.info("decoder_inference_time(ms): {:.4f}".format((decoder_inference_time / total_data_time) * 1000))
-    logging.info("postprocess_time(ms): {:.4f}".format((postprocess_time / total_data_time) * 1000))
+    avg_data_time = total_data_time / test_audio_num 
+    logging.info("------------------ Predict Time Info ----------------------")
+    logging.info("test_wav_avg_time(ms): {:.4f}".format(avg_data_time * 1000))
+    logging.info("preprocess_time(ms): {:.4f}".format((preprocess_time / test_audio_num) * 1000))
+    logging.info("encoder_inference_time(ms): {:.4f}".format((encoder_inference_time / encoder_infenence_count) * 1000))
+    logging.info("decoder_inference_time(ms): {:.4f}".format((decoder_inference_time / test_audio_num) * 1000))
+    logging.info("postprocess_time(ms): {:.4f}".format((postprocess_time / test_audio_num) * 1000))

@@ -13,7 +13,7 @@
 #include <string>
 #include <assert.h>
 #include "bmruntime_cpp.h"
-#include "bmcv_api.h"
+#include "bmcv_api_ext.h"
 
 using namespace bmruntime;
 
