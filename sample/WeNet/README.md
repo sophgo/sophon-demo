@@ -6,7 +6,7 @@
 * [2. 特性](#2-特性)
 * [3. 准备模型与数据](#3-准备模型与数据)
 * [4. 模型编译](#4-模型编译)
-  * [4.1 TPU-NNTC编译BModel](#41-tpu-nntc编译bmodel)
+  * [4.1 TPU-MLIR编译BModel](#41-tpu-mlir编译bmodel)
 * [5. 例程测试](#5-例程测试)
 * [6. 精度测试](#6-精度测试)
   * [6.1 测试方法](#61-测试方法)
@@ -17,17 +17,17 @@
 * [8. FAQ](#8-faq)
 
 ## 1. 简介
-WeNet是一款面向工业落地应用的语音识别工具包，提供了从语音识别模型的训练到部署的一条龙服务。本例程对[WeNet官方开源仓库](https://github.com/wenet-e2e/wenet)中基于aishell的预训练模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。后处理用到的ctc decoder代码来自[Ctc Decoder](https://github.com/Kevindurant111/ctcdecode-cpp.git)。
+WeNet是一款面向工业落地应用的语音识别工具包，提供了从语音识别模型的训练到部署的一条龙服务。本例程对[WeNet官方开源仓库](https://github.com/wenet-e2e/wenet)中基于aishell的预训练模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688上进行推理测试。后处理用到的ctc decoder代码来自[Ctc Decoder](https://github.com/Kevindurant111/ctcdecode-cpp.git)。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32模型编译和推理
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1688/BM1684X)模型编译和推理
 * 支持基于torchaudio的Python推理和基于Armadillo的C++推理
 * 支持单batch模型推理
 * 支持流式语音的测试
 
 ## 3. 准备模型与数据
-请使用TPU-NNTC编译BModel，Pytorch模型在编译前要导出成torchscript模型或onnx模型，本例程中提供了转换好的onnx模型。(TPU-MLIR的编译暂时不支持)
+建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。
 
 ​同时，您需要准备用于测试的数据集。
 
@@ -45,11 +45,18 @@ chmod -R +x scripts/
 ```
 ./models
 ├── BM1684
-│   ├── wenet_encoder_fp32.bmodel             # 使用TPU-NNTC编译，用于BM1684的FP32 Enocder BModel，batch_size=1
-│   └── wenet_decoder_fp32.bmodel             # 使用TPU-NNTC编译，用于BM1684的FP32 Decoder BModel，batch_size=1
+│   ├── wenet_decoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1684的FP32 Decoder BModel，batch_size=1
+│   └── wenet_encoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1684的FP32 Encoder BModel，batch_size=1
 ├── BM1684X
-│   ├── wenet_encoder_fp32.bmodel             # 使用TPU-NNTC编译，用于BM1684X的FP32 Enocder BModel，batch_size=1
-│   └── wenet_decoder_fp32.bmodel             # 使用TPU-NNTC编译，用于BM1684X的FP32 Decoder BModel，batch_size=1
+│   ├── wenet_decoder_fp16.bmodel             # 使用TPU-MLIR编译，用于BM1684X的FP16 Decoder BModel，batch_size=1
+│   ├── wenet_decoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1684X的FP32 Decoder BModel，batch_size=1
+│   ├── wenet_encoder_fp16.bmodel             # 使用TPU-MLIR编译，用于BM1684X的FP16 Encoder BModel，batch_size=1
+│   └── wenet_encoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1684X的FP32 Encoder BModel，batch_size=1
+├── BM1688
+│   ├── wenet_decoder_fp16.bmodel             # 使用TPU-MLIR编译，用于BM1688的FP16 Decoder BModel，batch_size=1，num_core=1
+│   ├── wenet_decoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1688的FP32 Decoder BModel，batch_size=1，num_core=1
+│   ├── wenet_encoder_fp16.bmodel             # 使用TPU-MLIR编译，用于BM1688的FP16 Encoder BModel，batch_size=1，num_core=1
+│   └── wenet_encoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1688的FP32 Encoder BModel，batch_size=1，num_core=1
 └── onnx
     ├── wenet_encoder.onnx                    # 导出的encoder onnx模型
     └── wenet_decoder.onnx                    # 导出的decoder onnx模型       
@@ -70,26 +77,37 @@ chmod -R +x scripts/
 ├── EGG-INFO                                       # 包含模块信息的文件夹
 ├── _swig_decoders.py                              # Python库文件   
 ├── swig_decoders.py                               # Python库文件
-└── _swig_decoders.cpython-38-${arch}-linux-gnu.so # Python库依赖的动态链接库文件，arch表示机器架构，pcie和soc模式对应的arch是不同的                
+└── _swig_decoders.cpython-38-${arch}-linux-gnu.so # Python库依赖的动态链接库文件，arch表示机器架构，pcie对应x86，soc对应aarch64                
 ```
 
 ## 4. 模型编译
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。
 
-### 4.1 TPU-NNTC编译BModel
-模型编译前需要安装TPU-NNTC，具体可参考[TPU-NNTC环境搭建](../../docs/Environment_Install_Guide.md#2-tpu-nntc环境搭建)。请注意，本例程编译模型使用的SDK需为最新的Release版本，安装好后需在TPU-NNTC环境中进入例程目录。
+### 4.1 TPU-MLIR编译BModel
+导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
+
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
 - 生成FP32 BModel
 
-使用TPU-NNTC将onnx模型编译为FP32 BModel，具体方法可参考《TPU-NNTC开发参考手册》的“BMNETO 使用”(请从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)相应版本的SDK中获取)。
-
-​本例程在`scripts`目录下提供了TPU-NNTC编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_nntc.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台，如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_nntc.sh BM1684
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​执行上述命令会在`models/BM1684/`下生成`wenet_encoder_fp32.bmodel`和`wenet_decoder_fp32.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`等文件夹下生成`wenet_encoder_fp32.bmodel`和`wenet_decoder_fp32.bmodel`文件，即转换好的FP32 BModel。
+
+- 生成FP16 BModel
+
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
+
+```bash
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
+```
+
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`wenet_encoder_fp16.bmodel`和`wenet_decoder_fp16.bmodel`等文件，即转换好的FP16 BModel。
+
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
@@ -109,22 +127,26 @@ cat online_wer | grep "Overall"
 在aishell数据集上，精度测试结果如下：
 |   测试平台    |    测试程序   |              测试模型                                 | WER    |
 | ------------ | ------------ | ----------------------------------------------------- | ------ |
-| BM1684 PCIe  | wenet.py     | wenet_encoder_fp32.bmodel                             | 2.70%  |
 | BM1684 SoC   | wenet.py     | wenet_encoder_fp32.bmodel                             | 2.70%  |
-| BM1684X PCIe | wenet.py     | wenet_encoder_fp32.bmodel                             | 2.70%  | 
-| BM1684X SoC  | wenet.py     | wenet_encoder_fp32.bmodel                             | 2.70%  |
-| BM1684 PCIe  | wenet.pcie   | wenet_encoder_fp32.bmodel                             | 2.70%  |
-| BM1684 SoC   | wenet.soc    | wenet_encoder_fp32.bmodel                             | 2.70%  |
-| BM1684X PCIe | wenet.pcie   | wenet_encoder_fp32.bmodel                             | 2.70%  | 
-| BM1684X SoC  | wenet.soc    | wenet_encoder_fp32.bmodel                             | 2.70%  |
-| BM1684 PCIe  | wenet.py     | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 1.80%  |
+| BM1684 SoC   | wenet.soc    | wenet_encoder_fp32.bmodel                             | 5.84%  |
 | BM1684 SoC   | wenet.py     | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 1.80%  |
-| BM1684X PCIe | wenet.py     | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 1.80%  | 
-| BM1684X SoC  | wenet.py     | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 1.80%  |
-| BM1684 PCIe  | wenet.pcie   | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 1.80%  |
-| BM1684 SoC   | wenet.soc    | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 1.80%  |
-| BM1684X PCIe | wenet.pcie   | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 1.80%  | 
-| BM1684X SoC  | wenet.soc    | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 1.80%  |    
+| BM1684 SoC   | wenet.soc    | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 3.45%  |
+| BM1684X SoC  | wenet.py     | wenet_encoder_fp32.bmodel                             | 2.70%  | 
+| BM1684X SoC  | wenet.soc    | wenet_encoder_fp32.bmodel                             | 2.55%  | 
+| BM1684X SoC  | wenet.py     | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 1.80%  | 
+| BM1684X SoC  | wenet.soc    | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 1.72%  | 
+| BM1684X SoC  | wenet.py     | wenet_encoder_fp16.bmodel                             | 2.70%  | 
+| BM1684X SoC  | wenet.soc    | wenet_encoder_fp16.bmodel                             | 2.55%  | 
+| BM1684X SoC  | wenet.py     | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 1.80%  | 
+| BM1684X SoC  | wenet.soc    | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 1.72%  | 
+| BM1688 SoC   | wenet.py     | wenet_encoder_fp32.bmodel                             | 2.77%  | 
+| BM1688 SoC   | wenet.py     | wenet_encoder_fp16.bmodel                             | 2.77%  | 
+| BM1688 SoC   | wenet.py     | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 1.87%  | 
+| BM1688 SoC   | wenet.py     | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 1.87%  | 
+| BM1688 SoC   | wenet.soc    | wenet_encoder_fp32.bmodel                             | 2.77%  | 
+| BM1688 SoC   | wenet.soc    | wenet_encoder_fp16.bmodel                             | 2.85%  | 
+| BM1688 SoC   | wenet.soc    | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 2.10%  | 
+| BM1688 SoC   | wenet.soc    | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 1.80%  | 
 
 > **测试说明**：  
 1. 在使用的模型相同的情况下，wer在不同的测试平台上是相同的。
@@ -138,36 +160,50 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 ```
 测试结果中的`calculate time`就是模型推理的时间。
 测试各个模型的理论推理时间，结果如下：
-
 |                  测试模型                   | calculate time(ms) |
-| ------------------------------------------- | ----------------- |
-| BM1684/wenet_encoder_fp32.bmodel            | 36.01             |
-| BM1684X/wenet_encoder_fp32.bmodel           | 18.38             |
-| BM1684/wenet_decoder_fp32.bmodel            | 223.55            |
-| BM1684X/wenet_decoder_fp32.bmodel           | 181.57            |
+| ------------------------------------------- | -----------------|
+| BM1684/wenet_encoder_fp32.bmodel            |  20.1            |
+| BM1684/wenet_decoder_fp32.bmodel            |  761.3           |
+| BM1684X/wenet_encoder_fp32.bmodel           |  9.5             |
+| BM1684X/wenet_encoder_fp16.bmodel           |  3.2             |
+| BM1684X/wenet_decoder_fp32.bmodel           |  307.7           |
+| BM1684X/wenet_decoder_fp16.bmodel           |  74.2            |
+| BM1688/wenet_encoder_fp32.bmodel            |  21.5            |
+| BM1688/wenet_encoder_fp16.bmodel            |  8.4             |
+| BM1688/wenet_decoder_fp32.bmodel            |  722.6           |
+| BM1688/wenet_decoder_fp16.bmodel            |  230.6           |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
-2. `calculate time`已折算为1秒音频的推理时间(例如，encoder的特征长度为67，对应为0.67s的音频，需要将bmrt_test得到的结果除以0.67；decoder的特征长度为350，对应为3.5s的音频，需要将bmrt_test得到的结果除以3.5)。
+2. encoder的特征长度为67，对应为0.67s的音频；decoder的特征长度为350，对应为3.5s的音频。
+3. BM1688有两个核，每个核都可以加载一个encoder/decoder模型。
 
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
-在不同的测试平台上，使用不同的例程、模型测试`datasets/test`，性能测试结果如下：
-|    测试平台  |  测试程序 |             测试模型                               |preprocess_time|encoder_inference_time|decoder_inference_time|postprocess_time| 
+在不同的测试平台上，使用数据集`datasets/aishell_S0764/aishell_S0764.list`，测试不同的例程和模型，性能测试结果如下：
+|    测试平台  |  测试程序 |             测试模型                                   |preprocess_time|encoder_inference_time|decoder_inference_time|postprocess_time| 
 | ----------- | --------- | ----------------------------------------------------- | ------------- | -------------------- | -------------------- | ----------------- |
-| BM1684 PCIe | wenet.py  | wenet_encoder_fp32.bmodel                             | 0.0002 | 44.31 | none  | 0.98  |
-| BM1684 SoC  | wenet.py  | wenet_encoder_fp32.bmodel                             | 0.0014 | 47.12 | none  | 8.56  |
-| BM1684X PCIe| wenet.py  | wenet_encoder_fp32.bmodel                             | 0.0002 | 27.61 | none  | 3.25  |
-| BM1684X SoC | wenet.py  | wenet_encoder_fp32.bmodel                             | 0.0014 | 27.42 | none  | 8.72  |
-| BM1684X PCIe| wenet.py  | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 0.0002 | 24.99 | 137.53| 2.49  |
-| BM1684X SoC | wenet.py  | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 0.0015 | 46.95 | 155.05| 10.67 |
-| BM1684 PCIe | wenet.pcie| wenet_encoder_fp32.bmodel                             | 41.23  | 42.07 | none  | 1.62  |
-| BM1684 SoC  | wenet.soc | wenet_encoder_fp32.bmodel                             | 49.38  | 39.99 | none  | 1.87  |
-| BM1684X PCIe| wenet.pcie| wenet_encoder_fp32.bmodel                             | 13.23  | 19.02 | none  | 5.91  |
-| BM1684X SoC | wenet.soc | wenet_encoder_fp32.bmodel                             | 60.16  | 19.44 | none  | 1.81  |
-| BM1684X PCIe| wenet.pcie| wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 13.13  | 18.91 | 136.45| 6.26  |
-| BM1684X SoC | wenet.soc | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 60.21  | 19.48 | 143.77| 1.91  |  
+| BM1684 SoC  | wenet.py  | wenet_encoder_fp32.bmodel                             | 15.65         | 24.40                |  none                | 39.76            |
+| BM1684 SoC  | wenet.py  | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 14.83         | 24.41                |  713.74              | 45.67            |
+| BM1684 SoC  | wenet.soc | wenet_encoder_fp32.bmodel                             | 422.98        | 20.10                |  none                | 8.21             |
+| BM1684 SoC  | wenet.soc | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 423.75        | 20.11                |  713.78              | 13.99            |  
+| BM1684x SoC | wenet.py  | wenet_encoder_fp32.bmodel                             | 22.28         | 14.24                |  none                | 40.18            |
+| BM1684x SoC | wenet.py  | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 19.29         | 14.24                |  309.04              | 47.86            |
+| BM1684x SoC | wenet.soc | wenet_encoder_fp32.bmodel                             | 272.70        | 9.51                 |  none                | 8.29             |
+| BM1684x SoC | wenet.soc | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 272.10        | 9.50                 |  307.50              | 13.17            |
+| BM1684x SoC | wenet.py  | wenet_encoder_fp16.bmodel                             | 15.18         | 7.98                 |  none                | 38.87            |
+| BM1684x SoC | wenet.py  | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 15.20         | 7.94                 |  74.74               | 47.42            |
+| BM1684x SoC | wenet.soc | wenet_encoder_fp16.bmodel                             | 272.80        | 3.23                 |  none                | 10.42            |
+| BM1684x SoC | wenet.soc | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 272.47        | 3.24                 |  74.23               | 16.68            |  
+| BM1688 SoC  | wenet.py  | wenet_encoder_fp32.bmodel                             | 25.29         | 25.99                |  none                | 54.84            |
+| BM1688 SoC  | wenet.py  | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 24.84         | 26.00                |  723.50              | 65.64            |
+| BM1688 SoC  | wenet.soc | wenet_encoder_fp32.bmodel                             | 393.42        | 20.10                |  none                | 14.28            |
+| BM1688 SoC  | wenet.soc | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 388.23        | 20.16                |  721.53              | 23.26            |
+| BM1688 SoC  | wenet.py  | wenet_encoder_fp16.bmodel                             | 27.59         | 13.08                |  none                | 57.07            |
+| BM1688 SoC  | wenet.py  | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 29.56         | 12.93                |  230.50              | 65.34            |
+| BM1688 SoC  | wenet.soc | wenet_encoder_fp16.bmodel                             | 388.23        | 7.22                 |  none                | 15.75            |
+| BM1688 SoC  | wenet.soc | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 390.72        | 7.18                 |  230.60              | 22.17            |  
 
 
 > **测试说明**：  
@@ -180,12 +216,13 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 解决方法：在要运行的主机上重新编译一份ctc decoder。
 ```bash
 git clone https://github.com/Slyne/ctc_decoder.git  
-apt-get update
-apt-get install swig
-apt-get install python3-dev 
-cd ctc_decoder/swig && bash setup.sh
+sudo apt-get update
+sudo apt-get install swig
+sudo apt-get install python3-dev 
+cd ctc_decoder/swig
+sudo ./setup.sh
 ```  
-2. bm_fft暂不支持1684x，仅能在1684设备上使用。  
+2. bm_fft暂不支持1684x/1688，仅能在1684设备上使用。  
 3. 1684上decoder精度暂无法对齐，仅能在1684x设备上使用。  
 4. encoder与decoder的shape暂时无法调整，仅能编译和使用固定shape的bmodel，因此目前C++和Python例程的某些参数为固定参数。  
 5. soc模式编译CPP过程中，生成时makefile提示：

@@ -279,7 +279,6 @@ def compute_fbank(data,
                           dither=dither,
                           energy_floor=0.0,
                           sample_frequency=sample_rate)
-        
         yield dict(key=sample['key'], label=sample['label'], feat=mat)
 
 
