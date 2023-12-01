@@ -1,58 +1,34 @@
 #!/bin/bash
-pip3 install dfn
-# sudo apt install unzip
-
+res=$(dpkg -l|grep unzip)
+if [ $? != 0 ];
+then
+    echo "Please install unzip on your system!"
+    exit
+fi
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 scripts_dir=$(dirname $(readlink -f "$0"))
-# echo $scripts_dir
 
 pushd $scripts_dir
 # datasets
 if [ ! -d "../datasets" ]; 
 then
-    mkdir -p ../datasets/coco
-    # coco.names
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/FzOejP895
-    mv coco.names ../datasets
-
-    # test.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/n1gCAKCOU
-    unzip test.zip -d ../datasets/
-    rm test.zip
-
-    # centernet test picture
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/evXTVV1Af
-    mv ctdet_test.jpg ../datasets
-    echo "[Success] ctdet_test.jpg has been downloaded to path ../datasets"
-
-
-    # coco128.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/LNlCFMiz5
-    unzip coco128.zip -d ../datasets/
-    rm coco128.zip
-
-    # val2017_1000.zip
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/J4VGhNhGu
-    unzip val2017_1000.zip -d ../datasets/coco
-    rm val2017_1000.zip
-
-    # instances_val2017_1000.json
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/rXe4WKCTd
-    mv instances_val2017_1000.json ../datasets/coco
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/CenterNet/datasets.zip
+    unzip datasets.zip -d ../
+    rm datasets.zip
 
     echo "datasets download!"
 else
-    echo "datasets exist!"
+    echo "Datasets folder exist! Remove it if you need to update."
 fi
 
 # models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfn --url http://219.142.246.77:65000/sharing/WCI0q1dPy
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/CenterNet/models.zip
     unzip models.zip -d ../
     rm models.zip
-    
     echo "models download!"
 else
-    echo "models exist!"
+    echo "Models folder exist! Remove it if you need to update."
 fi
 popd
