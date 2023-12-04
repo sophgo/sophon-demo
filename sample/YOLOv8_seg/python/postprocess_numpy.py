@@ -91,7 +91,7 @@ class PostProcess:
     #         return x[..., :6], segments, masks  # boxes, segments, masks
     #     else:
     #         return [], [], []
-def postprocess(self, preds, im0_shape, ratio, pad_w, pad_h, conf_threshold, iou_threshold, nm=32):
+    def postprocess(self, preds, im0_shape, ratio, pad_w, pad_h, conf_threshold, iou_threshold, nm=32):
         """
         Post-process the prediction.
 

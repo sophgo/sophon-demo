@@ -211,7 +211,7 @@ def main(args):
                 
                 img_list.append(src_img)
                 filename_list.append(filename)
-                if (len(img_list) == batch_size or cn == len(filenames)) and len(bmimg_list):
+                if (len(img_list) == batch_size or cn == len(filenames)) and len(img_list):
                     # predict
                     results = yolov8(img_list)
                     
