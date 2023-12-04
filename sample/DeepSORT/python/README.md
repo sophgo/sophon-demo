@@ -15,7 +15,6 @@ python目录下提供了一系列Python例程，具体情况如下：
 | 序号 |  Python例程      | 说明                                |
 | ---- | ---------------- | -----------------------------------  |
 | 1    | deepsort_opencv.py | 使用OpenCV解码、OpenCV前处理、SAIL推理 |
-| 2    | deepsort_bmcv.py | 使用sail进行解码、预处理、推理和后处理|
 
 ## 1. 环境准备
 ### 1.1 x86/arm PCIe平台
