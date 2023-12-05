@@ -222,7 +222,7 @@ If the demo depends on sophon-sail, you need to compile and install sophon-sail,
 You can open the user manual provided in the sophon-sail compressed package (named sophon-sail_en.pdf), refer to the compilation and installation guide chapter, and select the mode you need (C++/Python, SoC MODE) for installation. **Note that you need to select Contains the compilation methods of ffmpeg and opencv.**
 After you have followed the tutorial and copied the library files of Sophon Sail to the target SoC, you also need to set the following environment variables:
 ```bash
-sudo echo "export LD_LIBRARY_PATH=/opt/sophon/sophon-sail/lib/:$LD_LIBRARY_PATH" >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/opt/sophon/sophon-sail/lib/:$LD_LIBRARY_PATH' >> ~/.bashrc
 source ~/.bashrc
 ```
 ## 5 arm PCIe Platform Development and Runtime Environment Construction

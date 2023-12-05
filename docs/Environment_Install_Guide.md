@@ -223,7 +223,7 @@ source /etc/profile
 
 在您按照教程将sophon-sail的库文件拷贝到目标soc上之后，您还需要设置以下环境变量：
 ```bash
-sudo echo "export LD_LIBRARY_PATH=/opt/sophon/sophon-sail/lib/:$LD_LIBRARY_PATH" >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/opt/sophon/sophon-sail/lib/:$LD_LIBRARY_PATH' >> ~/.bashrc
 source ~/.bashrc
 ```
 ## 5 arm PCIe平台的开发和运行环境搭建
