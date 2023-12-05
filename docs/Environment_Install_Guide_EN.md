@@ -159,8 +159,8 @@ For more information on libsophon, please refer to "MULTIMEDIA User Manual", "Mu
 ### 3.3 Compilation and Installation of sophon-sail
 
 If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of sophon-sail from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
+You can open the user manual provided in the sophon-sail compressed package (named sophon-sail_en.pdf), refer to the compilation and installation guide chapter, and select the mode you need (C++/Python, PCIE MODE) for installation. 
 Refer to docs in sophon-sail，choose the part you need (C++/Python，PCIE MODE) to install。
-Official sophon-sail guide link：https://doc.sophgo.com/sdk-docs/v23.05.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#sail
 
 ## 4 SoC Platform Development and Runtime Environment Construction
 For SoC platforms, the SophonSDK (>=v22.09.02) has been installed with the corresponding libsophon, sophon-opencv and sophon-ffmpeg runtime library packages integrated inside, located under `/opt/sophon/`, which can be used directly for the runtime environment. Programs are usually cross-compiled on x86 hosts to enable them to run on SoC platforms. SophonSDK firmware refresh methods can be found in the [FAQ document](./FAQ_EN.md#12-how-do-i-use-an-sd-card-to-update-firmware-in-soc-mode).
