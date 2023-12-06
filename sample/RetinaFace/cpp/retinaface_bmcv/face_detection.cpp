@@ -21,7 +21,7 @@
 using namespace std;
 using namespace cv;
 
-FaceDetection::FaceDetection(const std::string bmodel_path, int device_id, float nms_threshold) {
+FaceDetection::FaceDetection(const std::string bmodel_path, int device_id) {
   bmodel_path_ = bmodel_path;
   device_id_ = device_id;
   load_model();
@@ -53,7 +53,7 @@ FaceDetection::FaceDetection(const std::string bmodel_path, int device_id, float
     std::cerr << "ERROR: bm_image_create_batch failed" << std::endl;
     exit(-1);
   }
-  shared_ptr<RetinaFacePostProcess> post_ptr(new RetinaFacePostProcess("net3", nms_threshold));
+  shared_ptr<RetinaFacePostProcess> post_ptr(new RetinaFacePostProcess);
   post_process_ = post_ptr;
 }
 
@@ -61,7 +61,7 @@ FaceDetection::~FaceDetection() {
 }
 
 bool FaceDetection::run(vector<Mat>& input_imgs,
-                               vector<vector<stFaceRect> >& results, struct timeval& infer_tpstart, struct timeval& infer_tpend) {
+                               vector<vector<stFaceRect> >& results) {
   
   std::vector<bm_image> input_bm_imgs;
   for (size_t i = 0; i < input_imgs.size(); i++) {
@@ -75,9 +75,7 @@ bool FaceDetection::run(vector<Mat>& input_imgs,
   // assert(static_cast<int>(input_imgs.size()) == batch_size_);
   // bmcv_image_convert_to(bm_handle_, batch_size_,
   //            convert_attr_, &processed_imgs[0], scaled_inputs_);
-  gettimeofday(&infer_tpstart, NULL);
   forward();
-  gettimeofday(&infer_tpend, NULL);
   postprocess(results, ratios, input_imgs);
   for (size_t i = 0; i < input_bm_imgs.size(); i++) {
     bm_image_destroy(input_bm_imgs[i]);

@@ -26,11 +26,11 @@
 class FaceDetection : public BmodelBase{
 
 public:
-  FaceDetection(const std::string bmodel, int device_id, float nms_threshold);
+  FaceDetection(const std::string bmodel, int device_id);
   ~FaceDetection();
 
   bool run(std::vector<cv::Mat>& input_imgs,
-                            std::vector<std::vector<stFaceRect> >& results, struct timeval& infer_tpstart, struct timeval& infer_tpend);
+                            std::vector<std::vector<stFaceRect> >& results);
   void set_max_face_count(int max_face_count);
   void set_score_threshold(float score_threshold);
 
