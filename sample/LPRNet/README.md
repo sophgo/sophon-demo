@@ -15,7 +15,7 @@
 
 ## 1. 简介
 
-本例程对[LNRNet_Pytorch](https://github.com/sirius-ai/LPRNet_Pytorch)的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688上进行推理测试。
+本例程对[LNRNet_Pytorch](https://github.com/sirius-ai/LPRNet_Pytorch)的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
 
 **论文:** [LPRNet: License Plate Recognition via Deep Neural Networks](https://arxiv.org/abs/1806.10447v1)
 
@@ -31,7 +31,7 @@ LPRNet的优点可以总结为如下三点：
 
 
 ## 2. 特性
-* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X)、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -49,6 +49,9 @@ LPRNet的优点可以总结为如下三点：
 ```bash
 # 安装unzip，若已安装请跳过
 sudo apt install unzip
+# 安装7z，若已安装请跳过
+sudo apt install p7zip
+sudo apt install p7zip-full
 
 chmod -R +x scripts/
 ./scripts/download.sh
@@ -59,23 +62,14 @@ chmod -R +x scripts/
 下载的模型包括：
 ./models
 ├── BM1684
-│   ├── lprnet_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1，num_core=1
-│   ├── lprnet_int8_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=1，num_core=1
-│   └── lprnet_int8_4b.bmodel               # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=4，num_core=1
+│   ├── lprnet_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1
+│   ├── lprnet_int8_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=1
+│   └── lprnet_int8_4b.bmodel               # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=4
 ├── BM1684X
-│   ├── lprnet_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1，num_core=1
-│   ├── lprnet_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1，num_core=1
-│   ├── lprnet_int8_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1，num_core=1
-│   └── lprnet_int8_4b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4，num_core=1
-├── BM1688
-│   ├── lprnet_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=1
-│   ├── lprnet_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=1
-│   ├── lprnet_int8_1b.bmodel               # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=1
-│   ├── lprnet_int8_4b.bmodel               # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=1
-│   ├── lprnet_fp32_1b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=2
-│   ├── lprnet_fp16_1b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=2
-│   ├── lprnet_int8_1b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
-│   └── lprnet_int8_4b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=2
+│   ├── lprnet_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
+│   ├── lprnet_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── lprnet_int8_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
+│   └── lprnet_int8_4b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
 │── torch
 │   ├── Final_LPRNet_model.pth              # 原始模型
 │   └── LPRNet_model_trace.pt               # trace后的JIT模型
@@ -116,30 +110,34 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_fp32bmodel_mlir.sh bm1684
+#or
+./scripts/gen_fp32bmodel_mlir.sh bm1684x
 ```
 
-​执行上述命令会在`models/BM1684`等文件夹下生成`lprnet_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`lprnet_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
+./scripts/gen_fp16bmodel_mlir.sh bm1684x
 ```
 
-​执行上述命令会在`models/BM1684X/`等文件夹下生成`lprnet_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X/`下生成`lprnet_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
 ​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_int8bmodel_mlir.sh bm1684
+#或
+./scripts/gen_int8bmodel_mlir.sh bm1684x
 ```
 
-​上述脚本会在`models/BM1684`等文件夹下生成`lprnet_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+​上述脚本会在`models/BM1684`或`models/BM1684X/`下生成`lprnet_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 
 ## 5. 例程测试
@@ -160,58 +158,40 @@ python3 tools/eval_ccpd.py --gt_path datasets/test_label.json --result_json cpp/
 ### 6.2 测试结果
 在test数据集上，精度测试结果如下：
 |   测试平台    |      测试程序      |        测试模型        |    acc    |
-| ------------ | ----------------   | --------------------- | ------------- 
-| BM1684 PCIe  | lprnet_opencv.py   | lprnet_fp32_1b.bmodel | 0.894       |
-| BM1684 PCIe  | lprnet_opencv.py   | lprnet_int8_1b.bmodel | 0.858         |
-| BM1684 PCIe  | lprnet_opencv.py   | lprnet_int8_4b.bmodel | 0.881         |
-| BM1684 PCIe  | lprnet_bmcv.py     | lprnet_fp32_1b.bmodel | 0.88          |
-| BM1684 PCIe  | lprnet_bmcv.py     | lprnet_int8_1b.bmodel | 0.857         |
-| BM1684 PCIe  | lprnet_bmcv.py     | lprnet_int8_4b.bmodel | 0.865         |
-| BM1684 PCIe  | lprnet_opencv.pcie | lprnet_fp32_1b.bmodel | 0.88          |
+| ------------ | ---------------- | --------------------- | ------------- 
+| BM1684 PCIe  | lprnet_opencv.py | lprnet_fp32_1b.bmodel |   0.894       |
+| BM1684 PCIe  | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.858         |
+| BM1684 PCIe  | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.881         |
+| BM1684 PCIe  | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.88         |
+| BM1684 PCIe  | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.857         |
+| BM1684 PCIe  | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.865         |
+| BM1684 PCIe  | lprnet_opencv.pcie | lprnet_fp32_1b.bmodel | 0.88         |
 | BM1684 PCIe  | lprnet_opencv.pcie | lprnet_int8_1b.bmodel | 0.857         |
 | BM1684 PCIe  | lprnet_opencv.pcie | lprnet_int8_4b.bmodel | 0.869         |
-| BM1684 PCIe  | lprnet_bmcv.pcie   | lprnet_fp32_1b.bmodel | 0.88          |
-| BM1684 PCIe  | lprnet_bmcv.pcie   | lprnet_int8_1b.bmodel | 0.857         |
-| BM1684 PCIe  | lprnet_bmcv.pcie   | lprnet_int8_4b.bmodel | 0.869         |
-| BM1684X PCIe | lprnet_opencv.py   | lprnet_fp32_1b.bmodel | 0.894         |
-| BM1684X PCIe | lprnet_opencv.py   | lprnet_fp16_1b.bmodel | 0.894         |
-| BM1684X PCIe | lprnet_opencv.py   | lprnet_int8_1b.bmodel | 0.867         | 
-| BM1684X PCIe | lprnet_opencv.py   | lprnet_int8_4b.bmodel | 0.88          | 
-| BM1684X PCIe | lprnet_bmcv.py     | lprnet_fp32_1b.bmodel | 0.882         | 
-| BM1684X PCIe | lprnet_bmcv.py     | lprnet_fp16_1b.bmodel | 0.882         | 
-| BM1684X PCIe | lprnet_bmcv.py     | lprnet_int8_1b.bmodel | 0.861         | 
-| BM1684X PCIe | lprnet_bmcv.py     | lprnet_int8_4b.bmodel | 0.88          | 
+| BM1684 PCIe  | lprnet_bmcv.pcie | lprnet_fp32_1b.bmodel | 0.88         |
+| BM1684 PCIe  | lprnet_bmcv.pcie | lprnet_int8_1b.bmodel | 0.857         |
+| BM1684 PCIe  | lprnet_bmcv.pcie | lprnet_int8_4b.bmodel | 0.869         |
+| BM1684X PCIe | lprnet_opencv.py | lprnet_fp32_1b.bmodel | 0.894         |
+| BM1684X PCIe | lprnet_opencv.py | lprnet_fp16_1b.bmodel | 0.894         |
+| BM1684X PCIe | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.867         | 
+| BM1684X PCIe | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.88         | 
+| BM1684X PCIe | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.882         | 
+| BM1684X PCIe | lprnet_bmcv.py   | lprnet_fp16_1b.bmodel | 0.882         | 
+| BM1684X PCIe | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.861        | 
+| BM1684X PCIe | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.88        | 
 | BM1684X PCIe | lprnet_opencv.pcie | lprnet_fp32_1b.bmodel | 0.882         | 
 | BM1684X PCIe | lprnet_opencv.pcie | lprnet_fp16_1b.bmodel | 0.882         | 
 | BM1684X PCIe | lprnet_opencv.pcie | lprnet_int8_1b.bmodel | 0.861         | 
 | BM1684X PCIe | lprnet_opencv.pcie | lprnet_int8_4b.bmodel | 0.872         | 
-| BM1684X PCIe | lprnet_bmcv.pcie   | lprnet_fp32_1b.bmodel | 0.882         | 
-| BM1684X PCIe | lprnet_bmcv.pcie   | lprnet_fp16_1b.bmodel | 0.882         | 
-| BM1684X PCIe | lprnet_bmcv.pcie   | lprnet_int8_1b.bmodel | 0.861         | 
-| BM1684X PCIe | lprnet_bmcv.pcie   | lprnet_int8_4b.bmodel | 0.872         | 
-| BM1688 SoC   | lprnet_opencv.py   | lprnet_fp32_1b.bmodel | 0.894         |
-| BM1688 SoC   | lprnet_opencv.py   | lprnet_fp16_1b.bmodel | 0.894         |
-| BM1688 SoC   | lprnet_opencv.py   | lprnet_int8_1b.bmodel | 0.886         | 
-| BM1688 SoC   | lprnet_opencv.py   | lprnet_int8_4b.bmodel | 0.909         | 
-| BM1688 SoC   | lprnet_bmcv.py     | lprnet_fp32_1b.bmodel | 0.895         | 
-| BM1688 SoC   | lprnet_bmcv.py     | lprnet_fp16_1b.bmodel | 0.895         | 
-| BM1688 SoC   | lprnet_bmcv.py     | lprnet_int8_1b.bmodel | 0.878         | 
-| BM1688 SoC   | lprnet_bmcv.py     | lprnet_int8_4b.bmodel | 0.907         | 
-| BM1688 SoC   | lprnet_opencv.soc  | lprnet_fp32_1b.bmodel | 0.894         | 
-| BM1688 SoC   | lprnet_opencv.soc  | lprnet_fp16_1b.bmodel | 0.894         | 
-| BM1688 SoC   | lprnet_opencv.soc  | lprnet_int8_1b.bmodel | 0.879         | 
-| BM1688 SoC   | lprnet_opencv.soc  | lprnet_int8_4b.bmodel | 0.895         | 
-| BM1688 SoC   | lprnet_bmcv.soc    | lprnet_fp32_1b.bmodel | 0.895         | 
-| BM1688 SoC   | lprnet_bmcv.soc    | lprnet_fp16_1b.bmodel | 0.895         | 
-| BM1688 SoC   | lprnet_bmcv.soc    | lprnet_int8_1b.bmodel | 0.878         | 
-| BM1688 SoC   | lprnet_bmcv.soc    | lprnet_int8_4b.bmodel | 0.894         | 
-
+| BM1684X PCIe | lprnet_bmcv.pcie | lprnet_fp32_1b.bmodel | 0.882        | 
+| BM1684X PCIe | lprnet_bmcv.pcie | lprnet_fp16_1b.bmodel | 0.882         | 
+| BM1684X PCIe | lprnet_bmcv.pcie | lprnet_int8_1b.bmodel | 0.861         | 
+| BM1684X PCIe | lprnet_bmcv.pcie | lprnet_int8_4b.bmodel | 0.872         | 
 
 > **测试说明**：  
 
-1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的； 
-2. LPRNet网络中包含mean算子，会把所有batch数据加和求平均，当多batch推理时，同一张图片在不同的batch组合中可能会有不同的推理结果。
-3. BM1688 1core和BM1688 2core的模型精度基本一致；
+1. SoC和PCIe的模型精度一致。 
+2. LPRNet网络中包含mean算子，会把所有batch数据加和求平均，当多batch推理时，同一张图片在不同的batch组合中可能会有不同的推理结果; 
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -224,70 +204,51 @@ bmrt_test --bmodel models/BM1684/lprnet_fp32_1b.bmodel
 测试各个模型的理论推理时间，结果如下：
 
 |            测试模型            | calculate time(ms) |
-| ----------------------------- | -----------------  |
+| ----------------------------- | ----------------- |
 | BM1684/lprnet_fp32_1b.bmodel  | 1.144              |
 | BM1684/lprnet_int8_1b.bmodel  | 1.070              |
-| BM1684/lprnet_int8_4b.bmodel  | 0.304              |
-| BM1684X/lprnet_fp32_1b.bmodel | 0.779              |
-| BM1684X/lprnet_fp16_1b.bmodel | 0.531              |
-| BM1684X/lprnet_int8_1b.bmodel | 0.484              |
+| BM1684/lprnet_int8_4b.bmodel  | 0.304               |
+| BM1684X/lprnet_fp32_1b.bmodel | 0.779             |
+| BM1684X/lprnet_fp16_1b.bmodel | 0.531               |
+| BM1684X/lprnet_int8_1b.bmodel | 0.484               |
 | BM1684X/lprnet_int8_4b.bmodel | 0.229              |
-| BM1688/lprnet_fp32_1b.bmodel  | 3.227              |
-| BM1688/lprnet_fp16_1b.bmodel  | 1.724              |
-| BM1688/lprnet_int8_1b.bmodel  | 1.545              |
-| BM1688/lprnet_int8_4b.bmodel  | 0.567              |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间；
-3. SoC和PCIe的测试结果基本一致 
+3. SoC和PCIe的测试结果基本一致。
 
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/test`，性能测试结果如下：
 |    测试平台  |     测试程序      |      测试模型          |decode_time|preprocess_time|inference_time|postprocess_time| 
-| ----------- | ---------------- | --------------------- | --------   | ---------     | ---------    | ---------  |
-| BM1684 SoC  | lprnet_opencv.py | lprnet_fp32_1b.bmodel | 0.5        | 0.14          | 2.33         | 0.13       |
-| BM1684 SoC  | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.48       | 0.15          | 1.35         | 0.14       |
-| BM1684 SoC  | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.32       | 0.08          | 0.45         | 0.06       |
-| BM1684 SoC  | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.6        | 0.33          | 2.01         | 0.15       |
-| BM1684 SoC  | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.66       | 0.35          | 1.07         | 0.15       |
-| BM1684 SoC  | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.45       | 0.25          | 0.33         | 0.06       |
-| BM1684 SoC  | lprnet_opencv.soc| lprnet_fp32_1b.bmodel | 0.537      | 0.211         | 1.642        | 0.072      |
-| BM1684 SoC  | lprnet_opencv.soc| lprnet_int8_1b.bmodel | 0.696      | 0.277         | 0.656        | 0.077      |
-| BM1684 SoC  | lprnet_opencv.soc| lprnet_int8_4b.bmodel | 0.46       | 0.695         | 0.232        | 0.048      |
-| BM1684 SoC  | lprnet_bmcv.soc  | lprnet_fp32_1b.bmodel | 1.629      | 0.283         | 1.664        | 0.08       |
-| BM1684 SoC  | lprnet_bmcv.soc  | lprnet_int8_1b.bmodel | 1.627      | 0.285         | 0.661        | 0.075      |
-| BM1684 SoC  | lprnet_bmcv.soc  | lprnet_int8_4b.bmodel | 1.184      | 0.647         | 0.233        | 0.047      |
-| BM1684X SoC | lprnet_opencv.py | lprnet_fp32_1b.bmodel | 0.89       | 0.17          | 1.57         | 0.14       |
-| BM1684X SoC | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.96       | 0.2           | 1.43         | 0.16       |
-| BM1684X SoC | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.85       | 0.1           | 0.55         | 0.07       |
-| BM1684X SoC | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.84       | 0.27          | 1.41         | 0.18       |
-| BM1684X SoC | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.86       | 0.27          | 1.01         | 0.19       |
-| BM1684X SoC | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.51       | 0.17          | 0.36         | 0.07       |
-| BM1684X SoC | lprnet_opencv.soc| lprnet_fp32_1b.bmodel | 0.646      | 0.28          | 0.782        | 0.082      |
-| BM1684X SoC | lprnet_opencv.soc| lprnet_int8_1b.bmodel | 0.655      | 0.288         | 0.46         | 0.086      |
-| BM1684X SoC | lprnet_opencv.soc| lprnet_int8_4b.bmodel | 0.459      | 0.838         | 0.933        | 0.212      |
-| BM1684X SoC | lprnet_bmcv.soc  | lprnet_fp32_1b.bmodel | 1.84       | 0.203         | 0.831        | 0.093      |
-| BM1684X SoC | lprnet_bmcv.soc  | lprnet_int8_1b.bmodel | 1.658      | 0.181         | 0.529        | 0.92       |
-| BM1684X SoC | lprnet_bmcv.soc  | lprnet_int8_4b.bmodel | 1.523      | 0.511         | 0.979        | 0.244      |
-| BM1688 SoC  | lprnet_opencv.py | lprnet_fp32_1b.bmodel | 0.54       |  0.15         | 3.06         | 0.15       |
-| BM1688 SoC  | lprnet_opencv.py | lprnet_fp16_1b.bmodel | 0.54       |  0.16         | 1.71         | 0.15       |
-| BM1688 SoC  | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.54       |  0.16         | 1.38         | 0.15       |
-| BM1688 SoC  | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.39       |  0.10         | 0.65         | 0.08       |
-| BM1688 SoC  | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 2.26       |  0.88         | 3.01         | 0.21       |
-| BM1688 SoC  | lprnet_bmcv.py   | lprnet_fp16_1b.bmodel | 2.28       |  0.88         | 1.58         | 0.21       |
-| BM1688 SoC  | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 2.26       |  0.88         | 1.29         | 0.21       |
-| BM1688 SoC  | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 1.84       |  0.71         | 0.52         | 0.09       |
-| BM1688 SoC  | lprnet_opencv.soc| lprnet_fp32_1b.bmodel | 1.53       |  1.11         | 2.31         | 0.10       |
-| BM1688 SoC  | lprnet_opencv.soc| lprnet_fp16_1b.bmodel | 1.54       |  1.12         | 0.88         | 0.10       |
-| BM1688 SoC  | lprnet_opencv.soc| lprnet_int8_1b.bmodel | 1.51       |  1.12         | 0.57         | 0.10       |
-| BM1688 SoC  | lprnet_opencv.soc| lprnet_int8_4b.bmodel | 1.33       |  1.04         | 0.36         | 0.69       |
-| BM1688 SoC  | lprnet_bmcv.soc  | lprnet_fp32_1b.bmodel | 2.17       |  0.69         | 2.34         | 0.09       |
-| BM1688 SoC  | lprnet_bmcv.soc  | lprnet_fp16_1b.bmodel | 2.17       |  0.68         | 0.89         | 0.09       |
-| BM1688 SoC  | lprnet_bmcv.soc  | lprnet_int8_1b.bmodel | 2.12       |  0.68         | 0.59         | 0.09       |
-| BM1688 SoC  | lprnet_bmcv.soc  | lprnet_int8_4b.bmodel | 1.84       |  0.59         | 0.36         | 0.07       |
+| ----------- | ---------------- | --------------------- | -------- | --------- | --------- | --------- |
+| BM1684 SoC  | lprnet_opencv.py | lprnet_fp32_1b.bmodel | 0.5     | 0.14      | 2.33      | 0.13       |
+| BM1684 SoC  | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.48     | 0.15      | 1.35      | 0.14       |
+| BM1684 SoC  | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.32     | 0.08      | 0.45      | 0.06       |
+| BM1684 SoC  | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.6      | 0.33       | 2.01      | 0.15       |
+| BM1684 SoC  | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.66      | 0.35      | 1.07      | 0.15       |
+| BM1684 SoC  | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.45      | 0.25       | 0.33     | 0.06       |
+| BM1684 SoC  | lprnet_opencv.soc | lprnet_fp32_1b.bmodel | 0.537      | 0.211       | 1.642      | 0.072      |
+| BM1684 SoC  | lprnet_opencv.soc | lprnet_int8_1b.bmodel | 0.696      | 0.277       | 0.656      | 0.077      |
+| BM1684 SoC  | lprnet_opencv.soc | lprnet_int8_4b.bmodel | 0.46      | 0.695       | 0.232       | 0.048      |
+| BM1684 SoC  | lprnet_bmcv.soc | lprnet_fp32_1b.bmodel | 1.629      | 0.283       | 1.664     | 0.08      |
+| BM1684 SoC  | lprnet_bmcv.soc | lprnet_int8_1b.bmodel | 1.627      | 0.285       | 0.661      | 0.075      |
+| BM1684 SoC  | lprnet_bmcv.soc | lprnet_int8_4b.bmodel | 1.184      | 0.647      | 0.233       | 0.047      |
+| BM1684X SoC | lprnet_opencv.py | lprnet_fp32_1b.bmodel | 0.89     | 0.17      | 1.57      | 0.14       |
+| BM1684X SoC | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.96     | 0.2      | 1.43      | 0.16       |
+| BM1684X SoC | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.85     | 0.1      | 0.55      | 0.07       |
+| BM1684X SoC | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.84      | 0.27      | 1.41      | 0.18       |
+| BM1684X SoC | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.86      | 0.27       | 1.01       | 0.19       |
+| BM1684X SoC | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.51      | 0.17      | 0.36       | 0.07       |
+| BM1684X SoC | lprnet_opencv.soc | lprnet_fp32_1b.bmodel | 0.646      | 0.28       | 0.782      | 0.082      |
+| BM1684X SoC | lprnet_opencv.soc | lprnet_int8_1b.bmodel | 0.655      | 0.288       | 0.46       | 0.086      |
+| BM1684X SoC | lprnet_opencv.soc | lprnet_int8_4b.bmodel | 0.459      | 0.838       | 0.933       | 0.212      |
+| BM1684X SoC | lprnet_bmcv.soc | lprnet_fp32_1b.bmodel | 1.84      | 0.203       | 0.831      | 0.093      |
+| BM1684X SoC | lprnet_bmcv.soc | lprnet_int8_1b.bmodel | 1.658      | 0.181       | 0.529       | 0.92      |
+| BM1684X SoC | lprnet_bmcv.soc | lprnet_int8_4b.bmodel | 1.523      | 0.511       | 0.979      | 0.244      |
+
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

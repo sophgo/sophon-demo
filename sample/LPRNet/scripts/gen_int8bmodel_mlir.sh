@@ -42,18 +42,6 @@ function gen_int8bmodel()
         --model lprnet_int8_$1b.bmodel
 
     mv lprnet_int8_$1b.bmodel $outdir/
-
-    if test $target = "bm1688";then
-        model_deploy.py \
-            --mlir lprnet_$1b.mlir \
-            --quantize INT8 \
-            --chip $target \
-            --calibration_table lprnet_cali_table \
-            --num_core 2 \
-            --model lprnet_int8_$1b_2core.bmodel
-
-        mv lprnet_int8_$1b_2core.bmodel $outdir/
-    fi
 }
 
 pushd $model_dir

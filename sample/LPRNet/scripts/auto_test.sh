@@ -227,6 +227,7 @@ then
     test_cpp pcie bmcv lprnet_fp32_1b.bmodel ../../datasets/test
     test_cpp pcie bmcv lprnet_int8_4b.bmodel ../../datasets/test
 
+
     eval_python opencv lprnet_fp32_1b.bmodel 0.894
     eval_python opencv lprnet_int8_1b.bmodel 0.858
     eval_python opencv lprnet_int8_4b.bmodel 0.881
@@ -327,51 +328,6 @@ then
     eval_cpp soc bmcv lprnet_fp16_1b.bmodel 0.882
     eval_cpp soc bmcv lprnet_int8_1b.bmodel 0.861
     eval_cpp soc bmcv lprnet_int8_4b.bmodel 0.872
-  elif test $TARGET = "BM1688"
-  then
-    test_python opencv lprnet_fp32_1b.bmodel datasets/test
-    test_python opencv lprnet_int8_4b.bmodel datasets/test
-    test_python bmcv lprnet_fp32_1b.bmodel datasets/test
-    test_python bmcv lprnet_int8_4b.bmodel datasets/test
-    test_cpp soc opencv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test
-
-
-    eval_python opencv lprnet_fp32_1b.bmodel  0.894
-    eval_python opencv lprnet_fp16_1b.bmodel  0.894
-    eval_python opencv lprnet_int8_1b.bmodel  0.886
-    eval_python opencv lprnet_int8_4b.bmodel  0.909
-    eval_python bmcv lprnet_fp32_1b.bmodel    0.895
-    eval_python bmcv lprnet_fp16_1b.bmodel    0.895
-    eval_python bmcv lprnet_int8_1b.bmodel    0.878
-    eval_python bmcv lprnet_int8_4b.bmodel    0.907 
-    eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.894
-    eval_cpp soc opencv lprnet_fp16_1b.bmodel 0.894
-    eval_cpp soc opencv lprnet_int8_1b.bmodel 0.879
-    eval_cpp soc opencv lprnet_int8_4b.bmodel 0.895
-    eval_cpp soc bmcv lprnet_fp32_1b.bmodel   0.895
-    eval_cpp soc bmcv lprnet_fp16_1b.bmodel   0.895
-    eval_cpp soc bmcv lprnet_int8_1b.bmodel   0.878
-    eval_cpp soc bmcv lprnet_int8_4b.bmodel   0.894
-
-    eval_python opencv lprnet_fp32_1b_2core.bmodel  0.894
-    eval_python opencv lprnet_fp16_1b_2core.bmodel  0.894
-    eval_python opencv lprnet_int8_1b_2core.bmodel  0.886
-    eval_python opencv lprnet_int8_4b_2core.bmodel  0.909
-    eval_python bmcv lprnet_fp32_1b_2core.bmodel    0.895
-    eval_python bmcv lprnet_fp16_1b_2core.bmodel    0.895
-    eval_python bmcv lprnet_int8_1b_2core.bmodel    0.878
-    eval_python bmcv lprnet_int8_4b_2core.bmodel    0.907 
-    eval_cpp soc opencv lprnet_fp32_1b_2core.bmodel 0.894
-    eval_cpp soc opencv lprnet_fp16_1b_2core.bmodel 0.894
-    eval_cpp soc opencv lprnet_int8_1b_2core.bmodel 0.879
-    eval_cpp soc opencv lprnet_int8_4b_2core.bmodel 0.895
-    eval_cpp soc bmcv lprnet_fp32_1b_2core.bmodel   0.895
-    eval_cpp soc bmcv lprnet_fp16_1b_2core.bmodel   0.895
-    eval_cpp soc bmcv lprnet_int8_1b_2core.bmodel   0.878
-    eval_cpp soc bmcv lprnet_int8_4b_2core.bmodel   0.894
   fi
 fi
 

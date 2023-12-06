@@ -38,16 +38,6 @@ function gen_fp16bmodel()
         --model lprnet_fp16_$1b.bmodel
 
     mv lprnet_fp16_$1b.bmodel $outdir/
-    if test $target = "bm1688";then
-        model_deploy.py \
-            --mlir lprnet_$1b.mlir \
-            --quantize F16 \
-            --chip $target \
-            --num_core 2 \
-            --model lprnet_fp16_$1b_2core.bmodel
-
-        mv lprnet_fp16_$1b_2core.bmodel $outdir/
-    fi
 }
 
 pushd $model_dir
