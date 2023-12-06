@@ -57,6 +57,19 @@ function gen_int8bmodel()
         --model retinaface_mobilenet0.25_int8_$1b.bmodel
 
     mv retinaface_mobilenet0.25_int8_$1b.bmodel $outdir/
+
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir retinaface_mobilenet0.25_$1b.mlir \
+            --quantize INT8 \
+            --chip $target \
+            --model retinaface_mobilenet0.25_int8_$1b_2core.bmodel \
+            --calibration_table retinaface_mobilenet_cali_table \
+            --quantize_table retinaface_mobilenet0.25_qtable_keep_top3 \
+            --num_core 2 \
+            --debug 
+        mv retinaface_mobilenet0.25_int8_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir

@@ -34,13 +34,15 @@ using namespace cv;
 static void save_imgs(const std::vector<std::vector<stFaceRect> >& results,
                               const vector<cv::Mat>& batch_imgs,
                               const vector<string>& batch_names,
-                              string save_foler) {
+                              string save_foler, ofstream& ofs) {
   ofstream out;
   for (size_t i = 0; i < batch_imgs.size(); i++) {
     //each pic
     cv::Mat img = batch_imgs[i];
     vector<Rect> rcs;
     vector<float> scores;
+    ofs << batch_names[i] << endl;
+    ofs << results[i].size() << endl;
     for (size_t j = 0; j < results[i].size(); j++) {
       //each box
       Rect rc;
@@ -48,6 +50,7 @@ static void save_imgs(const std::vector<std::vector<stFaceRect> >& results,
       rc.y = results[i][j].top;
       rc.width = results[i][j].right - results[i][j].left + 1;
       rc.height = results[i][j].bottom - results[i][j].top + 1;
+      ofs << rc.x << " " << rc.y << " " << rc.width << " " << rc.height << " " << results[i][j].score << endl;
       cv::rectangle(img, rc, cv::Scalar(0, 0, 255), 2, 1, 0);
       rcs.push_back(rc);
       scores.push_back(results[i][j].score);
@@ -72,13 +75,15 @@ static void save_imgs(const std::vector<std::vector<stFaceRect> >& results,
 int main(int argc, const char * argv[]) {
   if (argc < 3) {
     cout << "USAGE:" << endl;
-    cout << "  " << argv[0] << " <input_mode> <image_list/video_list> <bmodel path> " << endl;
+    cout << "  " << argv[0] << " <input_mode> <image_list/video_list> <bmodel path> <nms threshold> <conf threshold> " << endl;
     exit(1);
   }
 
   int input_mode = atoi(argv[1]); // 0 image 1 video
   string input_url = argv[2];
   string bmodel_folder_path = argv[3];
+  float nms_threshold = atof(argv[4]);
+  float conf_threshold = atof(argv[5]);
   int device_id = 0;
 
   string save_foler = "results";
@@ -87,14 +92,20 @@ int main(int argc, const char * argv[]) {
   }
 
   shared_ptr<FaceDetection> face_detection_share_ptr(
-                    new FaceDetection(bmodel_folder_path, device_id));
+                    new FaceDetection(bmodel_folder_path, device_id, nms_threshold));
   FaceDetection* face_detection_ptr = face_detection_share_ptr.get();
+  face_detection_ptr->set_score_threshold(conf_threshold);
 
   struct timeval tpstart, tpend;
   float timeuse = 0.f;
   int batch_size = face_detection_ptr->batch_size();
+  struct timeval infer_tpstart, infer_tpend;
+  float infer_timeuse = 0.f;
+  int img_num = 0;
 
   if (0 == input_mode) { // image mode
+    ofstream ofs;
+    ofs.open(save_foler + "/result.txt", ios::out);
     vector<cv::Mat> batch_imgs;
     vector<string> batch_names;
     vector<string> files_vector;
@@ -121,12 +132,14 @@ int main(int argc, const char * argv[]) {
       batch_names.push_back(img_name);
       if (static_cast<int>(batch_imgs.size()) == batch_size) {
         std::vector<std::vector<stFaceRect> > results;
-        face_detection_ptr->run(batch_imgs, results);
+        face_detection_ptr->run(batch_imgs, results, infer_tpstart, infer_tpend);
         gettimeofday(&tpend, NULL);
         timeuse = 1000000 * (tpend.tv_sec - tpstart.tv_sec) + tpend.tv_usec - tpstart.tv_usec;
         timeuse /= 1000;
+        infer_timeuse += (1000000 * (infer_tpend.tv_sec - infer_tpstart.tv_sec) + infer_tpend.tv_usec - infer_tpstart.tv_usec) / 1000;
+        img_num++;
         cout << "detect used time: " << timeuse << " ms" << endl;
-        save_imgs(results, batch_imgs, batch_names, save_foler);
+        save_imgs(results, batch_imgs, batch_names, save_foler, ofs);
         batch_imgs.clear();
         batch_names.clear();
         gettimeofday(&tpstart, NULL);
@@ -137,18 +150,23 @@ int main(int argc, const char * argv[]) {
           batch_names.push_back(img_name);
         }
         std::vector<std::vector<stFaceRect> > results;
-        face_detection_ptr->run(batch_imgs, results);
+        face_detection_ptr->run(batch_imgs, results, infer_tpstart, infer_tpend);
         gettimeofday(&tpend, NULL);
+        infer_timeuse += (1000000 * (infer_tpend.tv_sec - infer_tpstart.tv_sec) + infer_tpend.tv_usec - infer_tpstart.tv_usec) / 1000;
+        img_num++;
         timeuse = 1000000 * (tpend.tv_sec - tpstart.tv_sec) + tpend.tv_usec - tpstart.tv_usec;
         timeuse /= 1000;
         cout << "detect used time: " << timeuse << " ms" << endl;
-        save_imgs(results, batch_imgs, batch_names, save_foler);
+        save_imgs(results, batch_imgs, batch_names, save_foler, ofs);
         batch_imgs.clear();
         batch_names.clear();
         gettimeofday(&tpstart, NULL);
       }
     }
+    ofs.close();
   } else { // video mode
+    ofstream ofs;
+    ofs.open(save_foler + "/result.txt", ios::out);
     vector <cv::VideoCapture> caps;
     vector <string> cap_srcs;
     char image_path[1024] = {0};
@@ -196,17 +214,22 @@ int main(int argc, const char * argv[]) {
         break;
       }
       std::vector<std::vector<stFaceRect> > results;
-      face_detection_ptr->run(batch_imgs, results);
+      face_detection_ptr->run(batch_imgs, results, infer_tpstart, infer_tpend);
       gettimeofday(&tpend, NULL);
+      infer_timeuse += (1000000 * (infer_tpend.tv_sec - infer_tpstart.tv_sec) + infer_tpend.tv_usec - infer_tpstart.tv_usec) / 1000;
+      img_num++;
       timeuse = 1000000 * (tpend.tv_sec - tpstart.tv_sec) + tpend.tv_usec - tpstart.tv_usec;
       timeuse /= 1000;
       cout << "detect used time: " << timeuse << " ms" << endl;
-      save_imgs(results, batch_imgs, batch_names, save_foler);
+      save_imgs(results, batch_imgs, batch_names, save_foler, ofs);
       batch_imgs.clear();
       batch_names.clear();
       frame_id += 1;
+      ofs.close();
     }
 
   }
+  std::cout << "avg infer time(ms): " << infer_timeuse / img_num << std::endl;
+  std::cout << "QPS: " << img_num * 1000 / infer_timeuse << std::endl;
   return 0;
 }

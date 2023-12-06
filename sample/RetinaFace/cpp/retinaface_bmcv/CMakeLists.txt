@@ -31,8 +31,8 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     set(CMAKE_ASM_COMPILER aarch64-linux-gnu-gcc)
     set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
     set(BM_LIBS bmlib bmrt bmcv yuv)
-    set(JPU_LIBS bmjpuapi bmjpulite)
     set(OPENCV_LIBS opencv_imgproc opencv_core opencv_highgui opencv_imgcodecs opencv_videoio)
+    include_directories("../../../../include/")
     include_directories("${SDK}/include/")
     include_directories("${SDK}/include/opencv4")
     link_directories("${SDK}/lib/")
@@ -41,7 +41,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
 
     aux_source_directory(. SRC_FILES)
     add_executable(retinaface_bmcv.soc ${SRC_FILES})
-    target_link_libraries(retinaface_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS} ${JPU_LIBS})
+    target_link_libraries(retinaface_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS})
 
 endif ()
 

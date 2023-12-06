@@ -1,6 +1,13 @@
 #!/bin/bash
 model_dir=$(dirname $(readlink -f "$0"))
-target=$1
+
+if [ ! $1 ]; then
+    echo "Please set the target chip. Option: BM1684 and BM1684X"
+    exit
+else
+    target=$1
+fi
+
 outdir=../data/models/$target
 
 
