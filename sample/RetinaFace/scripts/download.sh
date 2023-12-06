@@ -17,7 +17,7 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Retinaface/data_0918/videos.zip
     unzip videos.zip -d ../data/
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Retinaface/data_0918/models.zip
-    unzip models.zip -d ../data/S
+    unzip models.zip -d ../data/
     rm images.zip videos.zip models.zip
 else
     echo "Data folder exist! Remove it if you need to update."
