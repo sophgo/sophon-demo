@@ -36,6 +36,18 @@ function gen_fp32bmodel()
         --model yolov3_fp32_$1b.bmodel
 
     mv yolov3_fp32_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir yolov3_$1b.mlir \
+            --quantize F32 \
+            --chip $target \
+            --test_input ../datasets/test/dog.jpg \
+            --test_reference tmp.npz \
+            --model yolov3_fp32_$1b_2core.bmodel \
+            --num_core 2 
+
+        mv yolov3_fp32_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir
