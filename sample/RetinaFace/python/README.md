@@ -16,6 +16,10 @@ $ cd python
 $ pip3 install -r requirements.txt
 ```
 
+```
+注意：若报错ImportError: libGL.so.1: cannot open shared object file: No such file or directory，需要执行命令sudo apt-get install libgl1
+```
+
 ## 1.2 测试命令
 retinaface_opencv.py和retinaface_bmcv.py的命令参数相同，以retinaface_opencv.py的推理为例，参数说明如下：
 
@@ -74,58 +78,3 @@ $ pip3 install -r requirements.txt
 ```
 ### 2.2 测试命令
 Soc平台的测试方法与x86 PCIe平台相同，请参考1.2测试命令。
-
-## 3. 精度与性能测试
-### 3.1 精度测试
-本例程在`tools`目录下提供了精度测试工具，可以将WIDERFACE测试集预测结果与ground truth进行对比，计算出人脸检测ap。具体的测试命令如下：
-```bash
-cd tools/widerface_evaluate
-tar -zxvf widerface_txt.tar.gz
-# 请根据实际情况，将1.2节生成的预测结果txt文件移动至当前文件夹，并将路径填入transfer.py, 并保证widerface_txt/的二级目录为空
-python3 transfer.py   
-python3 setup.py build_ext --inplace
-python3 evaluation.py
-```
-执行完成后，会打印出在widerface easy测试集上的AP：
-```bash
-==================== Results ====================
-Easy   Val AP: 0.892260565399806
-=================================================
-```
-
-### 3.2 性能测试
-可以使用bmrt_test测试模型的理论性能：
-```bash
-bmrt_test --bmodel {path_of_bmodel}
-```
-也可以参考[1.2 测试命令](#1.2-测试命令)打印程序运行中的实际性能指标。  
-测试中性能指标存在一定的波动属正常现象。
-
-### 3.3 测试结果
-[Pytorch_Retinaface](https://github.com/biubug6/Pytorch_Retinaface)中模型使用original image scale在widerface easy测试集上的准确率为90.7%。
-本例程更换resize策略，将图片大小resize到640*640进行推理，在该测试集上准确率为89.2%。
-
-在BM1684X上，不同例程、不同模型的性能测试结果如下：
-|       例程        | 精度  |batch_size|  ACC    | infer_time | QPS        |
-|   ------------    | ---- | -------  |  -----  |  -----     | ---        |
-| retinaface_opencv | fp32 |   1      |  89.2%  |  6.50ms    |  153.9     |
-| retinaface_opencv | fp32 |   4      |  89.2%  |  6.28ms    |  159.3     |
-| retinaface_bmcv   | fp32 |   1      |  89.0%  |  4.84ms    |  206.7     |
-| retinaface_bmcv   | fp32 |   4      |  87.1%  |  4.56ms    |  219.3     |
-
-在BM1684上，不同例程、不同模型的性能测试结果如下：
-|       例程        | 精度   |batch_size|  ACC    | infer_time | QPS        |
-|   ------------    | ----  | -------  |  -----  | -----      | ---        |
-| retinaface_opencv | fp32  |   1      |  89.1%  |  9.07ms    | 110.301122 |
-| retinaface_opencv | fp32  |   4      |  89.1%  |  8.52ms    | 117.421905 |
-| retinaface_bmcv   | fp32  |   1      |  89.1%  |  6.66ms    | 150.184443 |
-| retinaface_bmcv   | fp32  |   4      |  89.1%  |  6.35ms    | 157.523946 |
-
-
-```
-infer_time: 程序运行时每张图的实际推理时间；
-QPS: 程序每秒钟处理的图片数。
-```
-说明：性能测试的结果具有一定的波动性。
-
-
