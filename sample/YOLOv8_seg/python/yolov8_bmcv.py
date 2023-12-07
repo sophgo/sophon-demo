@@ -289,7 +289,8 @@ def main(args):
                             bbox_dict['category_id'] = int(category_id)
                             bbox_dict['score'] = float(round(score,5))
                             res_dict['bboxes'].append(bbox_dict)
-                            
+                            res_dict['segs'].append(rles)
+
                         results_list.append(res_dict)
                         
                         

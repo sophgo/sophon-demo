@@ -286,7 +286,7 @@ def main(args):
                 for i, frame in enumerate(frame_list):
                     boxes, segments, _ =  results[i]
                     cn += 1
-                    logging.info("{}, det nums: {}".format(cn, boxes.shape[0]))
+                    logging.info("{}, det nums: {}".format(cn, len(boxes)))
                     res_frame=yolov8.postprocess.draw_and_visualize("save_name",frame_list[i], boxes, segments, vis=False, save=False)
                     out.write(res_frame)
 
