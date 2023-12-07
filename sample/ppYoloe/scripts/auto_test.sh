@@ -4,7 +4,7 @@ top_dir=$scripts_dir/../
 pushd $top_dir
 
 #default config
-TARGET="BM1684X"
+TARGET="BM1684"
 MODE="pcie_test"
 TPUID=0
 ALL_PASS=1
@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 
 usage()
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -86,22 +86,14 @@ function download()
   judge_ret $? "download" 0
 }
 
-function compile_nntc()
-{
-  ./scripts/gen_fp32bmodel_nntc.sh $TARGET
-  judge_ret $? "generate $TARGET fp32bmodel" 0
-  ./scripts/gen_int8bmodel_nntc.sh $TARGET
-  judge_ret $? "generate $TARGET int8bmodel" 0
-}
-
 function compile_mlir()
 {
   ./scripts/gen_fp32bmodel_mlir.sh $TARGET
   judge_ret $? "generate $TARGET fp32bmodel" 0
+  # ./scripts/gen_int8bmodel_mlir.sh $TARGET
+  # judge_ret $? "generate $TARGET int8bmodel" 0
   ./scripts/gen_fp16bmodel_mlir.sh $TARGET
   judge_ret $? "generate $TARGET fp16bmodel" 0
-  ./scripts/gen_int8bmodel_mlir.sh $TARGET
-  judge_ret $? "generate $TARGET int8bmodel" 0
 }
 
 function build_pcie()
@@ -215,11 +207,7 @@ function eval_python()
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
-if test $MODE = "compile_nntc"
-then
-  download
-  compile_nntc
-elif test $MODE = "compile_mlir"
+if test $MODE = "compile_mlir"
 then
   download
   compile_mlir
@@ -276,25 +264,17 @@ then
     test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test
     test_cpp soc bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test
     test_cpp soc sail ppyoloe_fp32_1b.bmodel ../../datasets/test
-    test_python opencv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
-    test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc sail ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
 
     eval_python opencv ppyoloe_fp32_1b.bmodel 0.3774908679349741
     eval_python bmcv ppyoloe_fp32_1b.bmodel 0.38058603692128434
     eval_cpp soc bmcv ppyoloe_fp32_1b.bmodel 0.37836229565532076
-    eval_cpp soc ppyoloe_fp32_1b.bmodel 0.37836229565532076
+    eval_cpp soc sail ppyoloe_fp32_1b.bmodel 0.37836229565532076
   elif test $TARGET = "BM1684X"
   then
     test_python opencv ppyoloe_fp32_1b.bmodel datasets/test
     test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test
     test_cpp soc bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test
     test_cpp soc sail ppyoloe_fp32_1b.bmodel ../../datasets/test
-    test_python opencv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
-    test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc sail ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
 
     eval_python opencv ppyoloe_fp32_1b.bmodel 0.3774907636324529
     eval_python opencv ppyoloe_fp16_1b.bmodel 0.37712423871409745

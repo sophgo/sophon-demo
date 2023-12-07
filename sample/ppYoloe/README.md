@@ -35,6 +35,8 @@ ppyoloe是百度提出的基于PP-YOLOv2的卓越的单阶段Anchor-free模型�
 ## 3. 准备模型与数据
 推荐您使用新版编译工具链TPU-MLIR编译BModel，目前直接支持的框架有ONNX、Caffe和TFLite，其他框架的模型需要转换成onnx模型。如何将其他深度学习架构的网络模型转换成onnx, 可以参考onnx官网: https://github.com/onnx/tutorials ；ppyoloe模型导出为onnx的方法可参考PaddleDetection官方说明：https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.6/deploy/EXPORT_ONNX_MODEL.md和https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.6/deploy/end2end_ppyoloe/README.md
 
+本demo使用的模型为官方的[ppyoloe_crn_s_400e_coco](https://paddledet.bj.bcebos.com/models/ppyoloe_crn_s_400e_coco.pdparams)，由于模型的后处理较复杂，使用TPU-MLIR将该模型编译为BModel时，指定了模型的输出为模型中间有关目标框的两个输出，p2o.Div.1, p2o.Concat.29，后处理部分则在部署程序中实现。若在转换Bmodel模型要添加参考输入以判断转换的正确性，可以参考[多输入模型npz验证文件制作](./docs/prepare_npz.md)文档。
+
 旧版编译工具链TPU-NNTC更新维护较慢，不推荐您编译使用。
 
 同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
@@ -125,16 +127,16 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | ------------ | ---------------- | ---------------------- | --------------- | ---------- |
 | BM1684 PCIe  | ppyoloe_opencv.py | ppyoloe_fp32_1b.bmodel | 0.377 	     | 0.508      |
 | BM1684 PCIe  | ppyoloe_bmcv.py   | ppyoloe_fp32_1b.bmodel | 0.380 	     | 0.513      |
-| BM1684 PCIe  | ppyoloe_bmcv.pcie | ppyoloe_fp32_1b.bmodel | 0.378          | 0.510      |
-| BM1684 PCIe  | ppyoloe_sail.pcie | ppyoloe_fp32_1b.bmodel | 0.378          | 0.510      |
-| BM1684X PCIe | ppyoloe_opencv.py | ppyoloe_fp32_1b.bmodel | 0.377 	     | 0.508 	  |
-| BM1684X PCIe | ppyoloe_opencv.py | ppyoloe_fp16_1b.bmodel | 0.377 	     | 0.508 	  |
+| BM1684 PCIe  | ppyoloe_bmcv.pcie | ppyoloe_fp32_1b.bmodel | 0.378        | 0.510      |
+| BM1684 PCIe  | ppyoloe_sail.pcie | ppyoloe_fp32_1b.bmodel | 0.378        | 0.510      |
+| BM1684X PCIe | ppyoloe_opencv.py | ppyoloe_fp32_1b.bmodel | 0.377 	     | 0.508 	    |
+| BM1684X PCIe | ppyoloe_opencv.py | ppyoloe_fp16_1b.bmodel | 0.377 	     | 0.508 	    |
 | BM1684X PCIe | ppyoloe_bmcv.py   | ppyoloe_fp32_1b.bmodel | 0.380 	     | 0.513  	  |
-| BM1684X PCIe | ppyoloe_bmcv.py   | ppyoloe_fp16_1b.bmodel | 0.380 	     | 0.513 	  |
-| BM1684X PCIe | ppyoloe_bmcv.pcie | ppyoloe_fp32_1b.bmodel | 0.379 	     | 0.510 	  |
-| BM1684X PCIe | ppyoloe_bmcv.pcie | ppyoloe_fp16_1b.bmodel | 0.378 	     | 0.510 	  |
-| BM1684X PCIe | ppyoloe_sail.pcie | ppyoloe_fp32_1b.bmodel | 0.379 	     | 0.510 	  |
-| BM1684X PCIe | ppyoloe_sail.pcie | ppyoloe_fp16_1b.bmodel | 0.378 	     | 0.510 	  |
+| BM1684X PCIe | ppyoloe_bmcv.py   | ppyoloe_fp16_1b.bmodel | 0.380 	     | 0.513 	    |
+| BM1684X PCIe | ppyoloe_bmcv.pcie | ppyoloe_fp32_1b.bmodel | 0.379 	     | 0.510 	    |
+| BM1684X PCIe | ppyoloe_bmcv.pcie | ppyoloe_fp16_1b.bmodel | 0.378 	     | 0.510 	    |
+| BM1684X PCIe | ppyoloe_sail.pcie | ppyoloe_fp32_1b.bmodel | 0.379 	     | 0.510 	    |
+| BM1684X PCIe | ppyoloe_sail.pcie | ppyoloe_fp16_1b.bmodel | 0.378 	     | 0.510 	    |
 
 > **测试说明**：  
 >
@@ -153,12 +155,12 @@ bmrt_test --bmodel models/BM1684/ppyoloe_fp32_1b.bmodel
 
 |                  测试模型                   | calculate time(ms) |
 | ------------------------------------------- | ----------------- |
-| BM1684/ppyoloe_fp32_1b.bmodel  	      |       26.01       |
-| BM1684/ppyoloe_fp32_4b.bmodel  	      |       25.62       |
-| BM1684X/ppyoloe_fp32_1b.bmodel 	      |       35.80       |
-| BM1684X/ppyoloe_fp32_4b.bmodel 	      |       35.15       |
-| BM1684X/ppyoloe_fp16_1b.bmodel 	      |       10.12       |
-| BM1684X/ppyoloe_fp16_4b.bmodel 	      |       8.90        |
+| BM1684/ppyoloe_fp32_1b.bmodel  	            |       26.01       |
+| BM1684/ppyoloe_fp32_4b.bmodel  	            |       25.62       |
+| BM1684X/ppyoloe_fp32_1b.bmodel 	            |       35.80       |
+| BM1684X/ppyoloe_fp32_4b.bmodel 	            |       35.15       |
+| BM1684X/ppyoloe_fp16_1b.bmodel 	            |       10.12       |
+| BM1684X/ppyoloe_fp16_4b.bmodel 	            |       8.90        |
 
 > **测试说明**：  
 >
@@ -172,18 +174,18 @@ bmrt_test --bmodel models/BM1684/ppyoloe_fp32_1b.bmodel
 在不同的测试平台上，使用不同的例程、模型测试`datasets/val2017_1000`，conf_thresh=0.4，nms_thresh=0.6，性能测试结果如下：
 |    测试平台  |     测试程序      |     测试模型          |decode_time|preprocess_time|inference_time|postprocess_time|
 | ----------- | ---------------- | ---------------------- | -------- | -------------- | ---------     | --------- |
-| BM1684 SoC  | yolox_opencv.py  | ppyoloe_fp32_1b.bmodel | 15.19    | 45.22          | 45.78         | 12.86            |
-| BM1684 SoC  | yolox_bmcv.py    | ppyoloe_fp32_1b.bmodel | 6.82     | 3.58           | 33.72         | 12.83            |
-| BM1684 SoC  | yolox_bmcv.soc   | ppyoloe_fp32_1b.bmodel | 5.02     | 1.72           | 30.78         | 16.91            |
-| BM1684 SoC  | ppyoloeail.soc   | ppyoloe_fp32_1b.bmodel | 3.22     | 4.19           | 31.18         | 7.99             |
-| BM1684X SoC | yolox_opencv.py  | ppyoloe_fp32_1b.bmodel | 3.37     | 41.60          | 43.79         | 12.75            |
-| BM1684X SoC | yolox_opencv.py  | ppyoloe_fp16_1b.bmodel | 3.21     | 40.63          | 24.48         | 12.62            |
-| BM1684X SoC | yolox_bmcv.py    | ppyoloe_fp32_1b.bmodel | 3.05     | 2.68           | 30.28         | 13.09            |
-| BM1684X SoC | yolox_bmcv.py    | ppyoloe_fp16_1b.bmodel | 3.07     | 2.68           | 11.09         | 13.10            |
-| BM1684X SoC | yolox_bmcv.soc   | ppyoloe_fp32_1b.bmodel | 4.42     | 0.98           | 27.03         | 8.64             |
-| BM1684X SoC | yolox_bmcv.soc   | ppyoloe_fp16_1b.bmodel | 4.48     | 1.00           | 7.88          | 8.69             |
-| BM1684X SoC | ppyoloeail.soc   | ppyoloe_fp32_1b.bmodel | 2.78     | 3.28           | 27.44         | 8.04             |
-| BM1684X SoC | ppyoloeail.soc   | ppyoloe_fp16_1b.bmodel | 2.69     | 3.28           | 8.20          | 8.06             |
+| BM1684 SoC  | yolox_opencv.py  | ppyoloe_fp32_1b.bmodel | 15.19    | 45.22          | 45.78         | 12.86     |
+| BM1684 SoC  | yolox_bmcv.py    | ppyoloe_fp32_1b.bmodel | 6.82     | 3.58           | 33.72         | 12.83     |
+| BM1684 SoC  | yolox_bmcv.soc   | ppyoloe_fp32_1b.bmodel | 5.02     | 1.72           | 30.78         | 16.91     |
+| BM1684 SoC  | ppyoloeail.soc   | ppyoloe_fp32_1b.bmodel | 3.22     | 4.19           | 31.18         | 7.99      |
+| BM1684X SoC | yolox_opencv.py  | ppyoloe_fp32_1b.bmodel | 3.37     | 41.60          | 43.79         | 12.75     |
+| BM1684X SoC | yolox_opencv.py  | ppyoloe_fp16_1b.bmodel | 3.21     | 40.63          | 24.48         | 12.62     |
+| BM1684X SoC | yolox_bmcv.py    | ppyoloe_fp32_1b.bmodel | 3.05     | 2.68           | 30.28         | 13.09     |
+| BM1684X SoC | yolox_bmcv.py    | ppyoloe_fp16_1b.bmodel | 3.07     | 2.68           | 11.09         | 13.10     |
+| BM1684X SoC | yolox_bmcv.soc   | ppyoloe_fp32_1b.bmodel | 4.42     | 0.98           | 27.03         | 8.64      |
+| BM1684X SoC | yolox_bmcv.soc   | ppyoloe_fp16_1b.bmodel | 4.48     | 1.00           | 7.88          | 8.69      |
+| BM1684X SoC | ppyoloeail.soc   | ppyoloe_fp32_1b.bmodel | 2.78     | 3.28           | 27.44         | 8.04      |
+| BM1684X SoC | ppyoloeail.soc   | ppyoloe_fp16_1b.bmodel | 2.69     | 3.28           | 8.20          | 8.06      |
 
 > **测试说明**：  
 >

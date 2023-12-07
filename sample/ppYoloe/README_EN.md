@@ -36,6 +36,10 @@ PPYOLOe is a state-of-the-art single-stage anchor-free model, built upon PP-YOLO
 
 It is recommended to use TPU-MLIR to compile BModel, Pytorch model to export to onnx model before compilation. For detail, please see https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.6/deploy/EXPORT_ONNX_MODEL.md and https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.6/deploy/end2end_ppyoloe/README.md
 
+The model used in this demo is the official [ppyoloe_crn_s_400e_coco](https://paddledet.bj.bcebos.com/models/ppyoloe_crn_s_400e_coco.pdparams). Due to the complexity of the post-processing in the model, when compiling this model into a BModel using TPU-MLIR, two outputs related to the bounding boxes in the model are specified, namely, `p2o.Div.1` and `p2o.Concat.29`. The post-processing part is implemented in the deployment program. If you want to add reference inputs to verify the correctness of the Bmodel model conversion, you can refer to the [document](./docs/prepare_npz.md).
+
+The old version of the compilation toolchain TPU-NNTC is slow in terms of updates and maintenance, and it is not recommended for your compilation and usage.
+
 At the same time, you need to prepare datasets for testing and, if quantifying the model, for quantification.
 
 This routine provides download scripts `download.sh` for the relevant models and datasets in the `scripts` directory, or you can prepare the models and datasets yourself and refer to [4. Model Compilation] (#4-model-compilation)for model conversion.
@@ -155,8 +159,8 @@ The theoretical inference time of each model is tested, and the results are as f
 | BM1684/ppyoloe_fp32_4b.bmodel  |       25.62       |
 | BM1684X/ppyoloe_fp32_1b.bmodel |       35.80       |
 | BM1684X/ppyoloe_fp32_4b.bmodel |       35.15       |
-| BM1684X/ppyoloe_fp16_1b.bmodel |       10.12 |
-| BM1684X/ppyoloe_fp16_4b.bmodel |       8.90  |
+| BM1684X/ppyoloe_fp16_1b.bmodel |       10.12       |
+| BM1684X/ppyoloe_fp16_4b.bmodel |       8.90        |
 
 > **Test Description**：  
 > 1. The performance test results have a certain volatility.

@@ -1,14 +1,6 @@
 #!/bin/bash
 pip3 install dfss
 
-res=$(which 7z)
-if [ $? != 0 ];
-then
-    echo "Please install 7z on your system!"
-    echo "To install, use the following command:"
-    echo "sudo apt install p7zip;sudo apt install p7zip-full"
-    exit
-fi
 res=$(which unzip)
 if [ $? != 0 ];
 then
@@ -38,9 +30,10 @@ fi
 # models
 if [ ! -d "../models" ];
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/models.7z
-    7z x models.7z -o../models
-    rm models.7z
+    mkdir -p ../models
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/models.zip
+    unzip models.zip -d ../models
+    rm models.zip
     echo "models download!"
 else
     echo "models exist!"
