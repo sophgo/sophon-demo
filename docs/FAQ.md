@@ -91,6 +91,9 @@ int8bmodel的输入层数据类型是int8，scale不等1，基于opencv-python�
 如果性能下降超过10%，需要确认产品型号，sophon-demo的各个例程都是基于标准版的产品（如SE-16）来测试的，如果您使用的是低配版产品（如SE5-8），性能下降是正常的，SE5-16的int8算力是17.6TOPS，SE5-8是10.6TOPS，所以大概会有2/5的性能损失。
 如果您使用的产品也是标准版，也遇到了性能下降的问题，可以将问题反馈给算能工作人员或者在github上创建issue。
 
+### 6.5 性能测试表格的作用
+sophon-demo提供的性能测试表格一般包含解码、前处理、推理、后处理这四个部分，业界对于算法部署也大多是这么划分的。对于算能的AI处理器而言，这四个部分都是可以并发的，因为它们各自依赖的器件不同，比如解码依赖VPU、前处理依赖VPP、推理依赖TPU、后处理则依赖中央处理器，这些元器件是可以并发工作且不会受到各自影响的。sophon-demo提供的性能测试表格将这些信息列出来，可以直观地分析出当前算法的瓶颈以及它能达到的理论最高每秒处理次数。
+
 ## 7 其他问题
 ### 7.1 编译时出现`Unkown CMake command "add_compile_definitions".`
-这是你的cmake没有add_compile_definition这个函数，可以修改cmakelist相关接口，或者升级cmake到3.12之后。
+这是你的cmake没有add_compile_definition这个函数，可以修改成add_definitions，或者升级cmake到3.12之后。
