@@ -84,5 +84,10 @@ If the performance drops more than 10% compared to the README, you need to confi
 
 If you are also using a standard product and encounter performance degradation issues, you can report the issue to the Sophon team or create an issue on GitHub.
 
+### 6.5 What does the performance test table do?
+The performance test table provided by sophon-demo generally includes four parts: decode\preprocess\inference\postprocess. This is how algorithm deployment is mostly divided in the industry. For Sophgo AI processors, these four parts can all be concurrent because they each rely on different devices. For example, decode relies on VPU, preprocess relies on VPP, inference relies on TPU, and postprocess relies on the central processor. These components can work concurrently without being affected individually. The performance test table provided by sophon-demo lists this information and can intuitively analyze the bottlenecks of the current algorithm and the theoretical maximum number of processing times per second it can achieve.
+
 
 ## 7 Other questions
+### 7.1 `Unkown CMake command "add_compile_definitions".` when compiling C++ programs.
+This is because your cmake do not have `add_compile_definitions` function, you can change it to `add_definitions` or upgrade your cmake to 3.12 or higher.
