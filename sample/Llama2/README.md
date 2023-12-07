@@ -21,11 +21,11 @@ Llama2-7B 是开源对话模型 Llama2-7B 的第二代版本,相比于初代模�
 以下为soc模式相关：
 ### 2.1 方式一
 这里特别提供SE7刷机包，刷机包已经完成环境部署，并且内置llama2_soc版本的程序，刷机包地址如下：
-```
+```bash
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-python3 -m dfss --url=open@sophgo.com:LLM/Llama2-7b/sdcard_llama2-7b.zip
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Llama2/sd_card_llama2-7b.zip
 ```
-刷机方式可以参考[刷机问题](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/faq/html/devices/SOC/soc_firmware_update.html?highlight=%E5%88%B7%E6%9C%BA),在完成刷机后，代码程序在`/data`目录下。当然，还是建议您使用sophon-demo下的程序,它是最新版本的。
+刷机方式可以参考[刷机问题](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/faq/html/devices/SOC/soc_firmware_update.html?highlight=%E5%88%B7%E6%9C%BA),在完成刷机后，代码程序在`/data`目录下。当然，还是建议您使用sophon-demo下的程序,它是最新版本的。 
 
 ## 3. 准备模型
 该模型目前只支持在1684X上运行，已提供编译好的bmodel。
@@ -56,7 +56,8 @@ chmod -R +x scripts/
 │   └── README.md                        #例程使用说明
 ├── models
 │   └── BM1684X                          #bmodel
-│       └─ llama2-7b_int8_1dev.bmodel
+│       ├─ llama2-7b_int4_1dev.bmodel    #int4 单芯模型
+│       └─ llama2-7b_int8_1dev.bmodel    #int8 单芯模型
 ├── tools                                #自行编译模型时会需要的工具
 │   ├── libsophon-distributed            #需要执行多芯运行(仅限多芯卡)所需的libsophon
 │   ├── sentencepiece                    #分词工具
@@ -96,8 +97,8 @@ docker run --privileged --name myname1234 -v $PWD:/workspace -it sophgo/tpuc_dev
 虽然Llama2模型允许商业开源，但是模型下载需要想Meta提交使用申请，因此测试模型时可以使用我们已经下载好的模型
 ```bash
 pip3 install dfss
-python3 -m dfss --url=open@sophgo.com:LLM/Llama2-7B.tgz
-tar zxvf Llama2-7B.tgz
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Llama2/llama2-7b-torch.zip
+unzip llama2-7b-torch.zip
 ```
 将解压后的文件放至scripts/compile路径下
 
@@ -198,14 +199,14 @@ python3 export_onnx.py
 此时有大量onnx模型被导出到compile/tmp目录。
 
 2. 对onnx模型进行编译，生成bmodel，这个过程会花一些时间，最终生成`llama2-7b.bmodel`文件　
-
 ```shell
 ./compile --num_device 1 --mode int8
 ```
 其中num_device决定了后续所需要使用的推理芯片的数量(SOC请使用1), mode目前支持
-"int8"(推荐),
-"f16"(num_device至少为2),
-"int4"(后续升级mlir后可对外开放)
+"int4"(scripts/download.sh 中提供已经转好的bmodel),
+"int8"(scripts/download.sh 中提供已经转好的bmodel),
+"f16"(不提供已经转好的bmodel，编译模型和推理时num_device至少为2),
+提供的模型文件均可以在执行scripts/download.sh 中下载
 
 ## 4. C++例程
 C++例程请参考[C++例程](./cpp/README.md)
