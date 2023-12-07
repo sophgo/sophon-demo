@@ -18,7 +18,6 @@
 #include "bmruntime_interface.h"
 #include <getopt.h>
 
-
 static const int NUM_LAYERS = 32;
 static const int MAX_LEN = 512;
 static const float ATTENTION_MASK = -1000.;
@@ -54,7 +53,7 @@ private:
   void tokenizer_encode(const std::string &input_str, std::vector<int> &tokens);
   int forward_first(std::vector<int> &tokens);
   int forward_next();
-  void move2end(const bm_tensor_t &kv);
+  void step_back(const bm_tensor_t &kv, const bm_tensor_t &kv_cache);
   void load_sentencepiece();
 
 private:
@@ -70,6 +69,8 @@ private:
   bm_tensor_t inputs_lm, outputs_lm;
   bm_tensor_t inputs_pid, next_pid, inputs_attention, next_attention;
   bm_tensor_t past_key[NUM_LAYERS], past_value[NUM_LAYERS];
+  bm_tensor_t present_key[NUM_LAYERS], present_value[NUM_LAYERS];
+  bm_tensor_t present_key_cache, present_value_cache;
   std::string name_embed;
   std::string name_lm;
   std::string name_blocks[NUM_LAYERS];
@@ -99,7 +100,6 @@ void LLama2::init(const std::vector<int> &devices, std::string model) {
     std::cout << d << " ";
   }
   std::cout << "] loading ....\n";
-
   for (auto d : devices) {
     bm_handle_t h;
     bm_status_t status = bm_dev_request(&h, d);
@@ -108,7 +108,6 @@ void LLama2::init(const std::vector<int> &devices, std::string model) {
   }
   bm_handle = handles[0];
   // create bmruntime
-
   #ifdef PCIE_TARGET
       // PCIE
       int device_num = devices.size();
@@ -119,9 +118,8 @@ void LLama2::init(const std::vector<int> &devices, std::string model) {
       // SOC 
       p_bmrt = bmrt_create(bm_handle); 
   #endif
-
   assert(NULL != p_bmrt);
-  
+
   // load bmodel by file
   printf("Model[%s] loading ....\n", model.c_str());
   bool ret = bmrt_load_bmodel(p_bmrt, model.c_str());
@@ -177,7 +175,20 @@ void LLama2::init(const std::vector<int> &devices, std::string model) {
     ret = bmrt_tensor(&past_value[i], p_bmrt, net_blocks[0]->output_dtypes[2],
                       net_blocks[0]->stages[0].output_shapes[2]);
     assert(true == ret);
+    ret = bmrt_tensor(&present_key[i], p_bmrt, net_blocks[0]->output_dtypes[1],
+                      net_blocks[0]->stages[0].output_shapes[1]);
+    assert(true == ret);
+    ret = bmrt_tensor(&present_value[i], p_bmrt, net_blocks[0]->output_dtypes[2],
+                      net_blocks[0]->stages[0].output_shapes[2]);
+    assert(true == ret);
   }
+  ret = bmrt_tensor(&present_key_cache, p_bmrt, net_blocks_cache[0]->output_dtypes[1],
+                    net_blocks_cache[0]->stages[0].output_shapes[1]);
+  assert(true == ret);
+  ret = bmrt_tensor(&present_value_cache, p_bmrt, net_blocks_cache[0]->output_dtypes[2],
+                    net_blocks_cache[0]->stages[0].output_shapes[2]);
+  assert(true == ret);
+
   ret = bmrt_tensor(&inputs_lm, p_bmrt, net_lm->input_dtypes[0],
                     net_lm->stages[0].input_shapes[0]);
   assert(true == ret);
@@ -195,9 +206,13 @@ void LLama2::deinit() {
   bm_free_device(bm_handle, next_pid.device_mem);
   bm_free_device(bm_handle, inputs_attention.device_mem);
   bm_free_device(bm_handle, next_attention.device_mem);
+  bm_free_device(bm_handle, present_key_cache.device_mem);
+  bm_free_device(bm_handle, present_value_cache.device_mem);
   for (int i = 0; i < NUM_LAYERS; i++) {
     bm_free_device(bm_handle, past_key[i].device_mem);
     bm_free_device(bm_handle, past_value[i].device_mem);
+    bm_free_device(bm_handle, present_key[i].device_mem);
+    bm_free_device(bm_handle, present_value[i].device_mem);
   }
   bmrt_destroy(p_bmrt);
   for (auto h : handles) {
@@ -205,23 +220,29 @@ void LLama2::deinit() {
   }
 }
 
-// after first block, move real result to end of mem
-void LLama2::move2end(const bm_tensor_t &kv) {
+void LLama2::step_back(const bm_tensor_t &kv, const bm_tensor_t &kv_cache) {
   if (token_length >= MAX_LEN) {
     return;
   }
   auto total_size = bm_mem_get_device_size(kv.device_mem);
   auto bytes = total_size / MAX_LEN;
-  auto real_size = token_length * bytes;
+  auto real_size = (token_length - 1) * bytes;
+  auto offset = (MAX_LEN - token_length + 1) * bytes;
   auto mem =
-      bm_mem_from_device(bm_mem_get_device_addr(kv.device_mem), real_size);
+      bm_mem_from_device(bm_mem_get_device_addr(kv.device_mem) + offset, real_size);
+  auto mem_cache =
+      bm_mem_from_device(bm_mem_get_device_addr(kv_cache.device_mem), bytes);
   auto buffer = new uint8_t[real_size];
+  auto buffer_cache = new uint8_t[bytes];
   auto dst = new uint8_t[total_size];
   bm_memcpy_d2s(bm_handle, (void *)buffer, mem);
-  memset(dst, 0, total_size - real_size);
-  memcpy(dst + total_size - real_size, buffer, real_size);
+  bm_memcpy_d2s(bm_handle, (void *)buffer_cache, mem_cache);
+  // memset(dst, 0, total_size - real_size);
+  memcpy(dst + total_size - real_size - bytes, buffer, real_size);
+  memcpy(dst + total_size - bytes, buffer_cache, bytes);
   bm_memcpy_s2d(bm_handle, kv.device_mem, (void *)dst);
   delete[] buffer;
+  delete[] buffer_cache;
   delete[] dst;
 }
 
@@ -230,18 +251,17 @@ int LLama2::forward_first(std::vector<int> &tokens) {
   int position_id[MAX_LEN] = {0};
   float attention_mask[MAX_LEN * MAX_LEN] = {0};
   token_length = tokens.size();
-  int offset = MAX_LEN - token_length;
-
-  std::copy(tokens.begin(), tokens.end(), input_ids + offset);
-  for (int i = offset; i < MAX_LEN; i++) {
-    position_id[i] = i - offset;
+  
+  std::copy(tokens.begin(), tokens.end(), input_ids);
+  for (int i = 0; i < token_length; i++) {
+    position_id[i] = i;
   }
 
-  std::fill_n(attention_mask, MAX_LEN * MAX_LEN, ATTENTION_MASK);
-  for (int i = offset; i < MAX_LEN; i++) {
-    for (int j = offset; j < MAX_LEN; j++) {
-      if (j <= i) {
-        attention_mask[i * MAX_LEN + j] = 0.f;
+  for (int i = 0; i < MAX_LEN; i++) {
+    for (int j = 0; j < MAX_LEN; j++) {
+      if (j <= i && i < token_length) {
+      } else {
+        attention_mask[i * MAX_LEN + j] = ATTENTION_MASK;
       }
     }
   }
@@ -266,13 +286,10 @@ int LLama2::forward_first(std::vector<int> &tokens) {
                                 outputs_block, 3, true, false);
     assert(ret);
     bm_thread_sync(bm_handle);
-
-    // move2end(past_key[i]);
-    // move2end(past_value[i]);
   }
   int bytes = inputs_embed.device_mem.size / MAX_LEN;
   bm_memcpy_d2d_byte(bm_handle, inputs_lm.device_mem, 0,
-                     inputs_embed.device_mem, (MAX_LEN - 1) * bytes,
+                     inputs_embed.device_mem, (token_length - 1) * bytes,
                      bytes);
   ret = bmrt_launch_tensor_ex(p_bmrt, name_lm.c_str(), &inputs_lm, 1,
                               &outputs_lm, 1, true, false);
@@ -285,7 +302,7 @@ int LLama2::forward_first(std::vector<int> &tokens) {
 
 int LLama2::forward_next() {
   float attention_mask[MAX_LEN + 1] = {0};
-  for (int i = 0; i <= MAX_LEN - token_length; i++) {
+  for (int i = token_length - 1; i < MAX_LEN; i++) {
     attention_mask[i] = ATTENTION_MASK;
   }
   int32_t position_id = token_length - 1;
@@ -301,14 +318,22 @@ int LLama2::forward_next() {
   bm_memcpy_s2d(bm_handle, next_pid.device_mem, (void *)&position_id);
   auto inputs_embed = inputs_lm;
   inputs_embed.shape = net_blocks_cache[0]->stages[0].input_shapes[0];
+  int bytes = bm_mem_get_device_size(present_key_cache.device_mem);
+  int token_offset = (token_length - 1) * bytes;
   for (int i = 0; i < NUM_LAYERS; i++) {
     bm_tensor_t inputs_block[5] = {inputs_embed, next_pid, next_attention,
                                    past_key[i], past_value[i]};
-    bm_tensor_t outputs_block[3] = {inputs_embed, past_key[i], past_value[i]};
+    bm_tensor_t outputs_block[3] = {inputs_embed, present_key_cache, present_value_cache};
     ret = bmrt_launch_tensor_ex(p_bmrt, name_blocks_cache[i].c_str(),
                                 inputs_block, 5, outputs_block, 3, true, false);
     assert(ret);
     bm_thread_sync(bm_handle);
+    bm_memcpy_d2d_byte(bm_handle, past_key[i].device_mem, token_offset,
+                       present_key_cache.device_mem, 0,
+                       bytes);
+    bm_memcpy_d2d_byte(bm_handle, past_value[i].device_mem, token_offset,
+                       present_value_cache.device_mem, 0,
+                       bytes);
   }
   outputs_lm.shape = net_lm->stages[0].output_shapes[0];
   ret = bmrt_launch_tensor_ex(p_bmrt, name_lm.c_str(), &inputs_lm, 1,
@@ -325,9 +350,15 @@ void LLama2::chat() {
     std::cout << "\nQuestion: ";
     std::string input_str;
     std::getline(std::cin, input_str);
+    std::string sys_config = R"(
+            [INST] <<SYS>>\nYou are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
+
+            If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.\n<</SYS>>\n\n{} [/INST]
+            )";
     if (input_str == "exit") {
       break;
     }
+    input_str = sys_config + "\nQuestion:" + input_str + "\nAnswer:";
     std::cout << "\nAnswer: " << std::flush;
     answer(input_str);
     std::cout << std::endl;
@@ -338,7 +369,7 @@ void LLama2::answer(const std::string &input_str) {
   // history += ("[Round " + std::to_string(round + 1) + "]\n\n问：" + input_str +
   //             "\n\n答：");
   history = input_str;
-  int tok_num = 1;
+  int tok_num = 0;
   std::vector<int> tokens;
   sentencepiece.Encode(history, &tokens);
   tokens.insert(tokens.begin(), 1);
@@ -360,9 +391,14 @@ void LLama2::answer(const std::string &input_str) {
     answer(input_str);
     return;
   }
-  auto st = std::chrono::system_clock::now();
+  auto st_ftl = std::chrono::system_clock::now();
   int pre_token = 0;
   int token = forward_first(tokens);
+  auto et_tfl = std::chrono::system_clock::now();
+  auto duration_ftl =
+    std::chrono::duration_cast<std::chrono::microseconds>(et_tfl - st_ftl);
+  
+  auto st_tps = std::chrono::system_clock::now();
   while (token != EOS && token_length < MAX_LEN) {
     std::string pre_word;
     std::string word;
@@ -379,10 +415,11 @@ void LLama2::answer(const std::string &input_str) {
     tok_num++;
     token = forward_next();
   }
-  auto et = std::chrono::system_clock::now();
-  auto duration =
-      std::chrono::duration_cast<std::chrono::microseconds>(et - st);
-  printf("\nspeed: %f token/s\n", tok_num / (duration.count() * 1e-6));
+  auto et_tps = std::chrono::system_clock::now();
+  auto duration_tps =
+      std::chrono::duration_cast<std::chrono::microseconds>(et_tps - st_tps);
+  printf("\nFTL: %f s, TPS: %f token/s\n", duration_ftl.count() * 1e-6, tok_num / (duration_tps.count() * 1e-6));
+
   if (token_length >= MAX_LEN) {
     round = 0;
     history = history.substr(history.size() / 2);
@@ -445,15 +482,15 @@ void processArguments(int argc, char *argv[], std::string &llama_model,
 int main(int argc, char **argv) {
   // set your bmodel path here
   printf("Demo for LLama2-7B in BM1684X\n");
-  std::string llama_model = "llama2-7b_f16_2dev.bmodel";
+  std::string llama_model = "llama2-7b_int4_2dev.bmodel";
   std::vector<int> devices = {0};
   processArguments(argc, argv, llama_model, devices);
 
-  LLama2 glm;
+  LLama2 llama;
   printf("Init Environment ...\n");
-  glm.init(devices, llama_model);
+  llama.init(devices, llama_model);
   printf("==========================\n");
-  glm.chat();
-  glm.deinit();
+  llama.chat();
+  llama.deinit();
   return 0;
 }
