@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "yolov8.hpp"
+
 #include <fstream>
 #include <string>
 #include <vector>
@@ -226,7 +227,6 @@ float YoloV8::get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h
 int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8BoxVec>& detected_boxes) {
     YoloV8BoxVec yolobox_vec;
 
-
     std::vector<std::shared_ptr<BMNNTensor>> outputTensors(output_num);
 
     for (int i = 0; i < output_num; i++) {
@@ -246,24 +246,24 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
         auto out_tensor = outputTensors[min_idx];
         auto out_tensor1 = outputTensors[1];
         float* out1 = out_tensor1->get_cpu_data();
-        const bm_shape_t* shape1=out_tensor1->get_shape();
+        const bm_shape_t* shape1 = out_tensor1->get_shape();
         int dims = 4;
-        int sizes[] = {shape1->dims[0], shape1->dims[1], shape1->dims[2], shape1->dims[3]}; 
-        cv::Mat output1(dims, sizes, CV_32F, out1+batch_idx*shape1->dims[2]*shape1->dims[1]* shape1->dims[3]);
+        int sizes[] = {shape1->dims[0], shape1->dims[1], shape1->dims[2], shape1->dims[3]};
+        cv::Mat output1(dims, sizes, CV_32F, out1 + batch_idx * shape1->dims[2] * shape1->dims[1] * shape1->dims[3]);
 #if USE_ASPECT_RATIO
 
         bool isAlignWidth = false;
         float ratio = get_aspect_scaled_ratio(frame_width, frame_height, m_net_w, m_net_h, &isAlignWidth);
-        int tx1=0,ty1=0;
+        int tx1 = 0, ty1 = 0;
         if (isAlignWidth) {
             ty1 = (int)((m_net_h - frame_height * ratio) / 2);  // padding 大小
-    
         } else {
             tx1 = (int)((m_net_w - frame_width * ratio) / 2);
         }
-        ImageInfo para = { cv::Size(frame_width,frame_height) ,{ ratio ,ratio,tx1,ty1 } };
+        ImageInfo para = {cv::Size(frame_width, frame_height), {ratio, ratio, tx1, ty1}};
 #else
-        ImageInfo para = { cv::Size(frame_width,frame_height) ,{ m_net_w/frame_width, m_net_h/frame_height,tx1,ty1 } };
+        ImageInfo para = {cv::Size(frame_width, frame_height),
+                          {m_net_w / frame_width, m_net_h / frame_height, tx1, ty1}};
 #endif
         m_class_num = out_tensor->get_shape()->dims[1] - mask_num - 4;
         int feat_num = out_tensor->get_shape()->dims[2];
@@ -299,7 +299,7 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
                     box.y1 = centerY - height / 2 + c;
                     box.x2 = box.x1 + width;
                     box.y2 = box.y1 + height;
-                    box.mask=vector<float>(output_data + 4 + m_class_num, output_data + nout);
+                    box.mask = vector<float>(output_data + 4 + m_class_num, output_data + nout);
 
                     yolobox_vec.push_back(box);
                 }
@@ -330,10 +330,11 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
                 box.y1 = centerY - height / 2 + c;
                 box.x2 = box.x1 + width;
                 box.y2 = box.y1 + height;
-                for(int k=0;k<mask_num;k++){
-                    box.mask.push_back(output_data[i+(nout-mask_num+k)*feat_num]);
+                for (int k = 0; k < mask_num; k++) {
+                    box.mask.push_back(output_data[i + (nout - mask_num + k) * feat_num]);
                 }
-                // box.mask=std::vector<float>(output_data+(nout-mask_num)*feat_num + 4 + m_class_num, output_data + nout);
+                // box.mask=std::vector<float>(output_data+(nout-mask_num)*feat_num
+                // + 4 + m_class_num, output_data + nout);
                 yolobox_vec.push_back(box);
             }
 #endif
@@ -357,8 +358,8 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
 
         // float tx1 = 0, ty1 = 0;
         // bool isAlignWidth = false;
-        // float ratio = get_aspect_scaled_ratio(frame.width, frame.height, m_net_w, m_net_h, &isAlignWidth);
-        // if (isAlignWidth) {
+        // float ratio = get_aspect_scaled_ratio(frame.width, frame.height,
+        // m_net_w, m_net_h, &isAlignWidth); if (isAlignWidth) {
         //     ty1 = (m_net_h - (float)(frame_height * ratio)) / 2;
         // } else {
         //     tx1 = (m_net_w - (float)(frame_width * ratio)) / 2;
@@ -375,125 +376,70 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
             yolobox_vec[i].y2 = centery + height / 2;
         }
         clip_boxes(yolobox_vec, frame_width, frame_height);
-        
+
         LOG_TS(m_ts, "post 3: nms");
 
         LOG_TS(m_ts, "post 4: get mask");
 
         for (int i = 0; i < yolobox_vec.size(); i++) {
-            if(yolobox_vec[i].x2>yolobox_vec[i].x1+1&&yolobox_vec[i].y2>yolobox_vec[i].y1+1){
-                get_mask(cv::Mat(yolobox_vec[i].mask).t(), output1,para,cv::Rect{yolobox_vec[i].x1,yolobox_vec[i].y1,yolobox_vec[i].x2-yolobox_vec[i].x1,yolobox_vec[i].y2-yolobox_vec[i].y1},yolobox_vec[i].mask_img);
+            // std::cout<<yolobox_vec[i].mask[0]<<std::endl;
+            if (yolobox_vec[i].x2 > yolobox_vec[i].x1 + 1 && yolobox_vec[i].y2 > yolobox_vec[i].y1 + 1) {
+                get_mask(cv::Mat(yolobox_vec[i].mask).t(), output1, para,
+                         cv::Rect{yolobox_vec[i].x1, yolobox_vec[i].y1, yolobox_vec[i].x2 - yolobox_vec[i].x1,
+                                  yolobox_vec[i].y2 - yolobox_vec[i].y1},
+                         yolobox_vec[i].mask_img);
                 yolobox_vec_tmp.push_back(yolobox_vec[i]);
-
             }
         }
         detected_boxes.push_back(yolobox_vec_tmp);
         LOG_TS(m_ts, "post 4: get mask");
-
     }
 
     return 0;
 }
-void YoloV8::get_mask(const cv::Mat& mask_info, const cv::Mat& mask_data, const ImageInfo& para, cv::Rect bound, cv::Mat& mast_out)
-{
-	cv::Vec4f trans = para.trans;
-	// int r_x = floor((bound.x * trans[0] + trans[2]) / 640 * 160);
-	// int r_y = floor((bound.y * trans[1] + trans[3]) / 640 * 160);
-	// int r_w = ceil(((bound.x+bound.width) * trans[0] + trans[2]) / 640 * 160) - r_x;
-	// int r_h = ceil(((bound.y+bound.height) * trans[1] + trans[3]) / 640 * 160) - r_y;
-	// r_w = MAX(r_w, 1);
-	// r_h = MAX(r_h, 1);
-	// if (r_x + r_w > 160) //crop
-	// {
-	// 	160 - r_x > 0 ? r_w = 160 - r_x : r_x -= 1;
-	// }
-	// if (r_y + r_h > 160)
-	// {
-	// 	160 - r_y > 0 ? r_h = 160 - r_y : r_y -= 1;
-	// }
-    
-	// std::vector<cv::Range> roi_rangs = { cv::Range(0, 1) ,cv::Range::all() , cv::Range(r_y, r_h + r_y) ,cv::Range(r_x, r_w + r_x) };
-	// // cout<<r_y<<' '<<r_h + r_y<<' '<<r_x<<' '<<r_w + r_x<<endl;
-    // cv::Mat temp_mask = mask_data(roi_rangs).clone();//crop
-	// cv::Mat protos = temp_mask.reshape(0, { 32,r_w * r_h });
-	// cv::Mat matmul_res = (mask_info * protos).t();
-	// cv::Mat masks_feature = matmul_res.reshape(1, { r_h,r_w });
-	// // cv::Mat dest;
-	// // exp(-masks_feature, dest);//sigmoid
-	// // dest = 1.0 / (1.0 + dest);
-	// int left = bound.x;//floor((4 * r_x - trans[2]) / trans[0]);
-	// int top = bound.y;//floor((4 * r_y - trans[3]) / trans[1]);
-	// int width =bound.width;//ceil(4 * r_w / trans[0]);
-	// int height =bound.height;//ceil(4 * r_h / trans[1]);
-	// cv::Mat mask;
-	// resize(masks_feature, mask, cv::Size(width, height));
-    
-    // // cout<<bound - cv::Point(left, top)<<endl;
-    // // cv::Rect oo=bound - cv::Point(left, top);
-    // // if(oo.x+oo.width>=mask.cols){
-    // //    oo.width= mask.cols-oo.x-1;
-    // // }
-    // // if(oo.y+oo.height>=mask.rows){
-    // //    oo.height= mask.rows-oo.y-1;
-    // // }
-    // // // std::cout<<oo<<std::endl;
-    // // if(oo.width==0) oo.width++;
-    // // if(oo.height==0) oo.height++;
-
-    // // std::cout<<mask.rows<<' '<<mask.cols<<std::endl;
-    // // std::cout<<mask(bound - cv::Point(left, top))<<std::endl;
-	// mast_out = mask(bound - cv::Point(left, top)) > m_nmsThreshold;
-
+void YoloV8::get_mask(const cv::Mat& mask_info,
+                      const cv::Mat& mask_data,
+                      const ImageInfo& para,
+                      cv::Rect bound,
+                      cv::Mat& mast_out) {
+    cv::Vec4f trans = para.trans;
     int r_x = floor((0 * trans[0] + trans[2]) / 640 * 160);
-	int r_y = floor((0 * trans[1] + trans[3]) / 640 * 160);
-	int r_w = ceil(((para.raw_size.width) * trans[0] + trans[2]) / 640 * 160) - r_x;
-	int r_h = ceil(((para.raw_size.height) * trans[1] + trans[3]) / 640 * 160) - r_y;
-	r_w = MAX(r_w, 1);
-	r_h = MAX(r_h, 1);
-	if (r_x + r_w > 160) //crop
-	{
-		160 - r_x > 0 ? r_w = 160 - r_x : r_x -= 1;
-	}
-	if (r_y + r_h > 160)
-	{
-		160 - r_y > 0 ? r_h = 160 - r_y : r_y -= 1;
-	}
-   
-	std::vector<cv::Range> roi_rangs = { cv::Range(0, 1) ,cv::Range::all() , cv::Range(r_y, r_h + r_y) ,cv::Range(r_x, r_w + r_x) };
-    cv::Mat temp_mask = mask_data(roi_rangs).clone();//crop
-	cv::Mat protos = temp_mask.reshape(0, { 32,r_w * r_h });
-	cv::Mat matmul_res = (mask_info * protos).t();
-	cv::Mat masks_feature = matmul_res.reshape(1, { r_h,r_w });
-	// cv::Mat dest;
-	// exp(-masks_feature, dest);//sigmoid
-	// dest = 1.0 / (1.0 + dest);
-	int left = bound.x;//floor((4 * r_x - trans[2]) / trans[0]);
-	int top = bound.y;//floor((4 * r_y - trans[3]) / trans[1]);
-	int width =bound.width;//ceil(4 * r_w / trans[0]);
-	int height =bound.height;//ceil(4 * r_h / trans[1]);
-	cv::Mat mask;
-	resize(masks_feature, mask, cv::Size(para.raw_size.width, para.raw_size.height));
-    
-	mast_out = mask(bound) > m_nmsThreshold;
+    int r_y = floor((0 * trans[1] + trans[3]) / 640 * 160);
+    int r_w = ceil(((para.raw_size.width) * trans[0] + trans[2]) / 640 * 160) - r_x;
+    int r_h = ceil(((para.raw_size.height) * trans[1] + trans[3]) / 640 * 160) - r_y;
+    r_w = MAX(r_w, 1);
+    r_h = MAX(r_h, 1);
+    if (r_x + r_w > 160) {  // crop
+        160 - r_x > 0 ? r_w = 160 - r_x : r_x -= 1;
+    }
+    if (r_y + r_h > 160) {
+        160 - r_y > 0 ? r_h = 160 - r_y : r_y -= 1;
+    }
+
+    std::vector<cv::Range> roi_rangs = {cv::Range(0, 1), cv::Range::all(), cv::Range(r_y, r_h + r_y),
+                                        cv::Range(r_x, r_w + r_x)};
+    cv::Mat temp_mask = mask_data(roi_rangs).clone();  // crop
+    cv::Mat protos = temp_mask.reshape(0, {32, r_w * r_h});
+    cv::Mat matmul_res = (mask_info * protos).t();
+    cv::Mat masks_feature = matmul_res.reshape(1, {r_h, r_w});
+    // cv::Mat dest;
+    // exp(-masks_feature, dest);//sigmoid
+    // dest = 1.0 / (1.0 + dest);
+    int left = bound.x;         
+    int top = bound.y;          
+    int width = bound.width;    
+    int height = bound.height;  
+    cv::Mat mask;
+    resize(masks_feature, mask, cv::Size(para.raw_size.width, para.raw_size.height));
+
+    mast_out = mask(bound) > m_nmsThreshold;
 }
 void YoloV8::clip_boxes(YoloV8BoxVec& yolobox_vec, int src_w, int src_h) {
     for (int i = 0; i < yolobox_vec.size(); i++) {
-        if (yolobox_vec[i].x1 < 0)
-            yolobox_vec[i].x1 = 0;
-        else if (yolobox_vec[i].x1 > src_w)
-            yolobox_vec[i].x1 = src_w;
-        if (yolobox_vec[i].y1 < 0)
-            yolobox_vec[i].y1 = 0;
-        else if (yolobox_vec[i].y1 > src_h)
-            yolobox_vec[i].y1 = src_h;
-        if (yolobox_vec[i].x2 < 0)
-            yolobox_vec[i].x2 = 0;
-        else if (yolobox_vec[i].x2 > src_w)
-            yolobox_vec[i].x2 = src_w;
-        if (yolobox_vec[i].y2 < 0)
-            yolobox_vec[i].y2 = 0;
-        else if (yolobox_vec[i].y2 > src_h)
-            yolobox_vec[i].y2 = src_h;
+        yolobox_vec[i].x1 = std::max((float)0.0, std::min(yolobox_vec[i].x1, (float)src_w));
+        yolobox_vec[i].y1 = std::max((float)0.0, std::min(yolobox_vec[i].y1, (float)src_h));
+        yolobox_vec[i].x2 = std::max((float)0.0, std::min(yolobox_vec[i].x2, (float)src_w));
+        yolobox_vec[i].y2 = std::max((float)0.0, std::min(yolobox_vec[i].y2, (float)src_h));
     }
 }
 
@@ -540,27 +486,115 @@ void YoloV8::NMS(YoloV8BoxVec& dets, float nmsConfidence) {
         index--;
     }
 }
-void YoloV8::draw_result(cv::Mat &img, YoloV8BoxVec& result)
-{
-	cv::Mat mask = img.clone();
+void YoloV8::draw_result(cv::Mat& img, YoloV8BoxVec& result) {
+    cv::Mat mask = img.clone();
+    for (int i = 0; i < result.size(); i++) {
+        int left, top;
+        left = result[i].x1;
+        top = result[i].y1;
+        int color_num = i;
+        cv::Scalar color(colors[result[i].class_id % 25][0], colors[result[i].class_id % 25][1],
+                         colors[result[i].class_id % 25][2]);
+        cv::Rect bound = {result[i].x1, result[i].y1, result[i].x2 - result[i].x1, result[i].y2 - result[i].y1};
 
-	for (int i = 0; i < result.size(); i++)
-	{
-		int left, top;
-		left = result[i].x1;
-		top = result[i].y1;
-		int color_num = i;
-        cv::Scalar color(colors[result[i].class_id%25][0],colors[result[i].class_id%25][1],colors[result[i].class_id%25][2]);
-        cv::Rect bound={result[i].x1,result[i].y1,result[i].x2-result[i].x1,result[i].y2-result[i].y1};
-		rectangle(img, bound, color, 2);
-		if (result[i].mask_img.rows && result[i].mask_img.cols > 0)
-		{
+        rectangle(img, bound, color, 2);
+        if (result[i].mask_img.rows && result[i].mask_img.cols > 0) {
             mask(bound).setTo(color, result[i].mask_img);
-		}
-		std::string label = std::string(m_class_names[result[i].class_id])+std::to_string(result[i].score);
-		putText(img, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 1, color, 2);
-	}
-	addWeighted(img, 0.6, mask, 0.4, 0, img); //add mask to src
-
+        }
+        std::string label = std::string(m_class_names[result[i].class_id]) + std::to_string(result[i].score);
+        putText(img, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 1, color, 2);
+    }
+    addWeighted(img, 0.6, mask, 0.4, 0, img);  // add mask to src
 }
 
+void YoloV8::draw_bmcv(bm_handle_t& handle,
+                       bm_image& frame,  // Draw the predicted bounding box
+                       YoloV8BoxVec& result,
+                       bool put_text_flag) {
+    if (frame.image_format != FORMAT_RGB_PLANAR) {
+        bm_image frame2;
+        bm_image_create(handle, frame.height, frame.width, FORMAT_RGB_PLANAR, frame.data_type, &frame2);
+        bmcv_image_storage_convert(handle, 1, &frame, &frame2);
+        bm_image_destroy(frame);
+        frame = frame2;
+    }
+    for (int i = 0; i < result.size(); i++) {
+        int left, top, width, height;
+        left = result[i].x1;
+        top = result[i].y1;
+        width = result[i].x2 - result[i].x1;
+        height = result[i].y2 - result[i].y1;
+        cv::Mat mask_img = result[i].mask_img;
+        int color_num = i;
+        cv::Scalar color(colors[result[i].class_id % 25][0], colors[result[i].class_id % 25][1],
+                         colors[result[i].class_id % 25][2]);
+        cv::Rect bound = {result[i].x1, result[i].y1, result[i].x2 - result[i].x1, result[i].y2 - result[i].y1};
+        bm_image mask_bmimg;
+        bm_image mask_bmimg_align;
+        bm_image mask_bmimg_tmp;
+        bm_image mask_bmimg_padding;
+        auto ret =
+            bm_image_create(handle, mask_img.rows, mask_img.cols, frame.image_format, frame.data_type, &mask_bmimg);
+        ret =
+            bm_image_create(handle, mask_img.rows, mask_img.cols, frame.image_format, frame.data_type, &mask_bmimg_tmp);
+        int stride[8];
+        stride[0] = FFALIGN(frame.width, 64);
+
+        ret = bm_image_create(handle, frame.height, frame.width, frame.image_format, frame.data_type,
+                              &mask_bmimg_padding, stride);
+        cv::bmcv::toBMI(mask_img, &mask_bmimg_tmp, 1);
+        bm_image_get_stride(mask_bmimg, stride);
+        stride[0] = FFALIGN(stride[0], 64);
+        ret = bm_image_create(handle, mask_img.rows, mask_img.cols, frame.image_format, frame.data_type,
+                              &mask_bmimg_align, stride);
+        bm_image_alloc_dev_mem_heap_mask(mask_bmimg_align, 6);
+        bmcv_convert_to_attr_s bmcv_convert_to_attr = {color[0] / 255.0, 0, color[1] / 255.0, 0, color[2] / 255.0, 0};
+
+        bmcv_image_storage_convert(handle, 1, &mask_bmimg_tmp, &mask_bmimg);
+        bmcv_image_convert_to(handle, 1, bmcv_convert_to_attr, &mask_bmimg, &mask_bmimg);
+
+        bmcv_width_align(handle, mask_bmimg, mask_bmimg_align);
+        bmcv_copy_to_atrr_s attr = {left, top, 0, 0, 0, 0};
+
+        bmcv_padding_atrr_t padding_atrr = {left, top, width, height, 0, 0, 0, 1};
+        bmcv_rect_t rect = {0, 0, width, height};
+
+        bmcv_image_vpp_convert_padding(handle, 1, mask_bmimg_align, &mask_bmimg_padding, &padding_atrr, &rect,
+                                       BMCV_INTER_LINEAR);
+        bmcv_image_bitwise_or(handle, frame, mask_bmimg_padding, frame);
+
+        int colors_num = colors.size();
+        // Draw a rectangle displaying the bounding box
+        // bmcv_rect_t rect;
+        rect.start_x = MIN(MAX(left, 0), frame.width);
+        rect.start_y = MIN(MAX(top, 0), frame.height);
+        rect.crop_w = MAX(MIN(width, frame.width - left), 0);
+        rect.crop_h = MAX(MIN(height, frame.height - top), 0);
+        bmcv_image_draw_rectangle(handle, frame, 1, &rect, 3, color[0], color[1], color[2]);
+    }
+    if (frame.image_format != 0) {
+        bm_image frame2;
+        bm_image_create(handle, frame.height, frame.width, FORMAT_YUV420P, frame.data_type, &frame2);
+        bmcv_image_storage_convert(handle, 1, &frame, &frame2);
+        bm_image_destroy(frame);
+        frame = frame2;
+    }
+    if (put_text_flag) {
+        for (int i = 0; i < result.size(); i++) {
+            int left, top;
+            left = result[i].x1;
+            top = result[i].y1;
+            int color_num = i;
+            cv::Scalar color(colors[result[i].class_id % 25][0], colors[result[i].class_id % 25][1],
+                             colors[result[i].class_id % 25][2]);
+            std::string label = m_class_names[result[i].class_id] + ":" + cv::format("%.2f", result[i].score);
+            bmcv_point_t org = {left, top};
+            bmcv_color_t color2 = {color[0], color[1], color[2]};
+            int thickness = 2;
+            float fontScale = 2;
+            if (BM_SUCCESS != bmcv_image_put_text(handle, frame, label.c_str(), org, color2, fontScale, thickness)) {
+                std::cout << "bmcv put text error !!!" << std::endl;
+            }
+        }
+    }
+}
