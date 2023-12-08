@@ -11,7 +11,7 @@ scripts_dir=$(dirname $(readlink -f "$0"))
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 pushd $scripts_dir
 python3 -m dfss --url=open@sophgo.com:sophon-demo/SSD/data.zip
-# unzip data.zip -d ../
-# rm data.zip
+unzip data.zip -d ../
+rm data.zip
 echo "All done!"
 popd
