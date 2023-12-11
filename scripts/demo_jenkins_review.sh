@@ -263,7 +263,7 @@ download_soc_sdk_allin v23.07.01
 echo "-------------------------Start build_soc_YOLOv5 ------------------"
 build_soc_YOLOv5 $SOC_SDK_PATH
 echo "-------------------------Start build_soc_BERT ------------------"
-build_soc_BERT $SOC_SDK_PATH
+# build_soc_BERT $SOC_SDK_PATH
 echo "-------------------------Start build_soc_C3D ------------------"
 build_soc_C3D $SOC_SDK_PATH
 echo "-------------------------Start build_soc_DeepSORT ------------------"
