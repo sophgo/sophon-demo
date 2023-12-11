@@ -254,7 +254,7 @@ bmrt_test --bmodel {path_of_bmodel}
 | BM1688 SoC  | retinaface_bmcv.soc  | retinaface_mobilenet0.25_fp32_1b.bmodel       |  17.00ms   |  58.8       |
 | BM1688 SoC  | retinaface_bmcv.soc  | retinaface_mobilenet0.25_fp16_1b.bmodel       |  5.07ms    |  196.9      |
 | BM1688 SoC  | retinaface_bmcv.soc  | retinaface_mobilenet0.25_int8_1b.bmodel       |  4.00ms    |  249.6      |
-| BM1688 SoC  | retinaface_bmcv.soc  | retinaface_mobilenet0.25_int8_4b.bmodel       |  9.27ms    |  107.6      |
+| BM1688 SoC  | retinaface_bmcv.soc  | retinaface_mobilenet0.25_int8_4b.bmodel       |  4.00ms    |  249.8      |
 | BM1688 SoC  | retinaface_bmcv.soc  | retinaface_mobilenet0.25_fp32_1b_2core.bmodel |  12.00ms   |  83.3       |
 | BM1688 SoC  | retinaface_bmcv.soc  | retinaface_mobilenet0.25_fp16_1b_2core.bmodel |  4.96ms    |  201.5      |
 | BM1688 SoC  | retinaface_bmcv.soc  | retinaface_mobilenet0.25_int8_1b_2core.bmodel |  4.00ms    |  249.8      |
