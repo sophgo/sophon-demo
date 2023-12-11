@@ -96,6 +96,20 @@ public:
     base_ = basetime;
   }
 
+  int total_duration_ms(const std::string &tag){
+      std::vector<time_stamp_t> ts = *records_[tag];
+      if (ts.size() % 2) {
+        std::cout << "[" << tag << "] invalid records #: " << ts.size() << std::endl;
+        return 0;
+      }
+      microseconds sum(0);
+      for (size_t j = 0; j < ts.size(); j += 2) {
+        microseconds duration = duration_cast<microseconds>(ts[j + 1] - ts[j]);
+        sum += duration;
+      }
+    return sum.count() / 1000.0;
+  }
+
   void show_duration(const std::string &head) {
     std::cout << std::endl;
     std::cout << "############################" << std::endl;
