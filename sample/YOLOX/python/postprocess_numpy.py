@@ -41,6 +41,27 @@ class PostProcess:
         self.grids = np.concatenate(self.grids,1)
         self.expanded_strides = np.concatenate(self.expanded_strides,1)
     
+        self.grids = []
+        self.expanded_strides = []
+
+        if not p6:
+            strides = [8,16,32]
+        else:
+            strides = [8,16,32,64]
+
+        hsizes = [input_h // stride for stride in strides]
+        wsizes = [input_w // stride for stride in strides]
+
+        for hsize, wsize, stride in zip(hsizes, wsizes, strides):
+            xv, yv = np.meshgrid(np.arange(wsize),np.arange(hsize))
+            grid = np.stack((xv,yv),2).reshape(1,-1,2)
+            self.grids.append(grid)
+            shape = grid.shape[:2]
+            self.expanded_strides.append(np.full((*shape,1),stride))
+        
+        self.grids = np.concatenate(self.grids,1)
+        self.expanded_strides = np.concatenate(self.expanded_strides,1)
+
 
     def  __call__(self, preds_batch, input_size, org_size_batch, ratios_batch, txy_batch):
         """
