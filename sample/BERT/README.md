@@ -155,7 +155,7 @@ python3 tools/eval_people.py --test_path ../datasets/china-people-daily-ner-corp
 # 请根据实际情况修改要测试的bmodel路径和devid参数
 bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 ```
-测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
+测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每条文本的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
 |                  测试模型                   | calculate time(ms) |
@@ -169,11 +169,11 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
-2. `calculate time`已折算为平均每张图片的推理时间；
+2. `calculate time`已折算为平均每条文本的推理时间；
 3. SoC和PCIe的测试结果基本一致。
 
 ### 7.2 程序运行性能
-参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
+参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每条文本的处理时间。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/china-people-daily-ner-corpus/example.test`，性能测试结果如下：
 |    测试平台  |     测试程序      |             测试模型                |tot_time|preprocess_time|inference_time|postprocess_time| 
