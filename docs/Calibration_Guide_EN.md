@@ -2,18 +2,32 @@
 
 # Model quantization
 
-To find more about models quantify tutorial, please refer to the TPU - NNTC development reference (please visit sophgo website (https://developer.sophgo.com/site/index/material/28/all.html) to get the corresponding version of the SDK).
+To find more about models quantify tutorial, please refer to the TPU-MLIR/TPU-NNTC development reference (please visit sophgo website (https://developer.sophgo.com/site/index/material/28/all.html) to get the corresponding version of the SDK).
 
 ## 1. Notice
 ### 1.1 Quantized dataset
 It is recommended to randomly select 100 to 500 samples from the training set as the quantization dataset, which should cover test scenarios and categories as far as possible. During quantization, you can try different iterations to quantify to obtain the best quantization accuracy.
 
 ### 1.2 Preprocessing alignment
-The preprocessing of quantization data set should be consistent with that of inference test, otherwise it will lead to a large loss of accuracy. It is suggested that data should be preprocessed by 'convert_imageset.py' when making lmdb quantized data set.
+The preprocessing of quantization data set should be consistent with that of inference test, otherwise it will lead to a large loss of accuracy. It is suggested that data should be preprocessed when making lmdb data set for TPU-NNTC or npz/npy data for TPU-MLIR.
 
 ### 1.3 Specific model optimization techniques
 #### 1.3.1 YOLO series models
-Since the output of the yolo series includes both classification and regression, resulting in uneven statistical distribution of output, the last three conv layers and all subsequent layers are not usually quantified. The specific steps are as follows:
+Since the output of the yolo series includes both classification and regression, resulting in uneven statistical distribution of output, the last three conv layers and all subsequent layers are not usually quantized, sometimes the first few convs also should not be quantized, you can do experiments in real cases to find the most useful strategy. 
+
+The specific steps in TPU-MLIR are as follows:
+1. use mlir2onnx.py, transform the .mlir file generated in model_transform.py to onnx, then check its network structure by netron.app.
+```
+mlir2onnx.py -m xxx.mlir -o xxx.onnx
+```
+2. use fp_forward.py to generate qtable, --fpfwd_outputs --fpfwd_inputs args have the same function as nntc, by specifying the layer name, all corresponding layers can be assigned the corresponding fp_type. Similar to the following command
+```
+fp_forward.py yolov7_1b.mlir --fpfwd_outputs 1376_Conv,1046_Transpose --chip bm1684 --fp_type F32 -o yolov7_qtable
+```
+3. The generated qtable is passed to model_deploy.py, and test_input and test_reference are added to verify whether the mixed precision strategy is effective.
+
+
+The specific steps in TPU-NNTC are as follows:
 
 1. Generate the prototxt file of fp32 umodel.
 
@@ -27,9 +41,9 @@ Since the output of the yolo series includes both classification and regression,
 
 On the basis of the above precautions are confirmed correct, try different threshold policy 'th_method'. ADMM, MAX,PERCENTILE9999 are recommended.
 
-### 2.2 In the process of quantization, precision comparison does not lead to quantization interrupt
+### 2.2 In the process of TPU-NNTC quantization, precision comparison does not lead to quantization interrupt
 
-Related error:
+Related error in TPU-NNTC:
 
 ```bash
 
