@@ -22,7 +22,7 @@ pip3 install torchaudio==0.13.1
 
 ### 1.2 SoC平台
 
-如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，请使用最新的驱动版本(>=0.4.5)的刷机包，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。您还需要交叉编译安装sophon-sail，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
+如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，请使用发布版本v23.07.01之后的刷机包，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。您还需要交叉编译安装sophon-sail，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
 
 此外您可能还需要安装其他第三方库：
 ```bash
@@ -31,9 +31,9 @@ pip3 install torchaudio==0.13.1
 ```
 
 ## 2. 推理测试
-python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
-```
+python例程不需要编译，可以直接运行，除了所需的模型、数据集之外，还需要确保`python`目录下存在目标平台对应架构的swig decoder模块，这些文件一般在[准备模型与数据](../README.md#3-准备模型与数据)这一步就会准备完毕。PCIe平台和SoC平台的测试参数和运行方式是相同的。
 ### 2.1 参数说明
+```
 运行wenet.py文件，请注意修改相应的参数：
 ```bash
 usage: wenet.py [--input INPUT_PATH] [--encoder_bmodel ENCODER_BMODEL] [--decoder_bmodel DECODER_BMODEL][--dev_id DEV_ID] [--result_file RESULT_FILE_PATH] [--mode MODE]

@@ -1,5 +1,6 @@
 #!/bin/bash
 res=$(dpkg -l|grep unzip)
+
 if [ $? != 0 ];
 then
     echo "Please install unzip on your system!"
@@ -14,7 +15,7 @@ if [ ! -d "../datasets" ];
 then
     mkdir -p ../datasets
     python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/datasets/aishell_S0764.zip
-    unzip aishell_S0764.zip -d ../datasets/
+    unzip aishell_S0764.zip -d ../datasets
     rm aishell_S0764.zip
 
     echo "datasets download!"
@@ -33,28 +34,43 @@ else
     echo "Models folder exist! Remove it if you need to update."
 fi
 
-# swig decoders module
-if [ ! -d "../python/swig_decoders" ]; 
+if [ ! -d "../cpp/cross_compile_module" ];
 then
-    if [ "$1" = "soc" ];
-    then
-        python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/soc/swig_decoders_aarch64.zip
-        unzip swig_decoders_aarch64.zip -d ../python/
-        mv ../python/swig_decoders_aarch64 ../python/swig_decoders
-        rm swig_decoders_aarch64.zip
-    elif [ "$1" = "pcie" ];
-    then
-        python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/pcie/swig_decoders_x86_64.zip
-        unzip swig_decoders_x86_64.zip -d ../python/
-        mv ../python/swig_decoders_x86_64 ../python/swig_decoders
-        rm swig_decoders_x86_64.zip
-    else
-        echo "Please set the platform. Option: soc and pcie"
-        exit
-    fi
-
-    echo "swig decoders module download!"
+    mkdir -p ../cpp/cross_compile_module
+    pushd ../cpp/cross_compile_module
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/soc/3rd_party.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/soc/ctcdecode-cpp.tar.gz
+    tar zxf 3rd_party.tar.gz
+    tar zxf ctcdecode-cpp.tar.gz
+    rm 3rd_party.tar.gz
+    rm ctcdecode-cpp.tar.gz
+    popd
+    echo "cross_compile_module download!"
 else
-    echo "swig decoders module exist!"
+    echo "cross_compile_module exist, please remove it if you want to update."
 fi
+
+# swig decoders module
+if [ ! -d "../python/swig_decoders_aarch64" ]; 
+then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/soc/swig_decoders_aarch64.zip
+    unzip swig_decoders_aarch64.zip -d ../python/
+    rm swig_decoders_aarch64.zip
+    echo "swig_decoders_aarch64 download!"
+else
+    echo "swig_decoders_aarch64 exist, please remove it if you want to update."
+fi
+
+if [ ! -d "../python/swig_decoders_x86_64" ]; 
+then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/pcie/swig_decoders_x86_64.zip
+    unzip swig_decoders_x86_64.zip -d ../python/
+    rm swig_decoders_x86_64.zip
+    echo "swig_decoders_x86_64 download!"
+else
+    echo "swig_decoders_x86_64 exist, please remove it if you want to update."
+fi
+
+
+
 popd

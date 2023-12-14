@@ -19,8 +19,11 @@ import copy
 import logging
 import os
 import sys
+import subprocess  
+arch_output = subprocess.check_output(["arch"])  
+arch = arch_output.decode().strip()  
 sys.dont_write_bytecode = True
-sys.path.append(os.getcwd()+"/swig_decoders")
+sys.path.append(os.getcwd()+"/swig_decoders_"+arch)
 
 import torch
 import yaml
