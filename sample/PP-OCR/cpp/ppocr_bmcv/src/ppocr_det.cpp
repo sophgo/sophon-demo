@@ -133,8 +133,8 @@ int PPOCR_Detector::Init()
     linear_trans_param_.alpha_1 = scale_[1] / 255.0;
     linear_trans_param_.alpha_2 = scale_[2] / 255.0;
     linear_trans_param_.beta_0 = (0.0 - mean_[0]) * (scale_[0]);
-    linear_trans_param_.beta_1 = (0.0 - mean_[1]) * (scale_[0]);
-    linear_trans_param_.beta_2 = (0.0 - mean_[2]) * (scale_[0]);
+    linear_trans_param_.beta_1 = (0.0 - mean_[1]) * (scale_[1]);
+    linear_trans_param_.beta_2 = (0.0 - mean_[2]) * (scale_[2]);
 
     return 0;
 }
