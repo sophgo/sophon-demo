@@ -37,7 +37,7 @@ SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI
 ## Release Notes
 | version | description | 
 |---|---|
-| 0.1.9	 | Fix documentation and other issues, add segformer/YOLOv7/Llama2, refactor YOLOv34/YOLOv5/ResNet/PP-OCR/DeepSORT adapt to BM1688, OpenPose postprocess acceleration, chatglm2 support int8/int4 and add compile method in readme.|
+| 0.1.9	 | Fix documentation and other issues, add segformer/YOLOv7/Llama2, refactor YOLOv34/YOLOv5/ResNet/PP-OCR/DeepSORT/LPRNet/RetinaFace/YOLOv34/WeNet adapt to BM1688, OpenPose postprocess acceleration, chatglm2 support int8/int4 and add compile method in readme.|
 | 0.1.8  | Fix documentation and other issues, added BERT/ppYOLOv3/ChatGLM2, refactor YOLOX, added beam search to PP-OCR, added tpu-kernel post-processing acceleration to OpenPose, and updated the SFTP download method.|
 | 0.1.7	 | Fix documentation and other issues, some demos support BM1684 mlir, refactor PP-OCR/CenterNet, sail support YOLOv5. |
 | 0.1.6	 | Fix documentation and other issues, add ByteTrack/YOLOv5_opt/WeNet samples. |
@@ -62,7 +62,9 @@ Sophon Demo mainly depends on tpu-mlir, tpu-nntc, libsophon, sophon-ffmpeg, soph
 | 0.1.2 | Not support | >=3.1.4 | >=0.4.3 | >=0.5.0     | >=0.5.0    | >=3.2.0 |    -        |
 | 0.1.1 | Not support | >=3.1.3 | >=0.4.2 | >=0.4.0     | >=0.4.0    | >=3.1.0 |    -        |
 | 0.1.0 | Not support | >=3.1.3 | >=0.3.0 | >=0.2.4     | >=0.2.4    | >=3.1.0 |    -        |
-> **Note**: The version requirements may vary from sample to sample, depending on the README of the routine, and other third-party libraries may need to be installed.
+> **Note**: 
+> 1. The version requirements may vary from sample to sample, depending on the README of the routine, and other third-party libraries may need to be installed.
+> 2. BM1688 SDK is not the same as BM1684/BM1684X, it is not released on our official site yet.
 
 ## Technical Data
 
