@@ -38,7 +38,7 @@ SophonSDK是算能科技基于其自主研发的深度学习处理器所定制�
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
-| 0.1.9	 | 修复文档等问题，新增segformer、YOLOv7、Llama2例程，重构YOLOv34，YOLOv5、ResNet、PP-OCR、DeepSORT适配BM1688，OpenPose后处理加速，chatglm2添加编译方法和int8/int4量化。|
+| 0.1.9	 | 完善修复文档、代码问题，新增segformer、YOLOv7、Llama2例程，重构YOLOv34，YOLOv5、ResNet、PP-OCR、DeepSORT、LPRNet、RetinaFace、YOLOv34、WeNet适配BM1688，OpenPose后处理加速，chatglm2添加编译方法和int8/int4量化。|
 | 0.1.8  | 完善修复文档、代码问题，新增BERT、ppYOLOv3、ChatGLM2，重构YOLOX，PP-OCR添加beam search，OpenPose添加tpu-kernel后处理加速，更新SFTP下载方式。|
 | 0.1.7	 | 修复文档等问题，一些例程支持BM1684 mlir，重构PP-OCR、CenterNet例程，YOLOv5添加sail支持 |
 | 0.1.6	 | 修复文档等问题，新增ByteTrack、YOLOv5_opt、WeNet例程 |
@@ -63,7 +63,9 @@ Sophon Demo主要依赖tpu-mlir、tpu-nntc、libsophon、sophon-ffmpeg、sophon-
 | 0.1.2 | Not support | >=3.1.4 | >=0.4.3 | >=0.5.0     | >=0.5.0     | >=3.2.0   |    -      |
 | 0.1.1 | Not support | >=3.1.3 | >=0.4.2 | >=0.4.0     | >=0.4.0     | >=3.1.0   |    -      |
 | 0.1.0 | Not support | >=3.1.3 | >=0.3.0 | >=0.2.4     | >=0.2.4     | >=3.1.0   |    -      |
-> **注意**：不同例程对版本的要求可能存在差异，具体以例程的README为准，可能需要安装其他第三方库。
+> **注意**：
+> 1. 不同例程对版本的要求可能存在差异，具体以例程的README为准，可能需要安装其他第三方库。
+> 2. BM1688与BM1684X/BM1684对应的sdk不是同一套，暂时还未发布到官网上。
 
 ## 技术资料
 
