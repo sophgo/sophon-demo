@@ -20,7 +20,7 @@
 WeNet是一款面向工业落地应用的语音识别工具包，提供了从语音识别模型的训练到部署的一条龙服务。本例程对[WeNet官方开源仓库](https://github.com/wenet-e2e/wenet)中基于aishell的预训练模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688上进行推理测试。后处理用到的ctc decoder代码来自[Ctc Decoder](https://github.com/Kevindurant111/ctcdecode-cpp.git)。
 
 ## 2. 特性
-* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC)
 * 支持FP32、FP16(BM1688/BM1684X)模型编译和推理
 * 支持基于torchaudio的Python推理和基于Armadillo的C++推理
 * 支持单batch模型推理
@@ -37,8 +37,10 @@ WeNet是一款面向工业落地应用的语音识别工具包，提供了从语
 # 安装unzip，若已安装请跳过
 sudo apt install unzip
 chmod -R +x scripts/
-# ${platform}请指定为soc或pcie
-./scripts/download.sh ${platform}
+
+# 如果您只测试python例程，建议直接在目标平台（x86 PCIe、arm SoC）运行该下载脚本。
+# 如果您需要测试cpp例程，对于SoC平台，cpp例程提供交叉编译的方式，需要在x86服务器上面运行该下载脚本。
+./scripts/download.sh
 ```
 
 下载的模型包括：
@@ -73,11 +75,21 @@ chmod -R +x scripts/
 
 下载的Python拓展模块包括：
 ```
-./swig_decoders
-├── EGG-INFO                                       # 包含模块信息的文件夹
-├── _swig_decoders.py                              # Python库文件   
-├── swig_decoders.py                               # Python库文件
-└── _swig_decoders.cpython-38-${arch}-linux-gnu.so # Python库依赖的动态链接库文件，arch表示机器架构，pcie对应x86，soc对应aarch64                
+./python/swig_decoders_x86_64                 # x86_64架构下编译好的swig_decoder模块
+├── EGG-INFO                                       
+├── _swig_decoders.py                              
+├── swig_decoders.py                               
+└── _swig_decoders.cpython-38-x86_64-linux-gnu.so               
+./python/swig_decoders_aarch64                # aarch64架构下编译好的swig_decoder模块
+├── EGG-INFO                                       
+├── _swig_decoders.py                                
+├── swig_decoders.py                               
+└── _swig_decoders.cpython-38-aarch64-linux-gnu.so       
+
+下载的Cpp交叉编译依赖包括：
+./cpp/cross_compile_module
+├──3rd_party                                  # aarch64架构下编译好的第三方库
+└──ctcdecode-cpp                              # aarch64架构下编译好的ctcdecode-cpp
 ```
 
 ## 4. 模型编译
@@ -224,3 +236,5 @@ sudo ./setup.sh
 ```  
 2. bm_fft暂不支持1684x/1688，仅能在1684设备上使用。  
 3. encoder与decoder的shape暂时无法调整，仅能编译和使用固定shape的bmodel，因此目前C++和Python例程的某些参数为固定参数。  
+
+其他常见问题请参考[SOPHON-DEMO FAQ](../../docs/FAQ.md)。
