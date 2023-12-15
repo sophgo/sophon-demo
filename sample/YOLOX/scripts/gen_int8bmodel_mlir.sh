@@ -19,7 +19,7 @@ function gen_mlir()
         --input_shapes [[$1,3,640,640]] \
         --mean 0.0,0.0,0.0 \
         --keep_aspect_ratio \
-        --pixel_format rgb  \
+        --pixel_format bgr  \
         --mlir yolox_s_$1b.mlir
 }
 
@@ -28,29 +28,33 @@ function gen_cali_table()
     run_calibration.py yolox_s_$1b.mlir \
         --dataset ../datasets/coco128/ \
         --input_num 128 \
+        --debug_cmd "MAX" \
         -o yolox_s_cali_table
 }
 
+function gen_qtable()
+{
+
+    fp_forward.py yolox_s_$1b.mlir \
+        --quantize INT8 \
+        --chip $target \
+        --fpfwd_inputs /backbone/backbone/dark2/dark2.1/conv3/conv/Conv_output_0_Conv \
+        --fpfwd_outputs /head/stems.0/conv/Conv_output_0_Conv,/head/stems.1/conv/Conv_output_0_Conv,/head/stems.2/conv/Conv_output_0_Conv \
+        -o yolox_s_qtable
+
+}
+
+
 function gen_int8bmodel()
 {
-    if [target="bm1684x"];then
-        model_deploy.py \
-            --mlir yolox_s_$1b.mlir \
-            --quantize INT8 \
-            --chip ${target} \
-            --quantize_table ../models/onnx/yolox_s_qtable \
-            --calibration_table yolox_s_cali_table \
-            --model yolox_s_int8_$1b.bmodel
-    elif [target="bm1684"];then
-        model_deploy.py \
-            --mlir yolox_s_$1b.mlir \
-            --quantize INT8 \
-            --chip ${target} \
-            --calibration_table yolox_s_cali_table \
-            --model yolox_s_int8_$1b.bmodel
-    else 
-        echo "not support chip."
-    fi
+    model_deploy.py \
+        --mlir yolox_s_$1b.mlir \
+        --quantize INT8 \
+        --chip ${target} \
+        --quantize_table yolox_s_qtable \
+        --calibration_table yolox_s_cali_table \
+        --model yolox_s_int8_$1b.bmodel
+
     mv yolox_s_int8_$1b.bmodel $outdir/
 }
 
@@ -62,6 +66,7 @@ fi
 # batch_size=1
 gen_mlir 1
 gen_cali_table 1
+gen_qtable 1
 gen_int8bmodel 1
 
 # batch_size=4

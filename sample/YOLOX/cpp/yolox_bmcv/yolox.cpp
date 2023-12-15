@@ -63,7 +63,7 @@ int YoloX::Init(float confThresh, float nmsThresh, const std::string& coco_names
     int aligned_net_w = FFALIGN(m_net_w,64);
     int strides[3] = {aligned_net_w, aligned_net_w, aligned_net_w};
     for(int i=0; i<max_batch; i++){
-        auto ret= bm_image_create(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &m_resized_imgs[i], strides);
+        auto ret= bm_image_create(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_BGR_PLANAR, DATA_TYPE_EXT_1N_BYTE, &m_resized_imgs[i], strides);
         assert(BM_SUCCESS == ret);
     }
     bm_image_alloc_contiguous_mem(max_batch, m_resized_imgs.data());
@@ -71,7 +71,7 @@ int YoloX::Init(float confThresh, float nmsThresh, const std::string& coco_names
     if (tensor->get_dtype() == BM_INT8){
         img_dtype = DATA_TYPE_EXT_1N_BYTE_SIGNED;
     }
-    auto ret = bm_image_create_batch(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, img_dtype, m_converto_imgs.data(), max_batch);
+    auto ret = bm_image_create_batch(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_BGR_PLANAR, img_dtype, m_converto_imgs.data(), max_batch);
     assert(BM_SUCCESS == ret);
 
     // 5.converto

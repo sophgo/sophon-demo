@@ -94,12 +94,12 @@ class YOLOx:
         self.postprocess_time = 0.0
         
     def preprocess_bmcv(self, input_bmimg):
-        rgb_planar_img = sail.BMImage(self.handle, input_bmimg.height(), input_bmimg.width(),
-                                          sail.Format.FORMAT_RGB_PLANAR, sail.DATA_TYPE_EXT_1N_BYTE)
-        self.bmcv.convert_format(input_bmimg, rgb_planar_img)
-        resized_img_rgb, ratio, txy = self.resize_bmcv(rgb_planar_img)
-        preprocessed_bmimg = sail.BMImage(self.handle, self.net_h, self.net_w, sail.Format.FORMAT_RGB_PLANAR, self.img_dtype)
-        self.bmcv.convert_to(resized_img_rgb, preprocessed_bmimg, ((self.ab[0], self.ab[1]), \
+        bgr_planar_img = sail.BMImage(self.handle, input_bmimg.height(), input_bmimg.width(),
+                                          sail.Format.FORMAT_BGR_PLANAR, sail.DATA_TYPE_EXT_1N_BYTE)
+        self.bmcv.convert_format(input_bmimg, bgr_planar_img)
+        resized_img_bgr, ratio, txy = self.resize_bmcv(bgr_planar_img)
+        preprocessed_bmimg = sail.BMImage(self.handle, self.net_h, self.net_w, sail.Format.FORMAT_BGR_PLANAR, self.img_dtype)
+        self.bmcv.convert_to(resized_img_bgr, preprocessed_bmimg, ((self.ab[0], self.ab[1]), \
                                                                  (self.ab[2], self.ab[3]), \
                                                                  (self.ab[4], self.ab[5])))
         return preprocessed_bmimg, ratio, txy
@@ -140,15 +140,15 @@ class YOLOx:
             attr.set_b(114)
             
             preprocess_fn = self.bmcv.vpp_crop_and_resize_padding if self.use_vpp else self.bmcv.crop_and_resize_padding
-            resized_img_rgb = preprocess_fn(bmimg, 0, 0, img_w, img_h, self.net_w, self.net_h, attr)
+            resized_img_bgr = preprocess_fn(bmimg, 0, 0, img_w, img_h, self.net_w, self.net_h, attr,resize_alg=sail.bmcv_resize_algorithm.BMCV_INTER_LINEAR)
         else:
             r_w = self.net_w / img_w
             r_h = self.net_h / img_h
             ratio = (r_w, r_h)
             txy = (0, 0)
             preprocess_fn = self.bmcv.vpp_resize if self.use_vpp else self.bmcv.resize
-            resized_img_rgb = preprocess_fn(bmimg, self.net_w, self.net_h)
-        return resized_img_rgb, ratio, txy
+            resized_img_bgr = preprocess_fn(bmimg, self.net_w, self.net_h)
+        return resized_img_bgr, ratio, txy
     
     def predict(self, input_tensor, img_num):
         """
@@ -395,7 +395,7 @@ def argsparser():
     parser.add_argument('--input', type=str, default='./datasets/test', help='path of input')
     parser.add_argument('--bmodel', type=str, default='./models/BM1684X/yolox_s_fp16_1b.bmodel', help='path of bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
-    parser.add_argument('--conf_thresh', type=float, default=0.40, help='confidence threshold')
+    parser.add_argument('--conf_thresh', type=float, default=0.25, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.5, help='nms threshold')
     args = parser.parse_args()
     return args
