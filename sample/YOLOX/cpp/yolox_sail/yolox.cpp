@@ -12,7 +12,7 @@
 #include <vector>
 #include <string>
 
-#define USE_MULTICLASS_NMS 0
+#define USE_MULTICLASS_NMS 1
 
 const std::vector<std::vector<int>> colors = {
     {255, 0, 0},     {255, 85, 0},    {255, 170, 0},   {255, 255, 0}, {170, 255, 0}, {85, 255, 0},  {0, 255, 0},
@@ -167,10 +167,10 @@ int YoloX::pre_process(sail::BMImage& input) {
     stride2[0] = FFALIGN(stride1[0], 64);
     stride2[1] = FFALIGN(stride1[1], 64);
     stride2[2] = FFALIGN(stride1[2], 64);
-    sail::BMImage rgb_img(engine->get_handle(), input.height(), input.width(), FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE,
+    sail::BMImage bgr_img(engine->get_handle(), input.height(), input.width(), FORMAT_BGR_PLANAR, DATA_TYPE_EXT_1N_BYTE,
                           stride2);
-    bmcv->convert_format(input, rgb_img);
-    sail::BMImage convert_img(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
+    bmcv->convert_format(input, bgr_img);
+    sail::BMImage convert_img(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_BGR_PLANAR,
                               bmcv->get_bm_image_data_format(input_dtype));
     // letter box
     bool isAlignWidth = false;
@@ -194,7 +194,7 @@ int YoloX::pre_process(sail::BMImage& input) {
     }
     // resize imgs
     sail::BMImage resized_img =
-        bmcv->vpp_resize_padding(rgb_img, m_net_w, m_net_h, pad);
+        bmcv->vpp_resize_padding(bgr_img, m_net_w, m_net_h, pad,BMCV_INTER_LINEAR);
     
     // convert
     bmcv->convert_to(
@@ -213,7 +213,7 @@ int YoloX::pre_process(std::vector<sail::BMImage>& input) {
     }
     std::shared_ptr<sail::BMImage> resized_imgs_vec[N];
     sail::BMImageArray<N> resized_imgs;
-    sail::BMImageArray<N> convert_imgs(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
+    sail::BMImageArray<N> convert_imgs(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_BGR_PLANAR,
                                        bmcv->get_bm_image_data_format(input_dtype));
     for (size_t i = 0; i < input.size(); ++i) {
         int stride1[3], stride2[3];
@@ -221,9 +221,9 @@ int YoloX::pre_process(std::vector<sail::BMImage>& input) {
         stride2[0] = FFALIGN(stride1[0], 64);
         stride2[1] = FFALIGN(stride1[1], 64);
         stride2[2] = FFALIGN(stride1[2], 64);
-        sail::BMImage rgb_img(engine->get_handle(), input[i].height(), input[i].width(), FORMAT_RGB_PLANAR,
+        sail::BMImage bgr_img(engine->get_handle(), input[i].height(), input[i].width(), FORMAT_BGR_PLANAR,
                               DATA_TYPE_EXT_1N_BYTE, stride2);
-        bmcv->convert_format(input[i], rgb_img);
+        bmcv->convert_format(input[i], bgr_img);
 
         // letter box
         bool isAlignWidth = false;
@@ -246,7 +246,7 @@ int YoloX::pre_process(std::vector<sail::BMImage>& input) {
             pad.set_stx(0);
         }
         resized_imgs_vec[i] = std::make_shared<sail::BMImage>(engine->get_handle(), input_shape[2], input_shape[3],
-                                                              FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE);
+                                                              FORMAT_BGR_PLANAR, DATA_TYPE_EXT_1N_BYTE);
 #if USE_BMCV_VPP_CONVERT
         // Using BMCV api, align with yolox_bmcv.
         bmcv_rect_t rect;
@@ -263,12 +263,12 @@ int YoloX::pre_process(std::vector<sail::BMImage>& input) {
         padding.padding_r = pad.padding_r;
         padding.padding_g = pad.padding_g;
         padding.padding_b = pad.padding_b;
-        auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(), 1, rgb_img.data(),
+        auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(), 1, bgr_img.data(),
                                                   &resized_imgs_vec[i].get()->data(), &padding, &rect);
         assert(ret == 0);
 #else
-        bmcv->vpp_crop_and_resize_padding(&rgb_img.data(), &resized_imgs_vec[i].get()->data(), 0, 0, rgb_img.width(),
-                                          rgb_img.height(), m_net_w, m_net_h, pad);
+        bmcv->vpp_crop_and_resize_padding(&bgr_img.data(), &resized_imgs_vec[i].get()->data(), 0, 0, bgr_img.width(),
+                                          bgr_img.height(), m_net_w, m_net_h, pad,BMCV_INTER_LINEAR);
 #endif
         resized_imgs.attach_from(i, *resized_imgs_vec[i].get());
     }

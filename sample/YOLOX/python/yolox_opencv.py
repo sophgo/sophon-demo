@@ -82,7 +82,7 @@ class YOLOx:
             stride=32
         )
 
-        img = letterbox_img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+        img = letterbox_img.transpose((2, 0, 1))  # HWC to CHW,keep BGR
         img = img.astype(np.float32)
         # input_data = np.expand_dims(input_data, 0)
         # img = np.ascontiguousarray(img / 255.0)

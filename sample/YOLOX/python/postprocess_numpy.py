@@ -52,17 +52,8 @@ class PostProcess:
         :param txy_batch:       list of (tx, ty) in a batch when resize-and-center-padding
         :return:
         """
-        if isinstance(preds_batch, list) and len(preds_batch) == 1:
-            # 1 output
-            dets = np.concatenate(preds_batch)
-        else:
-            print('preds_batch type: '.format(type(preds_batch)))
-            raise NotImplementedError
-        
         dets = self.decode(preds_batch[0])
         
-        
-
         outs = self.nms.non_max_suppression(dets,
                                             self.conf_thresh,
                                             self.nms_thresh,
@@ -90,14 +81,15 @@ class PostProcess:
 
 
     def decode(self, outputs):
-        for i in range(len(outputs)):
-            valid_indices = np.where(outputs[..., 4] > self.conf_thresh)[1]
-            expanded_strides = self.expanded_strides[:, valid_indices, :]
-            grids = self.grids[:, valid_indices, :]
-            outputs = outputs[:, valid_indices, :]
-            outputs[i][..., :2] = (outputs[i][..., :2] + grids) * expanded_strides
-            outputs[i][..., 2:4] = np.exp(outputs[i][..., 2:4]) * expanded_strides
-            outputs[i][..., 5:] *= outputs[i][..., 4:5]
+
+        valid_indices = np.where(outputs[..., 4] > self.conf_thresh)[1]
+        expanded_strides = self.expanded_strides[:, valid_indices, :]
+        grids = self.grids[:, valid_indices, :]
+        outputs = outputs[:, valid_indices, :]
+        
+        outputs[..., :2] = (outputs[..., :2] + grids) * expanded_strides
+        outputs[..., 2:4] = np.exp(outputs[..., 2:4]) * expanded_strides
+        outputs[..., 5:] *= outputs[..., 4:5]
         
         return outputs
 
@@ -166,8 +158,8 @@ class pseudo_torch_nms:
         """
 
         bs = prediction.shape[0]  # batch size
-        nc = prediction.shape[2] - nm - 4  # number of classes
-        mi = 4 + nc  # mask start index
+        nc = prediction.shape[2] - nm - 5  # number of classes
+        # mi = 4 + nc  # mask start index
         # xc = prediction[:, 4:mi].max(1) > conf_thres  # candidates
         xc = prediction[..., 5:].max(2) > conf_thres
 

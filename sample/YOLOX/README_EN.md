@@ -139,29 +139,30 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 ```
 
 ### 6.2 Test Result
-On the coco2017val_1000 dataset, the accuracy test results are as follows:
+On the coco2017val_1000 dataset, the accuracy test results with `nms_thresh=0.6,conf_thresh=0.001` are as follows:
 | Test Platform|   Test Program  |             Test model              |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ----------------| ----------------------------------- | ------------- | -------- |
-| BM1684 PCIe  | yolox_opencv.py  | yolox_s_fp32_1b.bmodel            |      0.366      |   0.530    |
-| BM1684 PCIe  | yolox_opencv.py  | yolox_s_int8_1b.bmodel            |      0.335      |   0.493    |
-| BM1684 PCIe  | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel            |      0.363      |   0.525    |
-| BM1684 PCIe  | yolox_bmcv.py    | yolox_s_int8_1b.bmodel            |      0.329      |   0.485    |
-| BM1684 PCIe  | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel            |      0.364      |   0.534    |
-| BM1684 PCIe  | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel            |      0.332      |   0.498    |
-| BM1684 PCIe  | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel            |      0.351      |   0.516    |
-| BM1684 PCIe  | yolox_sail.pcie  | yolox_s_int8_1b.bmodel            |      0.319      |   0.478    |
-| BM1684X PCIe | yolox_opencv.py  | yolox_s_fp32_1b.bmodel            |      0.366      |   0.530    |
-| BM1684X PCIe | yolox_opencv.py  | yolox_s_fp16_1b.bmodel            |      0.366      |   0.530    |
-| BM1684X PCIe | yolox_opencv.py  | yolox_s_int8_1b.bmodel            |      0.357      |   0.529    |
-| BM1684X PCIe | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel            |      0.363      |   0.525    |
-| BM1684X PCIe | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel            |      0.363      |   0.525    |
-| BM1684X PCIe | yolox_bmcv.py    | yolox_s_int8_1b.bmodel            |      0.353      |   0.524    |
-| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel            |      0.363      |   0.534    |
-| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_fp16_1b.bmodel            |      0.363      |   0.534    |
-| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel            |      0.351      |   0.527    |
-| BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel            |      0.350      |   0.516    |
-| BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp16_1b.bmodel            |      0.350      |   0.516    |
-| BM1684X PCIe | yolox_sail.pcie  | yolox_s_int8_1b.bmodel            |      0.337      |   0.506    |
+| BM1684 PCIe  | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.403      |   0.590    |
+| BM1684 PCIe  | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.397      |   0.583    |
+| BM1684 PCIe  | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
+| BM1684 PCIe  | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.397      |   0.582    |
+| BM1684 PCIe  | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| BM1684 PCIe  | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel |      0.396      |   0.587    |
+| BM1684 PCIe  | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| BM1684 PCIe  | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.396      |   0.587    |
+| BM1684X PCIe | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
+| BM1684X PCIe | yolox_opencv.py  | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| BM1684X PCIe | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
+| BM1684X PCIe | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
+| BM1684X PCIe | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| BM1684X PCIe | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.402      |   0.586    |
+| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
+| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel |      0.401      |   0.592    |
+| BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
+| BM1684X PCIe | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.401      |   0.592    |
+
 
 > **Test Description**:
 > 1. The model accuracy of batch_size=4 and batch_size=1 is the same.
@@ -202,34 +203,34 @@ Refer to [C++ example](cpp/README_EN.md) or [Python example](python/README_EN.md
 Use different examples and models to test `datasets/val2017_1000` with `conf_thresh=0.5,nms_thresh=0.5` on different test platforms. The performance test results are shown as follows:
 |Test Platform|  Test Program    |             Test model              |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
-| BM1684 SoC  | yolox_opencv.py | yolox_s_fp32_1b.bmodel | 15.18     | 14.06   | 39.70     | 4.15    |
-| BM1684 SoC  | yolox_opencv.py | yolox_s_int8_1b.bmodel | 15.20     | 13.86   | 43.68     | 4.07    |
-| BM1684 SoC  | yolox_opencv.py | yolox_s_int8_4b.bmodel | 15.18     | 15.25   | 38.06     | 5.90    |
-| BM1684 SoC  | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel | 3.70     | 2.88    | 28.16     | 3.99    |
-| BM1684 SoC  | yolox_bmcv.py   | yolox_s_int8_1b.bmodel | 3.50     | 2.22    | 18.75     | 3.84    |
-| BM1684 SoC  | yolox_bmcv.py   | yolox_s_int8_4b.bmodel | 3.38     | 2.06    | 13.31     | 4.72    |
-| BM1684 SoC  | yolox_bmcv.soc  | yolox_s_fp32_1b.bmodel | 4.52     | 1.72    | 25.78     | 2.71     |
-| BM1684 SoC  | yolox_bmcv.soc  | yolox_s_int8_1b.bmodel | 4.57     | 1.78    | 16.32     | 2.73     |
-| BM1684 SoC  | yolox_bmcv.soc  | yolox_s_int8_4b.bmodel | 4.57     | 1.73    | 11.58     | 2.61     |
-| BM1684 SoC  | yolox_sail.soc  | yolox_s_fp32_1b.bmodel | 2.58     | 3.91    | 26.24     | 2.10     |
-| BM1684 SoC  | yolox_sail.soc  | yolox_s_int8_1b.bmodel | 2.59     | 2.38    | 16.83     | 2.08     |
-| BM1684 SoC  | yolox_sail.soc  | yolox_s_int8_4b.bmodel | 2.51     | 2.31    | 11.97     | 2.10     |
-| BM1684X SoC | yolox_opencv.py | yolox_s_fp32_1b.bmodel | 14.96    | 13.56   | 44.02     | 4.35    |
-| BM1684X SoC | yolox_opencv.py | yolox_s_fp16_1b.bmodel | 15.00    | 13.43   | 22.38     | 4.35    |
-| BM1684X SoC | yolox_opencv.py | yolox_s_int8_1b.bmodel | 14.94    | 12.87   | 20.00     | 4.35    |
-| BM1684X SoC | yolox_opencv.py | yolox_s_int8_4b.bmodel | 14.87    | 15.42   | 20.14     | 6.35    |
-| BM1684X SoC | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel | 2.97     | 2.23    | 30.17     | 4.21     |
-| BM1684X SoC | yolox_bmcv.py   | yolox_s_fp16_1b.bmodel | 3.03     | 2.23    | 8.55      | 4.27     |
-| BM1684X SoC | yolox_bmcv.py   | yolox_s_int8_1b.bmodel | 2.97     | 2.23    | 6.12      | 4.22     |
-| BM1684X SoC | yolox_bmcv.py   | yolox_s_int8_4b.bmodel | 2.90     | 2.09    | 5.56      | 5.45     |
-| BM1684X SoC | yolox_bmcv.soc  | yolox_s_fp32_1b.bmodel | 4.28     | 0.95    | 29.05     | 2.68     |
-| BM1684X SoC | yolox_bmcv.soc  | yolox_s_fp16_1b.bmodel | 4.20     | 0.95    | 7.10      | 2.65     |
-| BM1684X SoC | yolox_bmcv.soc  | yolox_s_int8_1b.bmodel | 4.23     | 0.95    | 4.50      | 2.65     |
-| BM1684X SoC | yolox_bmcv.soc  | yolox_s_int8_4b.bmodel | 4.08     | 0.93    | 4.46      | 2.92     |
-| BM1684X SoC | yolox_sail.soc  | yolox_s_fp32_1b.bmodel | 2.37     | 3.67    | 29.50     | 2.05     |
-| BM1684X SoC | yolox_sail.soc  | yolox_s_fp16_1b.bmodel | 2.38     | 3.62    | 7.55      | 2.05     |
-| BM1684X SoC | yolox_sail.soc  | yolox_s_int8_1b.bmodel | 2.351    | 3.63    | 4.95      | 2.04     |
-| BM1684X SoC | yolox_sail.soc  | yolox_s_int8_4b.bmodel | 2.21     | 3.22    | 4.86      | 2.04     |
+| BM1684 SoC  | yolox_opencv.py | yolox_s_fp32_1b.bmodel | 15.18     | 3.63   | 39.70     | 2.71    |
+| BM1684 SoC  | yolox_opencv.py | yolox_s_int8_1b.bmodel | 15.20     | 3.64   | 33.27     | 2.69    |
+| BM1684 SoC  | yolox_opencv.py | yolox_s_int8_4b.bmodel | 15.20     | 5.54   | 22.66     | 2.36    |
+| BM1684 SoC  | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel | 3.70     | 2.88    | 28.16     | 2.72    |
+| BM1684 SoC  | yolox_bmcv.py   | yolox_s_int8_1b.bmodel | 3.50     | 2.22    | 21.62     | 2.71    |
+| BM1684 SoC  | yolox_bmcv.py   | yolox_s_int8_4b.bmodel | 3.38     | 2.06    | 10.68     | 2.35    |
+| BM1684 SoC  | yolox_bmcv.soc  | yolox_s_fp32_1b.bmodel | 4.86     | 1.47    | 25.78     | 2.68     |
+| BM1684 SoC  | yolox_bmcv.soc  | yolox_s_int8_1b.bmodel | 4.57     | 1.46    | 19.44     | 2.68     |
+| BM1684 SoC  | yolox_bmcv.soc  | yolox_s_int8_4b.bmodel | 4.76     | 1.41    | 8.96      | 2.07     |
+| BM1684 SoC  | yolox_sail.soc  | yolox_s_fp32_1b.bmodel | 3.22     | 3.11    | 26.16     | 2.08     |
+| BM1684 SoC  | yolox_sail.soc  | yolox_s_int8_1b.bmodel | 3.21     | 3.11    | 19.83     | 2.07     |
+| BM1684 SoC  | yolox_sail.soc  | yolox_s_int8_4b.bmodel | 3.14     | 2.73    | 9.26      | 2.10     |
+| BM1684X SoC | yolox_opencv.py | yolox_s_fp32_1b.bmodel | 13.87    | 3.40   | 44.02     | 2.84    |
+| BM1684X SoC | yolox_opencv.py | yolox_s_fp16_1b.bmodel | 13.88    | 3.24   | 22.04     | 2.84    |
+| BM1684X SoC | yolox_opencv.py | yolox_s_int8_1b.bmodel | 13.98    | 3.49   | 20.94     | 2.82    |
+| BM1684X SoC | yolox_opencv.py | yolox_s_int8_4b.bmodel | 13.90    | 5.17   | 20.87     | 2.52    |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel | 3.22     | 2.40    | 30.33     | 2.86     |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_fp16_1b.bmodel | 3.20     | 2.39    | 7.93      | 2.86     |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_int8_1b.bmodel | 3.19     | 2.38    | 6.81      | 2.87     |
+| BM1684X SoC | yolox_bmcv.py   | yolox_s_int8_4b.bmodel | 3.03     | 2.19    | 6.18      | 2.51     |
+| BM1684X SoC | yolox_bmcv.soc  | yolox_s_fp32_1b.bmodel | 4.51     | 0.75    | 27.86     | 2.72     |
+| BM1684X SoC | yolox_bmcv.soc  | yolox_s_fp16_1b.bmodel | 4.55     | 0.75    | 5.49      | 2.75     |
+| BM1684X SoC | yolox_bmcv.soc  | yolox_s_int8_1b.bmodel | 4.51     | 0.75    | 4.35      | 2.74     |
+| BM1684X SoC | yolox_bmcv.soc  | yolox_s_int8_4b.bmodel | 4.28     | 0.72    | 4.26      | 2.73     |
+| BM1684X SoC | yolox_sail.soc  | yolox_s_fp32_1b.bmodel | 2.92     | 2.72    | 28.29     | 2.12     |
+| BM1684X SoC | yolox_sail.soc  | yolox_s_fp16_1b.bmodel | 2.88     | 2.71    | 5.91      | 2.10     |
+| BM1684X SoC | yolox_sail.soc  | yolox_s_int8_1b.bmodel | 2.81     | 2.72    | 4.76      | 2.10     |
+| BM1684X SoC | yolox_sail.soc  | yolox_s_int8_4b.bmodel | 2.67     | 2.63    | 4.55      | 2.12     |
 
 > **Test Description**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
