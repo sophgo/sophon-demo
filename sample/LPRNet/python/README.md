@@ -46,7 +46,7 @@ usage: lprnet_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 ### 2.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-python3 python/lprnet_opencv.py --input datasets/test --bmodel models/BM1684/lprnet_fp32_1b.bmodel --dev_id 0
+python3 lprnet_opencv.py --input ../datasets/test --bmodel ../models/BM1684/lprnet_fp32_1b.bmodel --dev_id 0
 ```
 
 执行完成后，会将预测结果保存在`results/lprnet_fp32_1b.bmodel_test_opencv_python_result.json`下，同时会打印预测结果、推理时间等信息，输出如下：
