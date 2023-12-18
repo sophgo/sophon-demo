@@ -60,7 +60,6 @@ class BMNNTensor{
   virtual ~BMNNTensor() {
     if (m_cpu_data == NULL) return;
     if(can_mmap && BM_FLOAT32 == m_tensor->dtype) {
-      assert(BM_SUCCESS == bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem));
       int tensor_size = bm_mem_get_device_size(m_tensor->device_mem);
       bm_status_t ret = bm_mem_unmap_device_mem(m_handle, m_cpu_data, tensor_size);
       assert(BM_SUCCESS == ret);
@@ -90,6 +89,8 @@ class BMNNTensor{
       if (m_tensor->dtype == BM_FLOAT32) {
         unsigned long long  addr;
         ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
+        assert(BM_SUCCESS == ret);
+        ret = bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem);
         assert(BM_SUCCESS == ret);
         pFP32 = (float*)addr;
       } else if (BM_INT8 == m_tensor->dtype) {
