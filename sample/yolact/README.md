@@ -18,11 +18,11 @@
 * [8. FAQ](#8-faq)
   
 ## 1. 简介
-yolactT是一种实时的实例分割的方法。
+yolact是一种实时的实例分割的方法。
 本例程对[yolact官方开源仓库](https://github.com/dbolya/yolact)的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe），BM1684
+* 支持BM1684X(x86 PCIe)，BM1684
 * 支持FP32模型编译和推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -83,7 +83,7 @@ chmod -R +x scripts/
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成yolact_bm1684x(或bm1684)_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成yolact_bm1684x(或bm1684)_fp32_1b.bmodel文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
@@ -91,7 +91,7 @@ chmod -R +x scripts/
 
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
 
-​执行上述命令会在`models/BM1684X/`下生成yolact_bm1684x_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X/`下生成yolact_bm1684x_fp16_1b.bmodel文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
@@ -103,10 +103,11 @@ chmod -R +x scripts/
 ./scripts/gen_int8bmodel_mlir.sh bm1684x
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成yolact_bm1684x(或bm1684)_int8_1b.bmodel`文件，即转换好的INT8 BModel。(也可以修改在./scripts/gen_int8bmodel_mlir 中修改batch size的参数得到bs=4的int8 bmodel）
+​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成yolact_bm1684x(或bm1684)_int8_1b.bmodel文件，即转换好的INT8 BModel。(也可以在./scripts/gen_int8bmodel_mlir 中修改batch size的参数得到bs=4的int8 bmodel)
 
 ## 5. 例程测试
 - [Python例程](./python/README.md)
+- [C++例程](./cpp/README.md)
 
 ## 6. 精度测试
 ### 6.1 测试方法
@@ -121,24 +122,23 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 ```
 ### 6.2 测试结果
 在coco2017val_1000数据集上，精度测试结果如下：
-|   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|
-| ------------ | ---------------- | ----------------------------------- | ------------- | -------- |
-| BM1684X PCIe | yolact_opencv.py | yolact_bm1684x_fp32_1b.bmodel | 0.262     | 0.393    |
-| BM1684X PCIe | yolact_opencv.py | yolact_bm1684x_fp16_1b.bmodel | 0.262     | 0.392    |
-| BM1684X PCIe | yolact_opencv.py | yolact_bm1684x_int8_1b.bmodel  | 0.258     | 0.389    |
-| BM1684X PCIe | yolact_bmcv.py    | yolact_bm1684x_fp32_1b.bmodel  | 0.261     | 0.390    |
-| BM1684X PCIe | yolact_bmcv.py    | yolact_bm1684x_fp16_1b.bmodel  | 0.262     | 0.393    |
-| BM1684X PCIe | yolact_bmcv.py    | yolact_bm1684x_int8_1b.bmodel   | 0.259      | 0.388    |
-| BM1684X PCIe | yolact_bmcv.pcie  | yolact_bm1684x_fp32_1b.bmodel  | 0.261     | 0.390    |
-| BM1684X PCIe | yolact_bmcv.pcie  | yolact_bm1684x_fp16_1b.bmodel  | 0.262     | 0.392    |
-| BM1684X PCIe |yolact_bmcv.pcie  | yolact_bm1684x_int8_1b.bmodel   | 0.260      | 0.389    |
-
-| BM1684 PCIe | yolact_opencv.py | yolact_bm1684_fp32_1b.bmodel | 0.262     | 0.393    | 
-| BM1684 PCIe | yolact_opencv.py | yolact_bm1684_int8_1b.bmodel  | 0.254     | 0.386    | 
-| BM1684 PCIe | yolact_bmcv.py    | yolact_bm1684_fp32_1b.bmodel  | 0.261     | 0.391    | 
-| BM1684 PCIe | yolact_bmcv.py    | yolact_bm1684_int8_1b.bmodel   | 0.252      | 0.382    | 
-| BM1684 PCIe | yolact_bmcv.pcie  | yolact_bm1684_fp32_1b.bmodel  | 0.264     | 0.395    |
-| BM1684 PCIe |yolact_bmcv.pcie  | yolact_bm1684_int8_1b.bmodel   | 0.254      | 0.384    |
+|   测试平台    |      测试程序      |              测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
+| ------------ | ---------------- | ----------------------------- | ------------- | -------- |
+| BM1684X PCIe | yolact_opencv.py | yolact_bm1684x_fp32_1b.bmodel | 0.262         | 0.393    |
+| BM1684X PCIe | yolact_opencv.py | yolact_bm1684x_fp16_1b.bmodel | 0.262         | 0.392    |
+| BM1684X PCIe | yolact_opencv.py | yolact_bm1684x_int8_1b.bmodel | 0.258         | 0.389    |
+| BM1684X PCIe | yolact_bmcv.py   | yolact_bm1684x_fp32_1b.bmodel | 0.261         | 0.390    |
+| BM1684X PCIe | yolact_bmcv.py   | yolact_bm1684x_fp16_1b.bmodel | 0.262         | 0.393    |
+| BM1684X PCIe | yolact_bmcv.py   | yolact_bm1684x_int8_1b.bmodel | 0.259         | 0.388    |
+| BM1684X PCIe | yolact_bmcv.pcie | yolact_bm1684x_fp32_1b.bmodel | 0.261         | 0.390    |
+| BM1684X PCIe | yolact_bmcv.pcie | yolact_bm1684x_fp16_1b.bmodel | 0.262         | 0.392    |
+| BM1684X PCIe | yolact_bmcv.pcie | yolact_bm1684x_int8_1b.bmodel | 0.260         | 0.389    |
+| BM1684 PCIe  | yolact_opencv.py | yolact_bm1684_fp32_1b.bmodel  | 0.262         | 0.393    | 
+| BM1684 PCIe  | yolact_opencv.py | yolact_bm1684_int8_1b.bmodel  | 0.254         | 0.386    | 
+| BM1684 PCIe  | yolact_bmcv.py   | yolact_bm1684_fp32_1b.bmodel  | 0.261         | 0.391    | 
+| BM1684 PCIe  | yolact_bmcv.py   | yolact_bm1684_int8_1b.bmodel  | 0.252         | 0.382    | 
+| BM1684 PCIe  | yolact_bmcv.pcie | yolact_bm1684_fp32_1b.bmodel  | 0.264         | 0.395    |
+| BM1684 PCIe  | yolact_bmcv.pcie | yolact_bm1684_int8_1b.bmodel  | 0.254         | 0.384    |
 
 
 
@@ -158,16 +158,15 @@ bmrt_test --bmodel models/BM1684/yolact_bm1684_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                   | calculate time(ms) |
+|                  测试模型                    | calculate time(ms)|
 | ------------------------------------------- | ----------------- |
-| BM1684X/yolact_bm1684x_fp32_1b.bmodel  | 212.68        |
-| BM1684X/yolact_bm1684x_fp16_1b.bmodel  | 74.68          |
-| BM1684X/yolact_bm1684x_int8_1b.bmodel   | 67.28           |
-| BM1684X/yolact_bm1684x_int8_4b.bmodel   | 62.96           |
-
-| BM1684/yolact_bm1684_fp32_1b.bmodel  | 114.60          |
-| BM1684/yolact_bm1684_int8_1b.bmodel   | 135.59           | 
-| BM1684/yolact_bm1684_int8_4b.bmodel   | 53.90           | 
+| BM1684X/yolact_bm1684x_fp32_1b.bmodel       | 212.68            |
+| BM1684X/yolact_bm1684x_fp16_1b.bmodel       | 74.68             |
+| BM1684X/yolact_bm1684x_int8_1b.bmodel       | 67.28             |
+| BM1684X/yolact_bm1684x_int8_4b.bmodel       | 62.96             |
+| BM1684/yolact_bm1684_fp32_1b.bmodel         | 114.60            |
+| BM1684/yolact_bm1684_int8_1b.bmodel         | 135.59            | 
+| BM1684/yolact_bm1684_int8_4b.bmodel         | 53.90             | 
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -179,31 +178,29 @@ bmrt_test --bmodel models/BM1684/yolact_bm1684_fp32_1b.bmodel
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/val2017_1000`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
-|    测试平台  |     测试程序      |             测试模型                |decode_time|preprocess_time|inference_time|postprocess_time| 
-| ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
-| BM1684X SoC | yolact_bmcv.py     | yolact_bm1684x_fp32_1b.bmodel | 3.13      | 1.7            | 206.39         | 127.21     |
-| BM1684X SoC | yolact_bmcv.py     | yolact_bm1684x_fp16_1b.bmodel | 3.07      | 1.7            | 64.73           | 127.66     |
-| BM1684X SoC | yolact_bmcv.py     | yolact_bm1684x_int8_1b.bmodel  | 3.08      | 1.7            | 56.25           | 124.91     |
-| BM1684X SoC | yolact_bmcv.py     | yolact_bm1684x_int8_4b.bmodel  | 2.93      | 1.6            | 52.75           | 124.43     |
-| BM1684X SoC | yolact_opencv.py  | yolact_bm1684x_fp32_1b.bmodel | 3.34      | 29.67        | 214.87         | 128.47     | 
-| BM1684X SoC | yolact_opencv.py  | yolact_bm1684x_fp16_1b.bmodel | 3.33      | 29.49        | 73.35           | 129.07     |
-| BM1684X SoC | yolact_opencv.py  | yolact_bm1684x_int8_1b.bmodel  | 3.35      | 28.86        | 64.66           | 125.11     |
-| BM1684X SoC | yolact_opencv.py  | yolact_bm1684x_int8_4b.bmodel  | 3.25      | 28.33        | 61.85           | 123.23     |
-| BM1684X SoC | yolact_bmcv.soc   | yolact_bm1684x_fp32_1b.bmodel | 4.83      | 0.58          | 195.23         | 56.91     | 
-| BM1684X SoC | yolact_bmcv.soc   | yolact_bm1684x_fp16_1b.bmodel | 4.81      | 0.58          | 53.60           | 56.91     |
-| BM1684X SoC | yolact_bmcv.soc   | yolact_bm1684x_int8_1b.bmodel  | 4.79      | 0.58          | 45.13           | 55.63      |
-| BM1684X SoC | yolact_bmcv.soc   | yolact_bm1684x_int8_4b.bmodel  | 4.73      | 0.55          | 43.88           | 62.58       | 
-
-
-| BM1684 SoC | yolact_bmcv.py     | yolact_bm1684_fp32_1b.bmodel | 3.67      | 2.29           | 108.78           | 138.67    | 
-| BM1684 SoC | yolact_bmcv.py     | yolact_bm1684_int8_1b.bmodel | 3.67     | 2.29           | 129.43           | 136.95      |  
-| BM1684 SoC | yolact_bmcv.py     | yolact_bm1684_int8_4b.bmodel | 3.45      | 2.16           | 45.12           | 124.43        |
-| BM1684 SoC | yolact_opencv.py  | yolact_bm1684_fp32_1b.bmodel | 3.86      | 30.24           | 114.85           | 136.10     | 
-| BM1684 SoC | yolact_opencv.py  | yolact_bm1684_int8_1b.bmodel | 3.85     | 29.33           | 135.56           | 135.47         | 
-| BM1684 SoC | yolact_opencv.py  | yolact_bm1684_int8_4b.bmodel | 3.80      | 29.81           | 46.18           | 135.84        | 
-| BM1684 SoC | yolact_bmcv.pcie   | yolact_bm1684_fp32_1b.bmodel | 5.36      | 1.51           | 97.97           | 56.93        | 
-| BM1684 SoC | yolact_bmcv.pcie   | yolact_bm1684_int8_1b.bmodel | 5.43     | 1.51           | 118.52           | 56.35        | 
-| BM1684 SoC | yolact_bmcv.pcie    | yolact_bm1684_int8_4b.bmodel | 5.30      | 1.46           | 38.025           | 63.15      | 
+|   测试平台   |     测试程序       |             测试模型                 |decode_time|preprocess_time|inference_time|postprocess_time| 
+| ----------  | ---------------- | ----------------------------------- | --------  | ------------- | -----------  | ------------   |
+| BM1684X SoC | yolact_bmcv.py   |    yolact_bm1684x_fp32_1b.bmodel    |   3.13    |    1.70       | 206.39       | 127.21         |
+| BM1684X SoC | yolact_bmcv.py   |    yolact_bm1684x_fp16_1b.bmodel    |   3.07    |    1.70       | 64.73        | 127.66         |
+| BM1684X SoC | yolact_bmcv.py   |    yolact_bm1684x_int8_1b.bmodel    |   3.08    |    1.70       | 56.25        | 124.91         |
+| BM1684X SoC | yolact_bmcv.py   |    yolact_bm1684x_int8_4b.bmodel    |   2.93    |    1.60       | 52.75        | 124.43         |
+| BM1684X SoC | yolact_opencv.py |    yolact_bm1684x_fp32_1b.bmodel    |   3.34    |    29.67      | 214.87       | 128.47         | 
+| BM1684X SoC | yolact_opencv.py |    yolact_bm1684x_fp16_1b.bmodel    |   3.33    |    29.49      | 73.35        | 129.07         |
+| BM1684X SoC | yolact_opencv.py |    yolact_bm1684x_int8_1b.bmodel    |   3.35    |    28.86      | 64.66        | 125.11         |
+| BM1684X SoC | yolact_opencv.py |    yolact_bm1684x_int8_4b.bmodel    |   3.25    |    28.33      | 61.85        | 123.23         |
+| BM1684X SoC | yolact_bmcv.soc  |    yolact_bm1684x_fp32_1b.bmodel    |   4.83    |    0.58       | 195.23       | 56.91          |  
+| BM1684X SoC | yolact_bmcv.soc  |    yolact_bm1684x_fp16_1b.bmodel    |   4.81    |    0.58       | 53.60        | 56.91          |
+| BM1684X SoC | yolact_bmcv.soc  |    yolact_bm1684x_int8_1b.bmodel    |   4.79    |    0.58       | 45.13        | 55.63          |
+| BM1684X SoC | yolact_bmcv.soc  |    yolact_bm1684x_int8_4b.bmodel    |   4.73    |    0.55       | 43.88        | 62.58          | 
+| BM1684 SoC  | yolact_bmcv.py   |    yolact_bm1684_fp32_1b.bmodel     |   3.67    |    2.29       | 108.78       | 138.67         | 
+| BM1684 SoC  | yolact_bmcv.py   |    yolact_bm1684_int8_1b.bmodel     |   3.67    |    2.29       | 129.43       | 136.95         |  
+| BM1684 SoC  | yolact_bmcv.py   |    yolact_bm1684_int8_4b.bmodel     |   3.45    |    2.16       | 45.12        | 124.43         |
+| BM1684 SoC  | yolact_opencv.py |    yolact_bm1684_fp32_1b.bmodel     |   3.86    |    30.24      | 114.85       | 136.10         | 
+| BM1684 SoC  | yolact_opencv.py |    yolact_bm1684_int8_1b.bmodel     |   3.85    |    29.33      | 135.56       | 135.47         | 
+| BM1684 SoC  | yolact_opencv.py |    yolact_bm1684_int8_4b.bmodel     |   3.80    |    29.81      | 46.18        | 135.84         | 
+| BM1684 SoC  | yolact_bmcv.soc  |    yolact_bm1684_fp32_1b.bmodel     |   5.36    |    1.51       | 97.97        | 56.93          | 
+| BM1684 SoC  | yolact_bmcv.soc  |    yolact_bm1684_int8_1b.bmodel     |   5.43    |    1.51       | 118.52       | 56.35          | 
+| BM1684 SoC  | yolact_bmcv.soc  |    yolact_bm1684_int8_4b.bmodel     |   5.30    |    1.46       | 38.025       | 63.15          | 
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
@@ -212,4 +209,4 @@ bmrt_test --bmodel models/BM1684/yolact_bm1684_fp32_1b.bmodel
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 
 ## 8. FAQ
-Yolact移植相关问题可参考Yolact常见问题](./docs/Yolact_Common_Problems.md)，其他问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
+[Yolact移植相关问题可参考Yolact常见问题](./docs/Yolact_Common_Problems.md)，其他问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
