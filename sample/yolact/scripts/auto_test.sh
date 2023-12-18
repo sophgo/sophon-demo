@@ -10,6 +10,7 @@ TPUID=0
 ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 
 usage()
 {
@@ -215,9 +216,8 @@ then
   build_pcie bmcv
 elif test $MODE = "pcie_test"
 then
-  download
   build_pcie bmcv
-  pip3 install -r python/requirements.txt
+  download
   if test $TARGET = "BM1684"
   then
     test_python opencv yolact_bm1684_fp32_1b.bmodel ../datasets/test

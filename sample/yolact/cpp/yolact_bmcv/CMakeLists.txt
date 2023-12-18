@@ -46,8 +46,8 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     set(OPENCV_LIBS opencv_imgproc opencv_core opencv_highgui opencv_imgcodecs opencv_videoio)
     include_directories("../../../../include/")
     include_directories("${SDK}/include/")
-    include_directories("/data/soc-sdk/include/opencv4")
-    link_directories("/data/soc-sdk/lib/")
+    include_directories("${SDK}/include/opencv4")
+    link_directories("${SDK}/lib/")
 
     message("SDK: " ${SDK})
 
