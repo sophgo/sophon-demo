@@ -39,10 +39,10 @@ function gen_int8bmodel()
         --calibration_table yolov4_cali_table \
         --quantize INT8 \
         --chip $target \
-        #--quantize_table ../models/yolov4_4b_int8_qtable \
         --test_input ../datasets/test/dog.jpg \
         --test_reference tmp.npz \
         --model yolov4_int8_$1b.bmodel
+        #--quantize_table ../models/yolov4_4b_int8_qtable \
 
     mv yolov4_int8_$1b.bmodel $outdir/
 }
