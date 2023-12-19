@@ -181,3 +181,13 @@ class SophonInference:
         for i, (name, input) in enumerate(zip(input_names, inputs)):
             self.bmcv.bm_image_to_tensor(input, self.inputs[i])
 
+    def infer_numpy_dict(self, input_dict):
+        """
+        Args:
+            input_dict: {"input_name1": input1, "input_name2", input2 ...}
+        
+        Returns:
+            output_dict
+        """
+        outputs = self.engine.process(self.graph_name, input_dict)
+        return outputs

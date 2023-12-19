@@ -24,6 +24,14 @@
 
 using namespace bmruntime;
 
+void show_wenet_profile(TimeStamp& ts, const std::string& tag, int num){
+    int sum = ts.total_duration_ms(tag);
+    std::cout << "[" << std::setw(20) << tag << "] "
+              << " loops: "  << std::setw(4) << num
+              << " avg: " << (float)sum / (float)num
+              << " ms"<< std::endl;
+}
+
 int main(int argc, char** argv) {
     auto start_time = std::chrono::high_resolution_clock::now();
     std::cout.setf(std::ios::fixed);
@@ -145,11 +153,22 @@ int main(int argc, char** argv) {
         result_file_stream.close();
     }
     // print speed
-    time_stamp_t base_time = time_point_cast<microseconds>(steady_clock::now());
-    wenet_ts.calbr_basetime(base_time);
-    wenet_ts.build_timeline("wenet test");
-    wenet_ts.show_summary("wenet test");
-    wenet_ts.clear();
+    // time_stamp_t base_time = time_point_cast<microseconds>(steady_clock::now());
+    // wenet_ts.calbr_basetime(base_time);
+    // wenet_ts.build_timeline("wenet test");
+    // wenet_ts.show_summary("wenet test");
+    // wenet_ts.clear();
+    std::cout << std::endl;
+    std::cout << "############################" << std::endl;
+    std::cout << "SUMMARY: wenet test" << std::endl;
+    std::cout << "############################" << std::endl;
+    show_wenet_profile(wenet_ts, "wenet preprocess", data_map.size());
+    show_wenet_profile(wenet_ts, "wenet encoder inference", wenet_ts.records_["wenet encoder inference"]->size() / 2);
+    if(mode == "attention_rescoring"){
+        show_wenet_profile(wenet_ts, "wenet decoder inference", data_map.size());
+    }
+    show_wenet_profile(wenet_ts, "wenet postprocess", data_map.size());
+
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
     std::cout << "程序运行时间为 " << duration.count() << " 毫秒" << std::endl;
