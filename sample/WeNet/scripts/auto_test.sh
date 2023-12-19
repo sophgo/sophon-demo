@@ -169,45 +169,53 @@ then
   download pcie
   if test $TARGET = "BM1684"
   then
-    test_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search .
-    test_cpp pcie wenet_encoder_fp32.bmodel ctc_prefix_beam_search .
-
-    eval_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
-    eval_cpp pcie wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
- 
-  elif test $TARGET = "BM1684X"
-  then
-    test_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search .
-    test_python wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel
-    test_cpp pcie wenet_encoder_fp32.bmodel ctc_prefix_beam_search .
-    test_cpp pcie wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel
-
     eval_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
     eval_python wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel 1.80
-    eval_cpp pcie wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
-    eval_cpp pcie wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel 1.80
+    eval_cpp pcie wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 5.84
+    eval_cpp pcie wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel 3.45
+  elif test $TARGET = "BM1684X"
+  then
+    eval_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
+    eval_python wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel 1.80
+    eval_cpp soc wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
+    eval_cpp soc wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel 1.80
+
+    eval_python wenet_encoder_fp16.bmodel ctc_prefix_beam_search . 2.70
+    eval_python wenet_encoder_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 1.80
+    eval_cpp soc wenet_encoder_fp16.bmodel ctc_prefix_beam_search . 2.70
+    eval_cpp soc wenet_encoder_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 1.80
   fi
 elif test $MODE = "soc_test"
 then
   download soc
   if test $TARGET = "BM1684"
   then
-    test_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search .
-    test_cpp soc wenet_encoder_fp32.bmodel ctc_prefix_beam_search .
-
     eval_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
-    eval_cpp soc wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
+    eval_python wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel 1.80
+    eval_cpp soc wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 5.84
+    eval_cpp soc wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel 3.45
   elif test $TARGET = "BM1684X"
   then
-    test_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search .
-    test_python wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel
-    test_cpp soc wenet_encoder_fp32.bmodel ctc_prefix_beam_search .
-    test_cpp soc wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel
-
     eval_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
     eval_python wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel 1.80
     eval_cpp soc wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
     eval_cpp soc wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel 1.80
+
+    eval_python wenet_encoder_fp16.bmodel ctc_prefix_beam_search . 2.70
+    eval_python wenet_encoder_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 1.80
+    eval_cpp soc wenet_encoder_fp16.bmodel ctc_prefix_beam_search . 2.70
+    eval_cpp soc wenet_encoder_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 1.80
+
+  elif test $TARGET = "BM1688"
+  then
+    eval_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.77%
+    eval_python wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel 1.87%
+    eval_cpp soc wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.77%
+    eval_cpp soc wenet_encoder_fp32.bmodel attention_rescoring wenet_decoder_fp32.bmodel 2.10%
+    eval_python wenet_encoder_fp16.bmodel ctc_prefix_beam_search . 2.77%
+    eval_python wenet_encoder_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 1.87%
+    eval_cpp soc wenet_encoder_fp16.bmodel ctc_prefix_beam_search . 2.85%
+    eval_cpp soc wenet_encoder_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 1.80%
   fi
 fi
  

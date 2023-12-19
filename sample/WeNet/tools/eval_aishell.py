@@ -251,8 +251,8 @@ def default_cluster(word) :
   return unicode_names[0]
 
 def usage() :
-  print("compute-wer.py : compute word error rate (WER) and align recognition results and references.")
-  print("         usage : python compute-wer.py [--cs={0,1}] [--cluster=foo] [--ig=ignore_file] [--char={0,1}] [--v={0,1}] [--padding-symbol={space,underline}] test.ref test.hyp > test.wer")
+  print("eval_aishell.py : compute word error rate (WER) and align recognition results and references.")
+  print("         usage : python eval_aishell.py [--cs={0,1}] [--cluster=foo] [--ig=ignore_file] [--char={0,1}] [--v={0,1}] [--padding-symbol={space,underline}] test.ref test.hyp > test.wer")
 
 if __name__ == '__main__':
   if len(sys.argv) == 1 :
