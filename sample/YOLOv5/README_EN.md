@@ -6,6 +6,8 @@
 
 * [1. Introduction](#1-introduction)
 * [2. Characteristics](#2-characteristics)
+  * [2.1 SDK Characteristics](#21-sdk-characteristics)
+  * [2.2 Algorithm Characteristics](#22-algorithm-characteristics)
 * [3. Prepare Models and Data](#3-prepare-models-and-data)
 * [4. Model Compilation](#4-model-compilation)
 * [5. Example Test](#5-example-test)
@@ -24,6 +26,7 @@
 YOLOv5 is a very classical One Stage target detection algorithm based on anchor. Because of its excellent accuracy and speed performance, it has been widely used in engineering practice. This example [​YOLOv5 official open source repository](https://github.com/ultralytics/yolov5) transplants the v6.1 version of the model and algorithm so that it can be inference tested on SOPHON BM1684 and BM1684X.
 
 ## 2. Characteristics
+### 2.1 SDK Characteristics
 * Support for BM1688(SoC)/BM1684X(x86 PCIe、SoC)/BM1684(x86 PCIe、SoC、arm PCIe)
 * Support for FP32, FP16 (BM1688/BM1684X), INT8 model compilation and inference
 * Support C++ inference based on BMCV preprocessing
@@ -32,6 +35,24 @@ YOLOv5 is a very classical One Stage target detection algorithm based on anchor.
 * Support 1 output and 3 output model inference
 * Support for picture and video testing
 * Support NMS postprocessing acceleration
+
+### 2.2 Algorithm Characteristics
+PYTHON CODE
+1. `sophon-demo/sample/YOLOv5/python`: Source code is available in this repository, implementing simple demos based on both bmcv and opencv interfaces. These are used for testing model accuracy and are **not recommended for performance evaluation**.
+2. `sophon-demo/sample/YOLOv5_opt/python`: Source code is available in this repository, supporting only in `1684x`. It implements YOLOv5 decoding layers and NMS operations using TPU to enhance end-to-end performance.
+3. `sophon-sail/sample/python/yolov5_multi_3output_pic.py`: Source code resides in the SDK's sophon-sail folder. It utilizes Python to call C++ encapsulated interfaces, allocating decoding, pre-processing, inference, and post-processing in separate threads to improve overall performance.
+4. Sections 8 and 9 of the "TPU-MLIR Quick Start Guide" involve leveraging TPU for pre-processing and post-processing. Please refer to the corresponding documentation and develop corresponding routines to integrate pre-processing and post-processing into the algorithm, thereby improving end-to-end performance.
+5. Utilize the Python `multiprocessing` module to invoke time-consuming function via multiple processes, enhancing overall throughput.
+
+C++ CODE
+1. `sophon-demo/sample/YOLOv5/cpp`: Source code is available in this repository, demonstrating simple demos based on bmcv and sail interfaces for accuracy verification.
+2. `sophon-demo/sample/YOLOv5_opt/cpp`: Source code in this repository supports only in `1684x`. It utilizes TPU for YOLOv5 decoding layers and NMS operations, improving end-to-end performance.
+3. `sophon-stream/samples/yolov5`: Source code is in the SDK (version V23.10.01 and above) under `sophon-stream`, separating pre-processing, inference, and post-processing into different threads to significantly improve overall performance.
+4. `sophon-pipeline/examples/yolov5`: [Source code](https://github.com/sophgo/sophon-pipeline) , implementing the entire algorithmic inference process based on a thread pool to enhance overall performance.
+5. Sections 8 and 9 of the "TPU-MLIR Quick Start Guide" involve leveraging TPU for pre-processing and post-processing, thereby improving end-to-end performance.
+
+> **note**  
+> This code supports both triple-output and single-output models. The single-output model demonstrates higher performance, but it might encounter issues during quantization. On the other hand, the triple-output model simplifies quantization. **When used for model accuracy validation, it is recommended to opt for the triple-output model.**
  
 ## 3. Prepare Models and Data
 It is recommended to use TPU-MLIR to compile BModel, Pytorch model to export to onnx model before compilation, if the tpu-mlir version you are using is >= v1.3.0 (i.e. official website v23.07.01), you can use the torchscript model directly. For more information, please see [YOLOv5 Model Export](./docs/YOLOv5_Export_Guide_EN.md).
