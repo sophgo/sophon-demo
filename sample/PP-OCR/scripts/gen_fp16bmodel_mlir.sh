@@ -137,18 +137,18 @@ rm -r $outdir/ch_PP-OCRv3_cls_fp16_*.bmodel
 model_tool --combine $outdir/ch_PP-OCRv3_rec_fp16_*.bmodel -o $outdir/ch_PP-OCRv3_rec_fp16.bmodel
 rm -r $outdir/ch_PP-OCRv3_rec_fp16_*.bmodel
 
-# if test $target = "bm1688";then
-#     echo "Generating multicore models..."
-#     gen_fp16bmodel_multicore 1 2
-#     gen_fp16bmodel_multicore 4 2
-#     echo "Combining bmodels..."
-#     model_tool --combine $outdir/ch_PP-OCRv3_det_fp16_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_det_fp16_2core.bmodel
-#     rm -r $outdir/ch_PP-OCRv3_det_fp16_*b_*.bmodel
-#     model_tool --combine $outdir/ch_PP-OCRv3_cls_fp16_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_cls_fp16_2core.bmodel
-#     rm -r $outdir/ch_PP-OCRv3_cls_fp16_*b_*.bmodel
-#     model_tool --combine $outdir/ch_PP-OCRv3_rec_fp16_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_rec_fp16_2core.bmodel
-#     rm -r $outdir/ch_PP-OCRv3_rec_fp16_*b_*.bmodel
-# fi
+if test $target = "bm1688";then
+    echo "Generating multicore models..."
+    gen_fp16bmodel_multicore 1 2
+    gen_fp16bmodel_multicore 4 2
+    echo "Combining bmodels..."
+    model_tool --combine $outdir/ch_PP-OCRv3_det_fp16_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_det_fp16_2core.bmodel
+    rm -r $outdir/ch_PP-OCRv3_det_fp16_*b_*.bmodel
+    model_tool --combine $outdir/ch_PP-OCRv3_cls_fp16_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_cls_fp16_2core.bmodel
+    rm -r $outdir/ch_PP-OCRv3_cls_fp16_*b_*.bmodel
+    model_tool --combine $outdir/ch_PP-OCRv3_rec_fp16_*b_*2core.bmodel -o $outdir/ch_PP-OCRv3_rec_fp16_2core.bmodel
+    rm -r $outdir/ch_PP-OCRv3_rec_fp16_*b_*.bmodel
+fi
 
 
 popd
