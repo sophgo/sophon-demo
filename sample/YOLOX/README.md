@@ -25,8 +25,8 @@ YOLOx由旷世研究提出,是基于YOLO系列的改进，引入了解耦头和A
 **官方源码地址** (https://github.com/Megvii-BaseDetection/YOLOX)
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X)、INT8模型编译和推理
+* 支持BM1688(SoC)、支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
 * 支持基于BMCV、sail预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -63,6 +63,15 @@ chmod -R +x scripts/
 │   ├── yolox_s_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=4
 │   ├── yolox_s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── yolox_s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1688
+│   ├── yolox_s_fp32_1b.bmodel         # 使用TPU-MLIR编译，用于BM1688的单核FP32 BModel，batch_size=1
+│   ├── yolox_s_fp32_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的双核FP32 BModel，batch_size=1
+│   ├── yolox_s_fp16_1b.bmodel         # 使用TPU-MLIR编译，用于BM1688的单核FP16 BModel，batch_size=1
+│   ├── yolox_s_fp16_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的双核FP16 BModel，batch_size=1
+│   ├── yolox_s_int8_1b.bmodel         # 使用TPU-MLIR编译，用于BM1688的单核INT8 BModel，batch_size=1
+│   ├── yolox_s_int8_4b.bmodel         # 使用TPU-MLIR编译，用于BM1688的单核INT8 BModel，batch_size=4
+│   ├── yolox_s_int8_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的单核INT8 BModel，batch_size=1
+│   └── yolox_s_int8_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的双核INT8 BModel，batch_size=4
 │── torch
 │   └── yolox_s.pt               # trace后的torchscript模型
 └── onnx
@@ -162,11 +171,24 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
 | BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
 | BM1684X PCIe | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.401      |   0.592    |
+| BM1688 SOC | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.403      |   0.590    |
+| BM1688 SOC | yolox_opencv.py  | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| BM1688 SOC | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
+| BM1688 SOC | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
+| BM1688 SOC | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| BM1688 SOC | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
+| BM1688 SOC | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| BM1688 SOC | yolox_bmcv.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
+| BM1688 SOC | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel |      0.402      |   0.592    |
+| BM1688 SOC | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| BM1688 SOC | yolox_sail.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
+| BM1688 SOC | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.402     |   0.592    |
 
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. SoC和PCIe的模型精度一致；
 > 3. AP@IoU=0.5:0.95为area=all对应的指标。
+> 4. BM1688双核模型精度测试与单核模型精度一致
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -179,7 +201,7 @@ bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 测试各个模型的理论推理时间，结果如下：
 
 |          测试模型              | calculate time(ms) |
-| ---- ------------------------- | ----------------- |
+| ------------------------------ | ----------------- |
 | BM1684/yolox_s_fp32_1b.bmodel  |       26.01       |
 | BM1684/yolox_s_fp32_4b.bmodel  |       25.62       |
 | BM1684/yolox_s_int8_1b.bmodel  |       19.54       |
@@ -190,6 +212,14 @@ bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 | BM1684X/yolox_s_fp16_4b.bmodel |       6.15        |
 | BM1684X/yolox_s_int8_1b.bmodel |       4.55        |
 | BM1684X/yolox_s_int8_4b.bmodel |       4.28        |
+| BM1688/yolox_s_fp32_1b.bmodel |      155.60       |
+| BM1688/yolox_s_fp16_1b.bmodel |      36.11        |
+| BM1688/yolox_s_int8_1b.bmodel |      21.44       |
+| BM1688/yolox_s_int8_4b.bmodel |      20.40       |
+| BM1688/yolox_s_fp32_1b_2core.bmodel |    104.13     |
+| BM1688/yolox_s_fp16_1b_2core.bmodel |    23.58      |
+| BM1688/yolox_s_int8_1b_2core.bmodel |    15.97         |
+| BM1688/yolox_s_int8_4b_2core.bmodel |    11.92         |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -230,6 +260,18 @@ bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 | BM1684X SoC | yolox_sail.soc  | yolox_s_fp16_1b.bmodel | 2.88     | 2.71    | 5.91      | 2.10     |
 | BM1684X SoC | yolox_sail.soc  | yolox_s_int8_1b.bmodel | 2.81     | 2.72    | 4.76      | 2.10     |
 | BM1684X SoC | yolox_sail.soc  | yolox_s_int8_4b.bmodel | 2.67     | 2.63    | 4.55      | 2.12     |
+| BM1688 SoC | yolox_opencv.py | yolox_s_fp32_1b.bmodel |  21.62   | 4.17   |  174.24   |  3.98   |
+| BM1688 SoC | yolox_opencv.py | yolox_s_fp16_1b.bmodel |  20.42   | 4.09   |  54.62    |  3.98   |
+| BM1688 SoC | yolox_opencv.py | yolox_s_int8_1b.bmodel |  20.19   | 4.14   |  40.05    |  3.97   |
+| BM1688 SoC | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel |  4.68    | 5.18   |  157.73   |  4.01    |
+| BM1688 SoC | yolox_bmcv.py   | yolox_s_fp16_1b.bmodel |  5.16    | 5.25   |  38.22    |  4.03    |
+| BM1688 SoC | yolox_bmcv.py   | yolox_s_int8_1b.bmodel |  4.53    | 5.18   |  23.63    |  3.99    |
+| BM1688 SoC | yolox_bmcv.soc  | yolox_s_fp32_1b.bmodel |  5.84    |  1.96   |  154.59    |  3.76   |
+| BM1688 SoC | yolox_bmcv.soc  | yolox_s_fp16_1b.bmodel |  5.83    |  1.94   |  35.05     |  3.75    |
+| BM1688 SoC | yolox_bmcv.soc  | yolox_s_int8_1b.bmodel |  5.78    |  1.95   |  20.42     |  3.74   |
+| BM1688 SoC | yolox_sail.soc  | yolox_s_fp32_1b.bmodel |  3.94  |  5.22     |  155.22    |  2.91  |
+| BM1688 SoC | yolox_sail.soc  | yolox_s_fp16_1b.bmodel |  3.92    | 5.21    | 35.65      |  2.91    |
+| BM1688 SoC | yolox_sail.soc  | yolox_s_int8_1b.bmodel |  4.01    | 5.23   |  21.04    |  2.91   |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
@@ -237,6 +279,7 @@ bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 > 3. BM1684 SoC的测试平台为标准版SE5，BM1684X SoC的测试平台为标准版SE7
 > 4. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 5. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 6. BM1688双核模型性能与单核模型相比，在推理时间不同，其他参数保持一致，推理性能区别请参考[7.1小节](#71-bmrt_test)测试数据
 
 ## 8. FAQ
 [常见问题解答](../../docs/FAQ.md)

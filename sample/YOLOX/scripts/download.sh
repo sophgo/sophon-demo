@@ -21,8 +21,8 @@ fi
 # models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOX/models_1215/models.zip
-    unzip models.zip -d ../models
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOX/models_1220/models.zip
+    unzip models.zip -d ../
     rm models.zip
     echo "models download!"
 else

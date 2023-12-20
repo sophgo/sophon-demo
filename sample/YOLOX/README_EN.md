@@ -25,7 +25,7 @@ YOLOx, proposed by Megvii Technology Limited, is based on the improvement of YOL
 **URL of github repository** (https://github.com/Megvii-BaseDetection/YOLOX)
 
 ## 2. Feature
-* Support for BM1684X(x86 PCIe、SoC) and BM1684(x86 PCIe、SoC、arm PCIe)
+* Support for BM1688(SoC)、BM1684X(x86 PCIe、SoC) and BM1684(x86 PCIe、SoC、arm PCIe)
 * Support for FP32, FP16 (BM1684X), INT8 model compilation and inference
 * Support C++ inference based on BMCV preprocessing
 * Support Python inference based on OpenCV and BMCV preprocessing
@@ -63,6 +63,15 @@ The downloadable models include
 │   ├── yolox_s_fp16_4b.bmodel   # Compiled with TPU-MLIR, FP16 BModel,batch_size=4 for BM1684X
 │   ├── yolox_s_int8_1b.bmodel   # Compiled with TPU-MLIR, INT8 BModel,batch_size=1 for BM1684X
 │   └── yolox_s_int8_4b.bmodel   # Compiled with TPU-MLIR, INT8 BModel,batch_size=4 for BM1684X
+├── BM1688
+│   ├── yolox_s_fp32_1b.bmodel         # Compiled with TPU-MLIR, FP32 BModel,batch_size=1 and single core for BM1688
+│   ├── yolox_s_fp32_1b_2core.bmodel   # Compiled with TPU-MLIR, FP32 BModel,batch_size=1 and double cores for BM1688
+│   ├── yolox_s_fp16_1b.bmodel         # Compiled with TPU-MLIR, FP16 BModel,batch_size=1 and single core for BM1688
+│   ├── yolox_s_fp16_1b_2core.bmodel   # Compiled with TPU-MLIR, FP16 BModel,batch_size=1 and double cores for BM1688
+│   ├── yolox_s_int8_1b.bmodel         # Compiled with TPU-MLIR, INT8 BModel,batch_size=1 and single core for BM1688
+│   ├── yolox_s_int8_4b.bmodel         # Compiled with TPU-MLIR, INT8 BModel,batch_size=4 and single core for BM1688
+│   ├── yolox_s_int8_1b_2core.bmodel   # Compiled with TPU-MLIR, INT8 BModel,batch_size=1 and double cores for BM1688
+│   └── yolox_s_int8_4b_2core.bmodel   # Compiled with TPU-MLIR, INT8 BModel,batch_size=4 and double cores for BM1688
 │── torch
 │   └── yolox_s.pt               # Torchscript model after trace
 └── onnx
@@ -162,12 +171,25 @@ On the coco2017val_1000 dataset, the accuracy test results with `nms_thresh=0.6,
 | BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
 | BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
 | BM1684X PCIe | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.401      |   0.592    |
+| BM1688 SOC | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.403      |   0.590    |
+| BM1688 SOC | yolox_opencv.py  | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| BM1688 SOC | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
+| BM1688 SOC | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
+| BM1688 SOC | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| BM1688 SOC | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
+| BM1688 SOC | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel |      0.397      |   0.594    |
+| BM1688 SOC | yolox_bmcv.pcie  | yolox_s_fp16_1b.bmodel |      0.396      |   0.594    |
+| BM1688 SOC | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel |      0.398      |   0.592    |
+| BM1688 SOC | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.397      |   0.594    |
+| BM1688 SOC | yolox_sail.pcie  | yolox_s_fp16_1b.bmodel |      0.396      |   0.594    |
+| BM1688 SOC | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.398     |   0.592    |
 
 
 > **Test Description**:
 > 1. The model accuracy of batch_size=4 and batch_size=1 is the same.
 > 2. The model accuracy of SoC and PCIe is the same.
 > 3. AP@IoU=0.5:0.95 is the corresponding indicator of area=all.
+> 4. The accuracy test results of the BM1688 dual-core model are consistent with those of the single-core model. 
 
 ## 7. Performance Testing
 ### 7.1 bmrt_test
@@ -191,6 +213,14 @@ The theoretical inference time of each model is tested, and the results are as f
 | BM1684X/yolox_s_fp16_4b.bmodel |       6.15        |
 | BM1684X/yolox_s_int8_1b.bmodel |       3.86        |
 | BM1684X/yolox_s_int8_4b.bmodel |       3.69        |
+| BM1688/yolox_s_fp32_1b.bmodel |      155.60       |
+| BM1688/yolox_s_fp16_1b.bmodel |      36.11        |
+| BM1688/yolox_s_int8_1b.bmodel |      21.44       |
+| BM1688/yolox_s_int8_4b.bmodel |      20.40       |
+| BM1688/yolox_s_fp32_1b_2core.bmodel |    104.13     |
+| BM1688/yolox_s_fp16_1b_2core.bmodel |    23.58      |
+| BM1688/yolox_s_int8_1b_2core.bmodel |    15.97         |
+| BM1688/yolox_s_int8_4b_2core.bmodel |    11.92         |
 
 > **Test Description**：  
 > 1. The performance test results have a certain volatility.
@@ -231,6 +261,18 @@ Use different examples and models to test `datasets/val2017_1000` with `conf_thr
 | BM1684X SoC | yolox_sail.soc  | yolox_s_fp16_1b.bmodel | 2.88     | 2.71    | 5.91      | 2.10     |
 | BM1684X SoC | yolox_sail.soc  | yolox_s_int8_1b.bmodel | 2.81     | 2.72    | 4.76      | 2.10     |
 | BM1684X SoC | yolox_sail.soc  | yolox_s_int8_4b.bmodel | 2.67     | 2.63    | 4.55      | 2.12     |
+| BM1688 SoC | yolox_opencv.py | yolox_s_fp32_1b.bmodel |  21.62   | 4.17   |  174.24   |  3.98   |
+| BM1688 SoC | yolox_opencv.py | yolox_s_fp16_1b.bmodel |  20.42   | 4.09   |  54.62    |  3.98   |
+| BM1688 SoC | yolox_opencv.py | yolox_s_int8_1b.bmodel |  20.19   | 4.14   |  40.05    |  3.97   |
+| BM1688 SoC | yolox_bmcv.py   | yolox_s_fp32_1b.bmodel |  4.68    | 5.18   |  157.73   |  4.01    |
+| BM1688 SoC | yolox_bmcv.py   | yolox_s_fp16_1b.bmodel |  5.16    | 5.25   |  38.22    |  4.03    |
+| BM1688 SoC | yolox_bmcv.py   | yolox_s_int8_1b.bmodel |  4.53    | 5.18   |  23.63    |  3.99    |
+| BM1688 SoC | yolox_bmcv.soc  | yolox_s_fp32_1b.bmodel |  5.84    |  1.96   |  154.59    |  3.76   |
+| BM1688 SoC | yolox_bmcv.soc  | yolox_s_fp16_1b.bmodel |  5.83    |  1.94   |  35.05     |  3.75    |
+| BM1688 SoC | yolox_bmcv.soc  | yolox_s_int8_1b.bmodel |  5.78    |  1.95   |  20.42     |  3.74   |
+| BM1688 SoC | yolox_sail.soc  | yolox_s_fp32_1b.bmodel |  3.94    |  5.22   |  155.22    |  2.91  |
+| BM1688 SoC | yolox_sail.soc  | yolox_s_fp16_1b.bmodel |  3.92    | 5.21    | 35.65      |  2.91  |
+| BM1688 SoC | yolox_sail.soc  | yolox_s_int8_1b.bmodel |  4.01    | 5.23    |  21.04     |  2.91   |
 
 > **Test Description**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
@@ -238,6 +280,7 @@ Use different examples and models to test `datasets/val2017_1000` with `conf_thr
 > 3. test platform of BM1684 SoC is standard SE5, and test platform of BM1684X SoC is standard SE7
 > 4. BM1684/1684X SoC's processors are all 8-core ARM A53 42320 DMIPS @ 2.3GHz, performance on PCIe may vary greatly due to different processors.
 > 5. The image resolution has a great influence on the decoding time, the reasoning result has a great influence on the post-processing time, different test pictures may be different, and different thresholds have a great influence on the post-processing time.
+> 6. The performance comparison between the BM1688 dual-core model and the single-core model under different inference times, while keeping other parameters consistent, please refer to the test data in [Section 7.1](#71-bmrt_test) for inference performance differences. 
 
 ## 8. FAQ
 [Frequently Asked Questions](../../docs/FAQ_EN.md)
