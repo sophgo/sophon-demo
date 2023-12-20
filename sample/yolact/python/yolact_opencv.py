@@ -1,267 +1,335 @@
-#===----------------------------------------------------------------------===#
+# ===----------------------------------------------------------------------===#
 #
 # Copyright (C) 2022 Sophgo Technologies Inc.  All rights reserved.
 #
 # SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
 # third-party components.
 #
-#===----------------------------------------------------------------------===#
+# ===----------------------------------------------------------------------===#
 import os
-import sys
-
-__dir__ = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(__dir__)
-import shutil
-import numpy as np
-import cv2
+import time
+import json
 import argparse
-import configparser
-from yolact_utils.preprocess_numpy import PreProcess
-from yolact_utils.postprocess_numpy import PostProcess
-from yolact_utils.sophon_inference import SophonInference
-from yolact_utils.utils import draw_numpy, is_img
+import numpy as np
+import sophon.sail as sail
+from postprocess_numpy import PostProcess
+from utils import COLORS, COCO_CLASSES
+import logging
+import cv2
+
+logging.basicConfig(level=logging.INFO)
 
 
-class Detector(object):
-    def __init__(self, cfg_path, bmodel_path, device_id=0,
-                 conf_thresh=0.5, nms_thresh=0.5, keep_top_k=200):
-        try:
-            self.get_config(cfg_path)
-        except Exception as e:
-            raise e
+class Yolact():
+    def __init__(self, args):
+        # load bmodel
+        self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
+        logging.debug("load {} success!".format(args.bmodel))
+        self.graph_name = self.net.get_graph_names()[0]
+        self.input_name = self.net.get_input_names(self.graph_name)[0]
+        self.output_names = self.net.get_output_names(self.graph_name)
+        self.input_shape = self.net.get_input_shape(self.graph_name, self.input_name)
+        if len(self.output_names) != 4:
+            raise ValueError('only suport 4 outputs, but got {} outputs bmodel'.format(len(self.output_names)))
 
-        if not os.path.exists(bmodel_path):
-            raise FileNotFoundError('{} is not existed.'.format(bmodel_path))
-        self.net = SophonInference(model_path=bmodel_path,
-                                   device_id=device_id,
-                                   input_mode=0)
-        print('{} is loaded.'.format(bmodel_path))
+        # check batch size
+        self.batch_size = self.input_shape[0]
+        self.net_h = self.input_shape[2]
+        self.net_w = self.input_shape[3]
 
-        self.conf_thresh = conf_thresh
-        self.nms_thresh = nms_thresh
-        self.keep_top_k = keep_top_k
+        self.mean = np.array([103.94, 116.78, 123.68], dtype=np.float32)
+        self.std = np.array([57.38, 57.12, 58.40], dtype=np.float32)
 
-        self.preprocess = PreProcess(self.cfg)
+        # image info
+        self.width = 550
+        self.height = 550
+
+        # init postprocess
+        self.conf_thresh = args.conf_thresh
+        self.nms_thresh = args.nms_thresh
+        self.keep_top_k = args.keep_top_k
+
         self.postprocess = PostProcess(
-            self.cfg,
-            self.conf_thresh,
-            self.nms_thresh,
-            self.keep_top_k,
+            conf_thresh=self.conf_thresh,
+            nms_thresh=self.nms_thresh,
+            keep_top_k=self.keep_top_k,
         )
-        self.output_order_node = ['loc', 'conf', 'mask', 'proto']
 
-    def get_config(self, cfg_path):
-        if not os.path.exists(cfg_path):
-            raise FileNotFoundError('{} is not existed.'.format(cfg_path))
+        # init time
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
 
-        config = configparser.ConfigParser()
-        config.read(cfg_path)
+    def init(self):
+        self.preprocess_time = 0.0
+        self.inference_time = 0.0
+        self.postprocess_time = 0.0
 
-        normalize = config.get("yolact", "normalize")
-        subtract_means = config.get("yolact", "subtract_means")
-        to_float = config.get("yolact", "to_float")
+    def preprocess(self, img):
+        preprocessed_img = cv2.resize(img.astype(np.float32), (self.width, self.height))
+        preprocessed_img = (preprocessed_img - self.mean) / self.std
+        chw_img = preprocessed_img[:, :, ::-1].transpose((2, 0, 1))
 
-        width = config.get("yolact", "width")
-        height = config.get("yolact", "height")
-        conv_ws = config.get("yolact", "conv_ws")
-        conv_hs = config.get("yolact", "conv_hs")
-        aspect_ratios = config.get("yolact", "aspect_ratios")
-        scales = config.get("yolact", "scales")
-        variances = config.get("yolact", "variances")
+        return chw_img.astype(np.float32)
 
-        self.cfg = dict()
+    def predict(self, input_img, img_num):
+        input_data = {self.input_name: input_img}
+        outputs = self.net.process(self.graph_name, input_data)
 
-        self.cfg['normalize'] = int(normalize.split(',')[0])
-        self.cfg['subtract_means'] = int(subtract_means.split(',')[0])
-        self.cfg['to_float'] = int(to_float.split(',')[0])
-        self.cfg['width'] = int(width.split(',')[0])
-        self.cfg['height'] = int(height.split(',')[0])
-        self.cfg['conv_ws'] = [int(i) for i in conv_ws.replace(' ', '').split(',')]
-        self.cfg['conv_hs'] = [int(i) for i in conv_hs.replace(' ', '').split(',')]
-        self.cfg['aspect_ratios'] = [float(i) for i in aspect_ratios.replace(' ', '').split(',')]
-        self.cfg['scales'] = [int(i) for i in scales.replace(' ', '').split(',')]
-        self.cfg['variances'] = [float(i) for i in variances.replace(' ', '').split(',')]
-
-    def predict(self, tensor):
-        """
-        ensure output order: loc_data, conf_preds, mask_data, proto_data
-        Args:
-            tensor:
-
-        Returns:
-
-        """
-        if tensor.ndim != 4:
-            tensor = np.expand_dims(tensor, 0)
-        # feed: [input0]
-        out_dict = self.net.infer_numpy([tensor])
         # resort
-        out_keys = list(out_dict.keys())
+        out_keys = list(outputs.keys())
         ord = []
-        for n in self.output_order_node:
+        for n in self.output_names:
             for i, k in enumerate(out_keys):
-                if n in k:
+                if n == k:
                     ord.append(i)
                     break
-        out = [out_dict[out_keys[i]] for i in ord]
+
+        out = [outputs[out_keys[i]][:img_num] for i in ord]
         return out
+    
+    def __call__(self, img_list):
 
+        img_num = len(img_list)
+        ori_size_list = []
+        preprocessed_img_list = []
 
-def decode_image_opencv(image_path):
-    try:
-        with open(image_path, "rb") as f:
-            image = np.array(bytearray(f.read()), dtype="uint8")
-            image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-    except:
-        image = None
-    return image
+        for ori_img in img_list:
+            ori_h, ori_w = ori_img.shape[:2]
+            ori_size_list.append((ori_w, ori_h))
+            start_time = time.time()
+            preprocessed_img = self.preprocess(ori_img)
+            self.preprocess_time += time.time() - start_time
+            preprocessed_img_list.append(preprocessed_img)
 
-
-def main(opt):
-    if not os.path.exists(opt.output_dir):
-        os.makedirs(opt.output_dir)
-    else:
-        shutil.rmtree(opt.output_dir)
-        os.makedirs(opt.output_dir)
-
-    yolact = Detector(
-        opt.cfgfile,
-        opt.model,
-        device_id=opt.dev_id,
-        conf_thresh=opt.conf_thresh,
-        nms_thresh=opt.nms_thresh,
-        keep_top_k=opt.keep,
-    )
-
-    batch_size = yolact.net.inputs_shapes[0][0]
-    input_path = opt.input_path
-    video_detect_frame_num = opt.video_detect_frame_num
-
-    if not os.path.exists(input_path):
-        raise FileNotFoundError('{} is not existed.'.format(input_path))
-
-    if opt.is_video:
-        if batch_size != 1:
-            raise ValueError(
-                'bmodel batch size must be 1 in video inference, but got {}'.format(
-                    batch_size)
-            )
-
-        cap = cv2.VideoCapture(input_path)
-        ret, frame = cap.read()
-        id = 0
-        while ret and frame is not None:
-            org_h, org_w = frame.shape[:2]
-            preprocessed_img = yolact.preprocess(frame)
-            out_infer = yolact.predict(preprocessed_img)
-            classid, conf_scores, boxes, masks = \
-                yolact.postprocess(*out_infer, (org_w, org_h))
-
-            result_image = frame.copy()
-            draw_numpy(result_image, boxes, masks=masks, classes_ids=classid, conf_scores=conf_scores)
-            save_basename = 'res_opencv_{}'.format(id)
-            save_name = os.path.join(opt.output_dir, save_basename.replace('.jpg', ''))
-            cv2.imencode('.jpg', result_image)[1].tofile('{}.jpg'.format(save_name))
-            id += 1
-            if id >= video_detect_frame_num:
-                break
-            ret, frame = cap.read()
-        cap.release()
-
-    else:
-
-        # imgage directory
-        input_list = []
-        if os.path.isdir(input_path):
-            for img_name in os.listdir(input_path):
-                if is_img(img_name):
-                    input_list.append(os.path.join(input_path, img_name))
-                    # imgage file
-        elif is_img(input_path):
-            input_list.append(input_path)
-        # imgage list saved in file
+        if img_num == self.batch_size:
+            input_img = np.stack(preprocessed_img_list)
         else:
-            with open(input_path, 'r', encoding='utf-8') as fin:
-                for line in fin.readlines():
-                    line_head = line.strip("\n").split(' ')[0]
-                    if is_img(line_head):
-                        input_list.append(line_head)
+            input_img = np.zeros(self.input_shape, dtype='float32')
+            input_img[:img_num] = np.stack(preprocessed_img_list)
 
-        img_num = len(input_list)
+        start_time = time.time()
+        outputs = self.predict(input_img, img_num)
+        self.inference_time += time.time() - start_time
 
-        if batch_size not in [1, 4]:
-            raise NotImplementedError(
-                'This example is for batch-1 or batch-4 model. Please transfer bmodel with batch size 1 or 4.')
+        start_time = time.time()
 
-        inp_batch = []
-        images = []
-        for ino in range(img_num):
-            image = decode_image_opencv(input_list[ino])
-            if image is None:
-                print('skip: image data is none: {}'.format(input_list[ino]))
-                continue
-            images.append(image)
-            inp_batch.append(input_list[ino])
+        results = self.postprocess.infer_batch(outputs, ori_size_list)
+        self.postprocess_time += time.time() - start_time
 
-            if len(images) != batch_size and ino != (img_num - 1):
-                continue
+        return results
 
-            org_size_list = []
-            for i in range(len(inp_batch)):
-                org_h, org_w = images[i].shape[:2]
-                org_size_list.append((org_w, org_h))
+def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None, save_path = None, videos=False):
+    for idx in range(len(boxes)):
+        left, top, width, height = boxes[idx, :].astype(np.int32).tolist()
 
-            # batch end-to-end inference
-            preprocessed_img = yolact.preprocess.infer_batch(images)
+        if classes_ids is not None:
+            color = COLORS[int(classes_ids[idx]) % len(COLORS)]
+        else:
+            color = (0, 0, 255)
 
-            cur_bs = len(images)
-            padding_bs = batch_size - cur_bs
-            # padding a batch
-            for i in range(padding_bs):
-                preprocessed_img = np.concatenate([preprocessed_img, preprocessed_img[:1, :, :]], axis=0)
+        thickness = 2  # Bounding box line thickness
 
-            out_infer = yolact.predict(preprocessed_img)
+        cv2.rectangle(image, (left, top), (left + width, top + height), color, thickness=thickness)
 
-            # cancel padding data
-            if padding_bs != 0:
-                out_infer = [e_data[:cur_bs] for e_data in out_infer]
+        if masks is not None:
+            mask = masks[:, :, idx]
 
-            classid_list, conf_scores_list, boxes_list, masks_list = \
-                yolact.postprocess.infer_batch(out_infer, org_size_list)
+            class_id = int(classes_ids[idx]) % len(COLORS)
+            color = COLORS[class_id]
 
-            for i, (e_img, classid, conf_scores, boxes, masks) in enumerate(zip(images,
-                                                                                classid_list,
-                                                                                conf_scores_list,
-                                                                                boxes_list,
-                                                                                masks_list)):
-                draw_numpy(e_img, boxes, masks=masks, classes_ids=classid, conf_scores=conf_scores)
-                save_basename = 'res_opencv_{}'.format(os.path.basename(inp_batch[i]))
-                save_name = os.path.join(opt.output_dir, save_basename.replace('.jpg', ''))
-                cv2.imencode('.jpg', e_img)[1].tofile('{}.jpg'.format(save_name))
+            image[mask] = image[mask] * 0.5 + np.array(color) * 0.5
 
-            images.clear()
-            inp_batch.clear()
-        print('the results is saved: {}'.format(os.path.abspath(opt.output_dir)))
+        if classes_ids is not None and conf_scores is not None:
+            classes_ids = classes_ids.astype(np.int8)
 
+            text = COCO_CLASSES[classes_ids[idx] + 1] + ':' + str(round(conf_scores[idx], 2))
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 0.8  # Text size
+            text_thickness = 2  # Text line thickness
 
-def parse_opt():
+            # Calculate text position
+            (text_width, text_height), _ = cv2.getTextSize(text, font, font_scale, text_thickness)
+            text_position = (left, top + height - 10)
+
+            # Ensure text does not go beyond image boundary
+            if text_position[0] + text_width > image.shape[1]:
+                text_position = (left, top - 5)
+
+            cv2.putText(image, text, text_position, font, font_scale, (0, 255, 0), thickness=text_thickness)
+            
+    save_name = save_path.split('/')[-1]
+    cv2.imencode('.jpg', image)[1].tofile('{}.jpg'.format(save_path))
+
+def main(args):
+    # check params
+    if not os.path.exists(args.input):
+        raise FileNotFoundError('{} is not existed.'.format(args.input))
+    if not os.path.exists(args.bmodel):
+        raise FileNotFoundError('{} is not existed.'.format(args.bmodel))
+
+    # creat save path
+    output_dir = "./results"
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    output_img_dir = os.path.join(output_dir, 'images')
+    if not os.path.exists(output_img_dir):
+        os.mkdir(output_img_dir)
+
+        # initialize net
+    yolact = Yolact(args)
+    batch_size = yolact.batch_size
+
+    # warm up
+    # for i in range(10):
+    #     results = yolact([np.zeros((550, 550, 3))])
+    yolact.init()
+
+    decode_time = 0.0
+    # test images
+    if os.path.isdir(args.input):
+        img_list = []
+        filename_list = []
+        results_list = []
+        cn = 0
+        for root, dirs, filenames in os.walk(args.input):
+            for filename in filenames:
+                if os.path.splitext(filename)[-1].lower() not in ['.jpg', '.png', '.jpeg', '.bmp', '.webp']:
+                    continue
+                img_file = os.path.join(root, filename)
+                cn += 1
+                logging.info("{}, img_file: {}".format(cn, img_file))
+                # decode
+                start_time = time.time()
+                src_img = cv2.imdecode(np.fromfile(img_file, dtype=np.uint8), -1)
+                if src_img is None:
+                    logging.error("{} imdecode is None.".format(img_file))
+                    continue
+                if len(src_img.shape) != 3:
+                    src_img = cv2.cvtColor(src_img, cv2.COLOR_GRAY2BGR)
+                decode_time += time.time() - start_time
+
+                img_list.append(src_img)
+                filename_list.append(filename)
+
+                if (len(img_list) == batch_size or cn == len(filenames)) and len(img_list):
+                    # predict
+                    results = yolact(img_list)
+
+                    for i, filename in enumerate(filename_list):
+                        det = [results[j][i] for j in range(4)]
+                        if len(det[-1]) == 0:
+                            print("No objects in {}".format(filename))
+                            continue
+  
+                        # save image
+                        save_path = os.path.join(output_img_dir, filename)
+                        
+                        # image,bbox,masksclass_id,conf_score,save_path
+                        draw_numpy(img_list[i], 
+                                   boxes=det[2],
+                                   masks=det[3], 
+                                   classes_ids=det[0], 
+                                   conf_scores=det[1],
+                                   save_path=save_path)
+                        
+                        # save result
+                        res_dict = dict()
+                        res_dict['image_name'] = filename
+                        res_dict['bboxes'] = []
+                        for idx in range(det[0].shape[0]):
+                            bbox_dict = dict()
+                            x1, y1, x2, y2 = det[2][idx]
+                            score = det[1][idx]
+                            category_id = det[0][idx]
+                            bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2, 3)),
+                                                 float(round(y2, 3))]
+                            bbox_dict['category_id'] = int(category_id)
+                            bbox_dict['score'] = float(round(score, 5))
+                            res_dict['bboxes'].append(bbox_dict)
+                        results_list.append(res_dict)
+                        ##############################################
+
+                    img_list.clear()
+                    filename_list.clear()
+
+        # save results
+        if args.input[-1] == '/':
+            args.input = args.input[:-1]
+        json_name = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input)[
+            -1] + "_opencv" + "_python_result.json"
+        with open(os.path.join(output_dir, json_name), 'w') as jf:
+            json.dump(results_list, jf, indent=4, ensure_ascii=False)
+        logging.info("result saved in {}".format(os.path.join(output_dir, json_name)))
+
+    # test video
+    else:
+        cap = cv2.VideoCapture()
+        if not cap.open(args.input):
+            raise Exception("can not open the video")
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+
+        save_video = os.path.join(output_dir, os.path.splitext(os.path.split(args.input)[1])[0] + '.avi')
+        video_name = os.path.splitext(os.path.split(args.input)[1])[0]
+        out = cv2.VideoWriter(save_video, fourcc, fps, size)
+        cn = 0
+        frame_list = []
+        end_flag = False
+
+        while not end_flag:
+            start_time = time.time()
+            ret, frame = cap.read()
+            decode_time += time.time() - start_time
+            if not ret or frame is None:
+                end_flag = True
+            else:
+                frame_list.append(frame)
+
+            if (len(frame_list) == batch_size or end_flag) and len(frame_list):
+                results = yolact(frame_list)
+                for i, frame in enumerate(frame_list):
+                    det = [results[j][i] for j in range(4)]
+                    if len(det[-1]) == 0:
+                        print("None object in this frame.")
+                        continue
+                    cn += 1
+                    logging.info("{}, det nums: {}".format(cn, det[0].shape[0]))
+                    save_path = os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg')
+                    draw_numpy(frame_list[i], det[2], det[3], classes_ids=det[0], conf_scores=det[1],
+                                save_path=save_path)
+                frame_list.clear()
+        cap.release()
+        out.release()
+        logging.info("result saved in {}".format(save_video))
+
+    # calculate speed
+    if cn > 0:
+        logging.info("------------------ Predict Time Info ----------------------")
+        decode_time = decode_time / cn
+        preprocess_time = yolact.preprocess_time / cn
+        inference_time = yolact.inference_time / cn
+        postprocess_time = yolact.postprocess_time / cn
+        logging.info("decode_time(ms): {:.2f}".format(decode_time * 1000))
+        logging.info("preprocess_time(ms): {:.2f}".format(preprocess_time * 1000))
+        logging.info("inference_time(ms): {:.2f}".format(inference_time * 1000))
+        logging.info("postprocess_time(ms): {:.2f}".format(postprocess_time * 1000))
+
+def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--cfgfile', type=str, help='model config file')
-    parser.add_argument('--model', type=str, help='bmodel path')
-    parser.add_argument('--dev_id', type=int, default=0, help='device id')
-    image_path = os.path.join(os.path.dirname(__file__),"../data/images/000000162415.jpg")
-    parser.add_argument('--conf_thresh', type=float, default=0.5, help='confidence threshold')
+    parser.add_argument('--input', type=str, default='../datasets/test', help='path of input')
+    parser.add_argument('--bmodel', type=str, default='../models/BM1684X/yolact_bm1684x_fp32_1b.bmodel',
+                        help='path of bmodel')
+    parser.add_argument('--dev_id', type=int, default=0, help='dev id')
+    parser.add_argument('--conf_thresh', type=float, default=0.15, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.5, help='nms threshold')
-    parser.add_argument('--keep', type=int, default=100, help='keep top-k')
-    parser.add_argument('--is_video', default=0, type=int, help="input is video?")
-    parser.add_argument('--input_path', type=str, default=image_path, help='input path')
-    DEFAULT_OUTPUT_DIR = os.path.join(__dir__, 'results', 'results_opencv')
-    parser.add_argument('--output_dir', type=str, default=DEFAULT_OUTPUT_DIR, help='output image directory')
-    parser.add_argument('--video_detect_frame_num', type=int, default=10, help='detect frame number of video')
-    opt = parser.parse_args()
-    return opt
-
+    parser.add_argument('--keep_top_k', type=int, default=100, help='keep top k candidate boxs')
+    
+    args = parser.parse_args()
+    return args
+  
 if __name__ == "__main__":
-    opt = parse_opt()
-    main(opt)
+    args = argsparser()
+    main(args)
     print('all done.')
