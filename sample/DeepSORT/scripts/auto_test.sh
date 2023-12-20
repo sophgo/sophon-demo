@@ -351,6 +351,19 @@ then
     eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.430
     eval_cpp soc bmcv extractor_int8_1b.bmodel  0.429
     eval_cpp soc bmcv extractor_int8_4b.bmodel  0.429
+
+    eval_python opencv extractor_fp32_1b_2core.bmodel 0.441
+    eval_python opencv extractor_fp32_4b_2core.bmodel 0.441
+    eval_python opencv extractor_fp16_1b_2core.bmodel 0.441
+    eval_python opencv extractor_fp16_4b_2core.bmodel 0.441
+    eval_python opencv extractor_int8_1b_2core.bmodel 0.440
+    eval_python opencv extractor_int8_4b_2core.bmodel 0.440
+    eval_cpp soc bmcv extractor_fp32_1b_2core.bmodel  0.430
+    eval_cpp soc bmcv extractor_fp32_4b_2core.bmodel  0.430
+    eval_cpp soc bmcv extractor_fp16_1b_2core.bmodel  0.430
+    eval_cpp soc bmcv extractor_fp16_4b_2core.bmodel  0.430
+    eval_cpp soc bmcv extractor_int8_1b_2core.bmodel  0.429
+    eval_cpp soc bmcv extractor_int8_4b_2core.bmodel  0.429
   fi
 fi
 

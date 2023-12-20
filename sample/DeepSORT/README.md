@@ -69,12 +69,18 @@ chmod -R +x scripts/
 │   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的INT8 BModel，batch_size=1
 │   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的INT8 BModel，batch_size=4
 ├── BM1688
-│   ├── extractor_fp16_1b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
-│   ├── extractor_fp16_4b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4
-│   ├── extractor_fp32_1b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
-│   ├── extractor_fp32_4b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4
-│   ├── extractor_int8_1b.bmodel              # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
-│   ├── extractor_int8_4b.bmodel              # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4
+│   ├── extractor_fp16_1b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=1
+│   ├── extractor_fp16_4b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4，num_core=1
+│   ├── extractor_fp32_1b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=1
+│   ├── extractor_fp32_4b.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4，num_core=1
+│   ├── extractor_int8_1b.bmodel              # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=1
+│   ├── extractor_int8_4b.bmodel              # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=1
+│   ├── extractor_fp16_1b_2core.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=2
+│   ├── extractor_fp16_4b_2core.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4，num_core=2
+│   ├── extractor_fp32_1b_2core.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=2
+│   ├── extractor_fp32_4b_2core.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4，num_core=2
+│   ├── extractor_int8_1b_2core.bmodel        # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
+│   ├── extractor_int8_4b_2core.bmodel        # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=2
 │   └── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1688的INT8 BModel，batch_size=1
 ├── onnx
 │   └── extractor.onnx                        # 由ckpt.t7导出的onnx模型
@@ -168,8 +174,9 @@ acc         525  0.524889  0.544908  0.506289  0.687163  0.739579  5009  10  12 
 | BM1688 SoC   | deepsort_bmcv.soc  | extractor_fp16_1b.bmodel | 0.430 |
 | BM1688 SoC   | deepsort_bmcv.soc  | extractor_int8_1b.bmodel | 0.429 |
 > **测试说明**：  
-1. batch_size=4和batch_size=1的模型精度一致；
-2. SoC和PCIe的模型精度一致；
+> 1. batch_size=4和batch_size=1的模型精度一致；
+> 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
+> 3. BM1688 num_core=2的模型与num_core=1的模型精度基本一致。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -181,18 +188,30 @@ bmrt_test --bmodel models/BM1684X/extractor_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|           测试模型             | calculate time(ms) |
-| -----------------------------  | ----------------- |
-| BM1684/extractor_fp32_1b.bmodel  |   2.26       |
-| BM1684/extractor_fp32_4b.bmodel  |   1.25       |
-| BM1684/extractor_int8_1b.bmodel  |   0.99        |
-| BM1684/extractor_int8_4b.bmodel  |   0.25        |
-| BM1684X/extractor_fp32_1b.bmodel |   2.08        |
-| BM1684X/extractor_fp32_4b.bmodel |   1.88         |
-| BM1684X/extractor_fp16_1b.bmodel |   0.56         |
-| BM1684X/extractor_fp16_4b.bmodel |   0.24         |
-| BM1684X/extractor_int8_1b.bmodel |   0.33        |
-| BM1684X/extractor_int8_4b.bmodel |   0.14         |
+|           测试模型                    | calculate time(ms) |
+| -----------------------------         | ----------------- |
+| BM1684/extractor_fp32_1b.bmodel       |   2.26        |
+| BM1684/extractor_fp32_4b.bmodel       |   1.25        |
+| BM1684/extractor_int8_1b.bmodel       |   0.99        |
+| BM1684/extractor_int8_4b.bmodel       |   0.25        |
+| BM1684X/extractor_fp32_1b.bmodel      |   2.08        |
+| BM1684X/extractor_fp32_4b.bmodel      |   1.88        |
+| BM1684X/extractor_fp16_1b.bmodel      |   0.56        |
+| BM1684X/extractor_fp16_4b.bmodel      |   0.24        |
+| BM1684X/extractor_int8_1b.bmodel      |   0.33        |
+| BM1684X/extractor_int8_4b.bmodel      |   0.14        |
+| BM1688/extractor_fp32_1b.bmodel       |   13.29       |
+| BM1688/extractor_fp32_4b.bmodel       |   11.27       |
+| BM1688/extractor_fp16_1b.bmodel       |   3.14        |
+| BM1688/extractor_fp16_4b.bmodel       |   1.84        |
+| BM1688/extractor_int8_1b.bmodel       |   1.93        |
+| BM1688/extractor_int8_4b.bmodel       |   0.75        |
+| BM1688/extractor_fp32_1b_2core.bmodel |   13.34       |
+| BM1688/extractor_fp32_4b_2core.bmodel |   6.36        |
+| BM1688/extractor_fp16_1b_2core.bmodel |   3.49        |
+| BM1688/extractor_fp16_4b_2core.bmodel |   1.32        |
+| BM1688/extractor_int8_1b_2core.bmodel |   1.87        |
+| BM1688/extractor_int8_4b_2core.bmodel |   0.75        |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -225,6 +244,18 @@ bmrt_test --bmodel models/BM1684X/extractor_fp32_1b.bmodel
 | BM1684X soc | deepsort_bmcv.soc  | extractor_fp16_4b.bmodel | 0.08          | 0.28         |  5.31    |
 | BM1684X soc | deepsort_bmcv.soc  | extractor_int8_1b.bmodel | 0.12          | 0.34         |  5.41    |
 | BM1684X soc | deepsort_bmcv.soc  | extractor_int8_4b.bmodel | 0.08          | 0.16         |  5.43    |
+| BM1688 soc  | deepsort_opencv.py | extractor_fp32_1b.bmodel | 3.04          | 13.87        |  61.21   |
+| BM1688 soc  | deepsort_opencv.py | extractor_fp32_4b.bmodel | 2.97          | 13.62        |  66.88   |
+| BM1688 soc  | deepsort_opencv.py | extractor_fp16_1b.bmodel | 3.02          | 3.69         |  60.15   |
+| BM1688 soc  | deepsort_opencv.py | extractor_fp16_4b.bmodel | 2.97          | 2.53         |  61.57   |
+| BM1688 soc  | deepsort_opencv.py | extractor_int8_1b.bmodel | 3.02          | 2.41         |  57.79   |
+| BM1688 soc  | deepsort_opencv.py | extractor_int8_4b.bmodel | 2.98          | 1.29         |  59.12   |
+| BM1688 soc  | deepsort_bmcv.soc  | extractor_fp32_1b.bmodel | 0.39          | 12.29        |  6.72    |
+| BM1688 soc  | deepsort_bmcv.soc  | extractor_fp32_4b.bmodel | 0.33          | 10.97        |  6.68    |
+| BM1688 soc  | deepsort_bmcv.soc  | extractor_fp16_1b.bmodel | 0.38          | 2.12         |  6.72    |
+| BM1688 soc  | deepsort_bmcv.soc  | extractor_fp16_4b.bmodel | 0.32          | 1.56         |  6.70    |
+| BM1688 soc  | deepsort_bmcv.soc  | extractor_int8_1b.bmodel | 0.37          | 0.85         |  6.64    |
+| BM1688 soc  | deepsort_bmcv.soc  | extractor_int8_4b.bmodel | 0.32          | 0.50         |  6.67    |
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，preprocess_time、inference_time是特征提取模型平均每个crop的处理时间，postprocess_time是deepsort算法平均每帧的后处理时间；

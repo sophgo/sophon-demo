@@ -34,15 +34,15 @@ function gen_fp16bmodel()
         --model extractor_fp16_$1b.bmodel
 
     mv extractor_fp16_$1b.bmodel $outdir/
-    # if test $target = "bm1688";then
-    #     model_deploy.py \
-    #         --mlir extractor_$1b.mlir \
-    #         --quantize F16 \
-    #         --chip $target \
-    #         --num_core 2 \
-    #         --model extractor_fp16_$1b_2core.bmodel
-    #     mv extractor_fp16_$1b_2core.bmodel $outdir/
-    # fi
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir extractor_$1b.mlir \
+            --quantize F16 \
+            --chip $target \
+            --num_core 2 \
+            --model extractor_fp16_$1b_2core.bmodel
+        mv extractor_fp16_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir
