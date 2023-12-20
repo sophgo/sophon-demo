@@ -20,6 +20,8 @@ function gen_mlir()
         --mean 0.0,0.0,0.0 \
         --keep_aspect_ratio \
         --pixel_format bgr  \
+        --test_input ../datasets/test/3.jpg \
+        --test_result yolox_top.npz \
         --mlir yolox_s_$1b.mlir
 }
 
@@ -53,9 +55,28 @@ function gen_int8bmodel()
         --chip ${target} \
         --quantize_table yolox_s_qtable \
         --calibration_table yolox_s_cali_table \
+        --test_input ../datasets/test/3.jpg \
+        --test_reference yolox_top.npz \
+        --debug \
         --model yolox_s_int8_$1b.bmodel
 
     mv yolox_s_int8_$1b.bmodel $outdir/
+
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir yolox_s_$1b.mlir \
+            --quantize INT8 \
+            --chip ${target} \
+            --quantize_table yolox_s_qtable \
+            --calibration_table yolox_s_cali_table \
+            --test_input ../datasets/test/3.jpg \
+            --test_reference yolox_top.npz \
+            --num_core 2 \
+            --debug \
+            --model yolox_s_int8_$1b_2core.bmodel
+
+        mv yolox_s_int8_$1b_2core.bmodel $outdir/
+    fi
 }
 
 

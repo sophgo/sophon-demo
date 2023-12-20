@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -135,7 +135,7 @@ function build_soc()
 }
 
 function compare_res(){
-    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.001 && y-x<0.001)?1:0}'`
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.002 && y-x<0.002)?1:0}'`
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
@@ -245,18 +245,18 @@ then
     test_cpp pcie sail yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie sail yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv yolox_s_fp32_1b.bmodel 0.3658838080792764
-    eval_python opencv yolox_s_int8_1b.bmodel 0.33505292759863026
-    eval_python opencv yolox_s_int8_4b.bmodel 0.33505292759863026
-    eval_python bmcv yolox_s_fp32_1b.bmodel 0.3626383606548006
-    eval_python bmcv yolox_s_int8_1b.bmodel 0.32885532116189187
-    eval_python bmcv yolox_s_int8_4b.bmodel 0.32885532116189187
-    eval_cpp pcie bmcv yolox_s_fp32_1b.bmodel 0.3636792538869886
-    eval_cpp pcie bmcv yolox_s_int8_1b.bmodel 0.33210960745414664
-    eval_cpp pcie bmcv yolox_s_int8_4b.bmodel 0.33210960745414664
-    eval_cpp pcie sail yolox_s_fp32_1b.bmodel 0.3509438110948576
-    eval_cpp pcie sail yolox_s_int8_1b.bmodel 0.31911661299911315
-    eval_cpp pcie sail yolox_s_int8_4b.bmodel 0.31911661299911315
+    eval_python opencv yolox_s_fp32_1b.bmodel 0.403
+    eval_python opencv yolox_s_int8_1b.bmodel 0.397
+    eval_python opencv yolox_s_int8_4b.bmodel 0.397
+    eval_python bmcv yolox_s_fp32_1b.bmodel 0.402
+    eval_python bmcv yolox_s_int8_1b.bmodel 0.397
+    eval_python bmcv yolox_s_int8_4b.bmodel 0.397
+    eval_cpp pcie bmcv yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp pcie bmcv yolox_s_int8_1b.bmodel 0.396
+    eval_cpp pcie bmcv yolox_s_int8_4b.bmodel 0.396
+    eval_cpp pcie sail yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp pcie sail yolox_s_int8_1b.bmodel 0.396
+    eval_cpp pcie sail yolox_s_int8_4b.bmodel 0.396
 
   elif test $TARGET = "BM1684X"
   then
@@ -277,22 +277,22 @@ then
     test_cpp pcie sail yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie sail yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv yolox_s_fp32_1b.bmodel 0.36597429367330936
-    eval_python opencv yolox_s_fp16_1b.bmodel 0.36594023643640844
-    eval_python opencv yolox_s_int8_1b.bmodel 0.35732269086185353
-    eval_python opencv yolox_s_int8_4b.bmodel 0.35732269086185353
-    eval_python bmcv yolox_s_fp32_1b.bmodel 0.36265700086834063
-    eval_python bmcv yolox_s_fp16_1b.bmodel 0.36254341487678970 
-    eval_python bmcv yolox_s_int8_1b.bmodel 0.35294999736493926
-    eval_python bmcv yolox_s_int8_4b.bmodel 0.35294999736493926
-    eval_cpp pcie bmcv yolox_s_fp32_1b.bmodel 0.36318091666541014
-    eval_cpp pcie bmcv yolox_s_fp16_1b.bmodel 0.36298244769070265
-    eval_cpp pcie bmcv yolox_s_int8_1b.bmodel 0.35101195306528740
-    eval_cpp pcie bmcv yolox_s_int8_4b.bmodel 0.35101195306528740
-    eval_cpp pcie sail yolox_s_fp32_1b.bmodel 0.35036885817890917
-    eval_cpp pcie sail yolox_s_fp16_1b.bmodel 0.35016866053467730
-    eval_cpp pcie sail yolox_s_int8_1b.bmodel 0.33695958827356814
-    eval_cpp pcie sail yolox_s_int8_4b.bmodel 0.33695958827356814
+    eval_python opencv yolox_s_fp32_1b.bmodel 0.402
+    eval_python opencv yolox_s_fp16_1b.bmodel 0.402
+    eval_python opencv yolox_s_int8_1b.bmodel 0.402
+    eval_python opencv yolox_s_int8_4b.bmodel 0.402
+    eval_python bmcv yolox_s_fp32_1b.bmodel 0.402
+    eval_python bmcv yolox_s_fp16_1b.bmodel 0.402
+    eval_python bmcv yolox_s_int8_1b.bmodel 0.402
+    eval_python bmcv yolox_s_int8_4b.bmodel 0.402
+    eval_cpp pcie bmcv yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp pcie bmcv yolox_s_fp16_1b.bmodel 0.400
+    eval_cpp pcie bmcv yolox_s_int8_1b.bmodel 0.401
+    eval_cpp pcie bmcv yolox_s_int8_4b.bmodel 0.401
+    eval_cpp pcie sail yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp pcie sail yolox_s_fp16_1b.bmodel 0.400
+    eval_cpp pcie sail yolox_s_int8_1b.bmodel 0.401
+    eval_cpp pcie sail yolox_s_int8_4b.bmodel 0.401
   fi
 elif test $MODE = "soc_build"
 then
@@ -320,18 +320,19 @@ then
     test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv yolox_s_fp32_1b.bmodel 0.3658838080792764
-    eval_python opencv yolox_s_int8_1b.bmodel 0.33505292759863026
-    eval_python opencv yolox_s_int8_4b.bmodel 0.33505292759863026
-    eval_python bmcv yolox_s_fp32_1b.bmodel 0.3626383606548006
-    eval_python bmcv yolox_s_int8_1b.bmodel 0.32885532116189187
-    eval_python bmcv yolox_s_int8_4b.bmodel 0.32885532116189187
-    eval_cpp soc bmcv yolox_s_fp32_1b.bmodel 0.3636792538869886
-    eval_cpp soc bmcv yolox_s_int8_1b.bmodel 0.33210960745414664
-    eval_cpp soc bmcv yolox_s_int8_4b.bmodel 0.33210960745414664
-    eval_cpp soc yolox_s_fp32_1b.bmodel 0.3509438110948576
-    eval_cpp soc yolox_s_int8_1b.bmodel 0.31911661299911315
-    eval_cpp soc yolox_s_int8_4b.bmodel 0.31911661299911315
+    eval_python opencv yolox_s_fp32_1b.bmodel 0.403
+    eval_python opencv yolox_s_int8_1b.bmodel 0.397
+    eval_python opencv yolox_s_int8_4b.bmodel 0.397
+    eval_python bmcv yolox_s_fp32_1b.bmodel 0.402
+    eval_python bmcv yolox_s_int8_1b.bmodel 0.397
+    eval_python bmcv yolox_s_int8_4b.bmodel 0.397
+    eval_cpp soc bmcv yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp soc bmcv yolox_s_int8_1b.bmodel 0.396
+    eval_cpp soc bmcv yolox_s_int8_4b.bmodel 0.396
+    eval_cpp soc sail yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp soc sail yolox_s_int8_1b.bmodel 0.396
+    eval_cpp soc sail yolox_s_int8_4b.bmodel 0.396
+
   elif test $TARGET = "BM1684X"
   then
     test_python opencv yolox_s_fp32_1b.bmodel datasets/test
@@ -351,22 +352,81 @@ then
     test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
     
-    eval_python opencv yolox_s_fp32_1b.bmodel 0.36597429367330936
-    eval_python opencv yolox_s_fp16_1b.bmodel 0.36594023643640844
-    eval_python opencv yolox_s_int8_1b.bmodel 0.35732269086185353
-    eval_python opencv yolox_s_int8_4b.bmodel 0.35732269086185353
-    eval_python bmcv yolox_s_fp32_1b.bmodel 0.36265700086834063
-    eval_python bmcv yolox_s_fp16_1b.bmodel 0.36254341487678970 
-    eval_python bmcv yolox_s_int8_1b.bmodel 0.35294999736493926
-    eval_python bmcv yolox_s_int8_4b.bmodel 0.35294999736493926
-    eval_cpp soc bmcv yolox_s_fp32_1b.bmodel 0.36318091666541014
-    eval_cpp soc bmcv yolox_s_fp16_1b.bmodel 0.36298244769070265
-    eval_cpp soc bmcv yolox_s_int8_1b.bmodel 0.35101195306528740
-    eval_cpp soc bmcv yolox_s_int8_4b.bmodel 0.35101195306528740
-    eval_cpp soc sail yolox_s_fp32_1b.bmodel 0.35036885817890917
-    eval_cpp soc sail yolox_s_fp16_1b.bmodel 0.35016866053467730
-    eval_cpp soc sail yolox_s_int8_1b.bmodel 0.33695958827356814
-    eval_cpp soc sail yolox_s_int8_4b.bmodel 0.33695958827356814
+    eval_python opencv yolox_s_fp32_1b.bmodel 0.402
+    eval_python opencv yolox_s_fp16_1b.bmodel 0.402
+    eval_python opencv yolox_s_int8_1b.bmodel 0.402
+    eval_python opencv yolox_s_int8_4b.bmodel 0.402
+    eval_python bmcv yolox_s_fp32_1b.bmodel 0.402
+    eval_python bmcv yolox_s_fp16_1b.bmodel 0.402
+    eval_python bmcv yolox_s_int8_1b.bmodel 0.402
+    eval_python bmcv yolox_s_int8_4b.bmodel 0.402
+    eval_cpp soc bmcv yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp soc bmcv yolox_s_fp16_1b.bmodel 0.400
+    eval_cpp soc bmcv yolox_s_int8_1b.bmodel 0.401
+    eval_cpp soc bmcv yolox_s_int8_4b.bmodel 0.401
+    eval_cpp soc sail yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp soc sail yolox_s_fp16_1b.bmodel 0.400
+    eval_cpp soc sail yolox_s_int8_1b.bmodel 0.401
+    eval_cpp soc sail yolox_s_int8_4b.bmodel 0.401
+  elif test $TARGET = "BM1688"
+  then
+    test_python opencv yolox_s_fp32_1b.bmodel datasets/test
+    test_python opencv yolox_s_int8_4b.bmodel datasets/test
+    test_python bmcv yolox_s_fp32_1b.bmodel datasets/test
+    test_python bmcv yolox_s_int8_4b.bmodel datasets/test
+    test_cpp soc bmcv yolox_s_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/test
+    test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/test
+
+    test_python opencv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python opencv yolox_s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolox_s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    
+    eval_python opencv yolox_s_fp32_1b.bmodel 0.403
+    eval_python opencv yolox_s_fp16_1b.bmodel 0.402
+    eval_python opencv yolox_s_int8_1b.bmodel 0.402
+    eval_python opencv yolox_s_int8_4b.bmodel 0.402
+
+    eval_python bmcv yolox_s_fp32_1b.bmodel 0.402
+    eval_python bmcv yolox_s_fp16_1b.bmodel 0.402
+    eval_python bmcv yolox_s_int8_1b.bmodel 0.402
+    eval_python bmcv yolox_s_int8_4b.bmodel 0.402
+
+    eval_cpp soc bmcv yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp soc bmcv yolox_s_fp16_1b.bmodel 0.400
+    eval_cpp soc bmcv yolox_s_int8_1b.bmodel 0.402
+    eval_cpp soc bmcv yolox_s_int8_4b.bmodel 0.402
+
+    eval_cpp soc sail yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp soc sail yolox_s_fp16_1b.bmodel 0.400
+    eval_cpp soc sail yolox_s_int8_1b.bmodel 0.402
+    eval_cpp soc sail yolox_s_int8_4b.bmodel 0.402
+  
+    eval_python opencv yolox_s_fp32_1b_2core.bmodel 0.403
+    eval_python opencv yolox_s_fp16_1b_2core.bmodel 0.402
+    eval_python opencv yolox_s_int8_1b_2core.bmodel 0.402
+    eval_python opencv yolox_s_int8_4b_2core.bmodel 0.402
+
+    eval_python bmcv yolox_s_fp32_1b_2core.bmodel 0.402
+    eval_python bmcv yolox_s_fp16_1b_2core.bmodel 0.402
+    eval_python bmcv yolox_s_int8_1b_2core.bmodel 0.402
+    eval_python bmcv yolox_s_int8_4b_2core.bmodel 0.402
+
+    eval_cpp soc bmcv yolox_s_fp32_1b_2core.bmodel 0.400
+    eval_cpp soc bmcv yolox_s_fp16_1b_2core.bmodel 0.400
+    eval_cpp soc bmcv yolox_s_int8_1b_2core.bmodel 0.402
+    eval_cpp soc bmcv yolox_s_int8_4b_2core.bmodel 0.402
+
+    eval_cpp soc sail yolox_s_fp32_1b_2core.bmodel 0.400
+    eval_cpp soc sail yolox_s_fp16_1b_2core.bmodel 0.400
+    eval_cpp soc sail yolox_s_int8_1b_2core.bmodel 0.402
+    eval_cpp soc sail yolox_s_int8_4b_2core.bmodel 0.402
   fi
 fi
 

@@ -71,7 +71,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     set(CMAKE_INSTALL_RPATH "/opt/sophon/sophon-sail/lib")
 
     set(BM_LIBS bmlib bmrt bmcv yuv)
-    set(JPU_LIBS bmjpuapi bmjpulite)
+    # set(JPU_LIBS bmjpuapi bmjpulite)
     set(OPENCV_LIBS opencv_imgproc opencv_core opencv_highgui opencv_imgcodecs opencv_videoio)
 
     include_directories("../../../../include/")
@@ -93,5 +93,5 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
 
     aux_source_directory(. SRC_FILES)
     add_executable(yolox_sail.soc ${SRC_FILES})
-    target_link_libraries(yolox_sail.soc ${BM_LIBS} ${OPENCV_LIBS} ${JPU_LIBS} ${SAIL_LIBS})
+    target_link_libraries(yolox_sail.soc ${BM_LIBS} ${OPENCV_LIBS} ${SAIL_LIBS})
 endif ()

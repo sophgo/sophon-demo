@@ -267,8 +267,7 @@ int YoloX::pre_process(std::vector<sail::BMImage>& input) {
                                                   &resized_imgs_vec[i].get()->data(), &padding, &rect);
         assert(ret == 0);
 #else
-        bmcv->vpp_crop_and_resize_padding(&bgr_img.data(), &resized_imgs_vec[i].get()->data(), 0, 0, bgr_img.width(),
-                                          bgr_img.height(), m_net_w, m_net_h, pad,BMCV_INTER_LINEAR);
+        *resized_imgs_vec[i] = bmcv->vpp_resize_padding(bgr_img,m_net_w, m_net_h, pad,BMCV_INTER_LINEAR);
 #endif
         resized_imgs.attach_from(i, *resized_imgs_vec[i].get());
     }
