@@ -57,10 +57,10 @@ chmod +x ./scripts/*
 │   ├── resnet50_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── resnet50_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
 ├── BM1688
-│   ├── resnet50_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
-│   ├── resnet50_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
-│   ├── resnet50_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
-│   ├── resnet50_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
+│   ├── resnet50_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+│   ├── resnet50_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
+│   ├── resnet50_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
+│   ├── resnet50_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
 │   ├── resnet50_fp16_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
 │   ├── resnet50_fp32_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
 │   ├── resnet50_int8_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
@@ -169,9 +169,9 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 | BM1688 SoC   | resnet_opencv.py   | resnet50_int8_1b.bmodel  | 79.90  |
 
 > **测试说明**：  
-1. batch_size=4和batch_size=1的模型精度一致；
-2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
-
+> 1. batch_size=4和batch_size=1的模型精度一致；
+> 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
+> 3. BM1688 num_core=2的模型与num_core=1的模型精度基本一致。
 ## 7. 性能测试
 ### 7.1 bmrt_test
 使用bmrt_test测试模型的理论性能：
@@ -182,16 +182,23 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型      | calculate time(ms) |
-| ----------------------------- | ----------------- |
-| BM1684/resnet50_fp32_1b.bmodel  | 6.35              |
-| BM1684/resnet50_int8_1b.bmodel  | 3.92              |
-| BM1684/resnet50_int8_4b.bmodel  | 1.14              |
-| BM1684X/resnet50_fp32_1b.bmodel | 9.21              |
-| BM1684X/resnet50_fp16_1b.bmodel | 1.76              |
-| BM1684X/resnet50_int8_1b.bmodel | 1.18              |
-| BM1684X/resnet50_int8_4b.bmodel | 0.84              |
-
+|                  测试模型              | calculate time(ms) |
+| -----------------------------         | ----------------- |
+| BM1684/resnet50_fp32_1b.bmodel        | 6.35              |
+| BM1684/resnet50_int8_1b.bmodel        | 3.92              |
+| BM1684/resnet50_int8_4b.bmodel        | 1.14              |
+| BM1684X/resnet50_fp32_1b.bmodel       | 9.21              |
+| BM1684X/resnet50_fp16_1b.bmodel       | 1.76              |
+| BM1684X/resnet50_int8_1b.bmodel       | 1.18              |
+| BM1684X/resnet50_int8_4b.bmodel       | 0.84              |
+| BM1688/resnet50_fp32_1b.bmodel        | 46.54              |
+| BM1688/resnet50_fp16_1b.bmodel        | 8.51               |
+| BM1688/resnet50_int8_1b.bmodel        | 3.62               |
+| BM1688/resnet50_int8_4b.bmodel        | 2.42               |
+| BM1688/resnet50_fp32_1b_2core.bmodel  | 34.52              |
+| BM1688/resnet50_fp16_1b_2core.bmodel  | 7.81               |
+| BM1688/resnet50_int8_1b_2core.bmodel  | 3.63               |
+| BM1688/resnet50_int8_4b_2core.bmodel  | 1.82               |
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间；
@@ -231,6 +238,22 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 | BM1684X SoC | resnet_bmcv.soc    | resnet50_fp16_1b.bmodel | 2.09     | 0.44      | 1.61      | 0.11      |
 | BM1684X SoC | resnet_bmcv.soc    | resnet50_int8_1b.bmodel | 2.18     | 0.45      | 1.08      | 0.11      |
 | BM1684X SoC | resnet_bmcv.soc    | resnet50_int8_4b.bmodel | 2.12     | 0.41      | 0.81      | 0.09      |
+| BM1688 SoC  | resnet_opencv.py   | resnet50_fp32_1b.bmodel | 12.96    | 10.61     | 49.14     | 0.13      |
+| BM1688 SoC  | resnet_opencv.py   | resnet50_fp16_1b.bmodel | 12.82    | 10.64     | 11.11     | 0.42      |
+| BM1688 SoC  | resnet_opencv.py   | resnet50_int8_1b.bmodel | 12.83    | 10.71     | 6.26      | 0.42      |
+| BM1688 SoC  | resnet_opencv.py   | resnet50_int8_4b.bmodel | 12.80    | 10.67     | 4.87      | 0.15      |
+| BM1688 SoC  | resnet_bmcv.py     | resnet50_fp32_1b.bmodel | 3.23     | 1.83      | 46.43     | 0.38      |
+| BM1688 SoC  | resnet_bmcv.py     | resnet50_fp16_1b.bmodel | 3.22     | 1.83      | 8.37      | 0.38      |
+| BM1688 SoC  | resnet_bmcv.py     | resnet50_int8_1b.bmodel | 3.22     | 1.83      | 3.56      | 0.38      |
+| BM1688 SoC  | resnet_bmcv.py     | resnet50_int8_4b.bmodel | 2.90     | 1.62      | 2.31      | 0.14      |
+| BM1688 SoC  | resnet_opencv.soc  | resnet50_fp32_1b.bmodel | 2.45     | 61.32     | 45.59     | 0.12      |
+| BM1688 SoC  | resnet_opencv.soc  | resnet50_fp16_1b.bmodel | 2.47     | 61.38     | 7.58      | 0.12      |
+| BM1688 SoC  | resnet_opencv.soc  | resnet50_int8_1b.bmodel | 2.42     | 61.41     | 2.77      | 0.12      |
+| BM1688 SoC  | resnet_opencv.soc  | resnet50_int8_4b.bmodel | 2.05     | 61.42     | 2.08      | 0.09      |
+| BM1688 SoC  | resnet_bmcv.soc    | resnet50_fp32_1b.bmodel | 3.95     | 1.42      | 45.56     | 0.17      |
+| BM1688 SoC  | resnet_bmcv.soc    | resnet50_fp16_1b.bmodel | 3.88     | 1.42      | 7.54      | 0.17      |
+| BM1688 SoC  | resnet_bmcv.soc    | resnet50_int8_1b.bmodel | 3.92     | 1.42      | 2.72      | 0.17      |
+| BM1688 SoC  | resnet_bmcv.soc    | resnet50_int8_4b.bmodel | 3.68     | 5.27      | 2.08      | 0.12      |
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
