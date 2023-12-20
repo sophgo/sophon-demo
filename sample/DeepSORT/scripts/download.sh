@@ -27,7 +27,7 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/DeepSORT/models_0918/models.zip
     unzip models.zip -d ../
     pushd ../models/
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/DeepSORT/models_231110/BM1688.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/DeepSORT/models_231218/BM1688.zip
     unzip BM1688.zip
     rm BM1688.zip
     popd
