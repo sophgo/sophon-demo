@@ -187,7 +187,7 @@ function eval_python()
                                                                 --bmodel_rec=../models/$TARGET/ch_PP-OCRv3_rec_$2.bmodel \
                                                                 --dev_id=$TPUID > log/$1_$2_debug.log 2>&1
   judge_ret $? "$1 $2 python debug" log/$1_$2_debug.log
-  tail -n 20 log/$1_$2_debug.log
+  tail -n 30 log/$1_$2_debug.log
   
   echo "Evaluating..."
   res=$(python3 ../tools/eval_icdar.py --gt_path ../datasets/train_full_images_0.json --result_json results/ppocr_system_results_b4.json 2>&1 | tee log/$1_$2_eval.log)
@@ -247,6 +247,10 @@ then
     eval_python opencv fp16 0.574
     eval_cpp soc bmcv fp32  0.556
     eval_cpp soc bmcv fp16  0.555
+    eval_python opencv fp32_2core 0.575
+    eval_python opencv fp16_2core 0.574
+    eval_cpp soc bmcv fp32_2core  0.556
+    eval_cpp soc bmcv fp16_2core  0.555
   fi
 fi
 
