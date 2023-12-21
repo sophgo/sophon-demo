@@ -39,7 +39,7 @@ lprnet_opencv.py和lprnet_bmcv.py的命令参数相同，以lprnet_opencv.py的�
 ```bash
 usage: lprnet_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 
---input: 测试数据路径，可输入整个图片文件夹的路径或者视频路径；
+--input: 测试数据路径，可输入整个图片文件夹的路径；
 --bmodel: 用于推理的bmodel路径，默认使用stage 0的网络进行推理；
 --dev_id: 用于推理的tpu设备id；
 ```
