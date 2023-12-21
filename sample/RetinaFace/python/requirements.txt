@@ -3,3 +3,4 @@ loguru
 prettytable
 tqdm
 scipy
+opencv-python-headless
