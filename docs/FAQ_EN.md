@@ -91,3 +91,6 @@ The performance test table provided by sophon-demo generally includes four parts
 ## 7 Other questions
 ### 7.1 `Unkown CMake command "add_compile_definitions".` when compiling C++ programs.
 This is because your cmake do not have `add_compile_definitions` function, you can change it to `add_definitions` or upgrade your cmake to 3.12 or higher.
+
+### 7.2 Some images have data overlapped, some have no data on the frame, and some images have no frame
+It is normal for there to be a small number of missed and false detections in the image and video test results. Our samples only needs to ensure that the accuracy of the transplanted model and the source model can be aligned, and the accuracy index test should prevail to judge the model effect.

@@ -97,3 +97,6 @@ sophon-demo提供的性能测试表格一般包含解码、前处理、推理、
 ## 7 其他问题
 ### 7.1 编译时出现`Unkown CMake command "add_compile_definitions".`
 这是你的cmake没有add_compile_definition这个函数，可以修改成add_definitions，或者升级cmake到3.12之后。
+
+### 7.2 有些图片的数据重叠到一起，有的图片框上面没数据，有些图片没有框
+图片和视频测试结果存在少数的漏检、误检，这是正常的，sophon-demo的例程只需要保证移植后的模型和源模型的精度可以对齐就行了，判断模型效果应当以精度指标测试为准。
