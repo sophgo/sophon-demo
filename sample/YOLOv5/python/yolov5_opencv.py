@@ -181,7 +181,7 @@ class YOLOv5:
         start_time = time.time()
         if self.use_cpu_opt:
             cpu_opt_process = sail.algo_yolov5_post_cpu_opt(self.output_shapes)
-            results = cpu_opt_process.process(outputs, ori_w_list, ori_h_list, [self.conf_thresh]*self.batch_size, [self.nms_thresh]*self.batch_size, True, True)
+            results = cpu_opt_process.process(outputs, ori_w_list, ori_h_list, [self.conf_thresh]*self.batch_size, [self.nms_thresh]*self.batch_size, True, self.multi_label)
             results = np.array(results)
         else:
             results = self.postprocess(outputs, ori_size_list, ratio_list, txy_list)
