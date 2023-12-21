@@ -85,6 +85,10 @@ int main(int argc, const char * argv[]) {
   float nms_threshold = atof(argv[4]);
   float conf_threshold = atof(argv[5]);
   int device_id = 0;
+  string input_filename = input_url.substr(input_url.find_last_of("/")+1);
+  input_filename = input_filename.substr(0, input_filename.find_last_of("."));
+  string bmodel_filename = bmodel_folder_path.substr(bmodel_folder_path.find_last_of("/")+1);
+  bmodel_filename = bmodel_filename.substr(0, bmodel_filename.find_last_of("."));
 
   string save_foler = "results";
   if (0 != access(save_foler.c_str(), 0)) {
@@ -105,7 +109,7 @@ int main(int argc, const char * argv[]) {
 
   if (0 == input_mode) { // image mode
     ofstream ofs;
-    ofs.open(save_foler + "/result.txt", ios::out);
+    ofs.open(save_foler + "/" + input_filename + "_image_data_" + bmodel_filename + "_result.txt", ios::out);
     vector<cv::Mat> batch_imgs;
     vector<string> batch_names;
     vector<string> files_vector;
@@ -166,67 +170,56 @@ int main(int argc, const char * argv[]) {
     ofs.close();
   } else { // video mode
     ofstream ofs;
-    ofs.open(save_foler + "/result.txt", ios::out);
-    vector <cv::VideoCapture> caps;
-    vector <string> cap_srcs;
-    char image_path[1024] = {0};
-    ifstream fp_img_list(input_url);
-    while(fp_img_list.getline(image_path, 1024)) {
-      cv::VideoCapture cap(image_path);
-      caps.push_back(cap);
-      cap_srcs.push_back(image_path);
-    }
-
-    if ((int)caps.size() != batch_size) {
-      cout << "video num should equal model's batch size" << endl;
-      exit(1);
-    }
+    ofs.open(save_foler + "/" + input_filename + "_video_data_" + bmodel_filename + "_result.txt", ios::out);
+    cv::VideoCapture cap(input_url);
 
     uint32_t batch_id = 0;
-    const uint32_t run_frame_no = 200; 
     uint32_t frame_id = 0;
-    while(1) {
-      if (frame_id == run_frame_no) {
-        break;
-      }
-      vector<cv::Mat> batch_imgs;
-      vector<string> batch_names;
+    if (!cap.isOpened()) {
+      cout << "VideoCapture " << input_url << " open failed!" << endl;
+      exit(1);
+    }
+    vector<cv::Mat> batch_imgs;
+    vector<string> batch_names;
+    bool end_flag = false;
+    while(!end_flag) {
       gettimeofday(&tpstart, NULL);
-      for (size_t i = 0; i < caps.size(); i++) {
-         if (caps[i].isOpened()) {
-           int w = int(caps[i].get(cv::CAP_PROP_FRAME_WIDTH));
-           int h = int(caps[i].get(cv::CAP_PROP_FRAME_HEIGHT));
-           cv::Mat img;
-           caps[i] >> img;
-           if (img.rows != h || img.cols != w) {
-             break;
-           }
-           batch_imgs.push_back(img);
-           batch_names.push_back(to_string(batch_id) + "_" +
-                            to_string(i) + "_video.jpg");
-           batch_id++;
-         }else{
-           cout << "VideoCapture " << i << " "
-                   << cap_srcs[i] << " open failed!" << endl;
-         }
+      cv::Mat img;
+      cap >> img;
+      if (img.empty()) {
+        if (batch_id == 0)
+          break;
+        for (; batch_id < batch_size; batch_id++) {
+          batch_imgs.push_back(batch_imgs[0]);
+          batch_names.push_back(batch_names[0]);
+          frame_id++;
+          img_num++;
+        }
+        end_flag = true;
       }
-      if ((int)batch_imgs.size() < batch_size) {
-        break;
+      else {
+        batch_imgs.push_back(img);
+        batch_names.push_back(to_string(frame_id) + ".jpg");
+        batch_id++;
+        frame_id++;
+        img_num++;
+      }
+      if (batch_id < batch_size) {
+        continue;
       }
       std::vector<std::vector<stFaceRect> > results;
       face_detection_ptr->run(batch_imgs, results, infer_tpstart, infer_tpend);
       gettimeofday(&tpend, NULL);
       infer_timeuse += (1000000 * (infer_tpend.tv_sec - infer_tpstart.tv_sec) + infer_tpend.tv_usec - infer_tpstart.tv_usec) / 1000;
-      img_num++;
       timeuse = 1000000 * (tpend.tv_sec - tpstart.tv_sec) + tpend.tv_usec - tpstart.tv_usec;
       timeuse /= 1000;
       cout << "detect used time: " << timeuse << " ms" << endl;
       save_imgs(results, batch_imgs, batch_names, save_foler, ofs);
       batch_imgs.clear();
       batch_names.clear();
-      frame_id += 1;
-      ofs.close();
+      batch_id = 0;
     }
+    ofs.close();
 
   }
   std::cout << "avg infer time(ms): " << infer_timeuse / img_num << std::endl;
