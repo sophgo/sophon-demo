@@ -68,6 +68,19 @@ $ python3 retinaface_opencv.py --bmodel ../data/models/BM1684X/retinaface_mobile
 ```
 可通过改变模型进行batch_size=4模型的推理测试。
 
+对于face和视频数据，使用如下命令进行测试。
+```bash
+# 以使用fp32 1batch bmodel测试为例，不同bmodel使用相同参数
+$ python3 retinaface_opencv.py --bmodel ../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel --network mobile0.25 --input_path ../data/images/face --tpu_id 0 --conf 0.02 --nms 0.5 --use_np_file_as_input False
+```
+预测图片会保存在`results/retinaface_mobilenet0.25_fp32_1b.bmodel_opencv_face_python_result/`文件夹下，同时会打印预测结果、推理时间、函数运行时间等信息。
+
+```bash
+# 以使用fp32 1batch bmodel测试为例，不同bmodel使用相同参数
+python3 retinaface_opencv.py --bmodel ../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel --network mobile0.25 --input_path ../data/videos/station.avi --tpu_id 0 --conf 0.02 --nms 0.5 --use_np_file_as_input False
+```
+预测图片会保存在`results/`文件夹下，同时会打印预测结果、推理时间、函数运行时间等信息。
+
 ## 2. arm SoC平台
 ### 2.1 环境准备
 如果您使用SoC平台测试本例程，您需要交叉编译安装sophon-sail(>=3.1.0)，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
