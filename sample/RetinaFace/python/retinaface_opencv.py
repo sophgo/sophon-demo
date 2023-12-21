@@ -505,13 +505,42 @@ if __name__ == "__main__":
             cv2.imwrite(os.path.join("results", os.path.split(opt.input_path)[-1]), result_image)
         else: # if it is a video
             cap = cv2.VideoCapture(opt.input_path)
-            ret, frame = cap.read()
             id = 0
-            while ret:
-                result_image = retinaface.predict_numpy(frame)
-                cv2.imwrite(os.path.join("results", str(id)+".jpg"), result_image)
-                id += 1
+            end_flag = False
+            while not end_flag:
                 ret, frame = cap.read()
+                if not ret:
+                    if len(img_list) == 0:
+                        break
+                    end_flag = True
+                else:
+                    img_list.append(frame)
+                if(len(img_list)==batch_size or end_flag):
+                    res1, res2= retinaface.predict_batch(img_list)
+                    for i in range(len(img_list)):
+                        for j in range(res1[i].shape[0]):
+                            x = int(res1[i][j][0])
+                            y = int(res1[i][j][1])
+                            w = int(res1[i][j][2])-int(res1[i][j][0])
+                            h = int(res1[i][j][3])-int(res1[i][j][1])
+                            confidence = str(res1[i][j][4])
+                            logger.info("face {}: x,y,w,h,conf = {}".format(j+1, str(x) + " " + str(y) + " " + str(w) + " " + str(h) + " " + confidence))
+                    for i in range(len(img_list)):
+                        result_image = img_list[i]
+                        for j in range(res1[i].shape[0]):
+                            box = res1[i][j]
+                            landmark = res2[i][j]
+                            if box[4]<0.5:
+                                continue
+                            draw_one(
+                                box,
+                                landmark,
+                                result_image,
+                                label="{}:{:.2f}".format('Face',box[4])
+                            )
+                        cv2.imwrite(os.path.join("results", str(id)+".jpg"), result_image)
+                        id += 1
+                    img_list = []
             cap.release()
     
     else:   # if it is a folder

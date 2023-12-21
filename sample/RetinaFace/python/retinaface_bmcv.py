@@ -535,16 +535,44 @@ if __name__ == "__main__":
             decoder = sail.Decoder(opt.input_path,True,0)
             if decoder.is_opened():
                 logger.info("create decoder success")
-                input_bmimg = sail.BMImage()
+                print("This is a video")
                 id = 0
-                while True:
-                    print("This is a video")
+                end_flag = False
+                while not end_flag:
+                    input_bmimg = sail.BMImage()
                     ret = decoder.read(retinaface.handle,input_bmimg)
                     if ret:
-                        break
-                    result_image = retinaface.predict_bmimage(input_bmimg)
-                    retinaface.bmcv.imwrite(os.path.join("results", str(id)+".jpg"),result_image)
-                    id += 1
+                        if len(bmimg_list) == 0:
+                            break
+                        end_flag = True
+                    else:
+                        bmimg_list.append(input_bmimg)
+                    if (len(bmimg_list)==batch_size or end_flag):
+                        res1, res2 = retinaface.predict_batch(bmimg_list)
+                        for i in range(len(bmimg_list)):
+                            for j in range(res1[i].shape[0]):
+                                x = int(res1[i][j][0])
+                                y = int(res1[i][j][1])
+                                w = int(res1[i][j][2])-int(res1[i][j][0])
+                                h = int(res1[i][j][3])-int(res1[i][j][1])
+                                confidence = str(res1[i][j][4])
+                                logger.info("face {}: x, y, w, h, conf = {}".format(j+1,str(x) + " " + str(y) + " " + str(w) + " " + str(h) + " " + confidence))
+                        for i in range(len(bmimg_list)):
+                            result_image = bmimg_list[i]
+                            for j in range(res1[i].shape[0]):
+                                box = res1[i][j]
+                                landmark = res2[i][j]
+                                if box[4] < 0.5:
+                                    continue
+                                draw_one_on_bmimage(
+                                    bmcv,
+                                    box,
+                                    landmark,
+                                    result_image,
+                                    label="{}:{:.2f}".format( 'Face', box[4]))
+                            retinaface.bmcv.imwrite(os.path.join("results", str(id)+".jpg"),result_image)
+                            id += 1
+                        bmimg_list = [] 
                 print("stream end")
             else:
                 logger.error("failed to create decoder")
