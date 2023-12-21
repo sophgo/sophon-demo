@@ -145,9 +145,9 @@ class SAM_b(object):
         return ort_inputs
 
     def predict(self, input_img):
-        input_data = {self.input_name_0: input_img['image_embeddings'], self.input_name_1: input_img['point_coords'],
-                      self.input_name_2: input_img['point_labels'], self.input_name_3: input_img['mask_input'],
-                      self.input_name_4: input_img['has_mask_input'], self.input_name_5: input_img['orig_im_size']}
+        input_data = {self.input_names[0]: input_img['image_embeddings'], self.input_names[1]: input_img['point_coords'],
+                  self.input_names[2]: input_img['point_labels'], self.input_names[3]: input_img['mask_input'],
+                  self.input_names[4]: input_img['has_mask_input'], self.input_names[5]: input_img['orig_im_size']}
         outputs = self.net.process(self.graph_name, input_data)
         return outputs
 

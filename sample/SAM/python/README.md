@@ -22,7 +22,7 @@ python目录下提供了Python例程，具体情况如下：
 
 设置环境变量，指定opencv为sophon-opencv，这将带来更快的解码速度：
 ```bash
-export PYTHONPATH=$PYTHONPATH:/opt/sophon/libsophon-current/lib:/opt/sophon/libsophon-current/lib:/opt/sophon/sophon-opencv-latest/opencv-python/
+export PYTHONPATH=$PYTHONPATH:/opt/sophon/libsophon-current/lib:/opt/sophon/sophon-opencv-latest/opencv-python/
 ```
 
 此外您可能还需要安装其他第三方库：
