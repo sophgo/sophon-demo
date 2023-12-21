@@ -141,22 +141,27 @@ station.avi: 测试视频
 
 ## 6. 精度测试
 ### 6.1 测试方法
-本例程在`tools`目录下提供了精度测试工具，可以将WIDERFACE测试集预测结果与ground truth进行对比，计算出人脸检测ap。具体的测试命令如下：
+您可能需要安装其他第三方库：
+```bash
+$ pip3 install -r python/requirements.txt
+```
+
+本例程在`tools`目录下提供了精度测试工具，可以将WIDERFACE测试集预测结果与ground truth进行对比，计算出人脸检测精度。具体的测试命令如下：
 ```bash
 cd tools/widerface_evaluate
 tar -zxvf widerface_txt.tar.gz
-# 请根据实际情况，将1.2节生成的预测结果txt文件移动至当前文件夹，并将路径填入transfer.py, 并保证widerface_txt/的二级目录为空
+# 请根据实际情况，将第5节生成的包含预测结果txt文件的路径填入transfer.py中的变量source_txt, 并保证widerface_txt/的二级目录为空
 python3 transfer.py   
 python3 setup.py build_ext --inplace
 python3 evaluation.py
 ```
-执行完成后，会打印出在widerface easy测试集上的AP。
+执行完成后，会打印出在widerface easy测试集上的精度。
 
 ### 6.2 测试结果
 [Pytorch_Retinaface](https://github.com/biubug6/Pytorch_Retinaface)中模型使用original image scale在widerface easy测试集上的准确率为90.7%。
 本例程更换resize策略，将图片大小resize到640*640进行推理，在该测试集上准确率为89.5%。
 
-在不同平台、不同例程、不同模型的精度测试结果如下：
+在不同的测试平台上，使用不同的例程、模型测试`data/images/WIDERVAL`，conf_thresh=0.02，nms_thresh=0.4，retinaface精度测试结果如下：
 |    测试平台  |          例程        |                       测试模型                 |  ACC(%) |
 | ----------- |   ----------------   | --------------------------------------------- |  -----  |
 | BM1688 SoC  | retinaface_opencv.py | retinaface_mobilenet0.25_fp32_1b.bmodel       |  89.2%  |
@@ -232,7 +237,7 @@ bmrt_test --bmodel {path_of_bmodel}
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的时间，cpp打印的时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间，python不需要。
 
-在不同平台、不同例程、不同模型的性能测试结果如下：
+在不同的测试平台上，使用不同的例程、模型测试`data/images/WIDERVAL`，conf_thresh=0.02，nms_thresh=0.4，retinaface性能测试结果如下：
 |    测试平台  |          例程        |                       测试模型                 | infer_time | QPS         |
 | ----------- |   ----------------   | --------------------------------------------- |  -----     | ---         |
 | BM1688 SoC  | retinaface_opencv.py | retinaface_mobilenet0.25_fp32_1b.bmodel       |  22.27ms   |  44.8       |
