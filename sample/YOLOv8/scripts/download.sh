@@ -27,6 +27,11 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8/models_0918/models.zip
     unzip models.zip -d ../
     rm models.zip
+    pushd ../models/
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8/models_231225/BM1688.zip
+    unzip BM1688.zip
+    rm -r BM1688.zip
+    popd
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
