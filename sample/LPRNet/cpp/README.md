@@ -67,7 +67,7 @@ Usage: lprnet_opencv.pcie [params]
         --help (value:true)
                 print help information.
         --input (value:../../datasets/test)
-                input path, images direction or video file path
+                input path, images directory
 ```
 **注意：** CPP传参与python不同，需要用等于号，例如`./lprnet_opencv.pcie --bmodel=xxx`。
 
