@@ -21,6 +21,7 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     find_package(libsophon REQUIRED)
     include_directories(${LIBSOPHON_INCLUDE_DIRS})
     link_directories(${LIBSOPHON_LIB_DIRS})
+    include_directories("../../../../include/")
 
     aux_source_directory(. SRC_FILES)
     add_executable(retinaface_bmcv.pcie ${SRC_FILES})
