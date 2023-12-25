@@ -215,10 +215,10 @@ You need to build a cross-compilation environment on an x86 host using SOPHON SD
     ```
 
 4. If you are using BM1688'GeminiSDK, version >= 1.3, you will need to：
-    get sophon-img/bsp-debs/sophon-soc-libisp_1.0.0_arm64.deb from GemeniSDK, then:
+    get sophon-img/bsp-debs/sophon-soc-libisp_${x.y.z}_arm64.deb from GemeniSDK, then:
     ```bash
-    dpkg -x sophon-soc-libisp_1.0.0_arm64.deb sophon-libisp
-    cp -rf sophon-libisp/lib ${soc-sdk}
+    dpkg -x sophon-soc-libisp_${x.y.z}_arm64.deb sophon-libisp
+    cp -rf sophon-libisp/opt/sophon/sophon-soc-libisp_${x.y.z}/lib ${soc-sdk}
     ```
 
 Here, the cross-compilation environment has been built, and then you can use the packaged soc-sdk to compile the programs that need to run on the SoC platform. For more information on cross-compilation, please refer to the "LIBSOPHON Manual".

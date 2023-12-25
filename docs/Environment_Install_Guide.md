@@ -214,10 +214,10 @@ source /etc/profile
     ```
 
 4. 如果您使用BM1688的GeminiSDK1.3以上版本，您还需要做这些操作：
-    从sdk中获取sophon-img/bsp-debs/目录下的sophon-soc-libisp_1.0.0_arm64.deb，然后运行如下命令：
+    从sdk中获取sophon-img/bsp-debs/目录下的sophon-soc-libisp_${x.y.z}_arm64.deb，然后运行如下命令：
     ```
-    dpkg -x sophon-soc-libisp_1.0.0_arm64.deb sophon-libisp
-    cp -rf sophon-libisp/lib ${soc-sdk}
+    dpkg -x sophon-soc-libisp_${x.y.z}_arm64.deb sophon-libisp
+    cp -rf sophon-libisp/opt/sophon/sophon-soc-libisp_${x.y.z}/lib ${soc-sdk}
     ```
 
 这里，交叉编译环境已经搭建完成，接下来可以使用打包好的soc-sdk编译需要在SoC平台上运行的程序。更多交叉编译信息请参考《LIBSOPHON使用手册.pdf》。
