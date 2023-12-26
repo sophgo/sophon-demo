@@ -85,8 +85,26 @@ int main(int argc, const char * argv[]) {
   float nms_threshold = atof(argv[4]);
   float conf_threshold = atof(argv[5]);
   int device_id = 0;
+  int split_indx = input_url.size() - 1;
+  while (split_indx >= 0 && input_url.at(split_indx) == '/') {
+    split_indx--;
+  }
+  if (split_indx < 0) {
+    cout << "Param err: " << input_url << endl;
+    exit(1);
+  }
+  input_url = input_url.substr(0, split_indx + 1);
   string input_filename = input_url.substr(input_url.find_last_of("/")+1);
   input_filename = input_filename.substr(0, input_filename.find_last_of("."));
+  split_indx = bmodel_folder_path.size() - 1;
+  while (split_indx >= 0 && bmodel_folder_path.at(split_indx) == '/') {
+    split_indx--;
+  }
+  if (split_indx < 0) {
+    cout << "Param err: " << bmodel_folder_path << endl;
+    exit(1);
+  }
+  bmodel_folder_path = bmodel_folder_path.substr(0, split_indx + 1);
   string bmodel_filename = bmodel_folder_path.substr(bmodel_folder_path.find_last_of("/")+1);
   bmodel_filename = bmodel_filename.substr(0, bmodel_filename.find_last_of("."));
 
