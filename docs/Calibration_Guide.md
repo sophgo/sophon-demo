@@ -17,13 +17,17 @@
 
 MLIR具体步骤如下：
 1. 可以先用mlir2onnx.py这个工具，将model_transform生成的mlir文件转化成onnx，然后通过netron查看onnx网络结构。
-```
-mlir2onnx.py -m xxx.mlir -o xxx.onnx
-```
-2. 使用fp_forward.py生成qtable，--fpfwd_outputs、--fpfwd_inputs功能与以前nntc一样，指定层名即可将对应的所有层指定对应的fp_type。类似如下命令：
-```
-fp_forward.py yolov7_1b.mlir --fpfwd_outputs 1376_Conv,1046_Transpose --chip bm1684 --fp_type F32 -o yolov7_qtable
-```
+   ```bash
+   mlir2onnx.py -m xxx.mlir -o xxx.onnx
+   ```
+2. 使用fp_forward.py生成qtable，--fpfwd_outputs、--fpfwd_inputs功能与以前nntc一样，指定层名即可将对应的所有层指定对应的fp_type。
+   ![Alt text](../pics/cali_guide_image0.png)
+   如上图所示，层名一般是该层在netron.app中对应的OUTPUTS name。参考如下命令生成qtable：
+   ```bash
+   fp_forward.py xxx.mlir --fpfwd_outputs 357_Gather --chip bm1684 --fp_type F32 -o xxx_qtable
+   ```
+   使用上面的命令生成的qtable，357_Gather及之后的层都会被设置为F32。
+
 3. 生成的qtable传给model_deploy.py，配合加入test_input和test_reference来验证混精度策略是否有效。
 
 NNTC具体步骤如下：

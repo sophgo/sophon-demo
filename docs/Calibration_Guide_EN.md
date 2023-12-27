@@ -17,14 +17,16 @@ Since the output of the yolo series includes both classification and regression,
 
 The specific steps in TPU-MLIR are as follows:
 1. use mlir2onnx.py, transform the .mlir file generated in model_transform.py to onnx, then check its network structure by netron.app.
-```
-mlir2onnx.py -m xxx.mlir -o xxx.onnx
-```
-2. use fp_forward.py to generate qtable, --fpfwd_outputs --fpfwd_inputs args have the same function as nntc, by specifying the layer name, all corresponding layers can be assigned the corresponding fp_type. Similar to the following command
-```
-fp_forward.py yolov7_1b.mlir --fpfwd_outputs 1376_Conv,1046_Transpose --chip bm1684 --fp_type F32 -o yolov7_qtable
-```
-3. The generated qtable is passed to model_deploy.py, and test_input and test_reference are added to verify whether the mixed precision strategy is effective.
+   ```bash
+   mlir2onnx.py -m xxx.mlir -o xxx.onnx
+   ```
+2. use fp_forward.py to generate qtable, --fpfwd_outputs --fpfwd_inputs args have the same function as nntc, by specifying the layer name, all corresponding layers can be assigned the corresponding fp_type. 
+   ![Alt text](../pics/cali_guide_image0.png)
+   Refer to the picture above, layer name is this layer's OUTPUTS name in netron.app. There is a command for reference:
+   ```bash
+   fp_forward.py xxx.mlir --fpfwd_outputs 357_Gather --chip bm1684 --fp_type F32 -o xxx_qtable
+   ```
+3. Pass the generated qtable to model_deploy.py, and test_input and test_reference should be  added to verify whether the mixed precision strategy is effective.
 
 
 The specific steps in TPU-NNTC are as follows:
