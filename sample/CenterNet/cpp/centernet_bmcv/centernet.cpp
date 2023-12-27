@@ -121,22 +121,22 @@ int Centernet::Detect(const std::vector<bm_image>& input_images,
                       std::vector<CenternetBoxVec>& boxes) {
     int ret = 0;
     // 3. preprocess
-    LOG_TS(m_ts, "Centernet preprocess");
+    m_ts->save("Centernet preprocess", input_images.size());
     ret = pre_process(input_images);
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "Centernet preprocess");
+    m_ts->save("Centernet preprocess", input_images.size());
 
     // 4. forward
-    LOG_TS(m_ts, "Centernet inference");
+    m_ts->save("Centernet inference", input_images.size());
     ret = m_bmNetwork->forward();
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "Centernet inference");
+    m_ts->save("Centernet inference", input_images.size());
 
     // 5. post process
-    LOG_TS(m_ts, "Centernet postprocess");
+    m_ts->save("Centernet postprocess", input_images.size());
     ret = post_process(input_images, boxes);
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "Centernet postprocess");
+    m_ts->save("Centernet postprocess", input_images.size());
     return ret;
 }
 
@@ -505,7 +505,14 @@ void Centernet::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left
         rect.crop_w = width;
         rect.crop_h = height;
         // std::cout << rect.start_x << "," << rect.start_y << "," << rect.crop_w << "," << rect.crop_h << std::endl;
-        bmcv_image_draw_rectangle(handle, frame, 1, &rect, 3, colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
+
+        int thickness = 3;
+        if(width < thickness * 2 || height < thickness * 2){
+            std::cout << "width or height too small, this rect will not be drawed: " << 
+                "[" << left << ", "<< top << ", " << width << ", " << height << "]" << std::endl;
+        } else{
+            bmcv_image_draw_rectangle(handle, frame, 1, &rect, thickness, colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
+        }   
         // cv::rectangle(frame, cv::Point(left, top), cv::Point(right, bottom), cv::Scalar(0, 0, 255), 3);
 
         if (put_text_flag){
@@ -522,7 +529,7 @@ void Centernet::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left
             int thickness = 2;
             float fontScale = 2; 
             if (BM_SUCCESS != bmcv_image_put_text(handle, frame, label.c_str(), org, color, fontScale, thickness)) {
-            std::cout << "bmcv put text error !!!" << std::endl;   
+                std::cout << "bmcv put text error !!!" << std::endl;   
             }
         }
     }
