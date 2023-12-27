@@ -3,11 +3,18 @@ model_dir=$(dirname $(readlink -f "$0"))
 
 if [ ! $1 ]; then
     target=bm1684x
+    target_dir=BM1684X
 else
-    target=$1
+    target=${1,,}
+    target_dir=${target^^}
+    if test $target = "bm1684"
+    then
+        echo "bm1684 do not support fp16"
+        exit
+    fi
 fi
 
-outdir=../models/BM1684X
+outdir=../models/$target_dir
 
 function gen_mlir()
 {
@@ -32,10 +39,24 @@ function gen_fp16bmodel()
         --chip $target \
         --test_input centernet_in_f32.npz \
         --test_reference centernet_top_outputs.npz \
-        --model centernet_fp16_$1b.bmodel \
+        --model centernet_fp16_$1b.bmodel
         # --disable_layer_group
 
     mv centernet_fp16_$1b.bmodel $outdir/
+
+    if test $target = "bm1688"; then
+        model_deploy.py \
+            --mlir centernet_$1b.mlir \
+            --quantize F16 \
+            --chip $target \
+            --test_input centernet_in_f32.npz \
+            --test_reference centernet_top_outputs.npz \
+            --model centernet_fp16_$1b_2core.bmodel \
+            --num_core 2
+            # --disable_layer_group
+
+        mv centernet_fp16_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir

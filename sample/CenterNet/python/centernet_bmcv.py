@@ -211,14 +211,20 @@ class CenterNet:
 
         return results
 
-def draw_bmcv(bmcv, image, boxes, masks=None, classes_ids=None, conf_scores=None):
+def draw_bmcv(bmcv, image, boxes, masks=None, classes_ids=None, conf_scores=None, conf_thresh=0.2):
+    thickness = 2
     for idx in range(len(boxes)):
+        if conf_scores[idx] < conf_thresh:
+            continue
         x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
         if classes_ids is not None:
             color = np.array(COLORS[int(classes_ids[idx]) + 1]).astype(np.uint8).tolist()
         else:
-            color = (0, 0, 255)
-        bmcv.rectangle(image, x1, y1, (x2 - x1), (y2 - y1), color, 2)
+            color = (0, 0, 255)    
+        if (x2 - x1) < thickness * 2 or (y2 - y1) < thickness * 2:
+            logging.info("width or height too small, this rect will not be drawed: (x1={},y1={},w={},h={})".format(x1, y1, x2-x1, y2-y1))
+        else:
+            bmcv.rectangle(image, x1, y1, (x2 - x1), (y2 - y1), color, 2)        
         logging.debug("class id={}, score={}, (x1={},y1={},w={},h={})".format(int(classes_ids[idx]), conf_scores[idx], x1, y1, x2-x1, y2-y1))
 
 def main(opt):
@@ -283,7 +289,7 @@ def main(opt):
                     det = results[i]
                     # save image
                     img_bgr_planar = centernet.bmcv.convert_format(bmimg_list[i])
-                    draw_bmcv(centernet.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                    draw_bmcv(centernet.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2], conf_thresh=opt.conf_thresh)
                     centernet.bmcv.imwrite(os.path.join(output_img_dir, filename), img_bgr_planar)
                     
                     # save result
@@ -306,7 +312,7 @@ def main(opt):
         for i, filename in enumerate(filename_list):
             det = results[i]
             img_bgr_planar = centernet.bmcv.convert_format(bmimg_list[i])
-            draw_bmcv(centernet.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+            draw_bmcv(centernet.bmcv, img_bgr_planar, det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2], conf_thresh=opt.conf_thresh)
             centernet.bmcv.imwrite(os.path.join(output_img_dir, filename), img_bgr_planar)
             res_dict = dict()
             res_dict['image_name'] = filename

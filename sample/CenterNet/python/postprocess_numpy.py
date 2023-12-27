@@ -62,7 +62,7 @@ class PostProcess:
         #pred_hms    = self.pool_nms(torch.from_numpy(pred_hms)).numpy()
         
         b, c, output_h, output_w = pred_hms.shape
-        logging.info('pred_hms shape {}'.format(pred_hms.shape))
+        logging.debug('pred_hms shape {}'.format(pred_hms.shape))
         detects = []
         #-------------------------------------------------------------------------#
         #   只传入一张图片，循环只进行一次
@@ -77,9 +77,9 @@ class PostProcess:
             pred_wh     = np.transpose(pred_whs[batch],     (1, 2, 0)).reshape((-1, 2))
             pred_offset = np.transpose(pred_offsets[batch], (1, 2, 0)).reshape((-1, 2))
 
-            logging.info('heat_map shape {}'.format(heat_map.shape))
-            logging.info('pred_wh shape {}'.format(pred_wh.shape)) 
-            logging.info('pred_offset shape {}'.format(pred_offset.shape))
+            logging.debug('heat_map shape {}'.format(heat_map.shape))
+            logging.debug('pred_wh shape {}'.format(pred_wh.shape)) 
+            logging.debug('pred_offset shape {}'.format(pred_offset.shape))
             #exit(0)
 
             # np.meshgrid和torch.meshgrid结果的维度排列不同
@@ -97,8 +97,8 @@ class PostProcess:
             #-------------------------------------------------------------------------#
             class_conf  = np.max(heat_map,    axis=-1)
             class_pred  = np.argmax(heat_map, axis=-1)
-            logging.info('class_conf shape {}'.format(class_conf.shape))
-            logging.info('class_pred shape {}'.format(class_pred.shape))
+            logging.debug('class_conf shape {}'.format(class_conf.shape))
+            logging.debug('class_pred shape {}'.format(class_pred.shape))
             # mask        = class_conf > self.confidence
             topk = class_conf[np.argpartition(class_conf,-self.K)[-self.K:]]
             mask = [i in topk for i in class_conf]

@@ -253,9 +253,13 @@ int main(int argc, char** argv) {
                     int colors_num = colors.size();
                     int classId = iterbox->c;
                     std::tuple<int,int,int> color = std::make_tuple(colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
-                    bmcv.rectangle(rgb_img, iterbox->x, iterbox->y,
-                                iterbox->w, iterbox->h, color, 3);
-                                      
+                    int thickness = 3;
+                    if(iterbox->w < thickness * 2 || iterbox->h < thickness * 2){
+                        std::cout << "width or height too small, this rect will not be drawed: " << 
+                            "[" << iterbox->x << ", "<< iterbox->y << ", " << iterbox->w << ", " << iterbox->h << "]" << std::endl;
+                    } else{
+                        bmcv.rectangle(rgb_img, iterbox->x, iterbox->y, iterbox->w, iterbox->h, color, thickness);
+                    }                  
                 }
                 // save result
                 json bbox_json;
@@ -303,14 +307,14 @@ int main(int argc, char** argv) {
             iter--;
             std::vector<bool> align_width(4);
             std::vector<float> ratio(4);
-            LOG_TS(ts, "Centernet preprocess");
+            ts->save("Centernet preprocess", input_batch_size);
             preprocessor.Process(imgs_0, imgs_1, align_width, ratio);
             bmcv.bm_image_to_tensor(imgs_1, input_tensor);
-            LOG_TS(ts, "Centernet preprocess");
+            ts->save("Centernet preprocess", input_batch_size);
             std::cout << "Inference begin" << "\n";
-            LOG_TS(ts, "Centernet inference");
+            ts->save("Centernet inference", input_batch_size);
             engine.process(gh_names[0], input_tensors, output_tensors);
-            LOG_TS(ts, "Centernet inference");
+            ts->save("Centernet inference", input_batch_size);
             std::cout << "Inference end" << "\n";
  
             std::cout << "Postprocess begin" << "\n";
@@ -333,8 +337,14 @@ int main(int argc, char** argv) {
                         int colors_num = colors.size();
                         int classId = iterbox->c;
                         std::tuple<int,int,int> color = std::make_tuple(colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
-                        bmcv.rectangle(imgs_0[b], iterbox->x, iterbox->y,
-                                    iterbox->w, iterbox->h, color, 3);
+                        
+                        int thickness = 3;
+                        if(iterbox->w < thickness * 2 || iterbox->h < thickness * 2){
+                            std::cout << "width or height too small, this rect will not be drawed: " << 
+                                "[" << iterbox->x << ", "<< iterbox->y << ", " << iterbox->w << ", " << iterbox->h << "]" << std::endl;
+                        } else{
+                            bmcv.rectangle(imgs_0[b], iterbox->x, iterbox->y, iterbox->w, iterbox->h, color, thickness);
+                        }
                         
                     }
                     // save result
