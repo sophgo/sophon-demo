@@ -489,6 +489,7 @@ void YoloV8::NMS(YoloV8BoxVec& dets, float nmsConfidence) {
 void YoloV8::draw_result(cv::Mat& img, YoloV8BoxVec& result) {
     cv::Mat mask = img.clone();
     for (int i = 0; i < result.size(); i++) {
+        if(result[i].score < 0.25) continue;
         int left, top;
         left = result[i].x1;
         top = result[i].y1;
@@ -519,6 +520,7 @@ void YoloV8::draw_bmcv(bm_handle_t& handle,
         frame = frame2;
     }
     for (int i = 0; i < result.size(); i++) {
+        if(result[i].score < 0.25) continue;
         int left, top, width, height;
         left = result[i].x1;
         top = result[i].y1;
@@ -581,6 +583,8 @@ void YoloV8::draw_bmcv(bm_handle_t& handle,
     }
     if (put_text_flag) {
         for (int i = 0; i < result.size(); i++) {
+            if(result[i].score < 0.25) continue;
+
             int left, top;
             left = result[i].x1;
             top = result[i].y1;

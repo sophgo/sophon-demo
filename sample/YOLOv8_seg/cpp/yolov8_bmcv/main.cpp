@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
                     cv::Mat img;
                     cv::bmcv::toMAT(&batch_imgs[i], img, 1, 1, NULL, -1, true, true);
                     yolov8.draw_result(img, boxes[i]);
-                    string img_file = "results/images/" + batch_names[i];
+                    string img_file = "results/images/res_bmcv_" + batch_names[i];
                     cv::imwrite(img_file.c_str(), img);
 #else
                     yolov8.draw_bmcv(h, batch_imgs[i], boxes[i], 1);
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
                     size_t out_size = 0;
                     int ret = bmcv_image_jpeg_enc(h, 1, &batch_imgs[i], &jpeg_data, &out_size);
                     if (ret == BM_SUCCESS) {
-                        string img_file = "results/images/" + batch_names[i];
+                        string img_file = "results/images/res_bmcv_" + batch_names[i];
                         FILE* fp = fopen(img_file.c_str(), "wb");
                         fwrite(jpeg_data, out_size, 1, fp);
                         fclose(fp);
@@ -289,7 +289,7 @@ int main(int argc, char* argv[]) {
                     cv::Mat img;
                     cv::bmcv::toMAT(&batch_imgs[i], img, 1, 1, NULL, -1, true, true);
                     yolov8.draw_result(img, boxes[i]);
-                    string img_file = "results/images/" + to_string(id) + ".jpg";
+                    string img_file = "results/images/res_bmcv_" + to_string(id) + ".jpg";
                     imwrite(img_file.c_str(), img);
 #else
                     yolov8.draw_bmcv(h, batch_imgs[i], boxes[i], 1);
@@ -298,7 +298,7 @@ int main(int argc, char* argv[]) {
                     size_t out_size = 0;
                     int ret = bmcv_image_jpeg_enc(h, 1, &batch_imgs[i], &jpeg_data, &out_size);
                     if (ret == BM_SUCCESS) {
-                        string img_file = "results/images/" + to_string(id) + ".jpg";
+                        string img_file = "results/images/res_bmcv_" + to_string(id) + ".jpg";
                         FILE* fp = fopen(img_file.c_str(), "wb");
                         fwrite(jpeg_data, out_size, 1, fp);
                         fclose(fp);

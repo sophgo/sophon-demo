@@ -13,9 +13,9 @@
 #include <iostream>
 #include <vector>
 #include "bm_wrapper.hpp"
-#include "bmnn_utils.h"
 #include "opencv2/opencv.hpp"
 #include "utils.hpp"
+#include "bmnn_utils.h"
 // Define USE_OPENCV for enabling OPENCV related funtions in bm_wrapper.hpp
 #define USE_OPENCV 1
 #define DEBUG 0

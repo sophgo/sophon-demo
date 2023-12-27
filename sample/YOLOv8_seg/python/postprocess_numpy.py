@@ -279,6 +279,7 @@ class PostProcess:
         # Draw rectangles and polygons
         im_canvas = im.copy()
         for (*box, conf, cls_), segment in zip(bboxes, segments):
+            if conf < 0.25 :continue
             color=colors[int(cls_)]
             #draw contour and fill mask
             if(len(segment)):
