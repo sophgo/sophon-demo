@@ -1,0 +1,10 @@
+numpy
+diffusers
+tqdm
+opencv-python
+transformers
+Pillow
+scipy
+scikit-image
+diffusers
+torch
