@@ -11,9 +11,9 @@
 
 python目录下提供了Python例程，具体情况如下：
 
-| 序号 |  Python例程      | 说明                                                             |
-| ---- | ---------------- | ---------------------------------------------------------------  |
-| 1    | sam_opencv.py    | 使用OpenCV解码、SAIL 图像压缩(embedding)、SAIL图像推理(mask_decoder)  |
+| 序号 |  Python例程      | 说明                                                                 |
+| ---- | ---------------- | -------------------------------------------------------------------- |
+| 1    | sam_opencv.py    | 使用OpenCV解码、SAIL 图像压缩(embedding)、SAIL图像推理(mask_decoder) |
 
 ## 1. 环境准备
 ### 1.1 x86/arm PCIe平台
@@ -37,7 +37,7 @@ pip3 install torchvision
 
 设置环境变量，指定opencv为sophon-opencv，这将带来更快的解码速度：
 ```bash
-export PYTHONPATH=$PYTHONPATH:/opt/sophon/libsophon-current/lib:/opt/sophon/libsophon-current/lib:/opt/sophon/sophon-opencv-latest/opencv-python/
+export PYTHONPATH=$PYTHONPATH:/opt/sophon/libsophon-current/lib:/opt/sophon/sophon-opencv-latest/opencv-python/
 ```
 
 此外您可能还需要安装其他第三方库：
@@ -66,7 +66,7 @@ usage: sam_opencv.py [--input_image INPUT_PATH] [--input_point INPOINT_POINT]
 
 点输入效果如下：
 ```bash
-python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 700,375
+python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 700,375 \
     --embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_fp16_1b.bmodel  --dev_id 0 
 ```
 运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
@@ -76,7 +76,7 @@ python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 700,
 
 box输入效果如下：
 ```bash
-python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 100,300,1700,800
+python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 100,300,1700,800 \
      --embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_fp16_1b.bmodel --dev_id 0 
 ```
 运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
