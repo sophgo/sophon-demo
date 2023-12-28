@@ -130,7 +130,7 @@ bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_fp32_1b.bmodel
 
 测试`datasets/truck.jpg`单张图片性能测试结果如下（时间单位为ms），测试结果有一定波动性：
 | 测试平台    | 测试程序      | 测试模型                                                            | decode_time | embedding_time | decode_mask_time | postprocess_time | 
-| ----------- | ------------- | ----------------------------------------------------------------- - | ----------- | -------------- | ---------------- | ---------------- |
+| ----------- | ------------- | ------------------------------------------------------------------- | ----------- | -------------- | ---------------- | ---------------- |
 | BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_fp16_1b.bmodel | 11.0        | 416.0          | 15.5             | 16.2             |
 | BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_fp32_1b.bmodel | 11.0        | 411.0          | 34.0             | 16.5             |
 

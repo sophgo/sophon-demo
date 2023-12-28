@@ -5,6 +5,7 @@ SAM模型导出是在Pytorch模型的生产环境下进行的，需提前根据[
 
 ## 2. 主要步骤
 
+- 导出decoder部分模型：
 SAM官方仓库提供了模型导出脚本'scripts/export.onnx_model.py'和'notebooks/onnx_model_example.ipynb'，可以直接使用它们导出onnx模型。以onnx_model_example.ipynb中的转换代码为例：
 
 ```python
@@ -50,10 +51,15 @@ SAM官方仓库提供了模型导出脚本'scripts/export.onnx_model.py'和'note
 
 ```
 
-导出embedding部分参考：
+- 导出embedding部分：
+需要您运行mata官方sam例程时，在实例化 `/segment-anything/segment_anything/build_sam.py` 中的`Class Sam()` 为`sam`后，直接导出`sam.image_encoder`。
+
+如下例子为运行meta源码时，直接在`/segment-anything/segment_anything/predictor.py`中做`embedding`推理时导出`sam.image_encoder`。
+
 ```python
     ....
-    model = sam.image_encoder
-    fixed_input_shape = (1, 3, 1024, 1024)
-    torch.onnx.export(model, input_image,'embedding_model.onnx',verbose=True,opset_version=12)
+    # 在class SamPredictor的set_torch_image()函数末尾插入：
+    model = self.model.image_encoder 
+    input_image = torch.rand((1, 3, 1024, 1024)) # 初始化(1, 3, 1024, 1024)的输入，也可以直接输入真实图片数据
+    torch.onnx.export(model, input_image,'embedding_model.onnx', verbose=True, opset_version=12) # 导出onnx
 ```
