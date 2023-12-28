@@ -223,14 +223,4 @@ cd ctc_decoder/swig
 sudo ./setup.sh
 ```  
 2. bm_fft暂不支持1684x/1688，仅能在1684设备上使用。  
-3. 1684上decoder精度暂无法对齐，仅能在1684x设备上使用。  
-4. encoder与decoder的shape暂时无法调整，仅能编译和使用固定shape的bmodel，因此目前C++和Python例程的某些参数为固定参数。  
-5. soc模式编译CPP过程中，生成时makefile提示：
-```bash
-Could not find a package configuration file provided by "FFMPEG" with any
-  of the following names:
-
-    FFMPEGConfig.cmake
-    ffmpeg-config.cmake
-```  
-该情况是因为soc设备没有预装ffmpeg和opencv的include等文件，请在sophon-mw中安装sophon-mw-soc-sophon-ffmpeg-dev_0.6.0_arm64.deb和sophon-mw-soc-sophon-opencv-dev_0.6.0_arm64.deb。
+3. encoder与decoder的shape暂时无法调整，仅能编译和使用固定shape的bmodel，因此目前C++和Python例程的某些参数为固定参数。  
