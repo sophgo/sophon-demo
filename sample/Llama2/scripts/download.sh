@@ -1,17 +1,17 @@
 #!/bin/bash
+script_dir=$(dirname "$(readlink -f "$0")")
 
-res=$(which unzip)
-if [ $? != 0 ];
-then
-    echo "Please install unzip on your system!"
+res=$(which 7z)
+if [ $? != 0 ]; then
+    echo "Please install 7z on your system!"
     exit
 fi
 
-echo "unzip is installed in your system!"
- 
+echo "7z is installed in your system!"
+
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-python3 -m dfss --url=open@sophgo.com:/sophon-demo/Llama2/models.zip
-python3 -m dfss --url=open@sophgo.com:/sophon-demo/Llama2/tools.zip
+python3 -m dfss --url=open@sophgo.com:/sophon-demo/Llama2/models.7z
+python3 -m dfss --url=open@sophgo.com:/sophon-demo/Llama2/tools.7z
 
 if [ ! -d "./models" ]; then
     mkdir -p ./models
@@ -21,13 +21,18 @@ if [ ! -d "./models/BM1684X" ]; then
     mkdir -p ./models/BM1684X
 fi
 
-unzip -o models.zip -d ./models/BM1684X/
-rm models.zip
+7z x models.7z -o./models/BM1684X
+if [ "$?" = "0" ]; then
+  rm models.7z
+  echo "Models are ready"
+else
+  echo "Models unzip error"
+fi
 
-echo "Models are ready"
-
-unzip -o tools.zip -d .
-rm tools.zip
-
-echo "Tools are ready"
- 
+7z x tools.7z -o.
+if [ "$?" = "0" ]; then
+  rm tools.7z
+  echo "Tools are ready"
+else
+  echo "Tools unzip error"
+fi
