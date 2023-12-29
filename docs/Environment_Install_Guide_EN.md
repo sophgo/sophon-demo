@@ -54,7 +54,7 @@ If you are using BM1684X, it is recommended to use TPU-MLIR to compile BModel. U
     docker pull sophgo/tpuc_dev:latest
     # Here will map current directory to /workspace directory in docker, users need to map the demo directory to docker according to the actual situation
     # Myname is just an example of a name, please specify it as the name of the container you want
-    docker run --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:latest
+    docker run --privileged --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:latest
     # Now, you are already in docker, and in the /workspace directory
     # Then, initializing the software environment
     cd /workspace/tpu-mlir
@@ -101,7 +101,7 @@ If you are using BM1684, it is recommended to use TPU-NNTC to compile BModel. Us
     # Here will map tpu-nntc's higher level directory to /workspace directory in docker, users need to map the demo directory to docker according to the actual situation
     # 8001 to 8001 port mapping is used here, which will be used later in the ufw visualization tool
     # If the port is already occupied, please replace it with another unoccupied port, and adjust it later as needed
-    docker run --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:v2.1
+    docker run --privileged --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:v2.1
     # Now, you are already in docker, and in the /workspace directory
     # Then, initializing the software environment
     cd /workspace/tpu-nntc
