@@ -34,12 +34,13 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/Llama2/sd_card_llama2-7b.zip
 ​本例程在`scripts`目录下提供了相关模型载脚本`download.sh`
 
 ```bash
-# 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
-sudo apt install unzip
+# 安装7z，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
+sudo apt-get update
+sudo apt-get install p7zip-full
 chmod -R +x scripts/
 ./scripts/download.sh
 ```
-
+ 
 执行程序后，当前目录下的文件如下：
 
 ```
@@ -51,18 +52,18 @@ chmod -R +x scripts/
 │   ├── include                          #编译所需的库文件
 │   ├── lib_pcie                         #编译PCIE版本所需头文件
 │   ├── lib_soc                          #编译SOC版本所需头文件
-│   ├── llama2                           #可执行程序
 │   ├── tokenizer.model                  #分词模型
 │   └── README.md                        #例程使用说明
+├── docs
+│   └── Llama2_Guide.md                  #常见问题汇总
 ├── models
 │   └── BM1684X                          #bmodel
 │       ├─ llama2-7b_int4_1dev.bmodel    #int4 单芯模型
 │       └─ llama2-7b_int8_1dev.bmodel    #int8 单芯模型
 ├── tools                                #自行编译模型时会需要的工具
 │   ├── libsophon-distributed            #需要执行多芯运行(仅限多芯卡)所需的libsophon
-│   ├── sentencepiece                    #分词工具
-│   ├── soc-sdk                          #交叉编译所需工具(SDK=0.4.9)
-└── script
+│   └── sentencepiece                    #分词工具
+└── scripts
     ├── download.sh                      #模型下载脚本
     └── compile                          #编译模型相关的脚本
         ├── compile.sh                   #编译bmodel脚本
@@ -91,12 +92,13 @@ docker run --privileged --name myname1234 -v $PWD:/workspace -it sophgo/tpuc_dev
 
 后文(模型转换过程)假定环境都在docker的/workspace目录。
 
-
 2. 下载Llama2-7B
 
 虽然Llama2模型允许商业开源，但是模型下载需要想Meta提交使用申请，因此测试模型时可以使用我们已经下载好的模型
 ```bash
 pip3 install dfss
+sudo apt-get update
+sudo apt-get install unzip
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Llama2/llama2-7b-torch.zip
 unzip llama2-7b-torch.zip
 ```
@@ -193,7 +195,7 @@ source ./envsetup.sh
 1. 导出所有onnx模型，如果过程中提示缺少某些组件，直接pip install 组件即可
 
 ```bash
-cd script/compile
+cd scripts/compile
 python3 export_onnx.py
 ```
 此时有大量onnx模型被导出到compile/tmp目录。

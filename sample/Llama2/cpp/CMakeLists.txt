@@ -19,24 +19,6 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     add_executable(llama2.pcie demo.cpp)
     target_link_libraries(llama2.pcie bmrt bmlib sentencepiece)
 
-
-elseif (${TARGET_ARCH} STREQUAL "soc")
-    message( "${TARGET_ARCH} mode, starting......")
-    set(LIBSOPHON ${CMAKE_CURRENT_SOURCE_DIR}/../tools/soc-sdk/)
-    add_definitions(-DSOC_TARGET)
-    set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
-    set(CMAKE_ASM_COMPILER aarch64-linux-gnu-gcc)
-    set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
-
-    include_directories(${LIBSOPHON}/include)
-    link_directories(${LIBSOPHON}/lib)
-
-    include_directories(${PROJECT_SOURCE_DIR}/include)
-    link_directories(${PROJECT_SOURCE_DIR}/lib_soc)
-    add_definitions(-DDEBUG --std=c++17 -fPIC -Wall -Werror)
-    add_executable(llama2.soc demo.cpp)
-    target_link_libraries(llama2.soc pthread bmrt bmlib sentencepiece)
-
 elseif (${TARGET_ARCH} STREQUAL "soc_base")
     message( "${TARGET_ARCH} mode, starting......")
 
