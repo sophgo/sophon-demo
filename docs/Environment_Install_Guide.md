@@ -53,7 +53,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
     docker pull sophgo/tpuc_dev:latest
     # 这里将本级目录映射到docker内的/workspace目录,用户需要根据实际情况将demo的目录映射到docker里面
     # myname只是举个名字的例子, 请指定成自己想要的容器的名字
-    docker run --name myname -v $PWD:/workspace -it sophgo/tpuc_dev:latest
+    docker run --privileged --name myname -v $PWD:/workspace -it sophgo/tpuc_dev:latest
     # 此时已经进入docker，并在/workspace目录下
     # 初始化软件环境
     cd /workspace/tpu-mlir_vx.y.z-<hash>-<date>
@@ -98,7 +98,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
     # 这里将tpu-nntc的上一级目录映射到docker内的/workspace目录,用户需要根据实际情况将demo的目录映射到docker里面
     # 这里用了8001到8001端口映射，之后在使用ufw可视化工具会用到
     # 如果端口已经占用，请更换其他未占用端口，后面根据需要更换进行调整
-    docker run --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:v2.1
+    docker run --privileged --name myname -v $PWD/..:/workspace -p 8001:8001 -it sophgo/tpuc_dev:v2.1
     # 此时已经进入docker，并在/workspace目录下
     # 下面初始化软件环境
     cd /workspace/tpu-nntc
