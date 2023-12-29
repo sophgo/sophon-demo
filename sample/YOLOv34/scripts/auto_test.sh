@@ -170,11 +170,11 @@ function eval_cpp()
   fi
   yolov4_flag=$(echo $3 | grep "yolov4")
   if ["$yolov4_flag" != ""];then
-    conf_thresh = 0.3
-    nms_thresh = 0.5
+    conf_thresh=0.3
+    nms_thresh=0.5
   else
-    conf_thresh = 0.001
-    nms_thresh = 0.6
+    conf_thresh=0.001
+    nms_thresh=0.6
   fi
   ./yolov34_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=$conf_thresh --nms_thresh=$nms_thresh --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
   judge_ret $? "./yolov34_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=$conf_thresh --nms_thresh=$nms_thresh --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
@@ -209,11 +209,11 @@ function eval_python()
   fi
   yolov4_flag=$(echo $3 | grep "yolov4")
   if ["$yolov4_flag" != ""];then
-    conf_thresh = 0.3
-    nms_thresh = 0.5
+    conf_thresh=0.3
+    nms_thresh=0.5
   else
-    conf_thresh = 0.001
-    nms_thresh = 0.6
+    conf_thresh=0.001
+    nms_thresh=0.6
   fi
   python3 python/yolov34_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh $conf_thresh --nms_thresh $nms_thresh > python/log/$1_$2_debug.log 2>&1
   judge_ret $? "python3 python/yolov34_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh $conf_thresh --nms_thresh $nms_thresh > python/log/$1_$2_debug.log 2>&1" python/log/$1_$2_debug.log
