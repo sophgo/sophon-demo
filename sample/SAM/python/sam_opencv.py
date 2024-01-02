@@ -17,7 +17,6 @@ import sophon.sail as sail
 from sam_encoder import SamEncoder
 from predictor import SamPredictor
 from sam_model import Sam
-from resize_func import resize
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -30,7 +29,6 @@ def save_image_point(base_image,mask,input_point, box = False):
 
     if not box:
         input_point = input_point[0]
-        mask = mask[0][0]
         mask = mask[...,None]
         x_coord = input_point[0]
         y_coord = input_point[1]
@@ -41,7 +39,6 @@ def save_image_point(base_image,mask,input_point, box = False):
         base_image = cv2.drawMarker(image_cv, (x_coord, y_coord), green_color,markerType=cv2.MARKER_STAR,markerSize=50, thickness=2, line_type=cv2.LINE_AA)
         cv2.imwrite(output_dir+'/result.jpg',base_image)
     else:
-        mask = mask[0][0]
         mask = mask[...,None]
         x_coord0 = input_point[0][0]
         y_coord0 = input_point[0][1]
@@ -156,8 +153,9 @@ class SAM_b(object):
         4 output bmodel, resize masks on cpu
         '''
         output_name = list(outputs_0.items())[1][0]
-        upscaled_masks = resize(self.image_size,torch.tensor(outputs_0[output_name]),torch.tensor(self.orig_im_size))
+        mask = np.squeeze(outputs_0[output_name], axis=(0, 1))
 
+        upscaled_masks = cv2.resize(mask, (self.orig_im_size[1].astype(int),self.orig_im_size[0].astype(int)))
         return upscaled_masks > 0.0 # predictor.model.mask_threshold = 0.0
     
     def __call__(self, img, sam_encoder, sam):

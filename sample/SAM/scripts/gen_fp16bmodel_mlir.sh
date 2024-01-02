@@ -25,7 +25,7 @@ function gen_fp16bmodel_embedding()
         --chip $target \
         --model SAM-ViT-B_embedding_fp16_$1b.bmodel
 
-    mv SAM-ViT-B_embedding_fp16_$1b.bmodel $outdir/embedding_bmodel
+    mv SAM-ViT-B_embedding_fp16_$1b.bmodel $outdir/embedding_bmodel/
 }
 
 
@@ -47,17 +47,26 @@ function gen_fp16bmodel_decoder()
         --chip $target \
         --model SAM-ViT-B_decoder_fp16_$1b.bmodel
 
-    mv SAM-ViT-B_decoder_fp16_$1b.bmodel $outdir/decode_bmodel
+    mv SAM-ViT-B_decoder_fp16_$1b.bmodel $outdir/decode_bmodel/
 }
 
 
 pushd $model_dir
-if [ ! -d $outdir ]; then
+if [ ! -d $outdir/embedding_bmodel ] ; then
     mkdir -p $outdir/embedding_bmodel
-    mkdir -p $outdir/decode_bmodel
+
 else
     echo "Models folder exist! "
 fi
+
+if [ ! -d $outdir/decode_bmodel ] ; then
+    mkdir -p $outdir/decode_bmodel
+
+else
+    echo "Models folder exist! "
+fi
+
+    
 # batch_size=1
 gen_mlir_embedding 1
 gen_fp16bmodel_embedding 1

@@ -72,6 +72,7 @@ python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 700,
 运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
 
 输出效果如图：
+
 ![](../docs/result.jpg)
 
 box输入效果如下：
@@ -82,4 +83,5 @@ python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 100,
 运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
 
 输出效果如图：
+
 ![](../docs/result_box.jpg)

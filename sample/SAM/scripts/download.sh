@@ -24,9 +24,9 @@ fi
 # models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM/models-4output-v231211.zip
-    unzip models-4output-v231211.zip -d ../
-    rm models-4output-v231211.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM/models-4output-v240103.zip
+    unzip models-4output-v240103.zip -d ../
+    rm models-4output-v240103.zip
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
