@@ -60,7 +60,7 @@ chmod -R +x scripts/
 │       └── SAM-ViT-B_embedding_fp16_1b.bmodel # embedding部分fp16 bmodel
 ├── onnx
 │   ├── embedding_model.onnx # 由原模型导出的embedding部分onnx模型
-│   └── vit-b-scripts.onnx # 由原模型导出的mask_decoder部分onnx模型
+│   └── vit-b-scripts.onnx # 由原模型导出的以点和框为输入的mask_decoder部分onnx模型
 └── torch
     └── sam_vit_b_01ec64.pth   # 原torch模型
 ```
@@ -107,7 +107,7 @@ chmod -R +x scripts/
 使用bmrt_test测试模型的理论性能：
 ```bash
 # 请根据实际情况修改要测试的bmodel路径和devid参数
-bmrt_test --bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp32_1b.bmodel
+bmrt_test --bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel
 bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_fp32_1b.bmodel
 ```
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。

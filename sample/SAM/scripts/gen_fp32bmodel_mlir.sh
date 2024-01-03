@@ -25,12 +25,12 @@ function gen_fp32bmodel_decoder()
         --chip $target \
         --model SAM-ViT-B_decoder_fp32_$1b.bmodel
 
-    mv SAM-ViT-B_decoder_fp32_$1b.bmodel $outdir/decode_bmodel
+    mv SAM-ViT-B_decoder_fp32_$1b.bmodel $outdir/decode_bmodel/
 }
 
 
 pushd $model_dir
-if [ ! -d $outdir ]; then
+if [ ! -d $outdir/decode_bmodel ]; then
     mkdir -p $outdir/decode_bmodel
 else
     echo "Models folder exist! "
