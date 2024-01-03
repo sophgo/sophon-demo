@@ -32,8 +32,7 @@ function gen_fp16bmodel()
         --mlir yolov5s_v6.1_3output_$1b.mlir \
         --quantize F16 \
         --chip $target \
-        --model yolov5s_v6.1_3output_fp16_$1b.bmodel \
-        --num_core 1
+        --model yolov5s_v6.1_3output_fp16_$1b.bmodel
         # --test_input ../datasets/test/3.jpg \
         # --test_reference yolov5_top.npz \
         # --debug 
