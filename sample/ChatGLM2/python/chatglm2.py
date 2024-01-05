@@ -294,7 +294,7 @@ class ChatGLM2:
                 return
             self.round = 0
             self.history = ""
-            answer(input_str)
+            self.answer(input_str)
             return
         
         # sentencepiece不接受numpy做输入，但tensor那些得用numpy生成，
