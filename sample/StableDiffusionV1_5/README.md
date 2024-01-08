@@ -11,7 +11,7 @@
 * [6. FAQ](#6-FAQ)
 
 ## 1. 简介
-StableDiffusion V1.5 是开源AIGC模型(Huggingface官网：https://huggingface.co/runwayml/stable-diffusion-v1-5），可以依据文本提示生成相应的图像内容。
+StableDiffusion V1.5 是开源AIGC模型(Huggingface官网：https://huggingface.co/runwayml/stable-diffusion-v1-5)，可以依据文本提示生成相应的图像内容。
 
 目前提供了python版的文本生成图像、controlnet插件辅助控制生成图像；
 
@@ -29,8 +29,8 @@ StableDiffusion V1.5暂时只支持在BM1684X上运行，模型来自于开源�
 用户若自己下载和编译singlize模型，请安装所需的第三方库（下载官方模型需要用户可以正常连接HuggingFace网站）：
 
 ```bash
-pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip3 install torchsde onnx
+pip3 install -r requirements.txt
+pip3 install onnx==1.15.0
 ```
 
 在script路径下，运行 export_pt_from_Huggingface.py 即可将Huggingface上pipeline中的模型以pt/onnx的格式保存在models文件夹下:
@@ -65,55 +65,50 @@ cd script
 
 ```bash
 ./download_multilize_bmodel.sh
-./download_controlnets_bmodel
+./download_controlnets_bmodel.sh
 ```
 
 在script目录下执行上述download脚本后，当前目录下的文件结构如下：
 
 ```
-.
-├── models
-│   └── BM1684X                             #singlize bmodel、pt/onnx 文件
-│       └── singlize                        #singlize bmodel, text_encoder, unet, vae_encoder, vae_decoder
-│       └── multilize                       #multilize bmodel, text_encoder, unet, vae_encoder, vae_decoder
-│       └── controlnets                     #controlnets bmodel, canny, depth, hed, openpose, scribble, segmentation
-│       └── processors                      #processors bmodel, depth, hed, openpose, scribble, segmentation
-│   └── onnx_pt                             #singlize pt/onnx 文件
-│   └── tokenizer_path                      #CLIPTokenizer 文件
-│       └── merges.txt                      #token merge reference
-│       └── tokenizer_config.json           #CLIPTokenizer 配置
-│       └── vocab.json                      #vocab mapping
-├── python
-│   ├── depth_utils.py                      #depth controlnet依赖文件
-│   ├── hed_utils.py                        #hed controlnet依赖文件
-│   ├── openpose_utils.py                   #openpose controlnet依赖文件
-│   ├── README.md                           #python例程说明文档
-│   ├── run.py                              #主程序
-│   ├── scribble_utils.py                   #scribble controlnet依赖文件
-│   ├── sd_engine.py                        #TPU engine
-│   ├── segmentation_utils.py               #segmentation controlnet依赖文件
-│   └── stable_diffusion.py                 #SD的类文件
-├── README.md                               #项目总文档说明
-├── requirements.txt                        #python例程运行所依赖的包
-├── docs                                    #例程专用文档
-│   └── Export_Controlnet.md                #controlnet导出说明文档
-├── script
-│   ├── export_pt_from_Huggingface.py       #Huggingface模型转为pt/onnx模型
-│   ├── get_text_encoder_bmodel.sh          #text_encoder bmodel生成脚本
-│   ├── get_unet_bmodel.sh                  #unet bmodel 生成脚本
-│   ├── get_vae_decoder_bmodel.sh           #vae decoder bmodel 生成脚本
-│   ├── get_vae_encoder_bmodel.sh           #vae encoder bmodel 生成脚本
-│   ├── download_controlnets_bmodel         #controlnet bmodel下载脚本
-│   ├── download_multilize_bmodel.sh        #multilize bmodel下载脚本
-│   └── download_singlize_bmodel.sh         #singlize bmodel下载脚本
-├── tools
-│   └── export_contolnet                    #controlnet导出脚本export*.py和转换脚本get*.sh
-│       └── canny                           #canny controlnet导出脚本和转换脚本
-│       └── depth                           #depth controlnet和processor导出和转换脚本
-│       └── hed                             #hed controlnet和processor导出和转换脚本
-│       └── openpose                        #openpose controlnet和processor导出和转换脚本
-│       └── scribble                        #scribble controlnet和processor导出和转换脚本
-│       └── segmentation                    #segmentation controlnet和processor导出和转换脚本
+./models
+├── BM1684X
+│   ├── controlnets
+│   │   ├── canny_controlnet_fp16.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP16 canny controlnet
+│   │   ├── depth_controlnet_fp16.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP16 depth controlnet
+│   │   ├── hed_controlnet_fp16.bmodel          # 使用TPU-MLIR编译，用于BM1684X的FP16 hed controlnet
+│   │   ├── openpose_controlnet_fp16.bmodel     # 使用TPU-MLIR编译，用于BM1684X的FP16 openpose controlnet
+│   │   ├── scribble_controlnet_fp16.bmodel     # 使用TPU-MLIR编译，用于BM1684X的FP16 scribble controlnet
+│   │   └── segmentation_controlnet_fp16.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 segmentation controlnet
+│   ├── multilize
+│   │   ├── text_encoder_1684x_f32.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP32 text encoder BModel，最大编码长度为77
+│   │   ├── unet_multize.bmodel                 # 使用TPU-MLIR编译，用于BM1684X的FP16 多尺度unet，可配合controlnet使用
+│   │   ├── vae_decoder_multize.bmodel          # 使用TPU-MLIR编译，用于BM1684X的FP16 多尺度vae decoder
+│   │   └── vae_encoder_multize.bmodel          # 使用TPU-MLIR编译，用于BM1684X的FP16 多尺度vae encoder
+│   ├── processors
+│   │   ├── depth_processor_fp16.bmodel         # 使用TPU-MLIR编译，用于BM1684X的FP16 depth processor
+│   │   ├── hed_processor_fp16.bmodel           # 使用TPU-MLIR编译，用于BM1684X的FP16 hed processor
+│   │   ├── openpose_body_fp16.bmodel           # 使用TPU-MLIR编译，用于BM1684X的FP16 openpose body processor
+│   │   ├── openpose_face_fp16.bmodel           # 使用TPU-MLIR编译，用于BM1684X的FP16 openpose face processor
+│   │   ├── openpose_hand_fp16.bmodel           # 使用TPU-MLIR编译，用于BM1684X的FP16 openpose hand processor
+│   │   ├── scribble_processor_fp16.bmodel      # 使用TPU-MLIR编译，用于BM1684X的FP16 scribble processor
+│   │   └── segmentation_processor_fp16.bmodel  # 使用TPU-MLIR编译，用于BM1684X的FP16 segmentation processor
+│   └── singlize
+│       ├── text_encoder_1684x_f32.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP32 text encoder BModel，最大编码长度为77
+│       ├── unet_1684x_f16.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP16 单尺度unet，只能生成512*512图像
+│       ├── vae_decoder_1684x_f16.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP16 单尺度vae decoder
+│       └── vae_encoder_1684x_f16.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP16 单尺度vae encoder
+├── onnx_pt
+│   ├── text_encoder_1684x_f32.onnx             # 导出的text encoder的onnx模型，用户自行使用
+│   ├── unet_fp32.pt                            # 单尺度unet，用户自行使用
+│   ├── vae_decoder_singlize.pt                 # 单尺度vae decoder，用户自行使用
+│   └── vae_encoder_singlize.pt                 # 单尺度vae encoder，用户自行使用
+└── tokenizer_path
+    ├── merges.txt                              # CLIPTokenizer参考的token合并文件
+    ├── special_tokens_map.json                 # 特殊token映射
+    ├── tokenizer_config.json                   # CLIPTokenizer配置文件
+    ├── tokenizer.json                          # tokenizer文件
+    └── vocab.json                              # 字典文件
 ```
 
 ## 4. 例程测试

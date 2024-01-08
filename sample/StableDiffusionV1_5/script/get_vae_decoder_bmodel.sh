@@ -6,7 +6,7 @@ function gen_mlir()
 {
     model_transform.py \
         --model_name vae_decoder \
-        --model_def ../models/onnx_pt/vae_decoder.pt \
+        --model_def ../models/onnx_pt/vae_decoder_singlize.pt \
         --input_shapes [[1,4,64,64]] \
         --mlir vae_decoder.mlir
 }

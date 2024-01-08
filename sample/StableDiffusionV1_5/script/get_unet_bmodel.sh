@@ -19,7 +19,7 @@ function gen_fp16bmodel()
         --chip bm1684x \
         --model unet_1684x_f16.bmodel
 
-    mv unet_1684x_f16 $outdir/
+    mv unet_1684x_f16.bmodel $outdir/
 }
 
 pushd $model_dir
