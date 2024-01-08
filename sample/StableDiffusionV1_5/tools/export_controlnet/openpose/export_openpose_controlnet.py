@@ -45,3 +45,5 @@ def export_controlnet():
 
     traced_model = torch.jit.trace(build_controlnet, (control_model_input,t,controlnet_prompt_embeds,image))
     traced_model.save("openpose_controlnet.pt")
+
+export_controlnet()

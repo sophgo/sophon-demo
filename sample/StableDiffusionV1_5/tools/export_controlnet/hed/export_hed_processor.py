@@ -18,3 +18,5 @@ def export_hed_processor():
         return out
     traced_model=torch.jit.trace(build_hed_flow, (input))
     traced_model.save("hed_processor.pt")
+
+export_hed_processor()

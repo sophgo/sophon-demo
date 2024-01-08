@@ -4,12 +4,12 @@
 
 - [Export ControlNet](#Export ControlNet)
   - [目录](#目录)
-  - [1. ControlNet介绍](#1 ControlNet介绍)
-  - [2. 模型导出方法](#2 模型导出方法)
+  - [1. ControlNet介绍](#1-ControlNet介绍)
+  - [2. 模型导出教程](#2-模型导出教程)
     - [2.1 processor net导出](#21-processor net导出)
     - [2.2 ControlNet导出](#22-ControlNet导出)
   - [3. 准备模型和测试图像](#3-准备模型和测试图像)
-    - [3.1 导出模型并编译模型](#31-导出模型并编译模型)
+    - [3.1 导出并编译模型](#31-导出并编译模型)
     - [3.2 下载编译好的模型](#32-下载编译好的模型)
     - [3.3 准备测试图像](#33-准备测试图像)
   - [4. 相关参数说明](#4-相关参数说明)
@@ -22,18 +22,18 @@ Stable Diffusion是一种基于文本或图像来生成图像的扩散模型，�
 ControlNet模型导出需要安装第三方包：
 
 ```bash
-pip3 install controlnet-aux
+pip3 install controlnet-aux==0.0.5
 ```
 
-## 2. 模型导出方法
+## 2. 模型导出教程
 
-模型导出主要分为processor net的导出和ControlNet导出两个部分。processor net是将control image转化为深度图、语义分割图、骨架图等额外条件输入的神经网络模型（canny边缘这种图像底层特征不需要用神经网络进行提取，因此没有processor net），ControlNet则接收深度图、语义分割图等条件输入，ControlNet的输出用来辅助控制Stable Diffusion的生成过程。
+如果用户不想了解技术细节，可直接跳转到[3.准备模型和测试图像](#3-准备模型和测试图像)。模型导出主要分为processor net的导出和ControlNet导出两个部分。processor net是将control image转化为深度图、语义分割图、骨架图等额外条件输入的神经网络模型（canny边缘这种图像底层特征不需要用神经网络进行提取，因此没有processor net），ControlNet则接收深度图、语义分割图等条件输入，ControlNet的输出用来辅助控制Stable Diffusion的生成过程。
 
 ### 2.1 processor net导出
 
 processor net是提取control image的深度、语义分割信息、软边缘等特征的神经网络，用户可以使用HuggingFace官网提供的模型，也可以使用自己训练的模型，只要具有相应的特征提取功能即可。
 
-processor net的输入是control image，出是control image的深度图、语义分割图等高层特征。它通常包含对control image的预处理，神经网络推断，神经网络输出后处理三个部分。用户需要将神经网络模型导出为bmodel，并在部署程序中对齐预处理和后处理操作。
+processor net的输入是control image，输出是control image的深度图、语义分割图等高层特征。它通常包含对control image的预处理，神经网络推断，神经网络输出后处理三个部分。用户需要将神经网络模型导出为bmodel，并在部署程序中对齐预处理和后处理操作。
 
 *以HuggingFace提供的HEDdetector（提取图像软边缘）的导出为例：*
 
@@ -264,15 +264,13 @@ hed_controlnet.pt后续可用tpu-mlir转换为bmodel，作为插件干预Stable 
 
 ## 3. 准备模型和测试图像
 
-### 3.1 导出模型并编译模型
+### 3.1 导出并编译模型
 
 在tools/export_controlnet路径下，包含各类controlnet的导出脚本所在的路径（用户需要能连接HuggingFace官网），若用户没有nvidia显卡和cuda，不建议自行导出和编译模型。
 
 用户有cuda的情况下，可以根据自己的需要，进入所需的controlnet的路径，运行路径下的export\*controlnet.py即可导出controlnet的pt模型，若controlnet包含对应的processor net，还需执行export\*processor.py导出processor net的pt/onnx模型;
 
-模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
-
-参考TPU-MLIR工具的使用方式激活对应的环境，激活后在所需的controlnet路径下运行get\_\*\_bmodel.sh，会将当前路径下的onnx/pt文件转换为bmodel。
+导出所需的pt/onnx模型后，可参考[自己下载并且编译模型](../README.md###3-1-自己下载并且编译模型)准备好TPU-MLIR环境，然后在所需的controlnet路径下执行相应的controlnet模型的编译脚本get\*bmodel.sh，若存在对应的processor net，还需执行get\*processor.sh，执行完毕后会在../../../models/BM1684X/下生成相应的controlnets和processors文件夹，和编译后的bmodel文件。
 
 ### 3.2 下载编译好的模型
 
