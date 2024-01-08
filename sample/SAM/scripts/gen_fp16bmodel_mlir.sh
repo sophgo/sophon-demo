@@ -65,8 +65,6 @@ if [ ! -d $outdir/decode_bmodel ] ; then
 else
     echo "Models folder exist! "
 fi
-
-    
 # batch_size=1
 gen_mlir_embedding 1
 gen_fp16bmodel_embedding 1

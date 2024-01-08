@@ -24,6 +24,7 @@
 * 支持基于OpenCV的Python推理
 * 支持单点和box输入的模型推理 
 * 支持图片测试
+* 支持无需点框输入的自动图掩码生成
 
 **注意：
 本repo将图像压缩（embedding）和图像推理（mask_decoder）分为两个bmodel运行；
@@ -56,11 +57,13 @@ chmod -R +x scripts/
 │   ├── decode_bmodel
 │   │   ├── SAM-ViT-B_decoder_fp16_1b.bmodel # mask_decoder部分fp16 bmodel
 │   │   └── SAM-ViT-B_decoder_fp32_1b.bmodel # mask_decoder部分fp32 bmodel
+│   │   └── SAM-ViT-B_auto_decoder_fp32_1b.bmodel # auto_mask_decoder部分fp32 bmodel
 │   └── embedding_bmodel
 │       └── SAM-ViT-B_embedding_fp16_1b.bmodel # embedding部分fp16 bmodel
 ├── onnx
 │   ├── embedding_model.onnx # 由原模型导出的embedding部分onnx模型
-│   └── vit-b-scripts.onnx # 由原模型导出的以点和框为输入的mask_decoder部分onnx模型
+│   └── vit-b-scripts.onnx # 由原模型导出的mask_decoder部分onnx模型
+│   └── vit-b-auto-scripts.onnx # 由原模型导出的auto_mask_decoder部分onnx模型
 └── torch
     └── sam_vit_b_01ec64.pth   # 原torch模型
 ```
@@ -98,6 +101,16 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1684X/embedding_bmodel`下生成`SAM-ViT-B_embedding_fp16_1b.bmodel` 以及`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_decoder_fp16_1b.bmodel`文件，即转换好的图像压缩（embedding）和图像推理（mask_decoder）FP16 BModel。
 
+- 生成auto mask FP32 BModel
+
+<200b>本例程在`scripts`目录下提供了TPU-MLIR编译专门用于自动掩码生成的FP32 BModel的脚本，请注意修改`gen_auto_fp32bmodel_mlir.sh`中的onnx模>型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+
+```bash
+./scripts/gen_auto_fp32bmodel_mlir.sh bm1684x
+```
+
+<200b>执行上述命令会在`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_auto_decoder_fp32_1b.bmodel`文件，即转换好的自动图像推理（auto_mask_decoder）FP32 BModel。
+
 
 ## 5. 例程测试
 - [Python例程](./python/README.md)
@@ -109,16 +122,18 @@ chmod -R +x scripts/
 # 请根据实际情况修改要测试的bmodel路径和devid参数
 bmrt_test --bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel
 bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_fp32_1b.bmodel
+bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_decoder_fp32_1b.bmodel
 ```
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 
 测试各个模型的理论推理时间，结果如下：
 
-| 测试embedding/decode模型            | calculate time(s)         |
-| ------------------------------------| --------------------------|
-| SAM-ViT-B_embedding_fp16_1b.bmodel  | 0.303                     |
-| SAM-ViT-B_decoder_fp16_1b.bmodel    | 0.007                     |
-| SAM-ViT-B_decoder_fp32_1b.bmodel    | 0.026                     |
+| 测试embedding/decode模型             | calculate time(s)         |
+| -------------------------------------|---------------------------|
+| SAM-ViT-B_embedding_fp16_1b.bmodel   | 0.303                     |
+| SAM-ViT-B_decoder_fp16_1b.bmodel     | 0.007                     |
+| SAM-ViT-B_decoder_fp32_1b.bmodel     | 0.026                     |
+| SAM-ViT-B_auto_decoder_fp32_1b.bmodel| 1.954                     |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -133,6 +148,13 @@ bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_fp32_1b.bmodel
 | ----------- | ------------- | ------------------------------------------------------------------- | ----------- | -------------- | ---------------- | ---------------- |
 | BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_fp16_1b.bmodel | 11.0        | 416.0          | 15.5             | 16.2             |
 | BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_fp32_1b.bmodel | 11.0        | 411.0          | 34.0             | 16.5             |
+| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_auto_decoder_fp32_1b.bmodel | 37.39  | 512.61         | 28942.54         | 9403.08          |
+
+> **测试说明**：  
+> 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
+> 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
+> 3. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
 
 ## 7. FAQ
 问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

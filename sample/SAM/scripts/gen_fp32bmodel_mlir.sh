@@ -1,9 +1,11 @@
 #!/bin/bash
-model_dir=$(dirname $(readlink -f "$0"))
-
-target=bm1684x
-target_dir=BM1684X
-
+if [ ! $1 ]; then
+    target=bm1684x
+    target_dir=BM1684X
+else
+    target=${1,,}
+    target_dir=${target^^}
+fi
 
 outdir=../models/$target_dir
 

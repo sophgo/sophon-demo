@@ -53,13 +53,14 @@ sam_opencv.py的参数说明如下：
 ```bash
 usage: sam_opencv.py [--input_image INPUT_PATH] [--input_point INPOINT_POINT]
                      [--embedding_bmodel EMBEDDING_BMODEL] [--bmodel BMODEL] 
-                     [--dev_id DEV_ID]
+                     [--auto bool][--dev_id DEV_ID]
                         
 --input_image: 测试图片路径，需输入图片路径；
 --input_point: 输入点的坐标，输入格式为x,y；或者输入框坐标，格式为x1,y1,x2,y2
 --embedding_bmodel 用于图像压缩(embedding)的bmodel路径；
 --bmodel: 用于推理(mask_decode)的bmodel路径；
 --dev_id: 用于推理的tpu设备id；
+--auto: 是否启用自动分割，为bool，默认为0不开启，1为开启；
 ```
 ### 2.2 测试图片
 图片测试实例如下：
@@ -72,7 +73,6 @@ python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 700,
 运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
 
 输出效果如图：
-
 ![](../docs/result.jpg)
 
 box输入效果如下：
@@ -83,5 +83,13 @@ python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 100,
 运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
 
 输出效果如图：
-
 ![](../docs/result_box.jpg)
+
+若是要使用无需点和框输入的全自动掩码生成则需要设置输入参数auto为1,并设置--bmodel为auto的bmodel，操作如下：
+```bash
+python3 python/sam_opencv.py --input_image datasets/dog.jpg --embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_decoder_fp32_1b.bmodel --dev_id 0 --auto 1
+```
+运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
+
+输出效果如图：
+![](../docs/result_auto.jpg)
