@@ -39,6 +39,7 @@ class TextSystem(object):
         results_list = [{"dt_boxes":[], "text":[], "score":[]} for i in range(len(img_list))]
         ori_img_list = img_list.copy()
         dt_boxes_list = self.text_detector(img_list)
+            
         img_dict = {"imgs":[], "dt_boxes":[], "pic_ids":[]}
         for id, dt_boxes in enumerate(dt_boxes_list):
             self.crop_num += len(dt_boxes)
@@ -64,7 +65,10 @@ class TextSystem(object):
                 results_list[pic_id]["dt_boxes"].append(img_dict["dt_boxes"][id])
                 results_list[pic_id]["text"].append(text)
                 results_list[pic_id]["score"].append(score)
-
+        
+        for i, results_list_per_img in enumerate(results_list):
+            if(len(results_list_per_img["dt_boxes"])):
+                results_list[i] = sorted_boxes_dict(results_list_per_img)
         return results_list
 
 def get_rotate_crop_image(img, points):
@@ -115,6 +119,37 @@ def sorted_boxes(dt_boxes):
             _boxes[i] = _boxes[i + 1]
             _boxes[i + 1] = tmp
     return _boxes
+
+def sorted_boxes_dict(dt_boxes_dict):
+    num_boxes = len(dt_boxes_dict["dt_boxes"])
+    data = dt_boxes_dict.values()
+    sorted_list = sorted(zip(*dt_boxes_dict.values()), key=lambda x: (x[0][0][1], x[0][0][0]))
+    sorted_boxes_dict = {}
+    sorted_boxes_dict["dt_boxes"], sorted_boxes_dict["text"], sorted_boxes_dict["score"] = map(list, zip(*sorted_list)) 
+    _boxes = list(sorted_boxes_dict["dt_boxes"])
+    _texts = list(sorted_boxes_dict["text"])
+    _scores = list(sorted_boxes_dict["score"])
+
+    for i in range(num_boxes - 1):
+        if abs(_boxes[i + 1][0][1] - _boxes[i][0][1]) < 10 and \
+                (_boxes[i + 1][0][0] < _boxes[i][0][0]):
+            tmp = _boxes[i]
+            _boxes[i] = _boxes[i + 1]
+            _boxes[i + 1] = tmp
+
+            tmp = _texts[i]
+            _texts[i] = _texts[i + 1]
+            _texts[i + 1] = tmp
+
+            tmp = _scores[i]
+            _scores[i] = _scores[i + 1]
+            _scores[i + 1] = tmp
+    
+    sorted_boxes_dict["dt_boxes"] = _boxes
+    sorted_boxes_dict["text"] = _texts
+    sorted_boxes_dict["score"] = _scores
+    
+    return sorted_boxes_dict
 
 def draw_ocr_box_txt(image,
                      boxes,
