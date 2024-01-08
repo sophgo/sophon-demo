@@ -150,15 +150,17 @@ public:
         continue;
       }
       microseconds sum(0);
+      int loopnum = 0;
       for (size_t j = 0; j < ts.size(); j += 2) {
         if(bs[j + 1] != bs[j]){
           std::cerr << "WARNING: invalid batch_size records!" << std::endl;
         }
         microseconds duration = duration_cast<microseconds>(ts[j + 1] - ts[j]) / bs[j];
         sum += duration;
+        loopnum += bs[j];
       }
       std::cout << "[" << std::setw(max_align_size) << tags_[i] << "] "
-                << " loops: "  << std::setw(4) << (ts.size() / 2) 
+                << " loops: "  << std::setw(4) << loopnum 
                 << " avg: " << (sum / (ts.size() / 2)).count() / 1000.0
                 << " ms"<< std::endl;
     }
