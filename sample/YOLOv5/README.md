@@ -76,19 +76,19 @@ chmod -R +x scripts/
 ```
 ./models
 ├── BM1684
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 使用TPU-NNTC编译，用于BM1684的FP32 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 使用TPU-NNTC编译，用于BM1684的INT8 BModel，batch_size=1
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 使用TPU-NNTC编译，用于BM1684的INT8 BModel，batch_size=4
-├── BM1684X
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=1
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=4
+├── BM1684X    
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
 ├── BM1688
-│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=1
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=1
+│   ├── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=1
 │   ├── yolov5s_v6.1_3output_fp16_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
 │   ├── yolov5s_v6.1_3output_fp32_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
 │   ├── yolov5s_v6.1_3output_int8_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
@@ -205,6 +205,8 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
+> 3. AP@IoU=0.5:0.95为area=all对应的指标。
+> 4. BM1688 num_core=2的模型与num_core=1的模型精度基本一致。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -216,15 +218,23 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                   | calculate time(ms) |
-| ------------------------------------------- | ----------------- |
-| BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel  | 22.6              |
-| BM1684/yolov5s_v6.1_3output_int8_1b.bmodel  | 11.5              |
-| BM1684/yolov5s_v6.1_3output_int8_4b.bmodel  | 6.4               |
-| BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel | 20.8              |
-| BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel | 7.2               |
-| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel | 3.5               |
-| BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel | 3.3               |
+|                  测试模型                         | calculate time(ms) |
+| -------------------------------------------       | ----------------- |
+| BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel        | 22.6              |
+| BM1684/yolov5s_v6.1_3output_int8_1b.bmodel        | 11.5              |
+| BM1684/yolov5s_v6.1_3output_int8_4b.bmodel        | 6.4               |
+| BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel       | 20.8              |
+| BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel       | 7.2               |
+| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel       | 3.5               |
+| BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel       | 3.3               |
+| BM1688/yolov5s_v6.1_3output_fp32_1b.bmodel        | 99.1              |
+| BM1688/yolov5s_v6.1_3output_fp16_1b.bmodel        | 28.7              |
+| BM1688/yolov5s_v6.1_3output_int8_1b.bmodel        | 8.4               |
+| BM1688/yolov5s_v6.1_3output_int8_4b.bmodel        | 7.3               |
+| BM1688/yolov5s_v6.1_3output_fp32_1b_2core.bmodel  | 64.6              |
+| BM1688/yolov5s_v6.1_3output_fp16_1b_2core.bmodel  | 19.3              |
+| BM1688/yolov5s_v6.1_3output_int8_1b_2core.bmodel  | 7.6               |
+| BM1688/yolov5s_v6.1_3output_int8_4b_2core.bmodel  | 5.3               |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -265,6 +275,22 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 | BM1684X SoC | yolov5_sail.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 2.9      | 2.6           | 8.1           | 33.6      |
 | BM1684X SoC | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 2.9      | 2.6           | 4.3           | 32.4      |
 | BM1684X SoC | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 2.6      | 2.6           | 4.0           | 32.0      |
+| BM1688 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 21.3     | 36.8          | 113.4         | 151.9     |
+| BM1688 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 22.4     | 36.3          | 42.1          | 152.1     |
+| BM1688 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 19.5     | 35.6          | 21.8          | 150.6     |
+| BM1688 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 20.1     | 33.2          | 19.5          | 151.6     |
+| BM1688 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.8      | 5.2           | 106.5         | 143.97    |
+| BM1688 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 4.5      | 5.2           | 36.2          | 143.9     |
+| BM1688 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 4.5      | 5.2           | 15.6          | 144.2     |
+| BM1688 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 4.4      | 4.9           | 14.1          | 149.9     |
+| BM1688 SoC  | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 5.8      | 2.0           | 98.1          | 22.4      |
+| BM1688 SoC  | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 5.8      | 2.0           | 27.5          | 22.4      |
+| BM1688 SoC  | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 5.8      | 2.0           | 7.3           | 22.4      |
+| BM1688 SoC  | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 5.7      | 1.9           | 7.0           | 22.4      |
+| BM1688 SoC  | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.3      | 5.3           | 99.6          | 19.9      |
+| BM1688 SoC  | yolov5_sail.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 4.3      | 5.3           | 28.9          | 19.9      |
+| BM1688 SoC  | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 4.3      | 5.3           | 8.7           | 19.9      |
+| BM1688 SoC  | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 4.3      | 5.3           | 8.2           | 19.9      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

@@ -72,14 +72,23 @@ Downloaded models include:
 ```
 ./models
 ├── BM1684
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # Compiled with TPU-MLIR, FP32 BModel,batch_size=1 for BM1684
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # Compiled with TPU-MLIR, INT8 BModel,batch_size=1 for BM1684
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # Compiled with TPU-MLIR, INT8 BModel,batch_size=4 for BM1684
-├── BM1684X
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # Compiled with TPU-MLIR, FP32 BModel,batch_size=1 for BM1684X
-│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # Compiled with TPU-MLIR, FP16 BModel,batch_size=1 for BM1684X
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # Compiled with TPU-MLIR, INT8 BModel,batch_size=1 for BM1684X
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # Compiled with TPU-MLIR, INT8 BModel,batch_size=4 for BM1684X
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1 for BM1684
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # Compiled with TPU-MLIR, INT8 BModel,batch_size=1 for BM1684
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel       # Compiled with TPU-MLIR, INT8 BModel,batch_size=4 for BM1684
+├── BM1684X    
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1 for BM1684X
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # Compiled with TPU-MLIR, FP16 BModel,batch_size=1 for BM1684X
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # Compiled with TPU-MLIR, INT8 BModel,batch_size=1 for BM1684X
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel       # Compiled with TPU-MLIR, INT8 BModel,batch_size=4 for BM1684X
+├── BM1688
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688
+│   ├── yolov5s_v6.1_3output_int8_4b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688
+│   ├── yolov5s_v6.1_3output_fp16_1b_2core.bmodel # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=2 for BM1688
+│   ├── yolov5s_v6.1_3output_fp32_1b_2core.bmodel # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=2 for BM1688
+│   ├── yolov5s_v6.1_3output_int8_1b_2core.bmodel # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=2 for BM1688
+│   └── yolov5s_v6.1_3output_int8_4b_2core.bmodel # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=2 for BM1688
 │── torch
 │   └── yolov5s_v6.1_3output.torchscript.pt   # Torchscript model after trace
 └── onnx
@@ -184,9 +193,10 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. On 
 | BM1688 soc   | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.374         | 0.573    |
 | BM1688 soc   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.356         | 0.565    |
 > **Test Description**:
-> 1. The model accuracy of batch_size=4 and batch_size=1 is the same.
-> 2. The model accuracy of SoC and PCIe is the same.
+> 1. The model mAP of batch_size=4 and batch_size=1 is the same.
+> 2. Due to possible differences between SDK versions, it is normal for the mAP error of <1% between the actual running results and this table;
 > 3. AP@IoU=0.5:0.95 is the corresponding indicator of area=all.
+> 4. The mAP of the BM1688 num_core=2 model is basically the same as that of the num_core=1 model.
 
 ## 7. Performance Testing
 ### 7.1 bmrt_test
@@ -198,15 +208,23 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 The `calculate time` in the test results is the inference time of the model, and the theoretical inference time of each image is when the multi-batch size model is divided by the corresponding batch size.
 The theoretical inference time of each model is tested, and the results are as follows:
 
-|                  Test model                 | calculate time(ms) |
-| ------------------------------------------- | ----------------- |
-| BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel  | 22.6              |
-| BM1684/yolov5s_v6.1_3output_int8_1b.bmodel  | 11.5              |
-| BM1684/yolov5s_v6.1_3output_int8_4b.bmodel  | 6.4               |
-| BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel | 20.8              |
-| BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel | 7.2               |
-| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel | 3.5               |
-| BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel | 3.3               |
+|                  Test model                       | calculate time(ms) |
+| -------------------------------------------       | ----------------- |
+| BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel        | 22.6              |
+| BM1684/yolov5s_v6.1_3output_int8_1b.bmodel        | 11.5              |
+| BM1684/yolov5s_v6.1_3output_int8_4b.bmodel        | 6.4               |
+| BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel       | 20.8              |
+| BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel       | 7.2               |
+| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel       | 3.5               |
+| BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel       | 3.3               |
+| BM1688/yolov5s_v6.1_3output_fp32_1b.bmodel        | 99.1              |
+| BM1688/yolov5s_v6.1_3output_fp16_1b.bmodel        | 28.7              |
+| BM1688/yolov5s_v6.1_3output_int8_1b.bmodel        | 8.4               |
+| BM1688/yolov5s_v6.1_3output_int8_4b.bmodel        | 7.3               |
+| BM1688/yolov5s_v6.1_3output_fp32_1b_2core.bmodel  | 64.6              |
+| BM1688/yolov5s_v6.1_3output_fp16_1b_2core.bmodel  | 19.3              |
+| BM1688/yolov5s_v6.1_3output_int8_1b_2core.bmodel  | 7.6               |
+| BM1688/yolov5s_v6.1_3output_int8_4b_2core.bmodel  | 5.3               |
 
 > **Test Description**：  
 > 1. The performance test results have a certain volatility.
@@ -247,7 +265,22 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. Use
 | BM1684X SoC | yolov5_sail.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 2.9      | 2.6           | 8.1           | 33.6      |
 | BM1684X SoC | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 2.9      | 2.6           | 4.3           | 32.4      |
 | BM1684X SoC | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 2.6      | 2.6           | 4.0           | 32.0      |
-
+| BM1688 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 21.3     | 36.8          | 113.4         | 151.9     |
+| BM1688 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 22.4     | 36.3          | 42.1          | 152.1     |
+| BM1688 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 19.5     | 35.6          | 21.8          | 150.6     |
+| BM1688 SoC  | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 20.1     | 33.2          | 19.5          | 151.6     |
+| BM1688 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.8      | 5.2           | 106.5         | 143.97    |
+| BM1688 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 4.5      | 5.2           | 36.2          | 143.9     |
+| BM1688 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 4.5      | 5.2           | 15.6          | 144.2     |
+| BM1688 SoC  | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 4.4      | 4.9           | 14.1          | 149.9     |
+| BM1688 SoC  | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 5.8      | 2.0           | 98.1          | 22.4      |
+| BM1688 SoC  | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 5.8      | 2.0           | 27.5          | 22.4      |
+| BM1688 SoC  | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 5.8      | 2.0           | 7.3           | 22.4      |
+| BM1688 SoC  | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 5.7      | 1.9           | 7.0           | 22.4      |
+| BM1688 SoC  | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.3      | 5.3           | 99.6          | 19.9      |
+| BM1688 SoC  | yolov5_sail.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 4.3      | 5.3           | 28.9          | 19.9      |
+| BM1688 SoC  | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 4.3      | 5.3           | 8.7           | 19.9      |
+| BM1688 SoC  | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 4.3      | 5.3           | 8.2           | 19.9      |
 
 > **Test Description**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
