@@ -5,13 +5,17 @@ echo $scripts_dir
 top_dir=$scripts_dir/../
 pushd $top_dir
 
-#soc_build需要传入sail路径(-s)和socsdk路径(-s)
+#soc_build需要传入sail路径(-a)和socsdk路径(-s)
 
 #default config
 TARGET="BM1684X"
 MODE="pcie_test"
 TPUID=0
 ALL_PASS=1
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
 
 usage() 
 {
@@ -146,6 +150,12 @@ function eval_cpp()
   judge_ret $? "./centernet_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.35 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
   tail -n 15 log/$1_$2_$3_debug.log
 
+  echo "==================="
+  echo "Comparing statis..."
+  python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=centernet_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3
+  judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=centernet_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3"
+  echo "==================="
+
   echo "Evaluating..."
   res=$(python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/instances_val2017_1000.json --result_json results/$3_val2017_1000_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
   echo -e "$res"
@@ -172,6 +182,12 @@ function eval_python()
   python3 python/centernet_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.35  > python/log/$1_$2_debug.log 2>&1
   judge_ret $? "python3 python/centernet_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.35  > python/log/$1_$2_debug.log 2>&1"
   tail -n 15 python/log/$1_$2_debug.log
+
+  echo "==================="
+  echo "Comparing statis..."
+  python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=centernet_$1.py --language=python --input=python/log/$1_$2_debug.log --bmodel=$2
+  judge_ret $? "python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=centernet_$1.py --language=python --input=python/log/$1_$2_debug.log --bmodel=$2"
+  echo "==================="
   
   echo "Evaluating..."
   res=$(python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/$2_val2017_1000_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
@@ -195,7 +211,6 @@ then
   build_pcie bmcv
   build_pcie sail
   download
-
   if test $TARGET = "BM1684"
   then
     test_python opencv centernet_fp32_1b.bmodel datasets/test
@@ -231,7 +246,6 @@ then
     test_cpp pcie bmcv centernet_int8_4b.bmodel ../../datasets/test
     test_cpp pcie sail centernet_fp32_1b.bmodel ../../datasets/test
     test_cpp pcie sail centernet_int8_4b.bmodel ../../datasets/test
-
 
     eval_python opencv centernet_fp32_1b.bmodel 0.30170771852182776
     eval_python opencv centernet_fp16_1b.bmodel 0.30182218193493354
@@ -293,7 +307,6 @@ then
     test_cpp soc sail centernet_fp32_1b.bmodel ../../datasets/test
     test_cpp soc sail centernet_int8_4b.bmodel ../../datasets/test
 
-
     eval_python opencv centernet_fp32_1b.bmodel 0.30170771852182776
     eval_python opencv centernet_fp16_1b.bmodel 0.30182218193493354
     eval_python opencv centernet_int8_1b.bmodel 0.29903951060724937
@@ -310,6 +323,50 @@ then
     eval_cpp soc sail centernet_fp16_1b.bmodel 0.29565463247983764
     eval_cpp soc sail centernet_int8_1b.bmodel 0.2938854537962771
     eval_cpp soc sail centernet_int8_4b.bmodel 0.2938854537962771
+  elif test $TARGET = "BM1688"
+  then
+    test_python opencv centernet_fp32_1b.bmodel datasets/test
+    test_python opencv centernet_int8_4b.bmodel datasets/test
+    test_python bmcv centernet_fp32_1b.bmodel datasets/test
+    test_python bmcv centernet_int8_4b.bmodel datasets/test
+    test_cpp soc bmcv centernet_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv centernet_int8_4b.bmodel ../../datasets/test
+    test_cpp soc sail centernet_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc sail centernet_int8_4b.bmodel ../../datasets/test
+
+    eval_python opencv centernet_fp32_1b.bmodel 0.30170771852182776  
+    eval_python opencv centernet_fp16_1b.bmodel 0.30182218193493354  
+    eval_python opencv centernet_int8_1b.bmodel 0.2980216301853383    
+    eval_python opencv centernet_int8_4b.bmodel 0.2980216301853383    
+    eval_python bmcv centernet_fp32_1b.bmodel   0.2583137763887781    
+    eval_python bmcv centernet_fp16_1b.bmodel   0.25835675947956765  
+    eval_python bmcv centernet_int8_1b.bmodel   0.2545645328723769  
+    eval_python bmcv centernet_int8_4b.bmodel   0.2545645328723769  
+    eval_cpp soc bmcv centernet_fp32_1b.bmodel  0.2676595517464278  
+    eval_cpp soc bmcv centernet_fp16_1b.bmodel  0.26694320131206006  
+    eval_cpp soc bmcv centernet_int8_1b.bmodel  0.2652181489471362  
+    eval_cpp soc bmcv centernet_int8_4b.bmodel  0.2652181489471362  
+    eval_cpp soc sail centernet_fp32_1b.bmodel  0.29605632005365545  
+    eval_cpp soc sail centernet_fp16_1b.bmodel  0.29565463247983764  
+    eval_cpp soc sail centernet_int8_1b.bmodel  0.2888585987297452  
+    eval_cpp soc sail centernet_int8_4b.bmodel  0.29233540424498117  
+
+    eval_python opencv centernet_fp32_1b_2core.bmodel 0.30170771852182776
+    eval_python opencv centernet_fp16_1b_2core.bmodel 0.30182218193493354
+    eval_python opencv centernet_int8_1b_2core.bmodel 0.2980216301853383 
+    eval_python opencv centernet_int8_4b_2core.bmodel 0.2980216301853383 
+    eval_python bmcv centernet_fp32_1b_2core.bmodel   0.2583137763887781 
+    eval_python bmcv centernet_fp16_1b_2core.bmodel   0.25835675947956765
+    eval_python bmcv centernet_int8_1b_2core.bmodel   0.2545645328723769 
+    eval_python bmcv centernet_int8_4b_2core.bmodel   0.2545645328723769  
+    eval_cpp soc bmcv centernet_fp32_1b_2core.bmodel  0.2676595517464278 
+    eval_cpp soc bmcv centernet_fp16_1b_2core.bmodel  0.26694320131206006
+    eval_cpp soc bmcv centernet_int8_1b_2core.bmodel  0.2652181489471362 
+    eval_cpp soc bmcv centernet_int8_4b_2core.bmodel  0.2652181489471362 
+    eval_cpp soc sail centernet_fp32_1b_2core.bmodel  0.29605632005365545
+    eval_cpp soc sail centernet_fp16_1b_2core.bmodel  0.29565463247983764
+    eval_cpp soc sail centernet_int8_1b_2core.bmodel  0.2888585987297452 
+    eval_cpp soc sail centernet_int8_4b_2core.bmodel  0.29233540424498117
   fi
 fi
 

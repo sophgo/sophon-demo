@@ -1,13 +1,17 @@
 #!/bin/bash
 model_dir=$(dirname $(readlink -f "$0"))
 
+
 if [ ! $1 ]; then
     target=bm1684x
+    target_dir=BM1684X
 else
-    target=$1
+    target=${1,,}
+    target_dir=${target^^}
 fi
 
-outdir=../models/BM1684X
+outdir=../models/$target_dir
+
 
 function gen_mlir()
 {
@@ -46,6 +50,22 @@ function gen_int8bmodel()
         --model centernet_int8_$1b.bmodel 
 
     mv centernet_int8_$1b.bmodel $outdir/
+
+    if test $target = "bm1688"; then
+        model_deploy.py \
+            --mlir centernet_$1b.mlir \
+            --quantize INT8 \
+            --chip $target \
+            --test_input centernet_in_f32.npz \
+            --test_reference centernet_top_outputs.npz \
+            --calibration_table dlav0_cali_table \
+            --quantize_table ../models/onnx/dlav0_qtable \
+            --tolerance 0.8,0.5 \
+            --model centernet_int8_$1b_2core.bmodel \
+            --num_core 2
+
+        mv centernet_int8_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir

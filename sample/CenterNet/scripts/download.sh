@@ -27,6 +27,13 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/CenterNet/models.zip
     unzip models.zip -d ../
     rm models.zip
+    
+    pushd ../models/
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/CenterNet/models_231226/BM1688.zip
+    unzip BM1688.zip
+    rm -r BM1688.zip
+    popd
+
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
