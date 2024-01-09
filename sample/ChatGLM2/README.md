@@ -9,6 +9,7 @@
     - [2.1 方式二](#21-方式二)
   - [3. 准备模型](#3-准备模型)
   - [4. 例程测试](#4-例程测试)
+  - [5. 程序性能测试](#5-程序性能测试)
 
 ## 1. 简介
 ChatGLM2-6B 是开源中英双语对话模型 ChatGLM-6B 的第二代版本,相比于初代模型，具有更强大的性能，更长的上下文，更高的推理性能和更开放的协议，ChatGLM2-6B 权重对学术研究完全开放。
@@ -108,12 +109,12 @@ chmod -R +x scripts/
 |    测试平台   |     测试程序       |           测试模型             |first token latency(s)|token per second(tokens/s)| 
 | -----------  | ---------------- | ---------------------------   | --------------------- | ----------------------- | 
 | BM1684X SoC  | chatglm2.soc    | chatglm2-6b_f16.bmodel         | 1.21                  | 3.96                    | 
-| BM1684X SoC  | chatglm2.soc    | chatglm2-6b_in8.bmodel         | 0.89                  | 8.64                    | 
+| BM1684X SoC  | chatglm2.soc    | chatglm2-6b_int8.bmodel         | 0.89                  | 8.64                    | 
 | BM1684X SoC  | chatglm2.soc    | chatglm2-6b_int4.bmodel        | 0.89                  | 14.24                   | 
 | BM1684X SoC  | chatglm2.py     | chatglm2-6b_f16.bmodel         | 1.59                  | 3.78                    | 
 | BM1684X SoC  | chatglm2.py     | chatglm2-6b_int8.bmodel        | 1.22                  | 8.12                    | 
 | BM1684X SoC  | chatglm2.py     | chatglm2-6b_int4.bmodel        | 1.22                  | 13.14                   | 
 
 > **测试说明**：  
-> 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
+> 1. 输入为随机问题，性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 2. BM1684X SoC的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz。

@@ -1,5 +1,3 @@
-[简体中文](./README.md) | [English](./README_EN.md)
-
 # Python例程
 
 ## 目录
@@ -10,7 +8,6 @@
 * [2. 推理测试](#2-推理测试)
     * [2.1 参数说明](#21-参数说明)
     * [2.2 测试图片](#22-测试图片)
-    * [2.3 测试视频](#23-测试视频)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -46,6 +43,7 @@ usage: chatglm2.py [--bmodel BMODEL] [--token TOKEN] [--dev_id DEV_ID]
 --bmodel: 用于推理的bmodel路径；
 --token: tokenizer路径；
 --dev_id: 用于推理的tpu设备id；
+--help: 输出帮助信息
 ```
 
 
