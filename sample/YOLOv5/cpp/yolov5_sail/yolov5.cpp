@@ -13,7 +13,6 @@
 #include <string>
 #define USE_ASPECT_RATIO 1
 #define RESIZE_STRATEGY BMCV_INTER_NEAREST
-#define USE_BMCV_VPP_CONVERT 1
 #define DUMP_FILE 0
 #define USE_MULTICLASS_NMS 1
 
@@ -174,16 +173,15 @@ int YoloV5::Detect(std::vector<sail::BMImage>& input_images, std::vector<YoloV5B
 }
 
 int YoloV5::pre_process(sail::BMImage& input) {
-    int stride1[3], stride2[3];
-    bm_image_get_stride(input.data(), stride1);  // bmcv api
-    stride2[0] = FFALIGN(stride1[0], 64);
-    stride2[1] = FFALIGN(stride1[1], 64);
-    stride2[2] = FFALIGN(stride1[2], 64);
-    sail::BMImage rgb_img(engine->get_handle(), input.height(), input.width(), FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE,
-                          stride2);
+    int ret = 0;
+    sail::BMImage rgb_img(engine->get_handle(), input.height(), input.width(), FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE);
+    rgb_img.align();
     bmcv->convert_format(input, rgb_img);
     sail::BMImage convert_img(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
                               bmcv->get_bm_image_data_format(input_dtype));
+    sail::BMImage resized_img(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
+                               DATA_TYPE_EXT_1N_BYTE);
+    resized_img.align();
 #if USE_ASPECT_RATIO
     bool isAlignWidth = false;
     float ratio = get_aspect_scaled_ratio(input.width(), input.height(), m_net_w, m_net_h, &isAlignWidth);
@@ -207,34 +205,14 @@ int YoloV5::pre_process(sail::BMImage& input) {
         pad.set_sty(0);
         pad.set_stx(tx1);
     }
-#if USE_BMCV_VPP_CONVERT
-    // Using BMCV api, align with yolov5_bmcv.
-    sail::BMImage resized_img(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
-                              DATA_TYPE_EXT_1N_BYTE);
-    bmcv_rect_t rect;
-    rect.start_x = 0;
-    rect.start_y = 0;
-    rect.crop_w = input.width();
-    rect.crop_h = input.height();
-    bmcv_padding_atrr_t padding;
-    padding.dst_crop_stx = pad.dst_crop_stx;
-    padding.dst_crop_sty = pad.dst_crop_sty;
-    padding.dst_crop_w = pad.dst_crop_w;
-    padding.dst_crop_h = pad.dst_crop_h;
-    padding.if_memset = 1;
-    padding.padding_r = pad.padding_r;
-    padding.padding_g = pad.padding_g;
-    padding.padding_b = pad.padding_b;
-    auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(), 1, rgb_img.data(), &resized_img.data(),
-                                              &padding, &rect, RESIZE_STRATEGY);
-    assert(ret == 0);
+
+    ret = bmcv->vpp_crop_and_resize_padding(rgb_img, resized_img, 0, 0, 
+            rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, pad, RESIZE_STRATEGY);
+    CV_Assert(ret == 0);
+
 #else
-    sail::BMImage resized_img =
-        bmcv->vpp_crop_and_resize_padding(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, pad, RESIZE_STRATEGY);
-#endif
-#else
-    sail::BMImage resized_img =
-        bmcv->crop_and_resize(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, RESIZE_STRATEGY);
+    ret = bmcv->crop_and_resize(rgb_img, resized_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, RESIZE_STRATEGY);
+    CV_Assert(ret == 0);
 #endif
     bmcv->convert_to(
         resized_img, convert_img,
@@ -245,6 +223,7 @@ int YoloV5::pre_process(sail::BMImage& input) {
 
 template <std::size_t N>
 int YoloV5::pre_process(std::vector<sail::BMImage>& input) {
+    int ret = 0;
     if (input.size() != N) {
         std::cout << "Unsupport batch size!" << std::endl;
         exit(1);
@@ -253,14 +232,11 @@ int YoloV5::pre_process(std::vector<sail::BMImage>& input) {
     sail::BMImageArray<N> resized_imgs;
     sail::BMImageArray<N> convert_imgs(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
                                        bmcv->get_bm_image_data_format(input_dtype));
+    
     for (size_t i = 0; i < input.size(); ++i) {
-        int stride1[3], stride2[3];
-        bm_image_get_stride(input[i].data(), stride1);  // bmcv api
-        stride2[0] = FFALIGN(stride1[0], 64);
-        stride2[1] = FFALIGN(stride1[1], 64);
-        stride2[2] = FFALIGN(stride1[2], 64);
         sail::BMImage rgb_img(engine->get_handle(), input[i].height(), input[i].width(), FORMAT_RGB_PLANAR,
-                              DATA_TYPE_EXT_1N_BYTE, stride2);
+                              DATA_TYPE_EXT_1N_BYTE);
+        rgb_img.align();
         bmcv->convert_format(input[i], rgb_img);
 
 #if USE_ASPECT_RATIO
@@ -285,36 +261,20 @@ int YoloV5::pre_process(std::vector<sail::BMImage>& input) {
             pad.set_sty(0);
             pad.set_stx(tx1);
         }
+
         resized_imgs_vec[i] = std::make_shared<sail::BMImage>(engine->get_handle(), input_shape[2], input_shape[3],
                                                               FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE);
-#if USE_BMCV_VPP_CONVERT
-        // Using BMCV api, align with yolov5_bmcv.
-        bmcv_rect_t rect;
-        rect.start_x = 0;
-        rect.start_y = 0;
-        rect.crop_w = input[i].width();
-        rect.crop_h = input[i].height();
-        bmcv_padding_atrr_t padding;
-        padding.dst_crop_stx = pad.dst_crop_stx;
-        padding.dst_crop_sty = pad.dst_crop_sty;
-        padding.dst_crop_w = pad.dst_crop_w;
-        padding.dst_crop_h = pad.dst_crop_h;
-        padding.if_memset = 1;
-        padding.padding_r = pad.padding_r;
-        padding.padding_g = pad.padding_g;
-        padding.padding_b = pad.padding_b;
-        auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(), 1, rgb_img.data(),
-                                                  &resized_imgs_vec[i].get()->data(), &padding, &rect, RESIZE_STRATEGY);
+        resized_imgs_vec[i]->align();
+
+        ret = bmcv->vpp_crop_and_resize_padding(&rgb_img.data(), &resized_imgs_vec[i].get()->data(), 0, 0, rgb_img.width(),
+                                          rgb_img.height(), m_net_w, m_net_h, pad, 1, RESIZE_STRATEGY);
         assert(ret == 0);
-#else
-        bmcv->vpp_crop_and_resize_padding(&rgb_img.data(), &resized_imgs_vec[i].get()->data(), 0, 0, rgb_img.width(),
-                                          rgb_img.height(), m_net_w, m_net_h, pad, RESIZE_STRATEGY);
-#endif
+
         resized_imgs.attach_from(i, *resized_imgs_vec[i].get());
 #else
         sail::BMImage resized_img =
             bmcv->crop_and_resize(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, RESIZE_STRATEGY);
-        resized_imgs.CopyFrom(i, resized_img);
+        resized_imgs.copy_from(i, resized_img);
 #endif
     }
     bmcv->convert_to(
@@ -349,9 +309,11 @@ int YoloV5::post_process(std::vector<sail::BMImage>& images, std::vector<YoloV5B
         int frame_height = frame.height();
 
         int tx1 = 0, ty1 = 0;
+        float ratiox = (float)m_net_w / frame.width(), ratioy = (float)m_net_h / frame.height();
 #if USE_ASPECT_RATIO
         bool isAlignWidth = false;
         float ratio = get_aspect_scaled_ratio(frame.width(), frame.height(), m_net_w, m_net_h, &isAlignWidth);
+        ratiox = ratioy = ratio;
         if (isAlignWidth) {
             ty1 = (int)((m_net_h - (int)(frame_height * ratio)) / 2);
         } else {
@@ -509,10 +471,10 @@ int YoloV5::post_process(std::vector<sail::BMImage>& images, std::vector<YoloV5B
             for (auto& box : yolobox_vec){
                 box.x -= box.class_id * max_wh;
                 box.y -= box.class_id * max_wh;
-                box.x = (box.x - tx1) / ratio;
-                box.y = (box.y - ty1) / ratio;
-                box.width = (box.width) / ratio;
-                box.height = (box.height) / ratio;
+                box.x = (box.x - tx1) / ratiox;
+                box.y = (box.y - ty1) / ratioy;
+                box.width = (box.width) / ratiox;
+                box.height = (box.height) / ratioy;
             }
         LOG_TS(m_ts, "post 3: nms");
 
@@ -533,9 +495,11 @@ int YoloV5::post_process_cpu_opt(std::vector<sail::BMImage>& images, std::vector
         int frame_height = frame.height();
 
         int tx1 = 0, ty1 = 0;
+        float ratiox = (float)m_net_w / frame.width(), ratioy = (float)m_net_h / frame.height();
 #if USE_ASPECT_RATIO
         bool is_align_width = false;
         float ratio = get_aspect_scaled_ratio(frame.width(), frame.height(), m_net_w, m_net_h, &is_align_width);
+        ratiox = ratioy = ratio;
         if (is_align_width) {
             ty1 = (int)((m_net_h - (int)(frame_height * ratio)) / 2);
         } else {
@@ -724,27 +688,27 @@ int YoloV5::post_process_cpu_opt(std::vector<sail::BMImage>& images, std::vector
             for (auto& box : yolobox_vec){
                 box.x -= box.class_id * max_wh;
                 box.y -= box.class_id * max_wh;
-                box.x = (box.x - tx1) / ratio;
+                box.x = (box.x - tx1) / ratiox;
                 if (box.x < 0) box.x = 0;
-                box.y = (box.y - ty1) / ratio;
+                box.y = (box.y - ty1) / ratioy;
                 if (box.y < 0) box.y = 0;
-                box.width = (box.width) / ratio;
+                box.width = (box.width) / ratiox;
                 if (box.x + box.width >= frame_width)
                     box.width = frame_width - box.x;
-                box.height = (box.height) / ratio;
+                box.height = (box.height) / ratioy;
                 if (box.y + box.height >= frame_height)
                     box.height = frame_height - box.y;
             }
         else
             for (auto& box : yolobox_vec){
-                box.x = (box.x - tx1) / ratio;
+                box.x = (box.x - tx1) / ratiox;
                 if (box.x < 0) box.x = 0;
-                box.y = (box.y - ty1) / ratio;
+                box.y = (box.y - ty1) / ratioy;
                 if (box.y < 0) box.y = 0;
-                box.width = (box.width) / ratio;
+                box.width = (box.width) / ratiox;
                 if (box.x + box.width >= frame_width)
                     box.width = frame_width - box.x;
-                box.height = (box.height) / ratio;
+                box.height = (box.height) / ratioy;
                 if (box.y + box.height >= frame_height)
                     box.height = frame_height - box.y;
             }
