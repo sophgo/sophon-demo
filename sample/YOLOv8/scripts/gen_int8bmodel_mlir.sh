@@ -47,6 +47,20 @@ function gen_int8bmodel()
         --model yolov8s_int8_$1b.bmodel
 
     mv yolov8s_int8_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir yolov8s_$1b.mlir \
+            --quantize INT8 \
+            --chip $target \
+            --model yolov8s_int8_$1b_2core.bmodel \
+            --quantize_table ../models/onnx/yolov8s_qtable \
+            --calibration_table yolov8s_cali_table \
+            --num_core 2 \
+            --test_input yolov8s_in_f32.npz \
+            --test_reference yolov8s_top_outputs.npz 
+
+        mv yolov8s_int8_$1b_2core.bmodel $outdir/
+    fi
 }
 
 

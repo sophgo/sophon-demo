@@ -149,7 +149,15 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1684X PCIe | yolov8_bmcv.pcie | yolov8s_fp32_1b.bmodel | 0.448   | 0.610 |
 | BM1684X PCIe | yolov8_bmcv.pcie | yolov8s_fp16_1b.bmodel | 0.447   | 0.609 |
 | BM1684X PCIe | yolov8_bmcv.pcie | yolov8s_int8_1b.bmodel | 0.441   | 0.605 |
-
+| BM1688 soc   | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 0.448   | 0.609 |
+| BM1688 soc   | yolov8_opencv.py | yolov8s_fp16_1b.bmodel | 0.447   | 0.609 |
+| BM1688 soc   | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 0.442   | 0.605 |
+| BM1688 soc   | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 0.440   | 0.602 |
+| BM1688 soc   | yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel | 0.440   | 0.602 |
+| BM1688 soc   | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 0.432   | 0.594 |
+| BM1688 soc   | yolov8_bmcv.pcie | yolov8s_fp32_1b.bmodel | 0.448   | 0.610 |
+| BM1688 soc   | yolov8_bmcv.pcie | yolov8s_fp16_1b.bmodel | 0.447   | 0.609 |
+| BM1688 soc   | yolov8_bmcv.pcie | yolov8s_int8_1b.bmodel | 0.441   | 0.605 |
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
 2. SoC和PCIe的模型精度一致；
@@ -166,16 +174,23 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|              测试模型           | calculate time(ms) |
-| -------------------------------| ----------------- |
-| BM1684/yolov8s_fp32_1b.bmodel  |   27.4            |
-| BM1684/yolov8s_int8_1b.bmodel  |   17.3            |
-| BM1684/yolov8s_int8_4b.bmodel  |   8.4            |
-| BM1684X/yolov8s_fp32_1b.bmodel |   28.9            |
-| BM1684X/yolov8s_fp16_1b.bmodel |   6.3             |
-| BM1684X/yolov8s_int8_1b.bmodel |   3.4             |
-| BM1684X/yolov8s_int8_4b.bmodel |   3.2             |
-
+|              测试模型               | calculate time(ms) |
+| ----------------------------------- | ----------------- |
+| BM1684/yolov8s_fp32_1b.bmodel       |   27.4            |
+| BM1684/yolov8s_int8_1b.bmodel       |   17.3            |
+| BM1684/yolov8s_int8_4b.bmodel       |   8.4             |
+| BM1684X/yolov8s_fp32_1b.bmodel      |   28.9            |
+| BM1684X/yolov8s_fp16_1b.bmodel      |   6.3             |
+| BM1684X/yolov8s_int8_1b.bmodel      |   3.4             |
+| BM1684X/yolov8s_int8_4b.bmodel      |   3.2             |
+| BM1688/yolov8s_fp32_1b.bmodel       |   163.9           |
+| BM1688/yolov8s_fp16_1b.bmodel       |   36.2            |
+| BM1688/yolov8s_int8_1b.bmodel       |   10.3            |
+| BM1688/yolov8s_int8_4b.bmodel       |   9.3             |
+| BM1688/yolov8s_fp32_1b_2core.bmodel |   103.9           |
+| BM1688/yolov8s_fp16_1b_2core.bmodel |   24.4            |
+| BM1688/yolov8s_int8_1b_2core.bmodel |   9.2             |
+| BM1688/yolov8s_int8_4b_2core.bmodel |   5.55            |
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间；
@@ -209,6 +224,19 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 | BM1684X SoC | yolov8_bmcv.soc  | yolov8s_fp16_1b.bmodel | 4.312 | 0.772 | 6.259 | 17.80 |
 | BM1684X SoC | yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel | 4.276 | 0.772 | 3.350 | 17.95 |
 | BM1684X SoC | yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel | 4.128 | 0.736 | 3.277 | 17.70 |
+| BM1688 SoC  | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 6.13  | 5.21  | 166.16| 35.31 |
+| BM1688 SoC  | yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel | 7.89  | 5.24  | 38.34 | 35.69 |
+| BM1688 SoC  | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 5.54  | 5.18  | 12.29 | 36.34 |
+| BM1688 SoC  | yolov8_bmcv.py   | yolov8s_int8_4b.bmodel | 4.13  | 4.90  | 11.09 | 35.71 |
+| BM1688 SoC  | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 23.46 | 30.21 | 170.60| 35.45 |
+| BM1688 SoC  | yolov8_opencv.py | yolov8s_fp16_1b.bmodel | 23.54 | 30.09 | 42.62 | 35.54 |
+| BM1688 SoC  | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 21.66 | 29.50 | 16.91 | 36.36 |
+| BM1688 SoC  | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 19.57 | 32.68 | 15.81 | 36.96 |
+| BM1688 SoC  | yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel | 5.87  | 1.97  | 162.91| 34.23 |
+| BM1688 SoC  | yolov8_bmcv.soc  | yolov8s_fp16_1b.bmodel | 5.89  | 1.95  | 35.21 | 34.33 |
+| BM1688 SoC  | yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel | 5.79  | 1.95  | 9.25  | 34.50 |
+| BM1688 SoC  | yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel | 5.63  | 7.32  | 35.02 | 137.37|
+
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

@@ -38,6 +38,16 @@ function gen_fp16bmodel()
         --model yolov8s_fp16_$1b.bmodel
 
     mv yolov8s_fp16_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir yolov8s_$1b.mlir \
+            --quantize F16 \
+            --chip $target \
+            --model yolov8s_fp16_$1b_2core.bmodel \
+            --num_core 2
+
+        mv yolov8s_fp16_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir

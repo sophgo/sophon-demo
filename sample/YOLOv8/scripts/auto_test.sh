@@ -370,7 +370,59 @@ then
     eval_cpp soc bmcv yolov8s_fp16_1b.bmodel  0.4474323631416696
     eval_cpp soc bmcv yolov8s_int8_1b.bmodel  0.44146480126650034
     eval_cpp soc bmcv yolov8s_int8_4b.bmodel  0.44146480126650034
+  elif test $TARGET = "BM1688"
+  then
+    test_python opencv yolov8s_fp32_1b.bmodel datasets/test
+    test_python opencv yolov8s_fp16_1b.bmodel datasets/test
+    test_python opencv yolov8s_int8_1b.bmodel datasets/test
+    test_python opencv yolov8s_int8_4b.bmodel datasets/test
+    test_python bmcv yolov8s_fp32_1b.bmodel datasets/test
+    test_python bmcv yolov8s_fp16_1b.bmodel datasets/test
+    test_python bmcv yolov8s_int8_1b.bmodel datasets/test
+    test_python bmcv yolov8s_int8_4b.bmodel datasets/test
+    test_cpp soc bmcv yolov8s_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv yolov8s_fp16_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv yolov8s_int8_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/test
 
+    test_python opencv yolov8s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python opencv yolov8s_fp16_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python opencv yolov8s_int8_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python opencv yolov8s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolov8s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolov8s_fp16_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolov8s_int8_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolov8s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolov8s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolov8s_fp16_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolov8s_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    eval_python opencv yolov8s_fp32_1b.bmodel 0.44792962547537846 
+    eval_python opencv yolov8s_fp16_1b.bmodel 0.4474406103144259
+    eval_python opencv yolov8s_int8_1b.bmodel 0.44163683839012335
+    eval_python opencv yolov8s_int8_4b.bmodel 0.44163683839012335
+    eval_python bmcv yolov8s_fp32_1b.bmodel   0.44722585203138715
+    eval_python bmcv yolov8s_fp16_1b.bmodel   0.4469147670944586
+    eval_python bmcv yolov8s_int8_1b.bmodel   0.43895948842732535
+    eval_python bmcv yolov8s_int8_4b.bmodel   0.43895948842732535
+    eval_cpp soc bmcv yolov8s_fp32_1b.bmodel  0.44793660381041184
+    eval_cpp soc bmcv yolov8s_fp16_1b.bmodel  0.4474323631416696
+    eval_cpp soc bmcv yolov8s_int8_1b.bmodel  0.44012434960861097
+    eval_cpp soc bmcv yolov8s_int8_4b.bmodel  0.44012434960861097
+
+    eval_python opencv yolov8s_fp32_1b_2core.bmodel 0.44792962547537846 
+    eval_python opencv yolov8s_fp16_1b_2core.bmodel 0.4474406103144259
+    eval_python opencv yolov8s_int8_1b_2core.bmodel 0.44163683839012335
+    eval_python opencv yolov8s_int8_4b_2core.bmodel 0.44163683839012335
+    eval_python bmcv yolov8s_fp32_1b_2core.bmodel   0.44722585203138715
+    eval_python bmcv yolov8s_fp16_1b_2core.bmodel   0.4469147670944586
+    eval_python bmcv yolov8s_int8_1b_2core.bmodel   0.43895948842732535
+    eval_python bmcv yolov8s_int8_4b_2core.bmodel   0.43895948842732535
+    eval_cpp soc bmcv yolov8s_fp32_1b_2core.bmodel  0.44793660381041184
+    eval_cpp soc bmcv yolov8s_fp16_1b_2core.bmodel  0.4474323631416696
+    eval_cpp soc bmcv yolov8s_int8_1b_2core.bmodel  0.44012434960861097
+    eval_cpp soc bmcv yolov8s_int8_4b_2core.bmodel  0.44012434960861097
   fi
 fi
 
