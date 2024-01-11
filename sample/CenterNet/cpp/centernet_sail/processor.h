@@ -14,8 +14,6 @@
 #include <vector>
 #include "opencv2/opencv.hpp"
 #include "utils.hpp"
-#include "bm_wrapper.hpp"
-#include "bmnn_utils.h"
  
 typedef struct BMBBox {
     int x{0};
