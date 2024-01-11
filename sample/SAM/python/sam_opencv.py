@@ -18,7 +18,6 @@ from sam_encoder import SamEncoder
 from predictor import SamPredictor
 from sam_model import Sam
 from automatic_mask_generator import SamAutomaticMaskGenerator
-from resize_func import resize
 from torchvision.ops.boxes import batched_nms, box_area
 import matplotlib.pyplot as plt
 import logging
