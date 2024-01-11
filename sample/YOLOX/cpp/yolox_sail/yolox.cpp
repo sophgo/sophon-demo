@@ -247,29 +247,10 @@ int YoloX::pre_process(std::vector<sail::BMImage>& input) {
         }
         resized_imgs_vec[i] = std::make_shared<sail::BMImage>(engine->get_handle(), input_shape[2], input_shape[3],
                                                               FORMAT_BGR_PLANAR, DATA_TYPE_EXT_1N_BYTE);
-#if USE_BMCV_VPP_CONVERT
-        // Using BMCV api, align with yolox_bmcv.
-        bmcv_rect_t rect;
-        rect.start_x = 0;
-        rect.start_y = 0;
-        rect.crop_w = input[i].width();
-        rect.crop_h = input[i].height();
-        bmcv_padding_atrr_t padding;
-        padding.dst_crop_stx = pad.dst_crop_stx;
-        padding.dst_crop_sty = pad.dst_crop_sty;
-        padding.dst_crop_w = pad.dst_crop_w;
-        padding.dst_crop_h = pad.dst_crop_h;
-        padding.if_memset = 1;
-        padding.padding_r = pad.padding_r;
-        padding.padding_g = pad.padding_g;
-        padding.padding_b = pad.padding_b;
-        auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(), 1, bgr_img.data(),
-                                                  &resized_imgs_vec[i].get()->data(), &padding, &rect);
-        assert(ret == 0);
-#else
+
         bmcv->vpp_crop_and_resize_padding(&bgr_img.data(), &resized_imgs_vec[i].get()->data(), 0, 0, bgr_img.width(),
-                                          bgr_img.height(), m_net_w, m_net_h, pad,BMCV_INTER_LINEAR);
-#endif
+                                          bgr_img.height(), m_net_w, m_net_h, pad, 1, BMCV_INTER_LINEAR);
+
         resized_imgs.attach_from(i, *resized_imgs_vec[i].get());
     }
     bmcv->convert_to(
