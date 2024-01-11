@@ -13,10 +13,8 @@
 #include <iostream>
 #include <vector>
 #include "opencv2/opencv.hpp"
-#include "bmnn_utils.h"
 #include "engine.h"
 #include "utils.hpp"
-#include "bm_wrapper.hpp"
 #include "cvwrapper.h"
 
 // Define USE_OPENCV for enabling OPENCV related funtions in bm_wrapper.hpp

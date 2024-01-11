@@ -13,7 +13,6 @@
 #include <string>
 #define USE_ASPECT_RATIO 0
 #define RESIZE_STRATEGY BMCV_INTER_NEAREST
-#define USE_BMCV_VPP_CONVERT 1
 #define DUMP_FILE 0
 #define USE_MULTICLASS_NMS 1
 
@@ -171,16 +170,15 @@ int PPYOLO::Detect(std::vector<sail::BMImage>& input_images, std::vector<PPYOLOB
 }
 
 int PPYOLO::pre_process(sail::BMImage& input) {
-    int stride1[3], stride2[3];
-    bm_image_get_stride(input.data(), stride1);  // bmcv api
-    stride2[0] = FFALIGN(stride1[0], 64);
-    stride2[1] = FFALIGN(stride1[1], 64);
-    stride2[2] = FFALIGN(stride1[2], 64);
-    sail::BMImage rgb_img(engine->get_handle(), input.height(), input.width(), FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE,
-                          stride2);
+    int ret = 0;
+    sail::BMImage rgb_img(engine->get_handle(), input.height(), input.width(), FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE);
+    rgb_img.align();
     bmcv->convert_format(input, rgb_img);
     sail::BMImage convert_img(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
                               bmcv->get_bm_image_data_format(input_dtype));
+    sail::BMImage resized_img(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
+                               DATA_TYPE_EXT_1N_BYTE);
+    resized_img.align();
 #if USE_ASPECT_RATIO
     bool isAlignWidth = false;
     float ratio = get_aspect_scaled_ratio(input.width(), input.height(), m_net_w, m_net_h, &isAlignWidth);
@@ -204,34 +202,14 @@ int PPYOLO::pre_process(sail::BMImage& input) {
         pad.set_sty(0);
         pad.set_stx(tx1);
     }
-#if USE_BMCV_VPP_CONVERT
-    // Using BMCV api, align with ppyolov3_bmcv.
-    sail::BMImage resized_img(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
-                              DATA_TYPE_EXT_1N_BYTE);
-    bmcv_rect_t rect;
-    rect.start_x = 0;
-    rect.start_y = 0;
-    rect.crop_w = input.width();
-    rect.crop_h = input.height();
-    bmcv_padding_atrr_t padding;
-    padding.dst_crop_stx = pad.dst_crop_stx;
-    padding.dst_crop_sty = pad.dst_crop_sty;
-    padding.dst_crop_w = pad.dst_crop_w;
-    padding.dst_crop_h = pad.dst_crop_h;
-    padding.if_memset = 1;
-    padding.padding_r = pad.padding_r;
-    padding.padding_g = pad.padding_g;
-    padding.padding_b = pad.padding_b;
-    auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(), 1, rgb_img.data(), &resized_img.data(),
-                                              &padding, &rect);
-    assert(ret == 0);
+
+    ret = bmcv->vpp_crop_and_resize_padding(rgb_img, resized_img, 0, 0, 
+            rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, pad, RESIZE_STRATEGY);
+    CV_Assert(ret == 0);
+
 #else
-    sail::BMImage resized_img =
-        bmcv->vpp_crop_and_resize_padding(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, pad);
-#endif
-#else
-    sail::BMImage resized_img =
-        bmcv->crop_and_resize(rgb_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, RESIZE_STRATEGY);
+    ret = bmcv->crop_and_resize(rgb_img, resized_img, 0, 0, rgb_img.width(), rgb_img.height(), m_net_w, m_net_h, RESIZE_STRATEGY);
+    CV_Assert(ret == 0);
 #endif
     bmcv->convert_to(
         resized_img, convert_img,
@@ -242,6 +220,7 @@ int PPYOLO::pre_process(sail::BMImage& input) {
 
 template <std::size_t N>
 int PPYOLO::pre_process(std::vector<sail::BMImage>& input) {
+    int ret = 0;
     if (input.size() != N) {
         std::cout << "Unsupport batch size!" << std::endl;
         exit(1);
@@ -251,13 +230,9 @@ int PPYOLO::pre_process(std::vector<sail::BMImage>& input) {
     sail::BMImageArray<N> convert_imgs(engine->get_handle(), input_shape[2], input_shape[3], FORMAT_RGB_PLANAR,
                                        bmcv->get_bm_image_data_format(input_dtype));
     for (size_t i = 0; i < input.size(); ++i) {
-        int stride1[3], stride2[3];
-        bm_image_get_stride(input[i].data(), stride1);  // bmcv api
-        stride2[0] = FFALIGN(stride1[0], 64);
-        stride2[1] = FFALIGN(stride1[1], 64);
-        stride2[2] = FFALIGN(stride1[2], 64);
         sail::BMImage rgb_img(engine->get_handle(), input[i].height(), input[i].width(), FORMAT_RGB_PLANAR,
-                              DATA_TYPE_EXT_1N_BYTE, stride2);
+                              DATA_TYPE_EXT_1N_BYTE);
+        rgb_img.align();
         bmcv->convert_format(input[i], rgb_img);
 
 #if USE_ASPECT_RATIO
@@ -282,31 +257,15 @@ int PPYOLO::pre_process(std::vector<sail::BMImage>& input) {
             pad.set_sty(0);
             pad.set_stx(tx1);
         }
+
         resized_imgs_vec[i] = std::make_shared<sail::BMImage>(engine->get_handle(), input_shape[2], input_shape[3],
                                                               FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE);
-#if USE_BMCV_VPP_CONVERT
-        // Using BMCV api, align with ppyolov3_bmcv.
-        bmcv_rect_t rect;
-        rect.start_x = 0;
-        rect.start_y = 0;
-        rect.crop_w = input[i].width();
-        rect.crop_h = input[i].height();
-        bmcv_padding_atrr_t padding;
-        padding.dst_crop_stx = pad.dst_crop_stx;
-        padding.dst_crop_sty = pad.dst_crop_sty;
-        padding.dst_crop_w = pad.dst_crop_w;
-        padding.dst_crop_h = pad.dst_crop_h;
-        padding.if_memset = 1;
-        padding.padding_r = pad.padding_r;
-        padding.padding_g = pad.padding_g;
-        padding.padding_b = pad.padding_b;
-        auto ret = bmcv_image_vpp_convert_padding(engine->get_handle().data(), 1, rgb_img.data(),
-                                                  &resized_imgs_vec[i].get()->data(), &padding, &rect);
+        resized_imgs_vec[i]->align();
+
+        ret = bmcv->vpp_crop_and_resize_padding(&rgb_img.data(), &resized_imgs_vec[i].get()->data(), 0, 0, rgb_img.width(),
+                                          rgb_img.height(), m_net_w, m_net_h, pad, 1, RESIZE_STRATEGY);
         assert(ret == 0);
-#else
-        bmcv->vpp_crop_and_resize_padding(&rgb_img.data(), &resized_imgs_vec[i].get()->data(), 0, 0, rgb_img.width(),
-                                          rgb_img.height(), m_net_w, m_net_h, pad);
-#endif
+
         resized_imgs.attach_from(i, *resized_imgs_vec[i].get());
 #else
         sail::BMImage resized_img =
