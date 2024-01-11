@@ -13,10 +13,8 @@
 #include <iostream>
 #include <vector>
 #include "opencv2/opencv.hpp"
-#include "bmnn_utils.h"
 #include "engine.h"
 #include "utils.hpp"
-#include "bm_wrapper.hpp"
 #include "cvwrapper.h"
 
 // Define USE_OPENCV for enabling OPENCV related funtions in bm_wrapper.hpp
@@ -33,7 +31,6 @@ using YoloBoxVec = std::vector<YoloBox>;
 
 class Yolo {
     std::shared_ptr<sail::Engine>              engine;
-    std::shared_ptr<BMNNContext>               m_bmContext;
     std::shared_ptr<sail::Bmcv>                bmcv;
     std::vector<std::string>                   graph_names;    
     std::vector<std::string>                   input_names;    
