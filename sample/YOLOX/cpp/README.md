@@ -44,7 +44,7 @@ cd ..
 编译完成后，会在yolox_bmcv目录下生成yolox_bmcv.pcie。
 
 #### 2.1.2 sail
-
+如果您使用sophon-sail接口，需要[编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#33-编译安装sophon-sail)，后进行如下步骤。
 ```bash
 cd cpp/yolox_sail
 mkdir build && cd build
@@ -69,7 +69,7 @@ make
 编译完成后，会在yolox_bmcv目录下生成yolox_bmcv.soc。
 
 #### 2.2.2 sail
-
+如果您使用sophon-sail接口，需要参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)，给soc环境配置sophon-sail，然后进行如下步骤。
 ```bash
 cd cpp/yolox_sail
 mkdir build && cd build

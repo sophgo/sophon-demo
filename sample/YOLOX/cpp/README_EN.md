@@ -46,6 +46,7 @@ cd ..
 After the compilation is complete, yolox_bmcv.pcie will be generated in the yolox_bmcv directory.
 
 #### 2.1.2 sail
+If you use sophon-sail, you should refer to [sophon-sail install guide](../../../docs/Environment_Install_Guide_EN.md#33-compilation-and-installation-of-sophon-sail)，configure sophon-sail for your sys，then:
 
 ```bash
 cd cpp/yolox_sail
@@ -69,6 +70,7 @@ make
 ```
 After the compilation is complete, yolox_bmcv.soc will be generated in the yolox_bmcv directory.
 #### 2.2.2 sail
+If you use sophon-sail, you should refer to [cross compile sophon-sail](../../../docs/Environment_Install_Guide_EN.md#42-cross-compiling-and-sophon-sail-installation)，configure sophon-sail for your soc，then:
 ```bash
 cd cpp/yolox_sail
 mkdir build && cd build
