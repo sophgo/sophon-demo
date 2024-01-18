@@ -15,7 +15,7 @@ function gen_mlir_encoder()
 {
     model_transform.py \
         --model_name wenet_encoder \
-        --model_def ../models/encoder.onnx \
+        --model_def ../models/onnx/wenet_encoder.onnx \
         --input_shapes [[1,67,80],[1],[1,1],[1,12,4,80,128],[1,12,256,7],[1,1,80]] \
         --mlir wenet_encoder.mlir
 }
