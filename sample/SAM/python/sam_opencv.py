@@ -197,7 +197,31 @@ class SAM_b(object):
         start_time = time.time()
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         predictor = SamPredictor(sam_encoder, sam)
-        mask_generator = SamAutomaticMaskGenerator(sam_encoder, sam)
+        """
+        There are several tunable parameters in automatic mask generation that control how densely points are sampled and what the thresholds are for removing low quality or duplicate masks.
+        * `points_per_side`(int): The number of points to sample along one side of the image. The total number of points is points_per_side2^2. Default is 32.
+        * `points_per_batch`(int): Set the number of points that the model detects simultaneously. Higher numbers may be faster but use more GPU memory. Default is 64.
+        * `pred_iou_thresh`(float): Filtering threshold in [0,1], model’s prediction mask quality. The default value is 0.88.
+        * `stability_score_thresh`(float): The filtering threshold in [0,1], the stability of the mask under changes in cutoff values, is used to binarize the model's mask predictions. The default value is 0.95.
+        * `stability_score_offset`(float): The amount by which the cutoff value is offset when calculating stability scores. The default value is 1.0.
+        * `box_nms_thresh`(float): Non-maximum suppression box IoU cutoff for filtering duplicate masks. The default value is 0.7.
+        * `crop_nms_thresh`(float): Box IoU cutoff for non-maximum suppression to filter duplicate masks between different objects. The default value is 0.7.
+        * `crop_overlap_ratio`(float): Sets how much objects overlap. In the first crop layer, the crop will overlap this portion of the image's length. Later layers with more objects will reduce this overlap. Default value is 512/1500.
+        * `crop_n_points_downscale_factor`(int): The number of points on each side sampled in layer n is scaled down by "crop_n_points_downscale_factorn"^n. The default value is 1.
+        * `min_mask_region_area`(int): If >0, post-processing will be applied to remove masks with areas smaller than "min_mask_region_area" to break disconnected regions and holes. Opencv is required. Default is 0.
+        * `output_mode`(str): Mask output mode. Can be 'binary_mask', 'uncompressed_rle' or 'coco_rle', 'coco_rle' requires pycocotools. For large resolutions, 'binary_mask' may consume a lot of memory. Default is 'binary_mask'.
+        """  
+        mask_generator = SamAutomaticMaskGenerator(sam_encoder, sam, points_per_side=self.args.points_per_side,
+                                                                     points_per_batch=self.args.points_per_batch,
+                                                                     pred_iou_thresh=self.args.pred_iou_thresh,
+                                                                     stability_score_thresh=self.args.stability_score_thresh,
+                                                                     stability_score_offset=self.args.stability_score_offset,
+                                                                     box_nms_thresh=self.args.box_nms_thresh,
+                                                                     crop_nms_thresh=self.args.crop_nms_thresh,
+                                                                     crop_overlap_ratio=self.args.crop_overlap_ratio,
+                                                                     crop_n_points_downscale_factor=self.args.crop_n_points_downscale_factor,
+                                                                     min_mask_region_area=self.args.min_mask_region_area,
+                                                                     output_mode=self.args.output_mode)
         orig_size = image.shape[:2]
         crop_boxes, layer_idxs = generate_crop_boxes(
             orig_size, mask_generator.crop_n_layers, mask_generator.crop_overlap_ratio
@@ -447,6 +471,18 @@ def argsparser():
     parser.add_argument('--bmodel', type=str, default='models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_fp16_1b.bmodel', help='path of bmodel')
     parser.add_argument('--auto', type=bool, default=0, help='Whether to use an automatic mask generator: 0 for no, 1 for yes')
     parser.add_argument('--dev_id', type=int, default=0, help='tpu id')
+    #auto parsers
+    parser.add_argument('--points_per_side', type=int, default=32, help='see the description in the auto_mask method for details')
+    parser.add_argument('--points_per_batch', type=int, default=64, help='see the description in the auto_mask method for details')
+    parser.add_argument('--pred_iou_thresh', type=float, default=0.88, help='see the description in the auto_mask method for details')
+    parser.add_argument('--stability_score_thresh', type=float, default=0.95, help='see the description in the auto_mask method for details')
+    parser.add_argument('--stability_score_offset', type=float, default=1.0, help='see the description in the auto_mask method for details')
+    parser.add_argument('--box_nms_thresh', type=float, default=0.7, help='see the description in the auto_mask method for details')
+    parser.add_argument('--crop_nms_thresh', type=float, default=0.7, help='see the description in the auto_mask method for details')
+    parser.add_argument('--crop_overlap_ratio', type=float, default=512/1500, help='see the description in the auto_mask method for details')
+    parser.add_argument('--crop_n_points_downscale_factor', type=int, default=1, help='see the description in the auto_mask method for details')
+    parser.add_argument('--min_mask_region_area', type=int, default=0, help='see the description in the auto_mask method for details')
+    parser.add_argument('--output_mode', type=str, default='binary_mask', help='see the description in the auto_mask method for details')
     args = parser.parse_args()
     return args
 
