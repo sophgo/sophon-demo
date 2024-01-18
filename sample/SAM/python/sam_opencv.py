@@ -91,15 +91,16 @@ def show_anns(anns):
 
 class SAM_b(object):
     def __init__(self, args):
+        self.args = args
         # load bmodel
-        self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
+        self.net = sail.Engine(self.args.bmodel, self.args.dev_id, sail.IOMode.SYSIO)
         self.graph_name = self.net.get_graph_names()[0]
         self.input_names = self.net.get_input_names(self.graph_name)
 
         self.input_shapes = [self.net.get_input_shape(self.graph_name, name) for name in self.input_names]
         self.output_names = self.net.get_output_names(self.graph_name)
         self.output_shapes = [self.net.get_output_shape(self.graph_name, name) for name in self.output_names]
-        logging.debug("load {} success!".format(args.bmodel))
+        logging.debug("load {} success!".format(self.args.bmodel))
         logging.debug(str(("graph_name: {}, input_names & input_shapes: ".format(self.graph_name), self.input_names, self.input_shapes)))
         logging.debug(str(("graph_name: {}, output_names & output_shapes: ".format(self.graph_name), self.output_names, self.output_shapes)))
 
@@ -127,10 +128,10 @@ class SAM_b(object):
 
         # use TPU to embedding input_image
         image_embedding = predictor.get_image_embedding() 
-        assert len(np.array(list(map(int, args.input_point.split(','))))) == 2 or len(np.array(list(map(int, args.input_point.split(','))))) == 4, "input coordinate length must be 2 or 4"
+        assert len(np.array(list(map(int, self.args.input_point.split(','))))) == 2 or len(np.array(list(map(int, self.args.input_point.split(','))))) == 4, "input coordinate length must be 2 or 4"
         # point input
-        if (len(np.array(list(map(int, args.input_point.split(','))))) == 2):
-            input_point = np.array([list(map(int, args.input_point.split(',')))])
+        if (len(np.array(list(map(int, self.args.input_point.split(','))))) == 2):
+            input_point = np.array([list(map(int, self.args.input_point.split(',')))])
             input_label = np.array([1])
             ori_coord = np.concatenate([input_point, np.array([[0.0, 0.0]])], axis=0)[None, :, :]
             ori_label = np.concatenate([input_label, np.array([-1])], axis=0)[None, :].astype(np.float32)
@@ -157,7 +158,7 @@ class SAM_b(object):
             self.orig_im_size = ort_inputs["orig_im_size"]
         # box input
         else:
-            input_point = np.array(list(map(int, args.input_point.split(',')))).reshape(2, 2)
+            input_point = np.array(list(map(int, self.args.input_point.split(',')))).reshape(2, 2)
             input_label = np.array([2,3])
             ori_coord = input_point[None, :, :]
             ori_label = input_label[None, :].astype(np.float32)
@@ -379,7 +380,7 @@ class SAM_b(object):
         return 0
     
     def __call__(self, img, sam_encoder, sam):
-        if (args.auto == 0):
+        if (self.args.auto == 0):
             start_time = time.time()
             img = self.preprocess(img, sam_encoder, sam)
             self.preprocess_time += time.time() - start_time

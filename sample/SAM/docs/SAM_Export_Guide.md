@@ -51,6 +51,9 @@ SAM官方仓库提供了模型导出脚本'scripts/export.onnx_model.py'和'note
 
 ```
 
+- 导出auto的decoder部分模型：
+使用上述decoder的onnx_model_example.ipynb代码为例，只需将"point_coords"中的size(1, 5, 2)修改为(64, 5, 2);"point_labels"中的size(1, 5)修改为(64, 5)和"mask_input"中的(1, 1)修改为(64, 1)即可导出auto的decoder部分模型;
+
 - 导出embedding部分：
 需要您运行mata官方sam例程时，在实例化 `/segment-anything/segment_anything/build_sam.py` 中的`Class Sam()` 为`sam`后，直接导出`sam.image_encoder`。
 
