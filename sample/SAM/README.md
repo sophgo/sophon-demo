@@ -56,13 +56,13 @@ chmod -R +x scripts/
 ├── BM1684X
 │   ├── decode_bmodel
 │   │   ├── SAM-ViT-B_decoder_fp16_1b.bmodel # mask_decoder部分fp16 bmodel
-│   │   └── SAM-ViT-B_decoder_fp32_1b.bmodel # mask_decoder部分fp32 bmodel
+│   │   ├── SAM-ViT-B_decoder_fp32_1b.bmodel # mask_decoder部分fp32 bmodel
 │   │   └── SAM-ViT-B_auto_decoder_fp32_1b.bmodel # auto_mask_decoder部分fp32 bmodel
 │   └── embedding_bmodel
 │       └── SAM-ViT-B_embedding_fp16_1b.bmodel # embedding部分fp16 bmodel
 ├── onnx
 │   ├── embedding_model.onnx # 由原模型导出的embedding部分onnx模型
-│   └── vit-b-scripts.onnx # 由原模型导出的mask_decoder部分onnx模型
+│   ├── vit-b-scripts.onnx # 由原模型导出的mask_decoder部分onnx模型
 │   └── vit-b-auto-scripts.onnx # 由原模型导出的auto_mask_decoder部分onnx模型
 └── torch
     └── sam_vit_b_01ec64.pth   # 原torch模型
@@ -103,13 +103,13 @@ chmod -R +x scripts/
 
 - 生成auto mask FP32 BModel
 
-<200b>本例程在`scripts`目录下提供了TPU-MLIR编译专门用于自动掩码生成的FP32 BModel的脚本，请注意修改`gen_auto_fp32bmodel_mlir.sh`中的onnx模>型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译专门用于自动掩码生成的FP32 BModel的脚本，请注意修改`gen_auto_fp32bmodel_mlir.sh`中的onnx模>型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
 
 ```bash
 ./scripts/gen_auto_fp32bmodel_mlir.sh bm1684x
 ```
 
-<200b>执行上述命令会在`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_auto_decoder_fp32_1b.bmodel`文件，即转换好的自动图像推理（auto_mask_decoder）FP32 BModel。
+执行上述命令会在`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_auto_decoder_fp32_1b.bmodel`文件，即转换好的自动图像推理（auto_mask_decoder）FP32 BModel。
 
 
 ## 5. 例程测试
@@ -133,7 +133,7 @@ bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_decoder_fp32_1b.b
 | SAM-ViT-B_embedding_fp16_1b.bmodel   | 0.303                     |
 | SAM-ViT-B_decoder_fp16_1b.bmodel     | 0.007                     |
 | SAM-ViT-B_decoder_fp32_1b.bmodel     | 0.026                     |
-| SAM-ViT-B_auto_decoder_fp32_1b.bmodel| 1.954                     |
+| SAM-ViT-B_auto_decoder_fp32_1b.bmodel| 1.503                     |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
