@@ -16,8 +16,7 @@
 
 此外您可能还需要安装其他第三方库：
 ```bash
-pip3 install torch==1.13.1
-pip3 install torchaudio==0.13.1
+pip3 install torch==1.13.1 torchaudio==0.13.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ### 1.2 SoC平台
@@ -26,8 +25,7 @@ pip3 install torchaudio==0.13.1
 
 此外您可能还需要安装其他第三方库：
 ```bash
-pip3 install torch==1.13.1
-pip3 install torchaudio==0.13.1
+pip3 install torch==1.13.1 torchaudio==0.13.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ## 2. 推理测试
@@ -54,4 +52,4 @@ python3 wenet.py --input ../datasets/aishell_S0764/aishell_S0764.list --encoder_
 ```bash
 python3 wenet.py --input ../datasets/aishell_S0764/aishell_S0764.list --encoder_bmodel ../models/BM1684/wenet_encoder_fp32.bmodel --decoder_bmodel ../models/BM1684/wenet_decoder_fp32.bmodel --dev_id 0 --result_file ./result.txt --mode attention_rescoring
 ```
-测试结束后，会将预测的文本结果保存在`results.txt`下，同时会打印预测结果、推理时间等信息。
+测试结束后，会将预测的文本结果保存在`result.txt`下，同时会打印预测结果、推理时间等信息。

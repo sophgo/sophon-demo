@@ -11,7 +11,7 @@ ALL_PASS=1
  
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|pcie_test|soc_test] [ -t TARGET BM1684|BM1684X] [ -d TPUID]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|pcie_test|soc_test|soc_build] [ -t TARGET BM1684|BM1684X] [ -d TPUID] [-s SOCSDK]" 1>&2 
 }
  
 while getopts ":m:t:s:a:d:" opt
@@ -26,6 +26,9 @@ do
     d)
       TPUID=${OPTARG}
       echo "using tpu $TPUID";;
+    s)
+      SOCSDK=${OPTARG}
+      echo "soc-sdk is $SOCSDK";;
     ?)
       usage
       exit 1;;
@@ -75,7 +78,7 @@ function build_soc()
       rm -rf build
   fi
   mkdir build && cd build
-  cmake -DTARGET_ARCH=soc .. && make
+  cmake -DTARGET_ARCH=soc -DSDK=$SOCSDK .. && make
   judge_ret $? "build wenet soc"
   popd
 }
@@ -166,7 +169,7 @@ then
 elif test $MODE = "pcie_test"
 then
   build_pcie
-  download pcie
+  download
   if test $TARGET = "BM1684"
   then
     eval_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
@@ -185,9 +188,19 @@ then
     eval_cpp soc wenet_encoder_fp16.bmodel ctc_prefix_beam_search . 2.70
     eval_cpp soc wenet_encoder_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 1.80
   fi
+elif test $MODE = "soc_build"
+then
+  download
+  build_soc
 elif test $MODE = "soc_test"
 then
-  download soc
+  export LD_LIBRARY_PATH=$PWD/cpp/cross_compile_module/ctcdecode-cpp/openfst-1.6.3/src/lib/.libs/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$PWD/cpp/cross_compile_module/ctcdecode-cpp/build/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$PWD/cpp/cross_compile_module/ctcdecode-cpp/build/3rd_party/kenlm/lib/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$PWD/cpp/cross_compile_module/3rd_party/lib/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$PWD/cpp/cross_compile_module/3rd_party/lib/blas/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$PWD/cpp/cross_compile_module/3rd_party/lib/lapack/:$LD_LIBRARY_PATH
+  download
   if test $TARGET = "BM1684"
   then
     eval_python wenet_encoder_fp32.bmodel ctc_prefix_beam_search . 2.70
