@@ -37,6 +37,10 @@ if [ ! -d "../models/tokenizer_path" ];
 then
     mkdir -p ../models/tokenizer_path
     python3 -m dfss --url=open@sophgo.com:/sophon-demo/Stable_diffusion_v1_5/tokenizer.zip 
+    unzip tokenizer.zip -d ../models/tokenizer_path/
+    rm tokenizer.zip
+
+    echo "tokenizer download!"
 else
     echo "tokenizer exists!"
 fi
