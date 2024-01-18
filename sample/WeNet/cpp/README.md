@@ -26,6 +26,10 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
 
 ### 1.3 第三方库依赖
+在x86/arm PCIe上需要依赖以下的第三方库(注：在X86平台编译soc程序也需要此步骤)：
+```bash
+sudo apt-get install libsuperlu-dev
+```
 在x86/arm PCIe上需要依赖以下的第三方库(注：在X86平台编译soc程序不需此步骤)：
 
 ```bash

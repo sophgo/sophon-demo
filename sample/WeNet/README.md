@@ -188,7 +188,6 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. encoder的特征长度为67，对应为0.67s的音频；decoder的特征长度为350，对应为3.5s的音频。
-3. BM1688有两个核，每个核都可以加载一个encoder/decoder模型。
 
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
