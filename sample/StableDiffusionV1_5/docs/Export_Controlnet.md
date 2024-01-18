@@ -305,36 +305,36 @@ usage: run.py
 python3 run.py --stage multilize --controlnet_name canny_controlnet_fp16.bmodel --controlnet_img ../pics/canny.png --prompt "bird"
 ```
 
-<img src="../pics/canny.png" alt="canny" style="zoom:37.9%;" /><img src="../pics/canny_out.png" alt="canny_out" style="zoom:80%;" />
+<img src="../pics/canny.png" alt="canny" style="zoom:70%;" /><img src="../pics/canny_out.png" alt="canny_out" style="zoom:70%;" />
 
 ```python
 python3 run.py --stage multilize --controlnet_name depth_controlnet_fp16.bmodel --processor_name depth_processor_fp16.bmodel --controlnet_img ../pics/depth.png --prompt "Stormtrooper's lecture"
 ```
 
-<img src="../pics/depth.png" alt="depth" style="zoom:80%;" /><img src="../pics/depth_out.png" alt="depth_out" style="zoom:80%;" />
+<img src="../pics/depth.png" alt="depth" style="zoom:70%;" /><img src="../pics/depth_out.png" alt="depth_out" style="zoom:70%;" />
 
 ```python
 python3 run.py --stage multilize --controlnet_name hed_controlnet_fp16.bmodel --processor_name hed_processor_fp16.bmodel --controlnet_img ../pics/hed.png --prompt "oil painting of handsome old man, masterpiece"
 ```
 
-<img src="../pics/hed.png" alt="hed" style="zoom:80%;" /><img src="../pics/hed_out.png" alt="hed_out" style="zoom:80%;" />
+<img src="../pics/hed.png" alt="hed" style="zoom:70%;" /><img src="../pics/hed_out.png" alt="hed_out" style="zoom:70%;" />
 
 ```python
 python3 run.py --stage multilize --controlnet_name openpose_controlnet_fp16.bmodel --processor_name openpose_body_fp16.bmodel --controlnet_img ../pics/openpose.png --prompt "chef in the kitchen"
 ```
 
-<img src="../pics/openpose.png" alt="openpose" style="zoom:80%;" /><img src="../pics/openpose_out.png" alt="openpose_out" style="zoom:80%;" />
+<img src="../pics/openpose.png" alt="openpose" style="zoom:70%;" /><img src="../pics/openpose_out.png" alt="openpose_out" style="zoom:70%;" />
 
 ```python
 python3 run.py --stage multilize --controlnet_name scribble_controlnet_fp16.bmodel --processor_name scribble_processor_fp16.bmodel --controlnet_img ../pics/scribble.png --prompt "royal chamber with fancy bed"
 ```
 
-<img src="../pics/scribble.png" alt="scribble" style="zoom:80%;" /><img src="../pics/scribble_out.png" alt="scribble_out" style="zoom:80%;" />
+<img src="../pics/scribble.png" alt="scribble" style="zoom:70%;" /><img src="../pics/scribble_out.png" alt="scribble_out" style="zoom:70%;" />
 
 ```python
 python3 run.py --stage multilize --controlnet_name segmentation_controlnet_fp16.bmodel --processor_name segmentation_processor_fp16.bmodel --controlnet_img ../pics/segmentation.png --prompt "old house in stormy weather with rain and wind"
 ```
 
-<img src="../pics/segmentation.png" alt="segmentation" style="zoom:80%;" /><img src="../pics/segmentation_out.png" alt="segmentation_out" style="zoom:80%;" />
+<img src="../pics/segmentation.png" alt="segmentation" style="zoom:70%;" /><img src="../pics/segmentation_out.png" alt="segmentation_out" style="zoom:70%;" />
 
 每条指令执行完成后，会在pythons文件夹下生成名为result.png的结果。
