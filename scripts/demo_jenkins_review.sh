@@ -259,7 +259,7 @@ pip3 install dfss --upgrade
 echo "-------------------------Start apt install ---------------------------------------"
 apt_install
 echo "-------------------------Start Download soc-sdk-allin v23.07.01 ------------------"
-download_soc_sdk_allin v23.07.01
+download_soc_sdk_allin v23.10.01
 echo "-------------------------Start build_soc_YOLOv5 ------------------"
 build_soc_YOLOv5 $SOC_SDK_PATH
 echo "-------------------------Start build_soc_BERT ------------------"
