@@ -9,6 +9,8 @@
 * [3. 准备模型与数据](#3-准备模型与数据)
 * [4. 模型编译](#4-模型编译)
 * [5. 例程测试](#5-例程测试)
+  * [5.1 python例程](#51-python例程)
+  * [5.2 web_ui例程](#52-web_ui例程)
 * [6. 性能测试](#7-性能测试)
   * [6.1 bmrt_test](#61-bmrt_test)
   * [6.2 程序运行性能](#61-程序运行性能)
@@ -113,7 +115,8 @@ chmod -R +x scripts/
 
 
 ## 5. 例程测试
-- [Python例程](./python/README.md)
+### 5.1 [Python例程](./python/README.md)
+### 5.2 [web_ui例程](./web_ui/README.md)
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
