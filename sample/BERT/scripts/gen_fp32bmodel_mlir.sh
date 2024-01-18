@@ -7,7 +7,7 @@ else
     target=$1
 fi
 
-outdir=../models/BM1684X
+outdir=../models/$target
 
 function gen_mlir()
 {
@@ -27,6 +27,16 @@ function gen_fp32bmodel()
         --model bert4torch_output_fp32_$1b.bmodel
 
     mv bert4torch_output_fp32_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir bert4torch_output_$1b.mlir \
+            --quantize F32 \
+            --chip $target \
+            --model bert4torch_output_fp32_$1b_2core.bmodel \
+            --num_core 2
+          
+        mv bert4torch_output_fp32_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir

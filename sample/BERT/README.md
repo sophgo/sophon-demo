@@ -19,10 +19,10 @@
   
 ## 1. 简介
 ​BERT的全称为Bidirectional Encoder Representation from Transformers，是一个预训练的语言表征模型。它强调了不再像以往一样采用传统的单向语言模型或者把两个单向语言模型进行浅层拼接的方法进行预训练，而是采用新的masked language model（MLM），以致能生成深度的双向语言表征。BERT论文发表时提及在11个NLP（Natural Language Processing，自然语言处理）任务中获得了新的state-of-the-art的结果，令人目瞪口呆。
-A simple training framework that recreates bert4keras in PyTorch. bert4torch
+本例程对A simple training framework that recreates bert4keras in PyTorch. bert4torch的模型和算法进行移植,使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC)
-* 支持FP32、FP16(BM1684X)模型编译和推理
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X/BM1688)模型编译和推理
 * 支持基于sail的C++推理
 * 支持基于sail的Python推理
 * 支持单batch和多batch模型推理
@@ -46,13 +46,22 @@ chmod -R +x scripts/
 ```
 ./models/
 ├── BM1684
-│   └── bert4torch_output_fp32_1b.bmodel
-│   └── bert4torch_output_fp32_8b.bmodel
+│   └── bert4torch_output_fp32_1b.bmodel     # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1
+│   └── bert4torch_output_fp32_8b.bmodel     # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=8
 ├── BM1684X
-│   └── bert4torch_output_fp32_1b.bmodel
-│   └── bert4torch_output_fp32_8b.bmodel
-│   └── bert4torch_output_fp16_1b.bmodel
-│   └── bert4torch_output_fp16_8b.bmodel
+│   └── bert4torch_output_fp32_1b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
+│   └── bert4torch_output_fp32_8b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=8
+│   └── bert4torch_output_fp16_1b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   └── bert4torch_output_fp16_8b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=8
+├── BM1688
+│   └── bert4torch_output_fp32_1b.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
+│   └── bert4torch_output_fp32_8b.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=8
+│   └── bert4torch_output_fp16_1b.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
+│   └── bert4torch_output_fp16_8b.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=8
+│   └── bert4torch_output_fp32_1b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
+│   └── bert4torch_output_fp32_8b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=8
+│   └── bert4torch_output_fp16_1b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
+│   └── bert4torch_output_fp16_8b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=8
 ├── pre_train
 │   └── vocab.txt
 └── torch
@@ -67,48 +76,31 @@ chmod -R +x scripts/
 ```
 
 ## 4. 模型编译
-导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。如果您使用BM1684，建议使用TPU-NNTC编译BModel；如果您使用BM1684X，建议使用TPU-MLIR编译BModel。
+导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
-### 4.1 TPU-NNTC编译BModel
-模型编译前需要安装TPU-NNTC，具体可参考[TPU-NNTC环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-nntc环境搭建)。安装好后需在TPU-NNTC环境中进入例程目录。
-
-- 生成FP32 BModel
-
-使用TPU-NNTC将trace后的torchscript模型编译为FP32 BModel，具体方法可参考《TPU-NNTC开发参考手册》的“BMNETP 使用”(请从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)相应版本的SDK中获取)。
-
-​本例程在`scripts`目录下提供了TPU-NNTC编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_nntc.sh`中的torchscript模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684和BM1684X），如：
-
-```bash
-./scripts/gen_fp32bmodel_nntc.sh BM1684
-```
-
-​执行上述命令会在`models/BM1684/`下生成`bert4torch_output_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
-
-
-### 4.2 TPU-MLIR编译BModel
-模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#2-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
 注意：mlir版本需要>=0625的版本为v1.2.2。
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684x
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​执行上述命令会在`models/BM1684X/`下生成`bert4torch_output_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684/`下生成`bert4torch_output_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
 ```
 
-​执行上述命令会在`models/BM1684X/`下生成`bert4torch_output_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`yolov5s_v6.1_3output_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 
 ## 5. 例程测试
@@ -122,7 +114,7 @@ chmod -R +x scripts/
 然后，使用`tools`目录下的`eval_people.py`脚本，将测试生成的txt文件与测试集标签txt文件进行对比，计算出NER的评价指标，命令如下：
 ```bash
 # 安装seqeval，若已安装请跳过
-pip3 install seqeval
+pip3 install seqeval==1.2.2
 # 请根据实际情况修改程序路径和txt文件路径
 python3 tools/eval_people.py --test_path ../datasets/china-people-daily-ner-corpus/example.test --input_path ../python/results/bert4torch_output_fp16_8b.bmodel_sail_python_result.txt
 ```
@@ -142,7 +134,14 @@ python3 tools/eval_people.py --test_path ../datasets/china-people-daily-ner-corp
 | BM1684X PCIe | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 0.9224        | 0.9917   |
 | BM1684X PCIe | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 0.9219        | 0.9915   |
 | BM1684X PCIe | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 0.9191        | 0.9915   |
-
+| BM1688 SOC | bert_sail.soc   | bert4torch_output_fp32_1b.bmodel    | 0.9118        | 0.9906   |
+| BM1688 SOC | bert_sail.soc   | bert4torch_output_fp32_8b.bmodel    | 0.9129        | 0.9907   |
+| BM1688 SOC | bert_sail.soc   | bert4torch_output_fp16_1b.bmodel    | 0.8931        | 0.9890   |
+| BM1688 SOC | bert_sail.soc   | bert4torch_output_fp16_8b.bmodel    | 0.9127        | 0.9907   |
+| BM1688 SOC | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 0.9194        | 0.9916   |
+| BM1688 SOC | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 0.9192        | 0.9915   |
+| BM1688 SOC | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 0.9198        | 0.9915   |
+| BM1688 SOC | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 0.9178        | 0.9915   |
 
 > **测试说明**：  
 1. 测试结果具有一定的波动性；基本在0.01之内
@@ -166,7 +165,14 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 | BM1684X/bert4torch_output_fp16_1b.bmodel    | 8.643             |
 | BM1684X/bert4torch_output_fp32_8b.bmodel    | 87.478            |
 | BM1684X/bert4torch_output_fp16_8b.bmodel    | 5.726            |
-
+| BM1688/bert4torch_output_fp32_1b.bmodel    | 269.7          |
+| BM1688/bert4torch_output_fp16_1b.bmodel    | 40.0             |
+| BM1688/bert4torch_output_fp32_8b.bmodel    | 263.5            |
+| BM1688/bert4torch_output_fp16_8b.bmodel    | 34.1            |
+| BM1688/bert4torch_output_fp32_1b_2core.bmodel    | 184.3           |
+| BM1688/bert4torch_output_fp16_1b_2core.bmodel    | 30.2             |
+| BM1688/bert4torch_output_fp32_8b_2core.bmodel    | 156.8           |
+| BM1688/bert4torch_output_fp16_8b_2core.bmodel    | 18.5            |
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每条文本的推理时间；
@@ -190,6 +196,14 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 | BM1684X SoC | bert_sail.soc    | bert4torch_output_fp32_8b.bmodel    | 19.28    | 19.15     | 0.078     | 0.021     |
 | BM1684X SoC | bert_sail.soc    | bert4torch_output_fp16_1b.bmodel    | 19.87    | 19.59     | 0.218     | 0.020     |
 | BM1684X SoC | bert_sail.soc    | bert4torch_output_fp16_8b.bmodel    | 19.73    | 19.62     | 0.642     | 0.019     |
+| BM1688 SoC  |   bert_sail.py    | bert4torch_output_fp16_1b.bmodel  |     239.60      |      4.94       |      41.54      |     193.10      |
+| BM1688 SoC  |   bert_sail.py    | bert4torch_output_fp16_8b.bmodel  |      66.79      |      4.88       |      34.38      |      27.52      |
+| BM1688 SoC  |   bert_sail.py    | bert4torch_output_fp32_1b.bmodel  |     471.62      |      4.96       |     271.50      |     195.13      |
+| BM1688 SoC  |   bert_sail.py    | bert4torch_output_fp32_8b.bmodel  |     296.75      |      4.89       |     264.07      |      27.79      |
+| BM1688 SoC  |   bert_sail.soc   | bert4torch_output_fp16_1b.bmodel  |      71.85      |      30.98      |      40.77      |      0.05       |
+| BM1688 SoC  |   bert_sail.soc   | bert4torch_output_fp16_8b.bmodel  |     65.36      |     31.08      |     34.25      |      0.03       |
+| BM1688 SoC  |   bert_sail.soc   | bert4torch_output_fp32_1b.bmodel  |     301.28      |      30.56      |     270.61      |      0.06       |
+| BM1688 SoC  |   bert_sail.soc   | bert4torch_output_fp32_8b.bmodel  |     293.22     |     29.45      |     263.73     |      0.03       |
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每个文本处理的时间；

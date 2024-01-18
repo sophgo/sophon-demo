@@ -70,7 +70,8 @@ void BERT::pre_process(string text) { // pre_process
         token_ids.push_back(0);
         tokens.push_back("[PAD]");
     }
-
+    token_ids.resize(256);
+    tokens.resize(256);
     return;
 }
 void BERT::pre_process(std::vector<string> texts) { // pre_process

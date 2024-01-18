@@ -8,13 +8,15 @@ TARGET="BM1684X"
 MODE="pcie_test"
 TPUID=0
 ALL_PASS=1
+PYTEST="auto_test"
+ECHO_LINES=20
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
-while getopts ":m:t:s:a:d:" opt
+while getopts ":m:t:s:d:p:" opt
 do
   case $opt in 
     m)
@@ -26,49 +28,78 @@ do
     s)
       SOCSDK=${OPTARG}
       echo "soc-sdk is $SOCSDK";;
-    a)
-      SAIL_PATH=${OPTARG}
-      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
-      echo "sail_path is $SAIL_PATH";;
     d)
       TPUID=${OPTARG}
       echo "using tpu $TPUID";;
+    p)
+      PYTEST=${OPTARG}
+      echo "generate logs for $PYTEST";;
     ?)
       usage
       exit 1;;
   esac
 done
 
-function judge_ret() {
+if test $PYTEST = "pytest"
+then
+  >${top_dir}auto_test_result.txt
+fi
+
+
+function judge_ret()
+{
   if [[ $1 == 0 ]]; then
     echo "Passed: $2"
     echo ""
+    if test $PYTEST = "pytest"
+    then
+      echo "Passed: $2" >> ${top_dir}auto_test_result.txt
+      echo "#######Debug Info Start#######" >> ${top_dir}auto_test_result.txt
+    fi
   else
     echo "Failed: $2"
     ALL_PASS=0
+    if test $PYTEST = "pytest"
+    then
+      echo "Failed: $2" >> ${top_dir}auto_test_result.txt
+      echo "#######Debug Info Start#######" >> ${top_dir}auto_test_result.txt
+    fi
   fi
+
+  if test $PYTEST = "pytest"
+  then
+    if [[ $3 != 0 ]];then
+      tail -n ${ECHO_LINES} $3 >> ${top_dir}auto_test_result.txt
+    fi
+    echo "########Debug Info End########" >> ${top_dir}auto_test_result.txt
+  fi
+
   sleep 3
 }
 
 function download()
 {
-  chmod -R +x ./scripts/
+  chmod -R +x scripts/
   ./scripts/download.sh
-  judge_ret $? "download"
+  judge_ret $? "download" 0
 }
 
 function compile_nntc()
 {
-  ./scripts/gen_fp32bmodel_nntc.sh BM1684
-  judge_ret $? "generate BM1684 fp32bmodel"
+  ./scripts/gen_fp32bmodel_nntc.sh $TARGET
+  judge_ret $? "generate $TARGET fp32bmodel" 0
+  ./scripts/gen_int8bmodel_nntc.sh $TARGET
+  judge_ret $? "generate $TARGET int8bmodel" 0
 }
 
 function compile_mlir()
 {
-  ./scripts/gen_fp32bmodel_mlir.sh bm1684x
-  judge_ret $? "generate BM1684X fp32bmodel"
-  ./scripts/gen_fp16bmodel_mlir.sh bm1684x
-  judge_ret $? "generate BM1684X fp16bmodel"
+  ./scripts/gen_fp32bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET fp32bmodel" 0
+  ./scripts/gen_fp16bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET fp16bmodel" 0
+  ./scripts/gen_int8bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET int8bmodel" 0
 }
 
 function build_pcie()
@@ -254,6 +285,29 @@ then
     eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
     eval_cpp soc sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
     eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+  fi
+  elif test $TARGET = "BM1688"
+  then
+    test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+    test_cpp soc sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+    test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+    test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+    eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
+    eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
+    eval_python sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
+    eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    eval_cpp soc sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
+    eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
+    eval_cpp soc sail bert4torch_output_fp16_1b.bmodel 0.8931268398822476
+    eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    eval_python sail bert4torch_output_fp32_1b_2core.bmodel 0.9183410613086039
+    eval_python sail bert4torch_output_fp32_8b_2core.bmodel 0.9201187249967738
+    eval_python sail bert4torch_output_fp16_1b_2core.bmodel 0.9183410613086039
+    eval_python sail bert4torch_output_fp16_8b_2core.bmodel 0.9201187249967738
+    eval_cpp soc sail bert4torch_output_fp32_1b_2core.bmodel 0.912984583628975
+    eval_cpp soc sail bert4torch_output_fp32_8b_2core.bmodel 0.912984583628975
+    # eval_cpp soc sail bert4torch_output_fp16_1b_2core.bmodel 0.8220128904313336
+    eval_cpp soc sail bert4torch_output_fp16_8b_2core.bmodel 0.9201187249967738
   fi
 fi
 
