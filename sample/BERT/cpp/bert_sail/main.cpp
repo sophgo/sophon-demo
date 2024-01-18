@@ -20,6 +20,8 @@
 #include <utils.hpp>
 #include <memory>
 #include "opencv2/opencv.hpp"
+#define LOG_TS_B(p_ts, tag, b) if ((p_ts)) (p_ts)->save(tag,b);
+
 int main(int argc, char *argv[]) {
     const char *keys =
         "{bmodel | ../../models/BM1684/bert4torch_output_fp32_1b.bmodel | "
@@ -136,20 +138,20 @@ int main(int argc, char *argv[]) {
                 for (int j = (int)texts.size() - i; j < b; j++) {
                     ts.push_back("");
                 }
-                LOG_TS(bert_ts, "bert tots");
-                LOG_TS(bert_ts, "bert preprocess");
+                LOG_TS_B(bert_ts, "bert tots", b);
+                LOG_TS_B(bert_ts, "bert preprocess", b);
                 bert.pre_process(ts);
-                LOG_TS(bert_ts, "bert preprocess");
+                LOG_TS_B(bert_ts, "bert preprocess", b);
 
-                LOG_TS(bert_ts, "bert inference");
+                LOG_TS_B(bert_ts, "bert inference", b);
                 bert.Detect();
-                LOG_TS(bert_ts, "bert inference");
-                LOG_TS(bert_ts, "bert postprocess");
+                LOG_TS_B(bert_ts, "bert inference", b);
+                LOG_TS_B(bert_ts, "bert postprocess", b);
                 std::vector<std::pair<std::vector<std::string>,
                                       std::vector<std::string>>>
                     ans = bert.post_process();
-                LOG_TS(bert_ts, "bert postprocess");
-                LOG_TS(bert_ts, "bert tots");
+                LOG_TS_B(bert_ts, "bert postprocess", b);
+                LOG_TS_B(bert_ts, "bert tots", b);
                 for (int j = 0; j < min(b, (int)texts.size() - i); j++) {
                     string t = "[";
                     for (auto k : ans[j].second) {
@@ -169,20 +171,20 @@ int main(int argc, char *argv[]) {
                 tot++;
                 if (tot % 100 == 0) cout << tot << endl;
 
-                LOG_TS(bert_ts, "bert tots");
-                LOG_TS(bert_ts, "bert preprocess");
+                LOG_TS_B(bert_ts, "bert tots", b);
+                LOG_TS_B(bert_ts, "bert preprocess", b);
                 bert.pre_process(text);
-                LOG_TS(bert_ts, "bert preprocess");
+                LOG_TS_B(bert_ts, "bert preprocess", b);
 
-                LOG_TS(bert_ts, "bert inference");
+                LOG_TS_B(bert_ts, "bert inference", b);
                 bert.Detect();
-                LOG_TS(bert_ts, "bert inference");
-                LOG_TS(bert_ts, "bert postprocess");
+                LOG_TS_B(bert_ts, "bert inference", b);
+                LOG_TS_B(bert_ts, "bert postprocess", b);
                 std::vector<std::pair<std::vector<std::string>,
                                       std::vector<std::string>>>
                     ans = bert.post_process();
-                LOG_TS(bert_ts, "bert postprocess");
-                LOG_TS(bert_ts, "bert tots");
+                LOG_TS_B(bert_ts, "bert postprocess", b);
+                LOG_TS_B(bert_ts, "bert tots", b);
                 string t = "[";
 
                 for (auto i : ans[0].second) {

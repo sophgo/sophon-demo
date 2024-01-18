@@ -7,7 +7,7 @@ else
     target=$1
 fi
 
-outdir=../models/BM1684X
+outdir=../models/$target
 
 function gen_mlir()
 {
@@ -27,6 +27,16 @@ function gen_fp16bmodel()
         --model bert4torch_output_fp16_$1b.bmodel
 
     mv bert4torch_output_fp16_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir bert4torch_output_$1b.mlir \
+            --quantize F16 \
+            --chip $target \
+            --model bert4torch_output_fp16_$1b_2core.bmodel \
+            --num_core 2
+          
+        mv bert4torch_output_fp16_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir
@@ -34,8 +44,8 @@ if [ ! -d $outdir ]; then
     mkdir -p $outdir
 fi
 # batch_size=1
-gen_mlir 1
-gen_fp16bmodel 1
+# gen_mlir 1
+# gen_fp16bmodel 1
 gen_mlir 8
 gen_fp16bmodel 8
 popd
