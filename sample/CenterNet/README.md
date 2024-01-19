@@ -59,6 +59,15 @@ chmod -R +x scripts/
 │   ├── centernet_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── centernet_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── centernet_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1688
+│   ├── centernet_fp32_1b.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=1
+│   ├── centernet_fp16_1b.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=1
+│   ├── centernet_int8_1b.bmodel         # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=1
+│   ├── centernet_int8_4b.bmodel         # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=1
+│   ├── centernet_fp32_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=2
+│   ├── centernet_fp16_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=2
+│   ├── centernet_int8_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
+│   └── centernet_int8_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=2
 │── torch
 │   ├── ctdet_coco_dlav0_1x.pth
 │   └── ctdet_coco_dlav0_1x.torchscript.pt   # trace后的torchscript模型
