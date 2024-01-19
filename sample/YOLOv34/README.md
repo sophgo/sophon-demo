@@ -1,4 +1,4 @@
-[简体中文](./README.md) | [English](./README_EN.md)
+[简体中文](./README.md)
 
 # YOLOv34
 
@@ -22,7 +22,7 @@
 作为一种经典的单阶段目标检测框架，YOLO系列的目标检测算法得到了学术界与工业界们的广泛关注。由于YOLO系列属于单阶段目标检测，因而具有较快的推理速度，能够更好的满足现实场景的需求。随着YOLOv3算法的出现，使得YOLO系列的检测算达到了高潮。YOLOv4则是在YOLOv3算法的基础上增加了很多实用的技巧，使得它的速度与精度都得到了极大的提升。本例程对YOLOv4和YOLOv3模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
 
 
-**参考repo:** [yolov34]([GitHub - AlexeyAB/darknet: YOLOv4 / Scaled-YOLOv4 / YOLO - Neural Networks for Object Detection (Windows and Linux version of Darknet )](https://github.com/AlexeyAB/darknet))
+**参考repo:** [​YOLOv3 Pytorch开源仓库](https://github.com/bubbliiiing/yolo3-pytorch)[​YOLOv4 Pytorch开源仓库](https://github.com/bubbliiiing/yolov4-pytorch)
 
 
 ## 2. 特性
@@ -401,4 +401,4 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 
 ## 8. FAQ
-其他问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
+导出ONNX模型可以参考[YOLOv34_Export_Guide](./docs/YOLOv34_Export_Guide.md)。其他问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
