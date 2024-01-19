@@ -74,7 +74,7 @@ make
 
 对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据，以及依赖库ctcdecode-cpp拷贝到SoC平台中测试，建议直接拷贝整个WeNet文件夹，此外，还需要设置一些环境变量：
 ```bash
-# SoC设置环境变量，每次开一个新终端都需要重新设置。也可以将下面这些环境变量写到~/bash.rc里面并source ~/.bashrc，这样就不用每次开新终端都重新设置了。
+# SoC设置环境变量，每次开一个新终端都需要重新设置。也可以将下面这些环境变量写到~/.bashrc里面并source ~/.bashrc，这样就不用每次开新终端都重新设置了。
 # ${path/to/cpp}表示cross_compile_module所在目录，填绝对路径。
 export LD_LIBRARY_PATH=${path/to/cpp}/cross_compile_module/ctcdecode-cpp/openfst-1.6.3/src/lib/.libs/:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=${path/to/cpp}/cross_compile_module/ctcdecode-cpp/build/:$LD_LIBRARY_PATH

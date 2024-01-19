@@ -162,6 +162,7 @@ cat online_wer | grep "Overall"
 
 > **测试说明**：  
 1. 在使用的模型相同的情况下，wer在不同的测试平台上是相同的。
+2. 由于SDK版本之间的差异，实测的wer与本表有1%以内的差值是正常的。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -180,8 +181,8 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 | BM1684X/wenet_encoder_fp16.bmodel           |  3.2             |
 | BM1684X/wenet_decoder_fp32.bmodel           |  307.7           |
 | BM1684X/wenet_decoder_fp16.bmodel           |  74.2            |
-| BM1688/wenet_encoder_fp32.bmodel            |  21.5            |
-| BM1688/wenet_encoder_fp16.bmodel            |  8.4             |
+| BM1688/wenet_encoder_fp32.bmodel            |  20.2            |
+| BM1688/wenet_encoder_fp16.bmodel            |  7.2             |
 | BM1688/wenet_decoder_fp32.bmodel            |  722.6           |
 | BM1688/wenet_decoder_fp16.bmodel            |  230.6           |
 
@@ -209,12 +210,12 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 | BM1684x SoC | wenet.soc | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 272.47        | 3.24                 |  74.23               | 16.68            |  
 | BM1688 SoC  | wenet.py  | wenet_encoder_fp32.bmodel                             | 25.29         | 25.99                |  none                | 54.84            |
 | BM1688 SoC  | wenet.py  | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 24.84         | 26.00                |  723.50              | 65.64            |
-| BM1688 SoC  | wenet.soc | wenet_encoder_fp32.bmodel                             | 393.42        | 20.10                |  none                | 14.28            |
-| BM1688 SoC  | wenet.soc | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 388.23        | 20.16                |  721.53              | 23.26            |
+| BM1688 SoC  | wenet.soc | wenet_encoder_fp32.bmodel                             | 448.44        | 19.75                |  none                | 9.15             |
+| BM1688 SoC  | wenet.soc | wenet_encoder_fp32.bmodel + wenet_decoder_fp32.bmodel | 448.66        | 19.73                |  721.53              | 16.86            |
 | BM1688 SoC  | wenet.py  | wenet_encoder_fp16.bmodel                             | 27.59         | 13.08                |  none                | 57.07            |
 | BM1688 SoC  | wenet.py  | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 29.56         | 12.93                |  230.50              | 65.34            |
-| BM1688 SoC  | wenet.soc | wenet_encoder_fp16.bmodel                             | 388.23        | 7.22                 |  none                | 15.75            |
-| BM1688 SoC  | wenet.soc | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 390.72        | 7.18                 |  230.60              | 22.17            |  
+| BM1688 SoC  | wenet.soc | wenet_encoder_fp16.bmodel                             | 448.46        | 6.73                 |  none                | 8.70             |
+| BM1688 SoC  | wenet.soc | wenet_encoder_fp16.bmodel + wenet_decoder_fp16.bmodel | 448.20        | 6.74                 |  228.98              | 16.15            |  
 
 
 > **测试说明**：  
