@@ -4,14 +4,14 @@
 * [1. 简介](#1-简介)
 * [2. 特性](#2-特性)
 * [3. 准备模型](#3-准备模型)
-  ​    [3.1 自己下载并且编译模型](#3.1-自己下载并且编译模型)
-  ​    [3.2 使用准备好的模型文件](#3.2-使用准备好的模型文件)
+  * [3.1 自己下载并且编译模型](#31-自己下载并且编译模型)
+  * [3.2 使用准备好的模型文件](#32-使用准备好的模型文件)
 * [4. 例程测试](#4-例程测试)
 * [5. 运行性能测试](#5-运行性能测试)
 * [6. FAQ](#6-FAQ)
 
 ## 1. 简介
-StableDiffusion V1.5 是开源AIGC模型(Huggingface官网：https://huggingface.co/runwayml/stable-diffusion-v1-5)，可以依据文本提示生成相应的图像内容。
+StableDiffusion V1.5 是开源AIGC模型:[Huggingface官网stable-diffusion-v1-5](https://huggingface.co/runwayml/stable-diffusion-v1-5)，可以依据文本提示生成相应的图像内容。
 
 目前提供了python版的文本生成图像、controlnet插件辅助控制生成图像；
 
@@ -118,10 +118,10 @@ cd script
 
 图像生成的总体时间与设定的迭代次数相关，此处设定迭代20次，性能如下:
 
-|   测试平台    |    测试模式    | 模型格式 | text_encoder_time | inference_time | vae_decoder time |
-| -----------  | ------------- | -------- | --------------- | -------------  | ---------------- |
-| BM1684X SoC  |    text2img   |   fp32   |      51.81      |    5808.30     |     473.05       |
-| BM1684X SoC  |   controlnet  |   fp32   |      51.79      |    10462.45    |     471.20       |
+|   测试平台    |    测试模式     |                        模型格式                         | text_encoder_time | inference_time | vae_decoder time |
+| -----------  | ------------- | ------------------------------------------------------ | --------------- | -------------  | ---------------- |
+| BM1684X SoC  |    text2img   |   text_encoder fp32 + singlize unet/vae_decoder fp16   |      51.81      |    5808.30     |     473.05       |
+| BM1684X SoC  |   controlnet  |   text_encoder fp32 + multilize unet/vae_decoder fp16  |      51.79      |    10462.45    |     471.20       |
 
 ## 6. FAQ
 [常见问题解答](../../docs/FAQ.md)

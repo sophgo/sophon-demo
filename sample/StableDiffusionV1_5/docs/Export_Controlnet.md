@@ -2,18 +2,16 @@
 
 ## 目录
 
-- [Export ControlNet](#Export ControlNet)
-  - [目录](#目录)
-  - [1. ControlNet介绍](#1-ControlNet介绍)
-  - [2. 模型导出教程](#2-模型导出教程)
-    - [2.1 processor net导出](#21-processor net导出)
-    - [2.2 ControlNet导出](#22-ControlNet导出)
-  - [3. 准备模型和测试图像](#3-准备模型和测试图像)
-    - [3.1 导出并编译模型](#31-导出并编译模型)
-    - [3.2 下载编译好的模型](#32-下载编译好的模型)
-    - [3.3 准备测试图像](#33-准备测试图像)
-  - [4. 相关参数说明](#4-相关参数说明)
-  - [5. 效果展示](#5-效果展示)
+* [1. ControlNet介绍](#1-ControlNet介绍)
+* [2. 模型导出教程](#2-模型导出教程)
+  * [2.1 processor net导出](#21-processor-net导出)
+  * [2.2 ControlNet导出](#22-ControlNet导出)
+* [3. 准备模型和测试图像](#3-准备模型和测试图像)
+  * [3.1 导出并编译模型](#31-导出并编译模型)
+  * [3.2 下载编译好的模型](#32-下载编译好的模型)
+  * [3.3 准备测试图像](#33-准备测试图像)
+* [4. 相关参数说明](#4-相关参数说明)
+* [5. 效果展示](#5-效果展示)
 
 ## 1. ControlNet介绍
 
@@ -270,7 +268,7 @@ hed_controlnet.pt后续可用tpu-mlir转换为bmodel，作为插件干预Stable 
 
 用户有cuda的情况下，可以根据自己的需要，进入所需的controlnet的路径，运行路径下的export\*controlnet.py即可导出controlnet的pt模型，若controlnet包含对应的processor net，还需执行export\*processor.py导出processor net的pt/onnx模型;
 
-导出所需的pt/onnx模型后，可参考[自己下载并且编译模型](../README.md###3-1-自己下载并且编译模型)准备好TPU-MLIR环境，然后在所需的controlnet路径下执行相应的controlnet模型的编译脚本get\*bmodel.sh，若存在对应的processor net，还需执行get\*processor.sh，执行完毕后会在../../../models/BM1684X/下生成相应的controlnets和processors文件夹，和编译后的bmodel文件。
+导出所需的pt/onnx模型后，可参考[自己下载并且编译模型](../README.md#31-自己下载并且编译模型)准备好TPU-MLIR环境，然后在所需的controlnet路径下执行相应的controlnet模型的编译脚本get\*bmodel.sh，若存在对应的processor net，还需执行get\*processor.sh，执行完毕后会在../../../models/BM1684X/下生成相应的controlnets和processors文件夹，和编译后的bmodel文件。
 
 ### 3.2 下载编译好的模型
 
@@ -297,7 +295,7 @@ usage: run.py
 
 ## 5. 效果展示
 
-本demo参照官网提供的图像生成样例，提供如下脚本参数，左侧为control image，右侧为生成的图像。
+本demo参照官网提供的图像生成样例，提供如下脚本参数，第一张为control image，第二张为生成的图像。
 
 首先进入pythons文件夹，然后执行如下指令：
 
