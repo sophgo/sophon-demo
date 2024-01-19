@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
                     // draw image
                     centernet.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x,
                                         bbox.y, bbox.width, bbox.height,
-                                        batch_imgs[i],centernet.m_confThreshold);
+                                        batch_imgs[i], false, centernet.m_confThreshold);
 
                     // save result
                     json bbox_json;
@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
 #endif
                 centernet.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x,
                                     bbox.y, bbox.width, bbox.height,
-                                    batch_imgs[i],centernet.m_confThreshold);
+                                    batch_imgs[i], false, centernet.m_confThreshold);
                 json bbox_json;
                 bbox_json["category_id"] = bbox.class_id;
                 bbox_json["score"] = bbox.score;
