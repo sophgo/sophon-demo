@@ -178,7 +178,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1688 SoC   | centernet_sail.soc  | centernet_int8_1b.bmodel | 0.289         | 0.467    |
 
 > **测试说明**：  
-> 1. SoC和PCIe的模型精度一致；
+> 1. SoC和PCIe的模型精度一致，int8 1b和4b的精度一致；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标；
 > 3. bmcv的精度略低于其他，主要是预处理的一些方法与源码有差异；
 > 4. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
