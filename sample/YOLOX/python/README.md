@@ -26,7 +26,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 此外您可能还需要安装其他第三方库：
 ```bash
-pip3 install 'opencv-python-headless<4.3'
+pip3 install opencv-python-headless
 ```
 
 ### 1.2 SoC平台
@@ -35,10 +35,10 @@ pip3 install 'opencv-python-headless<4.3'
 
 您可能还需要安装其他第三方库：
 ```bash
-pip3 install 'opencv-python-headless<4.3'
+pip3 install opencv-python-headless
 ```
 
-如果您希望直接使用sophon-opencv，无需进行上面的步骤，可以直接设置如下环境变量。
+如果您希望直接使用sophon-opencv，无需进行上面的步骤，可以直接设置如下环境变量。注意，sophon-opencv硬件解码速度更快，但结果会与原生opencv有一些差异，会引起精度上的略微区别。
 ```bash
 export PYTHONPATH=/opt/sophon/sophon-opencv-latest/opencv-python:$PYTHONPATH
 ```

@@ -410,18 +410,21 @@ void YoloX::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, in
   rect.start_y = MIN(MAX(top, 0), frame.height);
   rect.crop_w = MAX(MIN(width, frame.width - left), 0);
   rect.crop_h = MAX(MIN(height, frame.height - top), 0);
-  bmcv_image_draw_rectangle(handle, frame, 1, &rect, 3, colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
+  int thickness = 2;
+  if(width < thickness * 2 || height < thickness * 2){
+        std::cout << "width or height too small, this rect will not be drawed: " << 
+              "[" << rect.start_x << ", "<< rect.start_y << ", " << rect.crop_w << ", " << rect.crop_h << "]" << std::endl;
+    } 
+  bmcv_image_draw_rectangle(handle, frame, 1, &rect, thickness, colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
   if (put_text_flag){
     //Get the label for the class name and its confidence
     std::string label = m_class_names[classId] + ":" + cv::format("%.2f", conf);
     bmcv_point_t org = {left, top};
     bmcv_color_t color = {colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]};
-    int thickness = 2;
     float fontScale = 2; 
     if (BM_SUCCESS != bmcv_image_put_text(handle, frame, label.c_str(), org, color, fontScale, thickness)) {
       std::cout << "bmcv put text error !!!" << std::endl;   
     }
   }
-  
 }
 
