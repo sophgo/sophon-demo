@@ -194,7 +194,7 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. On 
 | BM1688 soc   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.356         | 0.565    |
 > **Test Description**:
 > 1. The model mAP of batch_size=4 and batch_size=1 is the same.
-> 2. Due to possible differences between SDK versions, it is normal for the mAP error of <1% between the actual running results and this table;
+> 2. Due to possible differences between SDK versions, it is normal for the mAP error of <0.01 between the actual running results and this table;
 > 3. AP@IoU=0.5:0.95 is the corresponding indicator of area=all.
 > 4. The mAP of the BM1688 num_core=2 model is basically the same as that of the num_core=1 model.
 
