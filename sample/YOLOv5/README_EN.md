@@ -18,8 +18,8 @@
   * [7.1 bmrt_test](#71-bmrt_test)
   * [7.2 Program Performance](#72-program-performance)
 * [8. YOLOv5 cpu opt](#8-yolov5-cpu-opt)
-  * [8.1. NMS Optimization Item](#81-nms-optimization-item)
-  * [8.2. Performance and Precision Test](#82-performance-and-precision-test)
+  * [8.1 NMS Optimization Item](#81-nms-optimization-item)
+  * [8.2 Performance and Precision Test](#82-performance-and-precision-test)
 * [9. FAQ](#9-faq)
   
 ## 1. Introduction
