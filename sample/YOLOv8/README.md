@@ -16,11 +16,11 @@
 * [8. FAQ](#8-faq)
   
 ## 1. 简介
-​YOLOv8是YOLO系列的的一个重大更新版本，它抛弃了以往的YOLO系类模型使用的Anchor-Base，采用了Anchor-Free的思想。YOLOv8建立在YOLO系列成功的基础上，通过对网络结构的改造，进一步提升其性能和灵活性。本例程对[​YOLOv8官方开源仓库](https://github.com/ultralytics/ultralytics)的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
+​YOLOv8是YOLO系列的的一个重大更新版本，它抛弃了以往的YOLO系类模型使用的Anchor-Base，采用了Anchor-Free的思想。YOLOv8建立在YOLO系列成功的基础上，通过对网络结构的改造，进一步提升其性能和灵活性。本例程对[​YOLOv8官方开源仓库](https://github.com/ultralytics/ultralytics)的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X)、INT8模型编译和推理
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -55,6 +55,19 @@ chmod -R +x scripts/
 │   ├── yolov8s_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── yolov8s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── yolov8s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1688
+│   ├── yolov8s_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=1
+│   ├── yolov8s_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=1
+│   ├── yolov8s_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4, num_core=1
+│   ├── yolov8s_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4, num_core=1
+│   ├── yolov8s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=1
+│   └── yolov8s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=1
+│   ├── yolov8s_fp32_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
+│   ├── yolov8s_fp16_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+│   ├── yolov8s_fp32_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4, num_core=2
+│   ├── yolov8s_fp16_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4, num_core=2
+│   ├── yolov8s_int8_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
+│   └── yolov8s_int8_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=2
 │── torch
 │   └── yolov8s.torchscript.pt   # trace后的torchscript模型
 └── onnx
@@ -83,37 +96,33 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684
-#or
-./scripts/gen_fp32bmodel_mlir.sh bm1684x
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`yolov8s_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`下生成`yolov8s_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`yolov8s_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_int8bmodel_mlir.sh bm1684
-#or
-./scripts/gen_int8bmodel_mlir.sh bm1684x
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`yolov8s_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+​执行上述命令会在`models/BM1684`下生成`yolov8s_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
@@ -155,9 +164,9 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1688 soc   | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 0.440   | 0.602 |
 | BM1688 soc   | yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel | 0.440   | 0.602 |
 | BM1688 soc   | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 0.432   | 0.594 |
-| BM1688 soc   | yolov8_bmcv.pcie | yolov8s_fp32_1b.bmodel | 0.448   | 0.610 |
-| BM1688 soc   | yolov8_bmcv.pcie | yolov8s_fp16_1b.bmodel | 0.447   | 0.609 |
-| BM1688 soc   | yolov8_bmcv.pcie | yolov8s_int8_1b.bmodel | 0.441   | 0.605 |
+| BM1688 soc   | yolov8_bmcv.soc | yolov8s_fp32_1b.bmodel | 0.448   | 0.610 |
+| BM1688 soc   | yolov8_bmcv.soc | yolov8s_fp16_1b.bmodel | 0.447   | 0.609 |
+| BM1688 soc   | yolov8_bmcv.soc | yolov8s_int8_1b.bmodel | 0.441   | 0.605 |
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
 2. SoC和PCIe的模型精度一致；
