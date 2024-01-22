@@ -185,7 +185,7 @@ On the `datasets/coco/val2017_1000` dataset, the accuracy test results with `nms
 > **Note**:
 > 1. The same programs on SoC or PCIe have the same mAP, bmodel with batch_size=4/batch_size=1 have the same mAP, BM1688's 1/2 core bmodel have the same mAP.
 > 2. AP@IoU=0.5:0.95 is the corresponding indicator of area=all.
-> 3. Due to possible differences between SDK versions, it is normal for the mAP error of <1% between the actual running results and this table.
+> 3. Due to possible differences between SDK versions, it is normal for the mAP error of <0.01 between the actual running results and this table.
 
 ## 7. Performance Testing
 ### 7.1 bmrt_test
