@@ -185,7 +185,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 > **测试说明**：  
 > 1. 相同的程序、模型在SoC和PCIe上精度一致，batch_size=4和batch_size=1的模型精度一致，BM1688双核模型精度测试与单核模型精度一致；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标；
-> 3. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
+> 3. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
