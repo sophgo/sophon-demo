@@ -27,7 +27,7 @@ If you have installed a PCIe accelerator card (such as SC series accelerator car
 
 In addition, you may need to install other third-party libraries:
 ```bash
-pip3 install 'opencv-python-headless<4.3'
+pip3 install opencv-python-headless
 ```
 
 ### 1.2 SoC Platform
@@ -36,10 +36,10 @@ If you use the SoC platform (such as SE, SM series edge devices), the correspond
 
 You may need to install other third-party libraries:
 ```bash
-pip3 install 'opencv-python-headless<4.3'
+pip3 install opencv-python-headless
 ```
 
-If you want to use sophon-opencv directly, you can directly set the following environment variables without performing the above steps.
+If you want to use sophon-opencv directly, you can directly set the following environment variables without performing the above steps. Attention, using sophon-opencv has higher performance, but may cause a little bit difference in mAP.
 ```bash
 export PYTHONPATH=/opt/sophon/sophon-opencv-latest/opencv-python:$PYTHONPATH
 ```
