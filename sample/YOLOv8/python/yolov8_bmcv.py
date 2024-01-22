@@ -205,19 +205,23 @@ class YOLOv8:
 def draw_bmcv(dev_id, image, boxes, output_img_dir, file_name, cn, masks=None, classes_ids=None, conf_scores=None, isvideo=False):
     bmcv = sail.Bmcv(sail.Handle(dev_id))
     img_bgr_planar = bmcv.convert_format(image)
+    thickness = 2
     for idx in range(len(boxes)):
         x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
         if classes_ids is not None:
             color = np.array(COLORS[int(classes_ids[idx]) + 1]).astype(np.uint8).tolist()
         else:
             color = (0, 0, 255)
-        bmcv.rectangle(img_bgr_planar, x1, y1, (x2 - x1), (y2 - y1), color, 2)
+        if (x2 - x1) < thickness * 2 or (y2 - y1) < thickness * 2:
+            logging.info("width or height too small, this rect will not be drawed: (x1={},y1={},w={},h={})".format(x1, y1, x2-x1, y2-y1))
+        else:
+            bmcv.rectangle(img_bgr_planar, x1, y1, (x2 - x1), (y2 - y1), color, thickness)
         # bmcv.putText(image, COCO_CLASSES[int(classes_ids[idx] + 1)], x1, y1, tuple(color),1.0,1)
         logging.debug("class id={}, score={}, (x1={},y1={},w={},h={})".format(int(classes_ids[idx]), conf_scores[idx], x1, y1, x2-x1, y2-y1))
-        if isvideo:
-            bmcv.imwrite(os.path.join(output_img_dir, file_name + '_' + str(cn) + '.jpg'), img_bgr_planar)
-        else:
-            bmcv.imwrite(os.path.join(output_img_dir, file_name), img_bgr_planar)
+    if isvideo:
+        bmcv.imwrite(os.path.join(output_img_dir, file_name + '_' + str(cn) + '.jpg'), img_bgr_planar)
+    else:
+        bmcv.imwrite(os.path.join(output_img_dir, file_name), img_bgr_planar)
 
 def main(args):
     # check params

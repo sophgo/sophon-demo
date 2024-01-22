@@ -168,9 +168,10 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1688 soc   | yolov8_bmcv.soc | yolov8s_fp16_1b.bmodel | 0.447   | 0.609 |
 | BM1688 soc   | yolov8_bmcv.soc | yolov8s_int8_1b.bmodel | 0.441   | 0.605 |
 > **测试说明**：  
-1. batch_size=4和batch_size=1的模型精度一致；
-2. SoC和PCIe的模型精度一致；
-3. AP@IoU=0.5:0.95为area=all对应的指标。
+> 1. batch_size=4和batch_size=1的模型精度一致；
+> 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
+> 3. AP@IoU=0.5:0.95为area=all对应的指标。
+> 4. BM1688 num_core=2的模型与num_core=1的模型精度基本一致。
 
 
 ## 7. 性能测试
