@@ -7,7 +7,7 @@ TARGET="BM1684X"
 MODE="pcie_test"
 TPUID=0
 RENEW=0
-sail_list=("YOLOv5" "CenterNet" "BERT") #c++ sail demo
+sail_list=("YOLOv5" "CenterNet" "BERT" "ppYOLOv3" "YOLOv34" "YOLOX" "segformer" "ppYoloe" "YOLOv5_opt") #c++ sail demo
 PYTEST="auto_test"
 
 usage() 
@@ -76,8 +76,8 @@ function test_sample(){
     tail -n 4 ./log_auto_test_regression/$1_$current_time.log | head -n 3
     if test $MODE = "soc_test"
     then
-        res=$(find -name results| grep results)
-        if [ $? != 0 ]; then
+        res=$(find -name results)
+        if [ "$res" != '' ]; then
             rm -r `find -name results`
         fi
         rm -r ./sample/$1/datasets
@@ -113,11 +113,10 @@ then
   test_dpkg libeigen3-dev #Trackers
 fi
 
-pip3 install dfn==1.0.2
 if [ $MODE = "pcie_test" ] || [ $MODE = "soc_test" ]
 then
-  pip3 install pycocotools
-  pip3 install 'opencv-python-headless<4.3'
+  pip3 install pycocotools -i https://pypi.tuna.tsinghua.edu.cn/simple 
+  pip3 install opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple 
   res=$(pip3 list|grep sophon)
   if [ $? != 0 ];
   then
