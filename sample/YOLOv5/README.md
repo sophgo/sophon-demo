@@ -204,7 +204,7 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 | BM1688 soc   | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.356         | 0.565    |
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
-> 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
+> 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 3. AP@IoU=0.5:0.95为area=all对应的指标。
 > 4. BM1688 num_core=2的模型与num_core=1的模型精度基本一致。
 

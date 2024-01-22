@@ -767,8 +767,9 @@ void YoloV5::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, i
   if(width < thickness * 2 || height < thickness * 2){
         std::cout << "width or height too small, this rect will not be drawed: " << 
               "[" << rect.start_x << ", "<< rect.start_y << ", " << rect.crop_w << ", " << rect.crop_h << "]" << std::endl;
-    } 
-  bmcv_image_draw_rectangle(handle, frame, 1, &rect, thickness, colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
+  } else{
+    bmcv_image_draw_rectangle(handle, frame, 1, &rect, thickness, colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
+  } 
   if (put_text_flag){
     //Get the label for the class name and its confidence
     std::string label = m_class_names[classId] + ":" + cv::format("%.2f", conf);
