@@ -1,0 +1,18 @@
+{
+  "dev_id": 0,
+  "bmodel_path": "../../models/BM1684/yolov5s_v6.1_3output_int8_1b.bmodel",
+  "channels": [
+    {
+      "url": "../../datasets/test_car_person_1080P.mp4",
+      "is_video": true,
+      "skip_frame": 0
+    }
+
+  ],
+  "queue_size": 50,
+  "num_pre": 4,
+  "num_post": 8,
+  "class_names": "../../datasets/coco.names",
+  "conf_thresh": 0.5,
+  "nms_thresh": 0.5
+}
