@@ -171,8 +171,8 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1688 SoC   | centernet_bmcv.py   | centernet_fp16_1b.bmodel | 0.258         | 0.422    |
 | BM1688 SoC   | centernet_bmcv.py   | centernet_int8_1b.bmodel | 0.255         | 0.414    |
 | BM1688 SoC   | centernet_bmcv.soc  | centernet_fp32_1b.bmodel | 0.268         | 0.429    |
-| BM1688 SoC   | centernet_bmcv.soc  | centernet_fp16_1b.bmodel | 0.268         | 0.430    |
-| BM1688 SoC   | centernet_bmcv.soc  | centernet_int8_1b.bmodel | 0.265         | 0.426    |
+| BM1688 SoC   | centernet_bmcv.soc  | centernet_fp16_1b.bmodel | 0.267         | 0.429    |
+| BM1688 SoC   | centernet_bmcv.soc  | centernet_int8_1b.bmodel | 0.264         | 0.422    |
 | BM1688 SoC   | centernet_sail.soc  | centernet_fp32_1b.bmodel | 0.296         | 0.480    |
 | BM1688 SoC   | centernet_sail.soc  | centernet_fp16_1b.bmodel | 0.296         | 0.480    |
 | BM1688 SoC   | centernet_sail.soc  | centernet_int8_1b.bmodel | 0.289         | 0.467    |
