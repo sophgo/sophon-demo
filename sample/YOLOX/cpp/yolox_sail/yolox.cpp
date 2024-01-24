@@ -449,8 +449,8 @@ void YoloX::draw_bmcv(int classId,float conf,int left,int top,int width,int heig
     // Draw a rectangle displaying the bounding box
     int start_x = MIN(MAX(left, 0), frame.width());
     int start_y = MIN(MAX(top, 0), frame.height());
-    int crop_w = MAX(MIN(width, frame.width() - left), 0);
-    int crop_h = MAX(MIN(height, frame.height() - top), 0);
+    int crop_w = MAX(MIN(width, frame.width() - start_x), 0);
+    int crop_h = MAX(MIN(height, frame.height() - start_y), 0);
     auto color_tuple = std::make_tuple(colors[classId % colors_num][2], colors[classId % colors_num][1],
                                        colors[classId % colors_num][0]);
     int thickness = 2;

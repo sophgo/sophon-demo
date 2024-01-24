@@ -10,6 +10,10 @@ else
 fi
 
 outdir=../models/$target_dir
+fp_forward_chip=$target
+if test $target = "bm1688"; then
+    fp_forward_chip=bm1684x
+fi
 
 function gen_mlir()
 {
@@ -36,10 +40,9 @@ function gen_cali_table()
 
 function gen_qtable()
 {
-
     fp_forward.py yolox_s_$1b.mlir \
         --quantize INT8 \
-        --chip $target \
+        --chip $fp_forward_chip \
         --fpfwd_inputs /backbone/backbone/dark2/dark2.1/conv3/conv/Conv_output_0_Conv \
         --fpfwd_outputs /head/stems.0/conv/Conv_output_0_Conv,/head/stems.1/conv/Conv_output_0_Conv,/head/stems.2/conv/Conv_output_0_Conv \
         -o yolox_s_qtable
