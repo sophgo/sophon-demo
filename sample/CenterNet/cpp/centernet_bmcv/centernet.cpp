@@ -505,7 +505,7 @@ void Centernet::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left
         rect.crop_w = MAX(MIN(width, frame.width - rect.start_x), 0);
         rect.crop_h = MAX(MIN(height, frame.height - rect.start_y), 0);
         int thickness = 2;
-        if(width < thickness * 2 || height < thickness * 2){
+        if(rect.crop_w <= thickness * 2 || rect.crop_h <= thickness * 2){
             std::cout << "width or height too small, this rect will not be drawed: " << 
                     "[" << rect.start_x << ", "<< rect.start_y << ", " << rect.crop_w << ", " << rect.crop_h << "]" << std::endl;
         } else{
