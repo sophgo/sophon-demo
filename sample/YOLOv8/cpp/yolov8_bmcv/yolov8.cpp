@@ -107,22 +107,22 @@ int YoloV8::batch_size() {
 int YoloV8::Detect(const std::vector<bm_image>& input_images, std::vector<YoloV8BoxVec>& boxes) {
     int ret = 0;
     // 3. preprocess
-    LOG_TS(m_ts, "yolov8 preprocess");
+    m_ts->save("yolov8 preprocess", input_images.size());
     ret = pre_process(input_images);
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "yolov8 preprocess");
+    m_ts->save("yolov8 preprocess", input_images.size());
 
     // 4. forward
-    LOG_TS(m_ts, "yolov8 inference");
+    m_ts->save("yolov8 inference", input_images.size());
     ret = m_bmNetwork->forward();
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "yolov8 inference");
+    m_ts->save("yolov8 inference", input_images.size());
 
     // 5. post process
-    LOG_TS(m_ts, "yolov8 postprocess");
+    m_ts->save("yolov8 postprocess", input_images.size());
     ret = post_process(input_images, boxes);
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "yolov8 postprocess");
+    m_ts->save("yolov8 postprocess", input_images.size());
     return ret;
 }
 
@@ -438,8 +438,8 @@ void YoloV8::draw_bmcv(bm_handle_t& handle,
     bmcv_rect_t rect;
     rect.start_x = MIN(MAX(left, 0), frame.width);
     rect.start_y = MIN(MAX(top, 0), frame.height);
-    rect.crop_w = MAX(MIN(width, frame.width - left), 0);
-    rect.crop_h = MAX(MIN(height, frame.height - top), 0);
+    rect.crop_w = MAX(MIN(width, frame.width - rect.start_x), 0);
+    rect.crop_h = MAX(MIN(height, frame.height - rect.start_y), 0);
     int thickness = 2;
     if(width < thickness * 2 || height < thickness * 2){
             std::cout << "width or height too small, this rect will not be drawed: " << 
