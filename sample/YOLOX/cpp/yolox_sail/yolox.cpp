@@ -454,7 +454,7 @@ void YoloX::draw_bmcv(int classId,float conf,int left,int top,int width,int heig
     auto color_tuple = std::make_tuple(colors[classId % colors_num][2], colors[classId % colors_num][1],
                                        colors[classId % colors_num][0]);
     int thickness = 2;
-    if(width < thickness * 2 || height < thickness * 2){
+    if(crop_w <= thickness * 2 || crop_h <= thickness * 2){
         std::cout << "width or height too small, this rect will not be drawed: " << 
               "[" << start_x << ", "<< start_y << ", " << crop_w << ", " << crop_h << "]" << std::endl;
     } else{
