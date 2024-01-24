@@ -761,10 +761,10 @@ void YoloV5::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, i
   bmcv_rect_t rect;
   rect.start_x = MIN(MAX(left, 0), frame.width);
   rect.start_y = MIN(MAX(top, 0), frame.height);
-  rect.crop_w = MAX(MIN(width, frame.width - left), 0);
-  rect.crop_h = MAX(MIN(height, frame.height - top), 0);
+  rect.crop_w = MAX(MIN(width, frame.width - rect.start_x), 0);
+  rect.crop_h = MAX(MIN(height, frame.height - rect.start_y), 0);
   int thickness = 2;
-  if(width < thickness * 2 || height < thickness * 2){
+  if(rect.crop_w <= thickness * 2 || rect.crop_h <= thickness * 2){
         std::cout << "width or height too small, this rect will not be drawed: " << 
               "[" << rect.start_x << ", "<< rect.start_y << ", " << rect.crop_w << ", " << rect.crop_h << "]" << std::endl;
   } else{
@@ -773,7 +773,7 @@ void YoloV5::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, i
   if (put_text_flag){
     //Get the label for the class name and its confidence
     std::string label = m_class_names[classId] + ":" + cv::format("%.2f", conf);
-    bmcv_point_t org = {left, top};
+    bmcv_point_t org = {rect.start_x, rect.start_y};
     bmcv_color_t color = {colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]};
     float fontScale = 2; 
     if (BM_SUCCESS != bmcv_image_put_text(handle, frame, label.c_str(), org, color, fontScale, thickness)) {
