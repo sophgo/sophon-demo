@@ -372,7 +372,7 @@ def main(args):
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
                     save_path = os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg')
                     if args.use_cpu_opt:
-                        draw_bmcv(bmcv, bmimg_list[i], det[:,:4], classes_ids=det[:, -2], conf_scores=det[:, -1], save_path=save_path)
+                        draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -2], conf_scores=det[:, -1], save_path=save_path)
                     else:
                         draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
                 frame_list.clear()
