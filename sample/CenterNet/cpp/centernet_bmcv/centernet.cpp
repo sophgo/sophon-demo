@@ -497,36 +497,25 @@ int* Centernet::topk(float * a, int k){
 void Centernet::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, int top, int width, int height, bm_image& frame, bool put_text_flag, float conf_threshold)   // Draw the predicted bounding box
 {
     if (conf >= conf_threshold){
-         int colors_num = colors.size();
+        int colors_num = colors.size();
         //Draw a rectangle displaying the bounding box
         bmcv_rect_t rect;
-        rect.start_x = left;
-        rect.start_y = top;
-        rect.crop_w = width;
-        rect.crop_h = height;
-        // std::cout << rect.start_x << "," << rect.start_y << "," << rect.crop_w << "," << rect.crop_h << std::endl;
-
-        int thickness = 3;
+        rect.start_x = MIN(MAX(left, 0), frame.width);
+        rect.start_y = MIN(MAX(top, 0), frame.height);
+        rect.crop_w = MAX(MIN(width, frame.width - rect.start_x), 0);
+        rect.crop_h = MAX(MIN(height, frame.height - rect.start_y), 0);
+        int thickness = 2;
         if(width < thickness * 2 || height < thickness * 2){
             std::cout << "width or height too small, this rect will not be drawed: " << 
-                "[" << left << ", "<< top << ", " << width << ", " << height << "]" << std::endl;
+                    "[" << rect.start_x << ", "<< rect.start_y << ", " << rect.crop_w << ", " << rect.crop_h << "]" << std::endl;
         } else{
             bmcv_image_draw_rectangle(handle, frame, 1, &rect, thickness, colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
-        }   
-        // cv::rectangle(frame, cv::Point(left, top), cv::Point(right, bottom), cv::Scalar(0, 0, 255), 3);
-
+        } 
         if (put_text_flag){
             //Get the label for the class name and its confidence
             std::string label = m_class_names[classId] + ":" + cv::format("%.2f", conf);
-            // Display the label at the top of the bounding box
-            // int baseLine;
-            // cv::Size labelSize = getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-            // top = std::max(top, labelSize.height);
-            // //rectangle(frame, Point(left, top - int(1.5 * labelSize.height)), Point(left + int(1.5 * labelSize.width), top + baseLine), Scalar(0, 255, 0), FILLED);
-            // cv::putText(frame, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(0, 255, 0), 1);
             bmcv_point_t org = {left, top};
             bmcv_color_t color = {colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]};
-            int thickness = 2;
             float fontScale = 2; 
             if (BM_SUCCESS != bmcv_image_put_text(handle, frame, label.c_str(), org, color, fontScale, thickness)) {
                 std::cout << "bmcv put text error !!!" << std::endl;   
