@@ -254,11 +254,15 @@ int main(int argc, char** argv) {
                     int classId = iterbox->c;
                     std::tuple<int,int,int> color = std::make_tuple(colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
                     int thickness = 3;
-                    if(iterbox->w < thickness * 2 || iterbox->h < thickness * 2){
+                    int start_x = MIN(MAX(iterbox->x, 0), rgb_img.width());
+                    int start_y = MIN(MAX(iterbox->y, 0), rgb_img.height());
+                    int crop_w = MAX(MIN(rgb_img.width(), rgb_img.width() - start_x), 0);
+                    int crop_h = MAX(MIN(rgb_img.height(), rgb_img.height() - start_y), 0);
+                    if(crop_w < thickness * 2 || crop_h < thickness * 2){
                         std::cout << "width or height too small, this rect will not be drawed: " << 
-                            "[" << iterbox->x << ", "<< iterbox->y << ", " << iterbox->w << ", " << iterbox->h << "]" << std::endl;
+                            "[" << start_x << ", "<< start_y << ", " << crop_w << ", " << crop_h << "]" << std::endl;
                     } else{
-                        bmcv.rectangle(rgb_img, iterbox->x, iterbox->y, iterbox->w, iterbox->h, color, thickness);
+                        bmcv.rectangle(rgb_img, start_x, start_y, crop_w, crop_h, color, thickness);
                     }                  
                 }
                 // save result
@@ -339,11 +343,15 @@ int main(int argc, char** argv) {
                         std::tuple<int,int,int> color = std::make_tuple(colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
                         
                         int thickness = 3;
-                        if(iterbox->w < thickness * 2 || iterbox->h < thickness * 2){
+                        int start_x = MIN(MAX(iterbox->x, 0), imgs_0[b].width());
+                        int start_y = MIN(MAX(iterbox->y, 0), imgs_0[b].height());
+                        int crop_w = MAX(MIN(imgs_0[b].width(), imgs_0[b].width() - start_x), 0);
+                        int crop_h = MAX(MIN(imgs_0[b].height(), imgs_0[b].height() - start_y), 0);
+                        if(crop_w < thickness * 2 || crop_h < thickness * 2){
                             std::cout << "width or height too small, this rect will not be drawed: " << 
-                                "[" << iterbox->x << ", "<< iterbox->y << ", " << iterbox->w << ", " << iterbox->h << "]" << std::endl;
+                                "[" << start_x << ", "<< start_y << ", " << crop_w << ", " << crop_h << "]" << std::endl;
                         } else{
-                            bmcv.rectangle(imgs_0[b], iterbox->x, iterbox->y, iterbox->w, iterbox->h, color, thickness);
+                            bmcv.rectangle(imgs_0[b], start_x, start_y, crop_w, crop_h, color, thickness);
                         }
                         
                     }
