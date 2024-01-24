@@ -244,7 +244,7 @@ def draw_bmcv(bmcv, bmimg, boxes, classes_ids=None, conf_scores=None, save_path=
             color = np.array(COLORS[int(classes_ids[idx]) + 1]).astype(np.uint8).tolist()
         else:
             color = (0, 0, 255)
-        if (x2 - x1) < thickness * 2 or (y2 - y1) < thickness * 2:
+        if (x2 - x1) <= thickness * 2 or (y2 - y1) <= thickness * 2:
             logging.info("width or height too small, this rect will not be drawed: (x1={},y1={},w={},h={})".format(x1, y1, x2-x1, y2-y1))
         else:
             bmcv.rectangle(img_bgr_planar, x1, y1, (x2 - x1), (y2 - y1), color, thickness)
