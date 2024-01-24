@@ -226,7 +226,7 @@ Here, the cross-compilation environment has been built, and then you can use the
 ### 4.2 Cross-compiling and sophon-sail Installation
 
 If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of sophon-sail from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
-You can open the user manual provided in the sophon-sail compressed package (named sophon-sail_en.pdf), refer to the compilation and installation guide chapter, and select the mode you need (C++/Python, SoC MODE) for installation. **Note that you need to select Contains the compilation methods of ffmpeg and opencv.**
+You can open the user manual provided in the sophon-sail compressed package (named sophon-sail_en.pdf), attention, if you are using BM1688 SOPHONSDK, then sophon-sail's guide is under the directory doc/. Refer to the compilation and installation guide chapter, and select the mode you need (C++/Python, SoC MODE) for installation. **Note that you need to select Contains the compilation methods of ffmpeg and opencv.**
 After you have followed the tutorial and copied the library files of Sophon Sail to the target SoC, you also need to set the following environment variables:
 ```bash
 echo 'export LD_LIBRARY_PATH=/opt/sophon/sophon-sail/lib/:$LD_LIBRARY_PATH' >> ~/.bashrc
