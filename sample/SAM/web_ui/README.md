@@ -14,7 +14,7 @@ SAM_WEB_UI例程是一个SAM前后端交互的应用，允许用户在前端界�
 * [1. 工程目录](#1-工程目录)
 * [2. 环境准备](#2-环境准备)
 * [3. 启动后端程序](#3-启动后端程序)
-* [3. 启动前端程序](#3-启动前端程序)
+* [4. 启动前端程序](#4-启动前端程序)
 
 
 ## 1. 工程目录
@@ -34,19 +34,35 @@ SAM_WEB_UI例程是一个SAM前后端交互的应用，允许用户在前端界�
     └── main.js          # 页面源代码
 ```
 ## 2. 环境准备
-1、为了运行使用 Flask 的后端程序，您需要安装以下依赖包：
+2.1、 因项目需要依赖SAM的python脚本，故而您还需要按照SAM的对应要求准备环境，具体请参考：[SAM的Python环境准备](../python/README.md)
+
+2.2、除此之外，为了运行使用 Flask 的后端程序，您需要安装以下依赖包：
 ```
 pip3 install flask flask-cors
 ```
-2、请大家将需要分割的图片放置在/sophon-demo/sample/SAM/web_ui/images目录下，程序会自动读取目录下所有*.jpg的所有图片，并在前端页面下拉框中显示图片名。
+2.3、请大家将需要分割的图片放置在/sophon-demo/sample/SAM/web_ui/images目录下，程序会自动读取目录下所有*.jpg的所有图片，并在前端页面下拉框中显示图片名。
 
 ## 3. 启动后端程序
-后端程序位于sophon-demo/sample/SAM/python ，脚本名字叫 backend.py
+后端程序位于sophon-demo/sample/SAM/python ，脚本名字叫 backend.py。此web_ui的python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
+
+3.1、 参数说明
+backend.py的参数说明如下：
+```bash
+usage: backend.py [--embedding_bmodel EMBEDDING_BMODEL] [--bmodel BMODEL] [--dev_id DEV_ID]
+                        
+--embedding_bmodel 用于图像压缩(embedding)的bmodel路径；
+--bmodel: 用于推理(mask_decode)的bmodel路径；
+--dev_id: 用于推理的tpu设备id；
+```
+
+3.2、 运行示例
 ```
 cd sophon-demo/sample/SAM
-python3 python/backend.py
+python3 python/backend.py \
+--embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel \
+--bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_fp16_1b.bmodel --dev_id 0
 ```
-## 3. 启动前端程序
+## 4. 启动前端程序
 前端程序放在sophon-demo/sample/SAM/web_ui 里面，可以通过 python 启动
 ```
 cd sophon-demo/sample/SAM/web_ui
