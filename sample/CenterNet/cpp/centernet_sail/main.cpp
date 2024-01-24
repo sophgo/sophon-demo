@@ -258,7 +258,7 @@ int main(int argc, char** argv) {
                     int start_y = MIN(MAX(iterbox->y, 0), rgb_img.height());
                     int crop_w = MAX(MIN(rgb_img.width(), rgb_img.width() - start_x), 0);
                     int crop_h = MAX(MIN(rgb_img.height(), rgb_img.height() - start_y), 0);
-                    if(crop_w < thickness * 2 || crop_h < thickness * 2){
+                    if(crop_w <= thickness * 2 || crop_h <= thickness * 2){
                         std::cout << "width or height too small, this rect will not be drawed: " << 
                             "[" << start_x << ", "<< start_y << ", " << crop_w << ", " << crop_h << "]" << std::endl;
                     } else{
@@ -347,7 +347,7 @@ int main(int argc, char** argv) {
                         int start_y = MIN(MAX(iterbox->y, 0), imgs_0[b].height());
                         int crop_w = MAX(MIN(imgs_0[b].width(), imgs_0[b].width() - start_x), 0);
                         int crop_h = MAX(MIN(imgs_0[b].height(), imgs_0[b].height() - start_y), 0);
-                        if(crop_w < thickness * 2 || crop_h < thickness * 2){
+                        if(crop_w <= thickness * 2 || crop_h <= thickness * 2){
                             std::cout << "width or height too small, this rect will not be drawed: " << 
                                 "[" << start_x << ", "<< start_y << ", " << crop_w << ", " << crop_h << "]" << std::endl;
                         } else{
