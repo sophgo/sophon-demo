@@ -1,0 +1,33 @@
+<!-- index.html 文件内容 -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAM WEB UI DEMO</title>
+    <script src="./scripts/main.js" defer></script>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="icon"
+        href="data:image/gif;base64,R0lGODlhEAAQAMQAAORHHOVSKudfOylKSOpLPKPRWOyPxej5cyyZBQAAACH5BAkAAbgALAAAAAAQABAAAAO2nL2n1XbZfJYyUFQA7"
+        type="image/x-icon">
+</head>
+
+<body>
+    <!-- 下拉框用于选择操作模式 -->
+    <div class="controls-container">
+        <select id="imageSelector" class="image-selector">
+            <option value="">Select an image...</option>
+            <!-- 动态填充其他选项 -->
+        </select>
+        <select id="modeSelector" class="mode-selector">
+            <option value="Point">Sigle Point</option>
+            <option value="Box">Draw Box</option>
+        </select>
+    </div>
+    <div class="image-container">
+        <img id="image" src="components/firstPage.png" alt="Your Image">
+    </div>
+</body>
+
+</html>
