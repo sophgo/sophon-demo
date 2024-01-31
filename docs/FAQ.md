@@ -100,3 +100,20 @@ sophon-demo提供的性能测试表格一般包含解码、前处理、推理、
 
 ### 7.2 有些图片的数据重叠到一起，有的图片框上面没数据，有些图片没有框
 图片和视频测试结果存在少数的漏检、误检，这是正常的，sophon-demo的例程只需要保证移植后的模型和源模型的精度可以对齐就行了，判断模型效果应当以精度指标测试为准。
+
+### 7.3 程序运行时出现`bm_ion_alloc failed`等报错
+首先排查程序是否出现设备内存泄漏，代码中是否存在分配设备内存没有及时释放的问题。如果确认没有内存泄漏，那么可能是由于某个heap太小导致的，可以观察一下设备内存各个heap的使用情况：
+```bash
+#在SE5/SE7系列上使用以下命令查看：
+sudo cat /sys/kernel/debug/ion/bm_vpu_heap_dump/summary
+sudo cat /sys/kernel/debug/ion/bm_vpp_heap_dump/summary
+sudo cat /sys/kernel/debug/ion/bm_npu_heap_dump/summary
+#在SE9上使用以下命令查看：
+sudo cat /sys/kernel/debug/ion/cvi_vpp_heap_dump/summary
+sudo cat /sys/kernel/debug/ion/cvi_npu_heap_dump/summary
+#会打印类似这种信息
+Summary:
+[1] vpp heap size:4294967296 bytes, used:144646144 bytes
+usage rate:4%, memory usage peak 144646144 bytes #memory usage peak是该heap的内存使用峰值
+```
+如果某个heap的`memory usage peak`已经接近`heap size`了，那么可以考虑用这个工具调整设备内存各个heap的大小：[sophon内存修改工具](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/SophonSDK_doc/zh/html/appendix/2_mem_edit_tools.html)。

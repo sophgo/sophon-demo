@@ -94,3 +94,21 @@ This is because your cmake do not have `add_compile_definitions` function, you c
 
 ### 7.2 Some images have data overlapped, some have no data on the frame, and some images have no frame
 It is normal for there to be a small number of missed and false detections in the image and video test results. Our samples only needs to ensure that the accuracy of the transplanted model and the source model can be aligned, and the accuracy index test should prevail to judge the model effect.
+
+### 7.3 `bm_ion_alloc failed` occured during program running.
+First, check if there is any device memory leak, such as alloc a piece of device memory but do not release after its life cycle.
+If you can confirm no device memory leak happened, then this issue is probably because a device memory heap being too small, use these commands to see each heap's memory usage.
+```bash
+#on SE5/SE7 series use:
+sudo cat /sys/kernel/debug/ion/bm_vpu_heap_dump/summary
+sudo cat /sys/kernel/debug/ion/bm_vpp_heap_dump/summary
+sudo cat /sys/kernel/debug/ion/bm_npu_heap_dump/summary
+#on SE5/SE7 series use:
+sudo cat /sys/kernel/debug/ion/cvi_vpp_heap_dump/summary
+sudo cat /sys/kernel/debug/ion/cvi_npu_heap_dump/summary
+#such command will print
+Summary:
+[1] vpp heap size:4294967296 bytes, used:144646144 bytes
+usage rate:4%, memory usage peak 144646144 bytes #memory usage peak is the highest usage since startup
+```
+if a heap's `memory usage peak` is very closed to its `heap size`, you can use this tool to manually set each heap's size: [sophon memedit tool](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/SophonSDK_doc/zh/html/appendix/2_mem_edit_tools.html).
