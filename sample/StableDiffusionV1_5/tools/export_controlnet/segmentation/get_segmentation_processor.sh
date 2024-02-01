@@ -1,6 +1,13 @@
 #!/bin/bash
-model_dir=$(dirname $(readlink -f "$0"))
-outdir=../../../models/processors/bmodels
+
+script_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+pushd "$script_directory/processors" || exit
+
+outdir=../../../../models/BM1684X/processors/
+
+if [ ! -d $outdir ]; then
+    mkdir -p $outdir
+fi
 
 function gen_mlir()
 {
@@ -15,17 +22,12 @@ function gen_fp16bmodel()
 {
     model_deploy.py \
         --mlir segmentation_processor.mlir \
-        --quantize F16 \
+        --quantize BF16 \
         --chip bm1684x \
         --model segmentation_processor_fp16.bmodel
 
     mv segmentation_processor_fp16.bmodel $outdir/
 }
-
-pushd $model_dir
-if [ ! -d $outdir ]; then
-    mkdir -p $outdir
-fi
 
 gen_mlir
 gen_fp16bmodel
