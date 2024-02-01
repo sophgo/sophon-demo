@@ -19,4 +19,4 @@ For more details, you can refer to 《LIBSOPHON Guide》。
 This refers to the utilization rate of a certain program, and the value of the corresponding program under the `CPU%` field can be viewed through `top` or `htop`, and users can search for their usage by themselves.
 
 ## 4. Host Mem Usage
-This refers to the occupation of a certain program, and the value of the corresponding program under the 'RES' field can be viewed through 'top' or 'htop', and users can search for their usage by themselves.
+This refers to the occupation of a certain program, and the value of the corresponding program under the `RES` field can be viewed through `top` or `htop`, and users can search for their usage by themselves.
