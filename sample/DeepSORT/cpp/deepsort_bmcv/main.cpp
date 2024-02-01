@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
                 printBox(bbox);
             }
         #endif
-                cout << id << ", detect_nums: " << yolov5_boxes[i].size() << "; track_nums: " << yolov5_boxes[i].size()
+                cout << id << ", detect_nums: " << yolov5_boxes[i].size() << "; track_nums: " << track_boxes.size()
                      << endl;
                 ts->save("encode time");
                 for (auto bbox : track_boxes) {
