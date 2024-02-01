@@ -43,7 +43,7 @@ void DeepSort::sort(bm_image& frame, vector<YoloV5Box>& dets, vector<TrackBox>& 
         detections.push_back(d);
     }
     track_boxs.clear();
-    if (detections.size() > 0) {
+    if (detections.size() >= 0) {
         LOG_TS(m_ts, "extractor time");
         bool flag = featureExtractor->getRectsFeature(frame, detections);
         LOG_TS(m_ts, "extractor time");
