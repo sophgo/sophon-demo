@@ -203,7 +203,7 @@ You need to build a cross-compilation environment on an x86 host using SOPHON SD
 
 3. Package sophon-ffmpeg and sophon-opencv
 
-    Download and unzip the [Compatible](../README_EN.md#environment-dependencies) sophon-mw installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes libsophon_soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number.
+    Download and unzip the [Compatible](../README_EN.md#environment-dependencies) sophon-mw installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes libsophon_soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number. If you are using BM1688 SOPHONSDK, the prefix "sophon-mw" may be changed to "sophon-media".
     ```bash
     # unzip sophon-mw-soc_x.y.z_aarch64.tar.gz
     tar -zxf sophon-mw-soc_${x.y.z}_aarch64.tar.gz

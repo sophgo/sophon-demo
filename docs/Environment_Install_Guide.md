@@ -202,7 +202,7 @@ source /etc/profile
 
 3. 打包sophon-ffmpeg和sophon-opencv
 
-    从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-mw安装包，其中包括sophon-mw-soc_x.y.z_aarch64.tar.gz，x.y.z表示版本号，并进行解压。
+    从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-mw安装包，其中包括sophon-mw-soc_x.y.z_aarch64.tar.gz，x.y.z表示版本号，并进行解压，如果您使用BM1688 SOPHONSDK，“sophon-mw”这个名字或许需要替换成“sophon-media”。
     ```bash
     # 解压sophon-mw-soc_x.y.z_aarch64.tar.gz
     tar -zxf sophon-mw-soc_${x.y.z}_aarch64.tar.gz
