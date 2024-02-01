@@ -1,10 +1,4 @@
 #!/bin/bash
-res=$(dpkg -l|grep tar)
-if [ $? != 0 ];
-then
-    echo "Please install tar on your system!"
-    exit
-fi
 
 res=$(dpkg -l|grep unzip)
 if [ $? != 0 ];
@@ -57,13 +51,18 @@ then
     7z x yolov5s-licensePlate.7z -o../models
     rm yolov5s-licensePlate.7z
 
-    python3 -m dfss --url=open@sophgo.com:/sophon-stream/license_plate_recognition/BM1688.tar.gz
-    tar -zxvf ./BM1688.tar.gz
+    python3 -m dfss --url=open@sophgo.com:/sophon-demo/LPRNet/BM1688.zip
+    unzip ./BM1688.zip
     mkdir -p ../models/lprnet/BM1688
-    mkdir -p ../models/yolov5s-licensePlate/BM1688
     mv ./BM1688/lprnet* ../models/lprnet/BM1688
+    rm -rf ./BM1688.zip
+    rm -rf ./BM1688
+
+    python3 -m dfss --url=open@sophgo.com:/sophon-demo/YOLOv5/license_plate_recognition/BM1688.zip
+    unzip ./BM1688.zip
+    mkdir -p ../models/yolov5s-licensePlate/BM1688
     mv ./BM1688/yolov5s* ../models/yolov5s-licensePlate/BM1688
-    rm -rf ./BM1688.tar.gz
+    rm -rf ./BM1688.zip
     rm -rf ./BM1688
 
     echo "models download!"
