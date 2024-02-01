@@ -20,7 +20,7 @@ def HWC3(x):
         y = y.clip(0, 255).astype(np.uint8)
         return y
 
-def resize_image(input_image, resolution):
+def resize_image(input_image, resolution = 512):
     H, W, C = input_image.shape
     H = float(H)
     W = float(W)
@@ -33,23 +33,19 @@ def resize_image(input_image, resolution):
     return img
 
 def _prepare_scribble_image(controlnet_img, scribble_processor):
+    W, H = controlnet_img.size
     if not isinstance(controlnet_img, np.ndarray):
         controlnet_img = np.array(controlnet_img, dtype=np.uint8)
-    assert controlnet_img.dtype == np.uint8
-    if controlnet_img.ndim == 2:
-        controlnet_img = controlnet_img[:, :, None]
+    
+    controlnet_img = HWC3(controlnet_img)
+    controlnet_img = resize_image(controlnet_img, 512)
+
     assert controlnet_img.ndim == 3
-    H, W, C = controlnet_img.shape
-    assert C == 1 or C == 3
-    if C == 3:
-        pass
-    if C == 1:
-        controlnet_img = np.concatenate([controlnet_img, controlnet_img, controlnet_img], axis=2)
     controlnet_img = controlnet_img[:, :, ::-1].copy()
 
     image_hed = controlnet_img.astype(float)
     image_hed = image_hed / 255.0
-    image_hed = image_hed.transpose((2,0,1)).reshape(1, 3, 512, 512)
+    image_hed = image_hed.transpose((2,0,1))[np.newaxis, ...]
     image_hed = [image_hed]
     edge = scribble_processor(image_hed)
     edge = (edge[0] * 255.0).clip(0, 255).astype(np.uint8)
@@ -62,6 +58,7 @@ def _prepare_scribble_image(controlnet_img, scribble_processor):
     detected_map[detected_map < 255] = 0
 
     detected_map = Image.fromarray(detected_map)
+    detected_map = detected_map.resize((W, H))
     detected_map = detected_map.convert("RGB")
     # pil to numpy
     detected_map = np.array(detected_map).astype(np.float32) / 255.0

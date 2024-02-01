@@ -4,7 +4,11 @@ import os
 import torch
 from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
-model_save_path = "../models/onnx_pt"
+text_encoder_save_path = "../models/onnx_pt"
+if not os.path.exists(text_encoder_save_path):
+    os.makedirs(text_encoder_save_path)
+
+model_save_path = "../models/onnx_pt/singlize"
 if not os.path.exists(model_save_path):
     os.makedirs(model_save_path)
 
@@ -50,7 +54,7 @@ def export_textencoder():
         para.requires_grad = False
     batch = 1
     fake_input = torch.randint(0, 1000, (batch, 77))
-    onnx_model_path = os.path.join(model_save_path, "./text_encoder_1684x_f32.onnx")
+    onnx_model_path = os.path.join(text_encoder_save_path, "./text_encoder_1684x_f32.onnx")
     torch.onnx.export(pipe.text_encoder, fake_input, onnx_model_path, verbose=True, opset_version=14, input_names=["input_ids"], output_names=["output"])
 
 def export_vae_decoder():
@@ -96,9 +100,6 @@ def export_vae_encoder():
     fake_input = torch.randn(1, 3, img_size[0], img_size[1]).to(torch.float32)
     traced_model = torch.jit.trace(encoder, (fake_input))
     traced_model.save(os.path.join(model_save_path, "vae_encoder_singlize.pt"))
-
-#pipe.enable_model_cpu_offload()
-# pipe.enable_xformers_memory_efficient_attention()
 
 print("================Start Save UNet Model======================")
 export_unet()
