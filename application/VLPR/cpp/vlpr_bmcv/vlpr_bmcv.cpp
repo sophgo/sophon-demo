@@ -180,6 +180,14 @@ void VLPR::crop(int process_id) {
       int dilated_left = center_x - dilated_w / 2;
       int dilated_top = center_y - dilated_h / 2;
 
+      if (dilated_h < 16 || dilated_w < 16)
+      {
+        // drop invalid box
+        std::unique_lock<std::mutex> lock(m_mutex_num_map);
+        m_num_map[channel_id][frame_id]->num--;
+        continue;
+      }
+
       std::shared_ptr<bmimage> croped_bmimg = std::make_shared<bmimage>();
       croped_bmimg->bmimg = std::make_shared<bm_image>();
       croped_bmimg->bmimg.reset(new bm_image(), [](bm_image* p) {
