@@ -159,7 +159,7 @@ The theoretical reasoning time of each model is tested, and the results are as f
 > 3. The SoC and PCIe test results are basically the same.
 
 ### 7.2 Program Running Performance
-Refer to [C++ Example](cpp/README_EN.md) or [Python Example](./python/README_EN.md), and view the statistics of decode time, preprocessing time, inference time, and postprocess time. C++ Example print entire batch time, which needs to be divided by the corresponding batch size to be the processing time of each image.
+Refer to [C++ Example](cpp/README_EN.md) or [Python Example](./python/README_EN.md), and view the statistics of decode time, preprocessing time, inference time, and postprocess time. The time info which C++/Python example prints have already been converted into processing time per image.
 
 Use different models to test `datasets/val2017_1000` with `conf_thresh=0.5,nms_thresh=0.5`. The performance test results are shown as follows:
 |    platform  |     program      |             BModel            |decode_time|preprocess_time|inference_time|postprocess_time| 

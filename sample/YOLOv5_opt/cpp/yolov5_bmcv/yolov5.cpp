@@ -187,22 +187,22 @@ int YoloV5::batch_size() {
 int YoloV5::Detect(const std::vector<bm_image>& input_images, std::vector<YoloV5BoxVec>& boxes) {
   int ret = 0;
   // 3. preprocess
-  LOG_TS(m_ts, "yolov5 preprocess");
+  m_ts->save("yolov5 preprocess", input_images.size());
   ret = pre_process(input_images);
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "yolov5 preprocess");
+  m_ts->save("yolov5 preprocess", input_images.size());
 
   // 4. forward
-  LOG_TS(m_ts, "yolov5 inference");
+  m_ts->save("yolov5 inference", input_images.size());
   ret = m_bmNetwork->forward();
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "yolov5 inference");
+  m_ts->save("yolov5 inference", input_images.size());
 
   // 5. post process
-  LOG_TS(m_ts, "yolov5 postprocess");
+  m_ts->save("yolov5 postprocess", input_images.size());
   ret = post_process_tpu_kernel(input_images, boxes);
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "yolov5 postprocess");
+  m_ts->save("yolov5 postprocess", input_images.size());
   return ret;
 }
 
