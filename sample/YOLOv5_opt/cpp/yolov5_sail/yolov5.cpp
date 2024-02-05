@@ -150,7 +150,7 @@ int YoloV5::batch_size() {
 int YoloV5::Detect(std::vector<sail::BMImage>& input_images, std::vector<YoloV5BoxVec>& boxes) {
     int ret = 0;
     // 1. preprocess
-    LOG_TS(m_ts, "yolov5 preprocess");
+    m_ts->save("yolov5 preprocess", input_images.size());
     if (input_images.size() == 4 && max_batch == 4) {
         ret = pre_process<4>(input_images);
     } else if (input_images.size() == 1 && max_batch == 1) {
@@ -160,18 +160,18 @@ int YoloV5::Detect(std::vector<sail::BMImage>& input_images, std::vector<YoloV5B
         exit(1);
     }
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "yolov5 preprocess");
+    m_ts->save("yolov5 preprocess", input_images.size());
     auto bmimg = bmcv->tensor_to_bm_image(*input_tensors[input_names[0]]);
     // 2. forward
-    LOG_TS(m_ts, "yolov5 inference");
+    m_ts->save("yolov5 inference", input_images.size());
     engine->process(graph_names[0], input_tensors, output_tensors);
-    LOG_TS(m_ts, "yolov5 inference");
+    m_ts->save("yolov5 inference", input_images.size());
 
     // 3. post process
-    LOG_TS(m_ts, "yolov5 postprocess");
+    m_ts->save("yolov5 postprocess", input_images.size());
     ret = post_process_tpu_kernel(input_images, boxes);
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "yolov5 postprocess");
+    m_ts->save("yolov5 postprocess", input_images.size());
     return ret;
 }
 
