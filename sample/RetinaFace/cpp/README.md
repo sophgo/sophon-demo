@@ -22,12 +22,13 @@ cmake .. && make # 生成retinaface_bmcv.pcie
 编译完成后，会在build文件夹下生成retinaface_bmcv.pcie,具体参数说明如下：
 
 ```bash
-usage:./retinaface_bmcv.pcie <input mode> <input path> <bmodel path> <nms threshold> <conf threshold>
+usage:./retinaface_bmcv.pcie <input mode> <input path> <bmodel path> <nms threshold> <conf threshold> <dev id>
 input mode: 0表示图片，1表示视频流
 input path: 输入测试图片集路径或者视频路径；
 bmodel path: 用于推理的bmodel路径，默认使用stage 0的网络进行推理；
 nms threshold: nms的阈值
 conf threshold: 框置信度阈值
+dev id: 设备号
 ```
 
 测试实例如下：
@@ -36,15 +37,15 @@ conf threshold: 框置信度阈值
 # 图片模式，1batch，fp32，以测试face文件夹为例
 # 如果模型是多batch的，会每攒够batch数的图片做一次推理
 # 对于数据face和WIDERVAL，不同bmodel使用相同的<nms threshold>、<conf threshold>参数，这些阈值与数据集相关
-$ ./retinaface_bmcv.pcie 0 ../../../data/images/face ../../../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel 0.5 0.02
-$ ./retinaface_bmcv.pcie 0 ../../../data/images/WIDERVAL ../../../data/models/BM1688/retinaface_mobilenet0.25_int8_4b.bmodel 0.4 0.02
+$ ./retinaface_bmcv.pcie 0 ../../../data/images/face ../../../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel 0.5 0.5 0
+$ ./retinaface_bmcv.soc 0 ../../../data/images/WIDERVAL ../../../data/models/BM1688/retinaface_mobilenet0.25_int8_4b.bmodel 0.4 0.02 0
 ```
 
 执行完毕后，结果图片和文本文件保存在`results/`文件夹中。
 
 ```bash
 # 视频模式，1batch或4batch，fp32或fp16或int8
-$ ./retinaface_bmcv.pcie 1 ../../../data/videos/station.avi  ../../../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel 0.5 0.02
+$ ./retinaface_bmcv.pcie 1 ../../../data/videos/station.avi  ../../../data/models/BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel 0.5 0.02 0
 ```
 执行完毕后，结果图片和文本文件保存在当前目录下的`results/`的文件夹。
 
