@@ -23,8 +23,8 @@
 ​YOLOv5是非常经典的基于anchor的One Stage目标检测算法，因其优秀的精度和速度表现，在工程实践应用中获得了非常广泛的应用。本例程对[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)v6.1版本的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)，BM1684(x86 PCIe、SoC)
-* 支持FP32、FP16(BM1684X)、INT8模型推理
+* 支持BM1688(SoC)，BM1684X(x86 PCIe、SoC)，BM1684(x86 PCIe、SoC)
+* 支持FP32、FP16(BM1684X、BM1688)、INT8模型推理
 * 支持C++多线程，前后处理推理并行的pipeline推理
 * 支持单batch和多batch模型推理
 * 支持图片和视频测试
@@ -74,20 +74,22 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 参考[C++例程](cpp/README.md)运行程序，并查看统计的fps。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/test_car_person_1080P.mp4`，conf_thresh=0.5，nms_thresh=0.5，4预处理线程，8推理线程，性能测试结果如下：
-|    测试平台  |     测试程序       |             测试模型                 |   config        | 路数     | tpu利用率(%) | 设备内存(MB) | cpu利用率(%) | 系统内存(MB) | fps  |
-| ----------- | ---------------- | ----------------------------------- | ----------------| ------- | ----------  | ----------- | ----------  | ------------| ---- |
-| SE5-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | config_se5.json | 16      |  90~100     | 1650~1750   | 80~100      | 190~210     |  42  |
-| SE5-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | config_se5.json | 16      |  85~100     | 1490~1520   | 150~180     | 190~210     |  77  |
-| SE5-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | config_se5.json | 16      |  75~95      | 2800~2900   | 270~310     | 190~210     |  129 |
-| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | config_se7.json | 32      |  90~100     | 2220~2270   | 70~100      | 220~250     |  35  |
-| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | config_se7.json | 32      |  75~90      | 2220~2260   | 190~230     | 220~250     |  95  |
-| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | config_se7.json | 32      |  60~80      | 2230~2260   | 350~400     | 230~250     |  167 |
-| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | config_se7.json | 32      |  60~85      | 4180~4250   | 390~430     | 230~250     |  180 |
+|    测试平台 |     测试程序       |             测试模型                    |   config           | 路数    | tpu利用率(%)| 设备内存(MB) | cpu利用率(%) | 系统内存(MB) | fps  |
+| ----------- | ---------------- | ----------------------------------------- | ----------------   | ------- | ----------  | ---------- | ----------  | ------------| ---- |
+| SE5-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel       | config_se5.json    | 16      |  90~100     | 1650~1750  | 80~100      | 190~210     |  42  |
+| SE5-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel       | config_se5.json    | 16      |  85~100     | 1490~1520  | 150~180     | 190~210     |  77  |
+| SE5-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel       | config_se5.json    | 16      |  75~95      | 2800~2900  | 270~310     | 190~210     |  129 |
+| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel       | config_se7.json    | 32      |  90~100     | 2220~2270  | 70~100      | 220~250     |  35  |
+| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel       | config_se7.json    | 32      |  75~90      | 2220~2260  | 190~230     | 220~250     |  95  |
+| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel       | config_se7.json    | 32      |  60~80      | 2230~2260  | 350~400     | 230~250     |  167 |
+| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel       | config_se7.json    | 32      |  60~85      | 4180~4250  | 390~430     | 230~250     |  180 |
+| SE9-8       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b_2core.bmodel | config_se9-8.json  | 8       |  70~90      | 1650~1800  | 250~300     | 160~190     |  91 |
+| SE9-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b_2core.bmodel | config_se9-16.json | 16      |  60~75      | 4300~4500  | 390~470     | 200~220     |  132 |
 
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 2. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 2. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 3. 各项指标的查看方式可以参考[测试指标查看方式](../../docs/Statis_Check.md)
 
 
