@@ -73,9 +73,9 @@ static void save_imgs(const std::vector<std::vector<stFaceRect> >& results,
 }
 
 int main(int argc, const char * argv[]) {
-  if (argc < 3) {
+  if (argc < 6) {
     cout << "USAGE:" << endl;
-    cout << "  " << argv[0] << " <input_mode> <image_list/video_list> <bmodel path> <nms threshold> <conf threshold> " << endl;
+    cout << "  " << argv[0] << " <input_mode> <image_list/video_list> <bmodel path> <nms threshold> <conf threshold> <dev id> " << endl;
     exit(1);
   }
 
@@ -84,7 +84,7 @@ int main(int argc, const char * argv[]) {
   string bmodel_folder_path = argv[3];
   float nms_threshold = atof(argv[4]);
   float conf_threshold = atof(argv[5]);
-  int device_id = 0;
+  int device_id = atoi(argv[6]);
   int split_indx = input_url.size() - 1;
   while (split_indx >= 0 && input_url.at(split_indx) == '/') {
     split_indx--;
@@ -189,7 +189,7 @@ int main(int argc, const char * argv[]) {
   } else { // video mode
     ofstream ofs;
     ofs.open(save_foler + "/" + input_filename + "_video_data_" + bmodel_filename + "_result.txt", ios::out);
-    cv::VideoCapture cap(input_url);
+    cv::VideoCapture cap(input_url, cv::CAP_ANY, device_id);
 
     uint32_t batch_id = 0;
     uint32_t frame_id = 0;
