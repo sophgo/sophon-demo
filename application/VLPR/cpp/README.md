@@ -127,6 +127,10 @@ make
 ./vlpr_bmcv.pcie --config_path=configs/config_se5.json
 # 对于BM1684 soc运行
 ./vlpr_bmcv.soc --config_path=configs/config_se5.json
+# 对于SE9-16(BM1688) soc运行
+./vlpr_bmcv.soc --config_path=configs/config_se9-16.json
+# 对于SE9-8(BM1688) soc运行
+./vlpr_bmcv.soc --config_path=configs/config_se9-8.json
 ```
 测试过程会打印被检测和识别到的有效车牌信息，测试结束后，会打印fps等信息。若打开检测可视化的宏开关，即在文件[vlpr_bmcv.cpp](./vlpr_bmcv/vlpr_bmcv.cpp)中设置`#define DET_VIS 1`，会将检测的结果保存在`vis/`目录下。
 

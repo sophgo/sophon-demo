@@ -22,7 +22,7 @@
 
 ## 2. 特性
 * 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
-* LPRNet支持FP32、FP16(BM1684X)、INT8模型编译和推理
+* LPRNet支持FP32、FP16(BM1684X、BM1688)、INT8模型编译和推理
 * YOLOv5支持FP32、INT8模型编译和推理
 * 支持C++和Python
 * 支持单batch和多batch模型推理
@@ -137,16 +137,18 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_license_3output_fp32_1b.bmodel
 参考[例程测试](#5-例程测试)运行程序，并查看统计的total fps。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/licenseplate_640516-h264.mp4`，相应路数和模型根据下表修改，性能测试结果如下：
-| 测试平台 |  测试程序     |             测试模型                                               |   配置文件        |   路数   | fps  | tpu利用率(%) | cpu利用率(%) | 系统内存占用(MB) | 设备内存占用(MB)  |
-| ------- | -----------   | ----------------------------------------------------------------- | --------         |  ----    | ---- | ----------- | -----------  | --------------- | ------------  |
-| SE5-16  | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_1b.bmodel | config_se5.json |   16     |  74  |  90-100     |    50-70     |   60-62         |   740-760     |
-| SE7-32  | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_1b.bmodel | config_se7.json |   32     |  288 |  80-100     |   190-210    |   100-102       |   500-700     |
-| SE5-16  | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel | default         |   16     |  291 |  100        |    240       |   816-881       |   2500        |
-| SE7-32  | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel | default         |   32     |  628 |  100        |    560       |   387-392       |   5100        |
+| 测试平台 |  测试程序     |             测试模型                                                           |   配置文件        | 路数 | fps | tpu利用率(%) | cpu利用率(%) | 系统内存占用(MB) |设备内存占用(MB) |
+| ------- | -----------   | ----------------------------------------------------------------------------- | --------         | ---- | --- | ----------- | -----------  | --------------- | ------------  |
+| SE5-16  | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_1b.bmodel            | config_se5.json  |  16  |  74 |  90-100     |    50-70     |   60-62         |   740-760     |
+| SE7-32  | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_1b.bmodel            | config_se7.json  |  32  |  288|  80-100     |   190-210    |   100-102       |   500-700     |
+| SE9-8   | vlpr_bmcv.soc | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | config_se9-8.json| 8   |  95 |  55-80      |   90-100     |   48-51         |   550-650     |
+| SE9-16  | vlpr_bmcv.soc | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | config_se9-16.json|16  |  187 |  60-90     |   200-230    |   57-65         |   950-1050    |
+| SE5-16  | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default         |  16 |  291 |  100        |    240       |   816-881       |   2500        |
+| SE7-32  | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default         |  32 |  628 |  100        |    560       |   387-392       |   5100        |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
-> 2. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异； 
+> 2. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异； 
 > 3. 性能数据在程序启动前和结束前不准确，上面来自程序运行稳定后的数据
 > 4. 各项指标的查看方式可以参考[测试指标查看方式](../../docs/Check_Statis.md)
 > 5. 部署环境下的NPU等设备内存大小会显著影响例程运行的路数。如果默认的输入路数运行中出现了申请内存失败等错误，可以考虑把输入路数减少，或者参考[FAQ](../../docs/FAQ.md#73-程序运行时出现bm_ion_alloc-failed等报错)。
