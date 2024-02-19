@@ -105,22 +105,22 @@ int YoloV7::Detect(const std::vector<bm_image>& input_images, std::vector<YoloV7
 {
   int ret = 0;
   //3. preprocess
-  LOG_TS(m_ts, "yolov7 preprocess");
+  m_ts->save("yolov7 preprocess", input_images.size());
   ret = pre_process(input_images);
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "yolov7 preprocess");
+  m_ts->save("yolov7 preprocess", input_images.size());
 
   //4. forward
-  LOG_TS(m_ts, "yolov7 inference");
+  m_ts->save("yolov7 inference", input_images.size());
   ret = m_bmNetwork->forward();
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "yolov7 inference");
+  m_ts->save("yolov7 inference", input_images.size());
 
   //5. post process
-  LOG_TS(m_ts, "yolov7 postprocess");
+  m_ts->save("yolov7 postprocess", input_images.size());
   ret = post_process(input_images, boxes);
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "yolov7 postprocess");
+  m_ts->save("yolov7 postprocess", input_images.size());
   return ret;
 }
 
