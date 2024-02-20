@@ -139,8 +139,8 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_license_3output_fp32_1b.bmodel
 在不同的测试平台上，使用不同的例程、模型测试`datasets/licenseplate_640516-h264.mp4`，相应路数和模型根据下表修改，性能测试结果如下：
 | 测试平台 |  测试程序     |             测试模型                                                           |   配置文件        | 路数 | fps | tpu利用率(%) | cpu利用率(%) | 系统内存占用(MB) |设备内存占用(MB) |
 | ------- | -----------   | ----------------------------------------------------------------------------- | --------         | ---- | --- | ----------- | -----------  | --------------- | ------------  |
-| SE5-16  | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_1b.bmodel            | config_se5.json  |  16  |  74 |  90-100     |    50-70     |   60-62         |   740-760     |
-| SE7-32  | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_1b.bmodel            | config_se7.json  |  32  |  288|  80-100     |   190-210    |   100-102       |   500-700     |
+| SE5-16  | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel            | config_se5.json  |  16  | 146 |  95-100     |   90-110    |   45-55         |  1800-2200     |
+| SE7-32  | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel            | config_se7.json  |  32  | 274 |  65-100     |   170-190    |   90-105        |   450-700     |
 | SE9-8   | vlpr_bmcv.soc | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | config_se9-8.json| 8   |  95 |  55-80      |   90-100     |   48-51         |   550-650     |
 | SE9-16  | vlpr_bmcv.soc | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | config_se9-16.json|16  |  187 |  60-90     |   200-230    |   57-65         |   950-1050    |
 | SE5-16  | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default         |  16 |  291 |  100        |    240       |   816-881       |   2500        |
