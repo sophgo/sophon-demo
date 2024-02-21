@@ -97,23 +97,23 @@ int YoloX::batch_size() {
 int YoloX::Detect(const std::vector<bm_image>& input_images, std::vector<YoloXBoxVec>& boxes) {
     int ret = 0;
     // 1. preprocess
-    LOG_TS(m_ts, "yolox preprocess");
+    m_ts->save("yolox preprocess", input_images.size());
     ret = pre_process(input_images);
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "yolox preprocess");
+    m_ts->save("yolox preprocess", input_images.size());
 
     
     // 2. forward
-    LOG_TS(m_ts, "yolox inference");
+    m_ts->save("yolox inference", input_images.size());
     ret = m_bmNetwork->forward();
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "yolox inference");
+    m_ts->save("yolox inference", input_images.size());
 
     // 3. post process
-    LOG_TS(m_ts, "yolox postprocess");
+    m_ts->save("yolox postprocess", input_images.size());
     ret = post_process(input_images, boxes, false);
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "yolox postprocess");
+    m_ts->save("yolox postprocess", input_images.size());
     return ret;
 }
 

@@ -224,7 +224,7 @@ The theoretical inference time of each model is tested, and the results are as f
 > 3. The test results of SoC and PCIe are basically the same.
 
 ### 7.2 Program Performance
-Refer to [C++ example](cpp/README_EN.md) or [Python example](python/README_EN.md) to run the program, and check the statistical decoding time, preprocessing time, inference time, post-processing time. The preprocessing time, inference time and post-processing time of C++ example printing are the whole batch processing time, which needs to be divided by the corresponding batch size to get the processing time of each picture.
+Refer to [C++ example](cpp/README_EN.md) or [Python example](python/README_EN.md) to run the program, and check the statistical decoding time, preprocessing time, inference time, post-processing time. The time info which C++/Python example prints have already been converted into processing time per image.
 
 Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.5, nms_thresh=0.5` on different test platforms. The performance test results are shown as follows:
 |Test Platform|  Test Program    |             Test model              |decode_time|preprocess_time|inference_time|postprocess_time| 
