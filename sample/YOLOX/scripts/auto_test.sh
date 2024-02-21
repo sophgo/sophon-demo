@@ -11,6 +11,10 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
+
 
 usage() 
 {
@@ -158,8 +162,16 @@ function test_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./yolox_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log
+  ./yolox_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log 2>&1
   judge_ret $? "./yolox_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID" log/$1_$2_$3_cpp_test.log
+  tail -n 15 log/$1_$2_$3_cpp_test.log
+  if test $4 = "../../datasets/coco/val2017_1000"; then
+    echo "==================="
+    echo "Comparing statis..."
+    python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=yolox_$2.$1 --language=cpp --input=log/$1_$2_$3_cpp_test.log --bmodel=$3
+    judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=yolox_$2.$1 --language=cpp --input=log/$1_$2_$3_cpp_test.log --bmodel=$3"
+    echo "==================="
+  fi
   popd
 }
 
@@ -191,8 +203,16 @@ function test_python()
   if [ ! -d log ];then
     mkdir log
   fi
-  python3 python/yolox_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_python_test.log
+  python3 python/yolox_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_python_test.log 2>&1
   judge_ret $? "python3 python/yolox_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID" log/$1_$2_python_test.log
+  tail -n 20 log/$1_$2_python_test.log
+  if test $3 = "datasets/coco/val2017_1000"; then
+    echo "==================="
+    echo "Comparing statis..."
+    python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=yolox_$1.py --language=python --input=log/$1_$2_python_test.log --bmodel=$2
+    judge_ret $? "python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=yolox_$1.py --language=python --input=log/$1_$2_python_test.log --bmodel=$2"
+    echo "==================="
+  fi
 }
 
 function eval_python()
@@ -230,12 +250,6 @@ then
   download
   if test $TARGET = "BM1684"
   then
-    test_python opencv yolox_s_fp32_1b.bmodel datasets/test
-    test_python opencv yolox_s_int8_4b.bmodel datasets/test
-    test_python bmcv yolox_s_fp32_1b.bmodel datasets/test
-    test_python bmcv yolox_s_int8_4b.bmodel datasets/test
-    test_cpp pcie bmcv yolox_s_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolox_s_int8_4b.bmodel ../../datasets/test
     test_python opencv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolox_s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
     test_python bmcv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -244,6 +258,20 @@ then
     test_cpp pcie bmcv yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie sail yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie sail yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    #performence test
+    test_python opencv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_cpp pcie bmcv yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie bmcv yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie bmcv yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie sail yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie sail yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie sail yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
     eval_python opencv yolox_s_fp32_1b.bmodel 0.403
     eval_python opencv yolox_s_int8_1b.bmodel 0.397
@@ -260,14 +288,6 @@ then
 
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv yolox_s_fp32_1b.bmodel datasets/test
-    test_python opencv yolox_s_int8_4b.bmodel datasets/test
-    test_python bmcv yolox_s_fp32_1b.bmodel datasets/test
-    test_python bmcv yolox_s_int8_4b.bmodel datasets/test
-    test_cpp pcie bmcv yolox_s_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolox_s_int8_4b.bmodel ../../datasets/test
-    test_cpp pcie sail yolox_s_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie sail yolox_s_int8_4b.bmodel ../../datasets/test
     test_python opencv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolox_s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
     test_python bmcv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -276,6 +296,24 @@ then
     test_cpp pcie bmcv yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie sail yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie sail yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    #performence test
+    test_python opencv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_fp16_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_fp16_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_cpp pcie bmcv yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie bmcv yolox_s_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie bmcv yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie bmcv yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie sail yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie sail yolox_s_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie sail yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie sail yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
     eval_python opencv yolox_s_fp32_1b.bmodel 0.402
     eval_python opencv yolox_s_fp16_1b.bmodel 0.402
@@ -303,14 +341,6 @@ then
   download
   if test $TARGET = "BM1684"
   then
-    test_python opencv yolox_s_fp32_1b.bmodel datasets/test
-    test_python opencv yolox_s_int8_4b.bmodel datasets/test
-    test_python bmcv yolox_s_fp32_1b.bmodel datasets/test
-    test_python bmcv yolox_s_int8_4b.bmodel datasets/test
-    test_cpp soc bmcv yolox_s_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/test
-    test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/test
     test_python opencv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolox_s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
     test_python bmcv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -319,6 +349,20 @@ then
     test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    #performence test
+    test_python opencv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
     eval_python opencv yolox_s_fp32_1b.bmodel 0.403
     eval_python opencv yolox_s_int8_1b.bmodel 0.397
@@ -335,14 +379,6 @@ then
 
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv yolox_s_fp32_1b.bmodel datasets/test
-    test_python opencv yolox_s_int8_4b.bmodel datasets/test
-    test_python bmcv yolox_s_fp32_1b.bmodel datasets/test
-    test_python bmcv yolox_s_int8_4b.bmodel datasets/test
-    test_cpp soc bmcv yolox_s_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/test
-    test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/test
     test_python opencv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolox_s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
     test_python bmcv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -351,6 +387,24 @@ then
     test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    #performence test
+    test_python opencv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_fp16_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_fp16_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
     
     eval_python opencv yolox_s_fp32_1b.bmodel 0.402
     eval_python opencv yolox_s_fp16_1b.bmodel 0.402
@@ -370,15 +424,6 @@ then
     eval_cpp soc sail yolox_s_int8_4b.bmodel 0.401
   elif test $TARGET = "BM1688"
   then
-    test_python opencv yolox_s_fp32_1b.bmodel datasets/test
-    test_python opencv yolox_s_int8_4b.bmodel datasets/test
-    test_python bmcv yolox_s_fp32_1b.bmodel datasets/test
-    test_python bmcv yolox_s_int8_4b.bmodel datasets/test
-    test_cpp soc bmcv yolox_s_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/test
-    test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/test
-
     test_python opencv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolox_s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
     test_python bmcv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -387,6 +432,24 @@ then
     test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    #performence test
+    test_python opencv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_fp16_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_fp16_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
     
     eval_python opencv yolox_s_fp32_1b.bmodel 0.403
     eval_python opencv yolox_s_fp16_1b.bmodel 0.402
