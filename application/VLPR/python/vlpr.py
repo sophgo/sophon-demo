@@ -105,7 +105,7 @@ class MultiDecoderThread(object):
             dete_threshold (float): yolov5 detect_threshold
             nms_threshold (float): yolov5 nms_threshold
         """
-        self.handle = sail.Handle(0)
+        self.handle = sail.Handle(self.tpu_id)
         self.bmcv = sail.Bmcv(self.handle)
         
 
@@ -285,8 +285,11 @@ class MultiDecoderThread(object):
                     logging.debug("Lprnet_pre_and_process:Process {},channel_idx is {} image_idx is {},len(objs) is{}".format(self.process_id,channel, image_idx, len(objs)))
                     logging.debug("Lprnet_pre_and_process:Process %d,YOLO postprocess DONE! objs:tuple[left, top, right, bottom, class_id, score] :%s",self.process_id,obj)
 
-                    croped = self.bmcv.crop(img,int(x1),int(y1),int(x2-x1),int(y2-y1))
-                    self.lprnet_engine_image_pre_process.PushImage(channel, image_idx, croped)
+                    if((x2-x1) <=16 or (y2 - y1) <= 16):
+                        pass
+                    else:
+                        croped = self.bmcv.crop(img,int(x1),int(y1),int(x2-x1),int(y2-y1))
+                        self.lprnet_engine_image_pre_process.PushImage(channel, image_idx, croped)
 
                     # draw images
                     if self.draw_images:
@@ -429,7 +432,7 @@ def argsparser():
 if __name__ == '__main__':
 
     args = argsparser()
-    logging.basicConfig(filename= f'1684_yolo_process_and_video_thread_is_{args.video_nums}.log',filemode='w',level=logging.DEBUG)
+    logging.basicConfig(filename= f'168X_yolo_process_and_video_thread_is_{args.video_nums}.log',filemode='w',level=logging.DEBUG)
     
     dete_threshold,nms_threshold = 0.65,0.65
     max_que_size = args.max_que_size  # 队列缓存的大小
