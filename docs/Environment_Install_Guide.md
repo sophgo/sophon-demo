@@ -111,6 +111,8 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
 ## 3 x86 PCIe平台的开发和运行环境搭建
 如果您在x86平台安装了PCIe加速卡，开发环境与运行环境可以是统一的，您可以直接在宿主机上搭建开发和运行环境。
 
+**注意：** mlir提供的docker环境用来编译模型的，不建议与运行环境混用，如果您需要在主机上搭建docker测试环境，请参考官网《LIBSOPHON使用手册.pdf》第6章-使用Docker搭建测试环境。
+
 ### 3.1 安装libsophon
 从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的libsophon安装包，包括:
 * sophon-driver_x.y.z_amd64.deb
