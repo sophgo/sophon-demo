@@ -113,6 +113,8 @@ This image is only for compiling and quantifying the model, please compile and r
 ## 3 x86 PCIe Platform Development and Runtime Environment Construction
 If you have installed a PCIe accelerator card on an x86 platform, the development environment and runtime environment can be the same, and you can build the development and runtime environment directly on the host computer.
 
+**Attention：** mlir's docker is for compiling bmodel, it is not recommended to use it as runtime environment. If you need to set up a docker test environment on the host, please refer to "Chapter 6 - Using test environment by Docker" in <u>LIBSOPHON_User_Guide.pdf</u>.
+
 ### 3.1 Installation of libsophon
 Download the [Compatible](../README_EN.md#environment-dependencies) libsophon installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), which includes:
 * sophon-driver_x.y.z_amd64.deb
