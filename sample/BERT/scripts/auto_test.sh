@@ -152,8 +152,8 @@ function compare_res(){
 function test_cpp()
 {
   pushd cpp/bert_$2
-  ./bert_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id $TPUID
-  judge_ret $? "./bert_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id $TPUID"
+  ./bert_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID
+  judge_ret $? "./bert_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID"
   popd
 }
 
@@ -168,8 +168,8 @@ function eval_cpp()
   if [ ! -d results ];then
     mkdir results
   fi
-  ./bert_$2.$1 --input=../../datasets/china-people-daily-ner-corpus/example.test --bmodel=../../models/$TARGET/$3 --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./bert_$2.$1 --input=../../datasets/china-people-daily-ner-corpus/example.test --bmodel=../../models/$TARGET/$3  --dev_id $TPUID > log/$1_$2_$3_debug.log 2>&1"
+  ./bert_$2.$1 --input=../../datasets/china-people-daily-ner-corpus/example.test --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./bert_$2.$1 --input=../../datasets/china-people-daily-ner-corpus/example.test --bmodel=../../models/$TARGET/$3  --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1"
   tail -n 15 log/$1_$2_$3_debug.log
 
   echo "Evaluating..."  
@@ -205,7 +205,7 @@ function eval_python()
   pushd python
   python3 bert_$1.py --input=../datasets/china-people-daily-ner-corpus/example.test --bmodel ../models/$TARGET/$2 --dev_id $TPUID  > log/$1_$2_debug.log 2>&1
   judge_ret $? "python3 bert_$1.py --input=../datasets/china-people-daily-ner-corpus/example.test --bmodel ../models/$TARGET/$2 --dev_id $TPUID  > log/$1_$2_debug.log 2>&1"
-  tail -n 20 python/log/$1_$2_debug.log
+  tail -n 20 log/$1_$2_debug.log
   
   echo "Evaluating..."
   res=$(python3 ../tools/eval_people.py --test_path ../datasets/china-people-daily-ner-corpus/example.test --input_path ../python/results/$2_$1_python_result.txt 2>&1 | tee log/$1_$2_eval.log)
@@ -285,7 +285,6 @@ then
     eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
     eval_cpp soc sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
     eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
-  fi
   elif test $TARGET = "BM1688"
   then
     test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
@@ -306,7 +305,7 @@ then
     eval_python sail bert4torch_output_fp16_8b_2core.bmodel 0.9201187249967738
     eval_cpp soc sail bert4torch_output_fp32_1b_2core.bmodel 0.912984583628975
     eval_cpp soc sail bert4torch_output_fp32_8b_2core.bmodel 0.912984583628975
-    # eval_cpp soc sail bert4torch_output_fp16_1b_2core.bmodel 0.8220128904313336
+    eval_cpp soc sail bert4torch_output_fp16_1b_2core.bmodel 0.8220128904313336
     eval_cpp soc sail bert4torch_output_fp16_8b_2core.bmodel 0.9201187249967738
   fi
 fi
