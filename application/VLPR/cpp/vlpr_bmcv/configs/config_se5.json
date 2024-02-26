@@ -1,6 +1,6 @@
 {
   "dev_id": 0,
-  "yolov5_bmodel_path": "../../models/yolov5s-licensePlate/BM1684/yolov5s_v6.1_license_3output_int8_1b.bmodel",
+  "yolov5_bmodel_path": "../../models/yolov5s-licensePlate/BM1684/yolov5s_v6.1_license_3output_int8_4b.bmodel",
   "lprnet_bmodel_path": "../../models/lprnet/BM1684/lprnet_int8_4b.bmodel",
   "channels": [
     {
@@ -77,7 +77,7 @@
   "yolov5_conf_thresh": 0.6,
   "yolov5_nms_thresh": 0.6,
   
-  "frame_sample_interval": 6,
+  "frame_sample_interval": 4,
   "in_frame_num": 5, 
   "out_frame_num": 3, 
   "crop_thread_num": 2, 

@@ -127,7 +127,7 @@ YOLOv5::YOLOv5(int dev_id,
       auto ret = bm_image_create(m_handle, m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized_bmimgs[i], strides);
       assert(BM_SUCCESS == ret);
     }
-    auto ret = bm_image_alloc_contiguous_mem(m_batch_size, resized_bmimgs.data());
+    auto ret = bm_image_alloc_contiguous_mem(m_batch_size, resized_bmimgs.data(), VPP_HEAP_ID);
     assert(BM_SUCCESS == ret);
     m_vec_resized_bmimgs.emplace_back(resized_bmimgs);
   }
@@ -428,7 +428,7 @@ void YOLOv5::preprocess(std::vector<std::shared_ptr<DataDec>> &dec_images,
       bm_image_create(m_handle, bmimg.height, bmimg.width,
                       bmimg.image_format, bmimg.data_type, &bmimg_aligned, stride2);
       
-      bm_image_alloc_dev_mem(bmimg_aligned, 1);
+      bm_image_alloc_dev_mem(bmimg_aligned, VPP_HEAP_ID);
       bmcv_copy_to_atrr_t copyToAttr;
       memset(&copyToAttr, 0, sizeof(copyToAttr));
       copyToAttr.start_x = 0;
@@ -488,7 +488,7 @@ void YOLOv5::preprocess(std::vector<std::shared_ptr<DataDec>> &dec_images,
   int size_byte = 0;
   bm_device_mem_t tensor_mem;
   bm_image_get_byte_size(converto_bmimgs[0], &size_byte);
-  bm_malloc_device_byte_heap(m_handle, &tensor_mem, 0, size_byte*m_batch_size);
+  bm_malloc_device_byte_heap(m_handle, &tensor_mem, VPP_HEAP_ID, size_byte*m_batch_size);
   
   bm_image_attach_contiguous_mem(m_batch_size, converto_bmimgs.data(), tensor_mem);
 

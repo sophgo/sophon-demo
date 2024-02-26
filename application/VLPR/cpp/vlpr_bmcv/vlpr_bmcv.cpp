@@ -154,7 +154,7 @@ void VLPR::crop(int process_id) {
       bm_image_create(m_handle, bmimg.height, bmimg.width, bmimg.image_format,
                       bmimg.data_type, &image_aligned, stride2);
 
-      bm_image_alloc_dev_mem(image_aligned, BMCV_IMAGE_FOR_IN);
+      bm_image_alloc_dev_mem(image_aligned, VPP_HEAP_ID);
       bmcv_copy_to_atrr_t copyToAttr;
       memset(&copyToAttr, 0, sizeof(copyToAttr));
       copyToAttr.start_x = 0;
