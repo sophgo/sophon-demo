@@ -1,4 +1,4 @@
-[简体中文](./README.md) | [English](./README_EN.md)
+[简体中文](./README.md)
 
 # YOLOv5
 
@@ -6,8 +6,6 @@
 
 * [1. 简介](#1-简介)
 * [2. 特性](#2-特性)
-  * [2.1 SDK特性](#21-sdk特性)
-  * [2.2 算法特性](#22-算法特性)
 * [3. 准备模型与数据](#3-准备模型与数据)
 * [4. 模型编译](#4-模型编译)
 * [5. 例程测试](#5-例程测试)
@@ -41,7 +39,7 @@
 ## 6. 精度测试
 ### 6.1 测试方法
 
-首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(conf_thresh=0.001、nms_thresh=0.6)。  
+首先，参考[C++例程](cpp/README.md#32-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(conf_thresh=0.001、nms_thresh=0.6)。  
 然后，使用`tools`目录下的`eval_coco.py`脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
 ```bash
 # 安装pycocotools，若已安装请跳过
@@ -90,7 +88,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 2. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
-> 3. 各项指标的查看方式可以参考[测试指标查看方式](../../docs/Statis_Check.md)
+> 3. 各项指标的查看方式可以参考[测试指标查看方式](../../docs/Check_Statis.md)
 
 
 ## 8. FAQ
