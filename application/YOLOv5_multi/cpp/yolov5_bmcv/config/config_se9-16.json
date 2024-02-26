@@ -84,7 +84,7 @@
     }
 
   ],
-  "queue_size": 50,
+  "queue_size": 20,
   "num_pre": 4,
   "num_post": 8,
   "class_names": "../../datasets/coco.names",

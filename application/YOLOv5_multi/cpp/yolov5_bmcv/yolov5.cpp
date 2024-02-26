@@ -234,15 +234,28 @@ void YOLOv5::worker_decode(int channel_id){
     // frame_id为-1时代表读到eof，不进行后续处理
     // 只有可以放入的图片才设置frame id，保证frame id是连续的
     if (data->frame_id != -1){
-      // 流控
-      auto time_count = std::chrono::high_resolution_clock::now();
-      int sleep_time = int (m_decode_elements[channel_id]->time_interval - (time_count-time_counters[channel_id]).count()*1e-6);
-      std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
-      time_counters[channel_id] = time_count;
+      if (m_decode_elements[channel_id]->is_video){
+        // 输入为视频
+        // 流控
+        auto time_count = std::chrono::high_resolution_clock::now();
+        int sleep_time = int (m_decode_elements[channel_id]->time_interval - (time_count-time_counters[channel_id]).count()*1e-6);
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
+        time_counters[channel_id] = time_count;
 
-      // 跳帧
-      if (decode_frame_counts[channel_id] % m_decode_elements[channel_id]->skip_frame_num == 0)
-      {
+        // 跳帧
+        if (decode_frame_counts[channel_id] % m_decode_elements[channel_id]->skip_frame_num == 0)
+        {
+          data->frame_id = m_decode_frame_ids[channel_id];
+          m_decode_frame_ids[channel_id] += 1;
+          m_queue_decode.push_back(data);
+          {
+            std::unique_lock<std::mutex> lock(m_mutex_map_origin);
+            m_origin_image[data->channel_id][data->frame_id] = data->image;
+          }
+        }
+
+      }else{
+        // 输入为图片
         data->frame_id = m_decode_frame_ids[channel_id];
         m_decode_frame_ids[channel_id] += 1;
         m_queue_decode.push_back(data);
@@ -252,10 +265,11 @@ void YOLOv5::worker_decode(int channel_id){
         }
 
         // 保存图片名称，在输入为图片时使用
-        if (!m_decode_elements[channel_id]->is_video){
+        {
           std::unique_lock<std::mutex> lock(m_mutex_map_name);
           m_image_name[data->channel_id][data->frame_id] = data->image_name;
         }
+
       }
     }
 

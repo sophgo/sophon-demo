@@ -1,4 +1,4 @@
-[简体中文](./README.md) | [English](./README_EN.md)
+[简体中文](./README.md) 
 
 # C++例程
 
@@ -79,7 +79,7 @@ make
       "url": "../../datasets/test_car_person_1080P.mp4",
       "is_video": true,
       "skip_frame": 5
-    },
+    }
     
 
   ],
@@ -111,10 +111,16 @@ make
 
 ### 3.2 运行程序
 配置好json后，运行应用程序即可，请自行根据您的配置文件修改路径
+
 ```bash
 ./yolov5_bmcv.pcie --config=config.json
 ```
-测试结束后，会将预测的图片或视频帧保存在`results/images`下，预测的结果保存在`results/yolov5.json`下，同时会打印fps信息。
+如果需要保存图片，请修改main.cpp中的宏定义为如下：
+```cpp
+#define DRAW_ACC 1
+```
+预测的图片或视频帧将保存在`results/images`下，预测的结果保存在`results/yolov5.json`下
+
 
 ### 3.3 程序流程图
 
