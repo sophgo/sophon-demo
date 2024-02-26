@@ -11,8 +11,7 @@
 * [3. 推理测试](#3-推理测试)
     * [3.1 参数说明](#31-参数说明)
     * [3.2 测试文本](#32-测试文本)
-    * [3.3 测试命令行](#33-测试命令行)
-    * [3.4 测试数据集](#34-测试数据集)
+    * [3.3 测试数据集](#33-测试数据集)
 
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
@@ -110,23 +109,12 @@ Usage: bert_sail.pcie [params]
 ```
 测试结束后，会打印预测结果等信息。
 
-### 3.3 测试命令行
-文本测试实例如下，支持在线命令行测试。
-输入一条文本，如，张飞刘备关羽桃园三结义。
-抽取出实体 {('张飞', 'PER'), ('关羽', 'PER'), ('桃园', 'LOC'), ('刘备', 'PER')}
-```bash
-./bert_sail.pcie --input=dev --bmodel=../../models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id=0 
-```
-命令行输入一个文本，输出结果.
-
-### 3.4 测试数据集
+### 3.3 测试数据集
 文本测试实例如下，支持对文件进行测试。
 ```bash
 ./bert_sail.pcie --input=../../datasets/china-people-daily-ner-corpus/example.test --bmodel=../../models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id=0 
 ```
 测试结束后，预测的结果保存在`results/bert4torch_output_fp32_1b.bmodel_test_sail_cpp_result.txt`下，同时会打印预测结果、推理时间等信息。
-
-
 
 >**注意：**
 

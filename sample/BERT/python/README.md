@@ -26,7 +26,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 此外您可能还需要安装其他第三方库：
 ```bash
-pip3 install bert4torch
+pip3 install bert4torch==0.3.0 packaging==23.2 seqeval==1.2.2
 ```
 
 ### 1.2 SoC平台
@@ -35,7 +35,7 @@ pip3 install bert4torch
 
 此外您可能还需要安装其他第三方库：
 ```bash
-pip3 install bert4torch==0.3.0
+pip3 install bert4torch==0.3.0 packaging==23.2 seqeval==1.2.2
 ```
 
 ## 2. 推理测试
@@ -60,17 +60,7 @@ python3 bert_sail.py --input ../datasets/china-people-daily-ner-corpus/test.txt 
 ```
 测试结束后，输出结果
 
-### 2.3 命令行测试
-文本测试实例如下，支持在线命令行测试。
-输入一条文本，如，张飞刘备关羽桃园三结义。
-抽取出实体 {('张飞', 'PER'), ('关羽', 'PER'), ('桃园', 'LOC'), ('刘备', 'PER')}
-```bash
-python3 bert_sail.py --input dev --bmodel ../models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id 0 
-```
-命令行输入一个文本，输出结果
-
-
-### 2.4 测试数据集
+### 2.3 测试数据集
 文本数据集测试实例如下，支持对整个文本数据集进行测试。
 数据集格式应采取以行为分隔，每行包括一个汉字和他的实体类型，以空格分隔
 ```bash

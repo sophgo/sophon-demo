@@ -18,7 +18,7 @@
 * [8. FAQ](#8-faq)
   
 ## 1. 简介
-​BERT的全称为Bidirectional Encoder Representation from Transformers，是一个预训练的语言表征模型。它强调了不再像以往一样采用传统的单向语言模型或者把两个单向语言模型进行浅层拼接的方法进行预训练，而是采用新的masked language model（MLM），以致能生成深度的双向语言表征。BERT论文发表时提及在11个NLP（Natural Language Processing，自然语言处理）任务中获得了新的state-of-the-art的结果，令人目瞪口呆。
+​BERT的全称为Bidirectional Encoder Representation from Transformers，是一个预训练的语言表征模型。它强调了不再像以往一样采用传统的单向语言模型或者把两个单向语言模型进行浅层拼接的方法进行预训练，而是采用新的masked language model（MLM），以致能生成深度的双向语言表征。BERT论文发表时提及在11个NLP（Natural Language Processing，自然语言处理）任务中获得了新的state-of-the-art的结果，令人惊叹。
 本例程对A simple training framework that recreates bert4keras in PyTorch. bert4torch的模型和算法进行移植,使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
 ## 2. 特性
 * 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
@@ -100,7 +100,7 @@ chmod -R +x scripts/
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
 ```
 
-​执行上述命令会在`models/BM1684X/`等文件夹下生成`yolov5s_v6.1_3output_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`bert4torch_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 
 ## 5. 例程测试
@@ -115,38 +115,39 @@ chmod -R +x scripts/
 ```bash
 # 安装seqeval，若已安装请跳过
 pip3 install seqeval==1.2.2
-# 请根据实际情况修改程序路径和txt文件路径
-python3 tools/eval_people.py --test_path ../datasets/china-people-daily-ner-corpus/example.test --input_path ../python/results/bert4torch_output_fp16_8b.bmodel_sail_python_result.txt
+# 请根据实际情况修改程序路径和txt文件路径, 建议在tools目录下执行该脚本，因为脚本中将工作目录设置为脚本所在目录。
+cd tools
+python3 eval_people.py --test_path ../datasets/china-people-daily-ner-corpus/example.test --input_path ../python/results/bert4torch_output_fp16_8b.bmodel_sail_python_result.txt
 ```
 ### 6.2 测试结果
 在china-people-daily-ner-corpus数据集上，精度测试结果如下：
 |   测试平台    |      测试程序     |              测试模型               |f1             |accuary   |
 | ------------ | ---------------- | ----------------------------------- | ------------- | -------- |
-| BM1684 PCIe  | bert_sail.pcie   | bert4torch_output_fp32_1b.bmodel    | 0.9203        | 0.9914   |
-| BM1684 PCIe  | bert_sail.pcie   | bert4torch_output_fp32_8b.bmodel    | 0.9185        | 0.9914   |
-| BM1684X PCIe | bert_sail.pcie   | bert4torch_output_fp32_1b.bmodel    | 0.9130        | 0.9907   |
-| BM1684X PCIe | bert_sail.pcie   | bert4torch_output_fp32_8b.bmodel    | 0.9130        | 0.9907   |
-| BM1684X PCIe | bert_sail.pcie   | bert4torch_output_fp16_1b.bmodel    | 0.9121        | 0.9907   |
-| BM1684X PCIe | bert_sail.pcie   | bert4torch_output_fp16_8b.bmodel    | 0.9120        | 0.9907   |
-| BM1684 PCIe  | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 0.9173        | 0.9915   |
-| BM1684 PCIe  | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 0.9163        | 0.9915   |
-| BM1684X PCIe | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 0.9161        | 0.9914   |
-| BM1684X PCIe | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 0.9224        | 0.9917   |
-| BM1684X PCIe | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 0.9219        | 0.9915   |
-| BM1684X PCIe | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 0.9191        | 0.9915   |
-| BM1688 SOC | bert_sail.soc   | bert4torch_output_fp32_1b.bmodel    | 0.9118        | 0.9906   |
-| BM1688 SOC | bert_sail.soc   | bert4torch_output_fp32_8b.bmodel    | 0.9129        | 0.9907   |
-| BM1688 SOC | bert_sail.soc   | bert4torch_output_fp16_1b.bmodel    | 0.8931        | 0.9890   |
-| BM1688 SOC | bert_sail.soc   | bert4torch_output_fp16_8b.bmodel    | 0.9127        | 0.9907   |
-| BM1688 SOC | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 0.9194        | 0.9916   |
-| BM1688 SOC | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 0.9192        | 0.9915   |
-| BM1688 SOC | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 0.9198        | 0.9915   |
-| BM1688 SOC | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 0.9178        | 0.9915   |
+| SE5-16       | bert_sail.pcie   | bert4torch_output_fp32_1b.bmodel    | 0.9203        | 0.9914   |
+| SE5-16       | bert_sail.pcie   | bert4torch_output_fp32_8b.bmodel    | 0.9185        | 0.9914   |
+| SE5-16       | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 0.9173        | 0.9915   |
+| SE5-16       | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 0.9163        | 0.9915   |
+| SE7-32       | bert_sail.pcie   | bert4torch_output_fp32_1b.bmodel    | 0.9130        | 0.9907   |
+| SE7-32       | bert_sail.pcie   | bert4torch_output_fp32_8b.bmodel    | 0.9130        | 0.9907   |
+| SE7-32       | bert_sail.pcie   | bert4torch_output_fp16_1b.bmodel    | 0.9121        | 0.9907   |
+| SE7-32       | bert_sail.pcie   | bert4torch_output_fp16_8b.bmodel    | 0.9120        | 0.9907   |
+| SE7-32       | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 0.9161        | 0.9914   |
+| SE7-32       | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 0.9224        | 0.9917   |
+| SE7-32       | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 0.9219        | 0.9915   |
+| SE7-32       | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 0.9191        | 0.9915   |
+| SE9-16       | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    | 0.9118        | 0.9906   |
+| SE9-16       | bert_sail.soc    | bert4torch_output_fp32_8b.bmodel    | 0.9129        | 0.9907   |
+| SE9-16       | bert_sail.soc    | bert4torch_output_fp16_1b.bmodel    | 0.8931        | 0.9890   |
+| SE9-16       | bert_sail.soc    | bert4torch_output_fp16_8b.bmodel    | 0.9127        | 0.9907   |
+| SE9-16       | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 0.9194        | 0.9916   |
+| SE9-16       | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 0.9192        | 0.9915   |
+| SE9-16       | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 0.9198        | 0.9915   |
+| SE9-16       | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 0.9178        | 0.9915   |
 
 > **测试说明**：  
-1. 测试结果具有一定的波动性；基本在0.01之内
-
-
+> 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
+> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列对应BM1688；
+> 3. BM1688 num_core=2的模型与num_core=1的模型精度基本一致；
 ## 7. 性能测试
 ### 7.1 bmrt_test
 使用bmrt_test测试模型的理论性能：
@@ -157,58 +158,58 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每条文本的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                   | calculate time(ms) |
-| ------------------------------------------- | ----------------- |
-| BM1684/bert4torch_output_fp32_1b.bmodel     | 170.848           |
-| BM1684/bert4torch_output_fp32_8b.bmodel     | 146.653           |
-| BM1684X/bert4torch_output_fp32_1b.bmodel    | 91.473            |
-| BM1684X/bert4torch_output_fp16_1b.bmodel    | 8.643             |
-| BM1684X/bert4torch_output_fp32_8b.bmodel    | 87.478            |
-| BM1684X/bert4torch_output_fp16_8b.bmodel    | 5.726            |
-| BM1688/bert4torch_output_fp32_1b.bmodel    | 269.7          |
-| BM1688/bert4torch_output_fp16_1b.bmodel    | 40.0             |
-| BM1688/bert4torch_output_fp32_8b.bmodel    | 263.5            |
-| BM1688/bert4torch_output_fp16_8b.bmodel    | 34.1            |
-| BM1688/bert4torch_output_fp32_1b_2core.bmodel    | 184.3           |
-| BM1688/bert4torch_output_fp16_1b_2core.bmodel    | 30.2             |
-| BM1688/bert4torch_output_fp32_8b_2core.bmodel    | 156.8           |
-| BM1688/bert4torch_output_fp16_8b_2core.bmodel    | 18.5            |
+|                  测试模型                        | calculate time(ms) |
+| -------------------------------------------      | ----------------- |
+| BM1684/bert4torch_output_fp32_1b.bmodel          | 170.848           |
+| BM1684/bert4torch_output_fp32_8b.bmodel          | 146.653           |
+| BM1684X/bert4torch_output_fp32_1b.bmodel         | 91.473            |
+| BM1684X/bert4torch_output_fp16_1b.bmodel         | 8.643             |
+| BM1684X/bert4torch_output_fp32_8b.bmodel         | 87.478            |
+| BM1684X/bert4torch_output_fp16_8b.bmodel         | 5.726             |
+| BM1688/bert4torch_output_fp32_1b.bmodel          | 269.7             |
+| BM1688/bert4torch_output_fp16_1b.bmodel          | 40.0              |
+| BM1688/bert4torch_output_fp32_8b.bmodel          | 263.5             |
+| BM1688/bert4torch_output_fp16_8b.bmodel          | 34.1              |
+| BM1688/bert4torch_output_fp32_1b_2core.bmodel    | 184.3             |
+| BM1688/bert4torch_output_fp16_1b_2core.bmodel    | 30.2              |
+| BM1688/bert4torch_output_fp32_8b_2core.bmodel    | 156.8             |
+| BM1688/bert4torch_output_fp16_8b_2core.bmodel    | 18.5              |
 > **测试说明**：  
-1. 性能测试结果具有一定的波动性；
-2. `calculate time`已折算为平均每条文本的推理时间；
-3. SoC和PCIe的测试结果基本一致。
+> 1. 性能测试结果具有一定的波动性；
+> 2. `calculate time`已折算为平均每条文本的推理时间；
+> 3. SoC和PCIe的测试结果基本一致。
 
 ### 7.2 程序运行性能
-参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每条文本的处理时间。
+参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/china-people-daily-ner-corpus/example.test`，性能测试结果如下：
 |    测试平台  |     测试程序      |             测试模型                |tot_time|preprocess_time|inference_time|postprocess_time| 
-| ----------- | ---------------- | ----------------------------------- | -------- | --------- | --------- | --------- |
-| BM1684 SoC  | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 307.64   | 3.48      | 171.87    | 132.26    |
-| BM1684 SoC  | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 168.89   | 3.46      | 147.06    | 18.359    |
-| BM1684 SoC  | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    | 19.52    | 19.11     | 0.35      | 0.022     |
-| BM1684 SoC  | bert_sail.soc    | bert4torch_output_fp32_8b.bmodel    | 20.21    | 19.34     | 0.830     | 0.021     |
-| BM1684X SoC | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 225.16   | 3.50      | 92.25     | 129.39    |
-| BM1684X SoC | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 109.60   | 3.5       | 87.76     | 18.36     |
-| BM1684X SoC | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 141.59   | 3.5       | 9.50      | 128.57    |
-| BM1684X SoC | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 27.64    | 3.4       | 5.84      | 18.325    |
-| BM1684X SoC | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    | 19.45    | 19.14     | 0.028     | 0.022     |
-| BM1684X SoC | bert_sail.soc    | bert4torch_output_fp32_8b.bmodel    | 19.28    | 19.15     | 0.078     | 0.021     |
-| BM1684X SoC | bert_sail.soc    | bert4torch_output_fp16_1b.bmodel    | 19.87    | 19.59     | 0.218     | 0.020     |
-| BM1684X SoC | bert_sail.soc    | bert4torch_output_fp16_8b.bmodel    | 19.73    | 19.62     | 0.642     | 0.019     |
-| BM1688 SoC  |   bert_sail.py    | bert4torch_output_fp16_1b.bmodel  |     239.60      |      4.94       |      41.54      |     193.10      |
-| BM1688 SoC  |   bert_sail.py    | bert4torch_output_fp16_8b.bmodel  |      66.79      |      4.88       |      34.38      |      27.52      |
-| BM1688 SoC  |   bert_sail.py    | bert4torch_output_fp32_1b.bmodel  |     471.62      |      4.96       |     271.50      |     195.13      |
-| BM1688 SoC  |   bert_sail.py    | bert4torch_output_fp32_8b.bmodel  |     296.75      |      4.89       |     264.07      |      27.79      |
-| BM1688 SoC  |   bert_sail.soc   | bert4torch_output_fp16_1b.bmodel  |      71.85      |      30.98      |      40.77      |      0.05       |
-| BM1688 SoC  |   bert_sail.soc   | bert4torch_output_fp16_8b.bmodel  |     65.36      |     31.08      |     34.25      |      0.03       |
-| BM1688 SoC  |   bert_sail.soc   | bert4torch_output_fp32_1b.bmodel  |     301.28      |      30.56      |     270.61      |      0.06       |
-| BM1688 SoC  |   bert_sail.soc   | bert4torch_output_fp32_8b.bmodel  |     293.22     |     29.45      |     263.73     |      0.03       |
+| ----------- | ---------------- | ----------------------------------- | -------- |  --------- | ---------   | ---------   |
+| SE5-16      | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 307.64   | 3.48       | 171.87      | 132.26      |
+| SE5-16      | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 168.89   | 3.46       | 147.06      | 18.359      |
+| SE5-16      | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    | 19.52    | 19.11      | 0.35        | 0.022       |
+| SE5-16      | bert_sail.soc    | bert4torch_output_fp32_8b.bmodel    | 20.21    | 19.34      | 0.830       | 0.021       |
+| SE7-32      | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 225.16   | 3.50       | 92.25       | 129.39      |
+| SE7-32      | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 109.60   | 3.5        | 87.76       | 18.36       |
+| SE7-32      | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 141.59   | 3.5        | 9.50        | 128.57      |
+| SE7-32      | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 27.64    | 3.4        | 5.84        | 18.325      |
+| SE7-32      | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    | 19.45    | 19.14      | 0.028       | 0.022       |
+| SE7-32      | bert_sail.soc    | bert4torch_output_fp32_8b.bmodel    | 19.28    | 19.15      | 0.078       | 0.021       |
+| SE7-32      | bert_sail.soc    | bert4torch_output_fp16_1b.bmodel    | 19.87    | 19.59      | 0.218       | 0.020       |
+| SE7-32      | bert_sail.soc    | bert4torch_output_fp16_8b.bmodel    | 19.73    | 19.62      | 0.642       | 0.019       |
+| SE9-16      | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    |  239.60  | 4.94       |  41.54      | 193.10      |
+| SE9-16      | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    |   66.79  | 4.88       |  34.38      |  27.52      |
+| SE9-16      | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    |  471.62  | 4.96       | 271.50      | 195.13      |
+| SE9-16      | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    |  296.75  | 4.89       | 264.07      |  27.79      |
+| SE9-16      | bert_sail.soc    | bert4torch_output_fp16_1b.bmodel    |   71.85  | 30.98      |  40.77      |  0.05       |
+| SE9-16      | bert_sail.soc    | bert4torch_output_fp16_8b.bmodel    |  65.36   |31.08       | 34.25       |  0.03       |
+| SE9-16      | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    |  301.28  | 30.56      | 270.61      |  0.06       |
+| SE9-16      | bert_sail.soc    | bert4torch_output_fp32_8b.bmodel    |  293.22  |29.45       | 263.73      |  0.03       |
 
 > **测试说明**：  
-1. 时间单位均为毫秒(ms)，统计的时间均为平均每个文本处理的时间；
-2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-3. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异； 
+> 1. 时间单位均为毫秒(ms)，统计的时间均为平均每个文本处理的时间；
+> 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
+> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异； 
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

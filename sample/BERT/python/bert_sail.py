@@ -203,8 +203,10 @@ class BERT:
             zero[:,0]=102
             token_ids_b[-1]=np.concatenate((token_ids_b[-1],zero))
         tot_pre=time.time()-s
-        tot=0
+        count = 0
         for token_id,label in zip(token_ids_b,labels_b):
+            print("processed: {}/{}".format(count * self.batch_size, len(token_ids)))
+            count += 1
             s=time.time()
             out=self.infer_numpy([token_id])
             tot_infer+=time.time()-s
@@ -227,9 +229,6 @@ class BERT:
                
             tot_post+=time.time()-s
 
-            tot+=1
-            if(tot%100==0):
-                print(tot)
         
         tot_time=time.time()-ss
         return y_preds
@@ -295,12 +294,7 @@ def main(args):
         os.mkdir(output_dir)
   
     bert=BERT(args.bmodel,args.dict_path)
-    if(args.input=='dev'):
-        while(True):
-            text=input()
-            ans=bert.test_text(text)
-            print(ans)
-    elif(args.input[-4:]=='test'):
+    if(args.input[-4:]=='test'):
         if not os.path.exists(args.input):
             raise FileNotFoundError('{} is not existed.'.format(args.input))
         D=dataset.load_data(args.input)
