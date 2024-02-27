@@ -213,5 +213,3 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
-如果执行python例程bert_sail.py时报错"ImportError: /home/ljtang/miniconda3/lib/libstdc+.so.6: version `GLIBCXX_3.4.30' not found (required by /home/ljtang/miniconda3/envs/torch1.13/lib/python3.10/site-packages/sophon/sail.cpython-310-x86_64-linux-gnu.so)"，无法导入sophon.sail，使用”strings /usr/lib/x86_64-linux-gnu/libstdc+.so.6 | grep GLIBCXX“查询到兼容版本，使用命令”export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH“解决问题
-在解决完以上问题后，如果执行eval_people.py时报错”ImportError: xxx/miniconda3/envs/torch1.13/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by xxx/miniconda3/envs/torch1.13/lib/python3.10/site-packages/sophon/sail.cpython-310-x86_64-linux-gnu.so)“，在eval_people.py的” from python.bert_sail import dataset“之前增加”import sophon.sail as sail“解决问题
