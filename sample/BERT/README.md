@@ -114,7 +114,7 @@ chmod -R +x scripts/
 然后，使用`tools`目录下的`eval_people.py`脚本，将测试生成的txt文件与测试集标签txt文件进行对比，计算出NER的评价指标，命令如下：
 ```bash
 # 安装seqeval，若已安装请跳过
-pip3 install seqeval==1.2.2
+pip3 install bert4torch==0.3.0 packaging==23.2 seqeval==1.2.2
 # 请根据实际情况修改程序路径和txt文件路径, 建议在tools目录下执行该脚本，因为脚本中将工作目录设置为脚本所在目录。
 cd tools
 python3 eval_people.py --test_path ../datasets/china-people-daily-ner-corpus/example.test --input_path ../python/results/bert4torch_output_fp16_8b.bmodel_sail_python_result.txt
