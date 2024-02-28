@@ -138,5 +138,9 @@ make
 
 若要进行压测，在文件[yolov5.cpp](./vlpr_bmcv/yolov5_multi/yolov5.cpp)中设置`#define PRESSURE 1`，会不断循环视频文件。
 
+> **测试说明**：  
+> 1. 出现打印信息"xxx pipe full"，若大部分是前处理流程或推理流程则是正常的，若出现后处理流程，可查看最后一个输出该信息的流程，尝试增加该流程后面一个流程的线程数，即后面一个流程是瓶颈点
+> 2. 若结果输出被打印信息"xxx pipe full"覆盖，可设置[datapipe.hpp](vlpr_bmcv/lprnet_multi/datapipe.hpp)中的宏```PIPE_INFO```为0，来关闭打印信息"xxx pipe full"
+
 ### 3.3 程序原理流程图
 可参考[C++程序原理流程图](../pics/cpp_pipeline.png)，其中yolo部分可参考[C++程序YOLOv5_multi流程图](../../YOLOv5_multi/pics/diagram.png)。
