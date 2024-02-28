@@ -15,7 +15,7 @@
 * [7. FAQ](#7-FAQ)
   
 ## 1. 简介
-本例程对[LPRNet_Pytorch](https://github.com/sirius-ai/LPRNet_Pytorch)的模型和算法进行移植，，使之能够完成全流程车牌检测识别业务，并在SOPHON BM1684/BM1684X/BM1688上进行推理测试。
+本例程对[LPRNet_Pytorch](https://github.com/sirius-ai/LPRNet_Pytorch)的模型和算法进行移植，，使之能够完成全流程车牌检测识别业务，并在SOPHON BM1684/BM1684X/BM1688上进行推理测试。在您使用本例程之前，推荐先跑通[LPRNet](../../sample/LPRNet/README.md)和[YoLov5](../../sample/YOLOv5/README.md)
 
 **论文:** [LPRNet: License Plate Recognition via Deep Neural Networks](https://arxiv.org/abs/1806.10447v1)
 **LPRNET 车牌检测源代码**(https://github.com/sirius-ai/LPRNet_Pytorch)
@@ -69,10 +69,12 @@ chmod -R +x scripts/
 └── yolov5s-licensePLate
     ├── BM1684
     │   ├── yolov5s_v6.1_license_3output_fp32_1b.bmodel               # 用于BM1684的FP32 YOLOv5 BModel，batch_size=1，num_core=1
-    |   └── yolov5s_v6.1_license_3output_int8_1b.bmodel               # 用于BM1684的INT8 YOLOv5 BModel，batch_size=1，num_core=1
+    │   ├── yolov5s_v6.1_license_3output_int8_1b.bmodel               # 用于BM1684的INT8 YOLOv5 BModel，batch_size=1，num_core=1
+    │   └── yolov5s_v6.1_license_3output_int8_4b.bmodel               # 用于BM1684的INT8 YOLOv5 BModel，batch_size=4，num_core=1             
     ├── BM1684X
     │   ├── yolov5s_v6.1_license_3output_fp32_1b.bmodel               # 用于BM1684X的FP32 YOLOv5 BModel，batch_size=1，num_core=1
-    │   └── yolov5s_v6.1_license_3output_int8_1b.bmodel               # 用于BM1684X的INT8 YOLOv5 BModel，batch_size=1，num_core=1
+    │   ├── yolov5s_v6.1_license_3output_int8_1b.bmodel               # 用于BM1684X的INT8 YOLOv5 BModel，batch_size=1，num_core=1
+    │   └── yolov5s_v6.1_license_3output_int8_4b.bmodel               # 用于BM1684X的INT8 YOLOv5 BModel，batch_size=4，num_core=1     
     └── BM1688
         ├── yolov5s_v6.1_license_3output_fp32_1b_2core.bmodel         # 用于BM1688的FP32 YOLOv5 BModel，batch_size=1，num_core=2
         ├── yolov5s_v6.1_license_3output_fp32_1b.bmodel               # 用于BM1688的FP32 YOLOv5 BModel，batch_size=1，num_core=1
@@ -95,10 +97,11 @@ chmod -R +x scripts/
 参考[sophon-demo yolov5模型编译](../../sample/YOLOv5/README.md#4-模型编译)
 
 > **说明**： 
-> 1. **注意:**本例程中提供的yolov5s-licenseplate模型为基于绿牌数据集训练的模型，供示例使用参考，无原始模型及精度数据
+> 本例程中提供的yolov5s-licenseplate模型为基于绿牌数据集训练的模型，供示例使用参考，无原始模型及精度数据。
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
+- [python例程](./python/README.md)
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
@@ -110,9 +113,9 @@ LPRNet性能可参考[LPRNet bmrt_test](../../sample/LPRNet/README.md#71-bmrt_te
 bmrt_test --bmodel models/BM1684/yolov5s_v6.1_license_3output_fp32_1b.bmodel 
 ```
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
-测试各个模型的理论推理时间，结果如下：
+测试各个模型每张图片的理论推理时间，结果如下：
 |                          测试模型                         | calculate time(ms)|
-| ---------------------------------------------------       | ----------------- |
+| --------------------------------------------------------- | ----------------- |
 | BM1684/yolov5s_v6.1_license_3output_fp32_1b.bmodel        | 20.6              |
 | BM1684/yolov5s_v6.1_license_3output_int8_1b.bmodel        | 12.4              |
 | BM1684/yolov5s_v6.1_license_3output_int8_4b.bmodel        | 5.4               |
@@ -143,8 +146,10 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_license_3output_fp32_1b.bmodel
 | SE7-32  | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel            | config_se7.json  |  32  | 274 |  65-100     |   170-190    |   90-105        |   450-700     |
 | SE9-8   | vlpr_bmcv.soc | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | config_se9-8.json| 8   |  95 |  55-80      |   90-100     |   48-51         |   550-650     |
 | SE9-16  | vlpr_bmcv.soc | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | config_se9-16.json|16  |  187 |  60-90     |   200-230    |   57-65         |   950-1050    |
-| SE5-16  | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default         |  16 |  291 |  100        |    240       |   816-881       |   2500        |
-| SE7-32  | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default         |  32 |  628 |  100        |    560       |   387-392       |   5100        |
+| SE5-16  | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default          | 16  |  291 |  100       |   120-132    |   220-228       |   2400-2500   |
+| SE7-32  | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default          | 32  |  620 |  66-100    |   400-560    |   456-480       |   4900-5100   |
+| SE9-8   | vlpr.py       | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | default          | 8   |  165 |  90-99     |   206-240    |   132-136       |   1650-1700   |
+| SE9-16  | vlpr.py       | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | default          | 16  |  394 |  95-99     |   400-480    |   272-288       |   3180-3300   |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
