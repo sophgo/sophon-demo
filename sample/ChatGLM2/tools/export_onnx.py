@@ -20,8 +20,15 @@ from tokenization_chatglm import ChatGLMTokenizer
 import os
 import numpy as np
 
-CHATGLM2_PATH = "/workspace/chatglm2-6b"
-folder = "./tmp"
+import argparse
+
+
+parser = argparse.ArgumentParser(prog=__file__)
+parser.add_argument('--path', type=str, default='/workspace/chatglm2-6b', help='path of chatglm2-6b')
+CHATGLM2_PATH = parser.parse_args().path
+
+# CHATGLM2_PATH = "/workspace/chatglm2-6b"
+folder = "models/onnx/"
 
 origin_model = AutoModel.from_pretrained(CHATGLM2_PATH,
                                          trust_remote_code=True).float()
@@ -104,7 +111,7 @@ def convert_glm_block(layer_id):
 
     torch.onnx.export(
         model, (hidden_states, position_ids, attention_mask),
-        f'./tmp/glm_block_{layer_id}.onnx',
+        folder + f'glm_block_{layer_id}.onnx',
         verbose=False,
         input_names=['input_states', 'position_ids', 'attention_mask'],
         output_names=['hidden_states', 'past_k', 'past_v'],
@@ -125,7 +132,7 @@ def convert_glm_block_cache(layer_id):
 
     torch.onnx.export(
         model, (hidden_states, position_ids, attention_mask, past_k, past_v),
-        f'./tmp/glm_block_cache_{layer_id}.onnx',
+        folder+f'glm_block_cache_{layer_id}.onnx',
         verbose=False,
         input_names=[
             'input_states', 'position_ids', 'attention_mask', 'history_k',
@@ -139,7 +146,7 @@ def convert_glm_block_cache(layer_id):
 def convert_embedding():
     model = Embedding()
     torch.onnx.export(model, (torch.tensor([0, 1, 2, 3])),
-                      f'./tmp/embedding.onnx',
+                      folder+f'embedding.onnx',
                       verbose=False,
                       input_names=['input_ids'],
                       output_names=['input_embed'],
@@ -154,7 +161,7 @@ def convert_lm_head():
     model = LmHead()
     input = torch.randn(1, 4096)
     torch.onnx.export(model, (input),
-                      f'./tmp/lm_head.onnx',
+                      folder+f'lm_head.onnx',
                       verbose=False,
                       input_names=['hidden_states'],
                       output_names=['token'],

@@ -7,7 +7,7 @@ project(ChatGLM2)
 # SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 # message("cur dir: ${PROJECT_SOURCE_DIR}")
 cmake_policy(SET CMP0015 NEW)
-cmake_policy(SET CMP0081 NEW)
+# cmake_policy(SET CMP0081 NEW)
 
 set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
@@ -25,8 +25,7 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     include_directories(${LIBSOPHON}/include)
     link_directories(${LIBSOPHON}/lib)
 
-
-    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../cpp/lib_pcie) 
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentencepiece/lib/x86) 
     add_definitions(-DDEBUG --std=c++17 -fPIC -Wall -Werror)
 
     add_executable(chatglm2.pcie main.cpp)
@@ -42,7 +41,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     include_directories("${SDK}/include/")
     link_directories("${SDK}/lib/")
 
-    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../cpp/lib_soc) 
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentencepiece/lib/arm64) 
     add_definitions(-DDEBUG --std=c++17 -fPIC -Wall -Werror)
     
     add_executable(chatglm2.soc main.cpp)
@@ -55,7 +54,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc_base")
     include_directories(${LIBSOPHON}/include)
     link_directories(${LIBSOPHON}/lib)
 
-    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../cpp/lib_soc) 
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentencepiece/lib/arm64) 
     add_definitions(-DDEBUG --std=c++17 -fPIC -Wall -Werror)
     
     add_executable(chatglm2.soc main.cpp)

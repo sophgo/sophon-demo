@@ -5,7 +5,7 @@
 #include <chrono>
 #include <algorithm>
 #include "memory.h"
-#include "sentencepiece/sentencepiece_processor.h"
+#include "3rdparty/sentencepiece/include/sentencepiece_processor.h"
 #include "bmruntime_interface.h"
 
 static const int NUM_LAYERS = 28;
@@ -331,6 +331,7 @@ void ChatGLM2::answer(const std::string &input_str) {
   auto st = std::chrono::system_clock::now();
   int pre_token = 0;
   int token = forward_first(tokens);
+  auto et = std::chrono::system_clock::now();
   while (token != EOS && token_length < MAX_LEN) {
     std::string pre_word;
     std::string word;
@@ -347,10 +348,13 @@ void ChatGLM2::answer(const std::string &input_str) {
     tok_num++;
     token = forward_next();
   }
-  auto et = std::chrono::system_clock::now();
+  auto ett = std::chrono::system_clock::now();
   auto duration =
       std::chrono::duration_cast<std::chrono::microseconds>(et - st);
-  printf("\nspeed: %f token/s\n", tok_num / (duration.count() * 1e-6));
+  auto duration1 =
+  std::chrono::duration_cast<std::chrono::microseconds>(ett - et);
+  printf("\nFTL: %f s\n", duration.count() * 1e-6);
+  printf("TPS: %f token/s\n", tok_num / (duration1.count() * 1e-6));
   if (token_length >= MAX_LEN) {
     round = 0;
     history = history.substr(history.size()/2);

@@ -3,46 +3,14 @@ set -ex
 models=
 mode="f16"
 num_device=1
-quantize_args="--quantize F16"
 device_args=""
 out_model=chatglm2-6b_f16.bmodel
 
-while [[ $# -gt 0 ]]; do
-    key="$1"
+# 中间输出都在script/tmp下
+# 最终结果放在models/BM1684X/下
 
-    case $key in
-        --mode)
-            mode="$2"
-            shift 2
-            ;;
-        --num_device)
-            num_device="$2"
-            shift 2
-            ;;
-        *)
-            echo "Invalid option: $key" >&2
-            exit 1
-            ;;
-        :)
-            echo "Option -$OPTARG requires an argument." >&2
-            exit 1
-            ;;
-    esac
-done
-
-if [ x$mode == x"int8" ] || [ x$mode == x"int4" ]; then
-    if [ x$mode == x"int8" ]; then
-        quantize_args="--quantize W8F16"
-    else
-        quantize_args="--quantize W4F16"
-    fi
-    out_model="chatglm2-6b_$mode.bmodel"
-fi
-
-if [ x$num_device != x1 ]; then
-    device_args="--num_device $num_device"
-    out_model='chatglm2-6b_'$mode'_'$num_device'dev.bmodel'
-fi
+model_dir=$(dirname $(readlink -f "$0"))
+pushd $model_dir
 
 outdir=tmp/embedding
 mkdir -p $outdir
@@ -51,7 +19,7 @@ pushd $outdir
 seqlen=512
 model_transform.py \
     --model_name embedding \
-    --model_def ../embedding.onnx \
+    --model_def ../../../models/onnx/embedding.onnx \
     --input_shapes [[$seqlen]] \
     --mlir embedding_${seqlen}.mlir
 
@@ -64,7 +32,7 @@ model_deploy.py \
 
 model_transform.py \
     --model_name embedding \
-    --model_def ../embedding.onnx \
+    --model_def ../../../models/onnx/embedding.onnx \
     --input_shapes [[1]] \
     --mlir embedding_1.mlir
 
@@ -87,7 +55,7 @@ pushd $outdir
 
 model_transform.py \
     --model_name lm_head \
-    --model_def ../../lm_head.onnx \
+    --model_def ../../../../models/onnx/lm_head.onnx \
     --mlir lm_head.mlir
 
 model_deploy.py \
@@ -113,24 +81,24 @@ do
 
 model_transform.py \
     --model_name glm_block_$i \
-    --model_def ../../glm_block_$i.onnx \
+    --model_def ../../../../models/onnx/glm_block_$i.onnx \
     --mlir glm_block_$i.mlir
 
 model_deploy.py \
     --mlir glm_block_$i.mlir \
-    $quantize_args \
+    --quantize F16 \
     --chip bm1684x \
     $device_args \
     --model glm_block_$i.bmodel
 
 model_transform.py \
     --model_name glm_block_cache_$i \
-    --model_def ../../glm_block_cache_$i.onnx \
+    --model_def ../../../../models/onnx/glm_block_cache_$i.onnx \
     --mlir glm_block_cache_$i.mlir
 
 model_deploy.py \
     --mlir glm_block_cache_$i.mlir \
-    $quantize_args \
+    --quantize F16 \
     --chip bm1684x \
     $device_args \
     --model glm_block_cache_$i.bmodel
@@ -141,4 +109,13 @@ done
 popd
 echo $models
 
+
 model_tool --combine $models -o $out_model
+
+outdir=../models/BM1684X
+if [ ! -d $outdir ]; then
+    mkdir -p $outdir
+fi
+mv $out_model ../models/BM1684X/
+
+popd
