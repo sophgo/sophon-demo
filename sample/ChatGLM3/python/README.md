@@ -36,7 +36,7 @@ pip3 install sophon-3.7.0-py3-none-any.whl
 python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatGLM3/sail/arm_pcie/sophon_arm_pcie-3.7.0-py3-none-any.whl
 pip3 install sophon_arm_pcie-3.7.0-py3-none-any.whl
 ```
-如果您需要其他版本的sophon-sail，可以下载源码，参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)自己编译。
+如果您需要其他版本的sophon-sail，或者遇到glibc版本问题（pcie环境常见），可以通过以下命令下载源码，参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)自己编译sophon-sail。
 ```bash
 python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatGLM3/sail/sophon-sail_20240226.tar.gz
 tar xvf sophon-sail_20240226.tar.gz
@@ -71,7 +71,7 @@ usage: chatglm3.py [--bmodel BMODEL] [--token TOKEN] [--dev_id DEV_ID]
 ### 2.2 使用方式
 
 ```bash
-python3 python/chatglm3.py --bmodel models/BM1684X/chatglm3-6b_f16.bmodel --token python/token_config --dev_id 0 
+python3 python/chatglm3.py --bmodel models/BM1684X/chatglm3-6b_fp16.bmodel --token python/token_config --dev_id 0 
 ```
 在读入模型后会显示"Question:"，然后输入就可以了。模型的回答会出现在"Answer"中。结束对话请输入"exit"。
 
