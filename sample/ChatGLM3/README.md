@@ -56,6 +56,7 @@ chmod -R +x scripts/
 ```
 
 执行下载脚本后，当前目录下的文件如下：
+
 ```bash
 ├── docs
 │   └── ChatGLM3_Export_Guide.md    #ChatGLM3 onnx导出和bmodel编译指南
