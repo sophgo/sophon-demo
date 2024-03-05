@@ -13,7 +13,7 @@ ECHO_LINES=20
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
 while getopts ":m:t:s:d:p:" opt
@@ -28,6 +28,9 @@ do
     s)
       SOCSDK=${OPTARG}
       echo "soc-sdk is $SOCSDK";;
+    a)
+      SAIL_PATH=${OPTARG}
+      echo "sail_path is $SAIL_PATH";;
     d)
       TPUID=${OPTARG}
       echo "using tpu $TPUID";;
