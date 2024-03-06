@@ -29,7 +29,7 @@ SophonSDK是算能科技基于其自主研发的深度学习处理器所定制�
 | [YOLOX](./sample/YOLOX/README.md)                             | 目标检测          | C++/Python | FP32/INT8      |
 | [SSD](./sample/SSD/README.md)                                 | 目标检测          | C++/Python | FP32/INT8      |
 | [YOLOv7](./sample/YOLOv7/README.md)                           | 目标检测          | C++/Python | FP32/FP16/INT8 |
-| [YOLOv8](./sample/YOLOv8/README.md)                           | 目标检测          | C++/Python | FP32/FP16/INT8 |
+| [YOLOv8_det](./sample/YOLOv8_det/README.md)                   | 目标检测          | C++/Python | FP32/FP16/INT8 |
 | [YOLOv5_opt](./sample/YOLOv5_opt/README.md)                   | 目标检测          | C++/Python | FP32/FP16/INT8 |
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16      |
