@@ -28,7 +28,7 @@ SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI
 | [YOLOX](./sample/YOLOX/README.md)                             | Object Detection                   | C++/Python | FP32/INT8      |
 | [SSD](./sample/SSD/README.md)                                 | Object Detection                   | C++/Python | FP32/INT8      |
 | [YOLOv7](./sample/YOLOv7/README.md)                           | Object Detection                   | C++/Python | FP32/FP16/INT8 |
-| [YOLOv8](./sample/YOLOv8/README.md)                           | Object Detection                   | C++/Python | FP32/FP16/INT8 |
+| [YOLOv8_det](./sample/YOLOv8_det/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [YOLOv5_opt](./sample/YOLOv5_opt/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16      |
