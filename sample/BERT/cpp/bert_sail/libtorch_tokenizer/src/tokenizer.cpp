@@ -179,6 +179,7 @@ std::string BasicTokenizer::_clean_text(std::string text)
             output = output + char_array[len];
         ++len;
     }
+    delete[] char_array;
     return output;
 }
 
@@ -230,6 +231,7 @@ vector<std::string> BasicTokenizer::_run_split_on_punc(std::string text)
         }
         final_output.push_back(word);
     }
+    delete[] char_array;
     return final_output;
 }
 
@@ -268,6 +270,7 @@ std::string BasicTokenizer::_run_strip_accents(std::string text)
         output = output + char_array[i];
         i++;
     }
+    delete[] char_array;
     return output;
 }
 
@@ -481,6 +484,7 @@ vector<std::string> WordpieceTokenizer::tokenize(std::string text)
         {
             output_tokens.insert(output_tokens.end(), sub_tokens.begin(), sub_tokens.end());
         }
+        delete[] char_array;
     }
     return output_tokens;
 }
@@ -526,7 +530,7 @@ vector<float> BertTokenizer::convert_tokens_to_ids(vector<std::string> tokens)
         ids.push_back(float(vocab[*ptr]));
     }
     if (ids.size() > maxlen_)
-        cout << "Token indices sequence length is longer than the specified maximum";
+        cout << "Token indices sequence length is longer than the specified maximum" << endl;
     return ids;
 }
 
