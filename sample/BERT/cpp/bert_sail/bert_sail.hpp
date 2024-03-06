@@ -20,7 +20,6 @@
 class BERT {
 public:
     BERT(std::string model_path, std::string pre_train_path, int id);
-    void pre_process(std::string text);
     void pre_process(std::vector<string> texts);
     bool Detect();
     std::vector<pair<std::vector<std::string>, std::vector<std::string>>>
@@ -51,4 +50,7 @@ private:
     std::vector<std::string> tokens;
     std::vector<float> token_ids;
     std::vector<std::string> id2label;
+
+    struct bm_misc_info misc_info;
+
 };
