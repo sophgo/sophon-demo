@@ -176,8 +176,14 @@ class BERT:
     def test_text(self,text):#one test
         
         tokens,token_ids=self.pre_process_text(text)
-       
-        out=self.infer_numpy([[token_ids]])
+        token_ids=[token_ids]
+        token_ids_b=[token_ids[i:i+self.batch_size] for i in range(0,len(token_ids),self.batch_size)]
+        if(len(token_ids_b[-1])%self.batch_size):
+            zero=np.zeros((self.batch_size-len(token_ids_b[-1]),256))
+            zero[:,0]=101
+            zero[:,0]=102
+            token_ids_b[-1]=np.concatenate((token_ids_b[-1],zero))
+        out=self.infer_numpy([token_ids_b[0]])
         lis=[]
         for i in out.keys():
             lis.append(out[i])

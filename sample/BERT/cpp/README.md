@@ -36,19 +36,6 @@ apt install libboost1.71-dev
 ```
 ### 1.2 SoC平台
 如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
-本例程依赖boost>=1.65,
-```
-apt install libboostx.xx-dev
-```
-x.xx为对应版本。可通过
-```
-sudo apt-cache search libboost
-```
-查看
-以ubuntu20.04为例
-```
-apt install libboost1.71-dev
-```
 ## 2. 程序编译
 C++程序运行前需要编译可执行文件。
 ### 2.1 x86/arm PCIe平台
@@ -103,7 +90,7 @@ Usage: bert_sail.pcie [params]
 **注意：** CPP传参与python不同，需要用等于号，例如`./bert_sail.pcie --bmodel=xxx`。
 
 ### 3.2 测试文本
-文本测试实例如下，支持对文件进行测试。
+文本测试实例如下，支持对文件进行测试一个batch_size数据。
 ```bash
 ./bert_sail.pcie --input=../../datasets/china-people-daily-ner-corpus/test.txt --bmodel=../../models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id=0 
 ```

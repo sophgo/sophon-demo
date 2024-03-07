@@ -53,7 +53,7 @@ usage: bert_sail.py [--input INPUT] [--bmodel BMODEL] [--dev_id DEV_ID]
 
 ```
 ### 2.2 测试文本
-文本测试实例如下
+文本测试实例如下，支持测试一个batch_size数据
 ```bash
 cd python
 python3 bert_sail.py --input ../datasets/china-people-daily-ner-corpus/test.txt --bmodel ../models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id 0 
@@ -66,6 +66,6 @@ python3 bert_sail.py --input ../datasets/china-people-daily-ner-corpus/test.txt 
 ```bash
 python3 bert_sail.py --input ../datasets/china-people-daily-ner-corpus/example.test --bmodel ../models/BM1684/bert4torch_output_fp32_1b.bmodel --dev_id 0 
 ```
-测试结束后，预测的结果保存在`results/bert4torch_output_fp32_1b.bmodel_test_sail_python_result.txt`下，同时会打印预测结果、推理时间等信息。
+测试结束后，预测的结果保存在`results/bert4torch_output_fp32_1b.bmodel_sail_python_result.txt`下，同时会打印预测结果、推理时间等信息。
 
 
