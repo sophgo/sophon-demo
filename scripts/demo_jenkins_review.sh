@@ -239,9 +239,9 @@ function build_soc_YOLOv5_opt(){
     popd
 }
 
-function build_soc_YOLOv8(){
+function build_soc_YOLOv8_det(){
  
-    pushd $DEMO_BASIC_PATH/sample/YOLOv8/cpp/yolov8_bmcv
+    pushd $DEMO_BASIC_PATH/sample/YOLOv8_det/cpp/yolov8_bmcv
     if [ -d build ]; then
         rm -rf build
     fi
@@ -303,4 +303,4 @@ build_soc_PPOCR $SOC_SDK_PATH
 echo "-------------------------Start build_soc_YOLOv5_opt ------------------"
 build_soc_YOLOv5_opt $SOC_SDK_PATH
 echo "-------------------------Start build_soc_YOLOv8 ------------------"
-build_soc_YOLOv8 $SOC_SDK_PATH
+build_soc_YOLOv8_det $SOC_SDK_PATH
