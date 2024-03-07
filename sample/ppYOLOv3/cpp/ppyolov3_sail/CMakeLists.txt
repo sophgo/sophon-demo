@@ -12,8 +12,6 @@ if (NOT DEFINED TARGET_ARCH)
 endif()
 
 if (${TARGET_ARCH} STREQUAL "pcie")
-    # set(lib_DIR /usr/lib/x84_64-linux-gnu)
-    # link_directories(${lib_DIR})
     # use ffmpeg
     set(FFMPEG_DIR  /opt/sophon/sophon-ffmpeg-latest/lib/cmake)
     find_package(FFMPEG REQUIRED)
@@ -39,10 +37,6 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     add_compile_definitions(USE_BMCV=1)
     add_compile_definitions(USE_FFMPEG=1)
     add_compile_definitions(USE_OPENCV=1)
- 
-    # message(STATUS ${LIBSOPHON_LIB_DIRS})
-    # message(STATUS ${LIBSOPHON_LIBS})
-    # message(STATUS ${FFMPEG_LIB_DIRS})
  
     aux_source_directory(. SRC_FILES)
     aux_source_directory(../../../../src/ SRC_FILES)
