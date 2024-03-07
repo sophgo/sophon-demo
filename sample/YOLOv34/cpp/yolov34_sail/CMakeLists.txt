@@ -12,14 +12,13 @@ if (NOT DEFINED TARGET_ARCH)
 endif()
 
 if (${TARGET_ARCH} STREQUAL "pcie")
-    # set(lib_DIR /usr/lib/x84_64-linux-gnu)
-    # link_directories(${lib_DIR})
+
     # use ffmpeg
     set(FFMPEG_DIR  /opt/sophon/sophon-ffmpeg-latest/lib/cmake)
     find_package(FFMPEG REQUIRED)
     include_directories(${FFMPEG_INCLUDE_DIRS})
     link_directories(${FFMPEG_LIB_DIRS})
-   # use opencv
+    # use opencv
     set(OpenCV_DIR /opt/sophon/sophon-opencv-latest/lib/cmake/opencv4/)
     find_package(OpenCV REQUIRED)
     include_directories(${OpenCV_INCLUDE_DIRS})
@@ -39,10 +38,6 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     add_compile_definitions(USE_BMCV=1)
     add_compile_definitions(USE_FFMPEG=1)
     add_compile_definitions(USE_OPENCV=1)
- 
-    # message(STATUS ${LIBSOPHON_LIB_DIRS})
-    # message(STATUS ${LIBSOPHON_LIBS})
-    # message(STATUS ${FFMPEG_LIB_DIRS})
  
     aux_source_directory(. SRC_FILES)
     aux_source_directory(../../../../src/ SRC_FILES)
@@ -74,5 +69,5 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     aux_source_directory(. SRC_FILES)
     add_executable(yolov34_sail.soc ${SRC_FILES})
     target_link_libraries(yolov34_sail.soc ${BM_LIBS} ${OPENCV_LIBS} ${SAIL_LIBS} -lpthread -lavcodec -lavformat -lavutil)
-    # target_link_libraries(yolov34_sail.soc ${BM_LIBS} ${OPENCV_LIBS} ${JPU_LIBS} ${SAIL_LIBS})
+
 endif ()
