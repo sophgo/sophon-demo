@@ -139,7 +139,7 @@ then
   test_sample ResNet
   test_sample YOLOv5
   test_sample YOLOv5_opt
-  test_sample YOLOv8
+  test_sample YOLOv8_det
 fi
 
 popd
