@@ -7,9 +7,6 @@
 #
 #===----------------------------------------------------------------------===#
 import numpy as np
-import cv2
-# import scipy.special
-from utils import softmax
 
 class PostProcess:
     def __init__(self, conf_thresh=0.1, nms_thresh=0.5, agnostic=False, multi_label=True, max_det=1000):
@@ -131,7 +128,6 @@ class pseudo_torch_nms:
         return y
 
     def box_area(self, box):
-        # box = xyxy(4,n)
         return (box[2] - box[0]) * (box[3] - box[1])
 
     def box_iou(self, box1, box2):
@@ -146,13 +142,8 @@ class pseudo_torch_nms:
             iou (Tensor[N, M]): the NxM matrix containing the pairwise
                 IoU values for every element in boxes1 and boxes2
         """
-
-        # inter(N,M) = (rb(N,M,2) - lt(N,M,2)).clamp(0).prod(2)
         (a1, a2), (b1, b2) = box1[:, None].chunk(2, 2), box2.chunk(2, 1)
-        # inter = (torch.min(a2, b2) - torch.max(a1, b1)).clamp(0).prod(2)
         inter = (np.min([a2, b2], 0) - np.max([a1, b1], 0)).clip(min=0).prod(2)
-
-        # IoU = inter / (area1 + area2 - inter)
         return inter / (self.box_area(box1.T)[:, None] + self.box_area(box2.T) - inter)
 
     def nms(self, pred, conf_thres=0.25, iou_thres=0.5, agnostic=False, max_det=1000):
@@ -181,10 +172,6 @@ class pseudo_torch_nms:
         nc = prediction.shape[2] - 5  # number of classes
         xc = prediction[..., 4] > conf_thres  # candidates
 
-        # Checks
-        # assert 0 <= conf_thres <= 1, f'Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0'
-        # assert 0 <= iou_thres <= 1, f'Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0'
-
         # Settings
         max_wh = 7680  # (pixels) maximum box width and height
         max_nms = 30000  # maximum number of boxes into torchvision.ops.nms()
@@ -194,7 +181,6 @@ class pseudo_torch_nms:
         output = [np.zeros((0, 6))] * bs
         for xi, x in enumerate(prediction):  # image index, image inference
             # Apply constraints
-            # x[((x[..., 2:4] < min_wh) | (x[..., 2:4] > max_wh)).any(1), 4] = 0  # width-height
             x = x[xc[xi]]  # confidence
 
             # If none remain process next image
@@ -230,10 +216,7 @@ class pseudo_torch_nms:
             c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
             boxes, scores = x[:, :4] + c, x[:, 4]  # boxes (offset by class), scores
 
-            #############################################
-            # i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
             i = self.nms_boxes(boxes, scores, iou_thres)
-            ############################################
 
             if i.shape[0] > max_det:  # limit detections
                 i = i[:max_det]

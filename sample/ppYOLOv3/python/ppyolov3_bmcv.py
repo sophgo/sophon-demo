@@ -23,7 +23,6 @@ class PPYOLO:
         # load bmodel
         self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSO)
         logging.debug("load {} success!".format(args.bmodel))
-        # self.handle = self.net.get_handle()
         self.handle = sail.Handle(args.dev_id)
         self.bmcv = sail.Bmcv(self.handle)
         self.graph_name = self.net.get_graph_names()[0]
@@ -156,7 +155,6 @@ class PPYOLO:
         self.net.process(self.graph_name, input_tensors, self.input_shapes, self.output_tensors)
         outputs_dict = {}
         for name in self.output_names:
-            # outputs_dict[name] = self.output_tensors[name].asnumpy()[:img_num] * self.output_scales[name]
             outputs_dict[name] = self.output_tensors[name].asnumpy()[:img_num]
         # resort
         out_keys = list(outputs_dict.keys())
@@ -247,10 +245,6 @@ def main(args):
     
     handle = sail.Handle(args.dev_id)
     bmcv = sail.Bmcv(handle)
-    # warm up 
-    # bmimg = sail.BMImage(handle, 1080, 1920, sail.Format.FORMAT_YUV420P, sail.DATA_TYPE_EXT_1N_BYTE)
-    # for i in range(10):
-    #     results = ppyolov3([bmimg])
     ppyolov3.init()
 
     decode_time = 0.0
@@ -272,7 +266,6 @@ def main(args):
                 decoder = sail.Decoder(img_file, True, args.dev_id)
                 bmimg = sail.BMImage()
                 ret = decoder.read(handle, bmimg)    
-                # print(bmimg.format(), bmimg.dtype())
                 if ret != 0:
                     logging.error("{} decode failure.".format(img_file))
                     continue
@@ -311,7 +304,6 @@ def main(args):
             args.input = args.input[:-1]
         json_name = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input)[-1] + "_bmcv" + "_python_result.json"
         with open(os.path.join(output_dir, json_name), 'w') as jf:
-            # json.dump(results_list, jf)
             json.dump(results_list, jf, indent=4, ensure_ascii=False)
         logging.info("result saved in {}".format(os.path.join(output_dir, json_name)))
         
@@ -323,14 +315,16 @@ def main(args):
         video_name = os.path.splitext(os.path.split(args.input)[1])[0]
         cn = 0
         frame_list = []
-        while True:
+        end_flag = False
+        while not end_flag:
             frame = sail.BMImage()
             start_time = time.time()
             ret = decoder.read(handle, frame)
-            if ret:
-                break
             decode_time += time.time() - start_time
-            frame_list.append(frame)
+            if ret: #differ from cv.
+                end_flag = True
+            else:
+                frame_list.append(frame)
             if (len(frame_list) == batch_size or end_flag) and len(frame_list):
                 results = ppyolov3(frame_list)
                 for i, frame in enumerate(frame_list):

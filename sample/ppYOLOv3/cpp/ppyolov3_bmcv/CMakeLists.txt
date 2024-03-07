@@ -13,8 +13,6 @@ endif()
 
 if (${TARGET_ARCH} STREQUAL "pcie")
     message( "${TARGET_ARCH} mode, starting......")
-    # set(lib_DIR /usr/lib/x84_64-linux-gnu)
-    # link_directories(${lib_DIR})
     # use ffmpeg
     set(FFMPEG_DIR  /opt/sophon/sophon-ffmpeg-latest/lib/cmake)
     find_package(FFMPEG REQUIRED)

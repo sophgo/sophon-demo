@@ -70,12 +70,9 @@ class PPYOLO:
         """
         resized_img = cv2.resize(ori_img, (self.input_shape[3], self.input_shape[2]))
         img = resized_img / 255.0
-        # img -= self.mean
-        # img /= self.std
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img = img.astype(np.float32)
         img = np.ascontiguousarray(img)
-        # input_data = np.expand_dims(input_data, 0)
         return img
     
     def letterbox(self, im, new_shape=(640, 640), color=(114, 114, 114), auto=False, scaleFill=False, scaleup=True, stride=32):
@@ -122,12 +119,7 @@ class PPYOLO:
                 if n == k:
                     ord.append(i)
                     break
-        out = [outputs[out_keys[i]][:img_num] for i in ord]
-        # reshaped_out = []
-        # for x in out:
-        #     bs, dim, ny, nx = np.shape(x)
-        #     x = x.reshape(bs, 3, int(dim/3), ny, nx).transpose(0, 1, 3, 4, 2)
-        #     reshaped_out.append(x)     
+        out = [outputs[out_keys[i]][:img_num] for i in ord]   
         return out
     
     def __call__(self, img_list):
@@ -199,9 +191,6 @@ def main(args):
     ppyolov3 = PPYOLO(args)
     batch_size = ppyolov3.batch_size
     
-    # warm up 
-    # for i in range(10):
-    #     results = ppyolov3([np.zeros((640, 640, 3))])
     ppyolov3.init()
     
     decode_time = 0.0
@@ -293,7 +282,6 @@ def main(args):
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         fps = cap.get(cv2.CAP_PROP_FPS)
         size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-        # print(fps, size)
         save_video = os.path.join(output_dir, os.path.splitext(os.path.split(args.input)[1])[0] + '.avi')
         out = cv2.VideoWriter(save_video, fourcc, fps, size)
         cn = 0
