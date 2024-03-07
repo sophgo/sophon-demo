@@ -23,7 +23,6 @@ class YOLO:
         # load bmodel
         self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSO)
         logging.debug("load {} success!".format(args.bmodel))
-        # self.handle = self.net.get_handle()
         self.handle = sail.Handle(args.dev_id)
         self.bmcv = sail.Bmcv(self.handle)
         self.graph_name = self.net.get_graph_names()[0]
