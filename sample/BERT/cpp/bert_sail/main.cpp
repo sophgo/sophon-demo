@@ -79,10 +79,11 @@ int main(int argc, char* argv[]) {
     if (input_file.substr(input_file.size() - 4, 4) != "test") {  // one test
         string text;
         file >> text;
-        bert.pre_process(text);
+        vector<string> texts;
+        texts.push_back(text);
+        bert.pre_process(texts);
         bert.Detect();
         std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>> ans = bert.post_process();
-
         for (auto i : ans[0].first) {
             std::cout << i << endl;
         }
@@ -109,74 +110,45 @@ int main(int argc, char* argv[]) {
             ss >> label;
         }
     }
-    if (b == 8) {  // 8 batch
 
-        for (int i = 0; i < texts.size(); i += b) {
-            tot++;
-            std::cout << "processed: " << i << "/" << texts.size() << std::endl;
-            vector<string> ts;
-            for (int j = 0; j < min(b, (int)texts.size() - i); j++) {
-                ts.push_back(texts[i + j]);
-            }
-            for (int j = (int)texts.size() - i; j < b; j++) {
-                ts.push_back("");
-            }
-            LOG_TS_B(bert_ts, "bert tots", b);
-            LOG_TS_B(bert_ts, "bert preprocess", b);
-            bert.pre_process(ts);
-            LOG_TS_B(bert_ts, "bert preprocess", b);
-
-            LOG_TS_B(bert_ts, "bert inference", b);
-            bert.Detect();
-            LOG_TS_B(bert_ts, "bert inference", b);
-            LOG_TS_B(bert_ts, "bert postprocess", b);
-            std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>> ans = bert.post_process();
-            LOG_TS_B(bert_ts, "bert postprocess", b);
-            LOG_TS_B(bert_ts, "bert tots", b);
-            for (int j = 0; j < min(b, (int)texts.size() - i); j++) {
-                string t = "[";
-                for (auto k : ans[j].second) {
-                    t += '\'';
-                    t += k;
-                    t += '\'';
-                    t += ',';
-                }
-                t[t.length() - 1] = ']';
-                out << t << endl;
-            }
+    for (int i = 0; i < texts.size(); i += b) {
+        tot++;
+        std::cout << "processed: " << i << "/" << texts.size() << std::endl;
+        vector<string> ts;
+        for (int j = 0; j < min(b, (int)texts.size() - i); j++) {
+            ts.push_back(texts[i + j]);
         }
-
-    } else {  // 1 batch
-
-        for (auto text : texts) {
-            std::cout << "processed: " << tot << "/" << texts.size() << std::endl;
-            tot++;
-
-            LOG_TS_B(bert_ts, "bert tots", b);
-            LOG_TS_B(bert_ts, "bert preprocess", b);
-            bert.pre_process(text);
-            LOG_TS_B(bert_ts, "bert preprocess", b);
-
-            LOG_TS_B(bert_ts, "bert inference", b);
-            bert.Detect();
-            LOG_TS_B(bert_ts, "bert inference", b);
-            LOG_TS_B(bert_ts, "bert postprocess", b);
-            std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>> ans = bert.post_process();
-            LOG_TS_B(bert_ts, "bert postprocess", b);
-            LOG_TS_B(bert_ts, "bert tots", b);
+        for (int j = (int)texts.size() - i; j < b; j++) {
+            ts.push_back("");
+        }
+        LOG_TS_B(bert_ts, "bert tots", b);
+        LOG_TS_B(bert_ts, "bert preprocess", b);
+        bert.pre_process(ts);
+        LOG_TS_B(bert_ts, "bert preprocess", b);
+        LOG_TS_B(bert_ts, "bert inference", b);
+        bert.Detect();
+        LOG_TS_B(bert_ts, "bert inference", b);
+        LOG_TS_B(bert_ts, "bert postprocess", b);
+        std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>> ans = bert.post_process();
+        LOG_TS_B(bert_ts, "bert postprocess", b);
+        LOG_TS_B(bert_ts, "bert tots", b);
+        for (int j = 0; j < min(b, (int)texts.size() - i); j++) {
             string t = "[";
-
-            for (auto i : ans[0].second) {
+            for (auto k : ans[j].second) {
                 t += '\'';
-                t += i;
+                t += k;
                 t += '\'';
                 t += ',';
             }
             t[t.length() - 1] = ']';
             out << t << endl;
+            // for (auto a : ans[j].first) {
+            //     std::cout << a << endl;
+            // }
         }
     }
 
+    std::cout << "result saved in: " << output_path << std::endl;
     time_stamp_t base_time = time_point_cast<microseconds>(steady_clock::now());
     Bert_ts.calbr_basetime(base_time);
     Bert_ts.build_timeline("bert test");

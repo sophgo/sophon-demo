@@ -10,6 +10,7 @@ TPUID=0
 ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
+export LD_LIBRARY_PATH=/opt/sophon/sophon-sail/lib:$LD_LIBRARY_PATH
 
 usage() 
 {

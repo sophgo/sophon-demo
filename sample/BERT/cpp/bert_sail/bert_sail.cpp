@@ -25,9 +25,9 @@ BERT::BERT(string model_path, string pre_train_path, int id) {
     // 1. Initialize handle
     handle = std::make_shared<sail::Handle>(device_id);
     // 2. Initialize bmcv
-    bmcv = std::make_shared<sail::Bmcv>(*handle);
+    bmcv = std::make_shared<sail::Bmcv>(*handle.get());
     // 3. Initialize engine
-    engine = std::make_shared<sail::Engine>(model_path, *handle, mode);
+    engine = std::make_shared<sail::Engine>(model_path, *handle.get(), mode);
     graph_name = engine->get_graph_names()[0];
     input_name = engine->get_input_names(graph_name)[0];
     output_names = engine->get_output_names(graph_name);
@@ -39,7 +39,7 @@ BERT::BERT(string model_path, string pre_train_path, int id) {
     tokenizer.add_vocab(pre_train_path.c_str());
     tokenizer.maxlen_ = 256;
     tokenizer.do_lower_case_ = 1;
-    input_tensor = sail::Tensor(*handle, input_shape, input_dtype, 1, 1);
+    input_tensor = sail::Tensor(*handle.get(), input_shape, input_dtype, 1, 1);
     for (int i = 0; i < output_names.size(); i++) {
         output_shape.push_back(
             engine->get_output_shape(graph_name, output_names[i]));
@@ -48,7 +48,7 @@ BERT::BERT(string model_path, string pre_train_path, int id) {
         output_scale.push_back(
             engine->get_output_scale(graph_name, output_names[i]));
         output_tensors.push_back(
-            sail::Tensor(*handle, output_shape[i], output_dtype[i], 1, 1));
+            sail::Tensor(*handle.get(), output_shape[i], output_dtype[i], 1, 1));
     }
     id2label.push_back("O");
     id2label.push_back("B-LOC");
@@ -57,34 +57,19 @@ BERT::BERT(string model_path, string pre_train_path, int id) {
     id2label.push_back("I-PER");
     id2label.push_back("B-ORG");
     id2label.push_back("I-ORG");
+
+    bm_status_t ret = bm_get_misc_info(handle->data(), &misc_info);
+    assert(BM_SUCCESS == ret);
 };
-void BERT::pre_process(string text) { // pre_process
-    /*
-    input : text
-    output : { tokens , token_ids }
-    */
-    text = "[CLS] " + text + " [SEP]";
-    tokens = tokenizer.tokenize(text);
-    token_ids = tokenizer.convert_tokens_to_ids(tokens);
-    for (int i = token_ids.size(); i < 256; i++) {
-        token_ids.push_back(0);
-        tokens.push_back("[PAD]");
-    }
-    token_ids.resize(256);
-    tokens.resize(256);
-    return;
-}
+
 void BERT::pre_process(std::vector<string> texts) { // pre_process
     /*
     input : text
     output : { tokens , token_ids }
     */
-    if (texts.size() != 8) {
-        std::cout << "Unsupport batch size!" << std::endl;
-    }
     token_ids.clear();
     tokens.clear();
-    for (int j = 0; j < 8; j++) {
+    for (int j = 0; j < texts.size(); j++) {
         string text = "[CLS] " + texts[j] + " [SEP]";
 
         vector<string> tmp_tokens;
@@ -115,15 +100,29 @@ bool BERT::Detect() // process
     input_tensor.reset_sys_data(token_ids.data(), input_shape);
     input_tensor.sync_s2d();
     input[input_name] = &input_tensor;
+    
+    // static int ii = 0;
+    // std::string dump_str = "results/input_"+std::to_string(ii++);
+    // input_tensor.dump_data(dump_str, true);
+
     std::map<std::string, sail::Tensor *> output =
         engine->create_output_tensors_map(graph_name, -1);
     for (int i = 0; i < output_names.size(); i++) {
         output[output_names[i]] = &output_tensors[i];
     }
-    engine->process(graph_name, input, output);
-    for (int i = 0; i < output_names.size(); i++) {
-        output_tensors[i].sync_d2s();
+
+    //output_tensor[0]'s system memory has been changed by cpu, it is very important to keep cache coherence before net forward.
+    if(misc_info.pcie_soc_mode == 1){
+        auto dmem = output_tensors[0].dev_data();
+        bm_mem_flush_device_mem(output_tensors[0].get_handle().data(), &dmem);//or invalidate
     }
+
+    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    engine->process(graph_name, input, output);
+    // static int oi = 0;
+    // dump_str = "results/output_"+std::to_string(oi++);
+    // output[output_names[0]]->dump_data(dump_str, true);
+    
     return true;
 }
 void BERT::softmax(float *x, int length) // softmax for the x input of length
@@ -144,8 +143,12 @@ BERT::post_process() // post_process
     /*
         input : output_tensors
     */
-    float *tmp =
-        (float *)output_tensors[0].sys_data(); // get output_tensors' dates
+    // float *output_sys = new float[output_tensors[0].size()];
+    // memcpy(output_sys, output_tensors[0].sys_data(), output_tensors[0].size() * sizeof(float));
+    // memset(output_tensors[0].sys_data(), 0, output_tensors[0].size() * sizeof(float));
+    // float *tmp = output_sys;
+    float *tmp = (float*)output_tensors[0].sys_data();
+    
     string s = "";
     vector<pair<vector<string>, vector<string>>> ans;
     for (int k = 0; k < batch_size; k++) {
@@ -175,7 +178,6 @@ BERT::post_process() // post_process
         }
         ans.push_back(TMP);
     }
-
     return ans;
 }
 
