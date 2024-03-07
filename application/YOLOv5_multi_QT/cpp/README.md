@@ -90,6 +90,8 @@ cd ..
 
 2) 将YOLOv5_multi_QT完整目录拷贝至SOC上，sudo bash ./run_hdmi_show.sh 即可执行程序。
 
+* 注意：如果SE7上的桌面程序正在运行，需要先停止服务 sudo systemctl stop SophonHDMI.service
+
 
 ## 程序流程图及二次开发说明
 
