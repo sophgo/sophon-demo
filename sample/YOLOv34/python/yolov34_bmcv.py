@@ -160,7 +160,6 @@ class YOLO:
         self.net.process(self.graph_name, input_tensors, self.input_shapes, self.output_tensors)
         outputs_dict = {}
         for name in self.output_names:
-            # outputs_dict[name] = self.output_tensors[name].asnumpy()[:img_num] * self.output_scales[name]
             outputs_dict[name] = self.output_tensors[name].asnumpy()[:img_num]
         # resort
         out_keys = list(outputs_dict.keys())
@@ -255,10 +254,6 @@ def main(args):
     
     handle = sail.Handle(args.dev_id)
     bmcv = sail.Bmcv(handle)
-    # warm up 
-    # bmimg = sail.BMImage(handle, 1080, 1920, sail.Format.FORMAT_YUV420P, sail.DATA_TYPE_EXT_1N_BYTE)
-    # for i in range(10):
-    #     results = yolov34([bmimg])
     yolov34.init()
 
     decode_time = 0.0
@@ -319,7 +314,6 @@ def main(args):
             args.input = args.input[:-1]
         json_name = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input)[-1] + "_bmcv" + "_python_result.json"
         with open(os.path.join(output_dir, json_name), 'w') as jf:
-            # json.dump(results_list, jf)
             json.dump(results_list, jf, indent=4, ensure_ascii=False)
         logging.info("result saved in {}".format(os.path.join(output_dir, json_name)))
         

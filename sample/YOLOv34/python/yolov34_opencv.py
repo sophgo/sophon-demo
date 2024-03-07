@@ -81,7 +81,6 @@ class YOLO:
         )
         img = letterbox_img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img = img.astype(np.float32)
-        # input_data = np.expand_dims(input_data, 0)
         img = np.ascontiguousarray(img / 255.0)
         return img, ratio, (tx1, ty1) 
     
@@ -205,9 +204,6 @@ def main(args):
     yolov34 = YOLO(args)
     batch_size = yolov34.batch_size
     
-    # warm up 
-    # for i in range(10):
-    #     results = yolov34([np.zeros((640, 640, 3))])
     yolov34.init()
     
     decode_time = 0.0
@@ -267,7 +263,6 @@ def main(args):
             args.input = args.input[:-1]
         json_name = os.path.split(args.bmodel)[-1] + "_" + os.path.split(args.input)[-1] + "_opencv" + "_python_result.json"
         with open(os.path.join(output_dir, json_name), 'w') as jf:
-            # json.dump(results_list, jf)
             json.dump(results_list, jf, indent=4, ensure_ascii=False)
         logging.info("result saved in {}".format(os.path.join(output_dir, json_name)))
         
@@ -279,7 +274,6 @@ def main(args):
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         fps = cap.get(cv2.CAP_PROP_FPS)
         size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-        # print(fps, size)
         save_video = os.path.join(output_dir, os.path.splitext(os.path.split(args.input)[1])[0] + '.avi')
         out = cv2.VideoWriter(save_video, fourcc, fps, size)
         cn = 0

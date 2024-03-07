@@ -7,9 +7,7 @@
 #
 #===----------------------------------------------------------------------===#
 import os
-import sys
 import numpy as np
-import cv2
 
 COCO_CLASSES = ('background', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
                 'train', 'truck', 'boat', 'traffic light', 'fire hydrant',
@@ -123,7 +121,6 @@ def is_img(file_name):
     else:
         return False
 
-# scipy: https://zhuanlan.zhihu.com/p/375344904
 def logsumexp(a, axis=None, b=None, keepdims=False, return_sign=False):
     """Compute the log of the sum of exponentials of input elements.
     Parameters
@@ -161,7 +158,6 @@ def logsumexp(a, axis=None, b=None, keepdims=False, return_sign=False):
         of the result. If False, only one result is returned.
 
     """
-    # a = _asarray_validated(a, check_finite=False)
     if b is not None:
         a, b = np.broadcast_arrays(a, b)
         if np.any(b == 0):
@@ -198,7 +194,6 @@ def logsumexp(a, axis=None, b=None, keepdims=False, return_sign=False):
     else:
         return out
 
-# scipy.special.softmax: https://zhuanlan.zhihu.com/p/375344904
 def softmax(x, axis=None):
     r"""
     Softmax function
