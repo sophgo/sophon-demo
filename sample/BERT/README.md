@@ -203,13 +203,13 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 | SE9-16      | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    |  296.75  | 4.89       | 264.07      |  27.79      |
 | SE9-16      | bert_sail.soc    | bert4torch_output_fp16_1b.bmodel    |   71.85  | 30.98      |  40.77      |  0.05       |
 | SE9-16      | bert_sail.soc    | bert4torch_output_fp16_8b.bmodel    |  65.36   |31.08       | 34.25       |  0.03       |
-| SE9-16      | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    |  301.28  | 30.56      | 270.61      |  0.06       |
+| SE9-16      | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    |  301.28  | 30.56      | 270.61      |  0.05       |
 | SE9-16      | bert_sail.soc    | bert4torch_output_fp32_8b.bmodel    |  293.22  |29.45       | 263.73      |  0.03       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每个文本处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异； 
-
+> 4. BM1688双核模型性能与单核模型相比,推理时间不同,其他部分基本一致,推理性能区别请参考[7.1小节](#71-bmrt test)测试数据;
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
