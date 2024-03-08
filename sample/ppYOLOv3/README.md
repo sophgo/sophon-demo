@@ -17,7 +17,11 @@
 
 ## 1. 简介
 
-ppyolov3 作为一种经典的单阶段目标检测框架，YOLO系列的目标检测算法得到了学术界与工业界们的广泛关注。由于YOLO系列属于单阶段目标检测，因而具有较快的推理速度，能够更好的满足现实场景的需求。
+ppyolov3 是百度提出的一种基于YOLOv3和一些几乎不增加推理代价的tricks改造而来的检测器，达到了不错的速度-精度权衡。
+
+**论文地址** (https://arxiv.org/pdf/2007.12099.pdf)
+
+**官方源码地址** (https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.6/configs/ppyolo)
 
 ## 2. 特性
 * 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
@@ -27,7 +31,7 @@ ppyolov3 作为一种经典的单阶段目标检测框架，YOLO系列的目标�
 * 支持图片和视频测试
 
 ## 3. 准备模型与数据
-建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。具体可参考[YOLOv5模型导出](./docs/YOLOv5_Export_Guide.md)。
+建议使用TPU-MLIR编译BModel，百度的飞桨PaddlePaddle模型在编译前要导出成onnx模型。
 
 ​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
@@ -76,19 +80,17 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684
-#或
-./scripts/gen_fp32bmodel_mlir.sh bm1684x
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`ppyolov3_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`下生成`ppyolov3_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
@@ -98,15 +100,13 @@ chmod -R +x scripts/
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684X），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684
-#或
-./scripts/gen_int8bmodel_mlir.sh bm1684x
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x
 ```
 
-​上述脚本会在`models/BM1684`或`models/BM1684X`下生成`ppyolov3_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+​上述脚本会在`models/BM1684`下生成`ppyolov3_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 
 ## 5. 例程测试
@@ -116,7 +116,7 @@ chmod -R +x scripts/
 ## 6. 精度测试
 ### 6.1 测试方法
 
-首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(--conf_thresh=0.001 --nms_thresh=0.6)。  
+首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数。  
 然后，使用`tools`目录下的`eval_coco.py`脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
 ```bash
 # 安装pycocotools，若已安装请跳过
@@ -125,7 +125,7 @@ pip3 install pycocotools
 python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/ppyolov3_fp32_1b.bmodel_val2017_1000_bmcv_python_result.json
 ```
 ### 6.2 测试结果
-在coco2017val_1000数据集上，精度测试结果如下：
+在coco2017val_1000数据集上，**推理时设置参数：--conf_thresh=0.001 --nms_thresh=0.6**，ppyolov3精度测试结果如下：
 |   测试平台   |      测试程序      |         测试模型        |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ------------------ | ----------------------- | ------------- | -------- |
 | BM1684 PCIe  | ppyolov3_opencv.py | ppyolov3_fp32_1b.bmodel | 0.290         | 0.560    |
