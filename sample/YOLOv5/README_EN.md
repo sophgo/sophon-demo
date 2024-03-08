@@ -310,8 +310,8 @@ Use different examples and models to test `datasets/coco/val2017_1000` with `con
 | SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 33.8                    | 20.5                           | 0.339         |
 | SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 34.6                    | 21.1                           | 0.375         |
 | SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 33.9                    | 18.9                           | 0.339         |
-| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 210.1                   | 98.5                           | 0.341         |
-| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 209.7                   | 100.2                          | 0.336         |
+| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 210.1                   | 98.4                           | 0.341         |
+| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 209.7                   | 99.7                           | 0.336         |
 
 Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.01,nms_thresh=0.6` on different test platforms, c++ example set `--use_cpu_opt=true`, python example set `--use_cpu_opt` to use nms acceleration. The performance and accuracy test results before and after the improvement of the NMS post-processing algorithm are as follows:
 | Test Platform|   Test Program   |             Test model              | YOLOv5 postprocess_time | YOLOv5_cpu_opt postprocess_time |AP@IoU=0.5:0.95|
@@ -320,8 +320,8 @@ Use different examples and models to test `datasets/coco/val2017_1000` with `con
 | SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 17.8                    | 7.2                             | 0.337         |
 | SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 16.3                    | 5.8                             | 0.373         |
 | SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 16.0                    | 5.5                             | 0.337         |
-| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 118.8                   | 23.0                            | 0.339         |
-| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 116.5                   | 23.1                            | 0.334         |
+| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 118.8                   | 22.9                            | 0.339         |
+| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 116.5                   | 22.8                            | 0.334         |
 
 > **Note:** Due to the consistency between the implementation of sail and CPP, there were slight drops after Python calls, but there is a significant improvement in speed.
 
@@ -332,8 +332,8 @@ If using single-class NMS, by setting the macro `USE_MULTICLASS_NMS 0` in the `y
 | SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 23.1                    | 9.9                             | 0.332         |
 | SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 21.6                    | 8.5                             | 0.369         |
 | SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 21.3                    | 8.1                             | 0.332         |
-| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 147.3                   | 33.3                            | 0.335         |
-| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 147.8                   | 33.3                            | 0.330         |
+| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 147.3                   | 32.5                            | 0.335         |
+| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 147.8                   | 32.8                            | 0.330         |
 
 If using single-class NMS, by setting the macro `USE_MULTICLASS_NMS 0` in the `yolov5.cpp` file or setting YOLOv5's class member variable `self.multi_label=False` in both `yolov5_opencv.py` and `yolov5_bmcv.py` files, it can improve post-processing performance with slight loss of accuracy. Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.01,nms_thresh=0.6`, c++ example set `--use_cpu_opt=true`, python example set `--use_cpu_opt` to use nms acceleration. The performance and accuracy test results before and after the improvement of the NMS post-processing algorithm are as follows:
 | Test Platform|   Test Program   |             Test model              | YOLOv5 postprocess_time | YOLOv5_cpu_opt postprocess_time |AP@IoU=0.5:0.95|
@@ -342,8 +342,8 @@ If using single-class NMS, by setting the macro `USE_MULTICLASS_NMS 0` in the `y
 | SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 17.5                    | 6.1                             | 0.330         |
 | SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 15.8                    | 4.5                             | 0.367         |
 | SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 15.7                    | 4.3                             | 0.330         |
-| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 114.7                   | 9.7                             | 0.333         |
-| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 114.2                   | 9.6                             | 0.327         |
+| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 114.7                   | 9.6                             | 0.333         |
+| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 114.2                   | 9.5                             | 0.327         |
 
 > **Test Description**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
