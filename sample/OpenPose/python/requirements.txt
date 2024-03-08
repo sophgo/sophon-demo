@@ -1,3 +1,4 @@
 opencv-python-headless<=4.3
 scipy
 matplotlib
+pycocotools 

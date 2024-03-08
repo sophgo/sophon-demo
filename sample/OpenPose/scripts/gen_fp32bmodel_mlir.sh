@@ -33,6 +33,15 @@ function gen_fp32bmodel_body_25()
         --model pose_body_25_fp32_$1b.bmodel
 
     mv pose_body_25_fp32_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir pose_body_25_$1b.mlir \
+            --quantize F32 \
+            --chip $target \
+            --model pose_body_25_fp32_$1b_2core.bmodel \
+            --num_core 2
+        mv pose_body_25_fp32_$1b_2core.bmodel $outdir/
+    fi
 }
 
 function gen_mlir_coco()
@@ -57,6 +66,15 @@ function gen_fp32bmodel_coco()
         --model pose_coco_fp32_$1b.bmodel
 
     mv pose_coco_fp32_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir pose_coco_$1b.mlir \
+            --quantize F32 \
+            --chip $target \
+            --model pose_coco_fp32_$1b_2core.bmodel \
+            --num_core 2
+        mv pose_coco_fp32_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir
