@@ -2,7 +2,7 @@
 set -ex
 models=
 mode="int8"
-folder="tmp"
+folder="./models/onnx"
 num_device=1
 mode_args=""
 device_args=""
@@ -86,7 +86,7 @@ pushd $outdir
 
 model_transform.py \
     --model_name embedding \
-    --model_def ../onnx/embedding.onnx \
+    --model_def ../embedding.onnx \
     --mlir embedding.mlir
 
 model_deploy.py \
@@ -100,7 +100,7 @@ model_deploy.py \
 
 model_transform.py \
     --model_name embedding_cache \
-    --model_def ../onnx/embedding.onnx \
+    --model_def ../embedding.onnx \
     --input_shapes [[1,1]] \
     --mlir embedding_cache.mlir
 
@@ -127,7 +127,7 @@ pushd $outdir
 
 model_transform.py \
     --model_name lm_head \
-    --model_def ../../onnx/lm_head.onnx \
+    --model_def ../../lm_head.onnx \
     --mlir lm_head.mlir
 
 model_deploy.py \
@@ -146,7 +146,7 @@ popd
 
 echo $models
 
-outdir=tmp/$mode"_"$num_device"dev"/block
+outdir=$folder/$mode"_"$num_device"dev"/block
 mkdir -p $outdir
 
 pushd $outdir
@@ -156,7 +156,7 @@ for ((i=0; i<=$num_layers; i++)); do
 
     model_transform.py \
         --model_name block_$i \
-        --model_def ../../onnx/block_$i.onnx \
+        --model_def ../../block_$i.onnx \
         --mlir block_$i.mlir
 
     model_deploy.py \
@@ -170,7 +170,7 @@ for ((i=0; i<=$num_layers; i++)); do
 
     model_transform.py \
         --model_name block_cache_$i \
-        --model_def ../../onnx/block_cache_$i.onnx \
+        --model_def ../../block_cache_$i.onnx \
         --mlir block_cache_$i.mlir
 
     model_deploy.py \
@@ -191,11 +191,9 @@ done
 popd
 echo $models
 
-outdir=../models/$target_dir
+outdir=./models/BM1684X/
 if [ ! -d $outdir ]; then
     mkdir -p $outdir
 fi
 
-model_tool --combine $models -o $outdir/$out_model
-
-popd #model_dir
+model_tool --combine $models -o ${outdir}${out_model}

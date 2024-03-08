@@ -22,9 +22,9 @@ args = parser.parse_args()
 
 model_path = args.model_path
 folder = args.onnx_path
-import pdb;pdb.set_trace()
-if not os.path.exists(folder):
-    os.makedirs(folder)
+
+if not torch.cuda.is_available():
+    raise ValueError("Need a GPU for load model and export onnx type.")
 
 device = torch.device("cuda:0")
 origin_model = AutoModelForCausalLM.from_pretrained(
