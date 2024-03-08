@@ -115,20 +115,20 @@ PoseKeyPoints::EModelType OpenPose::get_model_type(){
 int OpenPose::Detect(const vector<bm_image>& input_images, vector<PoseKeyPoints>& vct_keypoints, std::string& performance_opt){
   int ret = 0;
   //3. preprocess
-  LOG_TS(ts_, "openpose preprocess");
+  ts_->save("openpose preprocess", max_batch);
   ret = pre_process(input_images);
   CV_Assert(ret == 0);
-  LOG_TS(ts_, "openpose preprocess");
+  ts_->save("openpose preprocess", max_batch);
   //4. forward
-  LOG_TS(ts_, "openpose inference");
+  ts_->save("openpose inference", max_batch);
   ret = m_bmNetwork->forward();
   CV_Assert(ret == 0);
-  LOG_TS(ts_, "openpose inference");
+  ts_->save("openpose inference", max_batch);
   //5. post process
-  LOG_TS(ts_, "openpose postprocess");
+  ts_->save("openpose postprocess", max_batch);
   ret = post_process(input_images, vct_keypoints, performance_opt);
   CV_Assert(ret == 0);
-  LOG_TS(ts_, "openpose postprocess");
+  ts_->save("openpose postprocess", max_batch);
   return ret;
 }
 

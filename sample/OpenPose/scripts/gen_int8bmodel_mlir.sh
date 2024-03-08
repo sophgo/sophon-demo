@@ -48,6 +48,20 @@ function gen_int8bmodel_coco()
         --debug
 
     mv pose_coco_int8_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir pose_coco_$1b.mlir \
+            --quantize INT8 \
+            --chip $target \
+            --model pose_coco_int8_$1b_2core.bmodel \
+            --calibration_table pose_coco_cali_table \
+            --quantize_table ../models/caffe/pose_coco_qtable \
+            --num_core 2 \
+            --test_input pose_coco_in_f32.npz \
+            --test_reference pose_coco_top_outputs.npz \
+            --debug 
+        mv pose_coco_int8_$1b_2core.bmodel $outdir/
+    fi
 }
 
 
