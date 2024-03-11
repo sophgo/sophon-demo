@@ -107,7 +107,7 @@ YOLOv5::YOLOv5(int dev_id,
           image_paths.emplace_back(entry.path().filename().string());
         }
       }
-
+        
       decode_element->is_video = false;
       decode_element->dir_path = input_paths[i];
       decode_element->image_name_list = image_paths;
@@ -276,13 +276,18 @@ void YOLOv5::worker_decode(int channel_id){
 
 #if PRESSURE
     if (data->frame_id == -1){
-      std::cout << "channel " << channel_id << " meets eof" << std::endl;
-      auto &cap = m_decode_elements[channel_id]->cap;
-      cap.release();
-      cap.open(m_input_paths[channel_id]);
-      if (!cap.isOpened()) {
-        std::cerr << "Failed to reopen the video file." << std::endl;
-        exit(1);
+      if (m_decode_elements[channel_id]->is_video){
+        std::cout << "channel " << channel_id << " meets eof" << std::endl;
+        auto &cap = m_decode_elements[channel_id]->cap;
+        cap.release();
+        cap.open(m_input_paths[channel_id]);
+        if (!cap.isOpened()) {
+          std::cerr << "Failed to reopen the video file." << std::endl;
+          exit(1);
+        }
+      }else {
+        m_decode_elements[channel_id]->image_name_it = m_decode_elements[channel_id]->image_name_list.begin();
+        std::cout << "channel " << channel_id << ": All pic has been read and restart from the beginning. " << std::endl;
       }
     }
 #else
