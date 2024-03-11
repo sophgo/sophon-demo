@@ -1,5 +1,5 @@
 #!/bin/bash
-res=$(dpkg -l|grep unzip)
+res=$(which unzip)
 
 if [ $? != 0 ];
 then
