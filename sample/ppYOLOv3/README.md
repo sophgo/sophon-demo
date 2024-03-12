@@ -168,10 +168,10 @@ bmrt_test --bmodel models/BM1684/ppyolov3_fp32_1b.bmodel
 | BM1684/ppyolov3_fp32_1b.bmodel  | 91.2              |
 | BM1684/ppyolov3_int8_1b.bmodel  | 55.7              |
 | BM1684/ppyolov3_int8_4b.bmodel  | 15.3              |
-| BM1684X/ppyolov3_fp32_1b.bmodel | 187.2             |
-| BM1684X/ppyolov3_fp16_1b.bmodel | 18.1              |
-| BM1684X/ppyolov3_int8_1b.bmodel | 6.92              |
-| BM1684X/ppyolov3_int8_4b.bmodel | 6.80              |
+| BM1684X/ppyolov3_fp32_1b.bmodel | 149.0             |
+| BM1684X/ppyolov3_fp16_1b.bmodel | 14.4              |
+| BM1684X/ppyolov3_int8_1b.bmodel | 7.24              |
+| BM1684X/ppyolov3_int8_4b.bmodel | 7.04              |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -181,8 +181,8 @@ bmrt_test --bmodel models/BM1684/ppyolov3_fp32_1b.bmodel
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
-在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
-|    测试平台 |     测试程序       |        测试模型         |decode_time|preprocess_time|inference_time|postprocess_time| 
+在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.001，nms_thresh=0.6，ppyolov3性能测试结果如下：
+|    测试平台 |      测试程序       |        测试模型         |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ------------------ | ----------------------- | --------- | ---------- | ----------- | ----------- |
 | BM1684 SoC  | ppyolov3_opencv.py | ppyolov3_fp32_1b.bmodel | 15.14     | 27.39      | 86.29       | 109.66      |
 | BM1684 SoC  | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel | 15.12     | 27.45      | 59.93       | 108.58      |
@@ -196,21 +196,22 @@ bmrt_test --bmodel models/BM1684/ppyolov3_fp32_1b.bmodel
 | BM1684 SoC  | ppyolov3_bmcv.soc  | ppyolov3_fp32_1b.bmodel | 5.00      | 1.57       | 77.81       | 17.42       |
 | BM1684 SoC  | ppyolov3_bmcv.soc  | ppyolov3_int8_1b.bmodel | 5.05      | 1.57       | 51.38       | 17.39       |
 | BM1684 SoC  | ppyolov3_bmcv.soc  | ppyolov3_int8_4b.bmodel | 4.96      | 1.50       | 15.00       | 17.27       |
-| BM1684X SoC | ppyolov3_opencv.py | ppyolov3_fp16_1b.bmodel | 5.31      | 13.84      | 28.99       | 15.47       |
-| BM1684X SoC | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel | 5.28      | 13.43      | 19.88       | 13.32       |
-| BM1684X SoC | ppyolov3_opencv.py | ppyolov3_int8_4b.bmodel | 3.50      | 8.75       | 21.73       | 15.87       |
-| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_fp32_1b.bmodel | 4.43      | 2.05       | 151.47      | 19.75       |
-| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_fp16_1b.bmodel | 4.60      | 2.10       | 23.85       | 18.12       |
-| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_int8_1b.bmodel | 4.56      | 2.08       | 16.83       | 15.93       |
-| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_int8_4b.bmodel | 4.27      | 2.01       | 15.83       | 16.41       |
-| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp32_1b.bmodel | 3.93      | 1.53       | 148.40      | 12.80       |
-| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp16_1b.bmodel | 3.89      | 1.54       | 20.21       | 12.78       |
-| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_int8_1b.bmodel | 3.86      | 1.49       | 13.08       | 12.64       |
-| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_int8_4b.bmodel | 3.85      | 1.79       | 12.87       | 8.88        |
-| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_fp32_1b.bmodel | 4.71      | 1.27       | 142.17      | 19.02       |
-| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_fp16_1b.bmodel | 4.43      | 1.16       | 17.75       | 17.77       |
-| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_int8_1b.bmodel | 4.66      | 1.26       | 7.11        | 17.33       |
-| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_int8_4b.bmodel | 3.99      | 0.99       | 8.69        | 13.96       |
+| BM1684X SoC | ppyolov3_opencv.py | ppyolov3_fp32_1b.bmodel | 3.30      | 28.10      | 158.34      | 109.41      |
+| BM1684X SoC | ppyolov3_opencv.py | ppyolov3_fp16_1b.bmodel | 3.87      | 28.09      | 23.62       | 109.47      |
+| BM1684X SoC | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel | 3.26      | 28.50      | 16.45       | 107.89      |
+| BM1684X SoC | ppyolov3_opencv.py | ppyolov3_int8_4b.bmodel | 3.24      | 28.89      | 16.67       | 110.46      |
+| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_fp32_1b.bmodel | 3.11      | 1.78       | 154.84      | 108.00      |
+| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_fp16_1b.bmodel | 3.13      | 1.78       | 20.53       | 108.24      |
+| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_int8_1b.bmodel | 3.11      | 1.78       | 13.02       | 106.49      |
+| BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_int8_4b.bmodel | 2.95      | 1.64       | 13.15       | 109.75      |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp32_1b.bmodel | 3.93      | 2.59       | 149.90      | 15.86       |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp16_1b.bmodel | 3.89      | 2.57       | 15.22       | 15.86       |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_int8_1b.bmodel | 3.86      | 2.59       | 8.09        | 15.81       |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_int8_4b.bmodel | 3.86      | 2.60       | 7.81        | 15.78       |
+| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_fp32_1b.bmodel | 4.39      | 0.66       | 148.99      | 17.36       |
+| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_fp16_1b.bmodel | 4.40      | 0.66       | 14.32       | 17.41       |
+| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_int8_1b.bmodel | 4.38      | 0.66       | 7.20        | 17.36       |
+| BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_int8_4b.bmodel | 4.25      | 0.63       | 7.06        | 17.29       |
 
 
 > **测试说明**：  
