@@ -106,22 +106,22 @@ int Yolo::Detect(const std::vector<bm_image>& input_images, std::vector<YoloBoxV
 {
   int ret = 0;
   //3. preprocess
-  LOG_TS(m_ts, "yolov34 preprocess");
+  m_ts->save("yolov34 preprocess", input_images.size());
   ret = pre_process(input_images);
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "yolov34 preprocess");
+  m_ts->save("yolov34 preprocess", input_images.size());
 
   //4. forward
-  LOG_TS(m_ts, "yolov34 inference");
+  m_ts->save("yolov34 inference", input_images.size());
   ret = m_bmNetwork->forward();
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "yolov34 inference");
+  m_ts->save("yolov34 inference", input_images.size());
 
   //5. post process
-  LOG_TS(m_ts, "yolov34 postprocess");
+  m_ts->save("yolov34 postprocess", input_images.size());
   ret = post_process(input_images, boxes);
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "yolov34 postprocess");
+  m_ts->save("yolov34 postprocess", input_images.size());
   return ret;
 }
 
