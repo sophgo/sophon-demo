@@ -52,7 +52,7 @@ usage: yolov5_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 --use_cpu_opt: 是否用nms优化的后处理。
 ```
 
-> **注意：** CPP和python目前都默认关闭nms优化，python调用的优化接口，依赖3.7.0版本之后的sophon-sail，如果您的sophon-sail版本没有该接口，可以添加参数`--use_cpu_opt`来开启该接口优化。
+> **注意：** CPP和python目前都默认关闭nms优化，python调用的优化接口，依赖3.7.0版本之后的sophon-sail，如果您的sophon-sail版本有该接口，可以添加参数`--use_cpu_opt`来开启该接口优化。
 
 ### 2.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
