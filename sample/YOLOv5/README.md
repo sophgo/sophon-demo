@@ -224,10 +224,10 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 | BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel        | 22.6              |
 | BM1684/yolov5s_v6.1_3output_int8_1b.bmodel        | 11.5              |
 | BM1684/yolov5s_v6.1_3output_int8_4b.bmodel        | 6.4               |
-| BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel       | 20.8              |
-| BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel       | 7.2               |
-| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel       | 3.5               |
-| BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel       | 3.3               |
+| BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel       | 21.76             |
+| BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel       | 7.44              |
+| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel       | 3.57              |
+| BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel       | 3.35              |
 | BM1688/yolov5s_v6.1_3output_fp32_1b.bmodel        | 99.1              |
 | BM1688/yolov5s_v6.1_3output_fp16_1b.bmodel        | 28.7              |
 | BM1688/yolov5s_v6.1_3output_int8_1b.bmodel        | 8.4               |
