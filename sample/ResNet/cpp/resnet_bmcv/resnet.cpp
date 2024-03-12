@@ -75,22 +75,23 @@ int RESNET::batch_size() {
 int RESNET::Classify(std::vector<bm_image>& input_images, std::vector<std::pair<int, float>>& results) {
   int ret = 0;
   // 1. preprocess
-  LOG_TS(ts_, "resnet preprocess");
+  ts_->save("resnet preprocess", max_batch);
   ret = pre_process(input_images);
   CV_Assert(ret == 0);
-  LOG_TS(ts_, "resnet preprocess");
+  ts_->save("resnet preprocess", max_batch);
 
   // 2. forward
-  LOG_TS(ts_, "resnet inference");
+  ts_->save("resnet inference", max_batch);
   ret = m_bmNetwork->forward();
   CV_Assert(ret == 0);
-  LOG_TS(ts_, "resnet inference");
+  ts_->save("resnet inference", max_batch);
 
   // 3. post process
-  LOG_TS(ts_, "resnet postprocess");
+  ts_->save("resnet postprocess", max_batch);
   ret = post_process(input_images, results);
   CV_Assert(ret == 0);
-  LOG_TS(ts_, "resnet postprocess");
+  ts_->save("resnet postprocess", max_batch);
+
 
   return ret;
 }
