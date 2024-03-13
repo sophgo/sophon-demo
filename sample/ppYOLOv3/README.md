@@ -204,10 +204,10 @@ bmrt_test --bmodel models/BM1684/ppyolov3_fp32_1b.bmodel
 | BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_fp16_1b.bmodel | 3.13      | 1.78       | 20.53       | 108.24      |
 | BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_int8_1b.bmodel | 3.11      | 1.78       | 13.02       | 106.49      |
 | BM1684X SoC | ppyolov3_bmcv.py   | ppyolov3_int8_4b.bmodel | 2.95      | 1.64       | 13.15       | 109.75      |
-| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp32_1b.bmodel | 3.93      | 2.59       | 149.90      | 15.86       |
-| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp16_1b.bmodel | 3.89      | 2.57       | 15.22       | 15.86       |
-| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_int8_1b.bmodel | 3.86      | 2.59       | 8.09        | 15.81       |
-| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_int8_4b.bmodel | 3.86      | 2.60       | 7.81        | 15.78       |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp32_1b.bmodel | 2.76      | 2.59       | 149.90      | 15.86       |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_fp16_1b.bmodel | 2.78      | 2.57       | 15.22       | 15.86       |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_int8_1b.bmodel | 2.77      | 2.59       | 8.09        | 15.81       |
+| BM1684X SoC | ppyolov3_sail.soc  | ppyolov3_int8_4b.bmodel | 2.61      | 2.60       | 7.81        | 15.78       |
 | BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_fp32_1b.bmodel | 4.39      | 0.66       | 148.99      | 17.36       |
 | BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_fp16_1b.bmodel | 4.40      | 0.66       | 14.32       | 17.41       |
 | BM1684X SoC | ppyolov3_bmcv.soc  | ppyolov3_int8_1b.bmodel | 4.38      | 0.66       | 7.20        | 17.36       |

@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
             #if DEBUG
                 cout<<"batch img:"<<batch_imgs[i].format()<<" "<<batch_imgs[i].dtype()<<endl;
             #endif
-                ts->save("read image");
+                ts->save("decode time");
 
                 iter++;
             }
