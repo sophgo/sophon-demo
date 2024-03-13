@@ -262,10 +262,10 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 | BM1684/yolov3_fp32_1b.bmodel        | 102.2              |
 | BM1684/yolov3_int8_1b.bmodel        | 53.7               |
 | BM1684/yolov3_int8_4b.bmodel        | 19.3               |
-| BM1684X/yolov3_fp32_1b.bmodel       | 146.5              |
-| BM1684X/yolov3_fp16_1b.bmodel       | 21.3               |
-| BM1684X/yolov3_int8_1b.bmodel       | 8.9                |
-| BM1684X/yolov3_int8_4b.bmodel       | 8.8                |
+| BM1684X/yolov3_fp32_1b.bmodel       | 156.5              |
+| BM1684X/yolov3_fp16_1b.bmodel       | 22.2               |
+| BM1684X/yolov3_int8_1b.bmodel       | 9.3                |
+| BM1684X/yolov3_int8_4b.bmodel       | 9.2                |
 | BM1688/yolov3_fp32_1b.bmodel        | 773.9              |
 | BM1688/yolov3_fp16_1b.bmodel        | 136.9              |
 | BM1688/yolov3_int8_1b.bmodel        | 32.9               |
@@ -277,10 +277,10 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 | BM1684/yolov4_fp32_1b.bmodel        | 77.5               |
 | BM1684/yolov4_int8_1b.bmodel        | 28.6               |
 | BM1684/yolov4_int8_4b.bmodel        | 13.4               |
-| BM1684X/yolov4_fp32_1b.bmodel       | 67.2               |
-| BM1684X/yolov4_fp16_1b.bmodel       | 13.2               |
-| BM1684X/yolov4_int8_1b.bmodel       | 5.9                |
-| BM1684X/yolov4_int8_4b.bmodel       | 5.5                |
+| BM1684X/yolov4_fp32_1b.bmodel       | 70.4               |
+| BM1684X/yolov4_fp16_1b.bmodel       | 13.6               |
+| BM1684X/yolov4_int8_1b.bmodel       | 6.1                |
+| BM1684X/yolov4_int8_4b.bmodel       | 5.6                |
 | BM1688/yolov4_fp32_1b.bmodel        | 375.3              |
 | BM1688/yolov4_fp16_1b.bmodel        | 94.0               |
 | BM1688/yolov4_int8_1b.bmodel        | 18.1               |
@@ -299,8 +299,8 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.001，nms_thresh=0.6，yolov3性能测试结果如下：
-|    测试平台  |     测试程序      |             测试模型                |decode_time|preprocess_time|inference_time|postprocess_time| 
-| ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
+|    测试平台  |     测试程序      |        测试模型       |decode_time|preprocess_time|inference_time|postprocess_time| 
+| ----------- | ----------------- | --------------------- | -------- | ---------     | ---------     | ---------- |
 | BM1684 SoC  | yolov34_opencv.py | yolov3_fp32_1b.bmodel | 15.3     | 25.1          | 112.0         | 159.2      |
 | BM1684 SoC  | yolov34_opencv.py | yolov3_int8_1b.bmodel | 15.1     | 24.7          | 63.5          | 157.6      |
 | BM1684 SoC  | yolov34_opencv.py | yolov3_int8_4b.bmodel | 15.0     | 23.2          | 27.5          | 152.7      |
@@ -313,22 +313,22 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 | BM1684 SoC  | yolov34_sail.soc  | yolov3_fp32_1b.bmodel | 4.5      | 2.9           | 103.0         | 18.5       |
 | BM1684 SoC  | yolov34_sail.soc  | yolov3_int8_1b.bmodel | 3.3      | 2.9           | 54.5          | 18.7       |
 | BM1684 SoC  | yolov34_sail.soc  | yolov3_int8_4b.bmodel | 3.1      | 2.7           | 20.1          | 18.6       |
-| BM1684X SoC | yolov34_opencv.py | yolov3_fp32_1b.bmodel | 3.7      | 8.8           | 194.5         | 28.5       |
-| BM1684X SoC | yolov34_opencv.py | yolov3_fp16_1b.bmodel | 3.7      | 8.2           | 39.3          | 23.5       |
-| BM1684X SoC | yolov34_opencv.py | yolov3_int8_1b.bmodel | 3.6      | 7.9           | 21.9          | 19.6       |
-| BM1684X SoC | yolov34_opencv.py | yolov3_int8_4b.bmodel | 3.2      | 8.5           | 5.4           | 21.6       |
-| BM1684X SoC | yolov34_bmcv.py   | yolov3_fp32_1b.bmodel | 3.1      | 1.7           | 167.4         | 26.0       |
-| BM1684X SoC | yolov34_bmcv.py   | yolov3_fp16_1b.bmodel | 3.4      | 1.9           | 34.2          | 26.5       |
-| BM1684X SoC | yolov34_bmcv.py   | yolov3_int8_1b.bmodel | 3.9      | 2.5           | 16.6          | 22.2       |
-| BM1684X SoC | yolov34_bmcv.py   | yolov3_int8_4b.bmodel | 3.9      | 2.4           | 4.2           | 23.3       |
-| BM1684X SoC | yolov34_bmcv.soc  | yolov3_fp32_1b.bmodel | 4.4      | 1.2           | 169.0         | 20.0       |
-| BM1684X SoC | yolov34_bmcv.soc  | yolov3_fp16_1b.bmodel | 4.4      | 1.2           | 26.3          | 19.9       |
-| BM1684X SoC | yolov34_bmcv.soc  | yolov3_int8_1b.bmodel | 4.3      | 1.2           | 9.3           | 19.6       |
-| BM1684X SoC | yolov34_bmcv.soc  | yolov3_int8_4b.bmodel | 3.9      | 1.0           | 9.7           | 15.1       |
-| BM1684X SoC | yolov34_sail.soc  | yolov3_fp32_1b.bmodel | 4.0      | 1.6           | 153.1         | 14.8       |
-| BM1684X SoC | yolov34_sail.soc  | yolov3_fp16_1b.bmodel | 3.9      | 1.5           | 32.5          | 14.8       |
-| BM1684X SoC | yolov34_sail.soc  | yolov3_int8_1b.bmodel | 4.0      | 1.6           | 16.2          | 14.8       |
-| BM1684X SoC | yolov34_sail.soc  | yolov3_int8_4b.bmodel | 3.9      | 1.4           | 15.4          | 9.8        |
+| BM1684X SoC | yolov34_opencv.py | yolov3_fp32_1b.bmodel | 3.2      | 23.1          | 163.1         | 154.0      |
+| BM1684X SoC | yolov34_opencv.py | yolov3_fp16_1b.bmodel | 3.2      | 23.1          | 31.5          | 153.7      |
+| BM1684X SoC | yolov34_opencv.py | yolov3_int8_1b.bmodel | 3.2      | 22.6          | 18.6          | 157.0      |
+| BM1684X SoC | yolov34_opencv.py | yolov3_int8_4b.bmodel | 3.2      | 23.9          | 18.2          | 157.9      |
+| BM1684X SoC | yolov34_bmcv.py   | yolov3_fp32_1b.bmodel | 3.1      | 2.2           | 159.9         | 164.2      |
+| BM1684X SoC | yolov34_bmcv.py   | yolov3_fp16_1b.bmodel | 3.1      | 2.2           | 28.3          | 164.2      |
+| BM1684X SoC | yolov34_bmcv.py   | yolov3_int8_1b.bmodel | 3.2      | 2.2           | 15.4          | 164.6      |
+| BM1684X SoC | yolov34_bmcv.py   | yolov3_int8_4b.bmodel | 2.9      | 2.1           | 14.3          | 168.8      |
+| BM1684X SoC | yolov34_bmcv.soc  | yolov3_fp32_1b.bmodel | 5.9      | 0.7           | 153.8         | 20.0       |
+| BM1684X SoC | yolov34_bmcv.soc  | yolov3_fp16_1b.bmodel | 5.3      | 0.7           | 22.2          | 20.1       |
+| BM1684X SoC | yolov34_bmcv.soc  | yolov3_int8_1b.bmodel | 4.4      | 0.7           | 9.3           | 20.2       |
+| BM1684X SoC | yolov34_bmcv.soc  | yolov3_int8_4b.bmodel | 4.3      | 0.6           | 9.2           | 20.1       |
+| BM1684X SoC | yolov34_sail.soc  | yolov3_fp32_1b.bmodel | 2.8      | 2.6           | 154.7         | 18.5       |
+| BM1684X SoC | yolov34_sail.soc  | yolov3_fp16_1b.bmodel | 2.8      | 2.6           | 23.1          | 18.4       |
+| BM1684X SoC | yolov34_sail.soc  | yolov3_int8_1b.bmodel | 2.8      | 2.6           | 10.2          | 18.6       |
+| BM1684X SoC | yolov34_sail.soc  | yolov3_int8_4b.bmodel | 2.6      | 2.3           | 10.0          | 18.6       |
 | BM1688 SoC  | yolov34_opencv.py | yolov3_fp32_1b.bmodel | 19.3     | 35.6          | 786.4         | 218.9      |
 | BM1688 SoC  | yolov34_opencv.py | yolov3_fp16_1b.bmodel | 19.2     | 29.6          | 147.1         | 212.6      |
 | BM1688 SoC  | yolov34_opencv.py | yolov3_int8_1b.bmodel | 19.2     | 28.7          | 43.2          | 215.8      |
@@ -347,8 +347,8 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 | BM1688 SoC  | yolov34_sail.soc  | yolov3_int8_4b.bmodel | 4.0      | 4.7           | 30.6          | 25.8       |
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.3，nms_thresh=0.5，yolov4性能测试结果如下：
-|    测试平台  |     测试程序      |             测试模型                |decode_time|preprocess_time|inference_time|postprocess_time| 
-| ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
+|    测试平台  |     测试程序      |       测试模型         |decode_time|preprocess_time|inference_time|postprocess_time| 
+| ----------- | ---------------- | ---------------------- | -------- | ------------  | ---------     | ---------- |
 | BM1684 SoC  | yolov34_opencv.py | yolov4_fp32_1b.bmodel | 2.9      | 2.0           | 84.2          | 10.4       |
 | BM1684 SoC  | yolov34_opencv.py | yolov4_int8_1b.bmodel | 2.8      | 1.8           | 34.8          | 7.8        |
 | BM1684 SoC  | yolov34_opencv.py | yolov4_int8_4b.bmodel | 2.7      | 2.0           | 20.2          | 6.0        |
@@ -361,22 +361,22 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 | BM1684 SoC  | yolov34_sail.soc  | yolov4_fp32_1b.bmodel | 4.2      | 14.2          | 80.6          | 5.4        |
 | BM1684 SoC  | yolov34_sail.soc  | yolov4_int8_1b.bmodel | 4.1      | 11.8          | 31.4          | 5.1        |
 | BM1684 SoC  | yolov34_sail.soc  | yolov4_int8_4b.bmodel | 3.5      | 2.6           | 15.6          | 2.7        |
-| BM1684X SoC | yolov34_opencv.py | yolov4_fp32_1b.bmodel | 3.0      | 2.1           | 73.7          | 11.0       |
-| BM1684X SoC | yolov34_opencv.py | yolov4_fp16_1b.bmodel | 3.0      | 2.5           | 20.6          | 5.5        |
-| BM1684X SoC | yolov34_opencv.py | yolov4_int8_1b.bmodel | 3.2      | 2.9           | 15.2          | 7.6        |
-| BM1684X SoC | yolov34_opencv.py | yolov4_int8_4b.bmodel | 3.0      | 2.8           | 15.2          | 14.2       |
-| BM1684X SoC | yolov34_bmcv.py   | yolov4_fp32_1b.bmodel | 2.3      | 1.3           | 72.0          | 10.7       |
-| BM1684X SoC | yolov34_bmcv.py   | yolov4_fp16_1b.bmodel | 2.1      | 1.1           | 17.1          | 8.5        |
-| BM1684X SoC | yolov34_bmcv.py   | yolov4_int8_1b.bmodel | 2.1      | 1.1           | 9.7           | 5.5        |
-| BM1684X SoC | yolov34_bmcv.py   | yolov4_int8_4b.bmodel | 2.0      | 1.0           | 11.8          | 12.6       |
-| BM1684X SoC | yolov34_bmcv.soc  | yolov4_fp32_1b.bmodel | 4.4      | 0.7           | 67.2          | 8.5        |
-| BM1684X SoC | yolov34_bmcv.soc  | yolov4_fp16_1b.bmodel | 4.1      | 0.6           | 13.1          | 8.1        |
-| BM1684X SoC | yolov34_bmcv.soc  | yolov4_int8_1b.bmodel | 3.6      | 0.6           | 5.9           | 7.3        |
-| BM1684X SoC | yolov34_bmcv.soc  | yolov4_int8_4b.bmodel | 3.1      | 0.5           | 5.4           | 6.2        |
-| BM1684X SoC | yolov34_sail.soc  | yolov4_fp32_1b.bmodel | 4.0      | 12.3          | 70.6          | 5.4        |
-| BM1684X SoC | yolov34_sail.soc  | yolov4_fp16_1b.bmodel | 3.5      | 8.7           | 15.9          | 4.4        |
-| BM1684X SoC | yolov34_sail.soc  | yolov4_int8_1b.bmodel | 3.2      | 6.2           | 8.3           | 2.5        |
-| BM1684X SoC | yolov34_sail.soc  | yolov4_int8_4b.bmodel | 3.2      | 2.3           | 8.3           | 3.1        |
+| BM1684X SoC | yolov34_opencv.py | yolov4_fp32_1b.bmodel | 3.2      | 12.6          | 75.4          | 45.0       |
+| BM1684X SoC | yolov34_opencv.py | yolov4_fp16_1b.bmodel | 3.2      | 13.1          | 18.5          | 45.1       |
+| BM1684X SoC | yolov34_opencv.py | yolov4_int8_1b.bmodel | 3.2      | 12.4          | 11.0          | 45.0       |
+| BM1684X SoC | yolov34_opencv.py | yolov4_int8_4b.bmodel | 3.2      | 14.5          | 10.2          | 47.7       |
+| BM1684X SoC | yolov34_bmcv.py   | yolov4_fp32_1b.bmodel | 3.1      | 1.6           | 73.8          | 45.0       |
+| BM1684X SoC | yolov34_bmcv.py   | yolov4_fp16_1b.bmodel | 3.1      | 1.6           | 17.0          | 44.6       |
+| BM1684X SoC | yolov34_bmcv.py   | yolov4_int8_1b.bmodel | 3.1      | 1.6           | 9.5           | 44.4       |
+| BM1684X SoC | yolov34_bmcv.py   | yolov4_int8_4b.bmodel | 3.0      | 1.5           | 8.3           | 44.9       |
+| BM1684X SoC | yolov34_bmcv.soc  | yolov4_fp32_1b.bmodel | 4.3      | 0.5           | 70.4          | 8.0        |
+| BM1684X SoC | yolov34_bmcv.soc  | yolov4_fp16_1b.bmodel | 4.3      | 0.5           | 13.6          | 8.0        |
+| BM1684X SoC | yolov34_bmcv.soc  | yolov4_int8_1b.bmodel | 4.3      | 0.5           | 6.1           | 8.0        |
+| BM1684X SoC | yolov34_bmcv.soc  | yolov4_int8_4b.bmodel | 4.2      | 0.4           | 5.6           | 7.8        |
+| BM1684X SoC | yolov34_sail.soc  | yolov4_fp32_1b.bmodel | 2.8      | 1.6           | 70.9          | 7.2        |
+| BM1684X SoC | yolov34_sail.soc  | yolov4_fp16_1b.bmodel | 2.7      | 1.6           | 14.1          | 7.2        |
+| BM1684X SoC | yolov34_sail.soc  | yolov4_int8_1b.bmodel | 2.7      | 1.6           | 6.6           | 7.2        |
+| BM1684X SoC | yolov34_sail.soc  | yolov4_int8_4b.bmodel | 2.6      | 1.4           | 6.0           | 7.1        |
 | BM1688 SoC  | yolov34_opencv.py | yolov4_fp32_1b.bmodel | 19.1     | 16.0          | 380.3         | 61.8       |
 | BM1688 SoC  | yolov34_opencv.py | yolov4_fp16_1b.bmodel | 19.5     | 15.6          | 99.3          | 63.0       |
 | BM1688 SoC  | yolov34_opencv.py | yolov4_int8_1b.bmodel | 19.2     | 15.7          | 23.2          | 61.7       |
