@@ -251,7 +251,7 @@ class MultiDecoderThread(object):
                 else:
                     print("push_data failed, ret: {}".format(ret))
                     time.sleep(0.01)
-                break
+                    # break
         print("post_process thread exit!")
     
     def lprnet_pre_and_process(self, img_queue:queue.Queue):
@@ -392,13 +392,14 @@ class MultiDecoderThread(object):
                 print("Process {}: {} FPS".format(self.process_id, 1000/avg_time))
                 print("Result thread exit!")
 
-                logging.info("Process {}:Loops{},Total time use: {} ms, avg_time{}, {} FPS".format(self.process_id, self.loop_count,time_use,avg_time,1000/avg_time))
-                print("Process {}:Loops{},Total time use: {} ms, avg_time{}, {} FPS".format(self.process_id, self.loop_count,time_use,avg_time,1000/avg_time))
+                logging.info("Process {}:Loops{},Total time use: {} ms, avg_time{}, this process is{} FPS".format(self.process_id, self.loop_count,time_use,avg_time,1000/avg_time))
+                print("Process {}:Loops{},Total time use: {} ms, avg_time{}, this process is {} FPS".format(self.process_id, self.loop_count,time_use,avg_time,1000/avg_time))
 
                 if not self.stress_test:
                     self.flag_lock.acquire()
                     self.exit_flag = True
                     self.flag_lock.release()
+                    os._exit(1)
                     break
                 elif self.stress_test:
                     self.loop_count += self.loop_count
@@ -454,5 +455,9 @@ if __name__ == '__main__':
         logging.debug('DONE decode and yolo process')
 
     total_time = time.time() - start_time
-    logging.info('video nums{}, process is {},total time is {},loops for one process is {},total fps is {}'.format(args.video_nums,process_nums,total_time,loop_count,(loop_count*process_nums)/total_time))
+    if args.stress_test:
+        pass
+    else:
+        print('video nums{}, process is {},total time is {},loops for one process is {},total fps is {}'.format(args.video_nums,process_nums,total_time,loop_count,(loop_count*process_nums)/total_time))
+        logging.info('video nums{}, process is {},total time is {},loops for one process is {},total fps is {}'.format(args.video_nums,process_nums,total_time,loop_count,(loop_count*process_nums)/total_time))
 
