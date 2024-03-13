@@ -28,7 +28,7 @@ using namespace std::chrono;
 using time_stamp_t = time_point<steady_clock, microseconds>;
 
 #define MAX_TAGS 2000
-#define MAX_RECORDS 2000
+#define MAX_RECORDS 40000
 
 #define LOG_TS(p_ts, tag) if ((p_ts)) (p_ts)->save((tag));
 
@@ -71,6 +71,7 @@ public:
 
   ~TimeStamp() {
     delete []ts_;
+    delete []batch_sizes_;
   }
 
   void save(const std::string &tag, int batch_size=1) {
