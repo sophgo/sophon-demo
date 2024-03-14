@@ -24,10 +24,18 @@ fi
 # models
 if [ ! -d "../models" ];
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models_0918/models.zip
-    unzip models.zip -d ../
-    rm models.zip
-    rm -rf ../models/onnx ../models/torch ../models/BM1684_ext ../models/BM1684X_ext
+    mkdir -p ../models/
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models_240314/yolov5s_BM1684.zip
+    unzip yolov5s_BM1684.zip -d ../models/
+    rm yolov5s_BM1684.zip
+    
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models_240314/yolov5s_BM1684X.zip
+    unzip yolov5s_BM1684X.zip -d ../models/
+    rm yolov5s_BM1684X.zip
+    
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models_240314/yolov5s_BM1688.zip
+    unzip yolov5s_BM1688.zip -d ../models/
+    rm yolov5s_BM1688.zip
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
