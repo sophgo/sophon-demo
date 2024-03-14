@@ -47,3 +47,27 @@ Fail: only one compare!
 ```
 原因：量化过程中fp32精度对比超过设定阈值(默认值为0.001)。
 解决办法：修改fp32精度对比阈值，如-fp32_diff=0.01。
+
+### 2.3 MLIR量化过程中model_deploy出现精度比对错误：
+MLIR相关报错如：
+```bash
+min_similiarity = (0.7610371112823486, -0.6141192159850581, -16.15570902824402)
+Target    yolov8s_bm1684_int8_sym_tpu_outputs.npz
+Reference yolov8s_top_outputs.npz
+npz compare FAILED.
+compare output0_Concat: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  3.88it/s]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/tpu_mlir/python/tools/model_deploy.py", line 335, in <module>
+    tool.lowering()
+  File "/usr/local/lib/python3.10/dist-packages/tpu_mlir/python/tools/model_deploy.py", line 132, in lowering
+    tool.validate_tpu_mlir()
+  File "/usr/local/lib/python3.10/dist-packages/tpu_mlir/python/tools/model_deploy.py", line 225, in validate_tpu_mlir
+    f32_blobs_compare(self.tpu_npz, self.ref_npz, self.tolerance, self.excepts)
+  File "/usr/local/lib/python3.10/dist-packages/tpu_mlir/python/utils/mlir_shell.py", line 190, in f32_blobs_compare
+    _os_system(cmd)
+  File "/usr/local/lib/python3.10/dist-packages/tpu_mlir/python/utils/mlir_shell.py", line 50, in _os_system
+    raise RuntimeError("[!Error]: {}".format(cmd_str))
+RuntimeError: [!Error]: npz_tool.py compare yolov8s_bm1684_int8_sym_tpu_outputs.npz yolov8s_top_outputs.npz --tolerance 0.8,0.5 --except - -vv 
+mv: cannot stat 'yolov8s_int8_1b.bmodel': No such file or directory
+```
+可能是由于用户使用自己的onnx，例程提供的qtable中的层名，与生成的mlir的层名对不上。此时需要重新生成qtable，如果是yolo系列模型，可以参考[特定模型优化技巧](#13-特定模型优化技巧)，如果是其他模型，可以参考[TPU-MLIR Github](https://github.com/sophgo/tpu-mlir/blob/master/docs/quick_start/source_zh/07_quantization.rst)中的`run_sensitive_layer`功能。

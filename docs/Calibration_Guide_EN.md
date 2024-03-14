@@ -57,3 +57,28 @@ Fail: only one compare!
 
 Cause: During quantization, the precision comparison of fp32 exceeded the threshold (default value: 0.001).
 Solution: Change the fp32 precision comparison threshold, such as -fp32_diff=0.01.
+
+### 2.3 In the process of TPU-MLIR model_deploy, precision comparison does not lead to quantization interrupt
+Related error in TPU-MLIR:
+```bash
+min_similiarity = (0.7610371112823486, -0.6141192159850581, -16.15570902824402)
+Target    yolov8s_bm1684_int8_sym_tpu_outputs.npz
+Reference yolov8s_top_outputs.npz
+npz compare FAILED.
+compare output0_Concat: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  3.88it/s]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/tpu_mlir/python/tools/model_deploy.py", line 335, in <module>
+    tool.lowering()
+  File "/usr/local/lib/python3.10/dist-packages/tpu_mlir/python/tools/model_deploy.py", line 132, in lowering
+    tool.validate_tpu_mlir()
+  File "/usr/local/lib/python3.10/dist-packages/tpu_mlir/python/tools/model_deploy.py", line 225, in validate_tpu_mlir
+    f32_blobs_compare(self.tpu_npz, self.ref_npz, self.tolerance, self.excepts)
+  File "/usr/local/lib/python3.10/dist-packages/tpu_mlir/python/utils/mlir_shell.py", line 190, in f32_blobs_compare
+    _os_system(cmd)
+  File "/usr/local/lib/python3.10/dist-packages/tpu_mlir/python/utils/mlir_shell.py", line 50, in _os_system
+    raise RuntimeError("[!Error]: {}".format(cmd_str))
+RuntimeError: [!Error]: npz_tool.py compare yolov8s_bm1684_int8_sym_tpu_outputs.npz yolov8s_top_outputs.npz --tolerance 0.8,0.5 --except - -vv 
+mv: cannot stat 'yolov8s_int8_1b.bmodel': No such file or directory
+```
+The rootcause maybe you are using your own onnx, the qtable that our samples provide, has different layer names with the newly generated mlir. In this case, you should generate qtable yourself. For yolo series, you can refer to [specific-model-optimization-techniques](#13-specific-model-optimization-techniques).
+For other models, you can refer to [TPU-MLIR Github](https://github.com/sophgo/tpu-mlir/blob/master/docs/quick_start/source_en/07_quantization.rst) for more guidance.
