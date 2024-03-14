@@ -9,6 +9,9 @@ TPUID=0
 ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
 
 usage()
 {
@@ -145,6 +148,12 @@ function eval_cpp()
   judge_ret $? "./bytetrack_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
   tail -n 15 log/$1_$2_$3_debug.log
 
+  echo "==================="
+  echo "Comparing statis..."
+  python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=bytetrack_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3
+  judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=bytetrack_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3"
+  echo "==================="
+
   echo "Evaluating..."
   res=$(python3 ../../tools/eval_mot15.py --gt_file ../../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$3.txt 2>&1 | tee log/$1_$2_$3_eval.log)
   echo -e "$res"
@@ -179,9 +188,16 @@ function eval_python()
   judge_ret $? "python3 bytetrack_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1  --bmodel_detector ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_debug.log 2>&1" log/$1_$2_debug.log
   tail -n 20 log/$1_$2_debug.log
 
+  echo "==================="
+  echo "Comparing statis..."
+  python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=bytetrack_$1.py --language=python --input=log/$1_$2_debug.log --bmodel=$2
+  judge_ret $? "python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=bytetrack_$1.py --language=python --input=log/$1_$2_debug.log --bmodel=$2"
+  echo "==================="
+
   echo "Evaluating..."
   res=$(python3 ../tools/eval_mot15.py --gt_file ../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$2.txt 2>&1 | tee log/$1_$2_eval.log)
   echo -e "$res"
+
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $3
@@ -195,8 +211,7 @@ then
   download
   build_pcie opencv
   build_pcie eigen
-  pip3 install -r python/requirements.txt
-  pip3 install motmetrics
+  pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
     test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel
@@ -209,73 +224,100 @@ then
     test_cpp pcie eigen yolov5s_v6.1_3output_int8_1b.bmodel
     test_cpp pcie eigen yolov5s_v6.1_3output_int8_4b.bmodel
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5162707127171092
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5140746656019166
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5140746656019166
-    eval_cpp pcie opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5088840087841884
-    eval_cpp pcie opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5042922739069675
-    eval_cpp pcie opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5042922739069675
-    eval_cpp pcie eigen yolov5s_v6.1_3output_fp32_1b.bmodel 0.5088840087841884
-    eval_cpp pcie eigen yolov5s_v6.1_3output_int8_1b.bmodel 0.5042922739069675
-    eval_cpp pcie eigen yolov5s_v6.1_3output_int8_4b.bmodel 0.5042922739069675
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel   0.516
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel   0.514
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel   0.514
+    eval_cpp pcie opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.510
+    eval_cpp pcie opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.507
+    eval_cpp pcie opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.507
+    eval_cpp pcie eigen yolov5s_v6.1_3output_fp32_1b.bmodel  0.510
+    eval_cpp pcie eigen yolov5s_v6.1_3output_int8_1b.bmodel  0.507
+    eval_cpp pcie eigen yolov5s_v6.1_3output_int8_4b.bmodel  0.507
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel
-    test_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel
-    test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel
-    test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel
-    test_cpp pcie opencv yolov5s_v6.1_3output_fp32_1b.bmodel
-    test_cpp pcie opencv yolov5s_v6.1_3output_fp16_1b.bmodel
-    test_cpp pcie opencv yolov5s_v6.1_3output_int8_1b.bmodel
-    test_cpp pcie opencv yolov5s_v6.1_3output_int8_4b.bmodel
-    test_cpp pcie eigen yolov5s_v6.1_3output_fp32_1b.bmodel
-    test_cpp pcie eigen yolov5s_v6.1_3output_fp16_1b.bmodel
-    test_cpp pcie eigen yolov5s_v6.1_3output_int8_1b.bmodel
-    test_cpp pcie eigen yolov5s_v6.1_3output_int8_4b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel
+    # test_cpp pcie opencv yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_cpp pcie opencv yolov5s_v6.1_3output_fp16_1b.bmodel
+    # test_cpp pcie opencv yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_cpp pcie opencv yolov5s_v6.1_3output_int8_4b.bmodel
+    # test_cpp pcie eigen yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_cpp pcie eigen yolov5s_v6.1_3output_fp16_1b.bmodel
+    # test_cpp pcie eigen yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_cpp pcie eigen yolov5s_v6.1_3output_int8_4b.bmodel
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5162707127171092
-    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.5162707127171092
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5260531044120582
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5260531044120582
-    eval_cpp pcie opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5044919145538032
-    eval_cpp pcie opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.5044919145538032
-    eval_cpp pcie opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5476142942703135
-    eval_cpp pcie opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5476142942703135
-    eval_cpp pcie eigen yolov5s_v6.1_3output_fp32_1b.bmodel 0.5044919145538032
-    eval_cpp pcie eigen yolov5s_v6.1_3output_fp16_1b.bmodel 0.5044919145538032
-    eval_cpp pcie eigen yolov5s_v6.1_3output_int8_1b.bmodel 0.5476142942703135
-    eval_cpp pcie eigen yolov5s_v6.1_3output_int8_4b.bmodel 0.5476142942703135
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel   0.516
+    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel   0.516
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel   0.526
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel   0.526
+    eval_cpp pcie opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.525
+    eval_cpp pcie opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.525
+    eval_cpp pcie opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.538
+    eval_cpp pcie opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.538
+    eval_cpp pcie eigen yolov5s_v6.1_3output_fp32_1b.bmodel  0.525
+    eval_cpp pcie eigen yolov5s_v6.1_3output_fp16_1b.bmodel  0.525
+    eval_cpp pcie eigen yolov5s_v6.1_3output_int8_1b.bmodel  0.538
+    eval_cpp pcie eigen yolov5s_v6.1_3output_int8_4b.bmodel  0.538
   fi
 elif test $MODE = "soc_build"
 then
-  build_soc bmcv
+  build_soc opencv
+  build_soc eigen
 elif test $MODE = "soc_test"
 then
   download
-  pip3 install -r python/requirements.txt --upgrade
-  pip3 install opencv-python-headless motmetrics
+  pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
-    test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel
-    test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel
-    test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel
-    test_cpp soc opencv yolov5s_v6.1_3output_fp32_1b.bmodel
-    test_cpp soc opencv yolov5s_v6.1_3output_int8_1b.bmodel
-    test_cpp soc opencv yolov5s_v6.1_3output_int8_4b.bmodel
-    test_cpp soc eigen yolov5s_v6.1_3output_fp32_1b.bmodel
-    test_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel
-    test_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel
+    # test_cpp soc opencv yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_cpp soc opencv yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_cpp soc opencv yolov5s_v6.1_3output_int8_4b.bmodel
+    # test_cpp soc eigen yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5162707127171092
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5140746656019166
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5140746656019166
-    eval_cpp soc opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5088840087841884
-    eval_cpp soc opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5042922739069675
-    eval_cpp soc opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5042922739069675
-    eval_cpp soc eigen yolov5s_v6.1_3output_fp32_1b.bmodel 0.5088840087841884
-    eval_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel 0.5042922739069675
-    eval_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel 0.5042922739069675
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel  0.516
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel  0.514
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel  0.514
+    eval_cpp soc opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.510
+    eval_cpp soc opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.507
+    eval_cpp soc opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.507
+    eval_cpp soc eigen yolov5s_v6.1_3output_fp32_1b.bmodel  0.510
+    eval_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel  0.507
+    eval_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel  0.507
   elif test $TARGET = "BM1684X"
+  then
+    # test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel
+    # test_cpp soc opencv yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_cpp soc opencv yolov5s_v6.1_3output_fp16_1b.bmodel
+    # test_cpp soc opencv yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_cpp soc opencv yolov5s_v6.1_3output_int8_4b.bmodel
+    # test_cpp soc eigen yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_cpp soc eigen yolov5s_v6.1_3output_fp16_1b.bmodel
+    # test_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel
+
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel  0.516
+    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel  0.516
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel  0.526
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel  0.526
+    eval_cpp soc opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.525
+    eval_cpp soc opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.525
+    eval_cpp soc opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.538
+    eval_cpp soc opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.538
+    eval_cpp soc eigen yolov5s_v6.1_3output_fp32_1b.bmodel  0.525
+    eval_cpp soc eigen yolov5s_v6.1_3output_fp16_1b.bmodel  0.525
+    eval_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel  0.538
+    eval_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel  0.538
+  elif test $TARGET = "BM1688"
   then
     test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel
     test_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel
@@ -289,19 +331,45 @@ then
     test_cpp soc eigen yolov5s_v6.1_3output_fp16_1b.bmodel
     test_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel
     test_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel
+    
+    test_python opencv yolov5s_v6.1_3output_fp32_1b_2core.bmodel
+    test_python opencv yolov5s_v6.1_3output_fp16_1b_2core.bmodel
+    test_python opencv yolov5s_v6.1_3output_int8_1b_2core.bmodel
+    test_python opencv yolov5s_v6.1_3output_int8_4b_2core.bmodel
+    test_cpp soc opencv yolov5s_v6.1_3output_fp32_1b_2core.bmodel
+    test_cpp soc opencv yolov5s_v6.1_3output_fp16_1b_2core.bmodel
+    test_cpp soc opencv yolov5s_v6.1_3output_int8_1b_2core.bmodel
+    test_cpp soc opencv yolov5s_v6.1_3output_int8_4b_2core.bmodel
+    test_cpp soc eigen yolov5s_v6.1_3output_fp32_1b_2core.bmodel
+    test_cpp soc eigen yolov5s_v6.1_3output_fp16_1b_2core.bmodel
+    test_cpp soc eigen yolov5s_v6.1_3output_int8_1b_2core.bmodel
+    test_cpp soc eigen yolov5s_v6.1_3output_int8_4b_2core.bmodel
 
-    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5162707127171092
-    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.5162707127171092
-    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5260531044120582
-    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5260531044120582
-    eval_cpp soc opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.5044919145538032
-    eval_cpp soc opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.5044919145538032
-    eval_cpp soc opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.5476142942703135
-    eval_cpp soc opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.5476142942703135
-    eval_cpp soc eigen yolov5s_v6.1_3output_fp32_1b.bmodel 0.5044919145538032
-    eval_cpp soc eigen yolov5s_v6.1_3output_fp16_1b.bmodel 0.5044919145538032
-    eval_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel 0.5476142942703135
-    eval_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel 0.5476142942703135
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel  0.516
+    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel  0.516
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel  0.501
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel  0.501
+    eval_cpp soc opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.524
+    eval_cpp soc opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.524
+    eval_cpp soc opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.491
+    eval_cpp soc opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.491
+    eval_cpp soc eigen yolov5s_v6.1_3output_fp32_1b.bmodel  0.524
+    eval_cpp soc eigen yolov5s_v6.1_3output_fp16_1b.bmodel  0.524
+    eval_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel  0.491
+    eval_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel  0.491
+
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b_2core.bmodel  0.516
+    eval_python opencv yolov5s_v6.1_3output_fp16_1b_2core.bmodel  0.516
+    eval_python opencv yolov5s_v6.1_3output_int8_1b_2core.bmodel  0.501
+    eval_python opencv yolov5s_v6.1_3output_int8_4b_2core.bmodel  0.501
+    eval_cpp soc opencv yolov5s_v6.1_3output_fp32_1b_2core.bmodel 0.524
+    eval_cpp soc opencv yolov5s_v6.1_3output_fp16_1b_2core.bmodel 0.524
+    eval_cpp soc opencv yolov5s_v6.1_3output_int8_1b_2core.bmodel 0.491
+    eval_cpp soc opencv yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.491
+    eval_cpp soc eigen yolov5s_v6.1_3output_fp32_1b_2core.bmodel  0.524
+    eval_cpp soc eigen yolov5s_v6.1_3output_fp16_1b_2core.bmodel  0.524
+    eval_cpp soc eigen yolov5s_v6.1_3output_int8_1b_2core.bmodel  0.491
+    eval_cpp soc eigen yolov5s_v6.1_3output_int8_4b_2core.bmodel  0.491
   fi
 fi
 
