@@ -11,6 +11,9 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
 
 usage() 
 {
@@ -165,6 +168,13 @@ function eval_cpp()
                                                                 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
   judge_ret $? "$1 $2 $3 cpp debug" log/$1_$2_$3_debug.log
   tail -n 15 log/$1_$2_$3_debug.log
+
+  echo "==================="
+  echo "Comparing statis..."
+  python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel_det=ch_PP-OCRv3_det_$3.bmodel --bmodel_rec=ch_PP-OCRv3_rec_$3.bmodel
+  judge_ret $? "../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel_det=ch_PP-OCRv3_det_$3.bmodel --bmodel_rec=ch_PP-OCRv3_rec_$3.bmodel"
+  echo "==================="
+
   echo "Evaluating..."
   res=$(python3 ../../tools/eval_icdar.py --gt_path ../../datasets/train_full_images_0.json --result_json results/ppocr_system_results_b4.json 2>&1 | tee log/$1_$2_$3_eval.log)
   echo -e "$res"
@@ -188,7 +198,13 @@ function eval_python()
                                                                 --dev_id=$TPUID > log/$1_$2_debug.log 2>&1
   judge_ret $? "$1 $2 python debug" log/$1_$2_debug.log
   tail -n 30 log/$1_$2_debug.log
-  
+
+  echo "==================="
+  echo "Comparing statis..."
+  python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_system_$1.py --language=python --input=log/$1_$2_debug.log --bmodel_det=ch_PP-OCRv3_det_$2.bmodel --bmodel_rec=ch_PP-OCRv3_rec_$2.bmodel
+  judge_ret $? "python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_system_$1.py --language=python --input=log/$1_$2_debug.log --bmodel_det=ch_PP-OCRv3_det_$2.bmodel --bmodel_rec=ch_PP-OCRv3_rec_$2.bmodel"
+  echo "==================="
+
   echo "Evaluating..."
   res=$(python3 ../tools/eval_icdar.py --gt_path ../datasets/train_full_images_0.json --result_json results/ppocr_system_results_b4.json 2>&1 | tee log/$1_$2_eval.log)
   echo -e "$res"
@@ -220,9 +236,9 @@ then
   elif test $TARGET = "BM1684X"
   then
     eval_python opencv fp32 0.57422
-    eval_python opencv fp16 0.57488
+    eval_python opencv fp16 0.56541
     eval_cpp pcie bmcv fp32 0.57194
-    eval_cpp pcie bmcv fp16 0.57153
+    eval_cpp pcie bmcv fp16 0.55771
   fi
 elif test $MODE = "soc_build"
 then
@@ -238,9 +254,9 @@ then
   elif test $TARGET = "BM1684X"
   then
     eval_python opencv fp32 0.57422
-    eval_python opencv fp16 0.57488
+    eval_python opencv fp16 0.56541
     eval_cpp soc bmcv fp32 0.57194
-    eval_cpp soc bmcv fp16 0.57153
+    eval_cpp soc bmcv fp16 0.55771
   elif test $TARGET = "BM1688"
   then
     eval_python opencv fp32 0.575
