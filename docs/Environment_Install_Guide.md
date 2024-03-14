@@ -58,7 +58,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
     ```bash
     pip install tpu_mlir
     ```
-    (2)从[TPU-MLIR Github](https://github.com/sophgo/tpu-mlir)下载最新`tpu_mlir-*-py3-none-any.whl`，然后使用pip安装：
+    (2)从[TPU-MLIR Github](https://github.com/sophgo/tpu-mlir/releases)下载最新`tpu_mlir-*-py3-none-any.whl`，然后使用pip安装：
     ```bash
     pip install tpu_mlir-*-py3-none-any.whl
     ```

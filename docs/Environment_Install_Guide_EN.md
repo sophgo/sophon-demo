@@ -59,7 +59,7 @@ If you are using BM1684X, it is recommended to use TPU-MLIR to compile BModel. U
     ```bash
     pip install tpu_mlir
     ```
-    (2)Get newest `tpu_mlir-*-py3-none-any.whl` from [TPU-MLIR Github](https://github.com/sophgo/tpu-mlir), then install with pip:
+    (2)Get newest `tpu_mlir-*-py3-none-any.whl` from [TPU-MLIR Github](https://github.com/sophgo/tpu-mlir/releases), then install with pip:
     ```bash
     pip install tpu_mlir-*-py3-none-any.whl
     ```
