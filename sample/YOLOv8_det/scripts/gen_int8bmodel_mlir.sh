@@ -9,13 +9,17 @@ else
     target_dir=${target^^}
 fi
 
+qtable_path=../models/onnx/yolov8s_qtable_fp16
+if test $target = "bm1684";then
+    qtable_path=../models/onnx/yolov8s_qtable_fp32
+fi
 outdir=../models/$target_dir
 
 function gen_mlir()
 {
    model_transform.py \
         --model_name yolov8s \
-        --model_def ../models/onnx/yolov8s_$1b.onnx \
+        --model_def ../models/onnx/yolov8s.onnx \
         --input_shapes [[$1,3,640,640]] \
         --mean 0.0,0.0,0.0 \
         --scale 0.0039216,0.0039216,0.0039216 \
@@ -30,7 +34,7 @@ function gen_cali_table()
 {
     run_calibration.py yolov8s_$1b.mlir \
         --dataset ../datasets/coco128/ \
-        --input_num 128 \
+        --input_num 32 \
         -o yolov8s_cali_table
 }
 
@@ -40,11 +44,13 @@ function gen_int8bmodel()
         --mlir yolov8s_$1b.mlir \
         --quantize INT8 \
         --chip $target \
-        --quantize_table ../models/onnx/yolov8s_qtable \
+        --quantize_table $qtable_path \
         --calibration_table yolov8s_cali_table \
         --test_input yolov8s_in_f32.npz \
         --test_reference yolov8s_top_outputs.npz \
         --model yolov8s_int8_$1b.bmodel
+        # --tolerance 0.99,0.99 \ #手动搜敏感层可以把这两行注释取消掉，注意上一行最后要加一个 \，这样model_deploy就会打出哪些层比对不过。
+        # --compare_all
 
     mv yolov8s_int8_$1b.bmodel $outdir/
     if test $target = "bm1688";then
@@ -53,7 +59,7 @@ function gen_int8bmodel()
             --quantize INT8 \
             --chip $target \
             --model yolov8s_int8_$1b_2core.bmodel \
-            --quantize_table ../models/onnx/yolov8s_qtable \
+            --quantize_table $qtable_path \
             --calibration_table yolov8s_cali_table \
             --num_core 2 \
             --test_input yolov8s_in_f32.npz \

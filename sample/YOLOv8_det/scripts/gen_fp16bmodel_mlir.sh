@@ -20,7 +20,7 @@ function gen_mlir()
 {   
     model_transform.py \
         --model_name yolov8s \
-        --model_def ../models/onnx/yolov8s_$1b.onnx \
+        --model_def ../models/onnx/yolov8s.onnx \
         --input_shapes [[$1,3,640,640]] \
         --mean 0.0,0.0,0.0 \
         --scale 0.0039216,0.0039216,0.0039216 \
