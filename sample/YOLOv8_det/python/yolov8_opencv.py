@@ -32,7 +32,15 @@ class YOLOv8:
         self.batch_size = self.input_shape[0]
         self.net_h = self.input_shape[2]
         self.net_w = self.input_shape[3]
-        
+        # get output
+        self.output_names = self.net.get_output_names(self.graph_name)
+   
+        for output_name in self.output_names:
+            output_shape = self.net.get_output_shape(self.graph_name, output_name)
+            if(output_shape[1]>output_shape[2]):
+                raise ValueError('Python programs do not support the OPT model')
+         
+            
         self.conf_thresh = args.conf_thresh
         self.nms_thresh = args.nms_thresh
         self.agnostic = False

@@ -14,36 +14,36 @@ outdir=../models/$target_dir
 function gen_mlir()
 {   
     model_transform.py \
-        --model_name yolov8s_1output \
-        --model_def ../models/onnx/yolov8s.onnx \
+        --model_name yolov8s${opt} \
+        --model_def ../models/onnx/yolov8s${opt}.onnx \
         --input_shapes [[$1,3,640,640]] \
         --mean 0.0,0.0,0.0 \
         --scale 0.0039216,0.0039216,0.0039216 \
         --keep_aspect_ratio \
         --pixel_format rgb  \
-        --mlir yolov8s_$1b.mlir
+        --mlir yolov8s${opt}_$1b.mlir 
 }
 
 function gen_fp32bmodel()
 {
     model_deploy.py \
-        --mlir yolov8s_$1b.mlir \
+        --mlir yolov8s${opt}_$1b.mlir \
         --quantize F32 \
         --chip $target \
-        --model yolov8s_fp32_$1b.bmodel
+        --model yolov8s${opt}_fp32_$1b.bmodel 
 
-    mv yolov8s_fp32_$1b.bmodel $outdir/
+    mv yolov8s${opt}_fp32_$1b.bmodel $outdir/
     if test $target = "bm1688";then
         model_deploy.py \
-            --mlir yolov8s_$1b.mlir \
+            --mlir yolov8s${opt}_$1b.mlir \
             --quantize F32 \
             --chip $target \
-            --model yolov8s_fp32_$1b_2core.bmodel \
+            --model yolov8s${opt}_fp32_$1b_2core.bmodel \
             --num_core 2
             # --test_input ../datasets/test/3.jpg \
             # --test_reference yolov5_top.npz \
             # --debug 
-        mv yolov8s_fp32_$1b_2core.bmodel $outdir/
+        mv yolov8s${opt}_fp32_$1b_2core.bmodel $outdir/
     fi
 }
 
@@ -54,5 +54,7 @@ fi
 # batch_size=1
 gen_mlir 1
 gen_fp32bmodel 1
-
+opt="_opt"
+gen_mlir 1
+gen_fp32bmodel 1
 popd
