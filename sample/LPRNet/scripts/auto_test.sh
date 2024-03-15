@@ -11,6 +11,10 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
+
 usage() 
 {
   echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
@@ -147,8 +151,16 @@ function test_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./lprnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log
+  ./lprnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log 2>&1
   judge_ret $? "./lprnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID" log/$1_$2_$3_cpp_test.log
+  tail -n 15 log/$1_$2_$3_cpp_test.log
+  if test $4 = "../../datasets/test"; then
+    echo "==================="
+    echo "Comparing statis..."
+    python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$2.$1 --language=cpp --input=log/$1_$2_$3_cpp_test.log --bmodel=$3
+    judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$2.$1 --language=cpp --input=log/$1_$2_$3_cpp_test.log --bmodel=$3"
+    echo "==================="
+  fi
   popd
 }
 
@@ -180,8 +192,16 @@ function test_python()
   if [ ! -d log ];then
     mkdir log
   fi
-  python3 python/lprnet_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_python_test.log
+  python3 python/lprnet_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_python_test.log 2>&1
   judge_ret $? "python3 python/lprnet_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID" log/$1_$2_python_test.log
+    tail -n 20 log/$1_$2_python_test.log
+  if test $3 = "datasets/test"; then
+    echo "==================="
+    echo "Comparing statis..."
+    python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$1.py --language=python --input=log/$1_$2_python_test.log --bmodel=$2
+    judge_ret $? "python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$1.py --language=python --input=log/$1_$2_python_test.log --bmodel=$2"
+    echo "==================="
+  fi
 }
 
 function eval_python()
@@ -219,12 +239,16 @@ then
   if test $TARGET = "BM1684"
   then
     test_python opencv lprnet_fp32_1b.bmodel datasets/test
+    test_python opencv lprnet_int8_1b.bmodel datasets/test
     test_python opencv lprnet_int8_4b.bmodel datasets/test
     test_python bmcv lprnet_fp32_1b.bmodel datasets/test
+    test_python bmcv lprnet_int8_1b.bmodel datasets/test
     test_python bmcv lprnet_int8_4b.bmodel datasets/test
     test_cpp pcie opencv lprnet_fp32_1b.bmodel ../../datasets/test
+    test_cpp pcie opencv lprnet_int8_1b.bmodel ../../datasets/test
     test_cpp pcie opencv lprnet_int8_4b.bmodel ../../datasets/test
     test_cpp pcie bmcv lprnet_fp32_1b.bmodel ../../datasets/test
+    test_cpp pcie bmcv lprnet_int8_1b.bmodel ../../datasets/test
     test_cpp pcie bmcv lprnet_int8_4b.bmodel ../../datasets/test
 
     eval_python opencv lprnet_fp32_1b.bmodel 0.894
@@ -243,12 +267,20 @@ then
   elif test $TARGET = "BM1684X"
   then
     test_python opencv lprnet_fp32_1b.bmodel datasets/test
+    test_python opencv lprnet_fp16_1b.bmodel datasets/test
+    test_python opencv lprnet_int8_1b.bmodel datasets/test
     test_python opencv lprnet_int8_4b.bmodel datasets/test
     test_python bmcv lprnet_fp32_1b.bmodel datasets/test
+    test_python bmcv lprnet_fp16_1b.bmodel datasets/test
+    test_python bmcv lprnet_int8_1b.bmodel datasets/test
     test_python bmcv lprnet_int8_4b.bmodel datasets/test
     test_cpp pcie opencv lprnet_fp32_1b.bmodel ../../datasets/test
+    test_cpp pcie opencv lprnet_fp16_1b.bmodel ../../datasets/test
+    test_cpp pcie opencv lprnet_int8_1b.bmodel ../../datasets/test
     test_cpp pcie opencv lprnet_int8_4b.bmodel ../../datasets/test
     test_cpp pcie bmcv lprnet_fp32_1b.bmodel ../../datasets/test
+    test_cpp pcie bmcv lprnet_fp16_1b.bmodel ../../datasets/test
+    test_cpp pcie bmcv lprnet_int8_1b.bmodel ../../datasets/test
     test_cpp pcie bmcv lprnet_int8_4b.bmodel ../../datasets/test
 
 
@@ -279,12 +311,16 @@ then
   if test $TARGET = "BM1684"
   then
     test_python opencv lprnet_fp32_1b.bmodel datasets/test
+    test_python opencv lprnet_int8_1b.bmodel datasets/test
     test_python opencv lprnet_int8_4b.bmodel datasets/test
     test_python bmcv lprnet_fp32_1b.bmodel datasets/test
+    test_python bmcv lprnet_int8_1b.bmodel datasets/test
     test_python bmcv lprnet_int8_4b.bmodel datasets/test
     test_cpp soc opencv lprnet_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test
     test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test
     test_cpp soc bmcv lprnet_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test
     test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test
 
     eval_python opencv lprnet_fp32_1b.bmodel 0.894
@@ -302,12 +338,20 @@ then
   elif test $TARGET = "BM1684X"
   then
     test_python opencv lprnet_fp32_1b.bmodel datasets/test
+    test_python opencv lprnet_fp16_1b.bmodel datasets/test
+    test_python opencv lprnet_int8_1b.bmodel datasets/test
     test_python opencv lprnet_int8_4b.bmodel datasets/test
     test_python bmcv lprnet_fp32_1b.bmodel datasets/test
+    test_python bmcv lprnet_fp16_1b.bmodel datasets/test
+    test_python bmcv lprnet_int8_1b.bmodel datasets/test
     test_python bmcv lprnet_int8_4b.bmodel datasets/test
     test_cpp soc opencv lprnet_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc opencv lprnet_fp16_1b.bmodel ../../datasets/test
+    test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test
     test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test
     test_cpp soc bmcv lprnet_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv lprnet_fp16_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test
     test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test
 
 
@@ -330,12 +374,20 @@ then
   elif test $TARGET = "BM1688"
   then
     test_python opencv lprnet_fp32_1b.bmodel datasets/test
+    test_python opencv lprnet_fp16_1b.bmodel datasets/test
+    test_python opencv lprnet_int8_1b.bmodel datasets/test
     test_python opencv lprnet_int8_4b.bmodel datasets/test
     test_python bmcv lprnet_fp32_1b.bmodel datasets/test
+    test_python bmcv lprnet_fp16_1b.bmodel datasets/test
+    test_python bmcv lprnet_int8_1b.bmodel datasets/test
     test_python bmcv lprnet_int8_4b.bmodel datasets/test
     test_cpp soc opencv lprnet_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc opencv lprnet_fp16_1b.bmodel ../../datasets/test
+    test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test
     test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test
     test_cpp soc bmcv lprnet_fp32_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv lprnet_fp16_1b.bmodel ../../datasets/test
+    test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test
     test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test
 
 
