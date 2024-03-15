@@ -40,6 +40,8 @@ class YOLOv8:
         self.output_scales = {}
         for output_name in self.output_names:
             output_shape = self.net.get_output_shape(self.graph_name, output_name)
+            if(output_shape[1]>output_shape[2]):
+                raise ValueError('Python programs do not support the OPT model')
             output_dtype = self.net.get_output_dtype(self.graph_name, output_name)
             output_scale = self.net.get_output_scale(self.graph_name, output_name)
             output = sail.Tensor(self.handle, output_shape, output_dtype, True, True)

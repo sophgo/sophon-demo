@@ -20,5 +20,23 @@ success = model.export(format="onnx", dynamic=True)  # 导出动态ONNX模型
 
 上述脚本会在原始pt模型所在目录下生成导出的onnx模型`yolov8s.onnx`。
 
-## 3. 常见问题
+为了加快cpp例程后处理速度，这里在源yolov8的输出层后再接一个transpose层，这样更加适合cpp例程后处理时连续取数，这种方式称之为yolov8s_opt。
+
+
+需要安装官方提供的第三方库：
+```bash
+git clone https://github.com/ultralytics/ultralytics
+cd ultralytics
+```
+
+修改源码 ultralytics/ultralytics/nn/tasks.py
+```
+def _predict_once(self, x, profile=False, visualize=False, embed=None)函数得返回值
+# return x
+return x.permute(0, 2, 1)
+```
+修改以上源码之后执行以上脚本会在原始pt模型所在目录下生成导出的onnx模型即为opt版本得`yolov8s.onnx`
+
+
+## 4. 常见问题
 TODO

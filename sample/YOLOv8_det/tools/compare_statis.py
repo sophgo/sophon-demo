@@ -7,39 +7,51 @@ import sys
 baseline = """
 |    测试平台  |     测试程序      |        测试模型        |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ---------------------- | --------  | ---------    | ---------     | ---------      |
-| BM1684 SoC  | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 15.90     | 23.54        | 31.30         | 5.00           |
-| BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 15.09     | 23.06        | 22.10         | 4.97           | 
-| BM1684 SoC  | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 15.18     | 25.36        | 25.39         | 5.09           |
-| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 3.55      | 2.81         | 29.13         | 4.81           |
-| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 3.55      | 2.79         | 18.98         | 4.90           |
-| BM1684 SoC  | yolov8_bmcv.py   | yolov8s_int8_4b.bmodel | 3.43      | 2.61         | 9.78          | 4.44           |
-| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel | 4.928     | 1.560        | 27.00         | 17.59          |
-| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel | 4.930     | 1.560        | 15.10         | 17.58          |
-| BM1684 SoC  | yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel | 4.809     | 1.491        | 8.089         | 17.34          |
-| BM1684X SoC | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 15.03     | 22.98        | 34.80         | 5.45           |
-| BM1684X SoC | yolov8_opencv.py | yolov8s_fp16_1b.bmodel | 15.03     | 22.46        | 12.14         | 5.45           |
-| BM1684X SoC | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 14.99     | 22.40        | 9.18          | 5.37           |
-| BM1684X SoC | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 15.03     | 24.77        | 8.91          | 5.47           |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel | 3.0       | 2.2          | 31.0          | 5.4            |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel | 3.0       | 2.2          | 8.5           | 5.4            |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_int8_1b.bmodel | 3.0       | 2.2          | 5.5           | 5.4            |
-| BM1684X SoC | yolov8_bmcv.py   | yolov8s_int8_4b.bmodel | 2.9       | 2.1          | 5.1           | 4.8            |
-| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel | 4.324     | 0.772        | 28.97         | 17.96          |
-| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_fp16_1b.bmodel | 4.312     | 0.772        | 6.259         | 17.80          |
-| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel | 4.276     | 0.772        | 3.350         | 17.95          |
-| BM1684X SoC | yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel | 4.128     | 0.736        | 3.277         | 17.70          |
-| BM1688 SoC  | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 23.40     | 30.15        | 170.44        | 6.99           |
-| BM1688 SoC  | yolov8_opencv.py | yolov8s_fp16_1b.bmodel | 22.15     | 30.18        |  42.50        | 6.97           |
-| BM1688 SoC  | yolov8_opencv.py | yolov8s_int8_1b.bmodel | 19.33     | 30.21        |  16.50        | 6.97           |
-| BM1688 SoC  | yolov8_opencv.py | yolov8s_int8_4b.bmodel | 19.35     | 32.95        |  15.82        | 7.33           |
-| BM1688 SoC  |  yolov8_bmcv.py  | yolov8s_fp32_1b.bmodel | 4.27      | 4.88         | 165.86        | 6.97           |
-| BM1688 SoC  |  yolov8_bmcv.py  | yolov8s_fp16_1b.bmodel | 4.21      | 4.86         |  38.09        | 7.03           |
-| BM1688 SoC  |  yolov8_bmcv.py  | yolov8s_int8_1b.bmodel | 4.21      | 4.88         |  12.10        | 7.04           |
-| BM1688 SoC  |  yolov8_bmcv.py  | yolov8s_int8_4b.bmodel | 4.02      | 4.56         |  11.06        | 6.21           |
-| BM1688 SoC  |  yolov8_bmcv.soc | yolov8s_fp32_1b.bmodel | 5.68      | 1.91         | 162.71        | 25.07          |
-| BM1688 SoC  |  yolov8_bmcv.soc | yolov8s_fp16_1b.bmodel | 5.61      | 1.91         |  34.98        | 25.10          |
-| BM1688 SoC  |  yolov8_bmcv.soc | yolov8s_int8_1b.bmodel | 5.66      | 1.91         |  9.03         | 25.05          |
-| BM1688 SoC  |  yolov8_bmcv.soc | yolov8s_int8_4b.bmodel | 5.48      | 1.81         |  8.68         | 24.95          |
+|   SE5-16    | yolov8_opencv.py  | yolov8s_fp32_1b.bmodel  |      18.98      |      21.50      |      31.77      |      5.11       |
+|   SE5-16    | yolov8_opencv.py  | yolov8s_int8_1b.bmodel  |      15.02      |      21.35      |      20.80      |      4.85       |
+|   SE5-16    | yolov8_opencv.py  | yolov8s_int8_4b.bmodel  |      15.06      |      23.84      |      14.39      |      5.15       |
+|   SE5-16    |  yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel  |      3.63       |      2.80       |      28.88      |      4.99       |
+|   SE5-16    |  yolov8_bmcv.py   | yolov8s_int8_1b.bmodel  |      3.67       |      2.83       |      18.08      |      4.97       |
+|   SE5-16    |  yolov8_bmcv.py   | yolov8s_int8_4b.bmodel  |      3.51       |      2.67       |      11.33      |      4.37       |
+|   SE5-16    |  yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel  |      4.86       |      1.54       |      26.41      |      8.53       |
+|   SE5-16    |  yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel  |      4.89       |      1.55       |      15.58      |      8.53       |
+|   SE5-16    |  yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel  |      4.75       |      1.49       |      9.34       |      8.50       |
+|   SE5-16    |  yolov8_bmcv.soc  |yolov8s_opt_fp32_1b.bmodel|      4.94       |      1.54       |      26.62      |      2.65       |
+|   SE5-16    |  yolov8_bmcv.soc  |yolov8s_opt_int8_1b.bmodel|      4.88       |      1.54       |      15.02      |      2.60       |
+|   SE5-16    |  yolov8_bmcv.soc  |yolov8s_opt_int8_4b.bmodel|      4.82       |      1.49       |      7.37       |      2.66       |
+|   SE7-32    | yolov8_opencv.py  | yolov8s_fp32_1b.bmodel  |      21.70      |      22.55      |      35.12      |      5.38       |
+|   SE7-32    | yolov8_opencv.py  | yolov8s_fp16_1b.bmodel  |      14.95      |      22.53      |      11.42      |      5.39       |
+|   SE7-32    | yolov8_opencv.py  | yolov8s_int8_1b.bmodel  |      14.96      |      22.87      |      9.21       |      5.36       |
+|   SE7-32    | yolov8_opencv.py  | yolov8s_int8_4b.bmodel  |      15.00      |      24.62      |      8.98       |      5.45       |
+|   SE7-32    |  yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel  |      3.16       |      2.38       |      31.87      |      5.42       |
+|   SE7-32    |  yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel  |      3.16       |      2.37       |      8.13       |      5.45       |
+|   SE7-32    |  yolov8_bmcv.py   | yolov8s_int8_1b.bmodel  |      3.16       |      2.37       |      5.96       |      5.43       |
+|   SE7-32    |  yolov8_bmcv.py   | yolov8s_int8_4b.bmodel  |      2.97       |      2.17       |      5.52       |      4.87       |
+|   SE7-32    |  yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel  |      4.36       |      0.74       |      29.15      |      8.65       |
+|   SE7-32    |  yolov8_bmcv.soc  | yolov8s_fp16_1b.bmodel  |      4.39       |      0.74       |      5.46       |      8.67       |
+|   SE7-32    |  yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel  |      4.38       |      0.74       |      3.25       |      8.67       |
+|   SE7-32    |  yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel  |      4.25       |      0.71       |      3.33       |      8.59       |
+|   SE7-32    |  yolov8_bmcv.soc  |yolov8s_opt_fp32_1b.bmodel|      4.41       |      0.74       |      29.35      |      2.63       |
+|   SE7-32    |  yolov8_bmcv.soc  |yolov8s_opt_fp16_1b.bmodel|      4.36       |      0.74       |      5.58       |      2.62       |
+|   SE7-32    |  yolov8_bmcv.soc  |yolov8s_opt_int8_1b.bmodel|      4.39       |      0.74       |      2.90       |      2.62       |
+|   SE7-32    |  yolov8_bmcv.soc  |yolov8s_opt_int8_4b.bmodel|      4.24       |      0.71       |      2.89       |      2.72       |
+|   SE9-16    | yolov8_opencv.py  | yolov8s_fp32_1b.bmodel  |      23.35      |      29.68      |     169.78      |      6.93       |
+|   SE9-16    | yolov8_opencv.py  | yolov8s_fp16_1b.bmodel  |      19.39      |      30.28      |      41.80      |      6.95       |
+|   SE9-16    | yolov8_opencv.py  | yolov8s_int8_1b.bmodel  |      19.36      |      29.60      |      18.25      |      6.88       |
+|   SE9-16    | yolov8_opencv.py  | yolov8s_int8_4b.bmodel  |      19.27      |      33.23      |      17.60      |      7.40       |
+|   SE9-16    |  yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel  |      4.45       |      4.99       |     165.95      |      6.98       |
+|   SE9-16    |  yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel  |      4.40       |      4.96       |      37.91      |      6.97       |
+|   SE9-16    |  yolov8_bmcv.py   | yolov8s_int8_1b.bmodel  |      4.41       |      4.92       |      14.41      |      6.95       |
+|   SE9-16    |  yolov8_bmcv.py   | yolov8s_int8_4b.bmodel  |      4.29       |      4.64       |      13.41      |      6.14       |
+|   SE9-16    |  yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel  |      5.80       |      1.83       |     162.12      |      12.11      |
+|   SE9-16    |  yolov8_bmcv.soc  | yolov8s_fp16_1b.bmodel  |      5.92       |      1.82       |      34.29      |      12.09      |
+|   SE9-16    |  yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel  |      5.85       |      1.83       |      10.82      |      12.10      |
+|   SE9-16    |  yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel  |      5.70       |      1.74       |      10.57      |      12.05      |
+|   SE9-16    |  yolov8_bmcv.soc  |yolov8s_opt_fp32_1b.bmodel|      5.85       |      1.82       |     161.79      |      3.69       |
+|   SE9-16    |  yolov8_bmcv.soc  |yolov8s_opt_fp16_1b.bmodel|      5.88       |      1.82       |      34.19      |      3.67       |
+|   SE9-16    |  yolov8_bmcv.soc  |yolov8s_opt_int8_1b.bmodel|      5.87       |      1.82       |      8.10       |      3.67       |
+|   SE9-16    |  yolov8_bmcv.soc  |yolov8s_opt_int8_4b.bmodel|      5.67       |      1.74       |      7.86       |      3.70       |
+
 """
 table_data = {
     "platform": [],
@@ -103,12 +115,20 @@ if __name__ == '__main__':
     current_dir = os.path.dirname(cnt_file_path)
     benchmark_path = current_dir + "/benchmark.txt"
     args = argsparser()
-    platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
+    if args.platform == "soc":
+        if args.target == "BM1684X":
+            platform = "SE7-32"
+        elif args.target == "BM1684":
+            platform = "SE5-16"
+        elif args.target == "BM1688":
+            platform = "SE9-16"
+    else:
+        platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 17
     
     if not os.path.exists(benchmark_path):
         with open(benchmark_path, "w") as f:
-            benchmark_str = "|{:^13}|{:^19}|{:^35}|{:^{width}}|{:^{width}}|{:^{width}}|{:^{width}}|\n".format(
+            benchmark_str = "|{:^13}|{:^19}|{:^25}|{:^{width}}|{:^{width}}|{:^{width}}|{:^{width}}|\n".format(
            "platform", "program", "bmodel", "decode_time", "preprocess_time", "inference_time", "postprocess_time", width=min_width)
             f.write(benchmark_str)
             
@@ -134,13 +154,19 @@ if __name__ == '__main__':
         baseline_data["inference"] = table_data["inference"][match_index]
         baseline_data["postprocess"] = table_data["postprocess"][match_index]
     for key, statis in baseline_data.items():
-        if abs(statis - extracted_data[key]) / statis > 0.2:
+        if statis < 1:
+            if abs(statis - extracted_data[key]) > 0.5:
+                print("{:} time, diff > 0.5".format(key))
+                print("Baseline is:", statis)
+                print("Now is: ", extracted_data[key])
+                compare_pass = False
+        elif abs(statis - extracted_data[key]) / statis > 0.2:
             print("{:} time, diff ratio > 0.2".format(key))
             print("Baseline is:", statis)
             print("Now is: ", extracted_data[key])
             compare_pass = False
         
-    benchmark_str = "|{:^13}|{:^19}|{:^35}|{decode:^{width}.2f}|{preprocess:^{width}.2f}|{inference:^{width}.2f}|{postprocess:^{width}.2f}|\n".format(
+    benchmark_str = "|{:^13}|{:^19}|{:^25}|{decode:^{width}.2f}|{preprocess:^{width}.2f}|{inference:^{width}.2f}|{postprocess:^{width}.2f}|\n".format(
                      platform, args.program, args.bmodel, **extracted_data, width=min_width)
     
     with open(benchmark_path, "a") as f:

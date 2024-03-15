@@ -11,9 +11,14 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#if IS_SOC
+#include <arm_neon.h>
+#endif
 #define USE_ASPECT_RATIO 1
 #define DUMP_FILE 0
 #define USE_MULTICLASS_NMS 0
+#define USE_OPT 1
+#define USE_NEON 0
 
 const std::vector<std::vector<int>> colors = {
     {255, 0, 0},     {255, 85, 0},    {255, 170, 0},   {255, 255, 0}, {170, 255, 0}, {85, 255, 0},  {0, 255, 0},
@@ -61,7 +66,7 @@ int YoloV8::Init(float confThresh, float nmsThresh, const std::string& coco_name
     output_num = m_bmNetwork->outputTensorNum();
     assert(output_num > 0);
     min_dim = m_bmNetwork->outputTensor(0)->get_shape()->num_dims;
-
+    use_cpu_opt = (m_bmNetwork->outputTensor(0)->get_shape()->dims[1] > m_bmNetwork->outputTensor(0)->get_shape()->dims[2]);
     // 4. initialize bmimages
     m_resized_imgs.resize(max_batch);
     m_converto_imgs.resize(max_batch);
@@ -120,7 +125,15 @@ int YoloV8::Detect(const std::vector<bm_image>& input_images, std::vector<YoloV8
 
     // 5. post process
     m_ts->save("yolov8 postprocess", input_images.size());
-    ret = post_process(input_images, boxes);
+    if(use_cpu_opt){
+#if USE_OPT
+        ret = post_process_opt(input_images, boxes);
+#else
+        std::cout<<"NOT_USE_OPT"<<std::endl;
+#endif
+    }else{
+        ret = post_process(input_images, boxes);
+    }
     CV_Assert(ret == 0);
     m_ts->save("yolov8 postprocess", input_images.size());
     return ret;
@@ -356,6 +369,180 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
 
     return 0;
 }
+#if USE_NEON
+int YoloV8::get_max_value_neno(float* cls_conf,float &max_value ,int & max_index,int i,int nout){
+    
+            int m_class_num_tmp=m_class_num/4;
+
+            float32x4_t max_value_neon = vdupq_n_f32(0);
+            int32x4_t max_index_neon = vdupq_n_s32(0); // 用-1初始化索引
+
+            for (int j = 0; j < m_class_num_tmp; j++) {
+                float32_t *data_neon = &cls_conf[i * nout + j * 4];
+                float32x4_t cur_value = vld1q_f32(data_neon);
+                // 比较当前值和最大值，并更新最大值和索引
+                uint32x4_t mask = vcgtq_f32(cur_value, max_value_neon); // 比较当前值是否大于最大值
+                max_value_neon = vmaxq_f32(max_value_neon, cur_value);
+                max_index_neon = vbslq_s32(mask, vdupq_n_s32(j), max_index_neon); // 条件选择索引
+            }
+
+            // 将NEON寄存器的值提取到数组中
+            float32_t max_values[4];
+            int32_t max_indices[4];
+            vst1q_f32(max_values, max_value_neon);
+            vst1q_s32(max_indices, max_index_neon);
+
+            // 遍历数组以找到最终的最大值和索引
+            for (int j = 0; j < 4; j++) {
+                if (max_values[j] > max_value) {
+                    max_value = max_values[j];
+                    max_index = max_indices[j]*4+j;
+                }
+            }  
+              
+   
+}
+#endif  
+
+#if USE_OPT
+int YoloV8::post_process_opt(const std::vector<bm_image>& images, std::vector<YoloV8BoxVec>& detected_boxes) {
+    YoloV8BoxVec yolobox_vec;
+    std::vector<cv::Rect> bbox_vec;
+    std::vector<std::shared_ptr<BMNNTensor>> outputTensors(output_num);
+
+    for (int i = 0; i < output_num; i++) {
+        outputTensors[i] = m_bmNetwork->outputTensor(i);
+    }
+
+    for (int batch_idx = 0; batch_idx < images.size(); ++batch_idx) {
+        yolobox_vec.clear();
+        auto& frame = images[batch_idx];
+        int frame_width = frame.width;
+        int frame_height = frame.height;
+
+        int min_idx = 0;
+        int box_num = 0;
+
+        // Single output
+        auto out_tensor = outputTensors[min_idx];
+        m_class_num = out_tensor->get_shape()->dims[2] - mask_num - 4;
+        int feat_num = out_tensor->get_shape()->dims[1];
+        int nout = m_class_num + mask_num + 4;
+        float* output_data = nullptr;
+        std::vector<float> decoded_data;
+
+        LOG_TS(m_ts, "post 1: get output");
+        assert(box_num == 0 || box_num == out_tensor->get_shape()->dims[2]);
+        box_num = out_tensor->get_shape()->dims[2];
+        output_data = (float*)out_tensor->get_cpu_data() + batch_idx * feat_num * (m_class_num + mask_num + 4);
+        LOG_TS(m_ts, "post 1: get output");
+
+        // Candidates
+        LOG_TS(m_ts, "post 2: get detections matrix nx6 (xyxy, conf, cls)");
+        float* cls_conf = output_data + 4 ;
+        for (int i = 0; i < feat_num; i++) {
+#if USE_MULTICLASS_NMS
+            // multilabel
+            for (int j = 0; j < m_class_num; j++) {
+                float cur_value = cls_conf[i*nout + j];
+                if (cur_value >= m_confThreshold) {
+                    YoloV8Box box;
+                    box.score = cur_value;
+                    box.class_id = j;
+                    int c = box.class_id * max_wh;
+                    float centerX = output_data[i * nout ];
+                    float centerY = output_data[i * nout + 1];
+                    float width = output_data[i * nout +  2];
+                    float height = output_data[i * nout +  3];
+
+                    box.x1 = centerX - width / 2 + c;
+                    box.y1 = centerY - height / 2 + c;
+                    box.x2 = box.x1 + width;
+                    box.y2 = box.y1 + height;
+
+                    yolobox_vec.push_back(box);
+                }
+            }
+#else
+            // best class
+            float max_value = 0.0;
+            int max_index = 0;
+#if USE_NEON
+            get_max_value_neon(cls_conf,max_value , max_index,i,nout);
+#else
+            for (int j = 0; j < m_class_num; j++) {
+                float cur_value = cls_conf[i * nout + j];
+                if (cur_value > max_value) {
+                    max_value = cur_value;
+                    max_index = j;
+                }
+            }  
+#endif
+            // LOG_TS(m_ts, "post3");
+            if (max_value >= m_confThreshold) {
+                YoloV8Box box;
+                box.score = max_value;
+                box.class_id = max_index;
+                int c = box.class_id * max_wh;
+                float centerX = output_data[i* nout ];
+                float centerY = output_data[i * nout + 1 ];
+                float width = output_data[i * nout + 2 ];
+                float height = output_data[i * nout + 3 ];
+
+                box.x1 = centerX - width / 2 + c;
+                box.y1 = centerY - height / 2 + c;
+                box.x2 = box.x1 + width;
+                box.y2 = box.y1 + height;
+
+                yolobox_vec.push_back(box);
+            }
+#endif
+        }
+        LOG_TS(m_ts, "post 2: get detections matrix nx6 (xyxy, conf, cls)");
+
+        LOG_TS(m_ts, "post 3: nms");
+        NMS(yolobox_vec, m_nmsThreshold);
+
+        if (yolobox_vec.size() > max_det) {
+            yolobox_vec.erase(yolobox_vec.begin(), yolobox_vec.begin() + (yolobox_vec.size() - max_det));
+        }
+
+        for (int i = 0; i < yolobox_vec.size(); i++) {
+            int c = yolobox_vec[i].class_id * max_wh;
+            yolobox_vec[i].x1 = yolobox_vec[i].x1 - c;
+            yolobox_vec[i].y1 = yolobox_vec[i].y1 - c;
+            yolobox_vec[i].x2 = yolobox_vec[i].x2 - c;
+            yolobox_vec[i].y2 = yolobox_vec[i].y2 - c;
+        }
+
+        float tx1 = 0, ty1 = 0;
+        bool isAlignWidth = false;
+        float ratio = get_aspect_scaled_ratio(frame.width, frame.height, m_net_w, m_net_h, &isAlignWidth);
+        if (isAlignWidth) {
+            ty1 = (m_net_h - (float)(frame_height * ratio)) / 2;
+        } else {
+            tx1 = (m_net_w - (float)(frame_width * ratio)) / 2;
+        }
+        for (int i = 0; i < yolobox_vec.size(); i++) {
+            float centerx = ((yolobox_vec[i].x2 + yolobox_vec[i].x1) / 2 - tx1) / ratio;
+            float centery = ((yolobox_vec[i].y2 + yolobox_vec[i].y1) / 2 - ty1) / ratio;
+            float width = (yolobox_vec[i].x2 - yolobox_vec[i].x1) / ratio;
+            float height = (yolobox_vec[i].y2 - yolobox_vec[i].y1) / ratio;
+            yolobox_vec[i].x1 = centerx - width / 2;
+            yolobox_vec[i].y1 = centery - height / 2;
+            yolobox_vec[i].x2 = centerx + width / 2;
+            yolobox_vec[i].y2 = centery + height / 2;
+        }
+        clip_boxes(yolobox_vec, frame_width, frame_height);
+
+        LOG_TS(m_ts, "post 3: nms");
+
+        detected_boxes.push_back(yolobox_vec);
+    }
+
+    return 0;
+}
+#endif
 
 void YoloV8::clip_boxes(YoloV8BoxVec& yolobox_vec, int src_w, int src_h) {
     for (int i = 0; i < yolobox_vec.size(); i++) {
