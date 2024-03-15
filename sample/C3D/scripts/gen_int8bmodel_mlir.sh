@@ -35,7 +35,18 @@ function gen_int8bmodel()
         --quantize INT8 \
         --chip $target \
         --calibration_table c3d_cali_table \
-        --model $outdir/c3d_int8_$1b.bmodel
+        --model c3d_int8_$1b.bmodel
+    mv c3d_int8_$1b.bmodel $outdir
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir c3d_$1b.mlir \
+            --quantize INT8 \
+            --chip $target \
+            --calibration_table c3d_cali_table \
+            --model c3d_int8_$1b_2core.bmodel \
+            --num_core 2
+        mv c3d_int8_$1b_2core.bmodel $outdir
+    fi
 }
 
 pushd $model_dir
@@ -56,5 +67,4 @@ gen_int8bmodel 1
 # batch_size=4
 gen_mlir 4
 gen_int8bmodel 4
-rm -r c3d* final_opt.onnx
 popd
