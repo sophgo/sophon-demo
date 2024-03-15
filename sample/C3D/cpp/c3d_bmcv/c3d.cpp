@@ -138,23 +138,25 @@ int C3D::detect(const std::vector<std::string> &batch_videos, std::vector<int> &
     int ret = 0;
     
     //0. Decode video and get bm_image list
-    m_ts->save("C3D decode_time");
+    m_ts->save("C3D decode_time", max_batch);
     for(int i = 0; i < max_batch; i++){
         if(i < batch_videos.size())
             decode_video(batch_videos[i], m_decoded_input, i);
         else
             decode_video(batch_videos[0], m_decoded_input, i);
     }
-    m_ts->save("C3D decode_time");
+    m_ts->save("C3D decode_time", max_batch);
     //1. Preprocess, convert raw images to format which fits C3D network.
+    m_ts->save("C3D preprocess_time", max_batch);
     ret = pre_process(m_decoded_input);
+    m_ts->save("C3D preprocess_time", max_batch);
 
     CV_Assert(ret == 0);
     //2. Run C3D inference.
-    m_ts->save("C3D inference");
+    m_ts->save("C3D inference", max_batch);
     ret = m_bmNetwork->forward();
     CV_Assert(ret == 0);
-    m_ts->save("C3D inference");
+    m_ts->save("C3D inference", max_batch);
     
     std::shared_ptr<BMNNTensor> outputTensor = m_bmNetwork->outputTensor(0);
     auto output_shape = outputTensor->get_shape();
@@ -167,21 +169,14 @@ int C3D::detect(const std::vector<std::string> &batch_videos, std::vector<int> &
     assert(m_bmNetwork->outputTensorNum() == 1); 
     int class_num = output_shape->dims[1];
     auto output_data = outputTensor->get_cpu_data();
-    m_ts->save("C3D postprocess_time");
+    m_ts->save("C3D postprocess_time", max_batch);
     for(int i = 0; i < batch_videos.size(); i++){
         auto max_index = argmax(output_data + i * class_num, 
                                 output_data + (i + 1) * class_num);
         preds.push_back(max_index);
-
-        /*CODE-FOR-DEBUG*/
-        // for(int j=i*class_num;j<(i+1)*class_num;j++){
-        //     std::cout<<*(output_data+j)<<" ";
-        // }
-        // std::cout<<std::endl;
-        
     }
 
-    m_ts->save("C3D postprocess_time");
+    m_ts->save("C3D postprocess_time", max_batch);
     return 0;
 }
 
@@ -272,7 +267,6 @@ void print_array(float array[], int i0, int i1, int i2, int i3){
 int C3D::pre_process(const std::vector<bm_image> &decoded_frames){
     //Safety check.
     //1. Preprocess input videos in host memory.
-    m_ts->save("C3D preprocess_time");
     auto handle = m_bmContext->handle();
     for(int i = 0; i < decoded_frames.size(); i++){ 
         //64-bytes align will enhance data process rate.    
@@ -306,12 +300,7 @@ int C3D::pre_process(const std::vector<bm_image> &decoded_frames){
                                             &m_resized_input[i]);
         assert(BM_SUCCESS == ret);
         bmcv_rect_t crop_rect = {30, 8, 112, 112}; //here is w, h
-        ret = bmcv_image_crop(m_bmContext->handle(),
-                                    1,
-                                    &crop_rect,
-                                    m_resized_input[i],
-                                    &m_croped_input[i]
-                                    );
+        ret = bmcv_image_vpp_convert(m_bmContext->handle(), 1, m_resized_input[i], &m_croped_input[i], &crop_rect);
     #else
         //Crop, then Resize.
         bmcv_rect_t crop_rect = {74, 56, 171, 128}; //here is w, h
@@ -335,56 +324,8 @@ int C3D::pre_process(const std::vector<bm_image> &decoded_frames){
                                         m_croped_input.data(), 
                                         m_converto_input.data());
     assert(BM_SUCCESS == ret);
-    m_ts->save("C3D preprocess_time");
     
-    /*CODE-FOR-DEBUG*/
-    // for(int i = 0; i < max_batch * m_clip_len; i++)
-    // {
-    //     std::string img_file = "debug/croped/test_croped_b" + std::to_string(max_batch) + "_" + std::to_string(i) +".jpg";
-    //     std::cout<<"saving: "<<img_file<<std::endl;
-    //     void* jpeg_data = NULL;
-    //     size_t out_size = 0;
-    //     bm_image test;
-    //     bm_image_create(m_bmContext->handle(), 
-    //                         112, 112, FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, &test);
-    //     bmcv_image_storage_convert(m_bmContext->handle(), 1, &m_croped_input[i], &test);    
-    //     ret = bmcv_image_jpeg_enc(m_bmContext->handle(), 
-    //                                             1, 
-    //                                             &test, 
-    //                                             &jpeg_data, 
-    //                                             &out_size);   
-    //     if (ret == BM_SUCCESS) {
-    //     FILE *fp = fopen(img_file.c_str(), "wb");
-    //     fwrite(jpeg_data, out_size, 1, fp);
-    //     fclose(fp);
-    //     }
-    //     free(jpeg_data);
-    // }
-    // for(int i = 0; i < max_batch * m_clip_len; i++)
-    // {
-    //     std::string img_file = "debug/converted/test_converted_b" + std::to_string(max_batch) + "_" + std::to_string(i) +".jpg";
-    //     std::cout<<"saving: "<<img_file<<std::endl;
-    //     void* jpeg_data = NULL;
-    //     size_t out_size = 0;
-    //     bm_image test;
-    //     bm_image_create(m_bmContext->handle(), 
-    //                         112, 112, FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, &test);
-    //     bmcv_image_storage_convert(m_bmContext->handle(), 1, &m_converto_input[i], &test);    
-    //     ret = bmcv_image_jpeg_enc(m_bmContext->handle(), 
-    //                                             1, 
-    //                                             &test, 
-    //                                             &jpeg_data, 
-    //                                             &out_size);   
-    //     if (ret == BM_SUCCESS) {
-    //     FILE *fp = fopen(img_file.c_str(), "wb");
-    //     fwrite(jpeg_data, out_size, 1, fp);
-    //     fclose(fp);
-    //     }
-    //     free(jpeg_data);
-    // }
-    // exit(1);
-    
-    m_ts->save("C3D realloc_time");
+    // m_ts->save("C3D realloc_time");
     //2. Attach to input tensor.
     bm_device_mem_t bgrbgrbgr_dev_mem;
     bm_image_get_contiguous_device_mem(max_batch * m_clip_len, 
@@ -408,25 +349,9 @@ int C3D::pre_process(const std::vector<bm_image> &decoded_frames){
         }
     }
 
-    /*CODE-FOR-DEBUG*/
-    // m_input_tensor->set_device_mem(&bgrbgrbgr_dev_mem);return 0;
-    // std::cout << "size:" << bgrbgrbgr_dev_mem.size << std::endl;
-    // print_array(m_input_tensor->get_cpu_data(), 0, 1, 0 ,0);
-    // print_array(m_input_tensor->get_cpu_data(), 0, 2, 0 ,0);
-    // std::cout << "==============" << std::endl;
-    // std::cout<<bgrbgrbgr_dev_mem.u.device.device_addr<<std::endl;
-    // std::cout<<bbbgggrrr_dev_mem.u.device.device_addr<<std::endl;
-    // std::cout<<m_input_tensor->get_dtype()<<std::endl;
-    // float* input_data = new float[max_batch*m_clip_len*3*112*112];
-    // ret = bm_memcpy_d2s(m_bmContext->handle(),input_data, bbbgggrrr_dev_mem);
-    // assert(BM_SUCCESS == ret);// for(int i=0;i<m_clip_len*3*112*112;i++){
-    //     std::cout<<input_data[i]<<" ";
-    // }
-    // std::cout<<std::endl;
-
     m_input_tensor->set_device_mem(&bbbgggrrr_dev_mem);
     bm_free_device(m_bmContext->handle(), bbbgggrrr_dev_mem);
 
-    m_ts->save("C3D realloc_time");
+    // m_ts->save("C3D realloc_time");
     return 0;
 }

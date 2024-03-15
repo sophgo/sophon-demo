@@ -11,7 +11,6 @@ TPUID=0
 ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
-
 usage() 
 {
   echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
@@ -40,6 +39,75 @@ do
       exit 1;;
   esac
 done
+
+
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
+if [ -f "scripts/acc.txt" ]; then
+  rm scripts/acc.txt
+fi
+echo "|   测试平台    |      测试程序     |    测试模型        | ACC |" >> scripts/acc.txt
+PLATFORM=$TARGET
+if test $MODE = "soc_test"; then
+  if test $TARGET = "BM1684X"; then
+    PLATFORM="SE7-32"
+  elif test $TARGET = "BM1684"; then
+    PLATFORM="SE5-16"
+  elif test $TARGET = "BM1688"; then
+    PLATFORM="SE9-16"
+  else
+    echo "Unknown TARGET type: $TARGET"
+  fi
+fi
+
+function bmrt_test_case(){
+   calculate_time_log=$(bmrt_test --bmodel $1 | grep "calculate" 2>&1)
+   is_4b=$(echo $1 |grep "4b")
+
+   if [ "$is_4b" != "" ]; then
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 250}')
+   else
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 1000}')
+   fi
+   for time in "${calculate_times[@]}"
+   do
+     printf "| %-35s| % 15s |\n" "$1" "$time"
+   done
+}
+function bmrt_test_benchmark(){
+    pushd models
+    printf "| %-35s| % 15s |\n" "测试模型" "calculate time(ms)"
+    printf "| %-35s| % 15s |\n" "-------------------" "--------------"
+   
+    if test $TARGET = "BM1684"; then
+      bmrt_test_case BM1684/c3d_fp32_1b.bmodel
+      bmrt_test_case BM1684/c3d_fp32_4b.bmodel
+      bmrt_test_case BM1684/c3d_int8_1b.bmodel
+      bmrt_test_case BM1684/c3d_int8_4b.bmodel
+    elif test $TARGET = "BM1684X"; then
+      bmrt_test_case BM1684X/c3d_fp32_1b.bmodel
+      bmrt_test_case BM1684X/c3d_fp32_4b.bmodel
+      bmrt_test_case BM1684X/c3d_fp16_1b.bmodel
+      bmrt_test_case BM1684X/c3d_fp16_4b.bmodel
+      bmrt_test_case BM1684X/c3d_int8_1b.bmodel
+      bmrt_test_case BM1684X/c3d_int8_4b.bmodel
+    elif test $TARGET = "BM1688"; then
+      bmrt_test_case BM1688/c3d_fp32_1b.bmodel
+      bmrt_test_case BM1688/c3d_fp32_4b.bmodel
+      bmrt_test_case BM1688/c3d_fp16_1b.bmodel
+      bmrt_test_case BM1688/c3d_fp16_4b.bmodel
+      bmrt_test_case BM1688/c3d_int8_1b.bmodel
+      bmrt_test_case BM1688/c3d_int8_4b.bmodel
+      bmrt_test_case BM1688/c3d_fp32_1b_2core.bmodel
+      bmrt_test_case BM1688/c3d_fp32_4b_2core.bmodel
+      bmrt_test_case BM1688/c3d_fp16_1b_2core.bmodel
+      bmrt_test_case BM1688/c3d_fp16_4b_2core.bmodel
+      bmrt_test_case BM1688/c3d_int8_1b_2core.bmodel
+      bmrt_test_case BM1688/c3d_int8_4b_2core.bmodel
+    fi
+    popd
+}
 
 if test $PYTEST = "pytest"
 then
@@ -149,22 +217,31 @@ function compare_res(){
 #e.g.: test_cpp opencv pcie c3d_int8_1b.bmodel 0.715
 function test_cpp(){
     echo -e "\n########################\nCase Start: eval cpp\n########################"
-    pushd cpp/c3d_$1
+    pushd cpp/c3d_$2
     if [ ! -d log ];then
         mkdir log
     fi
-    echo "testing cpp $1 $3:"
-    chmod +x ./c3d_$1.$2
-    ./c3d_$1.$2 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$3.log 2>&1
-    judge_ret $? "./c3d_$1.$2 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$3.log 2>&1" log/$1_$3.log
-    tail -n 15 log/$1_$3.log
+    echo "testing cpp $2 $3:"
+    chmod +x ./c3d_$2.$1
+    ./c3d_$2.$1 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$2_$3.log 2>&1
+    judge_ret $? "./c3d_$2.$1 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$2_$3.log 2>&1" log/$2_$3.log
+    tail -n 25 log/$2_$3.log
+
+    echo "==================="
+    echo "Comparing statis..."
+    python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$2.$1 --language=cpp --input=log/$2_$3.log --bmodel=$3
+    judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$2.$1 --language=cpp --input=log/$2_$3.log --bmodel=$3"
+    echo "==================="
+    
     echo "Evaluating..."
-    res=$(python3 ../../tools/eval_ucf.py --result_json results/$3_$1_cpp.json --gt_path ../../datasets/ground_truth.json 2>&1 | tee log/$1_$2_$3_eval.log)
+    res=$(python3 ../../tools/eval_ucf.py --result_json results/$3_$2_cpp.json --gt_path ../../datasets/ground_truth.json 2>&1 | tee log/$2_$1_$3_eval.log)
     echo -e "$res"
     array=(${res//=/ })
     acc=${array[1]}
     compare_res $acc $4
-    judge_ret $? "$3_$1_cpp: Precision compare!" log/$1_$2_$3_eval.log
+    judge_ret $? "$3_$1_cpp: Precision compare!" log/$2_$1_$3_eval.log
+
+    printf "| %-12s | %-14s | %-22s | %8.3f |\n" "$PLATFORM" "c3d_$2.$1" "$3" "$(printf "%.3f" $acc)" >> ../../scripts/acc.txt
     popd
     echo -e "########################\nCase End: eval cpp\n########################\n"
 }
@@ -179,7 +256,14 @@ function test_python(){
     echo "testing python $1 $2:"
     python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2.log 2>&1
     judge_ret $? "python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2.log 2>&1" log/$1_$2.log
-    tail -n 15 log/$1_$2.log 
+    tail -n 25 log/$1_$2.log 
+
+    echo "==================="
+    echo "Comparing statis..."
+    python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$1.py --language=python --input=log/$1_$2.log --bmodel=$2
+    judge_ret $? "python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$1.py --language=python --input=log/$1_$2.log --bmodel=$2"
+    echo "==================="
+
     echo "Evaluating..."
     res=$(python3 ../tools/eval_ucf.py --result_json results/$2_$1_python.json --gt_path ../datasets/ground_truth.json 2>&1 | tee log/$1_$2_eval.log)
     echo -e "$res"
@@ -187,88 +271,148 @@ function test_python(){
     acc=${array[1]}
     compare_res $acc $3
     judge_ret $? "$2_$1_python: Precision compare!" log/$1_$2_eval.log
+    printf "| %-12s | %-14s | %-22s | %8.3f |\n" "$PLATFORM" "c3d_$1.py" "$2" "$(printf "%.3f" $acc)" >> ../scripts/acc.txt
     popd
     echo -e "########################\nCase End: eval python\n########################\n"
 }
 
-#test pipeline:
 if test $MODE = "compile_nntc"
 then
-    download
-    compile_nntc
+  download
+  compile_nntc
 elif test $MODE = "compile_mlir"
 then
-    download
-    compile_mlir
+  download
+  compile_mlir
 elif test $MODE = "pcie_test"
 then
-    download
-    test_python opencv c3d_fp32_1b.bmodel 0.715356
-    test_python opencv c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.704119850187266 || gt=0.7097378
-    test_python opencv c3d_int8_1b.bmodel $gt
-    test_python opencv c3d_int8_4b.bmodel $gt
-    build_pcie opencv
-    test_cpp opencv pcie c3d_fp32_1b.bmodel 0.715356
-    test_cpp opencv pcie c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.704119850187266 || gt=0.7097378
-    test_cpp opencv pcie c3d_int8_1b.bmodel $gt
-    test_cpp opencv pcie c3d_int8_4b.bmodel $gt
-    if test $TARGET = "BM1684X"
-    then
-        test_cpp opencv pcie c3d_fp16_1b.bmodel 0.715356
-        test_cpp opencv pcie c3d_fp16_4b.bmodel 0.715356
-        test_python opencv c3d_fp16_1b.bmodel 0.715356
-        test_python opencv c3d_fp16_4b.bmodel 0.715356
-    fi
-    #############################################
-    build_pcie bmcv
-    test_cpp bmcv pcie c3d_fp32_1b.bmodel 0.715356
-    test_cpp bmcv pcie c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.700374531835206 || gt=0.713483
-    test_cpp bmcv pcie c3d_int8_1b.bmodel $gt
-    test_cpp bmcv pcie c3d_int8_4b.bmodel $gt
-    if test $TARGET = "BM1684X"
-    then
-        test_cpp bmcv pcie c3d_fp16_1b.bmodel 0.715356
-        test_cpp bmcv pcie c3d_fp16_4b.bmodel 0.715356
-    fi
+  build_pcie bmcv
+  build_pcie opencv
+  download
+  if test $TARGET = "BM1684"
+  then
+    test_python opencv c3d_fp32_1b.bmodel   0.715
+    test_python opencv c3d_fp32_4b.bmodel   0.715
+    test_python opencv c3d_int8_1b.bmodel   0.712
+    test_python opencv c3d_int8_4b.bmodel   0.712
+    test_cpp pcie opencv c3d_fp32_1b.bmodel 0.715
+    test_cpp pcie opencv c3d_fp32_4b.bmodel 0.715
+    test_cpp pcie opencv c3d_int8_1b.bmodel 0.712
+    test_cpp pcie opencv c3d_int8_4b.bmodel 0.712
+    test_cpp pcie bmcv c3d_fp32_1b.bmodel   0.715
+    test_cpp pcie bmcv c3d_fp32_4b.bmodel   0.715
+    test_cpp pcie bmcv c3d_int8_1b.bmodel   0.710
+    test_cpp pcie bmcv c3d_int8_4b.bmodel   0.710
+  elif test $TARGET = "BM1684X"
+  then
+    test_python opencv c3d_fp32_1b.bmodel   0.715
+    test_python opencv c3d_fp32_4b.bmodel   0.715
+    test_python opencv c3d_fp16_1b.bmodel   0.715
+    test_python opencv c3d_fp16_4b.bmodel   0.715
+    test_python opencv c3d_int8_1b.bmodel   0.715
+    test_python opencv c3d_int8_4b.bmodel   0.715
+    test_cpp pcie opencv c3d_fp32_1b.bmodel 0.715
+    test_cpp pcie opencv c3d_fp32_4b.bmodel 0.715
+    test_cpp pcie opencv c3d_fp16_1b.bmodel 0.715
+    test_cpp pcie opencv c3d_fp16_4b.bmodel 0.715
+    test_cpp pcie opencv c3d_int8_1b.bmodel 0.715
+    test_cpp pcie opencv c3d_int8_4b.bmodel 0.715
+    test_cpp pcie bmcv c3d_fp32_1b.bmodel   0.715
+    test_cpp pcie bmcv c3d_fp32_4b.bmodel   0.715
+    test_cpp pcie bmcv c3d_fp16_1b.bmodel   0.715
+    test_cpp pcie bmcv c3d_fp16_4b.bmodel   0.715
+    test_cpp pcie bmcv c3d_int8_1b.bmodel   0.712
+    test_cpp pcie bmcv c3d_int8_4b.bmodel   0.712
+  fi
 elif test $MODE = "soc_build"
 then
-    build_soc opencv
-    build_soc bmcv
+  build_soc bmcv
+  build_soc opencv
 elif test $MODE = "soc_test"
 then
-    download
-    test_python opencv c3d_fp32_1b.bmodel 0.715356
-    test_python opencv c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.704119850187266 || gt=0.711610
-    test_python opencv c3d_int8_1b.bmodel $gt
-    test_python opencv c3d_int8_4b.bmodel $gt
-    test_cpp opencv soc c3d_fp32_1b.bmodel 0.715356
-    test_cpp opencv soc c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.704119850187266 || gt=0.711610
-    test_cpp opencv soc c3d_int8_1b.bmodel $gt
-    test_cpp opencv soc c3d_int8_4b.bmodel $gt
-    if test $TARGET = "BM1684X"
-    then
-        test_cpp opencv soc c3d_fp16_1b.bmodel 0.715356
-        test_cpp opencv soc c3d_fp16_4b.bmodel 0.715356
-        test_python opencv c3d_fp16_1b.bmodel 0.715356
-        test_python opencv c3d_fp16_4b.bmodel 0.715356
-    fi
-    #############################################
-    test_cpp bmcv soc c3d_fp32_1b.bmodel 0.715356
-    test_cpp bmcv soc c3d_fp32_4b.bmodel 0.715356
-    [ $TARGET = "BM1684" ] && gt=0.700374531835206 || gt=0.711610
-    test_cpp bmcv soc c3d_int8_1b.bmodel $gt
-    test_cpp bmcv soc c3d_int8_4b.bmodel $gt
-    if test $TARGET = "BM1684X"
-    then
-        test_cpp bmcv soc c3d_fp16_1b.bmodel 0.715356
-        test_cpp bmcv soc c3d_fp16_4b.bmodel 0.715356
-    fi
+  download
+  if test $TARGET = "BM1684"
+  then
+    test_python opencv c3d_fp32_1b.bmodel  0.715
+    test_python opencv c3d_fp32_4b.bmodel  0.715
+    test_python opencv c3d_int8_1b.bmodel  0.712
+    test_python opencv c3d_int8_4b.bmodel  0.712
+    test_cpp soc opencv c3d_fp32_1b.bmodel 0.715
+    test_cpp soc opencv c3d_fp32_4b.bmodel 0.715
+    test_cpp soc opencv c3d_int8_1b.bmodel 0.712
+    test_cpp soc opencv c3d_int8_4b.bmodel 0.712
+    test_cpp soc bmcv c3d_fp32_1b.bmodel   0.715
+    test_cpp soc bmcv c3d_fp32_4b.bmodel   0.715
+    test_cpp soc bmcv c3d_int8_1b.bmodel   0.710
+    test_cpp soc bmcv c3d_int8_4b.bmodel   0.710
+    
+  elif test $TARGET = "BM1684X"
+  then
+    test_python opencv c3d_fp32_1b.bmodel  0.715
+    test_python opencv c3d_fp32_4b.bmodel  0.715
+    test_python opencv c3d_fp16_1b.bmodel  0.715
+    test_python opencv c3d_fp16_4b.bmodel  0.715
+    test_python opencv c3d_int8_1b.bmodel  0.715
+    test_python opencv c3d_int8_4b.bmodel  0.715
+    test_cpp soc opencv c3d_fp32_1b.bmodel 0.715
+    test_cpp soc opencv c3d_fp32_4b.bmodel 0.715
+    test_cpp soc opencv c3d_fp16_1b.bmodel 0.715
+    test_cpp soc opencv c3d_fp16_4b.bmodel 0.715
+    test_cpp soc opencv c3d_int8_1b.bmodel 0.715
+    test_cpp soc opencv c3d_int8_4b.bmodel 0.715
+    test_cpp soc bmcv c3d_fp32_1b.bmodel   0.715
+    test_cpp soc bmcv c3d_fp32_4b.bmodel   0.715
+    test_cpp soc bmcv c3d_fp16_1b.bmodel   0.715
+    test_cpp soc bmcv c3d_fp16_4b.bmodel   0.715
+    test_cpp soc bmcv c3d_int8_1b.bmodel   0.712
+    test_cpp soc bmcv c3d_int8_4b.bmodel   0.712
+  elif test $TARGET = "BM1688"
+  then
+    test_python opencv c3d_fp32_1b.bmodel  0.715
+    test_python opencv c3d_fp32_4b.bmodel  0.715
+    test_python opencv c3d_fp16_1b.bmodel  0.715
+    test_python opencv c3d_fp16_4b.bmodel  0.715
+    test_python opencv c3d_int8_1b.bmodel  0.711
+    test_python opencv c3d_int8_4b.bmodel  0.711
+    test_cpp soc opencv c3d_fp32_1b.bmodel 0.715
+    test_cpp soc opencv c3d_fp32_4b.bmodel 0.715
+    test_cpp soc opencv c3d_fp16_1b.bmodel 0.715
+    test_cpp soc opencv c3d_fp16_4b.bmodel 0.715
+    test_cpp soc opencv c3d_int8_1b.bmodel 0.711
+    test_cpp soc opencv c3d_int8_4b.bmodel 0.711
+    test_cpp soc bmcv c3d_fp32_1b.bmodel   0.715
+    test_cpp soc bmcv c3d_fp32_4b.bmodel   0.715
+    test_cpp soc bmcv c3d_fp16_1b.bmodel   0.715
+    test_cpp soc bmcv c3d_fp16_4b.bmodel   0.715
+    test_cpp soc bmcv c3d_int8_1b.bmodel   0.715
+    test_cpp soc bmcv c3d_int8_4b.bmodel   0.715
+    
+    test_python opencv c3d_fp32_1b_2core.bmodel  0.715
+    test_python opencv c3d_fp32_4b_2core.bmodel  0.715
+    test_python opencv c3d_fp16_1b_2core.bmodel  0.715
+    test_python opencv c3d_fp16_4b_2core.bmodel  0.715
+    test_python opencv c3d_int8_1b_2core.bmodel  0.711
+    test_python opencv c3d_int8_4b_2core.bmodel  0.711
+    test_cpp soc opencv c3d_fp32_1b_2core.bmodel 0.715
+    test_cpp soc opencv c3d_fp32_4b_2core.bmodel 0.715
+    test_cpp soc opencv c3d_fp16_1b_2core.bmodel 0.715
+    test_cpp soc opencv c3d_fp16_4b_2core.bmodel 0.715
+    test_cpp soc opencv c3d_int8_1b_2core.bmodel 0.711
+    test_cpp soc opencv c3d_int8_4b_2core.bmodel 0.711
+    test_cpp soc bmcv c3d_fp32_1b_2core.bmodel   0.715
+    test_cpp soc bmcv c3d_fp32_4b_2core.bmodel   0.715
+    test_cpp soc bmcv c3d_fp16_1b_2core.bmodel   0.715
+    test_cpp soc bmcv c3d_fp16_4b_2core.bmodel   0.715
+    test_cpp soc bmcv c3d_int8_1b_2core.bmodel   0.715
+    test_cpp soc bmcv c3d_int8_4b_2core.bmodel   0.715
+  fi
 fi
+
+cat scripts/acc.txt
+echo "-----------------------------"
+cat tools/benchmark.txt
+echo "-----------------------------"
+bmrt_test_benchmark
 
 if [ $ALL_PASS -eq 0 ]
 then

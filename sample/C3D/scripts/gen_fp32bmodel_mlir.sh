@@ -26,7 +26,17 @@ function gen_fp32bmodel()
         --mlir c3d_$1b.mlir \
         --quantize F32 \
         --chip $target \
-        --model $outdir/c3d_fp32_$1b.bmodel
+        --model c3d_fp32_$1b.bmodel
+    mv c3d_fp32_$1b.bmodel $outdir
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir c3d_$1b.mlir \
+            --quantize F32 \
+            --chip $target \
+            --model c3d_fp32_$1b_2core.bmodel \
+            --num_core 2
+        mv c3d_fp32_$1b_2core.bmodel $outdir
+    fi
 }
 
 pushd $model_dir
@@ -38,10 +48,8 @@ fi
 # batch_size=1
 gen_mlir 1
 gen_fp32bmodel 1
-rm c3d* final_opt.onnx
 
 # batch_size=4
 gen_mlir 4
 gen_fp32bmodel 4
-rm c3d* final_opt.onnx
 popd
