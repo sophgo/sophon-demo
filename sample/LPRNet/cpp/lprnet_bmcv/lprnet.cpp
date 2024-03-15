@@ -105,22 +105,22 @@ int LPRNET::Detect(const vector<bm_image>& input_images,
                    vector<string>& results) {
     int ret = 0;
     // 3. preprocess
-    LOG_TS(ts_, "lprnet preprocess");
+    ts_->save("lprnet preprocess", input_images.size());
     ret = pre_process(input_images);
     CV_Assert(ret == 0);
-    LOG_TS(ts_, "lprnet preprocess");
+    ts_->save("lprnet preprocess", input_images.size());
 
     // 4. forward
-    LOG_TS(ts_, "lprnet inference");
+    ts_->save("lprnet inference", input_images.size());
     ret = m_bmNetwork->forward();
     CV_Assert(ret == 0);
-    LOG_TS(ts_, "lprnet inference");
+    ts_->save("lprnet inference", input_images.size());
 
     // 5. post process
-    LOG_TS(ts_, "lprnet postprocess");
+    ts_->save("lprnet postprocess", input_images.size());
     ret = post_process(input_images, results);
     CV_Assert(ret == 0);
-    LOG_TS(ts_, "lprnet postprocess");
+    ts_->save("lprnet postprocess", input_images.size());
     return ret;
 }
 
