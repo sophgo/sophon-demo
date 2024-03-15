@@ -124,8 +124,15 @@ make
 
 ### 3.3 程序流程图
 
+整体流程和相关数据结构如下：
+
 ![diagram](../pics/diagram_cpp.png)
 
-注：解码中一路一个线程，预处理和后处理线程数可自定义，不同路共用相同的缓存队列。
+注：解码部分一路一个线程，预处理和后处理线程数可根据实际情况自定义，处理速度慢的部分可以使用相对较多的线程处理。不同路共用相同的缓存队列。
+
+线程内部逻辑和pipeline示意图如下：
+
+![worker_details](../pics/worker_details.png)
+![pipeline](../pics/pipeline.png)
 
 
