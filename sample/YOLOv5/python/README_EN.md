@@ -51,14 +51,14 @@ usage: yolov5_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 --use_cpu_opt: Whether to use nms acceleration.
 ```
 
-> **Note:** Currently, both CPP and Python default to disable nms acceleration. The optimization interface called by Python relies on SOPHON sail after version 3.7.0. If your SOPHON sail version has this interface, you can use the parameter `--use_cpu_opt` to enable the optimization.
+> **Note:** Currently, both CPP and Python default to disable nms acceleration. The optimization interface called by Python relies on SOPHON sail after version 3.7.0. If your SOPHON sail version has this interface, you can use the parameter `--use_cpu_opt` to enable the optimization,  `use_cpu_opt` only for model's outputs with 5 dimensions(normally 3 outputs model, if your model has more or less outputs, you should modify postprocess code by your self).
 
 ### 2.2 Image Test Demo
 The image test demo is as follows. It supports testing the entire image folder. The model supports fp32bmodel and int8bmodel, supports BM1684 and BM1684X, and supports single batch size or multiple batch sizes. Users can run model testing by passing in the corresponding model path parameters.
 ```bash
 python3 python/yolov5_opencv.py --input datasets/test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 --use_cpu_opt
 ```
-After the test, the predicted image will be saved in `results/images`, the predicted result will be saved in `results/yolov5s_v6.1_3output_fp32_1b.bmodel_test_opencv_python_result.json`, and information such as predicted results and inference time will be printed at the same time.
+After the test, the predicted image will be saved in `results/images`, the predicted result will be saved in `results/yolov5s_v6.1_3output_fp32_1b.bmodel_test_opencv_python_result.json`, and information such as predicted results and inference time will be printed at the same time
 
 ![res](../pics/zidane_python_opencv.jpg)
 > **Note**：  
