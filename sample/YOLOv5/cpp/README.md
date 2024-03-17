@@ -104,7 +104,7 @@ Usage: yolov5_bmcv.pcie [params]
         --use_cpu_opt (value:false)
                 accelerate cpu postprocess
 ```
-> **注意：** cpp例程传参与python不同，需要用等于号，例如`./yolov5_bmcv.pcie --bmodel=xxx`。cpp可以使用`--use_cpu_opt=true`开启后处理cpu加速。
+> **注意：** cpp例程传参与python不同，需要用等于号，例如`./yolov5_bmcv.pcie --bmodel=xxx`。cpp可以使用`--use_cpu_opt=true`开启后处理cpu加速，`use_cpu_opt`仅限输出维度为5的模型(一般是3输出，别的输出个数可能需要用户自行修改后处理代码)。
 
 ### 3.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
