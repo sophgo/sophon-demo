@@ -79,7 +79,7 @@ int C3D::detect(const std::vector<std::string> &batch_videos, std::vector<int> &
     std::vector<cv::Mat> m_decoded_input;
     m_decoded_input.resize(max_batch * m_clip_len);
     //0. Decode videos and get frame list.
-    m_ts->save("C3D decode_time");
+    m_ts->save("C3D decode_time", max_batch);
     for(int i = 0; i < max_batch; i++){
         if(i < batch_videos.size())
             decode_video(batch_videos[i], m_decoded_input, i);
@@ -87,19 +87,19 @@ int C3D::detect(const std::vector<std::string> &batch_videos, std::vector<int> &
             decode_video(batch_videos[0], m_decoded_input, i); //useless data
         }
     }
-    m_ts->save("C3D decode_time");
+    m_ts->save("C3D decode_time", max_batch);
 
     //1. Preprocess, convert raw images to format which fits C3D network.
-    m_ts->save("C3D preprocess_time");
+    m_ts->save("C3D preprocess_time", max_batch);
     ret = pre_process(m_decoded_input);
-    m_ts->save("C3D preprocess_time");
+    m_ts->save("C3D preprocess_time", max_batch);
 
     CV_Assert(ret == 0);
     //2. Run C3D inference.
-    m_ts->save("C3D infer_time");
+    m_ts->save("C3D inference", max_batch);
     ret = m_bmNetwork->forward();
     CV_Assert(ret == 0);
-    m_ts->save("C3D infer_time");
+    m_ts->save("C3D inference", max_batch);
     
     std::shared_ptr<BMNNTensor> outputTensor = m_bmNetwork->outputTensor(0);
     auto output_shape = outputTensor->get_shape();
@@ -112,13 +112,13 @@ int C3D::detect(const std::vector<std::string> &batch_videos, std::vector<int> &
     assert(m_bmNetwork->outputTensorNum() == 1); 
     int class_num = output_shape->dims[1];
     auto output_data = outputTensor->get_cpu_data();
-    m_ts->save("C3D postprocess_time");
+    m_ts->save("C3D postprocess_time", max_batch);
     for(int i = 0; i < batch_videos.size(); i++){
         auto max_index = argmax(output_data + i * class_num, 
                                 output_data + (i + 1) * class_num);
         preds.push_back(max_index);
     }
-    m_ts->save("C3D postprocess_time");
+    m_ts->save("C3D postprocess_time", max_batch);
     return 0;
 }
 

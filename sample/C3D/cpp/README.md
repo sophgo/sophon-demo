@@ -89,7 +89,6 @@ SUMMARY: C3D detect
 ############################
 [     C3D decode_time]  loops:  100 avg: 76547 us
 [ C3D preprocess_time]  loops:  100 avg: 2296 us
-[    C3D realloc_time]  loops:  100 avg: 979 us
 [       C3D inference]  loops:  100 avg: 11615 us
 [C3D postprocess_time]  loops:  100 avg: 14 us
 C3D delete bm_context

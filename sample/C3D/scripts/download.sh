@@ -27,6 +27,9 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/C3D/models_0918/models.zip
     unzip models.zip -d ../
     rm models.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/C3D/models_240315/BM1688.zip
+    unzip BM1688.zip -d ../models/
+    rm BM1688.zip
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
