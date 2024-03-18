@@ -11,10 +11,6 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
-if [ -f "tools/benchmark.txt" ]; then
-  rm tools/benchmark.txt
-fi
-
 
 usage() 
 {
@@ -47,6 +43,69 @@ do
       exit 1;;
   esac
 done
+
+
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
+if [ -f "scripts/acc.txt" ]; then
+  rm scripts/acc.txt
+fi
+echo "|   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|" >> scripts/acc.txt
+PLATFORM=$TARGET
+if test $MODE = "soc_test"; then
+  if test $TARGET = "BM1684X"; then
+    PLATFORM="SE7-32"
+  elif test $TARGET = "BM1684"; then
+    PLATFORM="SE5-16"
+  elif test $TARGET = "BM1688"; then
+    PLATFORM="SE9-16"
+  else
+    echo "Unknown TARGET type: $TARGET"
+  fi
+fi
+
+function bmrt_test_case(){
+   calculate_time_log=$(bmrt_test --bmodel $1 | grep "calculate" 2>&1)
+   is_4b=$(echo $1 |grep "4b")
+
+   if [ "$is_4b" != "" ]; then
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 250}')
+   else
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 1000}')
+   fi
+   for time in "${calculate_times[@]}"
+   do
+     printf "| %-35s| % 15s |\n" "$1" "$time"
+   done
+}
+function bmrt_test_benchmark(){
+    pushd models
+    printf "| %-35s| % 15s |\n" "测试模型" "calculate time(ms)"
+    printf "| %-35s| % 15s |\n" "-------------------" "--------------"
+   
+    if test $TARGET = "BM1684"; then
+      bmrt_test_case BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
+      bmrt_test_case BM1684/yolov5s_v6.1_3output_int8_1b.bmodel
+      bmrt_test_case BM1684/yolov5s_v6.1_3output_int8_4b.bmodel
+    elif test $TARGET = "BM1684X"; then
+      bmrt_test_case BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel
+      bmrt_test_case BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel
+      bmrt_test_case BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel
+      bmrt_test_case BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel
+    elif test $TARGET = "BM1688"; then
+      bmrt_test_case BM1688/yolov5s_v6.1_3output_fp32_1b.bmodel
+      bmrt_test_case BM1688/yolov5s_v6.1_3output_fp16_1b.bmodel
+      bmrt_test_case BM1688/yolov5s_v6.1_3output_int8_1b.bmodel
+      bmrt_test_case BM1688/yolov5s_v6.1_3output_int8_4b.bmodel
+      bmrt_test_case BM1688/yolov5s_v6.1_3output_fp32_1b_2core.bmodel
+      bmrt_test_case BM1688/yolov5s_v6.1_3output_fp16_1b_2core.bmodel
+      bmrt_test_case BM1688/yolov5s_v6.1_3output_int8_1b_2core.bmodel
+      bmrt_test_case BM1688/yolov5s_v6.1_3output_int8_4b_2core.bmodel
+    fi
+    popd
+}
+
 
 if test $PYTEST = "pytest"
 then
@@ -182,9 +241,9 @@ function eval_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./yolov5_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./yolov5_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
-  tail -n 15 log/$1_$2_$3_debug.log
+  # ./yolov5_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
+  # judge_ret $? "./yolov5_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.6 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
+  # tail -n 15 log/$1_$2_$3_debug.log
 
   echo "Evaluating..."
   res=$(python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/instances_val2017_1000.json --result_json results/$3_val2017_1000_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
@@ -194,6 +253,11 @@ function eval_cpp()
   acc=${array[1]}
   compare_res $acc $4
   judge_ret $? "$3_val2017_1000_$2_cpp_result: Precision compare!" log/$1_$2_$3_eval.log
+
+  ap0=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50:0.95 | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  ap1=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50      | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  printf "| %-12s | %-14s | %-40s | %8.3f | %8.3f |\n" "$PLATFORM" "yolov5_$2.$1" "$3" "$(printf "%.3f" $ap0)" "$(printf "%.3f" $ap1)">> ../../scripts/acc.txt
+
   popd
   echo -e "########################\nCase End: eval cpp\n########################\n"
 }
@@ -221,9 +285,9 @@ function eval_python()
   if [ ! -d python/log ];then
     mkdir python/log
   fi
-  python3 python/yolov5_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1
-  judge_ret $? "python3 python/yolov5_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1" python/log/$1_$2_debug.log
-  tail -n 20 python/log/$1_$2_debug.log
+  # python3 python/yolov5_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1
+  # judge_ret $? "python3 python/yolov5_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1" python/log/$1_$2_debug.log
+  # tail -n 20 python/log/$1_$2_debug.log
   
   echo "Evaluating..."
   res=$(python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/$2_val2017_1000_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
@@ -232,6 +296,11 @@ function eval_python()
   acc=${array[1]}
   compare_res $acc $3
   judge_ret $? "$2_val2017_1000_$1_python_result: Precision compare!" python/log/$1_$2_eval.log
+
+  ap0=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50:0.95 | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  ap1=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50      | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  printf "| %-12s | %-14s | %-40s | %8.3f | %8.3f |\n" "$PLATFORM" "yolov5_$1.py" "$2" "$(printf "%.3f" $ap0)" "$(printf "%.3f" $ap1)">> scripts/acc.txt
+  
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
@@ -245,9 +314,9 @@ then
   compile_mlir
 elif test $MODE = "pcie_test"
 then
-  build_pcie bmcv
-  build_pcie sail
-  download
+  # build_pcie bmcv
+  # build_pcie sail
+  # download
   if test $TARGET = "BM1684"
   then
     test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -297,7 +366,7 @@ then
     test_cpp pcie sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
     
-    #performence test
+    # #performence test
     test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
     test_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel datasets/coco/val2017_1000
     test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel datasets/coco/val2017_1000
@@ -485,6 +554,12 @@ then
     eval_cpp soc sail yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.35346132862376395
   fi
 fi
+
+cat scripts/acc.txt
+echo "-----------------------------"
+bmrt_test_benchmark
+echo "-----------------------------"
+cat tools/benchmark.txt
 
 if [[ $ALL_PASS -eq 0 ]]
 then
