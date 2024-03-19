@@ -8,8 +8,6 @@
 #===----------------------------------------------------------------------===#
 import numpy as np
 import cv2
-# import scipy.special
-from utils import softmax
 
 class PostProcess:
     def __init__(self, conf_thresh=0.1, nms_thresh=0.5, agnostic=False, multi_label=True, max_det=1000):
