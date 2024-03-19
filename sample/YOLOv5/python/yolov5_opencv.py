@@ -52,7 +52,6 @@ class YOLOv5:
             for output_name in self.output_names:
                 output_shape = self.net.get_output_shape(self.graph_name, output_name)
                 self.output_shapes.append(output_shape)
-            self.cpu_opt_process = sail.algo_yolov5_post_cpu_opt(self.output_shapes)
         else:
             self.postprocess = PostProcess(
                 conf_thresh=self.conf_thresh,
@@ -181,6 +180,7 @@ class YOLOv5:
         
         start_time = time.time()
         if self.use_cpu_opt:
+            self.cpu_opt_process = sail.algo_yolov5_post_cpu_opt(self.output_shapes, self.net_w, self.net_h)
             results = self.cpu_opt_process.process(outputs, ori_w_list, ori_h_list, [self.conf_thresh]*self.batch_size, [self.nms_thresh]*self.batch_size, True, self.multi_label)
             results = [np.array(result) for result in results]
         else:

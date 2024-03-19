@@ -53,12 +53,11 @@ class YOLOv5:
             self.output_scales[output_name] = output_scale
             self.output_shapes.append(output_shape)
         
-        self.cpu_opt_process = sail.algo_yolov5_post_cpu_opt(self.output_shapes)
         # check batch size 
         self.batch_size = self.input_shape[0]
-        suppoort_batch_size = [1, 2, 3, 4, 8, 16, 32, 64, 128, 256]
-        if self.batch_size not in suppoort_batch_size:
-            raise ValueError('batch_size must be {} for bmcv, but got {}'.format(suppoort_batch_size, self.batch_size))
+        support_batch_size = [1, 2, 3, 4, 8, 16, 32, 64, 128, 256]
+        if self.batch_size not in support_batch_size:
+            raise ValueError('batch_size must be {} for bmcv, but got {}'.format(support_batch_size, self.batch_size))
         self.net_h = self.input_shape[2]
         self.net_w = self.input_shape[3]
         
@@ -224,7 +223,8 @@ class YOLOv5:
         
         start_time = time.time()
         if self.use_cpu_opt:
-            results = self.cpu_opt_process.process(outputs, ori_w_list, ori_h_list, [self.conf_thresh]*self.batch_size, [self.nms_thresh]*self.batch_size, True, self.multi_label)
+            self.cpu_opt_process = sail.algo_yolov5_post_cpu_opt(self.output_shapes, self.net_w, self.net_h)
+            results = self.cpu_opt_process.process(outputs, ori_w_list, ori_h_list, [self.conf_thresh]*self.batch_size, [self.nms_thresh]*self.batch_size, self.use_resize_padding, self.multi_label)
             results = [np.array(result) for result in results]
         else:
             results = self.postprocess(outputs, ori_size_list, ratio_list, txy_list)
@@ -271,10 +271,6 @@ def main(args):
     
     handle = sail.Handle(args.dev_id)
     bmcv = sail.Bmcv(handle)
-    # warm up 
-    # bmimg = sail.BMImage(handle, 1080, 1920, sail.Format.FORMAT_YUV420P, sail.DATA_TYPE_EXT_1N_BYTE)
-    # for i in range(10):
-    #     results = yolov5([bmimg])
     yolov5.init()
 
     decode_time = 0.0
