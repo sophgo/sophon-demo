@@ -19,7 +19,8 @@
   * [7.2 Program Performance](#72-program-performance)
 * [8. YOLOv5 cpu opt](#8-yolov5-cpu-opt)
   * [8.1 NMS Optimization Item](#81-nms-optimization-item)
-  * [8.2 Performance and Precision Test](#82-performance-and-precision-test)
+  * [8.2 Precision Test](#82-precision-test)
+  * [8.3 Performance Test](#83-performance-test)
 * [9. FAQ](#9-faq)
   
 ## 1. Introduction
@@ -160,39 +161,68 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. On the coco2017val_1000 dataset, the accuracy test results are as follows:
 | Test Platform |  Test Program    |            Test model               |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------  | ---------------- | ----------------------------------- | ------------- | -------- |
-| SE5-16        | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.377         | 0.580    |
-| SE5-16        | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.344         | 0.553    |
-| SE5-16        | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.373         | 0.573    |
-| SE5-16        | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.337         | 0.544    |
-| SE5-16        | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.375         | 0.572    |
-| SE5-16        | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.338         | 0.544    |
-| SE5-16        | yolov5_sail.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.375         | 0.572    |
-| SE5-16        | yolov5_sail.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.338         | 0.544    |
-| SE7-32        | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.377         | 0.580    |
-| SE7-32        | yolov5_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.377         | 0.580    |
-| SE7-32        | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.363         | 0.572    |
-| SE7-32        | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.373         | 0.573    |
-| SE7-32        | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.373         | 0.573    |
-| SE7-32        | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.356         | 0.563    |
-| SE7-32        | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.374         | 0.572    |
-| SE7-32        | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.374         | 0.572    |
-| SE7-32        | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.357         | 0.562    |
-| SE7-32        | yolov5_sail.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.374         | 0.572    |
-| SE7-32        | yolov5_sail.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.374         | 0.572    |
-| SE7-32        | yolov5_sail.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.357         | 0.562    |
-| SE9-16        | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.362         | 0.569    |
-| SE9-16        | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.362         | 0.569    |
-| SE9-16        | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.344         | 0.560    |
-| SE9-16        | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.362         | 0.569    |
-| SE9-16        | yolov5_sail.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.362         | 0.569    |
-| SE9-16        | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.344         | 0.560    |
-| SE9-16        | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.378         | 0.579    |
-| SE9-16        | yolov5_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.377         | 0.579    |
-| SE9-16        | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.358         | 0.571    |
-| SE9-16        | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.374         | 0.573    |
-| SE9-16        | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.374         | 0.573    |
-| SE9-16        | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.356         | 0.565    |
-> **Test Description**:
+| SE5-16       | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
+| SE5-16       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.344 |    0.553 |
+| SE5-16       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.344 |    0.553 |
+| SE5-16       | yolov5_bmcv.py     | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.373 |    0.573 |
+| SE5-16       | yolov5_bmcv.py     | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.337 |    0.544 |
+| SE5-16       | yolov5_bmcv.py     | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.337 |    0.544 |
+| SE5-16       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.375 |    0.572 |
+| SE5-16       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.338 |    0.544 |
+| SE5-16       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.338 |    0.544 |
+| SE5-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.375 |    0.572 |
+| SE5-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.338 |    0.544 |
+| SE5-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.338 |    0.544 |
+| SE7-32       | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
+| SE7-32       | yolov5_opencv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.377 |    0.580 |
+| SE7-32       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.363 |    0.572 |
+| SE7-32       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.363 |    0.572 |
+| SE7-32       | yolov5_bmcv.py     | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.373 |    0.573 |
+| SE7-32       | yolov5_bmcv.py     | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.373 |    0.573 |
+| SE7-32       | yolov5_bmcv.py     | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.356 |    0.563 |
+| SE7-32       | yolov5_bmcv.py     | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.356 |    0.563 |
+| SE7-32       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.374 |    0.572 |
+| SE7-32       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.374 |    0.572 |
+| SE7-32       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.357 |    0.562 |
+| SE7-32       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.357 |    0.562 |
+| SE7-32       | yolov5_sail.soc    | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.374 |    0.572 |
+| SE7-32       | yolov5_sail.soc    | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.374 |    0.572 |
+| SE7-32       | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.357 |    0.562 |
+| SE7-32       | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.357 |    0.562 |
+| SE9-16       | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
+| SE9-16       | yolov5_opencv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.377 |    0.580 |
+| SE9-16       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.358 |    0.567 |
+| SE9-16       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.358 |    0.567 |
+| SE9-16       | yolov5_bmcv.py     | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.373 |    0.573 |
+| SE9-16       | yolov5_bmcv.py     | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.373 |    0.573 |
+| SE9-16       | yolov5_bmcv.py     | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.355 |    0.565 |
+| SE9-16       | yolov5_bmcv.py     | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.355 |    0.565 |
+| SE9-16       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.374 |    0.573 |
+| SE9-16       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.374 |    0.572 |
+| SE9-16       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.354 |    0.565 |
+| SE9-16       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.354 |    0.565 |
+| SE9-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.374 |    0.573 |
+| SE9-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.374 |    0.572 |
+| SE9-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.354 |    0.565 |
+| SE9-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.354 |    0.565 |
+| SE9-16       | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b_2core.bmodel |    0.377 |    0.580 |
+| SE9-16       | yolov5_opencv.py   | yolov5s_v6.1_3output_fp16_1b_2core.bmodel |    0.377 |    0.580 |
+| SE9-16       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b_2core.bmodel |    0.358 |    0.567 |
+| SE9-16       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b_2core.bmodel |    0.358 |    0.567 |
+| SE9-16       | yolov5_bmcv.py     | yolov5s_v6.1_3output_fp32_1b_2core.bmodel |    0.373 |    0.573 |
+| SE9-16       | yolov5_bmcv.py     | yolov5s_v6.1_3output_fp16_1b_2core.bmodel |    0.373 |    0.573 |
+| SE9-16       | yolov5_bmcv.py     | yolov5s_v6.1_3output_int8_1b_2core.bmodel |    0.355 |    0.565 |
+| SE9-16       | yolov5_bmcv.py     | yolov5s_v6.1_3output_int8_4b_2core.bmodel |    0.355 |    0.565 |
+| SE9-16       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_fp32_1b_2core.bmodel |    0.374 |    0.573 |
+| SE9-16       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_fp16_1b_2core.bmodel |    0.374 |    0.572 |
+| SE9-16       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_int8_1b_2core.bmodel |    0.354 |    0.565 |
+| SE9-16       | yolov5_bmcv.soc    | yolov5s_v6.1_3output_int8_4b_2core.bmodel |    0.354 |    0.565 |
+| SE9-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_fp32_1b_2core.bmodel |    0.374 |    0.573 |
+| SE9-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_fp16_1b_2core.bmodel |    0.374 |    0.572 |
+| SE9-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_1b_2core.bmodel |    0.354 |    0.565 |
+| SE9-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_4b_2core.bmodel |    0.354 |    0.565 |
+
+> **Note**:
 > 1. The model mAP of batch_size=4 and batch_size=1 is the same.
 > 2. Due to possible differences between SDK versions, it is normal for the mAP error of <0.01 between the actual running results and this table;
 > 3. AP@IoU=0.5:0.95 is the corresponding indicator of area=all.
@@ -211,23 +241,23 @@ The theoretical inference time of each model is tested, and the results are as f
 
 |                  Test model                       | calculate time(ms) |
 | -------------------------------------------       | ----------------- |
-| BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel        | 22.6              |
-| BM1684/yolov5s_v6.1_3output_int8_1b.bmodel        | 11.5              |
-| BM1684/yolov5s_v6.1_3output_int8_4b.bmodel        | 6.4               |
-| BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel       | 21.76             |
-| BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel       | 7.44              |
-| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel       | 3.57              |
-| BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel       | 3.35              |
-| BM1688/yolov5s_v6.1_3output_fp32_1b.bmodel        | 99.1              |
-| BM1688/yolov5s_v6.1_3output_fp16_1b.bmodel        | 28.7              |
-| BM1688/yolov5s_v6.1_3output_int8_1b.bmodel        | 8.4               |
-| BM1688/yolov5s_v6.1_3output_int8_4b.bmodel        | 7.3               |
-| BM1688/yolov5s_v6.1_3output_fp32_1b_2core.bmodel  | 64.6              |
-| BM1688/yolov5s_v6.1_3output_fp16_1b_2core.bmodel  | 19.3              |
-| BM1688/yolov5s_v6.1_3output_int8_1b_2core.bmodel  | 7.6               |
-| BM1688/yolov5s_v6.1_3output_int8_4b_2core.bmodel  | 5.3               |
+| BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel |          22.41  |
+| BM1684/yolov5s_v6.1_3output_int8_1b.bmodel |          11.26  |
+| BM1684/yolov5s_v6.1_3output_int8_4b.bmodel |           6.04  |
+| BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel|          21.66  |
+| BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel|           7.37  |
+| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel|           3.51  |
+| BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel|           3.34  |
+| BM1688/yolov5s_v6.1_3output_fp32_1b.bmodel|         101.57  |
+| BM1688/yolov5s_v6.1_3output_fp16_1b.bmodel|          29.92  |
+| BM1688/yolov5s_v6.1_3output_int8_1b.bmodel|           9.33  |
+| BM1688/yolov5s_v6.1_3output_int8_4b.bmodel|           8.90  |
+| BM1688/yolov5s_v6.1_3output_fp32_1b_2core.bmodel|          66.89  |
+| BM1688/yolov5s_v6.1_3output_fp16_1b_2core.bmodel|          20.62  |
+| BM1688/yolov5s_v6.1_3output_int8_1b_2core.bmodel|           8.53  |
+| BM1688/yolov5s_v6.1_3output_int8_4b_2core.bmodel|           6.87  |
 
-> **Test Description**：  
+> **Note**：  
 > 1. The performance test results have a certain volatility.
 > 2. The `calculate time` has been converted to the average inference time per picture.
 > 3. The test results of SoC and PCIe are basically the same.
@@ -238,52 +268,68 @@ Refer to [C++ example](cpp/README_EN.md) or [Python example](python/README_EN.md
 CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.5,nms_thresh=0.5` on different test platforms. The performance test results are shown as follows:
 |Test Platform|  Test Program    |            Test model               |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
-| SE5-16      | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 14.0     | 27.8          | 33.5          | 115       |
-| SE5-16      | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 13.9     | 23.5          | 33.5          | 111       |
-| SE5-16      | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 13.8     | 24.2          | 28.2          | 115       |
-| SE5-16      | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 3.0      | 3.0           | 28.5          | 111       |
-| SE5-16      | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 3.0      | 2.4           | 17.4          | 111       |
-| SE5-16      | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 2.8      | 2.3           | 11.5          | 115       |
-| SE5-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 5.4      | 1.5           | 22.6          | 15.7      |
-| SE5-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 5.4      | 1.5           | 11.5          | 15.7      |
-| SE5-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 5.2      | 1.6           | 6.2           | 15.5      |
-| SE5-16      | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 3.3      | 3.1           | 23.3          | 13.9      |
-| SE5-16      | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 3.3      | 1.9           | 12.2          | 13.9      |
-| SE5-16      | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 3.1      | 1.8           | 6.9           | 13.8      |
-| SE7-32      | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel |  15.26   | 27.31         | 33.20         | 108.40    |
-| SE7-32      | yolov5_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel |  13.95   | 26.98         | 18.88         | 108.68    |
-| SE7-32      | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel |  13.93   | 27.52         | 15.07         | 108.64    |
-| SE7-32      | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel |  13.81   | 25.16         | 13.23         | 107.75    |
-| SE7-32      | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel |  3.08    | 2.34          | 29.12         | 103.93    |
-| SE7-32      | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel |  3.07    | 2.32          | 14.78         | 103.74    |
-| SE7-32      | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel |  3.05    | 2.33          | 10.87         | 103.78    |
-| SE7-32      | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel |  2.92    | 2.16          | 9.78          | 108.15    |
-| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel |  4.27    | 0.73          | 21.62         |  15.81    |
-| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel |  4.29    | 0.73          | 7.37          |  15.89    |
-| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel |  4.30    | 0.73          | 3.47          |  15.90    |
-| SE7-32      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel |  4.14    | 0.71          | 3.33          |  15.73    |
-| SE7-32      | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel |  2.69    | 2.58          | 23.40         |  14.15    |
-| SE7-32      | yolov5_sail.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel |  2.69    | 2.59          | 9.11          |  14.17    |
-| SE7-32      | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel |  2.70    | 2.58          | 5.22          |  14.16    |
-| SE7-32      | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_4b.bmodel |  2.56    | 2.51          | 4.97          |  14.07    |
-| SE9-16      | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 21.3     | 36.8          | 113.4         | 151.9     |
-| SE9-16      | yolov5_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 22.4     | 36.3          | 42.1          | 152.1     |
-| SE9-16      | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 19.5     | 35.6          | 21.8          | 150.6     |
-| SE9-16      | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 20.1     | 33.2          | 19.5          | 151.6     |
-| SE9-16      | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.8      | 5.2           | 106.5         | 143.97    |
-| SE9-16      | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 4.5      | 5.2           | 36.2          | 143.9     |
-| SE9-16      | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 4.5      | 5.2           | 15.6          | 144.2     |
-| SE9-16      | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 4.4      | 4.9           | 14.1          | 149.9     |
-| SE9-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 5.8      | 2.0           | 98.1          | 22.4      |
-| SE9-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 5.8      | 2.0           | 27.5          | 22.4      |
-| SE9-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 5.8      | 2.0           | 7.3           | 22.4      |
-| SE9-16      | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 5.7      | 1.9           | 7.0           | 22.4      |
-| SE9-16      | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 4.3      | 5.3           | 99.6          | 19.9      |
-| SE9-16      | yolov5_sail.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 4.3      | 5.3           | 28.9          | 19.9      |
-| SE9-16      | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 4.3      | 5.3           | 8.7           | 19.9      |
-| SE9-16      | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_4b.bmodel | 4.3      | 5.3           | 8.2           | 19.9      |
+|   SE5-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      15.08      |      21.95      |      31.40      |     107.61      |
+|   SE5-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      15.07      |      26.16      |      34.45      |     110.48      |
+|   SE5-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      15.03      |      23.94      |      27.53      |     111.78      |
+|   SE5-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp32_1b.bmodel|      3.61       |      2.83       |      29.06      |     106.85      |
+|   SE5-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_1b.bmodel|      3.59       |      2.31       |      17.92      |     106.40      |
+|   SE5-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_4b.bmodel|      3.44       |      2.13       |      11.82      |     110.71      |
+|   SE5-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      4.87       |      1.54       |      22.33      |      15.68      |
+|   SE5-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      4.85       |      1.53       |      11.20      |      15.66      |
+|   SE5-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      4.75       |      1.47       |      6.03       |      15.64      |
+|   SE5-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      3.23       |      3.04       |      23.31      |      14.07      |
+|   SE5-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      3.22       |      1.80       |      12.21      |      13.93      |
+|   SE5-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      3.08       |      1.71       |      6.88       |      13.80      |
+|   SE7-32    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      15.09      |      27.82      |      33.27      |     108.98      |
+|   SE7-32    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp16_1b.bmodel|      15.01      |      27.27      |      19.10      |     109.18      |
+|   SE7-32    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      15.08      |      27.02      |      15.18      |     109.33      |
+|   SE7-32    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      14.99      |      25.01      |      13.31      |     108.20      |
+|   SE7-32    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp32_1b.bmodel|      3.09       |      2.35       |      28.98      |     103.87      |
+|   SE7-32    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp16_1b.bmodel|      3.09       |      2.34       |      14.75      |     103.75      |
+|   SE7-32    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_1b.bmodel|      3.08       |      2.34       |      10.92      |     103.89      |
+|   SE7-32    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_4b.bmodel|      2.93       |      2.16       |      9.82       |     108.36      |
+|   SE7-32    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      4.32       |      0.74       |      21.63      |      15.91      |
+|   SE7-32    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp16_1b.bmodel|      4.32       |      0.74       |      7.38       |      15.94      |
+|   SE7-32    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      4.33       |      0.74       |      3.48       |      15.94      |
+|   SE7-32    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      4.17       |      0.71       |      3.32       |      15.73      |
+|   SE7-32    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      2.71       |      2.58       |      22.61      |      14.15      |
+|   SE7-32    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp16_1b.bmodel|      2.71       |      2.59       |      8.35       |      14.19      |
+|   SE7-32    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      2.70       |      2.59       |      4.45       |      14.18      |
+|   SE7-32    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      2.56       |      2.50       |      4.20       |      14.06      |
+|   SE9-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      23.43      |      35.69      |     112.71      |     151.54      |
+|   SE9-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp16_1b.bmodel|      19.48      |      36.12      |      42.15      |     149.94      |
+|   SE9-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      19.24      |      34.85      |      21.46      |     148.00      |
+|   SE9-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      19.21      |      33.15      |      19.40      |     150.54      |
+|   SE9-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp32_1b.bmodel|      4.36       |      5.04       |     107.62      |     143.80      |
+|   SE9-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp16_1b.bmodel|      4.35       |      5.06       |      36.97      |     143.51      |
+|   SE9-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_1b.bmodel|      4.36       |      5.04       |      16.47      |     143.20      |
+|   SE9-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_4b.bmodel|      4.22       |      4.74       |      14.96      |     149.54      |
+|   SE9-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      5.69       |      1.88       |      97.91      |      22.33      |
+|   SE9-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp16_1b.bmodel|      5.80       |      1.88       |      27.36      |      22.33      |
+|   SE9-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      5.75       |      1.88       |      7.12       |      22.40      |
+|   SE9-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      5.57       |      1.79       |      7.02       |      22.07      |
+|   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      3.76       |      5.06       |     100.46      |      19.93      |
+|   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp16_1b.bmodel|      3.81       |      5.05       |      29.87      |      19.84      |
+|   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      3.74       |      5.04       |      9.60       |      19.91      |
+|   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      3.69       |      4.82       |      9.32       |      19.73      |
+|   SE9-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b_2core.bmodel|      19.35      |      35.64      |      78.13      |     150.70      |
+|   SE9-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp16_1b_2core.bmodel|      19.32      |      35.89      |      32.72      |     150.59      |
+|   SE9-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b_2core.bmodel|      19.22      |      36.24      |      21.08      |     148.49      |
+|   SE9-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b_2core.bmodel|      19.28      |      32.70      |      17.31      |     150.59      |
+|   SE9-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp32_1b_2core.bmodel|      4.36       |      5.05       |      72.89      |     143.53      |
+|   SE9-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp16_1b_2core.bmodel|      4.38       |      5.08       |      27.64      |     143.77      |
+|   SE9-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_1b_2core.bmodel|      4.38       |      5.06       |      15.90      |     143.50      |
+|   SE9-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_4b_2core.bmodel|      4.21       |      4.74       |      13.45      |     149.79      |
+|   SE9-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp32_1b_2core.bmodel|      5.79       |      1.87       |      63.28      |      22.35      |
+|   SE9-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp16_1b_2core.bmodel|      5.78       |      1.88       |      18.07      |      22.35      |
+|   SE9-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_1b_2core.bmodel|      5.79       |      1.88       |      6.32       |      22.37      |
+|   SE9-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_4b_2core.bmodel|      5.61       |      1.79       |      4.99       |      22.12      |
+|   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp32_1b_2core.bmodel|      3.83       |      5.06       |      65.81      |      19.84      |
+|   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp16_1b_2core.bmodel|      3.80       |      5.05       |      20.57      |      19.86      |
+|   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_1b_2core.bmodel|      3.79       |      5.05       |      8.81       |      19.88      |
+|   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_4b_2core.bmodel|      3.61       |      4.81       |      7.27       |      19.80      |
 
-> **Test Description**：  
+> **Note**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
 > 2. The performance test results are volatile to a certain extent, so it is recommended that the average value should be taken from multiple tests.
 > 3. SE5-16/SE7-32's processors are all 8-core ARM CA53@2.3GHz, SE9-16's processor is 8-core ARM CA53@1.6GHz, performance on PCIe may vary greatly due to different processors.
@@ -302,53 +348,32 @@ Based on the YOLOv5 mentioned above, this section optimizes the YOLOv5 postproce
 
 The time bottleneck of the optimized NMS algorithm lies in the size of the output map. Attempting to reduce the height or width or number of channels of the output map can further reduce the NMS computation time.
 
-### 8.2. Performance and Precision Test
-Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.001,nms_thresh=0.6` on different test platforms, c++ example set `--use_cpu_opt=true`, python example set `--use_cpu_opt` to use nms acceleration. The performance and accuracy test results before and after the improvement of the NMS post-processing algorithm are as follows:
-| Test Platform|   Test Program   |             Test model              | YOLOv5 postprocess_time | YOLOv5_cpu_opt postprocess_time|AP@IoU=0.5:0.95| 
-| ------------ | ---------------- | ----------------------------------- | ------------            | -------------                  | ------------- |
-| SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 35.6                    | 22.9                           | 0.375         |
-| SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 33.8                    | 20.5                           | 0.339         |
-| SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 34.6                    | 21.1                           | 0.375         |
-| SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 33.9                    | 18.9                           | 0.339         |
-| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 210.1                   | 98.4                           | 0.341         |
-| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 209.7                   | 99.7                           | 0.336         |
+### 8.2. Precision Test
+On SE5-16, use different examples and models, use dataset `datasets/coco/val2017_1000`, use threshold `conf_thresh=0.001，nms_thresh=0.6`, set `--use_cpu_opt=true` in cpp example or set `--use_cpu_opt` in python example, here is mAP test results:
+| Test Platform |  Test Program    |            Test model               |AP@IoU=0.5:0.95|AP@IoU=0.5|
+| ------------ | ---------------- | ----------------------------------- | ------------- | -------- |
+| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel |    0.373      |    0.579 |
+| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel |    0.370      |    0.572 |
+| SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel |    0.375      |    0.573 |
+| SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel |    0.375      |    0.573 |
 
-Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.01,nms_thresh=0.6` on different test platforms, c++ example set `--use_cpu_opt=true`, python example set `--use_cpu_opt` to use nms acceleration. The performance and accuracy test results before and after the improvement of the NMS post-processing algorithm are as follows:
-| Test Platform|   Test Program   |             Test model              | YOLOv5 postprocess_time | YOLOv5_cpu_opt postprocess_time |AP@IoU=0.5:0.95|
-| ------------ | ---------------- | ----------------------------------- | ------------            | -------------                   | --------------|
-| SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 18.1                    | 7.5                             | 0.373         |
-| SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 17.8                    | 7.2                             | 0.337         |
-| SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 16.3                    | 5.8                             | 0.373         |
-| SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 16.0                    | 5.5                             | 0.337         |
-| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 118.8                   | 22.9                            | 0.339         |
-| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 116.5                   | 22.8                            | 0.334         |
+> **Note**：  
+> 1. The test notes in Section 6.2 apply here;
+> 2. Postprocess acceleration does not involve hardware acceleration, and only the test data of the SE5-16 platform and fp32 model are provided here.
 
-> **Note:** Due to the consistency between the implementation of sail and CPP, there were slight drops after Python calls, but there is a significant improvement in speed.
+### 8.3. Performance Test
+On SE5-16, use different examples and models, use dataset `datasets/coco/val2017_1000`, use threshold `conf_thresh=0.5，nms_thresh=0.5`, set `--use_cpu_opt=true` in cpp example or set `--use_cpu_opt` in python example, here is performance test results:
+|Test Platform|  Test Program    |            Test model               |decode_time|preprocess_time|inference_time|postprocess_time| 
+| ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
+|   SE5-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      14.99      |      21.52      |      43.84      |      16.83      |
+|   SE5-16    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp32_1b.bmodel|      3.60       |      2.85       |      24.29      |      16.87      |
+|   SE5-16    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      4.88       |      1.54       |      22.33      |      6.17       |
+|   SE5-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      3.23       |      3.03       |      23.31      |      4.49       |
 
-If using single-class NMS, by setting the macro `USE_MULTICLASS_NMS 0` in the `yolov5.cpp` file or setting YOLOv5 class member variable `self.multi_label=False` in both `yolov5_opencv.py` and `yolov5_bmcv.py` files, it can improve post-processing performance with slight loss of accuracy. Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.001,nms_thresh=0.6`, c++ example set `--use_cpu_opt=true`, python example set `--use_cpu_opt` to use nms acceleration. The performance and accuracy test results before and after the improvement of the NMS post-processing algorithm are as follows:
-| Test Platform|   Test Program   |             Test model              | YOLOv5 postprocess_time | YOLOv5_cpu_opt postprocess_time |AP@IoU=0.5:0.95|
-| ------------ | ---------------- | ----------------------------------- | ------------            | -------------                   | ------------- |
-| SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 23.5                    | 10.2                            | 0.369         |
-| SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 23.1                    | 9.9                             | 0.332         |
-| SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 21.6                    | 8.5                             | 0.369         |
-| SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 21.3                    | 8.1                             | 0.332         |
-| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 147.3                   | 32.5                            | 0.335         |
-| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 147.8                   | 32.8                            | 0.330         |
-
-If using single-class NMS, by setting the macro `USE_MULTICLASS_NMS 0` in the `yolov5.cpp` file or setting YOLOv5's class member variable `self.multi_label=False` in both `yolov5_opencv.py` and `yolov5_bmcv.py` files, it can improve post-processing performance with slight loss of accuracy. Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.01,nms_thresh=0.6`, c++ example set `--use_cpu_opt=true`, python example set `--use_cpu_opt` to use nms acceleration. The performance and accuracy test results before and after the improvement of the NMS post-processing algorithm are as follows:
-| Test Platform|   Test Program   |             Test model              | YOLOv5 postprocess_time | YOLOv5_cpu_opt postprocess_time |AP@IoU=0.5:0.95|
-| ------------ | ---------------- | ----------------------------------- | ------------            | -------------                   | ------------- |
-| SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 17.6                    | 6.2                             | 0.367         |
-| SE5-16       | yolov5_bmcv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 17.5                    | 6.1                             | 0.330         |
-| SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 15.8                    | 4.5                             | 0.367         |
-| SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 15.7                    | 4.3                             | 0.330         |
-| SE5-16       | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 114.7                   | 9.6                             | 0.333         |
-| SE5-16       | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 114.2                   | 9.5                             | 0.327         |
-
-> **Test Description**：  
-> 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
-> 2. The performance test results are volatile to a certain extent, so it is recommended that the average value should be taken from multiple tests.
-> 3. The image resolution has a great influence on the decoding time, the reasoning result has a great influence on the post-processing time, different test pictures may be different, and different thresholds have a great influence on the post-processing time.
+> **Note**：  
+> 1. The test notes in Section 7.2 apply here;
+> 2. Postprocess acceleration does not involve hardware acceleration, and only the test data of the SE5-16 platform and fp32 model are provided here.
+> 3. Increasing `conf_thresh`, or using single class NMS (that is, set `#define USE_MULTICLASS_NMS 0` in yolov5s.cpp for cpp examples, or set the class variable `self.multi_label=False`) to accelerate postprocess to higher level.
 
 ## 9. FAQ
 Please refer to [YOLOv5 Common Problems](./docs/YOLOv5_Common_Problems_EN.md) to see some problems of YOLOv5 inference.For other questions ,please refer to [FAQ](../../docs/FAQ_EN.md) to see some common questions and answers.
