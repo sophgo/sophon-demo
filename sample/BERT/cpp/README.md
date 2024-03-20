@@ -41,6 +41,7 @@ C++程序运行前需要编译可执行文件。
 ### 2.1 x86/arm PCIe平台
 可以直接在PCIe平台上编译程序：
 #### 2.1.1 sail
+如果您使用sophon-sail接口，需要[编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#33-编译安装sophon-sail)，然后进行如下步骤。
 ```bash
 cd cpp/bert_sail
 mkdir build && cd build
