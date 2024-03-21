@@ -7,7 +7,15 @@ Sophon Demo is developed based on the SophonSDK interface and provides a series 
 
 SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI processor, covering model optimization, efficient runtime support, and other capabilities required for the inference phase of neural networks, providing an easy-to-use and efficient full-stack solution for deep learning application development and deployment. It is currently compatible with BM1684/BM1684X/BM1688.
 
-## Directory Structure and Description
+## Directory Structure and Description.
+The examples provided by sophon-demo are divided into three modules: `tutorial`, `sample`, and `application`, the `tutorial` module stores some examples of basic interfaces, the `sample` module stores some serial examples of classic algorithms on SOPHONSDK, and the `application` module stores some typical applications in typical scenarios.
+
+| tutorial                                                                  | code    | 
+|---                                                                        |---         | 
+| [resize](./tutorial/resize/README.md)                                     | C++/Python | 
+| [crop](./tutorial/crop/README.md)                                         | C++/Python | 
+| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)   | C++/Python | 
+
 | contents                                                      | category                           | code       |  BModel       |
 |---                                                            |---                                 |---          | ---           |
 | [LPRNet](./sample/LPRNet/README.md)                           | License Plate Recognition          | C++/Python | FP32/FP16/INT8 |
@@ -34,13 +42,22 @@ SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI
 | [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16      |
 | [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16      |
 | [BERT](./sample/BERT/README.md)                               | Language                           | C++/Python | FP32/FP16      |
-| [ChatGLM2](./sample/chatglm2/README.md)                       | Language                           | C++/Python | FP16/INT8/INT4 |
+| [ChatGLM2](./sample/ChatGLM2/README.md)                       | Language                           | C++/Python | FP16/INT8/INT4 |
 | [Llama2](./sample/Llama2/README.md)                           | Language                           | C++        | FP16/INT8/INT4 |
+| [ChatGLM3](./sample/ChatGLM3/README.md)                       | Language                           | Python     | FP16/INT8/INT4 | 
+| [Qwen](./sample/Qwen/README.md)                               | Language                           | Python     | FP16/INT8/INT4 | 
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | Image Generation                   | Python     | FP32/FP16      |
+
+| application                                                    | scenarios                 | code    | 
+|---                                                             |---                       |---          | 
+| [VLPR](./application/VLPR/README.md)                           | Multi-streams Vehicle License Plate Recognition | C++/Python  | 
+| [YOLOv5_multi](./application/YOLOv5_multi/README.md)           | Multi-streams Object Detection       | C++         | 
+| [YOLOv5_multi_QT](./application/YOLOv5_multi_QT/README.md)     | Multi-streams Object Detection + QT_HDMI display    | C++         | 
 
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.2.0  |  Fix documentation and other issues, release application/tutorial modules, release new sample ChatGLM3/Qwen, add a web ui in SAM, BERT/ByteTrack/C3D support BM1688, YOLOv8 is renamed to YOLOv8_det and add cpp postproces acceleration, optimize auto_test in commonly used samples, upgrade TPU-MLIR installation to pip |
 | 0.1.10 | Fix documentation and other issues, add ppYoloe/YOLOv8_seg/StableDiffusionV1.5/SAM, refactor yolact, CenterNet/YOLOX/YOLOv8 support BM1688, YOLOv5/ResNet/PP-OCR/DeepSORT add BM1688 performance statis, WeNet provide C++ cross compile option. |
 | 0.1.9	 | Fix documentation and other issues, add segformer/YOLOv7/Llama2, refactor YOLOv34/YOLOv5/ResNet/PP-OCR/DeepSORT/LPRNet/RetinaFace/YOLOv34/WeNet support BM1688, OpenPose postprocess acceleration, chatglm2 support int8/int4 and add compile method in readme.|
 | 0.1.8  | Fix documentation and other issues, added BERT/ppYOLOv3/ChatGLM2, refactor YOLOX, added beam search to PP-OCR, added tpu-kernel post-processing acceleration to OpenPose, and updated the SFTP download method.|
@@ -57,6 +74,7 @@ SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI
 Sophon Demo mainly depends on tpu-mlir, tpu-nntc, libsophon, sophon-ffmpeg, sophon-opencv, sophon-sail, whose version requirements are as follows:  
 |sophon-demo|tpu-mlir |tpu-nntc |libsophon|sophon-ffmpeg|sophon-opencv|sophon-sail| Release Date |
 |--------|------------| --------|---------|---------    |----------   | ------    | ----------    |
+| 0.2.0  | >=1.6       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=23.10.01|
 | 0.1.10 | >=1.2.2    | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.7.0   | >=23.07.01  |
 | 0.1.9  | >=1.2.2    | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.7.0   | >=23.07.01  |
 | 0.1.8  | >=1.2.2    | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.6.0   | >=23.07.01  |
