@@ -9,7 +9,15 @@ Sophon Demo基于SophonSDK接口进行开发，提供一系列主流算法的移
 SophonSDK是算能科技基于其自主研发的深度学习处理器所定制的深度学习SDK，涵盖了神经网络推理阶段所需的模型优化、高效运行时支持等能力，为深度学习应用开发和部署提供易用、高效的全栈式解决方案。目前可兼容BM1684/BM1684X/BM1688。
 
 ## 目录结构与说明
-| 目录                                                          | 算法类别          | 编程语言    | BModel         |
+sophon-demo提供的例子从易到难分为`tutorial`、`sample`、`application`三个模块，`tutorial`模块存放一些基础接口的使用示例，`sample`模块存放一些经典算法在SOPHONSDK上的串行示例，`application`模块存放一些典型场景的典型应用。
+
+| tutorial                                                                  | 编程语言    | 
+|---                                                                        |---         | 
+| [resize](./tutorial/resize/README.md)                                     | C++/Python | 
+| [crop](./tutorial/crop/README.md)                                         | C++/Python | 
+| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)   | C++/Python | 
+
+| sample                                                          | 算法类别          | 编程语言    | BModel         |
 |---                                                            |---               |---          | ---           |
 | [LPRNet](./sample/LPRNet/README.md)                           | 车牌识别          | C++/Python | FP32/FP16/INT8 |
 | [ResNet](./sample/ResNet/README.md)                           | 图像分类          | C++/Python | FP32/FP16/INT8 |
@@ -35,13 +43,22 @@ SophonSDK是算能科技基于其自主研发的深度学习处理器所定制�
 | [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16      |
 | [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16      | 
 | [BERT](./sample/BERT/README.md)                               | 语言模型          | C++/Python | FP32/FP16      | 
-| [ChatGLM2](./sample/chatglm2/README.md)                       | 语言模型          | C++/Python | FP16/INT8/INT4 | 
+| [ChatGLM2](./sample/ChatGLM2/README.md)                       | 语言模型          | C++/Python | FP16/INT8/INT4 | 
 | [Llama2](./sample/Llama2/README.md)                           | 语言模型          | C++        | FP16/INT8/INT4 |
+| [ChatGLM3](./sample/ChatGLM3/README.md)                       | 语言模型          | Python     | FP16/INT8/INT4 | 
+| [Qwen](./sample/Qwen/README.md)                               | 语言模型          | Python     | FP16/INT8/INT4 | 
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | 图像生成          | Python     | FP32/FP16      |
+
+| application                                                    | 应用场景                  | 编程语言    | 
+|---                                                             |---                       |---          | 
+| [VLPR](./application/VLPR/README.md)                           | 多路车牌检测+识别          | C++/Python  | 
+| [YOLOv5_multi](./application/YOLOv5_multi/README.md)           | 多路目标检测               | C++         | 
+| [YOLOv5_multi_QT](./application/YOLOv5_multi_QT/README.md)     | 多路目标检测+QT_HDMI显示   | C++         | 
 
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.2.0  | 完善和修复文档、代码问题，新增application和tutorial模块，新增例程ChatGLM3和Qwen，SAM添加web ui，BERT、ByteTrack、C3D适配BM1688，原YOLOv8更名为YOLOv8_det并且添加cpp后处理加速方法，优化常用例程的auto_test，更新TPU-MLIR安装方式为pip |
 | 0.1.10 | 修复文档、代码问题，新增ppYoloe、YOLOv8_seg、StableDiffusionV1.5、SAM，重构yolact，CenterNet、YOLOX、YOLOv8适配BM1688，YOLOv5、ResNet、PP-OCR、DeepSORT补充BM1688性能数据，WeNet提供C++交叉编译方法 |
 | 0.1.9	 | 修复文档、代码问题，新增segformer、YOLOv7、Llama2例程，重构YOLOv34，YOLOv5、ResNet、PP-OCR、DeepSORT、LPRNet、RetinaFace、YOLOv34、WeNet适配BM1688，OpenPose后处理加速，chatglm2添加编译方法和int8/int4量化。|
 | 0.1.8  | 完善修复文档、代码问题，新增BERT、ppYOLOv3、ChatGLM2，重构YOLOX，PP-OCR添加beam search，OpenPose添加tpu-kernel后处理加速，更新SFTP下载方式。|
@@ -58,6 +75,7 @@ SophonSDK是算能科技基于其自主研发的深度学习处理器所定制�
 Sophon Demo主要依赖tpu-mlir、tpu-nntc、libsophon、sophon-ffmpeg、sophon-opencv、sophon-sail，其版本要求如下：
 |sophon-demo|tpu-mlir |tpu-nntc |libsophon|sophon-ffmpeg|sophon-opencv|sophon-sail| 发布日期   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
+| 0.2.0  | >=1.6       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=23.10.01|
 | 0.1.10 | >=1.2.2     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.7.0   | >=23.07.01|
 | 0.1.9  | >=1.2.2     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.7.0   | >=23.07.01|
 | 0.1.8  | >=1.2.2     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.6.0   | >=23.07.01|

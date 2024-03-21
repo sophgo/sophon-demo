@@ -17,6 +17,10 @@
     * [5.1 安装libsophon](#51-安装libsophon)
     * [5.2 安装sophon-ffmpeg和sophon-opencv](#52-安装sophon-ffmpeg和sophon-opencv)
     * [5.3 编译安装sophon-sail](#53-编译安装sophon-sail)
+  * [6 riscv PCIe平台的开发和运行环境搭建](#6)
+    * [6.1 安装libsophon](#61-安装libsophon)
+    * [6.2 安装sophon-ffmpeg和sophon-opencv](#62-安装sophon-ffmpeg和sophon-opencv)
+    * [6.3 编译安装sophon-sail](#63-编译安装sophon-sail)
 
 Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC、TPU-MLIR环境，用于编译C++程序的开发环境以及用于部署程序的运行环境。
 
@@ -324,8 +328,7 @@ sudo rm -f /opt/sophon/libsophon-current
 sudo rm -rf /opt/sophon/libsophon-0.4.6
 sudo rm -rf /opt/sophon/driver-0.4.6
 ```
-其他平台机器请参考[libsophon安装教程](https://doc.sophgo.com/sdk-docs/v22.12.01/docs_latest_release/docs/libsophon/guide/html/1_install.html)。
-更多libsophon信息请参考《LIBSOPHON使用手册.pdf》
+其他平台机器请参考《LIBSOPHON使用手册.pdf》
 
 ### 5.2 安装sophon-ffmpeg和sophon-opencv
 从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-mw安装包，
@@ -358,8 +361,83 @@ sudo cp /opt/sophon/sophon-opencv-latest/data/sophon-opencv-autoconf.sh /etc/pro
 sudo cp /opt/sophon/sophon-sample-latest/data/sophon-sample-autoconf.sh /etc/profile.d/
 source /etc/profile
 ```
-其他平台机器请参考[libsophon安装教程](https://doc.sophgo.com/sdk-docs/v22.12.01/docs_latest_release/docs/sophon-mw/manual/html/1_install.html)。
-更多sophon-mw信息请参考《MULTIMEDIA使用手册.pdf》、《MULTIMEDIA开发参考手册.pdf》。
+其他平台机器请参考《MULTIMEDIA使用手册.pdf》、《MULTIMEDIA开发参考手册.pdf》。
 
 ### 5.3 编译安装sophon-sail
-与[3.3 编译安装sophon-sail](#33-编译安装sophon-sail)安装方法相同。
+如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。
+
+需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的SDK，里面有sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
+您可以打开sophon-sail压缩包里面提供的用户手册(命名为sophon-sail_zh.pdf)，参考编译安装指南章节，选择您需要的模式(C++/Python, ARM PCIE MODE)进行安装。
+
+## 6 riscv PCIe平台的开发和运行环境搭建
+如果您在riscv平台安装了PCIe加速卡，开发环境与运行环境可以是统一的，您可以直接在宿主机上搭建开发和运行环境。
+这里提供SG2042服务器的环境安装方法，其他类型机器具体请参考官网开发手册。
+
+### 6.1 安装libsophon
+从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的libsophon安装包，
+安装包由以下3个文件构成：
+```bash
+sophon-libsophon-dev-{x.y.z}.riscv64.rpm
+sophon-libsophon-{x.y.z}.riscv64.rpm
+sophon-driver-{x.y.z}.riscv64.rpm
+```
+安装前需要通过后面“卸载方式”中的步骤卸载旧版本libsophon，可以通过如下步骤安装：
+```bash
+安装依赖库，只需要执行一次:
+sudo yum install -y epel-release
+sudo yum install -y dkms
+sudo yum install -y ncurses*
+安装libsophon：
+sudo rpm -ivh sophon-driver-{x.y.z}.riscv64.rpm
+sudo rpm -ivh sophon-libsophon-{x.y.z}.riscv64.rpm
+sudo rpm -ivh --force sophon-libsophon-dev-{x.y.z}.riscv64.rpm
+在终端执行如下命令，或者登出再登入当前用户后即可使用bm-smi等命令：
+source /etc/profile
+```
+卸载方式：
+```bash
+sudo rpm -e sophon-driver
+sudo rpm -e sophon-libsophon-dev
+sudo rpm -e sophon-libsophon
+```
+其他平台机器请参考《LIBSOPHON使用手册.pdf》。
+
+### 6.2 安装sophon-ffmpeg和sophon-opencv
+从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-mw安装包，
+
+sophon-mw安装包由四个文件构成：
+```bash
+sophon-mw-sophon-ffmpeg_{x.y.z}_riscv64.rpm
+sophon-mw-sophon-ffmpeg-dev_{x.y.z}_riscv64.rpm
+sophon-mw-sophon-opencv-abi0_{x.y.z}_riscv64.rpm
+sophon-mw-sophon-opencv-abi0-dev_{x.y.z}_riscv64.rpm
+```
+其中：
+
+1. sophon-ffmpeg/sophon-opencv包含了ffmpeg/opencv运行时环境（库文件、工具等）；sophon-ffmpeg-dev/sophon-opencv-dev包含了开发环境（头文件、pkgconfig、cmake等）。如果只是在部署环境上安装，则不需要安装sophon-ffmpeg-dev/sophon-opencv-dev。
+
+2. sophon-mw-sophon-ffmpeg依赖sophon-libsophon包，而sophon-mw-sophon-opencv依赖sophon-mw-sophon-ffmpeg，因此在安装次序上必须先安装libsophon,然后sophon-mw-sophon-ffmpeg,最后安装sophon-mw-sophon-opencv。
+
+安装之前请参考"卸载方式"卸载老版本，安装步骤如下：
+```bash
+sudo rpm -ivh sophon-mw-sophon-ffmpeg_{x.y.z}_riscv64.rpm sophon-mw-sophon-ffmpeg-dev_{x.y.z}_riscv64.rpm
+sudo rpm -ivh sophon-mw-sophon-opencv-abi0_{x.y.z}_riscv64.rpm sophon-mw-sophon-opencv-abi0-dev_{x.y.z}_riscv64.rpm
+在终端执行如下命令，或者logout再login当前用户后即可使用安装的工具：
+source /etc/profile
+```
+
+卸载方式：
+```bash
+sudo rpm -e sophon-mw-sophon-opencv-dev
+sudo rpm -e sophon-mw-sophon-opencv
+sudo rpm -e sophon-mw-sophon-ffmpeg-dev
+sudo rpm -e sophon-mw-sophon-ffmpeg
+```
+
+其他平台机器请参考《MULTIMEDIA使用手册.pdf》、《MULTIMEDIA开发参考手册.pdf》。
+
+### 6.3 编译安装sophon-sail
+如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。
+
+需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的SDK，里面有sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
+您可以打开sophon-sail压缩包里面提供的用户手册(命名为sophon-sail_zh.pdf)，参考编译安装指南章节，选择您需要的模式(C++/Python，RSICV PCIE MODE)进行安装。
