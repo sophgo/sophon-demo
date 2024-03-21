@@ -1,0 +1,24 @@
+{
+    "decoder":{
+        "urls":[
+            "rtsp_url_0",
+            "rtsp_url_1",
+            "rtsp_url_2",
+            "rtsp_url_3"
+        ]
+    },
+    "yolov5":{
+        "dev_id": 0,
+        "bmodel_path": "../models/BM1684X/yolov5s_tpukernel_int8_1b.bmodel",
+        "tpu_kernel_module_path": "../tools/tpu_kernel_module/libbm1684x_kernel_module.so",
+        "que_size": 1,
+        "skip_num": 0,
+        "nmsThreshold": 0.5,
+        "confThreshold": 0.5
+    },
+
+    "display":{
+        "rows": 2,
+        "cols": 2
+    }
+}

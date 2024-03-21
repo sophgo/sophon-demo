@@ -1,0 +1,86 @@
+{
+  "dev_id": 0,
+  "yolov5_bmodel_path": "../../models/yolov5s-licensePlate/BM1684/yolov5s_v6.1_license_3output_int8_4b.bmodel",
+  "lprnet_bmodel_path": "../../models/lprnet/BM1684/lprnet_int8_4b.bmodel",
+  "channels": [
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    },
+    {
+      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "is_video": true
+    }
+  ],
+  "yolov5_num_pre": 8,
+  "yolov5_num_post": 8,
+  "lprnet_num_pre": 8,
+  "lprnet_num_post": 8,
+  "yolov5_queue_size": 50,
+  "lprnet_queue_size": 200,
+  "yolov5_conf_thresh": 0.6,
+  "yolov5_nms_thresh": 0.6,
+  
+  "frame_sample_interval": 4,
+  "in_frame_num": 5, 
+  "out_frame_num": 3, 
+  "crop_thread_num": 2, 
+  "push_data_thread_num": 2,
+  "perf_out_time_interval": 30
+}
