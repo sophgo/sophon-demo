@@ -17,32 +17,9 @@ import queue
 from multiprocessing import Process
 import argparse
 import logging
+from logging.handlers import RotatingFileHandler
 
 from chars import CHARS,CHARS_DICT
-
-import signal
-
-# def kill_child_processes(parent_pid, sig=signal.SIGTERM):
-#     """获取当前程序总进程并删除子进程
-
-#     Args:
-#         parent_pid (_type_): _description_
-#         sig (_type_, optional): _description_. Defaults to signal.SIGTERM.
-#     """
-#     try:
-#         # 获取当前进程的子进程 ID
-#         child_pids = os.popen(f"pgrep -P {parent_pid}").read().splitlines()
-#     except Exception as e:
-#         print(f"无法获取子进程的 ID：{e}")
-#         return
-
-#     # 终止子进程
-#     for pid in child_pids:
-#         try:
-#             os.kill(int(pid), sig)
-#             print(f"已终止子进程：{pid}")
-#         except Exception as e:
-#             print(f"无法终止子进程 {pid}：{e}")
 
 class MultiDecoderThread(object):
     def __init__(self, draw_images:bool, stress_test:bool, tpu_id:int, video_list:list, resize_type:sail.sail_resize_type, max_que_size:int, loop_count:int,process_id:int):
@@ -62,7 +39,7 @@ class MultiDecoderThread(object):
 
         self.post_que = queue.Queue(max_que_size)
         self.image_que = queue.Queue(max_que_size)
-
+        self.max_que_size = max_que_size
 
         self.exit_flag = False
         self.flag_lock = threading.Lock()
@@ -111,7 +88,7 @@ class MultiDecoderThread(object):
 
         # yolov5
         self.engine_image_pre_process = sail.EngineImagePreProcess(yolo_bmodel, self.tpu_id, 0)
-        self.engine_image_pre_process.InitImagePreProcess(self.resize_type, True, 8, 8) # queue_in_size ,queue_out_size
+        self.engine_image_pre_process.InitImagePreProcess(self.resize_type, True, self.max_que_size - int(self.max_que_size/4)+1, self.max_que_size - int(self.max_que_size/4)+1) # queue_in_size, queue_out_size, avoid too much npu mem usage
         self.engine_image_pre_process.SetPaddingAtrr()
         self.engine_image_pre_process.SetConvertAtrr(self.alpha_beta)
         output_names = self.engine_image_pre_process.get_output_names()
@@ -121,7 +98,7 @@ class MultiDecoderThread(object):
 
         # lprnet
         self.lprnet_engine_image_pre_process = sail.EngineImagePreProcess(lprnet_bmodel, self.tpu_id, 0)
-        self.lprnet_engine_image_pre_process.InitImagePreProcess(self.resize_type_lprnet, True, 32, 32) # queue_in_size ,queue_out_size
+        self.lprnet_engine_image_pre_process.InitImagePreProcess(self.resize_type_lprnet, True, 32 - int(self.max_que_size/2)+1, 32 - int(self.max_que_size/2)+1) # queue_in_size, queue_out_size
         self.lprnet_engine_image_pre_process.SetConvertAtrr(self.alpha_beta_lprnet)
         self.lprnet_output_names = self.lprnet_engine_image_pre_process.get_output_names()[0]
 
@@ -433,8 +410,17 @@ def argsparser():
 if __name__ == '__main__':
 
     args = argsparser()
-    logging.basicConfig(filename= f'168X_yolo_process_and_video_thread_is_{args.video_nums}.log',filemode='w',level=logging.DEBUG)
+
+    # 配置log
+    log_name = f'168X_yolo_process_and_video_thread_is_{args.video_nums}.log'
+    log_format = '%(asctime)s - %(levelname)s - %(message)s'
+
+    rotating_handler = RotatingFileHandler(log_name, maxBytes=1024*1024, backupCount=3)
+    rotating_handler.setFormatter(logging.Formatter(log_format))
+    logging.getLogger().addHandler(rotating_handler)
+    logging.getLogger().setLevel(logging.INFO)
     
+
     dete_threshold,nms_threshold = 0.65,0.65
     max_que_size = args.max_que_size  # 队列缓存的大小
     loop_count = args.loops # 每个进程处理图片的数量，处理完毕之后会退出
