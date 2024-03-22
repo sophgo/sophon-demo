@@ -10,10 +10,6 @@ TPUID=0
 ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
-if [ -f "tools/benchmark.txt" ]; then
-  rm tools/benchmark.txt
-fi
-
 
 usage() 
 {
@@ -43,6 +39,67 @@ do
       exit 1;;
   esac
 done
+
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
+if [ -f "scripts/acc.txt" ]; then
+  rm scripts/acc.txt
+fi
+echo "|   测试平台    |      测试程序       |        测试模型        | ACC(%) |" >> scripts/acc.txt
+PLATFORM=$TARGET
+if test $MODE = "soc_test"; then
+  if test $TARGET = "BM1684X"; then
+    PLATFORM="SE7-32"
+  elif test $TARGET = "BM1684"; then
+    PLATFORM="SE5-16"
+  elif test $TARGET = "BM1688"; then
+    PLATFORM="SE9-16"
+  else
+    echo "Unknown TARGET type: $TARGET"
+  fi
+fi
+function bmrt_test_case(){
+   calculate_time_log=$(bmrt_test --bmodel $1 | grep "calculate" 2>&1)
+   is_4b=$(echo $1 |grep "4b")
+
+   if [ "$is_4b" != "" ]; then
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 250}')
+   else
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 1000}')
+   fi
+   for time in "${calculate_times[@]}"
+   do
+     printf "| %-35s| % 15s |\n" "$1" "$time"
+   done
+}
+function bmrt_test_benchmark(){
+    pushd models
+    printf "| %-35s| % 15s |\n" "测试模型" "calculate time(ms)"
+    printf "| %-35s| % 15s |\n" "-------------------" "--------------"
+   
+    if test $TARGET = "BM1684"; then
+      bmrt_test_case BM1684/resnet50_fp32_1b.bmodel
+      bmrt_test_case BM1684/resnet50_int8_1b.bmodel
+      bmrt_test_case BM1684/resnet50_int8_4b.bmodel
+    elif test $TARGET = "BM1684X"; then
+      bmrt_test_case BM1684X/resnet50_fp32_1b.bmodel
+      bmrt_test_case BM1684X/resnet50_fp16_1b.bmodel
+      bmrt_test_case BM1684X/resnet50_int8_1b.bmodel
+      bmrt_test_case BM1684X/resnet50_int8_4b.bmodel
+    elif test $TARGET = "BM1688"; then
+      bmrt_test_case BM1688/resnet50_fp32_1b.bmodel
+      bmrt_test_case BM1688/resnet50_fp16_1b.bmodel
+      bmrt_test_case BM1688/resnet50_int8_1b.bmodel
+      bmrt_test_case BM1688/resnet50_int8_4b.bmodel
+      bmrt_test_case BM1688/resnet50_fp32_1b_2core.bmodel
+      bmrt_test_case BM1688/resnet50_fp16_1b_2core.bmodel
+      bmrt_test_case BM1688/resnet50_int8_1b_2core.bmodel
+      bmrt_test_case BM1688/resnet50_int8_4b_2core.bmodel
+    fi
+    popd
+}
+
 
 if test $PYTEST = "pytest"
 then
@@ -171,6 +228,7 @@ function eval_cpp()
   acc=${result: 0: 5}
   compare_res $acc $4
   judge_ret $? "$3_img_$2_cpp_result: Precision compare!" log/$1_$2_$3_eval.log
+  printf "| %-12s | %-18s | %-25s | %8.2f |\n" "$PLATFORM" "resnet_$2.$1" "$3" "$(printf "%.2f" $acc)" >> ../../scripts/acc.txt
   popd
   echo -e "########################\nCase End: eval cpp\n########################\n"
 }
@@ -198,6 +256,7 @@ function eval_python()
   acc=${result: 0: 5}
   compare_res $acc $3
   judge_ret $? "$2_img_$1_python_result: Precision compare!" python/log/$1_$2_eval.log
+  printf "| %-12s | %-18s | %-25s | %8.2f |\n" "$PLATFORM" "resnet_$1.py" "$2" "$(printf "%.2f" $acc)" >> scripts/acc.txt
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
@@ -288,40 +347,49 @@ then
     eval_cpp soc bmcv    resnet50_int8_4b.bmodel 79.40
   elif test $TARGET = "BM1688"
   then
-    eval_python opencv  resnet50_fp32_1b.bmodel 79.90
-    eval_python opencv  resnet50_fp16_1b.bmodel 79.90
+    eval_python opencv  resnet50_fp32_1b.bmodel 80.10
+    eval_python opencv  resnet50_fp16_1b.bmodel 80.10
     eval_python opencv  resnet50_int8_1b.bmodel 79.90
     eval_python opencv  resnet50_int8_4b.bmodel 79.90
-    eval_python bmcv    resnet50_fp32_1b.bmodel 79.80
-    eval_python bmcv    resnet50_fp16_1b.bmodel 79.80
-    eval_python bmcv    resnet50_int8_1b.bmodel 80.00
-    eval_python bmcv    resnet50_int8_4b.bmodel 80.00
-    eval_cpp soc opencv resnet50_fp32_1b.bmodel 79.90
-    eval_cpp soc opencv resnet50_fp16_1b.bmodel 79.90
-    eval_cpp soc opencv resnet50_int8_1b.bmodel 79.90
-    eval_cpp soc opencv resnet50_int8_4b.bmodel 79.90 
-    eval_cpp soc bmcv   resnet50_fp32_1b.bmodel 79.80
-    eval_cpp soc bmcv   resnet50_fp16_1b.bmodel 79.80
-    eval_cpp soc bmcv   resnet50_int8_1b.bmodel 80.00
-    eval_cpp soc bmcv   resnet50_int8_4b.bmodel 80.00
+    eval_python bmcv    resnet50_fp32_1b.bmodel 80.00
+    eval_python bmcv    resnet50_fp16_1b.bmodel 80.00
+    eval_python bmcv    resnet50_int8_1b.bmodel 80.50
+    eval_python bmcv    resnet50_int8_4b.bmodel 80.50
+    eval_cpp soc opencv resnet50_fp32_1b.bmodel 80.30
+    eval_cpp soc opencv resnet50_fp16_1b.bmodel 80.30
+    eval_cpp soc opencv resnet50_int8_1b.bmodel 80.20
+    eval_cpp soc opencv resnet50_int8_4b.bmodel 80.20 
+    eval_cpp soc bmcv   resnet50_fp32_1b.bmodel 80.00
+    eval_cpp soc bmcv   resnet50_fp16_1b.bmodel 80.00
+    eval_cpp soc bmcv   resnet50_int8_1b.bmodel 80.50
+    eval_cpp soc bmcv   resnet50_int8_4b.bmodel 80.50
     
     eval_python opencv  resnet50_fp32_1b_2core.bmodel 80.10
     eval_python opencv  resnet50_fp16_1b_2core.bmodel 80.10
-    eval_python opencv  resnet50_int8_1b_2core.bmodel 79.80
-    eval_python opencv  resnet50_int8_4b_2core.bmodel 79.80
-    eval_python bmcv    resnet50_fp32_1b_2core.bmodel 79.80
-    eval_python bmcv    resnet50_fp16_1b_2core.bmodel 79.80
-    eval_python bmcv    resnet50_int8_1b_2core.bmodel 80.00
-    eval_python bmcv    resnet50_int8_4b_2core.bmodel 80.00
-    eval_cpp soc opencv resnet50_fp32_1b_2core.bmodel 79.90
-    eval_cpp soc opencv resnet50_fp16_1b_2core.bmodel 79.90
-    eval_cpp soc opencv resnet50_int8_1b_2core.bmodel 80.00
-    eval_cpp soc opencv resnet50_int8_4b_2core.bmodel 80.00 
-    eval_cpp soc bmcv   resnet50_fp32_1b_2core.bmodel 79.80
-    eval_cpp soc bmcv   resnet50_fp16_1b_2core.bmodel 79.80
-    eval_cpp soc bmcv   resnet50_int8_1b_2core.bmodel 80.00
-    eval_cpp soc bmcv   resnet50_int8_4b_2core.bmodel 80.00
+    eval_python opencv  resnet50_int8_1b_2core.bmodel 79.90
+    eval_python opencv  resnet50_int8_4b_2core.bmodel 79.90
+    eval_python bmcv    resnet50_fp32_1b_2core.bmodel 80.00
+    eval_python bmcv    resnet50_fp16_1b_2core.bmodel 80.00
+    eval_python bmcv    resnet50_int8_1b_2core.bmodel 80.50
+    eval_python bmcv    resnet50_int8_4b_2core.bmodel 80.50
+    eval_cpp soc opencv resnet50_fp32_1b_2core.bmodel 80.30
+    eval_cpp soc opencv resnet50_fp16_1b_2core.bmodel 80.30
+    eval_cpp soc opencv resnet50_int8_1b_2core.bmodel 80.20
+    eval_cpp soc opencv resnet50_int8_4b_2core.bmodel 80.20 
+    eval_cpp soc bmcv   resnet50_fp32_1b_2core.bmodel 80.00
+    eval_cpp soc bmcv   resnet50_fp16_1b_2core.bmodel 80.00
+    eval_cpp soc bmcv   resnet50_int8_1b_2core.bmodel 80.50
+    eval_cpp soc bmcv   resnet50_int8_4b_2core.bmodel 80.50
   fi
+fi
+
+if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
+  echo "--------resnet acc----------"
+  cat scripts/acc.txt
+  echo "--------bmrt_test performance-----------"
+  bmrt_test_benchmark
+  echo "--------resnet performance-----------"
+  cat tools/benchmark.txt
 fi
 
 if [ $ALL_PASS -eq 0 ]
