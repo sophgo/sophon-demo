@@ -328,6 +328,7 @@ elif test $MODE = "pcie_test"
 then
   build_pcie bmcv
   download
+  pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
     test_python opencv yolov8s_fp32_1b.bmodel datasets/test
@@ -477,6 +478,7 @@ then
 elif test $MODE = "soc_test"
 then
   download
+  pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
     test_python opencv yolov8s_fp32_1b.bmodel datasets/test
