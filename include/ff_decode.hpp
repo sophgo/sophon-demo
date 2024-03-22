@@ -88,7 +88,7 @@ int map_avformat_to_bmformat(int avformat);
 /**
  * @brief convert avformat to bm_image.
  */
-bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame *in, bm_image *out, bool is_jpeg, bool data_on_device_mem);
+bm_status_t avframe_to_bm_image(bm_handle_t &handle, AVFrame *in, bm_image *out, bool is_jpeg, bool data_on_device_mem, int coded_width=-1, int coded_height=-1);
 
 /**
  * @brief picture decode. support jpg and png
@@ -124,11 +124,15 @@ private:
     int is_rtsp;
     int width;
     int height;
+    int coded_width;
+    int coded_height;
     int pix_fmt;
     bool data_on_device_mem = true;
 
     int video_stream_idx;
     int refcount;
+    // "101" for compressed and "0" for linear 
+    int output_format = 0;
 
     AVFrame *frame;
     AVPacket pkt;
