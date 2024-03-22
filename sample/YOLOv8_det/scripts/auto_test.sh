@@ -331,16 +331,7 @@ then
   pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
-    test_python opencv yolov8s_fp32_1b.bmodel datasets/test
-    test_python opencv yolov8s_int8_1b.bmodel datasets/test
-    test_python opencv yolov8s_int8_4b.bmodel datasets/test
-    test_python bmcv yolov8s_fp32_1b.bmodel datasets/test
-    test_python bmcv yolov8s_int8_1b.bmodel datasets/test
-    test_python bmcv yolov8s_int8_4b.bmodel datasets/test
-    test_cpp pcie bmcv yolov8s_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolov8s_int8_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolov8s_int8_4b.bmodel ../../datasets/test
-
+   
     test_python opencv yolov8s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolov8s_int8_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolov8s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
@@ -372,40 +363,13 @@ then
     eval_cpp pcie bmcv yolov8s_int8_1b.bmodel  0.43571834186276253
     eval_cpp pcie bmcv yolov8s_int8_4b.bmodel  0.43571834186276253 
 
-    test_cpp pcie bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/test
-
-  
-    test_cpp pcie bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-
-    #performence test
-  
-    test_cpp pcie bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-    test_cpp pcie bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/coco/val2017_1000
-    test_cpp pcie bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
   
     eval_cpp pcie bmcv yolov8s_opt_fp32_1b.bmodel 0.44788032746195144
     eval_cpp pcie bmcv yolov8s_opt_int8_1b.bmodel 0.42571834186276253 
     eval_cpp pcie bmcv yolov8s_opt_int8_4b.bmodel 0.42571834186276253  
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv yolov8s_fp32_1b.bmodel datasets/test
-    test_python opencv yolov8s_fp16_1b.bmodel datasets/test
-    test_python opencv yolov8s_int8_1b.bmodel datasets/test
-    test_python opencv yolov8s_int8_4b.bmodel datasets/test
-    test_python bmcv yolov8s_fp32_1b.bmodel datasets/test
-    test_python bmcv yolov8s_fp16_1b.bmodel datasets/test
-    test_python bmcv yolov8s_int8_1b.bmodel datasets/test
-    test_python bmcv yolov8s_int8_4b.bmodel datasets/test
-    test_cpp pcie bmcv yolov8s_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolov8s_fp16_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolov8s_int8_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolov8s_int8_4b.bmodel ../../datasets/test
-
+   
     test_python opencv yolov8s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolov8s_fp16_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolov8s_int8_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -448,16 +412,6 @@ then
 
 
    
-    test_cpp pcie bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolov8s_opt_fp16_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/test
-
-    
-    test_cpp pcie bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv yolov8s_opt_fp16_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
     #performence test
     
@@ -481,15 +435,7 @@ then
   pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
-    test_python opencv yolov8s_fp32_1b.bmodel datasets/test
-    test_python opencv yolov8s_int8_1b.bmodel datasets/test
-    test_python opencv yolov8s_int8_4b.bmodel datasets/test
-    test_python bmcv yolov8s_fp32_1b.bmodel datasets/test
-    test_python bmcv yolov8s_int8_1b.bmodel datasets/test
-    test_python bmcv yolov8s_int8_4b.bmodel datasets/test
-    test_cpp soc bmcv yolov8s_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_int8_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/test
+
 
     test_python opencv yolov8s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolov8s_int8_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -524,15 +470,7 @@ then
     
 
     
-    test_cpp soc bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/test
-
-    
-    test_cpp soc bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-
+   
     #performence test
    
     test_cpp soc bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/coco/val2017_1000
@@ -545,18 +483,7 @@ then
     eval_cpp soc bmcv yolov8s_opt_int8_4b.bmodel  0.42571834186276253
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv yolov8s_fp32_1b.bmodel datasets/test
-    test_python opencv yolov8s_fp16_1b.bmodel datasets/test
-    test_python opencv yolov8s_int8_1b.bmodel datasets/test
-    test_python opencv yolov8s_int8_4b.bmodel datasets/test
-    test_python bmcv yolov8s_fp32_1b.bmodel datasets/test
-    test_python bmcv yolov8s_fp16_1b.bmodel datasets/test
-    test_python bmcv yolov8s_int8_1b.bmodel datasets/test
-    test_python bmcv yolov8s_int8_4b.bmodel datasets/test
-    test_cpp soc bmcv yolov8s_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_fp16_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_int8_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/test
+ 
 
     test_python opencv yolov8s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolov8s_fp16_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -598,24 +525,7 @@ then
     eval_cpp soc bmcv yolov8s_int8_1b.bmodel  0.44346480126650034
     eval_cpp soc bmcv yolov8s_int8_4b.bmodel  0.44346480126650034
 
-   
-    test_cpp soc bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_opt_fp16_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/test
 
-  
-    test_cpp soc bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv yolov8s_opt_fp16_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-
-    #performence test
-    
-    test_cpp soc bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-    test_cpp soc bmcv yolov8s_opt_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-    test_cpp soc bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/coco/val2017_1000
-    test_cpp soc bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
    
     eval_cpp soc bmcv yolov8s_opt_fp32_1b.bmodel  0.44793660381041184
@@ -624,18 +534,8 @@ then
     eval_cpp soc bmcv yolov8s_opt_int8_4b.bmodel  0.44246480126650034
   elif test $TARGET = "BM1688"
   then
-    test_python opencv yolov8s_fp32_1b.bmodel datasets/test
-    test_python opencv yolov8s_fp16_1b.bmodel datasets/test
-    test_python opencv yolov8s_int8_1b.bmodel datasets/test
-    test_python opencv yolov8s_int8_4b.bmodel datasets/test
-    test_python bmcv yolov8s_fp32_1b.bmodel datasets/test
-    test_python bmcv yolov8s_fp16_1b.bmodel datasets/test
-    test_python bmcv yolov8s_int8_1b.bmodel datasets/test
-    test_python bmcv yolov8s_int8_4b.bmodel datasets/test
-    test_cpp soc bmcv yolov8s_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_fp16_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_int8_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/test
+
+
 
     test_python opencv yolov8s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolov8s_fp16_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -649,6 +549,7 @@ then
     test_cpp soc bmcv yolov8s_fp16_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc bmcv yolov8s_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+ 
 
     #performence test
     test_python opencv yolov8s_fp32_1b.bmodel datasets/coco/val2017_1000
@@ -664,6 +565,7 @@ then
     test_cpp soc bmcv yolov8s_int8_1b.bmodel ../../datasets/coco/val2017_1000
     test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
+
     eval_python opencv yolov8s_fp32_1b.bmodel 0.44792962547537846 
     eval_python opencv yolov8s_fp16_1b.bmodel 0.4474406103144259
     eval_python opencv yolov8s_int8_1b.bmodel 0.44363683839012335
@@ -677,6 +579,21 @@ then
     eval_cpp soc bmcv yolov8s_int8_1b.bmodel  0.44312434960861097
     eval_cpp soc bmcv yolov8s_int8_4b.bmodel  0.44312434960861097
 
+
+    test_python opencv yolov8s_fp32_1b_2core.bmodel datasets/coco/val2017_1000
+    test_python opencv yolov8s_fp16_1b_2core.bmodel datasets/coco/val2017_1000
+    test_python opencv yolov8s_int8_1b_2core.bmodel datasets/coco/val2017_1000
+    test_python opencv yolov8s_int8_4b_2core.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolov8s_fp32_1b_2core.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolov8s_fp16_1b_2core.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolov8s_int8_1b_2core.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolov8s_int8_4b_2core.bmodel datasets/coco/val2017_1000
+    test_cpp soc bmcv yolov8s_fp32_1b_2core.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolov8s_fp16_1b_2core.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolov8s_int8_1b_2core.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolov8s_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
+
+
     eval_python opencv yolov8s_fp32_1b_2core.bmodel 0.44792962547537846 
     eval_python opencv yolov8s_fp16_1b_2core.bmodel 0.4474406103144259
     eval_python opencv yolov8s_int8_1b_2core.bmodel 0.44363683839012335
@@ -686,23 +603,12 @@ then
     eval_python bmcv yolov8s_int8_1b_2core.bmodel   0.44295948842732535
     eval_python bmcv yolov8s_int8_4b_2core.bmodel   0.44295948842732535
     eval_cpp soc bmcv yolov8s_fp32_1b_2core.bmodel  0.44793660381041184
-    eval_cpp soc bmcv yolov8s_fp16_1b_2core.bmodel  0.4474323631416696
+    eval_cpp soc bmcv yolov8s_fp16_1b_2core.bmodel  0.4476323631416696
     eval_cpp soc bmcv yolov8s_int8_1b_2core.bmodel  0.44312434960861097
     eval_cpp soc bmcv yolov8s_int8_4b_2core.bmodel  0.44312434960861097
 
 
     
-    test_cpp soc bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_opt_fp16_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/test
-
-    
-    test_cpp soc bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv yolov8s_opt_fp16_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-
     #performence test
     
     test_cpp soc bmcv yolov8s_opt_fp32_1b.bmodel ../../datasets/coco/val2017_1000
@@ -710,13 +616,20 @@ then
     test_cpp soc bmcv yolov8s_opt_int8_1b.bmodel ../../datasets/coco/val2017_1000
     test_cpp soc bmcv yolov8s_opt_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
-    
+
+
     eval_cpp soc bmcv yolov8s_opt_fp32_1b.bmodel  0.44793660381041184
     eval_cpp soc bmcv yolov8s_opt_fp16_1b.bmodel  0.4474323631416696
     eval_cpp soc bmcv yolov8s_opt_int8_1b.bmodel  0.44112434960861097
     eval_cpp soc bmcv yolov8s_opt_int8_4b.bmodel  0.44112434960861097
 
-    
+    test_cpp soc bmcv yolov8s_opt_fp32_1b_2core.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolov8s_opt_fp16_1b_2core.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolov8s_opt_int8_1b_2core.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolov8s_opt_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
+
+
+
     eval_cpp soc bmcv yolov8s_opt_fp32_1b_2core.bmodel  0.44793660381041184
     eval_cpp soc bmcv yolov8s_opt_fp16_1b_2core.bmodel  0.4474323631416696
     eval_cpp soc bmcv yolov8s_opt_int8_1b_2core.bmodel  0.44112434960861097
