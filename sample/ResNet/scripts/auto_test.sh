@@ -272,6 +272,7 @@ elif test $MODE = "pcie_test"
 then
   build_pcie bmcv
   build_pcie opencv
+  pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
   download
   if test $TARGET = "BM1684"
   then
@@ -313,6 +314,7 @@ then
 elif test $MODE = "soc_test"
 then
   download
+  pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
     eval_python opencv  resnet50_fp32_1b.bmodel 80.10
