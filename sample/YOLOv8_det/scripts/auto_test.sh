@@ -636,11 +636,15 @@ then
     eval_cpp soc bmcv yolov8s_opt_int8_4b_2core.bmodel  0.44112434960861097
   fi
 fi
-cat scripts/acc.txt
-echo "-----------------------------"
-cat tools/benchmark.txt
-echo "-----------------------------"
-bmrt_test_benchmark
+
+if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
+  echo "--------yolov8_det mAP----------"
+  cat scripts/acc.txt
+  echo "--------bmrt_test performance-----------"
+  bmrt_test_benchmark
+  echo "--------yolov8_det performance-----------"
+  cat tools/benchmark.txt
+fi
 
 if [ $ALL_PASS -eq 0 ]
 then
