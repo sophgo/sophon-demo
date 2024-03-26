@@ -6,29 +6,36 @@ import sys
 import re
 
 baseline = """
-|    测试平台  |     测试程序            |        测试模型            |decode_time/crop_time|preprocess_time|inference_time|postprocess_time| 
-| ----------- | ----------------       | -------------------------- |  --------           | ---------     | ---------     | --------- |
-| SE5-16      | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp32.bmodel| 37.96               |  25.51        |  25.08        |  13.04    |
-|     ^       |         ^              | ch_PP-OCRv3_rec_fp32.bmodel| 1.67                |  0.60         |  4.11         |  1.37     |
-| SE5-16      | ppocr_bmcv.soc         | ch_PP-OCRv3_det_fp32.bmodel| 7.31                |  5.26         |  14.65        |  3.16     |
-|     ^       |         ^              | ch_PP-OCRv3_rec_fp32.bmodel| 1.45                |  0.96         |  3.05         |  3.11     |
-| SE7-32      | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp32.bmodel| 37.79               |  25.99        |  24.90        |  13.50    |
-|     ^       |         ^              | ch_PP-OCRv3_rec_fp32.bmodel| 1.67                |  0.59         |  3.08         |  1.59     |
-| SE7-32      | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp16.bmodel| 37.58               |  25.79        |  14.16        |  13.30    |
-|     ^       |         ^              | ch_PP-OCRv3_rec_fp16.bmodel| 1.67                |  0.59         |  2.10         |  1.59     |
-| SE7-32      | ppocr_bmcv.soc         | ch_PP-OCRv3_det_fp32.bmodel| 6.72                |  1.31         |  13.59        |  3.44     |
-|     ^       |         ^              | ch_PP-OCRv3_rec_fp32.bmodel| 2.08                |  0.59         |  1.75         |  3.08     |
-| SE7-32      | ppocr_bmcv.soc         | ch_PP-OCRv3_det_fp16.bmodel| 6.72                |  1.30         |  2.78         |  3.53     |
-|     ^       |         ^              | ch_PP-OCRv3_rec_fp16.bmodel| 2.00                |  0.38         |  0.64         |  3.08     |
-| SE9-16      | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp32.bmodel| 49.03               |  34.46        |  83.09        |  19.21    |
-|     ^       |         ^              | ch_PP-OCRv3_rec_fp32.bmodel| 2.40                |  0.83         |  46.75        |  2.03     |
-| SE9-16      | ppocr_system_opencv.py | ch_PP-OCRv3_det_fp16.bmodel| 48.06               |  34.10        |  32.76        |  18.87    |
-|     ^       |         ^              | ch_PP-OCRv3_rec_fp16.bmodel| 2.42                |  0.82         |  8.96         |  1.92     |
-| SE9-16      | ppocr_bmcv.soc         | ch_PP-OCRv3_det_fp32.bmodel| 8.78                |  3.38         |  46.82        |  8.19     |
-|     ^       |         ^              | ch_PP-OCRv3_rec_fp32.bmodel| 0.78                |  0.83         |  10.62        |  4.24     |
-| SE9-16      | ppocr_bmcv.soc         | ch_PP-OCRv3_det_fp16.bmodel| 8.70                |  3.36         |  11.65        |  8.22     |
-|     ^       |         ^              | ch_PP-OCRv3_rec_fp16.bmodel| 0.80                |  0.80         |  2.72         |  4.20     |
-
+|    测试平台  |     测试程序             |            测试模型               |decode_time/crop_time|    preprocess_time  |inference_time      |  postprocess_time    | 
+| ----------- | ----------------        |     --------------------------    |  --------           | ---------           | ---------           |  ---------          |
+| SE5-16      | ppocr_system_opencv.py  |    ch_PP-OCRv3_det_fp32.bmodel    |        37.96        |        25.51        |        25.08        |        13.04        |
+|     ^       |         ^               |    ch_PP-OCRv3_rec_fp32.bmodel    |        1.67         |        0.60         |        4.11         |        1.37         |
+| SE5-16      | ppocr_bmcv.soc          |    ch_PP-OCRv3_det_fp32.bmodel    |        7.31         |        5.26         |        14.65        |        3.16         |
+|     ^       |         ^               |    ch_PP-OCRv3_rec_fp32.bmodel    |        1.45         |        0.96         |        3.05         |        3.11         |
+|   SE7-32    | ppocr_system_opencv.py  |    ch_PP-OCRv3_det_fp32.bmodel    |        33.78        |        25.84        |        25.66        |        13.26        |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp32.bmodel    |        1.66         |        0.59         |        3.22         |        1.60         |
+|   SE7-32    | ppocr_system_opencv.py  |    ch_PP-OCRv3_det_fp16.bmodel    |        33.79        |        26.05        |        14.32        |        13.17        |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp16.bmodel    |        1.67         |        0.60         |        2.18         |        1.60         |
+|   SE7-32    |     ppocr_bmcv.soc      |    ch_PP-OCRv3_det_fp32.bmodel    |        5.66         |        1.32         |        14.21        |        3.38         |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp32.bmodel    |        0.67         |        0.18         |        1.74         |        2.97         |
+|   SE7-32    |     ppocr_bmcv.soc      |    ch_PP-OCRv3_det_fp16.bmodel    |        5.66         |        1.32         |        2.87         |        3.38         |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp16.bmodel    |        0.67         |        0.18         |        0.61         |        2.98         |
+|   SE9-16    | ppocr_system_opencv.py  |    ch_PP-OCRv3_det_fp32.bmodel    |        53.49        |        33.75        |        60.79        |        18.13        |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp32.bmodel    |        2.31         |        0.81         |        11.78        |        1.92         |
+|   SE9-16    | ppocr_system_opencv.py  |    ch_PP-OCRv3_det_fp16.bmodel    |        53.15        |        33.64        |        26.31        |        18.06        |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp16.bmodel    |        2.32         |        0.81         |        4.47         |        1.92         |
+|   SE9-16    |     ppocr_bmcv.soc      |    ch_PP-OCRv3_det_fp32.bmodel    |        16.04        |        3.22         |        46.75        |        4.72         |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp32.bmodel    |        0.80         |        0.61         |        10.42        |        4.16         |
+|   SE9-16    |     ppocr_bmcv.soc      |    ch_PP-OCRv3_det_fp16.bmodel    |        16.58        |        3.22         |        11.64        |        4.75         |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp16.bmodel    |        0.80         |        0.61         |        2.62         |        4.18         |
+|   SE9-16    | ppocr_system_opencv.py  | ch_PP-OCRv3_det_fp32_2core.bmodel |        52.67        |        33.78        |        40.89        |        18.09        |
+|      ^      |            ^            | ch_PP-OCRv3_rec_fp32_2core.bmodel |        2.32         |        0.80         |        8.01         |        1.92         |
+|   SE9-16    | ppocr_system_opencv.py  | ch_PP-OCRv3_det_fp16_2core.bmodel |        53.29        |        33.72        |        22.14        |        18.04        |
+|      ^      |            ^            | ch_PP-OCRv3_rec_fp16_2core.bmodel |        2.31         |        0.81         |        3.94         |        1.92         |
+|   SE9-16    |     ppocr_bmcv.soc      | ch_PP-OCRv3_det_fp32_2core.bmodel |        16.63        |        3.22         |        25.97        |        4.92         |
+|      ^      |            ^            | ch_PP-OCRv3_rec_fp32_2core.bmodel |        0.80         |        0.60         |        6.84         |        4.17         |
+|   SE9-16    |     ppocr_bmcv.soc      | ch_PP-OCRv3_det_fp16_2core.bmodel |        17.66        |        3.22         |        7.61         |        4.76         |
+|      ^      |            ^            | ch_PP-OCRv3_rec_fp16_2core.bmodel |        0.80         |        0.60         |        2.15         |        4.18         |
 """
 table_data = {
     "platform": [],
