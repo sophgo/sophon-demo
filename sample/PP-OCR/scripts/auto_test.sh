@@ -11,9 +11,6 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
-if [ -f "tools/benchmark.txt" ]; then
-  rm tools/benchmark.txt
-fi
 
 usage() 
 {
@@ -47,10 +44,81 @@ do
   esac
 done
 
-if test $PYTEST = "pytest"
-then
-  >${top_dir}auto_test_result.txt
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
 fi
+
+if [ -f "scripts/acc.txt" ]; then
+  rm scripts/acc.txt
+fi
+echo "|   测试平台    |      测试程序           |   模型精度   | F-score |" >> scripts/acc.txt
+PLATFORM=$TARGET
+
+if test $MODE = "soc_test"; then
+  if test $TARGET = "BM1684X"; then
+    PLATFORM="SE7-32"
+  elif test $TARGET = "BM1684"; then
+    PLATFORM="SE5-16"
+  elif test $TARGET = "BM1688"; then
+    PLATFORM="SE9-16"
+  else
+    echo "Unknown TARGET type: $TARGET"
+  fi
+fi
+
+function bmrt_test_case(){
+   calculate_time_log=$(bmrt_test --bmodel $1 | grep "calculate" 2>&1)
+   is_4b=$(echo $1 |grep "4b")
+
+   if [ "$is_4b" != "" ]; then
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 250}')
+   else
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 1000}')
+   fi
+
+   stage=0
+   for time in "${calculate_times[@]}"
+   do
+     if test $stage = 0; then
+        printf "| %-41s| % 7s | % 15s |\n" "$1" "$stage" "$time"
+     else
+        printf "| %-41s| % 7s | % 15s |\n" "^" "$stage" "$time"
+     fi
+     stage=$(expr $stage + 1)
+   done
+}
+function bmrt_test_benchmark(){
+    pushd models
+    printf "| %-35s| % 7s | % 15s |\n" "测试模型" "stage" "calculate time(ms)"
+   
+    if test $TARGET = "BM1684"; then
+      bmrt_test_case BM1684/ch_PP-OCRv3_det_fp32.bmodel
+      bmrt_test_case BM1684/ch_PP-OCRv3_rec_fp32.bmodel
+      bmrt_test_case BM1684/ch_PP-OCRv3_cls_fp32.bmodel
+    elif test $TARGET = "BM1684X"; then
+      bmrt_test_case BM1684X/ch_PP-OCRv3_det_fp32.bmodel
+      bmrt_test_case BM1684X/ch_PP-OCRv3_rec_fp32.bmodel
+      bmrt_test_case BM1684X/ch_PP-OCRv3_cls_fp32.bmodel
+      bmrt_test_case BM1684X/ch_PP-OCRv3_det_fp16.bmodel
+      bmrt_test_case BM1684X/ch_PP-OCRv3_rec_fp16.bmodel
+      bmrt_test_case BM1684X/ch_PP-OCRv3_cls_fp16.bmodel
+    elif test $TARGET = "BM1688"; then
+      bmrt_test_case BM1688/ch_PP-OCRv3_det_fp32.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv3_rec_fp32.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv3_cls_fp32.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv3_det_fp16.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv3_rec_fp16.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv3_cls_fp16.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv3_det_fp32_2core.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv3_rec_fp32_2core.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv3_cls_fp32_2core.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv3_det_fp16_2core.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv3_rec_fp16_2core.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv3_cls_fp16_2core.bmodel
+    fi
+    popd
+}
+
 
 function judge_ret() {
   if [[ $1 == 0 ]]; then
@@ -182,6 +250,9 @@ function eval_cpp()
   compare_res $f_score $4
   judge_ret $? "$3_$2_cpp_result: Precision compare!" log/$1_$2_$3_eval.log
   popd
+
+  printf "| %-12s | %-25s | %-10s | %8.3f |\n" "$PLATFORM" "ppocr_$2.$1" "$3" "$(printf "%.3f" $f_score)" >> scripts/acc.txt
+
   echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 
@@ -213,6 +284,9 @@ function eval_python()
   judge_ret $? "$2_$1_python_result: Precision compare!" log/$1_$2_eval.log
 
   popd
+
+  printf "| %-12s | %-25s | %-10s | %8.3f |\n" "$PLATFORM" "ppocr_system_$1.py" "$2" "$(printf "%.3f" $f_score)" >> scripts/acc.txt
+
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
@@ -227,7 +301,7 @@ then
 elif test $MODE = "pcie_test"
 then
   build_pcie bmcv
-  pip3 install -r python/requirements.txt
+  pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
   download
   if test $TARGET = "BM1684"
   then
@@ -245,7 +319,7 @@ then
   build_soc bmcv
 elif test $MODE = "soc_test"
 then
-  pip3 install -r python/requirements.txt
+  pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
   download
   if test $TARGET = "BM1684"
   then
@@ -260,14 +334,23 @@ then
   elif test $TARGET = "BM1688"
   then
     eval_python opencv fp32 0.575
-    eval_python opencv fp16 0.574
-    eval_cpp soc bmcv fp32  0.556
-    eval_cpp soc bmcv fp16  0.555
+    eval_python opencv fp16 0.575
+    eval_cpp soc bmcv fp32  0.571
+    eval_cpp soc bmcv fp16  0.571
     eval_python opencv fp32_2core 0.575
-    eval_python opencv fp16_2core 0.574
-    eval_cpp soc bmcv fp32_2core  0.556
-    eval_cpp soc bmcv fp16_2core  0.555
+    eval_python opencv fp16_2core 0.575
+    eval_cpp soc bmcv fp32_2core  0.571
+    eval_cpp soc bmcv fp16_2core  0.571
   fi
+fi
+
+if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
+  echo "--------ppocr mAP----------"
+  cat scripts/acc.txt
+  echo "--------bmrt_test performance-----------"
+  bmrt_test_benchmark
+  echo "--------ppocr performance-----------"
+  cat tools/benchmark.txt
 fi
 
 if [[ $ALL_PASS -eq 0 ]]
