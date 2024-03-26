@@ -379,32 +379,41 @@ sudo rpm -e sophon-libsophon
 For other platform machines, please refer to "LIBSOPHON Manual".
 
 ### 6.2 Installation of sophon-ffmpeg and sophon-opencv
-Download the [Compatible](../README_EN.md#environment-dependencies) sophon-mw installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the installation package consists of four files:
+Download the [Compatible](../README_EN.md#environment-dependencies) sophon-mw installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index/material/28/all.html), the installation package is:
 ```bash
-sophon-mw-sophon-ffmpeg_{x.y.z}_riscv64.rpm
-sophon-mw-sophon-ffmpeg-dev_{x.y.z}_riscv64.rpm
-sophon-mw-sophon-opencv-abi0_{x.y.z}_riscv64.rpm
-sophon-mw-sophon-opencv-abi0-dev_{x.y.z}_riscv64.rpm
+sophon-mw_{x.y.z}_riscv.tar.gz
 ```
-Of which: 
 
-1. sophon-ffmpeg/sophon-opencv contains the ffmpeg/opencv runtime environment (libraries, tools, etc.); sophon-ffmpeg-dev/sophon-opencv-dev contains the development environment (headers, pkgconfig, cmake, etc.). If you’re just installing on a deployment environment, you don’t need to install sophon-ffmpeg-dev/sophon-opencv-dev
-2. sophon-mw-sophon-ffmpeg depends on the sophon-libsophon package, and sophon-mw-sophon-opencv depends on sophon-mw-sophon-ffmpeg, so libsophon must be installed first in the installation order, then sophon-mw-sophon-ffmpeg, Finally install sophon-mw-sophon-opencv.
-
-Before installing, you should uninstall old version refer to "Uninstallation" part. Then install by these steps:
+Before installing, confirm you have already installed libsophon. If you have older version on your environment, you should uninstall old version refer to "Uninstallation" part. Then install by these steps:
 ```bash
-sudo rpm -ivh sophon-mw-sophon-ffmpeg_{x.y.z}_riscv64.rpm sophon-mw-sophon-ffmpeg-dev_{x.y.z}_riscv64.rpm
-sudo rpm -ivh sophon-mw-sophon-opencv-abi0_{x.y.z}_riscv64.rpm sophon-mw-sophon-opencv-abi0-dev_{x.y.z}_riscv64.rpm
-#Execute this command, or logout and login
+tar -xzvf sophon-mw_{x.y.z}_riscv_64.tar.gz
+sudo cp -r sophon-mw_{x.y.z}_riscv_64/* /
+sudo ln -s /opt/sophon/sophon-ffmpeg_{x.y.z} /opt/sophon/sophon-ffmpeg-latest
+sudo ln -s /opt/sophon/sophon-opencv_{x.y.z} /opt/sophon/sophon-opencv-latest
+sudo ln -s /opt/sophon/sophon-sample_{x.y.z} /opt/sophon/sophon-sample-latest
+sudo sed -i "s/usr\/local/opt\/sophon\/sophon-ffmpeg-latest/g" /opt/sophon/sophon-ffmpeg-latest/lib/pkgconfig/*.pc
+sudo sed -i "s/^prefix=.*$/prefix=\/opt\/sophon\/sophon-opencv-latest/g" /opt/sophon/sophon-opencv-latest/lib/pkgconfig/opencv4.pc
+sudo cp /opt/sophon/sophon-ffmpeg-latest/data/01_sophon-ffmpeg.conf /etc/ld.so.conf.d/
+sudo cp /opt/sophon/sophon-opencv-latest/data/02_sophon-opencv.conf /etc/ld.so.conf.d/
+sudo ldconfig
+sudo cp /opt/sophon/sophon-ffmpeg-latest/data/sophon-ffmpeg-autoconf.sh /etc/profile.d/
+sudo cp /opt/sophon/sophon-opencv-latest/data/sophon-opencv-autoconf.sh /etc/profile.d/
+sudo cp /opt/sophon/sophon-sample-latest/data/sophon-sample-autoconf.sh /etc/profile.d/
 source /etc/profile
 ```
 
 Uninstallation:
 ```bash
-sudo rpm -e sophon-mw-sophon-opencv-dev
-sudo rpm -e sophon-mw-sophon-opencv
-sudo rpm -e sophon-mw-sophon-ffmpeg-dev
-sudo rpm -e sophon-mw-sophon-ffmpeg
+sudo rm -f /etc/ld.so.conf.d/01_sophon-ffmpeg.conf
+sudo rm -f /etc/ld.so.conf.d/02_sophon-opencv.conf
+sudo ldconfig
+sudo rm -f /etc/profile.d/sophon-ffmpeg-autoconf.sh
+sudo rm -f /etc/profile.d/sophon-opencv-autoconf.sh
+sudo rm -f /etc/profile.d/sophon-sample-autoconf.sh
+sudo rm -f /opt/sophon/sophon-ffmpeg-latest
+sudo rm -f /opt/sophon/sophon-opencv-latest
+sudo rm -f /opt/sophon/sophon-sample-latest
+sudo rm -rf /opt/sophon/sophon-ffmpeg_{x.y.z} /opt/sophon/sophon-opencv_{x.y.z} /opt/sophon/sophon-sample_{x.y.z}
 ```
 
 For other platform machines, please refer to "MULTIMEDIA User Manual", "Multimedia Development Reference Manual".
