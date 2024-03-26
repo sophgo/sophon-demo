@@ -134,10 +134,10 @@ F-score: 0.57488, Precision: 0.80639, Recall: 0.44665
 | SE7-32       | ppocr_system_opencv.py  | fp16         | 0.575   |
 | SE7-32       | ppocr_bmcv.pcie         | fp32         | 0.572   |
 | SE7-32       | ppocr_bmcv.pcie         | fp16         | 0.572   |
-| SE9-16       | ppocr_system_opencv.py  | fp32         | 0.575   |
-| SE9-16       | ppocr_system_opencv.py  | fp16         | 0.574   |
-| SE9-16       | ppocr_bmcv.soc          | fp32         | 0.570   |
-| SE9-16       | ppocr_bmcv.soc          | fp16         | 0.569   |
+| SE9-16       | ppocr_system_opencv.py    | fp32       |    0.575 |
+| SE9-16       | ppocr_system_opencv.py    | fp16       |    0.575 |
+| SE9-16       | ppocr_bmcv.soc            | fp32       |    0.571 |
+| SE9-16       | ppocr_bmcv.soc            | fp16       |    0.571 |
 
 > **测试说明**：  
 > 1. 模型精度为fp32(fp16)，即代表检测模型和识别模型都是fp32(fp16)的精度；
@@ -180,38 +180,39 @@ bmrt_test --bmodel models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel
 |                 ^                         |  3  |   3.34        |
 |    BM1684X/ch_PP-OCRv3_cls_fp16.bmodel    |  0  |   0.20        |
 |                 ^                         |  1  |   0.16        |
-| BM1688/ch_PP-OCRv3_det_fp32.bmodel        |  0  | 47.7          |
-|                 ^                         |  1  | 187.3         |
-| BM1688/ch_PP-OCRv3_rec_fp32.bmodel        |  0  | 9.3           |
-|                 ^                         |  1  | 16.3          |
-|                 ^                         |  2  | 32.1          |
-|                 ^                         |  3  | 60.5          |
-| BM1688/ch_PP-OCRv3_cls_fp32.bmodel        |  0  | 1.4           |
-|                 ^                         |  1  | 1.3           |
-| BM1688/ch_PP-OCRv3_det_fp16.bmodel        |  0  | 12.7          |
-|                 ^                         |  1  | 46.6          |
-| BM1688/ch_PP-OCRv3_rec_fp16.bmodel        |  0  | 3.6           |
-|                 ^                         |  1  | 4.0           |
-|                 ^                         |  2  | 7.8           |
-|                 ^                         |  3  | 14.5          |
-| BM1688/ch_PP-OCRv3_cls_fp16.bmodel        |  0  | 1.3           |
-|                 ^                         |  1  | 0.6           |
-| BM1688/ch_PP-OCRv3_det_fp32_2core.bmodel  |  0  | 33.0          |
-|                 ^                         |  1  | 103.9         |
-| BM1688/ch_PP-OCRv3_rec_fp32_2core.bmodel  |  0  | 7.3           |
-|                 ^                         |  1  | 11.9          |
-|                 ^                         |  2  | 18.4          |
-|                 ^                         |  3  | 35.7          |
-| BM1688/ch_PP-OCRv3_cls_fp32_2core.bmodel  |  0  | 1.4           |
-|                 ^                         |  1  | 1.1           |
-| BM1688/ch_PP-OCRv3_det_fp16_2core.bmodel  |  0  | 9.6           |
-|                 ^                         |  1  | 30.5          |
-| BM1688/ch_PP-OCRv3_rec_fp16_2core.bmodel  |  0  | 3.6           |
-|                 ^                         |  1  | 3.4           |
-|                 ^                         |  2  | 5.9           |
-|                 ^                         |  3  | 10.4          |
-| BM1688/ch_PP-OCRv3_cls_fp16_2core.bmodel  |  0  | 1.3           |
-|                 ^                         |  1  | 0.5           |
+| BM1688/ch_PP-OCRv3_det_fp32.bmodel      |       0 |          50.83  |
+| ^                                       |       1 |         207.02  |
+| BM1688/ch_PP-OCRv3_rec_fp32.bmodel      |       0 |           8.70  |
+| ^                                       |       1 |          16.84  |
+| ^                                       |       2 |          33.31  |
+| ^                                       |       3 |          62.87  |
+| BM1688/ch_PP-OCRv3_cls_fp32.bmodel      |       0 |           0.64  |
+| ^                                       |       1 |           1.29  |
+| BM1688/ch_PP-OCRv3_det_fp16.bmodel      |       0 |          14.80  |
+| ^                                       |       1 |          59.66  |
+| BM1688/ch_PP-OCRv3_rec_fp16.bmodel      |       0 |           3.04  |
+| ^                                       |       1 |           4.62  |
+| ^                                       |       2 |           8.91  |
+| ^                                       |       3 |          16.87  |
+| BM1688/ch_PP-OCRv3_cls_fp16.bmodel      |       0 |           0.47  |
+| ^                                       |       1 |           0.60  |
+| BM1688/ch_PP-OCRv3_det_fp32_2core.bmodel|       0 |          36.28  |
+| ^                                       |       1 |         123.79  |
+| BM1688/ch_PP-OCRv3_rec_fp32_2core.bmodel|       0 |           6.78  |
+| ^                                       |       1 |          12.52  |
+| ^                                       |       2 |          19.68  |
+| ^                                       |       3 |          38.30  |
+| BM1688/ch_PP-OCRv3_cls_fp32_2core.bmodel|       0 |           0.65  |
+| ^                                       |       1 |           1.20  |
+| BM1688/ch_PP-OCRv3_det_fp16_2core.bmodel|       0 |          11.68  |
+| ^                                       |       1 |          43.56  |
+| BM1688/ch_PP-OCRv3_rec_fp16_2core.bmodel|       0 |           3.04  |
+| ^                                       |       1 |           3.98  |
+| ^                                       |       2 |           7.01  |
+| ^                                       |       3 |          12.82  |
+| BM1688/ch_PP-OCRv3_cls_fp16_2core.bmodel|       0 |           0.49  |
+| ^                                       |       1 |           0.45  |
+
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -235,14 +236,22 @@ bmrt_test --bmodel models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel
 |      ^      |            ^            |    ch_PP-OCRv3_rec_fp32.bmodel    |        0.67         |        0.18         |        1.74         |        2.97         |
 |   SE7-32    |     ppocr_bmcv.soc      |    ch_PP-OCRv3_det_fp16.bmodel    |        5.66         |        1.32         |        2.87         |        3.38         |
 |      ^      |            ^            |    ch_PP-OCRv3_rec_fp16.bmodel    |        0.67         |        0.18         |        0.61         |        2.98         |
-| SE9-16      | ppocr_system_opencv.py  |    ch_PP-OCRv3_det_fp32.bmodel    |        49.03        |        34.46        |        83.09        |        19.21        |
-|     ^       |         ^               |    ch_PP-OCRv3_rec_fp32.bmodel    |        2.40         |        0.83         |        46.75        |        2.03         |
-| SE9-16      | ppocr_system_opencv.py  |    ch_PP-OCRv3_det_fp16.bmodel    |        48.06        |        34.10        |        32.76        |        18.87        |
-|     ^       |         ^               |    ch_PP-OCRv3_rec_fp16.bmodel    |        2.42         |        0.82         |        8.96         |        1.92         |
-| SE9-16      | ppocr_bmcv.soc          |    ch_PP-OCRv3_det_fp32.bmodel    |        8.78         |        3.38         |        46.82        |        8.19         |
-|     ^       |         ^               |    ch_PP-OCRv3_rec_fp32.bmodel    |        0.78         |        0.83         |        10.62        |        4.24         |
-| SE9-16      | ppocr_bmcv.soc          |    ch_PP-OCRv3_det_fp16.bmodel    |        8.70         |        3.36         |        11.65        |        8.22         |
-|     ^       |         ^               |    ch_PP-OCRv3_rec_fp16.bmodel    |        0.80         |        0.80         |        2.72         |        4.20         |
+|   SE9-16    | ppocr_system_opencv.py  |    ch_PP-OCRv3_det_fp32.bmodel    |        53.49        |        33.75        |        60.79        |        18.13        |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp32.bmodel    |        2.31         |        0.81         |        11.78        |        1.92         |
+|   SE9-16    | ppocr_system_opencv.py  |    ch_PP-OCRv3_det_fp16.bmodel    |        53.15        |        33.64        |        26.31        |        18.06        |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp16.bmodel    |        2.32         |        0.81         |        4.47         |        1.92         |
+|   SE9-16    |     ppocr_bmcv.soc      |    ch_PP-OCRv3_det_fp32.bmodel    |        16.04        |        3.22         |        46.75        |        4.72         |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp32.bmodel    |        0.80         |        0.61         |        10.42        |        4.16         |
+|   SE9-16    |     ppocr_bmcv.soc      |    ch_PP-OCRv3_det_fp16.bmodel    |        16.58        |        3.22         |        11.64        |        4.75         |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp16.bmodel    |        0.80         |        0.61         |        2.62         |        4.18         |
+|   SE9-16    | ppocr_system_opencv.py  | ch_PP-OCRv3_det_fp32_2core.bmodel |        52.67        |        33.78        |        40.89        |        18.09        |
+|      ^      |            ^            | ch_PP-OCRv3_rec_fp32_2core.bmodel |        2.32         |        0.80         |        8.01         |        1.92         |
+|   SE9-16    | ppocr_system_opencv.py  | ch_PP-OCRv3_det_fp16_2core.bmodel |        53.29        |        33.72        |        22.14        |        18.04        |
+|      ^      |            ^            | ch_PP-OCRv3_rec_fp16_2core.bmodel |        2.31         |        0.81         |        3.94         |        1.92         |
+|   SE9-16    |     ppocr_bmcv.soc      | ch_PP-OCRv3_det_fp32_2core.bmodel |        16.63        |        3.22         |        25.97        |        4.92         |
+|      ^      |            ^            | ch_PP-OCRv3_rec_fp32_2core.bmodel |        0.80         |        0.60         |        6.84         |        4.17         |
+|   SE9-16    |     ppocr_bmcv.soc      | ch_PP-OCRv3_det_fp16_2core.bmodel |        17.66        |        3.22         |        7.61         |        4.76         |
+|      ^      |            ^            | ch_PP-OCRv3_rec_fp16_2core.bmodel |        0.80         |        0.60         |        2.15         |        4.18         |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
