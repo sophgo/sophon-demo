@@ -5,7 +5,7 @@
 ## Introduction
 Sophon Demo is developed based on the SophonSDK interface and provides a series of samples for mainstream algorithms. It includes model compilation and quantization based on TPU-NNTC and TPU-MLIR, inference engine porting based on BMRuntime, and pre and post-processing algorithm migration based on BMCV/OpenCV.
 
-SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI processor, covering model optimization, efficient runtime support, and other capabilities required for the inference phase of neural networks, providing an easy-to-use and efficient full-stack solution for deep learning application development and deployment. It is currently compatible with BM1684/BM1684X/BM1688.
+SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI processor, covering model optimization, efficient runtime support, and other capabilities required for the inference phase of neural networks, providing an easy-to-use and efficient full-stack solution for deep learning application development and deployment. It is currently compatible with BM1684/BM1684X/BM1688(CV186AH), while CV186AH can directly use BM1688's single core bmodels.
 
 ## Directory Structure and Description.
 The examples provided by sophon-demo are divided into three modules: `tutorial`, `sample`, and `application`, the `tutorial` module stores some examples of basic interfaces, the `sample` module stores some serial examples of classic algorithms on SOPHONSDK, and the `application` module stores some typical applications in typical scenarios.
@@ -88,7 +88,7 @@ Sophon Demo mainly depends on tpu-mlir, tpu-nntc, libsophon, sophon-ffmpeg, soph
 | 0.1.0  | Not support| >=3.1.3 | >=0.3.0 | >=0.2.4     | >=0.2.4     | >=3.1.0   |    -        |
 > **Note**: 
 > 1. The version requirements may vary from sample to sample, depending on the README of the routine, and other third-party libraries may need to be installed.
-> 2. BM1688 SDK is not the same as BM1684/BM1684X, it is not released on our official site yet, you can contact us to get BM1688 SDK if you are interested in BM1688.
+> 2. SDK for BM1688(CV186AH) is not the same as BM1684/BM1684X, it is not released on our official site yet, you can contact us to get BM1688 SDK if you are interested in BM1688.
 
 ## Technical Data
 
