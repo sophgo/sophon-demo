@@ -1,14 +1,14 @@
 [简体中文](./README.md) | [English](./README_EN.md)
 
-## Introduction to sophon-demo
+## Introduction to SOPHON-DEMO
 
 ## Introduction
-Sophon Demo is developed based on the SophonSDK interface and provides a series of samples for mainstream algorithms. It includes model compilation and quantization based on TPU-NNTC and TPU-MLIR, inference engine porting based on BMRuntime, and pre and post-processing algorithm migration based on BMCV/OpenCV.
+SOPHON-DEMO is developed based on the SOPHONSDK interface and provides a series of samples for mainstream algorithms. It includes model compilation and quantization based on TPU-NNTC and TPU-MLIR, inference engine porting based on BMRuntime, and pre and post-processing algorithm migration based on BMCV/OpenCV.
 
-SophonSDK is a custom deep learning SDK of Sophon based on its self-developed AI processor, covering model optimization, efficient runtime support, and other capabilities required for the inference phase of neural networks, providing an easy-to-use and efficient full-stack solution for deep learning application development and deployment. It is currently compatible with BM1684/BM1684X/BM1688(CV186AH), while CV186AH can directly use BM1688's single core bmodels.
+SOPHONSDK is a custom deep learning SDK of SOPHGO based on its self-developed AI processor, covering model optimization, efficient runtime support, and other capabilities required for the inference phase of neural networks, providing an easy-to-use and efficient full-stack solution for deep learning application development and deployment. It is currently compatible with BM1684/BM1684X/BM1688(CV186AH), while CV186AH can directly use BM1688's single core bmodels.
 
 ## Directory Structure and Description.
-The examples provided by sophon-demo are divided into three modules: `tutorial`, `sample`, and `application`, the `tutorial` module stores some examples of basic interfaces, the `sample` module stores some serial examples of classic algorithms on SOPHONSDK, and the `application` module stores some typical applications in typical scenarios.
+The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`, `sample`, and `application`, the `tutorial` module stores some examples of basic interfaces, the `sample` module stores some serial examples of classic algorithms on SOPHONSDK, and the `application` module stores some typical applications in typical scenarios.
 
 | tutorial                                                                  | code    | 
 |---                                                                        |---         | 
@@ -71,8 +71,8 @@ The examples provided by sophon-demo are divided into three modules: `tutorial`,
 | 0.1.0 | Provide LPRNet and other 10 samples, support BM1684X (x86 PCIe, SoC), BM1684 (x86 PCIe, SoC) |
 
 ## Environment dependencies
-Sophon Demo mainly depends on tpu-mlir, tpu-nntc, libsophon, sophon-ffmpeg, sophon-opencv, sophon-sail, whose version requirements are as follows:  
-|sophon-demo|tpu-mlir |tpu-nntc |libsophon|sophon-ffmpeg|sophon-opencv|sophon-sail| Release Date |
+SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, whose version requirements are as follows:  
+|SOPHON-DEMO|TPU-MLIR |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| Release Date |
 |--------|------------| --------|---------|---------    |----------   | ------    | ----------    |
 | 0.2.0  | >=1.6       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=23.10.01|
 | 0.1.10 | >=1.2.2    | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.7.0   | >=23.07.01  |
@@ -92,15 +92,15 @@ Sophon Demo mainly depends on tpu-mlir, tpu-nntc, libsophon, sophon-ffmpeg, soph
 
 ## Technical Data
 
-Please get the related documents, materials and video tutorials through [Technical Materials](https://developer.sophgo.com/site/index.html) on the official website of Sophon.
+Please get the related documents, materials and video tutorials through [Technical Materials](https://developer.sophgo.com/site/index.html) on the official website of SOPHGO.
 
 ## Community
 
-The Sophon community encourages developers to communicate and learn together. Developers can communicate and learn through the following channels.
+The SOPHGO community encourages developers to communicate and learn together. Developers can communicate and learn through the following channels.
 
-Sophon community website: https://www.sophgo.com/
+SOPHGO community website: https://www.sophgo.com/
 
-Sophon Developer Forum: https://developer.sophgo.com/forum/index.html
+SOPHGO Developer Forum: https://developer.sophgo.com/forum/index.html
 
 
 ## Contribution
