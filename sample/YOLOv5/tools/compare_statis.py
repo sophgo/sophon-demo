@@ -3,6 +3,7 @@ import argparse
 import math
 import os
 import sys
+import multiprocessing
 
 baseline = """
 |    测试平台  |     测试程序      |             测试模型                |decode_time    |preprocess_time  |inference_time   |postprocess_time| 
@@ -151,6 +152,8 @@ if __name__ == '__main__':
             platform = "SE5-16"
         elif args.target == "BM1688":
             platform = "SE9-16"
+            if multiprocessing.cpu_count() == 6:
+                platform = "SE9-8"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 17
