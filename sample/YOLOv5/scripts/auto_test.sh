@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -74,7 +74,9 @@ if test $MODE = "soc_test"; then
     cpu_core_num=$(nproc)
     if [ "$cpu_core_num" -eq 6 ]; then
       PLATFORM="SE9-8"
-    fi 
+    fi
+  elif test $TARGET = "CV186X"; then
+    PLATFORM="SE9-8"
   else
     echo "Unknown TARGET type: $TARGET"
   fi
@@ -119,7 +121,13 @@ function bmrt_test_benchmark(){
         bmrt_test_case BM1688/yolov5s_v6.1_3output_int8_1b_2core.bmodel
         bmrt_test_case BM1688/yolov5s_v6.1_3output_int8_4b_2core.bmodel
       fi
+    elif test $TARGET = "CV186X"; then
+      bmrt_test_case CV186X/yolov5s_v6.1_3output_fp32_1b.bmodel
+      bmrt_test_case CV186X/yolov5s_v6.1_3output_fp16_1b.bmodel
+      bmrt_test_case CV186X/yolov5s_v6.1_3output_int8_1b.bmodel
+      bmrt_test_case CV186X/yolov5s_v6.1_3output_int8_4b.bmodel
     fi
+  
     popd
 }
 
@@ -686,7 +694,7 @@ then
     eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.353
     eval_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.358
     eval_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel 0.358
-  elif test $TARGET = "BM1688"
+  elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
     test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
