@@ -24,11 +24,11 @@
 * [9. FAQ](#9-faq)
   
 ## 1. Introduction
-YOLOv5 is a very classical One Stage target detection algorithm based on anchor. Because of its excellent accuracy and speed performance, it has been widely used in engineering practice. This example [​YOLOv5 official open source repository](https://github.com/ultralytics/yolov5) transplants the v6.1 version of the model and algorithm so that it can be inference tested on SOPHON BM1684/BM1684X/BM1688.
+YOLOv5 is a very classical One Stage target detection algorithm based on anchor. Because of its excellent accuracy and speed performance, it has been widely used in engineering practice. This example [​YOLOv5 official open source repository](https://github.com/ultralytics/yolov5) transplants the v6.1 version of the model and algorithm so that it can be inference tested on SOPHON BM1684/BM1684X/BM1688/CV186AH, while CV186AH can directly use BM1688's single core bmodels.
 
 ## 2. Characteristics
 ### 2.1 SDK Characteristics
-* Support for BM1688(SoC)/BM1684X(x86 PCIe、SoC)/BM1684(x86 PCIe、SoC、arm PCIe)
+* Support for BM1688/CV186AH(SoC), BM1684X(x86 PCIe、SoC), BM1684(x86 PCIe、SoC、arm PCIe)
 * Support for FP32, FP16 (BM1688/BM1684X), INT8 model compilation and inference
 * Support C++ inference based on BMCV preprocessing
 * Support Python inference based on OpenCV and BMCV preprocessing
@@ -82,10 +82,10 @@ Downloaded models include:
 │   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # Compiled with TPU-MLIR, INT8 BModel,batch_size=1 for BM1684X
 │   └── yolov5s_v6.1_3output_int8_4b.bmodel       # Compiled with TPU-MLIR, INT8 BModel,batch_size=4 for BM1684X
 ├── BM1688
-│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688
-│   ├── yolov5s_v6.1_3output_int8_4b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688/CV186AH
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688/CV186AH
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688/CV186AH
+│   ├── yolov5s_v6.1_3output_int8_4b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688/CV186AH
 │   ├── yolov5s_v6.1_3output_fp16_1b_2core.bmodel # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=2 for BM1688
 │   ├── yolov5s_v6.1_3output_fp32_1b_2core.bmodel # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=2 for BM1688
 │   ├── yolov5s_v6.1_3output_int8_1b_2core.bmodel # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=2 for BM1688
@@ -226,8 +226,7 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. On 
 > 1. The model mAP of batch_size=4 and batch_size=1 is the same.
 > 2. Due to possible differences between SDK versions, it is normal for the mAP error of <0.01 between the actual running results and this table;
 > 3. AP@IoU=0.5:0.95 is the corresponding indicator of area=all.
-> 4. On a PCIe or SoC platform equipped with the same TPU and SOPHONSDK, the mAP of the same program is the same, SE5 series corresponds to BM1684, SE7 series corresponds to BM1684X, and SE9 series corresponds to BM1688;
-> 5. The mAP of the BM1688 num_core=2 model is basically the same as that of the num_core=1 model.
+> 4. On a PCIe or SoC platform equipped with the same TPU and SOPHONSDK, the mAP of the same program is the same, SE5 series corresponds to BM1684, SE7 series corresponds to BM1684X. In SE9 series, SE9-16 corresponds to BM1688, SE9-8 corresponds to CV186AH;
 
 ## 7. Performance Testing
 ### 7.1 bmrt_test
@@ -328,6 +327,22 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. Use
 |   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp16_1b_2core.bmodel|      3.80       |      5.05       |      20.57      |      19.86      |
 |   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_1b_2core.bmodel|      3.79       |      5.05       |      8.81       |      19.88      |
 |   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_4b_2core.bmodel|      3.61       |      4.81       |      7.27       |      19.80      |
+|    SE9-8    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      32.36      |      35.92      |     115.97      |     150.79      |
+|    SE9-8    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp16_1b.bmodel|      20.62      |      36.08      |      44.70      |     150.50      |
+|    SE9-8    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      19.46      |      36.57      |      23.67      |     150.35      |
+|    SE9-8    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      20.35      |      33.27      |      21.00      |     149.55      |
+|    SE9-8    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp32_1b.bmodel|      6.04       |      5.15       |     110.75      |     143.46      |
+|    SE9-8    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp16_1b.bmodel|      4.18       |      5.13       |      39.52      |     143.79      |
+|    SE9-8    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_1b.bmodel|      4.18       |      5.15       |      18.48      |     143.43      |
+|    SE9-8    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_4b.bmodel|      4.07       |      4.84       |      16.65      |     149.18      |
+|    SE9-8    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      5.63       |      2.14       |     101.13      |      22.25      |
+|    SE9-8    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp16_1b.bmodel|      5.69       |      2.13       |      30.09      |      22.21      |
+|    SE9-8    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      5.72       |      2.13       |      8.93       |      22.30      |
+|    SE9-8    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      5.49       |      2.05       |      8.75       |      22.00      |
+|    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      3.70       |      5.17       |     103.64      |      19.75      |
+|    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp16_1b.bmodel|      3.98       |      5.16       |      32.56      |      19.73      |
+|    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      3.70       |      5.15       |      11.40      |      19.77      |
+|    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      3.56       |      4.97       |      11.05      |      19.65      |
 
 > **Note**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.

@@ -85,6 +85,7 @@ def convert_to_coco_bbox(json_file, cocoGt):
                 image_id = image["id"]
                 break
             
+        bboxes = sorted(bboxes, key=lambda x: x['score'], reverse=True)[:400]
         for i in range(len(bboxes)):
             data = dict()
             data['image_id'] = int(image_id)
