@@ -154,6 +154,8 @@ if __name__ == '__main__':
             platform = "SE9-16"
             if multiprocessing.cpu_count() == 6:
                 platform = "SE9-8"
+        elif args.target == "CV186X":
+            platform = "SE9-8"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 17
