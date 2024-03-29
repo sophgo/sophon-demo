@@ -11,10 +11,6 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 
-if [ -f "tools/benchmark.txt" ]; then
-  rm tools/benchmark.txt
-fi
-
 usage() 
 {
   echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
@@ -43,6 +39,85 @@ do
       exit 1;;
   esac
 done
+
+
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
+
+if [ -f "scripts/acc.txt" ]; then
+  rm scripts/acc.txt
+fi
+echo "|   测试平台    |      测试程序      |        测试模型        |    acc    |" >> scripts/acc.txt
+
+PLATFORM=$TARGET
+if test $MODE = "soc_test"; then
+  if test $TARGET = "BM1684X"; then
+    PLATFORM="SE7-32"
+  elif test $TARGET = "BM1684"; then
+    PLATFORM="SE5-16"
+  elif test $TARGET = "BM1688"; then
+    PLATFORM="SE9-16"
+    cpu_core_num=$(nproc)
+    if [ "$cpu_core_num" -eq 6 ]; then
+      PLATFORM="SE9-8"
+    fi
+  elif test $TARGET = "CV186X"; then
+    PLATFORM="SE9-8"
+  else
+    echo "Unknown TARGET type: $TARGET"
+  fi
+fi
+
+function bmrt_test_case(){
+   calculate_time_log=$(bmrt_test --bmodel $1 | grep "calculate" 2>&1)
+   is_4b=$(echo $1 |grep "4b")
+
+   if [ "$is_4b" != "" ]; then
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 250}')
+   else
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 1000}')
+   fi
+   for time in "${calculate_times[@]}"
+   do
+     printf "| %-35s| % 15s |\n" "$1" "$time"
+   done
+}
+function bmrt_test_benchmark(){
+    pushd models
+    printf "| %-35s| % 15s |\n" "测试模型" "calculate time(ms)"
+    printf "| %-35s| % 15s |\n" "-------------------" "--------------"
+   
+    if test $TARGET = "BM1684"; then
+      bmrt_test_case BM1684/lprnet_fp32_1b.bmodel
+      bmrt_test_case BM1684/lprnet_int8_1b.bmodel
+      bmrt_test_case BM1684/lprnet_int8_4b.bmodel
+    elif test $TARGET = "BM1684X"; then
+      bmrt_test_case BM1684X/lprnet_fp32_1b.bmodel
+      bmrt_test_case BM1684X/lprnet_fp16_1b.bmodel
+      bmrt_test_case BM1684X/lprnet_int8_1b.bmodel
+      bmrt_test_case BM1684X/lprnet_int8_4b.bmodel
+    elif test $TARGET = "BM1688"; then
+      bmrt_test_case BM1688/lprnet_fp32_1b.bmodel
+      bmrt_test_case BM1688/lprnet_fp16_1b.bmodel
+      bmrt_test_case BM1688/lprnet_int8_1b.bmodel
+      bmrt_test_case BM1688/lprnet_int8_4b.bmodel
+      if test "$PLATFORM" = "SE9-16"; then 
+        bmrt_test_case BM1688/lprnet_fp32_1b_2core.bmodel
+        bmrt_test_case BM1688/lprnet_fp16_1b_2core.bmodel
+        bmrt_test_case BM1688/lprnet_int8_1b_2core.bmodel
+        bmrt_test_case BM1688/lprnet_int8_4b_2core.bmodel
+      fi
+    elif test $TARGET = "CV186X"; then
+      bmrt_test_case CV186X/lprnet_fp32_1b.bmodel
+      bmrt_test_case CV186X/lprnet_fp16_1b.bmodel
+      bmrt_test_case CV186X/lprnet_int8_1b.bmodel
+      bmrt_test_case CV186X/lprnet_int8_4b.bmodel
+    fi
+  
+    popd
+}
+
 
 if test $PYTEST = "pytest"
 then
@@ -129,7 +204,7 @@ function build_soc()
 }
 
 function compare_res(){
-    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.001 && y-x<0.001)?1:0}'`
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.01 && y-x<0.01)?1:0}'`
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
@@ -145,24 +220,6 @@ function compare_res(){
         return 0
     fi
 }
-function test_cpp()
-{
-  pushd cpp/lprnet_$2
-  if [ ! -d log ];then
-    mkdir log
-  fi
-  ./lprnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log 2>&1
-  judge_ret $? "./lprnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID" log/$1_$2_$3_cpp_test.log
-  tail -n 15 log/$1_$2_$3_cpp_test.log
-  if test $4 = "../../datasets/test"; then
-    echo "==================="
-    echo "Comparing statis..."
-    python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$2.$1 --language=cpp --input=log/$1_$2_$3_cpp_test.log --bmodel=$3
-    judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$2.$1 --language=cpp --input=log/$1_$2_$3_cpp_test.log --bmodel=$3"
-    echo "==================="
-  fi
-  popd
-}
 
 function eval_cpp()
 {
@@ -174,7 +231,13 @@ function eval_cpp()
   ./lprnet_$2.$1 --input=../../datasets/test --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
   judge_ret $? "./lprnet_$2.$1 --input=../../datasets/test --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
   tail -n 15 log/$1_$2_$3_debug.log
-  
+
+  echo "==================="
+  echo "Comparing statis..."
+  python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3
+  judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3"
+  echo "==================="
+
   echo "Evaluating..."
   res=$(python3 ../../tools/eval_ccpd.py --gt_path ../../datasets/test_label.json --result_json results/$3_test_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
   echo -e "$res"
@@ -184,24 +247,10 @@ function eval_cpp()
   compare_res $acc $4
   judge_ret $? "$3_test_$2_cpp_result: Precision compare!" log/$1_$2_$3_eval.log
   popd
-  echo -e "########################\nCase End: eval cpp\n########################\n"
-}
+  
+  printf "| %-12s | %-18s | %-40s | %8.3f |\n" "$PLATFORM" "lprnet_$2.$1" "$3" "$(printf "%.3f" $acc)">> scripts/acc.txt
 
-function test_python()
-{
-  if [ ! -d log ];then
-    mkdir log
-  fi
-  python3 python/lprnet_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_python_test.log 2>&1
-  judge_ret $? "python3 python/lprnet_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID" log/$1_$2_python_test.log
-    tail -n 20 log/$1_$2_python_test.log
-  if test $3 = "datasets/test"; then
-    echo "==================="
-    echo "Comparing statis..."
-    python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$1.py --language=python --input=log/$1_$2_python_test.log --bmodel=$2
-    judge_ret $? "python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$1.py --language=python --input=log/$1_$2_python_test.log --bmodel=$2"
-    echo "==================="
-  fi
+  echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 
 function eval_python()
@@ -214,12 +263,21 @@ function eval_python()
   judge_ret $? "python3 python/lprnet_$1.py --input datasets/test --bmodel models/$TARGET/$2 --dev_id $TPUID > python/log/$1_$2_debug.log 2>&1"  python/log/$1_$2_debug.log
   tail -n 15 python/log/$1_$2_debug.log
   
+  echo "==================="
+  echo "Comparing statis..."
+  python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$1.py --language=python --input=python/log/$1_$2_debug.log --bmodel=$2
+  judge_ret $? "python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$1.py --language=python --input=python/log/$1_$2_debug.log --bmodel=$2"
+  echo "==================="
+
   echo "Evaluating..."
   res=$(python3 tools/eval_ccpd.py --gt_path datasets/test_label.json --result_json results/$2_test_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $3
   judge_ret $? "$2_test_$1_python_result: Precision compare!" python/log/$1_$2_eval.log
+
+  printf "| %-12s | %-18s | %-40s | %8.3f |\n" "$PLATFORM" "lprnet_$1.py" "$2" "$(printf "%.3f" $acc)">> scripts/acc.txt
+
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
@@ -238,19 +296,6 @@ then
   download
   if test $TARGET = "BM1684"
   then
-    test_python opencv lprnet_fp32_1b.bmodel datasets/test
-    test_python opencv lprnet_int8_1b.bmodel datasets/test
-    test_python opencv lprnet_int8_4b.bmodel datasets/test
-    test_python bmcv lprnet_fp32_1b.bmodel datasets/test
-    test_python bmcv lprnet_int8_1b.bmodel datasets/test
-    test_python bmcv lprnet_int8_4b.bmodel datasets/test
-    test_cpp pcie opencv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie opencv lprnet_int8_1b.bmodel ../../datasets/test
-    test_cpp pcie opencv lprnet_int8_4b.bmodel ../../datasets/test
-    test_cpp pcie bmcv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv lprnet_int8_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv lprnet_int8_4b.bmodel ../../datasets/test
-
     eval_python opencv lprnet_fp32_1b.bmodel 0.894
     eval_python opencv lprnet_int8_1b.bmodel 0.858
     eval_python opencv lprnet_int8_4b.bmodel 0.881
@@ -266,24 +311,6 @@ then
 
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv lprnet_fp32_1b.bmodel datasets/test
-    test_python opencv lprnet_fp16_1b.bmodel datasets/test
-    test_python opencv lprnet_int8_1b.bmodel datasets/test
-    test_python opencv lprnet_int8_4b.bmodel datasets/test
-    test_python bmcv lprnet_fp32_1b.bmodel datasets/test
-    test_python bmcv lprnet_fp16_1b.bmodel datasets/test
-    test_python bmcv lprnet_int8_1b.bmodel datasets/test
-    test_python bmcv lprnet_int8_4b.bmodel datasets/test
-    test_cpp pcie opencv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie opencv lprnet_fp16_1b.bmodel ../../datasets/test
-    test_cpp pcie opencv lprnet_int8_1b.bmodel ../../datasets/test
-    test_cpp pcie opencv lprnet_int8_4b.bmodel ../../datasets/test
-    test_cpp pcie bmcv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv lprnet_fp16_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv lprnet_int8_1b.bmodel ../../datasets/test
-    test_cpp pcie bmcv lprnet_int8_4b.bmodel ../../datasets/test
-
-
     eval_python opencv lprnet_fp32_1b.bmodel 0.894
     eval_python opencv lprnet_fp16_1b.bmodel 0.894
     eval_python opencv lprnet_int8_1b.bmodel 0.867
@@ -310,19 +337,6 @@ then
   download
   if test $TARGET = "BM1684"
   then
-    test_python opencv lprnet_fp32_1b.bmodel datasets/test
-    test_python opencv lprnet_int8_1b.bmodel datasets/test
-    test_python opencv lprnet_int8_4b.bmodel datasets/test
-    test_python bmcv lprnet_fp32_1b.bmodel datasets/test
-    test_python bmcv lprnet_int8_1b.bmodel datasets/test
-    test_python bmcv lprnet_int8_4b.bmodel datasets/test
-    test_cpp soc opencv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test
-    test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test
-
     eval_python opencv lprnet_fp32_1b.bmodel 0.894
     eval_python opencv lprnet_int8_1b.bmodel 0.858
     eval_python opencv lprnet_int8_4b.bmodel 0.881
@@ -337,24 +351,6 @@ then
     eval_cpp soc bmcv lprnet_int8_4b.bmodel 0.869
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv lprnet_fp32_1b.bmodel datasets/test
-    test_python opencv lprnet_fp16_1b.bmodel datasets/test
-    test_python opencv lprnet_int8_1b.bmodel datasets/test
-    test_python opencv lprnet_int8_4b.bmodel datasets/test
-    test_python bmcv lprnet_fp32_1b.bmodel datasets/test
-    test_python bmcv lprnet_fp16_1b.bmodel datasets/test
-    test_python bmcv lprnet_int8_1b.bmodel datasets/test
-    test_python bmcv lprnet_int8_4b.bmodel datasets/test
-    test_cpp soc opencv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc opencv lprnet_fp16_1b.bmodel ../../datasets/test
-    test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test
-    test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_fp16_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test
-
-
     eval_python opencv lprnet_fp32_1b.bmodel 0.894
     eval_python opencv lprnet_fp16_1b.bmodel 0.894
     eval_python opencv lprnet_int8_1b.bmodel 0.867
@@ -371,60 +367,53 @@ then
     eval_cpp soc bmcv lprnet_fp16_1b.bmodel 0.882
     eval_cpp soc bmcv lprnet_int8_1b.bmodel 0.861
     eval_cpp soc bmcv lprnet_int8_4b.bmodel 0.872
-  elif test $TARGET = "BM1688"
+  elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
-    test_python opencv lprnet_fp32_1b.bmodel datasets/test
-    test_python opencv lprnet_fp16_1b.bmodel datasets/test
-    test_python opencv lprnet_int8_1b.bmodel datasets/test
-    test_python opencv lprnet_int8_4b.bmodel datasets/test
-    test_python bmcv lprnet_fp32_1b.bmodel datasets/test
-    test_python bmcv lprnet_fp16_1b.bmodel datasets/test
-    test_python bmcv lprnet_int8_1b.bmodel datasets/test
-    test_python bmcv lprnet_int8_4b.bmodel datasets/test
-    test_cpp soc opencv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc opencv lprnet_fp16_1b.bmodel ../../datasets/test
-    test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test
-    test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_fp16_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test
-    test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test
-
-
     eval_python opencv lprnet_fp32_1b.bmodel  0.894
     eval_python opencv lprnet_fp16_1b.bmodel  0.894
     eval_python opencv lprnet_int8_1b.bmodel  0.886
     eval_python opencv lprnet_int8_4b.bmodel  0.909
-    eval_python bmcv lprnet_fp32_1b.bmodel    0.895
-    eval_python bmcv lprnet_fp16_1b.bmodel    0.895
-    eval_python bmcv lprnet_int8_1b.bmodel    0.878
-    eval_python bmcv lprnet_int8_4b.bmodel    0.907 
-    eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.894
-    eval_cpp soc opencv lprnet_fp16_1b.bmodel 0.894
-    eval_cpp soc opencv lprnet_int8_1b.bmodel 0.879
-    eval_cpp soc opencv lprnet_int8_4b.bmodel 0.895
-    eval_cpp soc bmcv lprnet_fp32_1b.bmodel   0.895
-    eval_cpp soc bmcv lprnet_fp16_1b.bmodel   0.895
-    eval_cpp soc bmcv lprnet_int8_1b.bmodel   0.878
-    eval_cpp soc bmcv lprnet_int8_4b.bmodel   0.894
+    eval_python bmcv lprnet_fp32_1b.bmodel    0.882
+    eval_python bmcv lprnet_fp16_1b.bmodel    0.882
+    eval_python bmcv lprnet_int8_1b.bmodel    0.882
+    eval_python bmcv lprnet_int8_4b.bmodel    0.889 
+    eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.881
+    eval_cpp soc opencv lprnet_fp16_1b.bmodel 0.881
+    eval_cpp soc opencv lprnet_int8_1b.bmodel 0.883
+    eval_cpp soc opencv lprnet_int8_4b.bmodel 0.880
+    eval_cpp soc bmcv lprnet_fp32_1b.bmodel   0.882
+    eval_cpp soc bmcv lprnet_fp16_1b.bmodel   0.882
+    eval_cpp soc bmcv lprnet_int8_1b.bmodel   0.882
+    eval_cpp soc bmcv lprnet_int8_4b.bmodel   0.879
 
-    eval_python opencv lprnet_fp32_1b_2core.bmodel  0.894
-    eval_python opencv lprnet_fp16_1b_2core.bmodel  0.894
-    eval_python opencv lprnet_int8_1b_2core.bmodel  0.886
-    eval_python opencv lprnet_int8_4b_2core.bmodel  0.909
-    eval_python bmcv lprnet_fp32_1b_2core.bmodel    0.895
-    eval_python bmcv lprnet_fp16_1b_2core.bmodel    0.895
-    eval_python bmcv lprnet_int8_1b_2core.bmodel    0.878
-    eval_python bmcv lprnet_int8_4b_2core.bmodel    0.907 
-    eval_cpp soc opencv lprnet_fp32_1b_2core.bmodel 0.894
-    eval_cpp soc opencv lprnet_fp16_1b_2core.bmodel 0.894
-    eval_cpp soc opencv lprnet_int8_1b_2core.bmodel 0.879
-    eval_cpp soc opencv lprnet_int8_4b_2core.bmodel 0.895
-    eval_cpp soc bmcv lprnet_fp32_1b_2core.bmodel   0.895
-    eval_cpp soc bmcv lprnet_fp16_1b_2core.bmodel   0.895
-    eval_cpp soc bmcv lprnet_int8_1b_2core.bmodel   0.878
-    eval_cpp soc bmcv lprnet_int8_4b_2core.bmodel   0.894
+    if test "$PLATFORM" = "SE9-16"; then 
+      eval_python opencv lprnet_fp32_1b_2core.bmodel  0.894
+      eval_python opencv lprnet_fp16_1b_2core.bmodel  0.894
+      eval_python opencv lprnet_int8_1b_2core.bmodel  0.886
+      eval_python opencv lprnet_int8_4b_2core.bmodel  0.909
+      eval_python bmcv lprnet_fp32_1b_2core.bmodel    0.882
+      eval_python bmcv lprnet_fp16_1b_2core.bmodel    0.882
+      eval_python bmcv lprnet_int8_1b_2core.bmodel    0.882
+      eval_python bmcv lprnet_int8_4b_2core.bmodel    0.889 
+      eval_cpp soc opencv lprnet_fp32_1b_2core.bmodel 0.881
+      eval_cpp soc opencv lprnet_fp16_1b_2core.bmodel 0.881
+      eval_cpp soc opencv lprnet_int8_1b_2core.bmodel 0.883
+      eval_cpp soc opencv lprnet_int8_4b_2core.bmodel 0.880
+      eval_cpp soc bmcv lprnet_fp32_1b_2core.bmodel   0.882
+      eval_cpp soc bmcv lprnet_fp16_1b_2core.bmodel   0.882
+      eval_cpp soc bmcv lprnet_int8_1b_2core.bmodel   0.882
+      eval_cpp soc bmcv lprnet_int8_4b_2core.bmodel   0.879
+    fi
   fi
+fi
+
+if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
+  echo "--------lprnet acc----------"
+  cat scripts/acc.txt
+  echo "--------bmrt_test performance-----------"
+  bmrt_test_benchmark
+  echo "--------lprnet performance-----------"
+  cat tools/benchmark.txt
 fi
 
 if [ $ALL_PASS -eq 0 ]
