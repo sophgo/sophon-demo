@@ -15,7 +15,7 @@
 
 ## 1. 简介
 
-本例程对[LPRNet_Pytorch](https://github.com/sirius-ai/LPRNet_Pytorch)的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688上进行推理测试。
+本例程对[LPRNet_Pytorch](https://github.com/sirius-ai/LPRNet_Pytorch)的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X上进行推理测试。
 
 **论文:** [LPRNet: License Plate Recognition via Deep Neural Networks](https://arxiv.org/abs/1806.10447v1)
 
@@ -31,8 +31,8 @@ LPRNet的优点可以总结为如下三点：
 
 
 ## 2. 特性
-* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -76,6 +76,11 @@ chmod -R +x scripts/
 │   ├── lprnet_fp16_1b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=2
 │   ├── lprnet_int8_1b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
 │   └── lprnet_int8_4b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=2
+├── CV186X
+│   ├── lprnet_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
+│   ├── lprnet_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   ├── lprnet_int8_1b.bmodel               # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
+│   ├── lprnet_int8_4b.bmodel               # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=4
 │── torch
 │   ├── Final_LPRNet_model.pth              # 原始模型
 │   └── LPRNet_model_trace.pt               # trace后的JIT模型
@@ -116,7 +121,7 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684`等文件夹下生成`lprnet_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
@@ -126,7 +131,7 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`lprnet_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
@@ -136,7 +141,7 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
 ```
 
 ​上述脚本会在`models/BM1684`等文件夹下生成`lprnet_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
@@ -208,11 +213,10 @@ python3 tools/eval_ccpd.py --gt_path datasets/test_label.json --result_json cpp/
 
 
 > **测试说明**：  
-
-1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的； 
-2. LPRNet网络中包含mean算子，会把所有batch数据加和求平均，当多batch推理时，同一张图片在不同的batch组合中可能会有不同的推理结果。
-3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列对应BM1688；
-4. BM1688 1core和BM1688 2core的模型精度基本一致；
+> 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的； 
+> 2. LPRNet网络中包含mean算子，会把所有batch数据加和求平均，当多batch推理时，同一张图片在不同的batch组合中可能会有不同的推理结果。
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 4. BM1688 1core和BM1688 2core的模型精度基本一致；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -237,6 +241,10 @@ bmrt_test --bmodel models/BM1684/lprnet_fp32_1b.bmodel
 | BM1688/lprnet_fp16_1b.bmodel  | 1.724              |
 | BM1688/lprnet_int8_1b.bmodel  | 1.545              |
 | BM1688/lprnet_int8_4b.bmodel  | 0.567              |
+| CV186X/lprnet_fp32_1b.bmodel       |           2.60  |
+| CV186X/lprnet_fp16_1b.bmodel       |           1.10  |
+| CV186X/lprnet_int8_1b.bmodel       |           0.68  |
+| CV186X/lprnet_int8_4b.bmodel       |           0.45  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -293,9 +301,25 @@ bmrt_test --bmodel models/BM1684/lprnet_fp32_1b.bmodel
 | SE9-16      | lprnet_bmcv.soc  | lprnet_fp16_1b.bmodel | 2.17       |  0.68         | 0.89         | 0.09       |
 | SE9-16      | lprnet_bmcv.soc  | lprnet_int8_1b.bmodel | 2.12       |  0.68         | 0.59         | 0.09       |
 | SE9-16      | lprnet_bmcv.soc  | lprnet_int8_4b.bmodel | 1.84       |  0.59         | 0.36         | 0.07       |
+|    SE9-8    | lprnet_opencv.py  |       lprnet_fp32_1b.bmodel       |      0.54       |      0.16       |      3.39       |      0.15       |
+|    SE9-8    | lprnet_opencv.py  |       lprnet_fp16_1b.bmodel       |      0.54       |      0.15       |      1.91       |      0.15       |
+|    SE9-8    | lprnet_opencv.py  |       lprnet_int8_1b.bmodel       |      0.53       |      0.15       |      1.49       |      0.15       |
+|    SE9-8    | lprnet_opencv.py  |       lprnet_int8_4b.bmodel       |      0.38       |      0.11       |      0.76       |      0.08       |
+|    SE9-8    |  lprnet_bmcv.py   |       lprnet_fp32_1b.bmodel       |      1.60       |      0.73       |      3.25       |      0.20       |
+|    SE9-8    |  lprnet_bmcv.py   |       lprnet_fp16_1b.bmodel       |      1.57       |      0.71       |      1.73       |      0.20       |
+|    SE9-8    |  lprnet_bmcv.py   |       lprnet_int8_1b.bmodel       |      1.65       |      0.73       |      1.35       |      0.20       |
+|    SE9-8    |  lprnet_bmcv.py   |       lprnet_int8_4b.bmodel       |      1.17       |      0.56       |      0.62       |      0.09       |
+|    SE9-8    | lprnet_opencv.soc |       lprnet_fp32_1b.bmodel       |      0.82       |      0.37       |      2.47       |      0.09       |
+|    SE9-8    | lprnet_opencv.soc |       lprnet_fp16_1b.bmodel       |      0.79       |      0.37       |      0.98       |      0.09       |
+|    SE9-8    | lprnet_opencv.soc |       lprnet_int8_1b.bmodel       |      0.80       |      0.37       |      0.56       |      0.08       |
+|    SE9-8    | lprnet_opencv.soc |       lprnet_int8_4b.bmodel       |      0.71       |      0.31       |      0.42       |      0.07       |
+|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_fp32_1b.bmodel       |      1.26       |      0.44       |      2.47       |      0.08       |
+|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_fp16_1b.bmodel       |      1.25       |      0.45       |      0.98       |      0.08       |
+|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_int8_1b.bmodel       |      1.20       |      0.45       |      0.56       |      0.08       |
+|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_int8_4b.bmodel       |      1.10       |      0.36       |      0.42       |      0.06       |
 
 > **测试说明**：  
-1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
-2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异。
+> 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
+> 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
+> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异。
 

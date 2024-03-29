@@ -3,6 +3,7 @@ import argparse
 import math
 import os
 import sys
+import multiprocessing
 
 baseline = """
 |    测试平台  |     测试程序      |      测试模型          |decode_time|preprocess_time|inference_time|postprocess_time| 
@@ -19,18 +20,22 @@ baseline = """
 | SE5-16      | lprnet_bmcv.soc  | lprnet_fp32_1b.bmodel | 1.629      | 0.283         | 1.664        | 0.08       |
 | SE5-16      | lprnet_bmcv.soc  | lprnet_int8_1b.bmodel | 1.627      | 0.285         | 0.661        | 0.075      |
 | SE5-16      | lprnet_bmcv.soc  | lprnet_int8_4b.bmodel | 1.184      | 0.647         | 0.233        | 0.047      |
-| SE7-32      | lprnet_opencv.py | lprnet_fp32_1b.bmodel | 0.89       | 0.17          | 1.57         | 0.14       |
-| SE7-32      | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.96       | 0.2           | 1.43         | 0.16       |
-| SE7-32      | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.85       | 0.1           | 0.55         | 0.07       |
-| SE7-32      | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.84       | 0.27          | 1.41         | 0.18       |
-| SE7-32      | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.86       | 0.27          | 1.01         | 0.19       |
-| SE7-32      | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.51       | 0.17          | 0.36         | 0.07       |
-| SE7-32      | lprnet_opencv.soc| lprnet_fp32_1b.bmodel | 0.646      | 0.28          | 0.782        | 0.082      |
-| SE7-32      | lprnet_opencv.soc| lprnet_int8_1b.bmodel | 0.655      | 0.288         | 0.46         | 0.086      |
-| SE7-32      | lprnet_opencv.soc| lprnet_int8_4b.bmodel | 0.459      | 0.838         | 0.933        | 0.212      |
-| SE7-32      | lprnet_bmcv.soc  | lprnet_fp32_1b.bmodel | 1.84       | 0.203         | 0.831        | 0.093      |
-| SE7-32      | lprnet_bmcv.soc  | lprnet_int8_1b.bmodel | 1.658      | 0.181         | 0.529        | 0.92       |
-| SE7-32      | lprnet_bmcv.soc  | lprnet_int8_4b.bmodel | 1.523      | 0.511         | 0.979        | 0.244      |
+| SE7-32      | lprnet_opencv.py  |       lprnet_fp32_1b.bmodel       |      0.39       |      0.11       |      1.50       |      0.11       |
+| SE7-32      | lprnet_opencv.py  |       lprnet_fp16_1b.bmodel       |      0.37       |      0.10       |      1.16       |      0.10       |
+| SE7-32      | lprnet_opencv.py  |       lprnet_int8_1b.bmodel       |      0.37       |      0.11       |      1.09       |      0.10       |
+| SE7-32      | lprnet_opencv.py  |       lprnet_int8_4b.bmodel       |      0.28       |      0.08       |      0.49       |      0.06       |
+| SE7-32      |  lprnet_bmcv.py   |       lprnet_fp32_1b.bmodel       |      0.74       |      0.31       |      1.32       |      0.13       |
+| SE7-32      |  lprnet_bmcv.py   |       lprnet_fp16_1b.bmodel       |      0.71       |      0.31       |      0.99       |      0.13       |
+| SE7-32      |  lprnet_bmcv.py   |       lprnet_int8_1b.bmodel       |      0.73       |      0.31       |      0.93       |      0.13       |
+| SE7-32      |  lprnet_bmcv.py   |       lprnet_int8_4b.bmodel       |      0.53       |      0.26       |      0.38       |      0.06       |
+| SE7-32      | lprnet_opencv.soc |       lprnet_fp32_1b.bmodel       |      0.34       |      0.15       |      0.83       |      0.05       |
+| SE7-32      | lprnet_opencv.soc |       lprnet_fp16_1b.bmodel       |      0.35       |      0.15       |      0.53       |      0.05       |
+| SE7-32      | lprnet_opencv.soc |       lprnet_int8_1b.bmodel       |      0.34       |      0.15       |      0.45       |      0.05       |
+| SE7-32      | lprnet_opencv.soc |       lprnet_int8_4b.bmodel       |      0.35       |      0.14       |      0.25       |      0.04       |
+| SE7-32      |  lprnet_bmcv.soc  |       lprnet_fp32_1b.bmodel       |      0.63       |      0.10       |      0.83       |      0.05       |
+| SE7-32      |  lprnet_bmcv.soc  |       lprnet_fp16_1b.bmodel       |      0.62       |      0.10       |      0.53       |      0.05       |
+| SE7-32      |  lprnet_bmcv.soc  |       lprnet_int8_1b.bmodel       |      0.62       |      0.10       |      0.45       |      0.05       |
+| SE7-32      |  lprnet_bmcv.soc  |       lprnet_int8_4b.bmodel       |      0.61       |      0.08       |      0.25       |      0.04       |
 | SE9-16      | lprnet_opencv.py | lprnet_fp32_1b.bmodel | 0.54       |  0.15         | 3.06         | 0.15       |
 | SE9-16      | lprnet_opencv.py | lprnet_fp16_1b.bmodel | 0.54       |  0.16         | 1.71         | 0.15       |
 | SE9-16      | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.54       |  0.16         | 1.38         | 0.15       |
@@ -46,7 +51,23 @@ baseline = """
 | SE9-16      | lprnet_bmcv.soc  | lprnet_fp32_1b.bmodel | 2.17       |  0.69         | 2.34         | 0.09       |
 | SE9-16      | lprnet_bmcv.soc  | lprnet_fp16_1b.bmodel | 2.17       |  0.68         | 0.89         | 0.09       |
 | SE9-16      | lprnet_bmcv.soc  | lprnet_int8_1b.bmodel | 2.12       |  0.68         | 0.59         | 0.09       |
-| SE9-16      | lprnet_bmcv.soc  | lprnet_int8_4b.bmodel | 1.84       |  0.59         | 0.36         | 0.07       |        | 19.9      |
+| SE9-16      | lprnet_bmcv.soc  | lprnet_int8_4b.bmodel | 1.84       |  0.59         | 0.36         | 0.07       |
+|    SE9-8    | lprnet_opencv.py  |       lprnet_fp32_1b.bmodel       |      0.54       |      0.16       |      3.39       |      0.15       |
+|    SE9-8    | lprnet_opencv.py  |       lprnet_fp16_1b.bmodel       |      0.54       |      0.15       |      1.91       |      0.15       |
+|    SE9-8    | lprnet_opencv.py  |       lprnet_int8_1b.bmodel       |      0.53       |      0.15       |      1.49       |      0.15       |
+|    SE9-8    | lprnet_opencv.py  |       lprnet_int8_4b.bmodel       |      0.38       |      0.11       |      0.76       |      0.08       |
+|    SE9-8    |  lprnet_bmcv.py   |       lprnet_fp32_1b.bmodel       |      1.60       |      0.73       |      3.25       |      0.20       |
+|    SE9-8    |  lprnet_bmcv.py   |       lprnet_fp16_1b.bmodel       |      1.57       |      0.71       |      1.73       |      0.20       |
+|    SE9-8    |  lprnet_bmcv.py   |       lprnet_int8_1b.bmodel       |      1.65       |      0.73       |      1.35       |      0.20       |
+|    SE9-8    |  lprnet_bmcv.py   |       lprnet_int8_4b.bmodel       |      1.17       |      0.56       |      0.62       |      0.09       |
+|    SE9-8    | lprnet_opencv.soc |       lprnet_fp32_1b.bmodel       |      0.82       |      0.37       |      2.47       |      0.09       |
+|    SE9-8    | lprnet_opencv.soc |       lprnet_fp16_1b.bmodel       |      0.79       |      0.37       |      0.98       |      0.09       |
+|    SE9-8    | lprnet_opencv.soc |       lprnet_int8_1b.bmodel       |      0.80       |      0.37       |      0.56       |      0.08       |
+|    SE9-8    | lprnet_opencv.soc |       lprnet_int8_4b.bmodel       |      0.71       |      0.31       |      0.42       |      0.07       |
+|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_fp32_1b.bmodel       |      1.26       |      0.44       |      2.47       |      0.08       |
+|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_fp16_1b.bmodel       |      1.25       |      0.45       |      0.98       |      0.08       |
+|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_int8_1b.bmodel       |      1.20       |      0.45       |      0.56       |      0.08       |
+|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_int8_4b.bmodel       |      1.10       |      0.36       |      0.42       |      0.06       |
 """
 table_data = {
     "platform": [],
@@ -110,7 +131,19 @@ if __name__ == '__main__':
     current_dir = os.path.dirname(cnt_file_path)
     benchmark_path = current_dir + "/benchmark.txt"
     args = argsparser()
-    platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
+    if args.platform == "soc":
+        if args.target == "BM1684X":
+            platform = "SE7-32"
+        elif args.target == "BM1684":
+            platform = "SE5-16"
+        elif args.target == "BM1688":
+            platform = "SE9-16"
+            if multiprocessing.cpu_count() == 6:
+                platform = "SE9-8"
+        elif args.target == "CV186X":
+            platform = "SE9-8"
+    else:
+        platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 17
     
     if not os.path.exists(benchmark_path):
