@@ -68,6 +68,23 @@ baseline = """
 |   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp16_1b_2core.bmodel|      3.80       |      5.05       |      20.57      |      19.86      |
 |   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_1b_2core.bmodel|      3.79       |      5.05       |      8.81       |      19.88      |
 |   SE9-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_4b_2core.bmodel|      3.61       |      4.81       |      7.27       |      19.80      |
+|    SE9-8    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      32.30      |      36.30      |     115.17      |     150.69      |
+|    SE9-8    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp16_1b.bmodel|      22.49      |      36.42      |      44.46      |     150.59      |
+|    SE9-8    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      19.31      |      36.46      |      22.61      |     150.61      |
+|    SE9-8    | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      22.00      |      32.78      |      20.00      |     150.11      |
+|    SE9-8    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp32_1b.bmodel|      6.22       |      5.13       |     109.91      |     143.27      |
+|    SE9-8    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp16_1b.bmodel|      4.24       |      5.15       |      39.16      |     143.25      |
+|    SE9-8    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_1b.bmodel|      4.19       |      5.14       |      17.52      |     143.37      |
+|    SE9-8    |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_4b.bmodel|      4.07       |      4.79       |      16.06      |     149.06      |
+|    SE9-8    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      5.66       |      2.14       |     100.47      |      22.23      |
+|    SE9-8    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_fp16_1b.bmodel|      5.72       |      2.15       |      29.81      |      22.21      |
+|    SE9-8    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      5.72       |      2.14       |      8.05       |      22.23      |
+|    SE9-8    |  yolov5_bmcv.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      5.89       |      2.04       |      7.88       |      21.98      |
+|    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      4.68       |      5.21       |     103.01      |      19.75      |
+|    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp16_1b.bmodel|      3.73       |      5.16       |      32.29      |      19.73      |
+|    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      3.69       |      5.15       |      10.51      |      19.76      |
+|    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      3.52       |      4.96       |      10.17      |      19.59      |
+
 """
 baseline_cpu_opt = """
 |    测试平台  |     测试程序      |             测试模型                |decode_time    |preprocess_time  |inference_time   |postprocess_time| 
