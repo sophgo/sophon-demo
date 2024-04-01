@@ -394,7 +394,7 @@ def process_demo(draw_images,stress_test,tpu_id, max_que_size, video_name_list, 
 
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--max_que_size', type=int, default=16, help='multidecode queue')
+    parser.add_argument('--max_que_size', type=int, default=4, help='multidecode queue')
     parser.add_argument('--video_nums', type=int, default=16, help='procress nums of input')
     parser.add_argument('--batch_size', type=int, default=4, help='video_nums/batch_size is procress nums of process and postprocess')
     parser.add_argument('--loops', type=int, default=1000, help='process loops for one process')

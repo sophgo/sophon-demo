@@ -51,12 +51,27 @@ then
     7z x yolov5s-licensePlate.7z -o../models
     rm yolov5s-licensePlate.7z
 
+    python3 -m dfss --url=open@sophgo.com:/sophon-demo/license_plate_recognition/yolov5_licenseplate/CV186X.zip
+    unzip ./CV186X.zip
+    mkdir -p ../models/yolov5s-licensePlate/CV186X
+    mv ./CV186X/yolov5* ../models/yolov5s-licensePlate/CV186X
+    rm -rf ./CV186X.zip
+    rm -rf ./BM1688
+
+
     python3 -m dfss --url=open@sophgo.com:/sophon-demo/LPRNet/BM1688.zip
     unzip ./BM1688.zip
     mkdir -p ../models/lprnet/BM1688
     mv ./BM1688/lprnet* ../models/lprnet/BM1688
     rm -rf ./BM1688.zip
     rm -rf ./BM1688
+
+    python3 -m dfss  --url=open@sophgo.com:sophon-demo/LPRNet/models_240328/CV186X.zip
+    unzip ./CV186X.zip
+    mkdir -p ../models/lprnet/CV186X
+    mv ./CV186X/lprnet* ../models/lprnet/CV186X
+    rm -rf ./CV186X.zip
+    rm -rf ./CV186X
 
     python3 -m dfss --url=open@sophgo.com:/sophon-demo/YOLOv5/license_plate_recognition/BM1688.zip
     unzip ./BM1688.zip
