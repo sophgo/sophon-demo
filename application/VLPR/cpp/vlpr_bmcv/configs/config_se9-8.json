@@ -1,7 +1,7 @@
 {
     "dev_id": 0,
-    "yolov5_bmodel_path": "../../models/yolov5s-licensePlate/BM1688/yolov5s_v6.1_license_3output_int8_4b_2core.bmodel",
-    "lprnet_bmodel_path": "../../models/lprnet/BM1688/lprnet_int8_4b_2core.bmodel",
+    "yolov5_bmodel_path": "../../models/yolov5s-licensePlate/BM1688/yolov5s_v6.1_license_3output_int8_4b.bmodel",
+    "lprnet_bmodel_path": "../../models/lprnet/BM1688/lprnet_int8_4b.bmodel",
     "channels": [
       {
         "url": "../../datasets/licenseplate_640516-h264.mp4",
