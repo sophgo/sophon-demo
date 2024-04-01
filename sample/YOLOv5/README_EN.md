@@ -119,7 +119,7 @@ You need to install TPU-MLIR before compiling the model. For more information, p
 
 - Generate FP32 BModel
 
-This example provides a script for TPU-MLIR to compile FP32 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp32bmodel_mlir.sh`, and specify the target platform on which BModel runs (**BM1684/BM1684X/BM1688 is supported**) during execution, such as:
+This example provides a script for TPU-MLIR to compile FP32 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp32bmodel_mlir.sh`, and specify the target platform on which BModel runs (**BM1684/BM1684X/BM1688/CV186X is supported**) during execution, such as:
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
@@ -129,7 +129,7 @@ Executing the above command will generate the `yolov5s_v6.1_3output_fp32_1b.bmod
 
 - Generate FP16 BModel
 
-This example provides a script for TPU-MLIR to compile FP16 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp16bmodel_mlir.sh`, and specify the target platform on which BModel runs (**BM1684X/BM1688 is supported**) during execution, such as:
+This example provides a script for TPU-MLIR to compile FP16 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp16bmodel_mlir.sh`, and specify the target platform on which BModel runs (**BM1684X/BM1688/CV186X is supported**) during execution, such as:
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -139,7 +139,7 @@ Executing the above command will generate the `yolov5s_v6.1_3output_fp16_1b.bmod
 
 - Generate INT8 BModel
 
-This example provides a script for quantifying INT8 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_int8bmodel_mlir.sh`, and enter the target platform of BModel (**BM1684/BM1684X is supported**) during execution, such as:
+This example provides a script for quantifying INT8 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_int8bmodel_mlir.sh`, and enter the target platform of BModel (**BM1684/BM1684X/BM1688/CV186X is supported**) during execution, such as:
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
