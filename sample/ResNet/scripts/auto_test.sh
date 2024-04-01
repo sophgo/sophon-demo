@@ -60,7 +60,7 @@ if test $MODE = "soc_test"; then
   fi
 fi
 function bmrt_test_case(){
-   calculate_time_log=$(bmrt_test --bmodel $1 | grep "calculate" 2>&1)
+   calculate_time_log=$(bmrt_test --bmodel $1 --devid $TPUID | grep "calculate" 2>&1)
    is_4b=$(echo $1 |grep "4b")
 
    if [ "$is_4b" != "" ]; then
