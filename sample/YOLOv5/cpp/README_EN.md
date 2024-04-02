@@ -3,10 +3,10 @@
 # C++ Demo
 * [C++ Demo](#c-demo)
     * [1. Environments Preparation](#1-environments-preparation)
-        * [1.1 x86/arm PCIe Platform](#11-x86arm-pcie-platform)
+        * [1.1 x86/arm/riscv PCIe Platform](#11-x86armriscv-pcie-platform)
         * [1.2 SoC Platform](#12-soc-platform)
     * [2. Program Compilation](#2-program-compilation)
-        * [2.1 x86/arm PCIe Platform](#21-x86arm-pcie-platform)
+        * [2.1 x86/arm/riscv PCIe Platform](#21-x86armriscv-pcie-platform)
         * [2.2 SoC Platform](#22-soc-platform)
     * [3. Inference Test](#3-inference-test)
         * [3.1 Parameter Description](#31-parameter-description)
@@ -20,8 +20,8 @@ C++ demo is provided in the cpp directory for reference, the details are as foll
 | 2    | yolov5_sail   | Decoding with SAIL, preprocessing with SAIL, inference with SAIL   |
 
 ## 1. Environments Preparation
-### 1.1 x86/arm PCIe Platform
-If you have installed a PCIe accelerator card (such as an SC series accelerator card) on the x86/arm platform, you can directly use it as a development environment and a runtime environment. You need to install libsophon, sophon-opencv and sophon-ffmpeg. For specific steps, please refer to [Construction of Development and Runtime Environment of x86-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#3-x86-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of arm-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#5-arm-pcie-platform-development-and-runtime-environment-construction).
+### 1.1 x86/arm/riscv PCIe Platform
+If you have installed a PCIe accelerator card (such as an SC series accelerator card) on the x86/arm platform, you can directly use it as a development environment and a runtime environment. You need to install libsophon, sophon-opencv and sophon-ffmpeg. For specific steps, please refer to [Construction of Development and Runtime Environment of x86-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#3-x86-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of arm-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#5-arm-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of riscv-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#6-riscv-pcie-platform-development-and-runtime-environment-construction).
 
 ### 1.2 SoC Platform
 If you use the SoC platform (such as SE, SM series edge devices), the corresponding libsophon, sophon-opencv and sophon-ffmpeg runtime packages have been pre-installed under `/opt/sophon/` after resetting the operating system, and you can use it directly as runtime environment. Usually an x86 host is also required as a development environment for cross-compiling C++ programs.
@@ -29,7 +29,7 @@ If you use the SoC platform (such as SE, SM series edge devices), the correspond
 
 ## 2. Program Compilation
 C++ programs need to compile executable files before running.
-### 2.1 x86/arm PCIe Platform
+### 2.1 x86/arm/riscv PCIe Platform
 Programs can be compiled directly on the PCIe platform:
 #### 2.1.1 bmcv
 ```bash

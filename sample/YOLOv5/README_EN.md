@@ -28,7 +28,7 @@ YOLOv5 is a very classical One Stage target detection algorithm based on anchor.
 
 ## 2. Characteristics
 ### 2.1 SDK Characteristics
-* Support for BM1688/CV186X(SoC), BM1684X(x86 PCIe、SoC), BM1684(x86 PCIe、SoC、arm PCIe)
+* Support for BM1688/CV186X(SoC), BM1684X(x86 PCIe、SoC、riscv PCIe), BM1684(x86 PCIe、SoC、arm PCIe)
 * Support for FP32, FP16 (BM1684X/BM1688/CV186X), INT8 model compilation and inference
 * Support C++ inference based on BMCV preprocessing
 * Support Python inference based on OpenCV and BMCV preprocessing
