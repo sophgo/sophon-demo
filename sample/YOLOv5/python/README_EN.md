@@ -3,7 +3,7 @@
 # Python Demo
 * [Python Demo](#python-demo)
     * [1. Environments Preparation](#1-environments-preparation)
-        * [1.1 x86/arm PCIe Platform](#11-x86arm-pcie-platform)
+        * [1.1 x86/arm/riscv PCIe Platform](#11-x86armriscv-pcie-platform)
         * [1.2 SoC Platform](#12-soc-platform)
     * [2. Inference Test](#2-inference-test)
         * [2.1 Parameter Description](#21-parameter-description)
@@ -18,9 +18,9 @@ A series of Python demos are provided under the python directory, the details ar
 | 2    | yolov5_bmcv.py   | Decoding with SAIL, preprocessing with BMCV, Inference with SAIL |
 
 ## 1. Environments Preparation
-### 1.1 x86/arm PCIe Platform
+### 1.1 x86/arm/riscv PCIe Platform
 
-If you have installed a PCIe accelerator card (such as SC series accelerator card) on the x86/arm platform and use it to test these demos, you need to install libsophon, sophon-opencv, sophon-ffmpeg and sophon-sail. For specific steps, please refer to [Construction of Development and Runtime Environment of x86-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#3-x86-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of arm-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#5-arm-pcie-platform-development-and-runtime-environment-construction).
+If you have installed a PCIe accelerator card (such as SC series accelerator card) on the x86/arm/riscv platform and use it to test these demos, you need to install libsophon, sophon-opencv, sophon-ffmpeg and sophon-sail. For specific steps, please refer to [Construction of Development and Runtime Environment of x86-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#3-x86-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of arm-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#5-arm-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of riscv-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#6-riscv-pcie-platform-development-and-runtime-environment-construction).
 
 In addition, you need to install other third-party libraries:
 ```bash
