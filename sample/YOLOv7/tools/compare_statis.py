@@ -3,31 +3,68 @@ import argparse
 import math
 import os
 import sys
+import multiprocessing
 
 baseline = """
 |    测试平台  |     测试程序      |             测试模型                | decode_time | preprocess_time | inference_time | postprocess_time |
 | ----------- | ---------------- | ----------------------------------- | ----------- | --------------- | -------------- | ---------------- |
-| BM1684 SoC  | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel  | 17.8        | 27.8            | 93.9           | 144.0            |
-| BM1684 SoC  | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel  | 16.3        | 23.8            | 70.3           | 143.2            |
-| BM1684 SoC  | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel  | 14.6        | 25.1            | 41.2           | 148.2            |
-| BM1684 SoC  | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel  | 3.0         | 3.0             | 88.9           | 139.9            |
-| BM1684 SoC  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel  | 3.0         | 2.6             | 54.9           | 147.2            |
-| BM1684 SoC  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel  | 2.8         | 2.4             | 24.5           | 150.8            |
-| BM1684 SoC  | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp32_1b.bmodel  | 14.2        | 1.9             | 82.9           | 20.5             |
-| BM1684 SoC  | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel  | 14.7        | 1.7             | 48.7           | 21.9             |
-| BM1684 SoC  | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel  | 14.5        | 1.6             | 19.3           | 21.5             |
-| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel  | 15.0        | 26.6            | 142.5          | 135.9            |
-| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_fp16_1b.bmodel  | 3.2         | 24.7            | 39.5           | 133.4            |
-| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel  | 15.0        | 22.3            | 22.3           | 132.1            |
-| BM1684X SoC | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel  | 18.5        | 22.4            | 18.7           | 107.7            |
-| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel  | 2.6         | 2.3             | 114.9          | 133.7            |
-| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_fp16_1b.bmodel  | 2.6         | 2.2             | 35.9           | 132.4            |
-| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel  | 2.6         | 2.2             | 19.0           | 133.3            |
-| BM1684X SoC | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel  | 2.4         | 2.1             | 17.9           | 149.5            |
-| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp32_1b.bmodel  | 13.9        | 0.8             | 131.1          | 20.7             |
-| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp16_1b.bmodel  | 13.9        | 0.8             | 29.4           | 20.7             |
-| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel  | 13.9        | 0.8             | 12.6           | 20.8             |
-| BM1684X SoC | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel  | 12.3        | 0.7             | 9.5            | 18.7             |
+| SE5-16   | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel       | 20.10       | 26.29           | 93.05          | 111.12           |
+| SE5-16   | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel       | 13.99       | 26.35           | 71.77          | 109.78           |
+| SE5-16   | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel       | 13.85       | 23.91           | 40.65          | 112.05           |
+| SE5-16   | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel       | 3.57        | 2.82            | 89.29          | 106.19           |
+| SE5-16   | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel       | 3.57        | 2.30            | 54.98          | 105.83           |
+| SE5-16   | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel       | 3.45        | 2.12            | 24.84          | 109.49           |
+| SE5-16   | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp32_1b.bmodel       | 4.87        | 1.55            | 82.58          | 18.60            |
+| SE5-16   | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel       | 4.86        | 1.54            | 48.19          | 18.57            |
+| SE5-16   | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel       | 4.72        | 1.47            | 19.05          | 18.48            |
+| SE7-32   | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel       | 18.38       | 27.02           | 111.60         | 109.77           |
+| SE7-32   | yolov7_opencv.py | yolov7_v0.1_3output_fp16_1b.bmodel       | 14.11       | 27.70           | 35.96          | 109.32           |
+| SE7-32   | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel       | 14.01       | 27.78           | 20.83          | 109.39           |
+| SE7-32   | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel       | 13.96       | 25.33           | 18.73          | 112.40           |
+| SE7-32   | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel       | 3.04        | 2.34            | 106.45         | 104.30           |
+| SE7-32   | yolov7_bmcv.py   | yolov7_v0.1_3output_fp16_1b.bmodel       | 3.02        | 2.35            | 30.94          | 103.90           |
+| SE7-32   | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel       | 3.03        | 2.34            | 15.72          | 104.00           |
+| SE7-32   | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel       | 2.90        | 2.17            | 14.37          | 108.36           |
+| SE7-32   | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp32_1b.bmodel       | 4.31        | 0.74            | 99.85          | 18.65            |
+| SE7-32   | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp16_1b.bmodel       | 4.29        | 0.74            | 24.34          | 18.65            |
+| SE7-32   | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel       | 4.31        | 0.74            | 9.11           | 18.66            |
+| SE7-32   | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel       | 4.16        | 0.71            | 8.70           | 18.54            |
+| SE9-16   | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel       | 22.21       | 37.03           | 581.77         | 150.65           |
+| SE9-16   | yolov7_opencv.py | yolov7_v0.1_3output_fp16_1b.bmodel       | 19.42       | 36.64           | 128.73         | 150.99           |
+| SE9-16   | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel       | 19.46       | 36.37           | 44.55          | 150.91           |
+| SE9-16   | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel       | 19.26       | 33.41           | 41.89          | 150.92           |
+| SE9-16   | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel       | 4.44        | 5.04            | 577.06         | 143.57           |
+| SE9-16   | yolov7_bmcv.py   | yolov7_v0.1_3output_fp16_1b.bmodel       | 4.37        | 5.06            | 123.28         | 143.58           |
+| SE9-16   | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel       | 4.36        | 5.00            | 38.96          | 143.61           |
+| SE9-16   | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel       | 4.27        | 4.75            | 37.47          | 150.91           |
+| SE9-16   | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp32_1b.bmodel       | 5.92        | 1.82            | 567.47         | 26.02            |
+| SE9-16   | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp16_1b.bmodel       | 5.88        | 1.83            | 113.91         | 25.95            |
+| SE9-16   | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel       | 5.84        | 1.82            | 29.66          | 25.92            |
+| SE9-16   | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel       | 5.68        | 1.74            | 29.50          | 25.83            |
+| SE9-16   | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b_2core.bmodel | 19.49       | 36.79           | 318.75         | 151.24           |
+| SE9-16   | yolov7_opencv.py | yolov7_v0.1_3output_fp16_1b_2core.bmodel | 19.28       | 36.04           | 87.75          | 151.02           |
+| SE9-16   | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b_2core.bmodel | 19.46       | 36.73           | 31.93          | 151.16           |
+| SE9-16   | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b_2core.bmodel | 19.28       | 33.22           | 26.07          | 150.90           |
+| SE9-16   | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b_2core.bmodel | 4.43        | 5.02            | 313.23         | 143.94           |
+| SE9-16   | yolov7_bmcv.py   | yolov7_v0.1_3output_fp16_1b_2core.bmodel | 4.37        | 5.03            | 82.11          | 143.78           |
+| SE9-16   | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b_2core.bmodel | 4.37        | 5.04            | 26.54          | 143.44           |
+| SE9-16   | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b_2core.bmodel | 4.40        | 4.70            | 21.64          | 150.61           |
+| SE9-16   | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp32_1b_2core.bmodel | 6.28        | 1.82            | 303.79         | 25.97            |
+| SE9-16   | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp16_1b_2core.bmodel | 6.94        | 1.82            | 72.65          | 25.99            |
+| SE9-16   | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b_2core.bmodel | 5.85        | 1.83            | 17.07          | 26.01            |
+| SE9-16   | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b_2core.bmodel | 5.67        | 1.74            | 13.64          | 25.79            |
+| SE9-8    | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel       | 33.68       | 35.82           | 592.63         | 153.60           |
+| SE9-8    | yolov7_opencv.py | yolov7_v0.1_3output_fp16_1b.bmodel       | 25.47       | 36.44           | 137.69         | 150.43           |
+| SE9-8    | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel       | 21.03       | 36.40           | 47.95          | 150.02           |
+| SE9-8    | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel       | 20.88       | 32.59           | 45.06          | 149.44           |
+| SE9-8    | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel       | 4.22        | 4.86            | 587.39         | 143.62           |
+| SE9-8    | yolov7_bmcv.py   | yolov7_v0.1_3output_fp16_1b.bmodel       | 4.21        | 4.90            | 132.43         | 143.64           |
+| SE9-8    | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel       | 5.82        | 4.87            | 42.63          | 143.51           |
+| SE9-8    | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel       | 4.09        | 4.57            | 41.92          | 149.68           |
+| SE9-8    | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp32_1b.bmodel       | 5.88        | 1.81            | 577.88         | 26.00            |
+| SE9-8    | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp16_1b.bmodel       | 6.74        | 1.81            | 123.12         | 25.96            |
+| SE9-8    | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel       | 5.63        | 1.81            | 33.37          | 25.96            |
+| SE9-8    | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel       | 5.47        | 1.72            | 32.98          | 25.80            |
 """
 table_data = {
     "platform": [],
@@ -91,7 +128,21 @@ if __name__ == '__main__':
     current_dir = os.path.dirname(cnt_file_path)
     benchmark_path = current_dir + "/benchmark.txt"
     args = argsparser()
-    platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
+
+    if args.platform == "soc":
+        if args.target == "BM1684X":
+            platform = "SE7-32"
+        elif args.target == "BM1684":
+            platform = "SE5-16"
+        elif args.target == "BM1688":
+            platform = "SE9-16"
+            if multiprocessing.cpu_count() == 6:
+                platform = "SE9-8"
+        elif args.target == "CV186X":
+            platform = "SE9-8"
+    else:
+        platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
+
     min_width = 17
     
     if not os.path.exists(benchmark_path):

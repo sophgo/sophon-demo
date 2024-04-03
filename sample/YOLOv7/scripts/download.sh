@@ -31,6 +31,14 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv7/models.7z
     7z x models.7z -o../
     rm models.7z
+    pushd ../models/
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv7/BM1688.7z
+    7z x BM1688.7z  
+    rm -r BM1688.7z
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv7/CV186X.7z
+    7z x CV186X.7z  
+    rm -r CV186X.7z
+    popd
     echo "models download!"
 else
     echo "models exist! Remove it if you need to update."
