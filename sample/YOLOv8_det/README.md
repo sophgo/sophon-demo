@@ -16,11 +16,11 @@
 * [8. FAQ](#8-faq)
   
 ## 1. 简介
-​YOLOv8是YOLO系列的的一个重大更新版本，它抛弃了以往的YOLO系类模型使用的Anchor-Base，采用了Anchor-Free的思想。YOLOv8建立在YOLO系列成功的基础上，通过对网络结构的改造，进一步提升其性能和灵活性。本例程对[​YOLOv8官方开源仓库](https://github.com/ultralytics/ultralytics)的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
+​YOLOv8是YOLO系列的的一个重大更新版本，它抛弃了以往的YOLO系类模型使用的Anchor-Base，采用了Anchor-Free的思想。YOLOv8建立在YOLO系列成功的基础上，通过对网络结构的改造，进一步提升其性能和灵活性。本例程对[​YOLOv8官方开源仓库](https://github.com/ultralytics/ultralytics)的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -69,25 +69,38 @@ chmod -R +x scripts/
 │   ├── yolov8s_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4, num_core=1
 │   ├── yolov8s_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4, num_core=1
 │   ├── yolov8s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=1
-│   └── yolov8s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=1
+│   ├── yolov8s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=1
 │   ├── yolov8s_fp32_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
 │   ├── yolov8s_fp16_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
 │   ├── yolov8s_fp32_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4, num_core=2
 │   ├── yolov8s_fp16_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4, num_core=2
 │   ├── yolov8s_int8_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
-│   └── yolov8s_int8_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=2
+│   ├── yolov8s_int8_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=2
 │   ├── yolov8s_opt_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=1
 │   ├── yolov8s_opt_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=1
 │   ├── yolov8s_opt_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4, num_core=1
 │   ├── yolov8s_opt_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4, num_core=1
 │   ├── yolov8s_opt_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=1
-│   └── yolov8s_opt_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=1
+│   ├── yolov8s_opt_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=1
 │   ├── yolov8s_opt_fp32_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
 │   ├── yolov8s_opt_fp16_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
 │   ├── yolov8s_opt_fp32_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4, num_core=2
 │   ├── yolov8s_opt_fp16_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4, num_core=2
 │   ├── yolov8s_opt_int8_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
 │   └── yolov8s_opt_int8_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=2
+├── CV186X
+│   ├── yolov8s_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
+│   ├── yolov8s_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   ├── yolov8s_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=4
+│   ├── yolov8s_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=4
+│   ├── yolov8s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
+│   ├── yolov8s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=4
+│   ├── yolov8s_opt_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
+│   ├── yolov8s_opt_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   ├── yolov8s_opt_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=4
+│   ├── yolov8s_opt_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=4
+│   ├── yolov8s_opt_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
+│   └── yolov8s_opt_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=4
 │── torch
 │   └── yolov8s.torchscript.pt   # trace后的torchscript模型
 └── onnx
@@ -97,6 +110,7 @@ chmod -R +x scripts/
     ├── yolov8s_qtable_fp32       # TPU-MLIR编译时，用于BM1684的INT8 BModel混合精度量化
     ├── yolov8s_opt_qtable_fp16       # TPU-MLIR编译时，用于BM1684X/BM1688的INT8 BModel混合精度量化
     └── yolov8s_opt_qtable_fp32       # TPU-MLIR编译时，用于BM1684的INT8 BModel混合精度量化
+    
     
          
 ```
@@ -119,30 +133,30 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684`下生成`yolov8s_fp32_1b.bmodel`和`yolov8s_opt_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`yolov8s_fp16_1b.bmodel`和`yolov8s_opt_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684`下生成`yolov8s_int8_1b.bmodel`和`yolov8s_opt_int8_1b.bmodel`等文件，即转换好的INT8 BModel。量化模型出现问题可以参考：[Calibration_Guide](../../docs/Calibration_Guide.md)。
@@ -227,11 +241,27 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE9-16       | yolov8_bmcv.soc | yolov8s_opt_fp16_1b_2core.bmodel |    0.447 |    0.609 |
 | SE9-16       | yolov8_bmcv.soc | yolov8s_opt_int8_1b_2core.bmodel |    0.441 |    0.605 |
 | SE9-16       | yolov8_bmcv.soc | yolov8s_opt_int8_4b_2core.bmodel |    0.441 |    0.605 |
+| SE9-8        | yolov8_opencv.py | yolov8s_fp32_1b.bmodel |    0.448 |    0.609 |
+| SE9-8        | yolov8_opencv.py | yolov8s_fp16_1b.bmodel |    0.448 |    0.609 |
+| SE9-8        | yolov8_opencv.py | yolov8s_int8_1b.bmodel |    0.444 |    0.606 |
+| SE9-8        | yolov8_opencv.py | yolov8s_int8_4b.bmodel |    0.444 |    0.606 |
+| SE9-8        | yolov8_bmcv.py | yolov8s_fp32_1b.bmodel |    0.447 |    0.610 |
+| SE9-8        | yolov8_bmcv.py | yolov8s_fp16_1b.bmodel |    0.447 |    0.610 |
+| SE9-8        | yolov8_bmcv.py | yolov8s_int8_1b.bmodel |    0.443 |    0.607 |
+| SE9-8        | yolov8_bmcv.py | yolov8s_int8_4b.bmodel |    0.443 |    0.607 |
+| SE9-8        | yolov8_bmcv.soc | yolov8s_fp32_1b.bmodel |    0.448 |    0.610 |
+| SE9-8        | yolov8_bmcv.soc | yolov8s_fp16_1b.bmodel |    0.448 |    0.609 |
+| SE9-8        | yolov8_bmcv.soc | yolov8s_int8_1b.bmodel |    0.443 |    0.607 |
+| SE9-8        | yolov8_bmcv.soc | yolov8s_int8_4b.bmodel |    0.443 |    0.607 |
+| SE9-8        | yolov8_bmcv.soc | yolov8s_opt_fp32_1b.bmodel |    0.448 |    0.610 |
+| SE9-8        | yolov8_bmcv.soc | yolov8s_opt_fp16_1b.bmodel |    0.447 |    0.609 |
+| SE9-8        | yolov8_bmcv.soc | yolov8s_opt_int8_1b.bmodel |    0.442 |    0.606 |
+| SE9-8        | yolov8_bmcv.soc | yolov8s_opt_int8_4b.bmodel |    0.442 |    0.606 |
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 3. AP@IoU=0.5:0.95为area=all对应的指标。
-> 4. BM1688 num_core=2的模型与num_core=1的模型精度基本一致。
+> 4. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
 
 
 ## 7. 性能测试
@@ -276,6 +306,14 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 | BM1688/yolov8s_opt_fp16_1b_2core.bmodel|          24.43  |
 | BM1688/yolov8s_opt_int8_1b_2core.bmodel|           9.01  |
 | BM1688/yolov8s_opt_int8_4b_2core.bmodel|           6.25  |
+| CV186X/yolov8s_fp32_1b.bmodel      |         161.60  |
+| CV186X/yolov8s_fp16_1b.bmodel      |          34.18  |
+| CV186X/yolov8s_int8_1b.bmodel      |          10.84  |
+| CV186X/yolov8s_int8_4b.bmodel      |          10.49  |
+| CV186X/yolov8s_opt_fp32_1b.bmodel  |         161.89  |
+| CV186X/yolov8s_opt_fp16_1b.bmodel  |          34.27  |
+| CV186X/yolov8s_opt_int8_1b.bmodel  |           7.90  |
+| CV186X/yolov8s_opt_int8_4b.bmodel  |           7.57  |
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间；
@@ -348,7 +386,22 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 |   SE9-16    |  yolov8_bmcv.soc  |yolov8s_opt_fp16_1b_2core.bmodel|      5.90       |      1.83       |      22.06      |      3.66       |
 |   SE9-16    |  yolov8_bmcv.soc  |yolov8s_opt_int8_1b_2core.bmodel|      5.89       |      1.83       |      7.25       |      3.67       |
 |   SE9-16    |  yolov8_bmcv.soc  |yolov8s_opt_int8_4b_2core.bmodel|      5.75       |      1.75       |      4.84       |      3.71       |
-
+|    SE9-8    | yolov8_opencv.py  | yolov8s_fp32_1b.bmodel  |      25.22      |      30.41      |     169.19      |      7.01       |
+|    SE9-8    | yolov8_opencv.py  | yolov8s_fp16_1b.bmodel  |      24.42      |      29.83      |      41.77      |      6.97       |
+|    SE9-8    | yolov8_opencv.py  | yolov8s_int8_1b.bmodel  |      19.31      |      30.46      |      18.25      |      6.95       |
+|    SE9-8    | yolov8_opencv.py  | yolov8s_int8_4b.bmodel  |      19.42      |      32.97      |      17.66      |      7.41       |
+|    SE9-8    |  yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel  |      4.34       |      4.78       |     165.23      |      7.05       |
+|    SE9-8    |  yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel  |      4.34       |      4.77       |      37.60      |      7.07       |
+|    SE9-8    |  yolov8_bmcv.py   | yolov8s_int8_1b.bmodel  |      4.29       |      4.76       |      14.32      |      7.10       |
+|    SE9-8    |  yolov8_bmcv.py   | yolov8s_int8_4b.bmodel  |      4.14       |      4.47       |      13.17      |      6.21       |
+|    SE9-8    |  yolov8_bmcv.soc  | yolov8s_fp32_1b.bmodel  |      5.85       |      1.82       |     161.46      |      12.21      |
+|    SE9-8    |  yolov8_bmcv.soc  | yolov8s_fp16_1b.bmodel  |      5.83       |      1.82       |      34.05      |      12.19      |
+|    SE9-8    |  yolov8_bmcv.soc  | yolov8s_int8_1b.bmodel  |      5.77       |      1.82       |      10.71      |      12.20      |
+|    SE9-8    |  yolov8_bmcv.soc  | yolov8s_int8_4b.bmodel  |      5.65       |      1.74       |      10.46      |      12.14      |
+|    SE9-8    |  yolov8_bmcv.soc  |yolov8s_opt_fp32_1b.bmodel|      5.85       |      1.82       |     161.75      |      3.71       |
+|    SE9-8    |  yolov8_bmcv.soc  |yolov8s_opt_fp16_1b.bmodel|      5.79       |      1.82       |      34.15      |      4.01       |
+|    SE9-8    |  yolov8_bmcv.soc  |yolov8s_opt_int8_1b.bmodel|      5.70       |      1.82       |      7.77       |      3.68       |
+|    SE9-8    |  yolov8_bmcv.soc  |yolov8s_opt_int8_4b.bmodel|      5.55       |      1.73       |      7.54       |      3.73       |
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；

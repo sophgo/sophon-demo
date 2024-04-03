@@ -27,6 +27,11 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_opt/models_0314/models.zip
     unzip models.zip -d ../
     rm models.zip
+    pushd ../models/
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8/models_240403/CV186X.zip
+    unzip CV186X.zip
+    rm -r CV186X.zip
+    popd
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
