@@ -12,11 +12,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include "json.hpp"
-#include "opencv2/opencv.hpp"
 #include "yolov34.hpp"
 using json = nlohmann::json;
 using namespace std;
-#define USE_OPENCV_DECODE 0
 
 int main(int argc, char* argv[]) {
     cout.setf(ios::fixed);
@@ -115,16 +113,11 @@ int main(int argc, char* argv[]) {
                 id++;
                 cout << id << "/" << cn << ", img_file: " << img_file << endl;
                 ts->save("decode time");
-            #if USE_OPENCV_DECODE
-                cvmats[i] = cv::imread(img_file, cv::IMREAD_COLOR, dev_id);
-                bmcv.mat_to_bm_image(cvmats[i], batch_imgs[i]);
-            #else
                 sail::Decoder decoder((const string)img_file, true, dev_id);
                 int ret = decoder.read(handle, batch_imgs[i]);
                 if (ret != 0) {
                     cout << "read failed" << "\n";
                 }
-            #endif
 
             #if DEBUG
                 cout<<"batch img:"<<batch_imgs[i].format()<<" "<<batch_imgs[i].dtype()<<endl;
