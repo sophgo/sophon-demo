@@ -83,7 +83,7 @@ chmod -R +x scripts/
 ├── coco.names                                # coco类别名文件
 ├── coco128                                   # coco128数据集，用于模型量化
 └── coco                                      
-    ├── val2017_1000                          # coco val2017_1000数据集
+    ├── val2017_1000                          # coco val2017_1000数据集：coco val2017中随机抽取的1000张样本
     └── instances_val2017_1000.json           # coco val2017_1000数据集标签文件，用于计算精度评价指标  
 ```
 
