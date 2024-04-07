@@ -33,7 +33,7 @@ ppyoloe是百度提出的基于PP-YOLOv2的卓越的单阶段Anchor-free模型�
 * 支持图片和视频测试
 
 ## 3. 准备模型与数据
-推荐您使用新版编译工具链TPU-MLIR编译BModel，目前直接支持的框架有ONNX、Caffe和TFLite，其他框架的模型需要转换成onnx模型。如何将其他深度学习架构的网络模型转换成onnx, 可以参考onnx官网: https://github.com/onnx/tutorials ；ppyoloe模型导出为onnx的方法可参考PaddleDetection官方说明：https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.6/deploy/EXPORT_ONNX_MODEL.md和https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.6/deploy/end2end_ppyoloe/README.md
+推荐您使用新版编译工具链TPU-MLIR编译BModel，目前直接支持的框架有ONNX、Caffe和TFLite，其他框架的模型需要转换成onnx模型。如何将其他深度学习架构的网络模型转换成onnx, 可以参考onnx官网: https://github.com/onnx/tutorials ；ppyoloe模型导出为onnx的方法可参考PaddleDetection官方说明：https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.6/deploy/EXPORT_ONNX_MODEL.md 和 https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.6/deploy/end2end_ppyoloe/README.md
 
 本demo使用的模型为官方的[ppyoloe_crn_s_400e_coco](https://paddledet.bj.bcebos.com/models/ppyoloe_crn_s_400e_coco.pdparams)，由于模型的后处理较复杂，使用TPU-MLIR将该模型编译为BModel时，指定了模型的输出为模型中间有关目标框的两个输出，p2o.Div.1, p2o.Concat.29，后处理部分则在部署程序中实现。若在转换Bmodel模型要添加参考输入以判断转换的正确性，可以参考[多输入模型npz验证文件制作](./docs/prepare_npz.md)文档。
 
