@@ -19,7 +19,7 @@
   
 ## 1. 简介
 ​BERT的全称为Bidirectional Encoder Representation from Transformers，是一个预训练的语言表征模型。它强调了不再像以往一样采用传统的单向语言模型或者把两个单向语言模型进行浅层拼接的方法进行预训练，而是采用新的masked language model（MLM），以致能生成深度的双向语言表征。BERT论文发表时提及在11个NLP（Natural Language Processing，自然语言处理）任务中获得了新的state-of-the-art的结果，令人惊叹。
-本例程对A simple training framework that recreates bert4keras in PyTorch. bert4torch的模型和算法进行移植,使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
+本例程对[A simple training framework that recreates bert4keras in PyTorch. bert4torch](https://github.com/Tongjilibo/bert4torch/)的模型和算法进行移植,使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
 ## 2. 特性
 * 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688)模型编译和推理
@@ -69,7 +69,7 @@ chmod -R +x scripts/
 ```
 下载的数据包括：
 ```
-./datasets/china-people-daily-ner-corpus
+./datasets/china-people-daily-ner-corpus                     # 人民日报数据集
 ├── example.dev                                              # 验证集
 ├── example.test                                             # 测试集
 └── example.train                                            # 训练集
