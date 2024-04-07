@@ -31,7 +31,9 @@ ppyolov3 是百度提出的一种基于YOLOv3和一些几乎不增加推理代�
 * 支持图片和视频测试
 
 ## 3. 准备模型与数据
-建议使用TPU-MLIR编译BModel，百度的飞桨PaddlePaddle模型在编译前要导出成onnx模型。
+百度的飞桨PaddlePaddle模型权重来源于[yolov3.pdparams](https://paddledet.bj.bcebos.com/models/yolov3_darknet53_270e_coco.pdparams)，配置文件来源于[yolov3.yml](https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.6/configs/yolov3/yolov3_darknet53_270e_coco.yml)
+
+建议使用TPU-MLIR编译BModel，百度的飞桨PaddlePaddle模型在编译前要导出成onnx模型。导出可参考：[ppyolo-deployment](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.6/configs/ppyolo#4-inference-deployment)。
 
 ​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
@@ -69,7 +71,7 @@ chmod -R +x scripts/
 ├── coco.names                                # coco类别名文件
 ├── coco128                                   # coco128数据集，用于模型量化
 └── coco                                      
-    ├── val2017_1000                          # coco val2017_1000数据集
+    ├── val2017_1000                          # coco val2017_1000数据集：coco val2017中随机抽取的1000张样本
     └── instances_val2017_1000.json           # coco val2017_1000数据集标签文件，用于计算精度评价指标  
 ```
 
