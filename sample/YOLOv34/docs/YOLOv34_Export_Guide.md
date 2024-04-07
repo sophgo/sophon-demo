@@ -2,7 +2,7 @@
 
 # YOLOv34模型导出
 ## 1. 准备工作
-本例程采用的YOLOv34模型导出是在Pytorch模型的生产环境下进行的，需提前根据[​YOLOv3 Pytorch开源仓库](https://github.com/bubbliiiing/yolo3-pytorch)[​YOLOv4 Pytorch开源仓库](https://github.com/bubbliiiing/yolov4-pytorch)的要求安装好Pytorch环境，准备好相应的代码和模型，并保证模型能够在Pytorch环境下正常推理运行。
+本例程采用的YOLOv34模型导出是在Pytorch模型的生产环境下进行的，需提前根据[​YOLOv3 Pytorch开源仓库](https://github.com/bubbliiiing/yolo3-pytorch)[​YOLOv4 Pytorch开源仓库](https://github.com/bubbliiiing/yolov4-pytorch)的要求安装好Pytorch环境，准备好相应的代码和模型，并保证模型能够在Pytorch环境下正常推理运行。本例程采用的YOLOv3模型权重来自于[​YOLOv3_weights.pth](https://github.com/bubbliiiing/yolo3-pytorch/releases/download/v1.0/yolo_weights.pth)，YOLOv4模型权重来自于[​YOLOv4_weights.pth](https://github.com/bubbliiiing/yolov4-pytorch/releases/download/v1.0/yolo4_weights.pth)。
 > **注意**：建议使用`1.8.0+cpu`的torch版本，避免因pytorch版本导致模型编译失败。
 
 ## 2. 主要步骤
