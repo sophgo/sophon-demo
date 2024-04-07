@@ -17,8 +17,6 @@
 #include "utils.hpp"
 #include "cvwrapper.h"
 
-// Define USE_OPENCV for enabling OPENCV related funtions in bm_wrapper.hpp
-#define USE_OPENCV 1
 #define DEBUG 0
 
 struct PPYOLOBox {
