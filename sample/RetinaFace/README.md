@@ -17,7 +17,7 @@
     - [7.2 程序运行性能](#72-程序运行性能)
 
 ## 1. 简介
-本例程对[Retinaface]的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X、BM1688上进行推理测试。
+本例程对[Retinaface](https://github.com/biubug6/Pytorch_Retinaface)的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X、BM1688上进行推理测试。
 
 
 **论文:** [Retinaface论文](https://arxiv.org/pdf/1905.00641.pdf)
