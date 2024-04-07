@@ -17,7 +17,7 @@
 ## 1. 简介
 C3D是使用三维卷积进行视频动作识别的开荒者，论文链接：[Learning Spatiotemporal Features with 3D Convolutional Networks](https://arxiv.org/abs/1412.0767v4)。
 
-本例程对[MMAction的C3D_UCF101模型](https://mmaction2.readthedocs.io/zh_CN/latest/recognition_models.html)进行了移植，在相同的预处理流程下可以做到精度对齐。
+本例程对[MMAction的C3D_UCF101模型](https://mmaction2.readthedocs.io/zh-cn/latest/model_zoo/recognition.html)进行了移植，在相同的预处理流程下可以做到精度对齐。
 ## 2. 特性
 * 支持BM1688(SoC)/BM1684X(x86 PCIe、SoC)/BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1688/BM1684X)、INT8模型编译和推理
