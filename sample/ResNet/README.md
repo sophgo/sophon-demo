@@ -14,9 +14,9 @@
   * [7.1 bmrt_test](#71-bmrt_test)
   * [7.2 程序运行性能](#72-程序运行性能)
 * [8. FAQ](#8-faq)
-    
+  
 ## 1. 简介
-本例程对[torchvision Resnet](https://pytorch.org/vision/stable/models.html)的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
+本例程对[torchvision Resnet](https://pytorch.org/vision/stable/models.html)的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688\CV186X上进行推理测试。
 
 **论文:** [Resnet论文](https://arxiv.org/abs/1512.03385)
 
@@ -25,8 +25,8 @@
 在此非常感谢Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun等人的贡献。
 
 ## 2. 特性
-* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1688/BM1684X)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1688/BM1684X/CV186X)、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -65,6 +65,11 @@ chmod +x ./scripts/*
 │   ├── resnet50_fp32_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
 │   ├── resnet50_int8_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
 │   └── resnet50_int8_4b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=2
+├── CV186X
+│   ├── resnet50_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
+│   ├── resnet50_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   ├── resnet50_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
+│   └── resnet50_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=4
 ├── torch
 │   ├── resnet50-11ad3fa6.pth                         # 原始模型
 │   └── resnet50-11ad3fa6.torchscript.pt              # trace后的torchscript模型
@@ -90,33 +95,33 @@ chmod +x ./scripts/*
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
 ```
 
-​执行上述命令会在`models/BM1684`等文件夹下生成`resnet50_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+执行上述命令会在`models/BM1684`等文件夹下生成`resnet50_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
 ```
 
-​执行上述命令会在`models/BM1684X/`等文件夹下生成`resnet50_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+执行上述命令会在`models/BM1684X/`等文件夹下生成`resnet50_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688**），如：
+本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
 ```
 
-​上述脚本会在`models/BM1684`等文件夹下生成`resnet50_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+上述脚本会在`models/BM1684`等文件夹下生成`resnet50_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 ## 5. 例程测试
 * [C++例程](cpp/README.md)
@@ -133,7 +138,7 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 ```
 ### 6.2 测试结果
 在imagenet_val_1k数据集上，精度测试结果如下：
-|   测试平台    |      测试程序       |        测试模型        | ACC(%) |
+|   测试平台   |      测试程序      |        测试模型        | ACC(%) |
 | ------------ | ----------------   | ---------------------- | ------ |
 | SE5-16       | resnet_opencv.py   | resnet50_fp32_1b.bmodel   |    80.10 |
 | SE5-16       | resnet_opencv.py   | resnet50_int8_1b.bmodel   |    78.70 |
@@ -195,10 +200,26 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 | SE9-16       | resnet_bmcv.soc    | resnet50_fp16_1b_2core.bmodel |    80.00 |
 | SE9-16       | resnet_bmcv.soc    | resnet50_int8_1b_2core.bmodel |    80.50 |
 | SE9-16       | resnet_bmcv.soc    | resnet50_int8_4b_2core.bmodel |    80.50 |
+| SE9-8        | resnet_opencv.py   | resnet50_fp32_1b.bmodel  | 80.10  |
+| SE9-8        | resnet_opencv.py   | resnet50_fp16_1b.bmodel  | 80.10  |
+| SE9-8        | resnet_opencv.py   | resnet50_int8_1b.bmodel  | 79.90  |
+| SE9-8        | resnet_opencv.py   | resnet50_int8_4b.bmodel  | 79.90  |
+| SE9-8        | resnet_bmcv.py     | resnet50_fp32_1b.bmodel  | 80.00  |
+| SE9-8        | resnet_bmcv.py     | resnet50_fp16_1b.bmodel  | 80.00  |
+| SE9-8        | resnet_bmcv.py     | resnet50_int8_1b.bmodel  | 80.50  |
+| SE9-8        | resnet_bmcv.py     | resnet50_int8_4b.bmodel  | 80.50  |
+| SE9-8        | resnet_opencv.soc  | resnet50_fp32_1b.bmodel  | 80.30  |
+| SE9-8        | resnet_opencv.soc  | resnet50_fp16_1b.bmodel  | 80.30  |
+| SE9-8        | resnet_opencv.soc  | resnet50_int8_1b.bmodel  | 80.20  |
+| SE9-8        | resnet_opencv.soc  | resnet50_int8_4b.bmodel  | 80.20  |
+| SE9-8        | resnet_bmcv.soc    | resnet50_fp32_1b.bmodel  | 80.00  |
+| SE9-8        | resnet_bmcv.soc    | resnet50_fp16_1b.bmodel  | 80.00  |
+| SE9-8        | resnet_bmcv.soc    | resnet50_int8_1b.bmodel  | 80.50  |
+| SE9-8        | resnet_bmcv.soc    | resnet50_int8_4b.bmodel  | 80.50  |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
-> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列对应BM1688；
+> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -227,6 +248,10 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 | BM1688/resnet50_fp16_1b_2core.bmodel|           7.55  |
 | BM1688/resnet50_int8_1b_2core.bmodel|           3.03  |
 | BM1688/resnet50_int8_4b_2core.bmodel|           1.92  |
+| CV186X/resnet50_fp32_1b.bmodel      |          42.90  |
+| CV186X/resnet50_fp16_1b.bmodel      |          6.89   |
+| CV186X/resnet50_int8_1b.bmodel      |          2.43   |
+| CV186X/resnet50_int8_4b.bmodel      |          1.82   |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -299,6 +324,23 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 |   SE9-16    |  resnet_bmcv.soc  |   resnet50_fp16_1b_2core.bmodel   |      3.97       |      1.31       |      6.64       |      0.17       |
 |   SE9-16    |  resnet_bmcv.soc  |   resnet50_int8_1b_2core.bmodel   |      3.99       |      1.29       |      2.46       |      0.17       |
 |   SE9-16    |  resnet_bmcv.soc  |   resnet50_int8_4b_2core.bmodel   |      3.80       |      1.20       |      1.48       |      0.14       |
+|    SE9-8    | resnet_opencv.py  |      resnet50_fp32_1b.bmodel      |      13.82      |      10.75      |      46.28      |      0.43       |
+|    SE9-8    | resnet_opencv.py  |      resnet50_fp16_1b.bmodel      |      12.90      |      10.69      |      10.31      |      0.43       |
+|    SE9-8    | resnet_opencv.py  |      resnet50_int8_1b.bmodel      |      12.84      |      10.66      |      5.83       |      0.43       |
+|    SE9-8    | resnet_opencv.py  |      resnet50_int8_4b.bmodel      |      12.74      |      10.70      |      4.58       |      0.15       |
+|    SE9-8    |  resnet_bmcv.py   |      resnet50_fp32_1b.bmodel      |      2.89       |      1.61       |      43.54      |      0.38       |
+|    SE9-8    |  resnet_bmcv.py   |      resnet50_fp16_1b.bmodel      |      2.87       |      1.61       |      7.52       |      0.37       |
+|    SE9-8    |  resnet_bmcv.py   |      resnet50_int8_1b.bmodel      |      2.84       |      1.60       |      3.05       |      0.38       |
+|    SE9-8    |  resnet_bmcv.py   |      resnet50_int8_4b.bmodel      |      2.56       |      1.40       |      1.97       |      0.14       |
+|    SE9-8    | resnet_opencv.soc |      resnet50_fp32_1b.bmodel      |      2.27       |      7.22       |      42.71      |      0.13       |
+|    SE9-8    | resnet_opencv.soc |      resnet50_fp16_1b.bmodel      |      2.27       |      7.26       |      6.72       |      0.13       |
+|    SE9-8    | resnet_opencv.soc |      resnet50_int8_1b.bmodel      |      2.25       |      7.29       |      2.27       |      0.13       |
+|    SE9-8    | resnet_opencv.soc |      resnet50_int8_4b.bmodel      |      1.88       |      7.31       |      1.77       |      0.10       |
+|    SE9-8    |  resnet_bmcv.soc  |      resnet50_fp32_1b.bmodel      |      3.79       |      1.25       |      42.71      |      0.16       |
+|    SE9-8    |  resnet_bmcv.soc  |      resnet50_fp16_1b.bmodel      |      3.68       |      1.25       |      6.71       |      0.16       |
+|    SE9-8    |  resnet_bmcv.soc  |      resnet50_int8_1b.bmodel      |      3.68       |      1.26       |      2.26       |      0.16       |
+|    SE9-8    |  resnet_bmcv.soc  |      resnet50_int8_4b.bmodel      |      3.61       |      1.17       |      1.76       |      0.14       |
+
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

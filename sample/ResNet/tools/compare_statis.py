@@ -145,6 +145,8 @@ if __name__ == '__main__':
             platform = "SE5-16"
         elif args.target == "BM1688":
             platform = "SE9-16"
+        elif args.target == "CV186X":
+            platform = "SE9-8"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 17

@@ -30,6 +30,9 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/ResNet/models_1218/BM1688.zip
     unzip BM1688.zip -d ../models/
     rm BM1688.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ResNet/CV186X.tar.gz
+    tar -zxvf CV186X.tar.gz -C ../models/
+    rm -r CV186X.tar.gz
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
