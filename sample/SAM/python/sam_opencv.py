@@ -41,39 +41,46 @@ from amg import (
 )
 logging.basicConfig(level=logging.INFO)
 
+def show_mask(mask, ax, random_color=False):
+    if random_color:
+        color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
+    else:
+        color = np.array([30/255, 144/255, 255/255, 0.6])
+    h, w = mask.shape[-2:]
+    mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
+    ax.imshow(mask_image)
 
-def save_image_point(base_image,mask,input_point, box = False):
+def show_points(coords, ax, marker_size=375):
+    ax.scatter(coords[:, 0], coords[:, 1], color='green', marker='*', s=marker_size, edgecolor='white', linewidth=1.25)
+    ax.scatter(coords[:, 0], coords[:, 1], color='red', marker='*', s=marker_size, edgecolor='white', linewidth=1.25)   
+    
+def show_box(box, ax):
+    x0, y0 = box[0], box[1]
+    w, h = box[2] - box[0], box[3] - box[1]
+    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0,0,0,0), lw=2))    
+
+def save_image_point(base_image,results,input_point, box = False): # results = (mask,score) or [(mask,score),(mask,score),(mask,score)]
     output_dir = "./results"
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    if not box:
-        input_point = input_point[0]
-        mask = mask[...,None]
-        x_coord = input_point[0]
-        y_coord = input_point[1]
-        blue_color = np.array([255, 0, 0]) 
-        green_color = (0, 255, 0)
-        base_image= np.where(mask, blue_color, base_image)
-        image_cv = cv2.UMat(base_image)
-        base_image = cv2.drawMarker(image_cv, (x_coord, y_coord), green_color,markerType=cv2.MARKER_STAR,markerSize=50, thickness=2, line_type=cv2.LINE_AA)
-        cv2.imwrite(output_dir+'/result.jpg',base_image)
-    else:
-        mask = mask[...,None]
-        x_coord0 = input_point[0][0]
-        y_coord0 = input_point[0][1]
-        x_coord1 = input_point[0][2]
-        y_coord1 = input_point[0][3]
-        blue_color = np.array([255, 0, 0]) 
-        green_color = (0, 255, 0)
-        base_image= np.where(mask, blue_color, base_image)
-        image_cv = cv2.UMat(base_image)
-        w = x_coord1 - x_coord0
-        h = y_coord1 - y_coord0
-        color = (0, 255, 0) 
-        cv2.rectangle(image_cv, (x_coord0, y_coord0), (x_coord0 + w, y_coord0 + h), color, 2)
-        cv2.imwrite(output_dir+'/result.jpg',image_cv)   
-
+    plt.figure(figsize=(10,10))
+    plt.imshow(cv2.cvtColor(base_image, cv2.COLOR_BGR2RGB))
+    plt.savefig(output_dir+'/base_img.jpg', bbox_inches='tight', pad_inches=0)
+    for i in range(len(results)):
+        if i == 3:
+            break
+        res = results[i]
+        show_mask(res[0], plt.gca())
+        if not box:
+            show_points(input_point, plt.gca())
+        else:
+            show_box(input_point[0], plt.gca())
+        plt.title(f"Mask {i}, Score: {res[1]:.3f}", fontsize=18)
+        plt.axis('off')
+        plt.savefig(output_dir+f'/result_box_{i}.jpg', bbox_inches='tight', pad_inches=0)
+    plt.close()
+    
 def show_anns(anns):
     if len(anns) == 0:
         return
@@ -93,14 +100,16 @@ class SAM_b(object):
     def __init__(self, args):
         self.args = args
         # load bmodel
-        self.net = sail.Engine(self.args.bmodel, self.args.dev_id, sail.IOMode.SYSIO)
+        self.net = sail.Engine(self.args.decode_bmodel, self.args.dev_id, sail.IOMode.SYSIO)
         self.graph_name = self.net.get_graph_names()[0]
         self.input_names = self.net.get_input_names(self.graph_name)
 
         self.input_shapes = [self.net.get_input_shape(self.graph_name, name) for name in self.input_names]
         self.output_names = self.net.get_output_names(self.graph_name)
         self.output_shapes = [self.net.get_output_shape(self.graph_name, name) for name in self.output_names]
-        logging.debug("load {} success!".format(self.args.bmodel))
+
+        
+        logging.debug("load {} success!".format(self.args.decode_bmodel))
         logging.debug(str(("graph_name: {}, input_names & input_shapes: ".format(self.graph_name), self.input_names, self.input_shapes)))
         logging.debug(str(("graph_name: {}, output_names & output_shapes: ".format(self.graph_name), self.output_names, self.output_shapes)))
 
@@ -188,11 +197,22 @@ class SAM_b(object):
         '''
         4 output bmodel, resize masks on cpu
         '''
-        output_name = list(outputs_0.items())[1][0]
-        mask = np.squeeze(outputs_0[output_name], axis=(0, 1))
-        upscaled_masks = cv2.resize(mask, (self.orig_im_size[1].astype(int),self.orig_im_size[0].astype(int)))
-        return upscaled_masks > 0.0 # predictor.model.mask_threshold = 0.0
-    
+        mask_outputs = list(outputs_0.items())[1][1] # '/Slice_9_output_0_Slice_f32'
+        mask_scores = list(outputs_0.items())[2][1] # 'low_res_masks_Reshape_f32'
+
+        if mask_outputs.shape[1] == 1:
+            print("your bmodel is one mask output")
+            mask = np.squeeze(mask_outputs, axis=(0, 1))
+            upscaled_masks = cv2.resize(mask, (self.orig_im_size[1].astype(int),self.orig_im_size[0].astype(int)))
+            return [(upscaled_masks > 0.0 , mask_scores[0][0])]  
+        elif mask_outputs.shape[1] == 4:
+            print("your bmodel is three mask output")
+            res = []
+            for i, (mask_output, score) in enumerate(zip(mask_outputs[0], mask_scores[0])):
+                upscaled_masks = cv2.resize(mask_output, (self.orig_im_size[1].astype(int),self.orig_im_size[0].astype(int)))
+                res.append((upscaled_masks > 0.0 , score))  
+            return res
+        
     def auto_mask(self, image, sam_encoder,sam):
         start_time = time.time()
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -441,7 +461,7 @@ def main(args):
 
     # process images
     if args.auto == 0:
-        results = sam_vit_b(src_img, sam_encoder, sam)
+        results = sam_vit_b(src_img, sam_encoder, sam) # (mask,score) or [(mask,score),(mask,score),(mask,score)]
 
         # save processed image
         input_point = np.array([list(map(int, args.input_point.split(',')))])
@@ -468,7 +488,7 @@ def argsparser():
     parser.add_argument('--input_image', type=str, default='datasets/truck.jpg', help='path of input, must be image directory')
     parser.add_argument('--input_point', type=str, default='700,375', help='The coordinates of the input_point(point or box), point in format x,y, box in format x1,y1,x2,y2')
     parser.add_argument('--embedding_bmodel', type=str, default='models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel', help='path of bmodel')
-    parser.add_argument('--bmodel', type=str, default='models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_fp16_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--decode_bmodel', type=str, default='models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel', help='path of bmodel')
     parser.add_argument('--auto', type=bool, default=0, help='Whether to use an automatic mask generator: 0 for no, 1 for yes')
     parser.add_argument('--dev_id', type=int, default=0, help='tpu id')
     #auto parsers

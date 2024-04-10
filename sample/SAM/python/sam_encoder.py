@@ -14,7 +14,7 @@ class SamEncoder():
         self.output_shape = self.net.get_output_shape(self.graph_name,self.output_name) 
 
         self.img_size = img_size
-        logging.debug("load {} success!".format(args.bmodel))
+        logging.debug("load {} success!".format(args.decode_bmodel))
         logging.debug(str(("graph_name: {}, input_names & input_shapes: ".format(self.graph_name), self.input_name, self.input_shape)))
         logging.debug(str(("graph_name: {}, output_names & output_shapes: ".format(self.graph_name), self.output_name, self.output_shape)))
     
