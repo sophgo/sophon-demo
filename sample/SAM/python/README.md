@@ -2,18 +2,22 @@
 
 ## 目录
 
-* [1. 环境准备](#1-环境准备)
-    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
-    * [1.2 SoC平台](#12-soc平台)
-* [2. 推理测试](#2-推理测试)
-    * [2.1 参数说明](#21-参数说明)
-    * [2.2 测试图片](#22-测试图片)
+- [Python例程](#python例程)
+  - [目录](#目录)
+  - [1. 环境准备](#1-环境准备)
+    - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    - [1.2 SoC平台](#12-soc平台)
+  - [2. 推理测试](#2-推理测试)
+    - [2.1 参数说明](#21-参数说明)
+    - [2.2 测试图片](#22-测试图片)
+      - [2.2.1 单点、单框输入](#221-单点单框输入)
+      - [2.2.2 auto自动分割](#222-auto自动分割)
 
 python目录下提供了Python例程，具体情况如下：
 
-| 序号 |  Python例程      | 说明                                                                 |
-| ---- | ---------------- | -------------------------------------------------------------------- |
-| 1    | sam_opencv.py    | 使用OpenCV解码、SAIL 图像压缩(embedding)、SAIL图像推理(mask_decoder) |
+| 序号 | Python例程    | 说明                                                                 |
+| ---- | ------------- | -------------------------------------------------------------------- |
+| 1    | sam_opencv.py | 使用OpenCV解码、SAIL 图像压缩(embedding)、SAIL图像推理(mask_decoder) |
 
 ## 1. 环境准备
 ### 1.1 x86/arm PCIe平台
@@ -29,6 +33,7 @@ export PYTHONPATH=$PYTHONPATH:/opt/sophon/libsophon-current/lib:/opt/sophon/soph
 ```bash
 pip3 install torch
 pip3 install torchvision
+pip3 install matplotlib
 ```
 
 ### 1.2 SoC平台
@@ -58,7 +63,7 @@ usage: sam_opencv.py [--input_image INPUT_PATH] [--input_point INPOINT_POINT]
 --input_image: 测试图片路径，需输入图片路径；
 --input_point: 输入点的坐标，输入格式为x,y；或者输入框坐标，格式为x1,y1,x2,y2
 --embedding_bmodel 用于图像压缩(embedding)的bmodel路径；
---bmodel: 用于推理(mask_decode)的bmodel路径；
+--decode_bmodel: 用于推理(mask_decode)的bmodel路径；
 --dev_id: 用于推理的tpu设备id；
 --auto: 是否启用自动分割，为bool，默认为0不开启，1为开启；
 
@@ -76,27 +81,70 @@ usage: sam_opencv.py [--input_image INPUT_PATH] [--input_point INPOINT_POINT]
 --output_mode: mask输出方式。可以是binary_mask、uncompressed_rle或coco_rle ，coco_rle需要pycocotools。对于大分辨率，binary_mask可能会消耗大量内存。默认为'binary_mask'；
 ```
 ### 2.2 测试图片
+
+#### 2.2.1 单点、单框输入
+
+**注意：** 使用`SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel`模型将输出置信度前三的mask，使用`SAM-ViT-B_decoder_multi_single_fp16_1b.bmodel`模型将输出置信度最高的mask。
 图片测试实例如下：
 
-点输入效果如下：
+- 点输入：
+
+输出置信度前三的mask:
 ```bash
 python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 700,375 \
-    --embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_fp16_1b.bmodel  --dev_id 0 
+    --embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel \
+    --decode_bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  --dev_id 0 
+```
+运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
+
+输出效果如图：
+
+|                               |                               |                               |
+| :---------------------------: | :---------------------------: | :---------------------------: |
+| ![fig1](../docs/result_0.jpg) | ![fig2](../docs/result_1.jpg) | ![fig3](../docs/result_2.jpg) |
+
+
+输出置信度最高的mask：
+```bash
+python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 700,375 \
+    --embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel \
+    --decode_bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel  --dev_id 0 
 ```
 运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
 
 输出效果如图：
 ![](../docs/result.jpg)
 
-box输入效果如下：
+
+- box输入：
+
+输出置信度前三的mask:
 ```bash
 python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 100,300,1700,800 \
-     --embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_fp16_1b.bmodel --dev_id 0 
+     --embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel \
+     --decode_bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel --dev_id 0 
 ```
 运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
 
 输出效果如图：
-![](../docs/result_box.jpg)
+|                                   |                                   |                                   |
+| :-------------------------------: | :-------------------------------: | :-------------------------------: |
+| ![fig1](../docs/result_box_0.jpg) | ![fig2](../docs/result_box_1.jpg) | ![fig3](../docs/result_box_2.jpg) |
+
+
+输出置信度最高的mask：
+```bash
+python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 100,300,1700,800 \
+     --embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel \
+     --decode_bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel --dev_id 0 
+```
+运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
+
+输出效果如图：
+
+![fig1](../docs/result_box.jpg)
+
+#### 2.2.2 auto自动分割
 
 若是要使用无需点和框输入的全自动掩码生成则需要设置输入参数auto为1,并设置--bmodel为auto的bmodel，操作如下：
 ```bash

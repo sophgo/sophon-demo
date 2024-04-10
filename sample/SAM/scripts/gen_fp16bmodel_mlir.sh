@@ -29,25 +29,47 @@ function gen_fp16bmodel_embedding()
 }
 
 
-function gen_mlir_decoder()
+function gen_mlir_single_decoder()
 {
     model_transform.py \
         --model_name sam_decoder \
-        --model_def ../models/onnx/vit-b-scripts.onnx \
+        --model_def ../models/onnx/decode_model_single_mask.onnx \
         --input_shapes [[$1,256,64,64],[1,2,2],[1,2],[1,1,256,256],[1],[2]] \
         --output_names /Concat_18_output_0,/Slice_9_output_0,iou_predictions,low_res_masks \
-        --mlir sam_decoder_$1b.mlir
+        --mlir sam_decoder_single_mask_$1b.mlir
 }
 
-function gen_fp16bmodel_decoder()
+function gen_fp16bmodel_single_decoder()
 {
     model_deploy.py \
-        --mlir sam_decoder_$1b.mlir \
+        --mlir sam_decoder_single_mask_$1b.mlir \
         --quantize F16 \
         --chip $target \
-        --model SAM-ViT-B_decoder_fp16_$1b.bmodel
+        --model SAM-ViT-B_decoder_single_mask_fp16_$1b.bmodel
 
-    mv SAM-ViT-B_decoder_fp16_$1b.bmodel $outdir/decode_bmodel/
+    mv SAM-ViT-B_decoder_single_mask_fp16_$1b.bmodel $outdir/decode_bmodel/
+}
+
+
+function gen_mlir_multi_decoder()
+{
+    model_transform.py \
+        --model_name sam_decoder \
+        --model_def ../models/onnx/decode_model_multi_mask.onnx \
+        --input_shapes [[$1,256,64,64],[1,2,2],[1,2],[1,1,256,256],[1],[2]] \
+        --output_names /Concat_15_output_0,/Slice_9_output_0,iou_predictions,low_res_masks \
+        --mlir sam_decoder_multi_mask_$1b.mlir
+}
+
+function gen_fp16bmodel_multi_decoder()
+{
+    model_deploy.py \
+        --mlir sam_decoder_multi_mask_$1b.mlir \
+        --quantize F16 \
+        --chip $target \
+        --model SAM-ViT-B_decoder_multi_mask_fp16_$1b.bmodel
+
+    mv SAM-ViT-B_decoder_multi_mask_fp16_$1b.bmodel $outdir/decode_bmodel/
 }
 
 
@@ -65,10 +87,14 @@ if [ ! -d $outdir/decode_bmodel ] ; then
 else
     echo "Models folder exist! "
 fi
+
 # batch_size=1
 gen_mlir_embedding 1
 gen_fp16bmodel_embedding 1
-gen_mlir_decoder 1
-gen_fp16bmodel_decoder 1
 
+gen_mlir_single_decoder 1
+gen_fp16bmodel_single_decoder 1
+
+gen_mlir_multi_decoder 1
+gen_fp16bmodel_multi_decoder 1
 popd
