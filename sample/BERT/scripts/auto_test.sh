@@ -43,12 +43,77 @@ do
       exit 1;;
   esac
 done
-
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
+if [ -f "scripts/acc.txt" ]; then
+  rm scripts/acc.txt
+fi
+echo "|   测试平台    |      测试程序     |    测试模型        | ACC | F1 |" >> scripts/acc.txt
+PLATFORM=$TARGET
+if test $MODE = "soc_test"; then
+  if test $TARGET = "BM1684X"; then
+    PLATFORM="SE7-32"
+  elif test $TARGET = "BM1684"; then
+    PLATFORM="SE5-16"
+  elif test $TARGET = "BM1688"; then
+    PLATFORM="SE9-16"
+  elif test $TARGET = "CV186X"; then
+    PLATFORM="SE9-8"
+  else
+    echo "Unknown TARGET type: $TARGET"
+  fi
+fi
 if test $PYTEST = "pytest"
 then
   >${top_dir}auto_test_result.txt
 fi
 
+function bmrt_test_case(){
+   calculate_time_log=$(bmrt_test --bmodel $1 --devid $TPUID | grep "calculate" 2>&1)
+   is_8b=$(echo $1 |grep "8b")
+
+   if [ "$is_8b" != "" ]; then
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 125}')
+   else
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 1000}')
+   fi
+   for time in "${calculate_times[@]}"
+   do
+     printf "| %-35s| % 15s |\n" "$1" "$time"
+   done
+}
+function bmrt_test_benchmark(){
+    pushd models
+    printf "| %-35s| % 15s |\n" "测试模型" "calculate time(ms)"
+    printf "| %-35s| % 15s |\n" "-------------------" "--------------"
+   
+    if test $TARGET = "BM1684"; then
+      bmrt_test_case BM1684/bert4torch_output_fp32_1b.bmodel
+      bmrt_test_case BM1684/bert4torch_output_fp32_8b.bmodel
+    elif test $TARGET = "BM1684X"; then
+     bmrt_test_case BM1684/bert4torch_output_fp16_1b.bmodel
+      bmrt_test_case BM1684X/bert4torch_output_fp32_1b.bmodel
+      bmrt_test_case BM1684X/bert4torch_output_fp16_8b.bmodel
+      bmrt_test_case BM1684X/bert4torch_output_fp32_8b.bmodel
+    elif test $TARGET = "BM1688"; then
+      bmrt_test_case BM1688/bert4torch_output_fp16_1b.bmodel
+      bmrt_test_case BM1688/bert4torch_output_fp32_1b.bmodel
+      bmrt_test_case BM1688/bert4torch_output_fp16_8b.bmodel
+      bmrt_test_case BM1688/bert4torch_output_fp32_8b.bmodel
+      bmrt_test_case BM1688/bert4torch_output_fp16_1b_2core.bmodel
+      bmrt_test_case BM1688/bert4torch_output_fp32_1b_2core.bmodel
+      bmrt_test_case BM1688/bert4torch_output_fp16_8b_2core.bmodel
+      bmrt_test_case BM1688/bert4torch_output_fp32_8b_2core.bmodel
+    elif test $TARGET = "CV186X"; then
+      bmrt_test_case CV186X/bert4torch_output_fp16_1b.bmodel
+      bmrt_test_case CV186X/bert4torch_output_fp32_1b.bmodel
+      bmrt_test_case CV186X/bert4torch_output_fp16_8b.bmodel
+      bmrt_test_case CV186X/bert4torch_output_fp32_8b.bmodel
+   
+    fi
+    popd
+}
 
 function judge_ret()
 {
@@ -156,8 +221,13 @@ function compare_res(){
 function test_cpp()
 {
   pushd cpp/bert_$2
-  ./bert_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID
-  judge_ret $? "./bert_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID"
+   if [ ! -d log ];then
+    mkdir log
+  fi
+  ./bert_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID --dict_path=../../models/pre_train/chinese-bert-wwm/vocab.txt> log/$1_$2_$3_cpp_test.log 2>&1
+  judge_ret $? "./bert_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID --dict_path=../../models/pre_train/chinese-bert-wwm/vocab.txt" log/$1_$2_$3_cpp_test.log
+  
+  tail -n 15 log/$1_$2_$3_cpp_test.log
   popd
 }
 
@@ -172,28 +242,44 @@ function eval_cpp()
   if [ ! -d results ];then
     mkdir results
   fi
-  ./bert_$2.$1 --input=../../datasets/china-people-daily-ner-corpus/example.test --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./bert_$2.$1 --input=../../datasets/china-people-daily-ner-corpus/example.test --bmodel=../../models/$TARGET/$3  --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1"
+  ./bert_$2.$1 --input=../../datasets/china-people-daily-ner-corpus/example.test --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID --dict_path=../../models/pre_train/chinese-bert-wwm/vocab.txt > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./bert_$2.$1 --input=../../datasets/china-people-daily-ner-corpus/example.test --bmodel=../../models/$TARGET/$3  --dev_id=$TPUID --dict_path=../../models/pre_train/chinese-bert-wwm/vocab.txt > log/$1_$2_$3_debug.log 2>&1"
   tail -n 15 log/$1_$2_$3_debug.log
 
   echo "Evaluating..."  
   res=$(python3 ../../tools/eval_people.py  --test_path ../datasets/china-people-daily-ner-corpus/example.test --input_path ../cpp/bert_sail/results/$3_test_$2_cpp_result.txt 2>&1 | tee log/$1_$2_$3_eval.log)
   echo -e "$res"
   array=(${res//=/ })
-  acc=${array[7]}
-  compare_res $acc $4
-  popd
+  acc=${array[1]}
+  f1=${array[7]}
+  compare_res $f1 $3
+  printf "| %-12s | %-14s | %-22s | %8.4f | %8.4f |\n" "$PLATFORM" "bert_$2.$1" "$3" "$(printf "%.4f" $f1)" "$(printf "%.4f" $acc)" >> ../../scripts/acc.txt
+
   echo -e "########################\nCase End: eval cpp\n########################\n"
+
+    echo "==================="
+    echo "Comparing statis..."
+    python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=bert_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3
+    judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=bert_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3"
+    echo "==================="
+
+  popd
 
 }
 
 function test_python()
 {
+  if [ ! -d log ];then
+    mkdir log
+  fi
   pushd python
 
-  python3 bert_$1.py --input $3 --bmodel ../models/$TARGET/$2 --dev_id $TPUID
-  judge_ret $? "python3 bert_$1.py --input $3 --bmodel ../models/$TARGET/$2 --dev_id $TPUID"
+  python3 bert_$1.py --input $3 --bmodel ../models/$TARGET/$2 --dev_id $TPUID --dict_path ../models/pre_train/chinese-bert-wwm/vocab.txt > log/$1_$2_python_test.log 2>&1
+  judge_ret $? "python3 bert_$1.py --input $3 --bmodel ../models/$TARGET/$2 --dev_id $TPUID --dict_path ../models/pre_train/chinese-bert-wwm/vocab.txt > log/$1_$2_debug.log 2>&1"
+
+  tail -n 20 log/$1_$2_python_test.log
   popd
+
 }
 
 function eval_python()
@@ -207,19 +293,29 @@ function eval_python()
     mkdir python/results
   fi
   pushd python
-  python3 bert_$1.py --input=../datasets/china-people-daily-ner-corpus/example.test --bmodel ../models/$TARGET/$2 --dev_id $TPUID  > log/$1_$2_debug.log 2>&1
-  judge_ret $? "python3 bert_$1.py --input=../datasets/china-people-daily-ner-corpus/example.test --bmodel ../models/$TARGET/$2 --dev_id $TPUID  > log/$1_$2_debug.log 2>&1"
+  python3 bert_$1.py --input=../datasets/china-people-daily-ner-corpus/example.test --bmodel ../models/$TARGET/$2 --dev_id $TPUID --dict_path ../models/pre_train/chinese-bert-wwm/vocab.txt > log/$1_$2_debug.log 2>&1
+  judge_ret $? "python3 bert_$1.py --input=../datasets/china-people-daily-ner-corpus/example.test --bmodel ../models/$TARGET/$2 --dev_id $TPUID --dict_path ../models/pre_train/chinese-bert-wwm/vocab.txt > log/$1_$2_debug.log 2>&1"
   tail -n 20 log/$1_$2_debug.log
   
   echo "Evaluating..."
   res=$(python3 ../tools/eval_people.py --test_path ../datasets/china-people-daily-ner-corpus/example.test --input_path ../python/results/$2_$1_python_result.txt 2>&1 | tee log/$1_$2_eval.log)
+
   echo -e "$res"
 
   array=(${res//=/ })
-  acc=${array[7]}
-  compare_res $acc $3
+  acc=${array[1]}
+  f1=${array[7]}
+  compare_res $f1 $3
+  printf "| %-12s | %-14s | %-22s | %8.4f | %8.4f |\n" "$PLATFORM" "bert_$1.py" "$2" "$(printf "%.4f" $f1)" "$(printf "%.4f" $acc)" >> ../scripts/acc.txt
   popd
   echo -e "########################\nCase End: eval python\n########################\n"
+
+    echo "==================="
+    echo "Comparing statis..."
+    python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=bert_$1.py --language=python --input=python/log/$1_$2_debug.log --bmodel=$2
+    judge_ret $? "python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=bert_$1.py --language=python --input=python/log/$1_$2_debug.log --bmodel=$2"
+    echo "==================="
+  
 
 }
 
@@ -311,7 +407,29 @@ then
     eval_cpp soc sail bert4torch_output_fp32_8b_2core.bmodel 0.912984583628975
     eval_cpp soc sail bert4torch_output_fp16_1b_2core.bmodel 0.8220128904313336
     eval_cpp soc sail bert4torch_output_fp16_8b_2core.bmodel 0.9201187249967738
+  elif test $TARGET = "CV186X"
+  then
+    test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+    test_cpp soc sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+    test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+    test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+    eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
+    eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
+    eval_python sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
+    eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    eval_cpp soc sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
+    eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
+    eval_cpp soc sail bert4torch_output_fp16_1b.bmodel 0.8931268398822476
+    eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
   fi
+fi
+if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
+  echo "--------BERT ACC----------"
+  cat scripts/acc.txt
+  echo "--------bmrt_test performance-----------"
+  bmrt_test_benchmark
+  echo "--------BERT performance-----------"
+  cat tools/benchmark.txt
 fi
 
 if [ $ALL_PASS -eq 0 ]
