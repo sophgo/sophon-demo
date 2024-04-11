@@ -4,17 +4,19 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-* [5. 例程测试](#5-例程测试)
-  * [5.1 python例程](#51-python例程)
-  * [5.2 web_ui例程](#52-web_ui例程)
-* [6. 性能测试](#7-性能测试)
-  * [6.1 bmrt_test](#61-bmrt_test)
-  * [6.2 程序运行性能](#61-程序运行性能)
-* [7. FAQ](#8-faq)
+- [SAM](#sam)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+    - [5.1 Python例程](#51-python例程)
+    - [5.2 web\_ui例程](#52-web_ui例程)
+  - [6. 性能测试](#6-性能测试)
+    - [6.1 bmrt\_test](#61-bmrt_test)
+    - [6.2 程序运行性能](#62-程序运行性能)
+  - [7. FAQ](#7-faq)
   
 ## 1. 简介
 ​SAM是Meta提出的一个分割一切的提示型模型，其在1100万张图像上训练了超过10亿个掩码，实现了强大的零样本泛化，突破了分割界限。本例程对[​SAM官方开源仓库](https://github.com/facebookresearch/segment-anything)的模型和算法进行移植，使之能在SOPHON BM1684X上进行推理测试。
@@ -24,7 +26,7 @@
 * 图像压缩(embedding)部分支持FP16 1batch(BM1684X)模型编译和推理
 * 图像推理(mask_decoder)部分支持FP32 1batch、FP16 1batch(BM1684X)模型编译和推理
 * 支持基于OpenCV的Python推理
-* 支持单点和box输入的模型推理 
+* 支持单点和box输入的模型推理，并输出最高置信度mask或置信度前三的mask
 * 支持图片测试
 * 支持无需点框输入的自动图掩码生成
 
@@ -57,17 +59,21 @@ chmod -R +x scripts/
 ./models
 ├── BM1684X
 │   ├── decode_bmodel
-│   │   ├── SAM-ViT-B_decoder_fp16_1b.bmodel # mask_decoder部分fp16 bmodel
-│   │   ├── SAM-ViT-B_decoder_fp32_1b.bmodel # mask_decoder部分fp32 bmodel
-│   │   └── SAM-ViT-B_auto_decoder_fp32_1b.bmodel # auto_mask_decoder部分fp32 bmodel
+│   |   ├── SAM-ViT-B_auto_decoder_fp32_1b.bmodel           # decoder部分fp32 bmodel，全分割
+│   │   ├── SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel     # decoder部分fp16 bmodel，输出置信度前三的mask  
+│   │   ├── SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel     # decoder部分fp32 bmodel，输出置信度前三的mask  
+│   │   ├── SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel    # decoder部分fp16 bmodel，输出置信度第一的mask  
+│   │   └── SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel    # decoder部分fp32 bmodel，输出置信度第一的mask  
 │   └── embedding_bmodel
-│       └── SAM-ViT-B_embedding_fp16_1b.bmodel # embedding部分fp16 bmodel
+│       └── SAM-ViT-B_embedding_fp16_1b.bmodel              # embedding部分fp16 bmodel
 ├── onnx
-│   ├── embedding_model.onnx # 由原模型导出的embedding部分onnx模型
-│   ├── vit-b-scripts.onnx # 由原模型导出的mask_decoder部分onnx模型
-│   └── vit-b-auto-scripts.onnx # 由原模型导出的auto_mask_decoder部分onnx模型
+│   ├── decode_model_multi_mask.onnx                        # 由原模型导出的，decoder部分onnx模型，输出置信度前三的mask 
+│   ├── decode_model_single_mask.onnx                       # 由原模型导出的，decoder部分onnx模型，输出置信度第一的mask 
+│   ├── embedding_model.onnx                                # 由原模型导出的，embedding部分onnx模型
+│   └── vit-b-auto-scripts.onnx                             # 由原模型导出的auto_mask_decoder部分onnx模型
 └── torch
-    └── sam_vit_b_01ec64.pth   # 原torch模型
+    └── sam_vit_b_01ec64.pth                                # 原torch模型
+
 ```
 下载的数据包括：
 ```
@@ -90,7 +96,7 @@ chmod -R +x scripts/
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
 ```
 
-​执行上述命令会在`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_decoder_fp32_1b.bmodel`文件，即转换好的图像推理（mask_decoder）FP32 BModel。
+​执行上述命令会在`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel`、`SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel`文件，即转换好的图像推理（mask_decoder）FP32 BModel。
 **注意，目前图像压缩（embedding）不支持编译为fp32 bmodel，您可以使用fp16 bmodel进行图像压缩部分推理。**
 
 - 生成FP16 BModel
@@ -101,7 +107,7 @@ chmod -R +x scripts/
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
 ```
 
-​执行上述命令会在`models/BM1684X/embedding_bmodel`下生成`SAM-ViT-B_embedding_fp16_1b.bmodel` 以及`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_decoder_fp16_1b.bmodel`文件，即转换好的图像压缩（embedding）和图像推理（mask_decoder）FP16 BModel。
+​执行上述命令会在`models/BM1684X/embedding_bmodel`下生成`SAM-ViT-B_embedding_fp16_1b.bmodel` 以及`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel`、`SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel`文件，即转换好的图像压缩（embedding）和图像推理（mask_decoder）FP16 BModel。
 
 - 生成auto mask FP32 BModel
 
@@ -131,12 +137,14 @@ bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_decoder_fp32_1b.b
 
 测试各个模型的理论推理时间，结果如下：
 
-| 测试embedding/decode模型             | calculate time(s)         |
-| -------------------------------------|---------------------------|
-| SAM-ViT-B_embedding_fp16_1b.bmodel   | 0.303                     |
-| SAM-ViT-B_decoder_fp16_1b.bmodel     | 0.007                     |
-| SAM-ViT-B_decoder_fp32_1b.bmodel     | 0.026                     |
-| SAM-ViT-B_auto_decoder_fp32_1b.bmodel| 1.503                     |
+| 测试embedding/decode模型                     | calculate time(s) |
+| -------------------------------------------- | ----------------- |
+| SAM-ViT-B_embedding_fp16_1b.bmodel           | 0.303             |
+| SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  | 0.009             |
+| SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel  | 0.027             |
+| SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel | 0.005             |
+| SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel | 0.026             |
+| SAM-ViT-B_auto_decoder_fp32_1b.bmodel        | 1.503             |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -147,11 +155,13 @@ bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_decoder_fp32_1b.b
 参考[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。目前SAM_VIT仅支持1 batch的fp32和int8模型。
 
 测试`datasets/truck.jpg`单张图片性能测试结果如下（时间单位为ms），测试结果有一定波动性：
-| 测试平台    | 测试程序      | 测试模型                                                            | decode_time | embedding_time | decode_mask_time | postprocess_time | 
-| ----------- | ------------- | ------------------------------------------------------------------- | ----------- | -------------- | ---------------- | ---------------- |
-| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_fp16_1b.bmodel | 11.0        | 416.0          | 15.5             | 16.2             |
-| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_fp32_1b.bmodel | 11.0        | 411.0          | 34.0             | 16.5             |
-| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_auto_decoder_fp32_1b.bmodel | 37.39  | 512.61         | 28942.54         | 9403.08          |
+| 测试平台    | 测试程序      | 测试模型                                                                        | decode_time | embedding_time | decode_mask_time | postprocess_time |
+| ----------- | ------------- | ------------------------------------------------------------------------------- | ----------- | -------------- | ---------------- | ---------------- |
+| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  | 11.0        | 416.0          | 15.5             | 16.2             |
+| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel  | 11.0        | 411.0          | 34.0             | 16.5             |
+| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel | 11.0        | 416.0          | 15.5             | 16.2             |
+| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel | 11.0        | 411.0          | 34.0             | 16.5             |
+| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_auto_decoder_fp32_1b.bmodel        | 37.39       | 512.61         | 28942.54         | 9403.08          |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

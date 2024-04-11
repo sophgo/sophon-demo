@@ -6,14 +6,18 @@ SAM模型导出是在Pytorch模型的生产环境下进行的，需提前根据[
 ## 2. 主要步骤
 
 - 导出decoder部分模型：
-SAM官方仓库提供了模型导出脚本'scripts/export.onnx_model.py'和'notebooks/onnx_model_example.ipynb'，可以直接使用它们导出onnx模型。以onnx_model_example.ipynb中的转换代码为例：
+SAM官方仓库提供了模型导出脚本'scripts/export.onnx_model.py'和'notebooks/onnx_model_example.ipynb'，可以直接使用它们导出onnx模型。
+请按照您的需求修改`onnx_model = SamOnnxModel(sam, return_single_mask=True)`中`return_single_mask`的值。
+以onnx_model_example.ipynb中的转换代码为例：
 
 ```python
-    ....
-    onnx_model_path = "sam_onnx_example.onnx"
+    ...
+    onnx_model_path = "decode_model_multi_mask.onnx"
+    onnx_model = SamOnnxModel(sam, return_single_mask=False)  # return_single_mask=Flase时，将输出置信度前三的mask。return_single_mask=True时，将输出置信度最高的mask。
 
-    onnx_model = SamOnnxModel(sam, return_single_mask=True)
-    
+    # onnx_model_path = "decode_model_signle_mask.onnx"
+    # onnx_model = SamOnnxModel(sam, return_single_mask=True) 
+
     dynamic_axes = {
         "point_coords": {1: "num_points"},
         "point_labels": {1: "num_points"},
