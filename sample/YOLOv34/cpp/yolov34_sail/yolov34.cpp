@@ -368,10 +368,10 @@ int Yolo::post_process(std::vector<sail::BMImage>& images, std::vector<YoloBoxVe
                 for (int anchor_idx = 0; anchor_idx < anchor_num; anchor_idx++) {
                     float* ptr = tensor_data + anchor_idx * feature_size;
                     for (int i = 0; i < area; i++) {
-                        dst[0] = (sigmoid(ptr[0]) * 2 - 0.5 + i % feat_w) / feat_w * m_net_w;
-                        dst[1] = (sigmoid(ptr[1]) * 2 - 0.5 + i / feat_w) / feat_h * m_net_h;
-                        dst[2] = pow((sigmoid(ptr[2]) * 2), 2) * anchors[tidx][anchor_idx][0];
-                        dst[3] = pow((sigmoid(ptr[3]) * 2), 2) * anchors[tidx][anchor_idx][1];
+                        dst[0] = (sigmoid(ptr[0])  + i % feat_w) / feat_w * m_net_w;
+                        dst[1] = (sigmoid(ptr[1])  + i / feat_w) / feat_h * m_net_h;
+                        dst[2] = expf(ptr[2]) * anchors[tidx][anchor_idx][0];
+                        dst[3] = expf(ptr[3]) * anchors[tidx][anchor_idx][1];
                         dst[4] = sigmoid(ptr[4]);
                         float score = dst[4];
                         if (score > m_confThreshold) {
