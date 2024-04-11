@@ -13,7 +13,7 @@ ECHO_LINES=20
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
 while getopts ":m:t:s:d:p:" opt
@@ -55,6 +55,8 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE5-16"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
+  elif test $TARGET = "CV186X"; then
+    PLATFORM="SE9-8"
   else
     echo "Unknown TARGET type: $TARGET"
   fi
@@ -96,7 +98,13 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1688/resnet50_fp16_1b_2core.bmodel
       bmrt_test_case BM1688/resnet50_int8_1b_2core.bmodel
       bmrt_test_case BM1688/resnet50_int8_4b_2core.bmodel
+    elif test $TARGET = "CV186X"; then
+      bmrt_test_case CV186X/resnet50_fp32_1b.bmodel
+      bmrt_test_case CV186X/resnet50_fp16_1b.bmodel
+      bmrt_test_case CV186X/resnet50_int8_1b.bmodel
+      bmrt_test_case CV186X/resnet50_int8_4b.bmodel
     fi
+  
     popd
 }
 
@@ -347,6 +355,24 @@ then
     eval_cpp soc bmcv    resnet50_fp16_1b.bmodel 80.00
     eval_cpp soc bmcv    resnet50_int8_1b.bmodel 79.40
     eval_cpp soc bmcv    resnet50_int8_4b.bmodel 79.40
+  elif test $TARGET = "CV186X"
+  then
+    eval_python opencv   resnet50_fp32_1b.bmodel 80.10
+    eval_python opencv   resnet50_fp16_1b.bmodel 80.10
+    eval_python opencv   resnet50_int8_1b.bmodel 79.90
+    eval_python opencv   resnet50_int8_4b.bmodel 79.90
+    eval_python bmcv     resnet50_fp32_1b.bmodel 80.00
+    eval_python bmcv     resnet50_fp16_1b.bmodel 80.00
+    eval_python bmcv     resnet50_int8_1b.bmodel 80.50
+    eval_python bmcv     resnet50_int8_4b.bmodel 80.50
+    eval_cpp soc opencv  resnet50_fp32_1b.bmodel 80.30
+    eval_cpp soc opencv  resnet50_fp16_1b.bmodel 80.30
+    eval_cpp soc opencv  resnet50_int8_1b.bmodel 80.20
+    eval_cpp soc opencv  resnet50_int8_4b.bmodel 80.20
+    eval_cpp soc bmcv    resnet50_fp32_1b.bmodel 80.00
+    eval_cpp soc bmcv    resnet50_fp16_1b.bmodel 80.00
+    eval_cpp soc bmcv    resnet50_int8_1b.bmodel 80.50
+    eval_cpp soc bmcv    resnet50_int8_4b.bmodel 80.50
   elif test $TARGET = "BM1688"
   then
     eval_python opencv  resnet50_fp32_1b.bmodel 80.10
