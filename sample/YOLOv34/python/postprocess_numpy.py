@@ -35,9 +35,8 @@ class PostProcess:
                 self.grid[i] = self._make_grid(nx, ny)
 
             y = 1 / (1 + np.exp(-feat))  # sigmoid
-            y[..., 0:2] = (y[..., 0:2] * 2. - 0.5 +
-                           self.grid[i]) * int(self.stride[i])
-            y[..., 2:4] = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
+            y[..., 0:2] = (y[..., 0:2] + self.grid[i]) * int(self.stride[i])  # xy
+            y[..., 2:4] = np.exp(-feat[..., 2:4]) * self.anchor_grid[i]  # wh
             z.append(y.reshape(bs, -1, nc))
         z = np.concatenate(z, axis=1)
         return z
