@@ -246,11 +246,16 @@ int Yolo::post_process(const std::vector<bm_image> &images, std::vector<YoloBoxV
 #if USE_ASPECT_RATIO
     bool isAlignWidth = false;
     float ratio = get_aspect_scaled_ratio(frame.width, frame.height, m_net_w, m_net_h, &isAlignWidth);
+    float ratio_w = ratio;
+    float ratio_h = ratio;
     if (isAlignWidth) {
       ty1 = (int)((m_net_h - (int)(frame_height*ratio)) / 2);
     }else{
       tx1 = (int)((m_net_w - (int)(frame_width*ratio)) / 2);
     }
+#else
+    float ratio_w = 1.0 * m_net_w / frame.width;
+    float ratio_h = 1.0 * m_net_h / frame.height;
 #endif
 
     int min_idx = 0;
@@ -313,10 +318,10 @@ int Yolo::post_process(const std::vector<bm_image> &images, std::vector<YoloBoxV
         {
           float *ptr = tensor_data + anchor_idx*feature_size;
           for (int i = 0; i < area; i++) {
-            dst[0] = (sigmoid(ptr[0]) * 2 - 0.5 + i % feat_w) / feat_w * m_net_w;
-            dst[1] = (sigmoid(ptr[1]) * 2 - 0.5 + i / feat_w) / feat_h * m_net_h;
-            dst[2] = pow((sigmoid(ptr[2]) * 2), 2) * anchors[tidx][anchor_idx][0];
-            dst[3] = pow((sigmoid(ptr[3]) * 2), 2) * anchors[tidx][anchor_idx][1];
+            dst[0] = (sigmoid(ptr[0])  + i % feat_w) / feat_w * m_net_w;
+            dst[1] = (sigmoid(ptr[1])  + i / feat_w) / feat_h * m_net_h;
+            dst[2] = expf(ptr[2]) * anchors[tidx][anchor_idx][0];
+            dst[3] = expf(ptr[3]) * anchors[tidx][anchor_idx][1];
             dst[4] = sigmoid(ptr[4]);
             float score = dst[4];
             if (score > m_confThreshold) {
@@ -348,10 +353,10 @@ int Yolo::post_process(const std::vector<bm_image> &images, std::vector<YoloBoxV
       float confidence = ptr[class_id + 5];
       if (confidence * score > m_confThreshold)
       {
-          float centerX = (ptr[0]+1 - tx1)/ratio - 1;
-          float centerY = (ptr[1]+1 - ty1)/ratio - 1;
-          float width = (ptr[2]+0.5) / ratio;
-          float height = (ptr[3]+0.5) / ratio;
+          float centerX = (ptr[0]+1 - tx1)/ratio_w - 1;
+          float centerY = (ptr[1]+1 - ty1)/ratio_h - 1;
+          float width = (ptr[2]+0.5) / ratio_w;
+          float height = (ptr[3]+0.5) / ratio_h;
 
           YoloBox box;
           box.x = int(centerX - width / 2);
