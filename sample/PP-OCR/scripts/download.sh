@@ -32,6 +32,9 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_231220/BM1688.zip
     unzip BM1688.zip
     rm -r BM1688.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_240412/CV186X.zip
+    unzip CV186X.zip
+    rm -r CV186X.zip
     popd
     echo "models download!"
 else
