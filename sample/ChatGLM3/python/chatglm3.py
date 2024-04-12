@@ -44,12 +44,9 @@ class ChatGLM3:
         self.sp = AutoTokenizer.from_pretrained(args.token, trust_remote_code=True)
         # warm up
         self.sp.decode([0]) 
-        self.EOS = self.sp.eos_token_id
-        # get_vocab = self.sp.get_vocab()
-        # print(len(get_vocab))
-        # print(get_vocab)
-        # exit(1)
-        print("Done!")
+        self.EOS = [self.sp.eos_token_id,
+                    self.sp.get_command("<|user|>"),
+                    self.sp.get_command("<|observation|>")]
 
         # load bmodel
         # 这里devio，后面都没有创建系统内存的tensor
@@ -286,7 +283,7 @@ class ChatGLM3:
         pre_ids = [pre_token]
         pre_word= self.sp.decode(pre_ids)
         # Sentencepiece will remove space token if the token list it receive has only one token, we add a pre_token so that space token will not be removed.
-        while token != self.EOS and self.token_length < self.SEQLEN:
+        while token not in self.EOS and self.token_length < self.SEQLEN:
             ids = [pre_token, token]
             word = self.sp.decode(ids)
             diff = word[len(pre_word):]
