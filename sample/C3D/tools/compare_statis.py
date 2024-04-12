@@ -81,6 +81,24 @@ baseline = """
 |   SE9-16    |   c3d_bmcv.soc    |c3d_fp16_4b_2core.bmodel |     142.10      |      10.93      |      48.67      |      0.01       |
 |   SE9-16    |   c3d_bmcv.soc    |c3d_int8_1b_2core.bmodel |     142.53      |      11.21      |      22.31      |      0.02       |
 |   SE9-16    |   c3d_bmcv.soc    |c3d_int8_4b_2core.bmodel |     142.31      |      10.81      |      19.31      |      0.01       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_fp32_1b.bmodel    |      91.67      |      41.95      |     427.43      |      0.13       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_fp32_4b.bmodel    |      93.11      |      50.04      |     403.67      |      0.05       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_fp16_1b.bmodel    |      91.76      |      42.03      |      85.14      |      0.13       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_fp16_4b.bmodel    |      88.07      |      49.75      |      75.09      |      0.05       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_int8_1b.bmodel    |      86.82      |      42.07      |      41.89      |      0.13       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_int8_4b.bmodel    |      87.39      |      49.91      |      37.04      |      0.04       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_fp32_1b.bmodel    |     120.19      |      33.83      |     418.01      |      0.02       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_fp32_4b.bmodel    |     119.16      |      33.51      |     394.04      |      0.01       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_fp16_1b.bmodel    |     119.90      |      33.60      |      75.82      |      0.02       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_fp16_4b.bmodel    |     118.36      |      33.43      |      66.01      |      0.01       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_int8_1b.bmodel    |     119.01      |      33.79      |      32.55      |      0.02       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_int8_4b.bmodel    |     118.10      |      33.40      |      27.83      |      0.01       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_fp32_1b.bmodel    |     130.30      |      9.05       |     418.00      |      0.02       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_fp32_4b.bmodel    |     130.70      |      8.84       |     394.03      |      0.01       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_fp16_1b.bmodel    |     131.08      |      9.00       |      75.79      |      0.02       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_fp16_4b.bmodel    |     128.82      |      8.75       |      66.03      |      0.01       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_int8_1b.bmodel    |     130.24      |      8.95       |      32.53      |      0.02       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_int8_4b.bmodel    |     128.00      |      8.81       |      27.79      |      0.01       |
 """
 table_data = {
     "platform": [],
@@ -151,6 +169,8 @@ if __name__ == '__main__':
             platform = "SE5-16"
         elif args.target == "BM1688":
             platform = "SE9-16"
+        elif args.target == "CV186X":
+            platform = "SE9-8"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 17
