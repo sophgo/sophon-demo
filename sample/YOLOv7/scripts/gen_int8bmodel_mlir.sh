@@ -4,7 +4,8 @@ model_dir=$(cd `dirname $BASH_SOURCE[0]`/ && pwd)
 if [ ! $1 ]; then
     target=bm1684x
 else
-    target=$1
+    target=${1,,}
+    target_dir=${target^^}
 fi
 
 outdir=../models/$target_dir
@@ -19,7 +20,9 @@ function gen_mlir()
         --mean 0.0,0.0,0.0 \
         --scale 0.0039216,0.0039216,0.0039216 \
         --keep_aspect_ratio \
-        --pixel_format rgb
+        --pixel_format rgb \
+        --test_input ../datasets/test/3.jpg \
+        --test_result yolov7_top.npz 
 }
 
 function gen_cali_table()
@@ -38,9 +41,26 @@ function gen_int8bmodel()
         --chip $target \
         --quantize_table ../models/onnx/yolov7_qtable \
         --calibration_table yolov7_cali_table \
-        --model yolov7_v0.1_3output_int8_$1b.bmodel 
+        --model yolov7_v0.1_3output_int8_$1b.bmodel \
+        --test_input ../datasets/test/3.jpg \
+        --test_reference yolov7_top.npz \
+        --debug 
 
     mv yolov7_v0.1_3output_int8_$1b.bmodel $outdir/
+
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir yolov7_v0.1_3output_$1b.mlir \
+            --quantize INT8 \
+            --chip $target \
+            --model yolov7_v0.1_3output_int8_$1b_2core.bmodel \
+            --calibration_table yolov7_cali_table \
+            --num_core 2 \
+            --test_input ../datasets/test/3.jpg \
+            --test_reference yolov7_top.npz \
+            --debug 
+        mv yolov7_v0.1_3output_int8_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir
