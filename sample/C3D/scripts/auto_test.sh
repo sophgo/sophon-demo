@@ -13,7 +13,7 @@ PYTEST="auto_test"
 ECHO_LINES=20
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
 while getopts ":m:t:s:d:p:" opt
@@ -56,6 +56,8 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE5-16"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
+  elif test $TARGET = "CV186X"; then
+    PLATFORM="SE9-8"
   else
     echo "Unknown TARGET type: $TARGET"
   fi
@@ -105,6 +107,13 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1688/c3d_fp16_4b_2core.bmodel
       bmrt_test_case BM1688/c3d_int8_1b_2core.bmodel
       bmrt_test_case BM1688/c3d_int8_4b_2core.bmodel
+    elif test $TARGET = "CV186X"; then
+      bmrt_test_case CV186X/c3d_fp32_1b.bmodel
+      bmrt_test_case CV186X/c3d_fp32_4b.bmodel
+      bmrt_test_case CV186X/c3d_fp16_1b.bmodel
+      bmrt_test_case CV186X/c3d_fp16_4b.bmodel
+      bmrt_test_case CV186X/c3d_int8_1b.bmodel
+      bmrt_test_case CV186X/c3d_int8_4b.bmodel
     fi
     popd
 }
@@ -289,6 +298,7 @@ then
   build_pcie bmcv
   build_pcie opencv
   download
+  pip3 install opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
     test_python opencv c3d_fp32_1b.bmodel   0.715
@@ -331,6 +341,7 @@ then
 elif test $MODE = "soc_test"
 then
   download
+  pip3 install opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
     test_python opencv c3d_fp32_1b.bmodel  0.715
@@ -366,7 +377,7 @@ then
     test_cpp soc bmcv c3d_fp16_4b.bmodel   0.715
     test_cpp soc bmcv c3d_int8_1b.bmodel   0.712
     test_cpp soc bmcv c3d_int8_4b.bmodel   0.712
-  elif test $TARGET = "BM1688"
+  elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
     test_python opencv c3d_fp32_1b.bmodel  0.715
     test_python opencv c3d_fp32_4b.bmodel  0.715
@@ -387,24 +398,26 @@ then
     test_cpp soc bmcv c3d_int8_1b.bmodel   0.715
     test_cpp soc bmcv c3d_int8_4b.bmodel   0.715
     
-    test_python opencv c3d_fp32_1b_2core.bmodel  0.715
-    test_python opencv c3d_fp32_4b_2core.bmodel  0.715
-    test_python opencv c3d_fp16_1b_2core.bmodel  0.715
-    test_python opencv c3d_fp16_4b_2core.bmodel  0.715
-    test_python opencv c3d_int8_1b_2core.bmodel  0.711
-    test_python opencv c3d_int8_4b_2core.bmodel  0.711
-    test_cpp soc opencv c3d_fp32_1b_2core.bmodel 0.715
-    test_cpp soc opencv c3d_fp32_4b_2core.bmodel 0.715
-    test_cpp soc opencv c3d_fp16_1b_2core.bmodel 0.715
-    test_cpp soc opencv c3d_fp16_4b_2core.bmodel 0.715
-    test_cpp soc opencv c3d_int8_1b_2core.bmodel 0.711
-    test_cpp soc opencv c3d_int8_4b_2core.bmodel 0.711
-    test_cpp soc bmcv c3d_fp32_1b_2core.bmodel   0.715
-    test_cpp soc bmcv c3d_fp32_4b_2core.bmodel   0.715
-    test_cpp soc bmcv c3d_fp16_1b_2core.bmodel   0.715
-    test_cpp soc bmcv c3d_fp16_4b_2core.bmodel   0.715
-    test_cpp soc bmcv c3d_int8_1b_2core.bmodel   0.715
-    test_cpp soc bmcv c3d_int8_4b_2core.bmodel   0.715
+    if test "$PLATFORM" = "SE9-16"; then 
+      test_python opencv c3d_fp32_1b_2core.bmodel  0.715
+      test_python opencv c3d_fp32_4b_2core.bmodel  0.715
+      test_python opencv c3d_fp16_1b_2core.bmodel  0.715
+      test_python opencv c3d_fp16_4b_2core.bmodel  0.715
+      test_python opencv c3d_int8_1b_2core.bmodel  0.711
+      test_python opencv c3d_int8_4b_2core.bmodel  0.711
+      test_cpp soc opencv c3d_fp32_1b_2core.bmodel 0.715
+      test_cpp soc opencv c3d_fp32_4b_2core.bmodel 0.715
+      test_cpp soc opencv c3d_fp16_1b_2core.bmodel 0.715
+      test_cpp soc opencv c3d_fp16_4b_2core.bmodel 0.715
+      test_cpp soc opencv c3d_int8_1b_2core.bmodel 0.711
+      test_cpp soc opencv c3d_int8_4b_2core.bmodel 0.711
+      test_cpp soc bmcv c3d_fp32_1b_2core.bmodel   0.715
+      test_cpp soc bmcv c3d_fp32_4b_2core.bmodel   0.715
+      test_cpp soc bmcv c3d_fp16_1b_2core.bmodel   0.715
+      test_cpp soc bmcv c3d_fp16_4b_2core.bmodel   0.715
+      test_cpp soc bmcv c3d_int8_1b_2core.bmodel   0.715
+      test_cpp soc bmcv c3d_int8_4b_2core.bmodel   0.715
+    fi
   fi
 fi
 

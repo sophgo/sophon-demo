@@ -19,7 +19,7 @@ C3D是使用三维卷积进行视频动作识别的开荒者，论文链接：[L
 
 本例程对[MMAction的C3D_UCF101模型](https://mmaction2.readthedocs.io/zh-cn/latest/model_zoo/recognition.html)进行了移植，在相同的预处理流程下可以做到精度对齐。
 ## 2. 特性
-* 支持BM1688(SoC)/BM1684X(x86 PCIe、SoC)/BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1688/BM1684X)、INT8模型编译和推理
 * 支持基于BMCV和OpenCV预处理的C++推理
 * 支持基于OpenCV预处理的Python推理
@@ -68,6 +68,13 @@ chmod -R +x scripts/
 │   ├── c3d_fp16_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4，num_core=2
 │   ├── c3d_int8_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
 │   └── c3d_int8_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=2
+├── CV186X
+│   ├── c3d_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
+│   ├── c3d_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=4
+│   ├── c3d_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   ├── c3d_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=4
+│   ├── c3d_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
+│   └── c3d_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=4
 │── torch
 │   └── c3d_ucf101.pt        # trace后的torchscript模型
 └── onnx
@@ -79,37 +86,37 @@ chmod -R +x scripts/
 ```
 
 ## 4. 模型编译
-## 4. 模型编译
+
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
 模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684`等文件夹下生成`c3d_fp32_1b.bmodel`等文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`c3d_fp16_1b.bmodel`等文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
 ```
 
 ​上述脚本会在`models/BM1684`等文件夹下生成`c3d_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
@@ -205,10 +212,28 @@ python3 tools/eval_ucf.py --gt_path datasets/ground_truth.json --result_json cpp
 | SE9-16       | c3d_bmcv.soc   | c3d_fp16_4b_2core.bmodel |    0.715 |
 | SE9-16       | c3d_bmcv.soc   | c3d_int8_1b_2core.bmodel |    0.715 |
 | SE9-16       | c3d_bmcv.soc   | c3d_int8_4b_2core.bmodel |    0.715 |
+| SE9-8        | c3d_opencv.py  | c3d_fp32_1b.bmodel     |    0.715 |
+| SE9-8        | c3d_opencv.py  | c3d_fp32_4b.bmodel     |    0.715 |
+| SE9-8        | c3d_opencv.py  | c3d_fp16_1b.bmodel     |    0.715 |
+| SE9-8        | c3d_opencv.py  | c3d_fp16_4b.bmodel     |    0.715 |
+| SE9-8        | c3d_opencv.py  | c3d_int8_1b.bmodel     |    0.712 |
+| SE9-8        | c3d_opencv.py  | c3d_int8_4b.bmodel     |    0.712 |
+| SE9-8        | c3d_opencv.soc | c3d_fp32_1b.bmodel     |    0.715 |
+| SE9-8        | c3d_opencv.soc | c3d_fp32_4b.bmodel     |    0.715 |
+| SE9-8        | c3d_opencv.soc | c3d_fp16_1b.bmodel     |    0.715 |
+| SE9-8        | c3d_opencv.soc | c3d_fp16_4b.bmodel     |    0.715 |
+| SE9-8        | c3d_opencv.soc | c3d_int8_1b.bmodel     |    0.712 |
+| SE9-8        | c3d_opencv.soc | c3d_int8_4b.bmodel     |    0.712 |
+| SE9-8        | c3d_bmcv.soc   | c3d_fp32_1b.bmodel     |    0.715 |
+| SE9-8        | c3d_bmcv.soc   | c3d_fp32_4b.bmodel     |    0.715 |
+| SE9-8        | c3d_bmcv.soc   | c3d_fp16_1b.bmodel     |    0.715 |
+| SE9-8        | c3d_bmcv.soc   | c3d_fp16_4b.bmodel     |    0.715 |
+| SE9-8        | c3d_bmcv.soc   | c3d_int8_1b.bmodel     |    0.715 |
+| SE9-8        | c3d_bmcv.soc   | c3d_int8_4b.bmodel     |    0.715 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
-> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列对应BM1688；
+> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中SE9-16对应BM1688，SE9-8对应CV186X；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -244,6 +269,12 @@ bmrt_test --bmodel models/BM1684/c3d_fp32_1b.bmodel
 | BM1688/c3d_fp16_4b_2core.bmodel    |          54.17  |
 | BM1688/c3d_int8_1b_2core.bmodel    |          31.54  |
 | BM1688/c3d_int8_4b_2core.bmodel    |          28.24  |
+| CV186X/c3d_fp32_1b.bmodel          |         417.85  |
+| CV186X/c3d_fp32_4b.bmodel          |         394.11  |
+| CV186X/c3d_fp16_1b.bmodel          |          76.09  |
+| CV186X/c3d_fp16_4b.bmodel          |          65.99  |
+| CV186X/c3d_int8_1b.bmodel          |          32.57  |
+| CV186X/c3d_int8_4b.bmodel          |          27.78  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -322,14 +353,31 @@ bmrt_test --bmodel models/BM1684/c3d_fp32_1b.bmodel
 |   SE9-16    |   c3d_bmcv.soc    |c3d_fp16_4b_2core.bmodel |     142.10      |      10.93      |      48.67      |      0.01       |
 |   SE9-16    |   c3d_bmcv.soc    |c3d_int8_1b_2core.bmodel |     142.53      |      11.21      |      22.31      |      0.02       |
 |   SE9-16    |   c3d_bmcv.soc    |c3d_int8_4b_2core.bmodel |     142.31      |      10.81      |      19.31      |      0.01       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_fp32_1b.bmodel    |      91.67      |      41.95      |     427.43      |      0.13       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_fp32_4b.bmodel    |      93.11      |      50.04      |     403.67      |      0.05       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_fp16_1b.bmodel    |      91.76      |      42.03      |      85.14      |      0.13       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_fp16_4b.bmodel    |      88.07      |      49.75      |      75.09      |      0.05       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_int8_1b.bmodel    |      86.82      |      42.07      |      41.89      |      0.13       |
+|    SE9-8    |   c3d_opencv.py   |   c3d_int8_4b.bmodel    |      87.39      |      49.91      |      37.04      |      0.04       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_fp32_1b.bmodel    |     120.19      |      33.83      |     418.01      |      0.02       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_fp32_4b.bmodel    |     119.16      |      33.51      |     394.04      |      0.01       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_fp16_1b.bmodel    |     119.90      |      33.60      |      75.82      |      0.02       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_fp16_4b.bmodel    |     118.36      |      33.43      |      66.01      |      0.01       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_int8_1b.bmodel    |     119.01      |      33.79      |      32.55      |      0.02       |
+|    SE9-8    |  c3d_opencv.soc   |   c3d_int8_4b.bmodel    |     118.10      |      33.40      |      27.83      |      0.01       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_fp32_1b.bmodel    |     130.30      |      9.05       |     418.00      |      0.02       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_fp32_4b.bmodel    |     130.70      |      8.84       |     394.03      |      0.01       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_fp16_1b.bmodel    |     131.08      |      9.00       |      75.79      |      0.02       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_fp16_4b.bmodel    |     128.82      |      8.75       |      66.03      |      0.01       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_int8_1b.bmodel    |     130.24      |      8.95       |      32.53      |      0.02       |
+|    SE9-8    |   c3d_bmcv.soc    |   c3d_int8_4b.bmodel    |     128.00      |      8.81       |      27.79      |      0.01       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
 > 5. C3D的后处理只有argmax，耗时很短，可以忽略。
-
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
