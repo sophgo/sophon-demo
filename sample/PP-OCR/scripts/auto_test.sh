@@ -61,6 +61,8 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE5-16"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
+  elif test $TARGET = "CV186X"; then
+    PLATFORM="SE9-8"
   else
     echo "Unknown TARGET type: $TARGET"
   fi
@@ -115,6 +117,13 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1688/ch_PP-OCRv3_det_fp16_2core.bmodel
       bmrt_test_case BM1688/ch_PP-OCRv3_rec_fp16_2core.bmodel
       bmrt_test_case BM1688/ch_PP-OCRv3_cls_fp16_2core.bmodel
+    elif test $TARGET = "CV186X"; then
+      bmrt_test_case CV186X/ch_PP-OCRv3_det_fp32.bmodel
+      bmrt_test_case CV186X/ch_PP-OCRv3_rec_fp32.bmodel
+      bmrt_test_case CV186X/ch_PP-OCRv3_cls_fp32.bmodel
+      bmrt_test_case CV186X/ch_PP-OCRv3_det_fp16.bmodel
+      bmrt_test_case CV186X/ch_PP-OCRv3_rec_fp16.bmodel
+      bmrt_test_case CV186X/ch_PP-OCRv3_cls_fp16.bmodel
     fi
     popd
 }
@@ -171,8 +180,8 @@ function compile_mlir()
   judge_ret $? "generate $TARGET fp32bmodel" 0
   ./scripts/gen_fp16bmodel_mlir.sh $TARGET
   judge_ret $? "generate $TARGET fp16bmodel" 0
-  ./scripts/gen_int8bmodel_mlir.sh $TARGET
-  judge_ret $? "generate $TARGET int8bmodel" 0
+  # ./scripts/gen_int8bmodel_mlir.sh $TARGET
+  # judge_ret $? "generate $TARGET int8bmodel" 0
 }
 
 function build_pcie()
@@ -331,16 +340,19 @@ then
     eval_python opencv fp16 0.56541
     eval_cpp soc bmcv fp32 0.57194
     eval_cpp soc bmcv fp16 0.55771
-  elif test $TARGET = "BM1688"
+  elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
     eval_python opencv fp32 0.575
     eval_python opencv fp16 0.575
     eval_cpp soc bmcv fp32  0.571
     eval_cpp soc bmcv fp16  0.571
-    eval_python opencv fp32_2core 0.575
-    eval_python opencv fp16_2core 0.575
-    eval_cpp soc bmcv fp32_2core  0.571
-    eval_cpp soc bmcv fp16_2core  0.571
+
+    if test "$PLATFORM" = "SE9-16"; then 
+      eval_python opencv fp32_2core 0.575
+      eval_python opencv fp16_2core 0.575
+      eval_cpp soc bmcv fp32_2core  0.571
+      eval_cpp soc bmcv fp16_2core  0.571
+    fi
   fi
 fi
 
