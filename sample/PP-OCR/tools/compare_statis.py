@@ -44,6 +44,14 @@ baseline = """
 |      ^      |            ^            | ch_PP-OCRv3_rec_fp32_2core.bmodel |        0.80         |        0.60         |        6.84         |        4.17         |
 |   SE9-16    |     ppocr_bmcv.soc      | ch_PP-OCRv3_det_fp16_2core.bmodel |        17.66        |        3.22         |        7.61         |        4.76         |
 |      ^      |            ^            | ch_PP-OCRv3_rec_fp16_2core.bmodel |        0.80         |        0.60         |        2.15         |        4.18         |
+|    SE9-8    | ppocr_system_opencv.py  |    ch_PP-OCRv3_det_fp32.bmodel    |        55.13        |        33.78        |        65.30        |        18.14        |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp32.bmodel    |        2.32         |        0.81         |        11.27        |        1.92         |
+|    SE9-8    | ppocr_system_opencv.py  |    ch_PP-OCRv3_det_fp16.bmodel    |        55.00        |        33.83        |        29.85        |        18.10        |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp16.bmodel    |        2.32         |        0.81         |        4.33         |        1.92         |
+|    SE9-8    |     ppocr_bmcv.soc      |    ch_PP-OCRv3_det_fp32.bmodel    |        14.24        |        3.18         |        50.28        |        4.53         |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp32.bmodel    |        0.76         |        0.55         |        10.03        |        4.16         |
+|    SE9-8    |     ppocr_bmcv.soc      |    ch_PP-OCRv3_det_fp16.bmodel    |        14.22        |        3.18         |        14.66        |        4.71         |
+|      ^      |            ^            |    ch_PP-OCRv3_rec_fp16.bmodel    |        0.76         |        0.52         |        2.43         |        4.18         |
 """
 table_data = {
     "platform": [],
@@ -122,6 +130,8 @@ if __name__ == '__main__':
             platform = "SE5-16"
         elif args.target == "BM1688":
             platform = "SE9-16"
+        elif args.target == "CV186X":
+            platform = "SE9-8"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 21
