@@ -96,7 +96,7 @@ class PostProcess:
         return outs
 
 
-# numpy multiclass nms implementation from original yolov5 repo torch implementation
+# numpy multiclass nms implementation from original yolov7 repo torch implementation
 class pseudo_torch_nms:
     def nms_boxes(self, boxes, scores, iou_thres):
         x = boxes[:, 0]
