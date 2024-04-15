@@ -25,8 +25,8 @@ ppyoloe是百度提出的基于PP-YOLOv2的卓越的单阶段Anchor-free模型�
 **官方源码地址** (https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.6/configs/ppyoloe)
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X)模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X/BM1688/CV186X)模型编译和推理
 * 支持基于BMCV、sail预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -58,6 +58,14 @@ chmod -R +x scripts/
 ├── BM1684X
 │   ├── ppyoloe_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
 │   └── ppyoloe_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+├── BM1688
+│   ├── ppyoloe_fp32_1b.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
+│   ├── ppyoloe_fp16_1b.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
+│   ├── ppyoloe_fp32_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
+│   └── ppyoloe_fp16_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+├── CV186X
+│   ├── ppyoloe_fp32_1b.bmodel        # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
+│   └── ppyoloe_fp16_1b.bmodel        # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
 └── onnx
     └── ppyoloe.onnx             # 导出的onnx动态模型
 ```
@@ -81,26 +89,23 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684
-#or
-./scripts/gen_fp32bmodel_mlir.sh bm1684x
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
 ```
 
-执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`ppyoloe_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`等文件夹下生成`ppyoloe_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
 ```
 
-执行上述命令会在`models/BM1684X/`下生成`ppyoloe_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
-
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`ppyoloe_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
@@ -121,27 +126,51 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 
 ### 6.2 测试结果
 
-在coco2017val_1000数据集上，精度测试结果如下：
+在`datasets/coco/val2017_1000`数据集上，精度测试结果如下：
 
 |   测试平台    |      测试程序     |        测试模型        | AP@IoU=0.5:0.95 | AP@IoU=0.5 |
 | ------------ | ---------------- | ---------------------- | --------------- | ---------- |
-| BM1684 PCIe  | ppyoloe_opencv.py | ppyoloe_fp32_1b.bmodel | 0.377 	     | 0.508      |
-| BM1684 PCIe  | ppyoloe_bmcv.py   | ppyoloe_fp32_1b.bmodel | 0.380 	     | 0.513      |
-| BM1684 PCIe  | ppyoloe_bmcv.pcie | ppyoloe_fp32_1b.bmodel | 0.378        | 0.510      |
-| BM1684 PCIe  | ppyoloe_sail.pcie | ppyoloe_fp32_1b.bmodel | 0.378        | 0.510      |
-| BM1684X PCIe | ppyoloe_opencv.py | ppyoloe_fp32_1b.bmodel | 0.377 	     | 0.508 	    |
-| BM1684X PCIe | ppyoloe_opencv.py | ppyoloe_fp16_1b.bmodel | 0.377 	     | 0.508 	    |
-| BM1684X PCIe | ppyoloe_bmcv.py   | ppyoloe_fp32_1b.bmodel | 0.380 	     | 0.513  	  |
-| BM1684X PCIe | ppyoloe_bmcv.py   | ppyoloe_fp16_1b.bmodel | 0.380 	     | 0.513 	    |
-| BM1684X PCIe | ppyoloe_bmcv.pcie | ppyoloe_fp32_1b.bmodel | 0.379 	     | 0.510 	    |
-| BM1684X PCIe | ppyoloe_bmcv.pcie | ppyoloe_fp16_1b.bmodel | 0.378 	     | 0.510 	    |
-| BM1684X PCIe | ppyoloe_sail.pcie | ppyoloe_fp32_1b.bmodel | 0.379 	     | 0.510 	    |
-| BM1684X PCIe | ppyoloe_sail.pcie | ppyoloe_fp16_1b.bmodel | 0.378 	     | 0.510 	    |
+| SE5-16       | ppyoloe_opencv.py  | ppyoloe_fp32_1b.bmodel       |    0.377 |    0.508 |
+| SE5-16       | ppyoloe_bmcv.py    | ppyoloe_fp32_1b.bmodel       |    0.381 |    0.513 |
+| SE5-16       | ppyoloe_bmcv.soc   | ppyoloe_fp32_1b.bmodel       |    0.378 |    0.510 |
+| SE5-16       | ppyoloe_sail.soc   | ppyoloe_fp32_1b.bmodel       |    0.378 |    0.510 |
+| SE7-32       | ppyoloe_opencv.py  | ppyoloe_fp32_1b.bmodel       |    0.377 |    0.508 |
+| SE7-32       | ppyoloe_opencv.py  | ppyoloe_fp16_1b.bmodel       |    0.377 |    0.508 |
+| SE7-32       | ppyoloe_bmcv.py    | ppyoloe_fp32_1b.bmodel       |    0.380 |    0.513 |
+| SE7-32       | ppyoloe_bmcv.py    | ppyoloe_fp16_1b.bmodel       |    0.380 |    0.513 |
+| SE7-32       | ppyoloe_bmcv.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
+| SE7-32       | ppyoloe_bmcv.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
+| SE7-32       | ppyoloe_sail.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
+| SE7-32       | ppyoloe_sail.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
+| SE9-16       | ppyoloe_opencv.py  | ppyoloe_fp32_1b.bmodel       |    0.377 |    0.508 |
+| SE9-16       | ppyoloe_opencv.py  | ppyoloe_fp16_1b.bmodel       |    0.376 |    0.508 |
+| SE9-16       | ppyoloe_bmcv.py    | ppyoloe_fp32_1b.bmodel       |    0.381 |    0.513 |
+| SE9-16       | ppyoloe_bmcv.py    | ppyoloe_fp16_1b.bmodel       |    0.380 |    0.514 |
+| SE9-16       | ppyoloe_bmcv.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
+| SE9-16       | ppyoloe_bmcv.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
+| SE9-16       | ppyoloe_sail.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
+| SE9-16       | ppyoloe_sail.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
+| SE9-16       | ppyoloe_opencv.py  | ppyoloe_fp32_1b_2core.bmodel |    0.377 |    0.508 |
+| SE9-16       | ppyoloe_opencv.py  | ppyoloe_fp16_1b_2core.bmodel |    0.376 |    0.508 |
+| SE9-16       | ppyoloe_bmcv.py    | ppyoloe_fp32_1b_2core.bmodel |    0.381 |    0.513 |
+| SE9-16       | ppyoloe_bmcv.py    | ppyoloe_fp16_1b_2core.bmodel |    0.380 |    0.514 |
+| SE9-16       | ppyoloe_bmcv.soc   | ppyoloe_fp32_1b_2core.bmodel |    0.379 |    0.510 |
+| SE9-16       | ppyoloe_bmcv.soc   | ppyoloe_fp16_1b_2core.bmodel |    0.378 |    0.510 |
+| SE9-16       | ppyoloe_sail.soc   | ppyoloe_fp32_1b_2core.bmodel |    0.379 |    0.510 |
+| SE9-16       | ppyoloe_sail.soc   | ppyoloe_fp16_1b_2core.bmodel |    0.378 |    0.510 |
+| SE9-8        | ppyoloe_opencv.py  | ppyoloe_fp32_1b.bmodel       |    0.377 |    0.508 |
+| SE9-8        | ppyoloe_opencv.py  | ppyoloe_fp16_1b.bmodel       |    0.376 |    0.508 |
+| SE9-8        | ppyoloe_bmcv.py    | ppyoloe_fp32_1b.bmodel       |    0.381 |    0.513 |
+| SE9-8        | ppyoloe_bmcv.py    | ppyoloe_fp16_1b.bmodel       |    0.380 |    0.514 |
+| SE9-8        | ppyoloe_bmcv.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
+| SE9-8        | ppyoloe_bmcv.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
+| SE9-8        | ppyoloe_sail.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
+| SE9-8        | ppyoloe_sail.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
 
 > **测试说明**：  
->
-> 1. SoC和PCIe的模型精度一致；
-> 2. AP@IoU=0.5:0.95为area=all对应的指标。
+> 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
+> 2. AP@IoU=0.5:0.95为area=all对应的指标；
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -153,47 +182,72 @@ bmrt_test --bmodel models/BM1684/ppyoloe_fp32_1b.bmodel
 测试结果中的`calculate time()`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                   | calculate time(ms) |
-| ------------------------------------------- | ----------------- |
-| BM1684/ppyoloe_fp32_1b.bmodel  	            |       26.01       |
-| BM1684/ppyoloe_fp32_4b.bmodel  	            |       25.62       |
-| BM1684X/ppyoloe_fp32_1b.bmodel 	            |       35.80       |
-| BM1684X/ppyoloe_fp32_4b.bmodel 	            |       35.15       |
-| BM1684X/ppyoloe_fp16_1b.bmodel 	            |       10.12       |
-| BM1684X/ppyoloe_fp16_4b.bmodel 	            |       8.90        |
+| 测试模型                       | calculate time(ms) |
+| -------------------                |  -------------- |
+| BM1684/ppyoloe_fp32_1b.bmodel      |          30.77  |
+| BM1684X/ppyoloe_fp32_1b.bmodel     |          27.38  |
+| BM1684X/ppyoloe_fp16_1b.bmodel     |           6.85  |
+| BM1688/ppyoloe_fp32_1b.bmodel      |         119.37  |
+| BM1688/ppyoloe_fp16_1b.bmodel      |          31.43  |
+| BM1688/ppyoloe_fp32_1b_2core.bmodel|          76.65  |
+| BM1688/ppyoloe_fp16_1b_2core.bmodel|          21.21  |
+| CV186X/ppyoloe_fp32_1b.bmodel      |         122.38  |
+| CV186X/ppyoloe_fp16_1b.bmodel      |          34.91  |
 
 > **测试说明**：  
->
 > 1. 性能测试结果具有一定的波动性；
 > 2. `calculate time`已折算为平均每张图片的推理时间；
 > 3. SoC和PCIe的测试结果基本一致。
 
 ### 7.2 程序运行性能
-参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
+参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
+
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/val2017_1000`，conf_thresh=0.4，nms_thresh=0.6，性能测试结果如下：
 |    测试平台  |     测试程序      |     测试模型          |decode_time|preprocess_time|inference_time|postprocess_time|
 | ----------- | ---------------- | ---------------------- | -------- | -------------- | ---------     | --------- |
-| BM1684 SoC  | yolox_opencv.py  | ppyoloe_fp32_1b.bmodel | 15.19    | 45.22          | 45.78         | 12.86     |
-| BM1684 SoC  | yolox_bmcv.py    | ppyoloe_fp32_1b.bmodel | 6.82     | 3.58           | 33.72         | 12.83     |
-| BM1684 SoC  | yolox_bmcv.soc   | ppyoloe_fp32_1b.bmodel | 5.02     | 1.72           | 30.78         | 16.91     |
-| BM1684 SoC  | ppyoloeail.soc   | ppyoloe_fp32_1b.bmodel | 3.22     | 4.19           | 31.18         | 7.99      |
-| BM1684X SoC | yolox_opencv.py  | ppyoloe_fp32_1b.bmodel | 3.37     | 41.60          | 43.79         | 12.75     |
-| BM1684X SoC | yolox_opencv.py  | ppyoloe_fp16_1b.bmodel | 3.21     | 40.63          | 24.48         | 12.62     |
-| BM1684X SoC | yolox_bmcv.py    | ppyoloe_fp32_1b.bmodel | 3.05     | 2.68           | 30.28         | 13.09     |
-| BM1684X SoC | yolox_bmcv.py    | ppyoloe_fp16_1b.bmodel | 3.07     | 2.68           | 11.09         | 13.10     |
-| BM1684X SoC | yolox_bmcv.soc   | ppyoloe_fp32_1b.bmodel | 4.42     | 0.98           | 27.03         | 8.64      |
-| BM1684X SoC | yolox_bmcv.soc   | ppyoloe_fp16_1b.bmodel | 4.48     | 1.00           | 7.88          | 8.69      |
-| BM1684X SoC | ppyoloeail.soc   | ppyoloe_fp32_1b.bmodel | 2.78     | 3.28           | 27.44         | 8.04      |
-| BM1684X SoC | ppyoloeail.soc   | ppyoloe_fp16_1b.bmodel | 2.69     | 3.28           | 8.20          | 8.06      |
+|   SE5-16    | ppyoloe_opencv.py |      ppyoloe_fp32_1b.bmodel       |      15.02      |      43.29      |      45.16      |      12.46      |
+|   SE5-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      3.76       |      3.63       |      34.07      |      12.64      |
+|   SE5-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       |      4.84       |      1.08       |      30.71      |      8.57       |
+|   SE5-16    | ppyoloe_sail.soc  |      ppyoloe_fp32_1b.bmodel       |      3.21       |      4.14       |      31.11      |      7.99       |
+|   SE7-32    | ppyoloe_opencv.py |      ppyoloe_fp32_1b.bmodel       |      16.16      |      40.55      |      44.29      |      12.95      |
+|   SE7-32    | ppyoloe_opencv.py |      ppyoloe_fp16_1b.bmodel       |      15.13      |      40.54      |      23.72      |      12.88      |
+|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      3.30       |      2.81       |      30.95      |      13.42      |
+|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       |      3.26       |      2.79       |      10.40      |      13.44      |
+|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       |      4.34       |      0.99       |      27.35      |      8.70       |
+|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       |      4.35       |      0.99       |      6.79       |      8.72       |
+|   SE7-32    | ppyoloe_sail.soc  |      ppyoloe_fp32_1b.bmodel       |      2.71       |      3.33       |      27.76      |      8.10       |
+|   SE7-32    | ppyoloe_sail.soc  |      ppyoloe_fp16_1b.bmodel       |      2.71       |      3.33       |      7.22       |      8.11       |
+|   SE9-16    | ppyoloe_opencv.py |      ppyoloe_fp32_1b.bmodel       |      23.48      |      55.35      |     139.76      |      17.91      |
+|   SE9-16    | ppyoloe_opencv.py |      ppyoloe_fp16_1b.bmodel       |      19.24      |      55.54      |      51.71      |      17.77      |
+|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      4.59       |      5.44       |     124.17      |      17.67      |
+|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       |      4.61       |      5.41       |      36.18      |      17.95      |
+|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       |      5.75       |      2.24       |     119.31      |      12.15      |
+|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       |      5.80       |      2.23       |      31.36      |      12.14      |
+|   SE9-16    | ppyoloe_sail.soc  |      ppyoloe_fp32_1b.bmodel       |      3.80       |      6.12       |     120.29      |      11.33      |
+|   SE9-16    | ppyoloe_sail.soc  |      ppyoloe_fp16_1b.bmodel       |      3.75       |      6.11       |      32.33      |      11.32      |
+|   SE9-16    | ppyoloe_opencv.py |   ppyoloe_fp32_1b_2core.bmodel    |      19.29      |      55.28      |      96.96      |      17.91      |
+|   SE9-16    | ppyoloe_opencv.py |   ppyoloe_fp16_1b_2core.bmodel    |      19.16      |      55.66      |      41.51      |      17.78      |
+|   SE9-16    |  ppyoloe_bmcv.py  |   ppyoloe_fp32_1b_2core.bmodel    |      4.54       |      5.41       |      81.45      |      17.71      |
+|   SE9-16    |  ppyoloe_bmcv.py  |   ppyoloe_fp16_1b_2core.bmodel    |      4.54       |      5.39       |      25.95      |      17.74      |
+|   SE9-16    | ppyoloe_bmcv.soc  |   ppyoloe_fp32_1b_2core.bmodel    |      5.83       |      2.23       |      76.57      |      12.14      |
+|   SE9-16    | ppyoloe_bmcv.soc  |   ppyoloe_fp16_1b_2core.bmodel    |      5.80       |      2.23       |      21.16      |      12.15      |
+|   SE9-16    | ppyoloe_sail.soc  |   ppyoloe_fp32_1b_2core.bmodel    |      3.81       |      6.11       |      77.55      |      11.32      |
+|   SE9-16    | ppyoloe_sail.soc  |   ppyoloe_fp16_1b_2core.bmodel    |      3.77       |      6.10       |      22.11      |      11.33      |
+|    SE9-8    | ppyoloe_opencv.py |      ppyoloe_fp32_1b.bmodel       |      24.17      |      55.57      |     142.53      |      17.66      |
+|    SE9-8    | ppyoloe_opencv.py |      ppyoloe_fp16_1b.bmodel       |      20.70      |      55.99      |      55.20      |      17.54      |
+|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      7.66       |      5.63       |     127.22      |      17.71      |
+|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       |      4.45       |      5.59       |      39.63      |      17.73      |
+|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       |      5.61       |      2.59       |     122.30      |      12.15      |
+|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       |      5.64       |      2.59       |      34.85      |      12.14      |
+|    SE9-8    | ppyoloe_sail.soc  |      ppyoloe_fp32_1b.bmodel       |      3.67       |      6.34       |     123.30      |      11.33      |
+|    SE9-8    | ppyoloe_sail.soc  |      ppyoloe_fp16_1b.bmodel       |      3.64       |      6.32       |      35.81      |      11.33      |
 
 > **测试说明**：  
->
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 3. BM1684 SoC的测试平台为标准版SE5，BM1684X SoC的测试平台为标准版SE7
-> 4. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
-> 5. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 
 ## 8. FAQ
 [常见问题解答](../../docs/FAQ.md)

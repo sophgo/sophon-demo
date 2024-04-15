@@ -38,6 +38,17 @@ function gen_fp16bmodel()
         --model ppyoloe_fp16_$1b.bmodel
 
     mv ppyoloe_fp16_$1b.bmodel $outdir/
+    
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir ppyoloe_$1b.mlir \
+            --quantize F16 \
+            --chip ${target} \
+            --model ppyoloe_fp16_$1b_2core.bmodel \
+            --num_core 2
+
+        mv ppyoloe_fp16_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir
