@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 
 usage()
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -43,6 +43,83 @@ do
       exit 1;;
   esac
 done
+
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
+
+if [ -f "scripts/acc.txt" ]; then
+  rm scripts/acc.txt
+fi
+echo "|   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|" >> scripts/acc.txt
+
+PLATFORM=$TARGET
+if test $MODE = "soc_test"; then
+  if test $TARGET = "BM1684X"; then
+    PLATFORM="SE7-32"
+  elif test $TARGET = "BM1684"; then
+    PLATFORM="SE5-16"
+  elif test $TARGET = "BM1688"; then
+    PLATFORM="SE9-16"
+    cpu_core_num=$(nproc)
+    if [ "$cpu_core_num" -eq 6 ]; then
+      PLATFORM="SE9-8"
+    fi
+  elif test $TARGET = "CV186X"; then
+    PLATFORM="SE9-8"
+  else
+    echo "Unknown TARGET type: $TARGET"
+  fi
+fi
+
+function bmrt_test_case(){
+   calculate_time_log=$(bmrt_test --bmodel $1 --devid $TPUID | grep "calculate" 2>&1)
+   is_4b=$(echo $1 |grep "4b")
+
+   if [ "$is_4b" != "" ]; then
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 250}')
+   else
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 1000}')
+   fi
+   for time in "${calculate_times[@]}"
+   do
+     printf "| %-35s| % 15s |\n" "$1" "$time"
+   done
+}
+function bmrt_test_benchmark(){
+    pushd models
+    printf "| %-35s| % 15s |\n" "测试模型" "calculate time(ms)"
+    printf "| %-35s| % 15s |\n" "-------------------" "--------------"
+   
+    if test $TARGET = "BM1684"; then
+      bmrt_test_case BM1684/ppyoloe_fp32_1b.bmodel
+      # bmrt_test_case BM1684/ppyoloe_int8_1b.bmodel
+      # bmrt_test_case BM1684/ppyoloe_int8_4b.bmodel
+    elif test $TARGET = "BM1684X"; then
+      bmrt_test_case BM1684X/ppyoloe_fp32_1b.bmodel
+      bmrt_test_case BM1684X/ppyoloe_fp16_1b.bmodel
+      # bmrt_test_case BM1684X/ppyoloe_int8_1b.bmodel
+      # bmrt_test_case BM1684X/ppyoloe_int8_4b.bmodel
+    elif test $TARGET = "BM1688"; then
+      bmrt_test_case BM1688/ppyoloe_fp32_1b.bmodel
+      bmrt_test_case BM1688/ppyoloe_fp16_1b.bmodel
+      # bmrt_test_case BM1688/ppyoloe_int8_1b.bmodel
+      # bmrt_test_case BM1688/ppyoloe_int8_4b.bmodel
+      if test "$PLATFORM" = "SE9-16"; then 
+        bmrt_test_case BM1688/ppyoloe_fp32_1b_2core.bmodel
+        bmrt_test_case BM1688/ppyoloe_fp16_1b_2core.bmodel
+        # bmrt_test_case BM1688/ppyoloe_int8_1b_2core.bmodel
+        # bmrt_test_case BM1688/ppyoloe_int8_4b_2core.bmodel
+      fi
+    elif test $TARGET = "CV186X"; then
+      bmrt_test_case CV186X/ppyoloe_fp32_1b.bmodel
+      bmrt_test_case CV186X/ppyoloe_fp16_1b.bmodel
+      # bmrt_test_case CV186X/ppyoloe_int8_1b.bmodel
+      # bmrt_test_case CV186X/ppyoloe_int8_4b.bmodel
+    fi
+  
+    popd
+}
 
 if test $PYTEST = "pytest"
 then
@@ -165,6 +242,12 @@ function eval_cpp()
   ./ppyoloe_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.4 --nms_thresh=0.6 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
   judge_ret $? "./ppyoloe_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.4 --nms_thresh=0.6 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
   tail -n 15 log/$1_$2_$3_debug.log
+    
+  echo "==================="
+  echo "Comparing statis..."
+  python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppyoloe_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3
+  judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppyoloe_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3"
+  echo "==================="
 
   echo "Evaluating..."
   res=$(python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/instances_val2017_1000.json --result_json results/$3_val2017_1000_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
@@ -174,8 +257,13 @@ function eval_cpp()
   acc=${array[1]}
   compare_res $acc $4
   judge_ret $? "$3_val2017_1000_$2_cpp_result: Precision compare!" log/$1_$2_$3_eval.log
-  popd
+
+  ap0=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50:0.95 | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  ap1=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50      | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  printf "| %-12s | %-18s | %-30s | %8.3f | %8.3f |\n" "$PLATFORM" "ppyoloe_$2.$1" "$3" "$(printf "%.3f" $ap0)" "$(printf "%.3f" $ap1)">> ../../scripts/acc.txt
+
   echo -e "########################\nCase End: eval cpp\n########################\n"
+  popd
 }
 
 function test_python()
@@ -197,6 +285,12 @@ function eval_python()
   judge_ret $? "python3 python/ppyoloe_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.4 --nms_thresh 0.6 > python/log/$1_$2_debug.log 2>&1" python/log/$1_$2_debug.log
   tail -n 20 python/log/$1_$2_debug.log
 
+  echo "==================="
+  echo "Comparing statis..."
+  python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppyoloe_$1.py --language=python --input=python/log/$1_$2_debug.log --bmodel=$2
+  judge_ret $? "python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppyoloe_$1.py --language=python --input=python/log/$1_$2_debug.log --bmodel=$2"
+  echo "==================="
+
   echo "Evaluating..."
   res=$(python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/$2_val2017_1000_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
   echo -e "$res"
@@ -204,6 +298,11 @@ function eval_python()
   acc=${array[1]}
   compare_res $acc $3
   judge_ret $? "$2_val2017_1000_$1_python_result: Precision compare!" python/log/$1_$2_eval.log
+
+  ap0=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50:0.95 | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  ap1=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50      | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  printf "| %-12s | %-18s | %-30s | %8.3f | %8.3f |\n" "$PLATFORM" "ppyoloe_$1.py" "$2" "$(printf "%.3f" $ap0)" "$(printf "%.3f" $ap1)">> scripts/acc.txt
+  
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
@@ -215,12 +314,10 @@ elif test $MODE = "pcie_test"
 then
   build_pcie bmcv
   build_pcie sail
+  pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   download
   if test $TARGET = "BM1684"
   then
-    test_python opencv ppyoloe_fp32_1b.bmodel datasets/test
-    test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test
-    test_cpp pcie bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test
     test_python opencv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_cpp pcie bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
@@ -233,10 +330,6 @@ then
 
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv ppyoloe_fp32_1b.bmodel datasets/test
-    test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test
-    test_cpp pcie bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test
-    test_cpp pcie sail ppyoloe_fp32_1b.bmodel ../../datasets/test
     test_python opencv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_cpp pcie bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
@@ -258,12 +351,13 @@ then
 elif test $MODE = "soc_test"
 then
   download
+  pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
-    test_python opencv ppyoloe_fp32_1b.bmodel datasets/test
-    test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test
-    test_cpp soc bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc sail ppyoloe_fp32_1b.bmodel ../../datasets/test
+    test_python opencv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc sail ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
 
     eval_python opencv ppyoloe_fp32_1b.bmodel 0.3774908679349741
     eval_python bmcv ppyoloe_fp32_1b.bmodel 0.38058603692128434
@@ -271,10 +365,10 @@ then
     eval_cpp soc sail ppyoloe_fp32_1b.bmodel 0.37836229565532076
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv ppyoloe_fp32_1b.bmodel datasets/test
-    test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test
-    test_cpp soc bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test
-    test_cpp soc sail ppyoloe_fp32_1b.bmodel ../../datasets/test
+    test_python opencv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc sail ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
 
     eval_python opencv ppyoloe_fp32_1b.bmodel 0.3774907636324529
     eval_python opencv ppyoloe_fp16_1b.bmodel 0.37712423871409745
@@ -284,7 +378,41 @@ then
     eval_cpp soc bmcv ppyoloe_fp16_1b.bmodel 0.3779939801816987
     eval_cpp soc sail ppyoloe_fp32_1b.bmodel 0.3785768470377686
     eval_cpp soc sail ppyoloe_fp16_1b.bmodel 0.3779939801816987
+  elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
+  then
+    test_python opencv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv ppyoloe_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc sail ppyoloe_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    eval_python opencv ppyoloe_fp32_1b.bmodel 0.377
+    eval_python opencv ppyoloe_fp16_1b.bmodel 0.376
+    eval_python bmcv   ppyoloe_fp32_1b.bmodel 0.381
+    eval_python bmcv   ppyoloe_fp16_1b.bmodel 0.380
+    eval_cpp soc bmcv  ppyoloe_fp32_1b.bmodel 0.379
+    eval_cpp soc bmcv  ppyoloe_fp16_1b.bmodel 0.378
+    eval_cpp soc sail  ppyoloe_fp32_1b.bmodel 0.379
+    eval_cpp soc sail  ppyoloe_fp16_1b.bmodel 0.378
+    if test "$PLATFORM" = "SE9-16"; then 
+      eval_python opencv ppyoloe_fp32_1b_2core.bmodel 0.377
+      eval_python opencv ppyoloe_fp16_1b_2core.bmodel 0.376
+      eval_python bmcv   ppyoloe_fp32_1b_2core.bmodel 0.381
+      eval_python bmcv   ppyoloe_fp16_1b_2core.bmodel 0.380
+      eval_cpp soc bmcv  ppyoloe_fp32_1b_2core.bmodel 0.379
+      eval_cpp soc bmcv  ppyoloe_fp16_1b_2core.bmodel 0.378
+      eval_cpp soc sail  ppyoloe_fp32_1b_2core.bmodel 0.379
+      eval_cpp soc sail  ppyoloe_fp16_1b_2core.bmodel 0.378
+    fi
   fi
+fi
+
+if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
+  echo "--------ppyoloe mAP----------"
+  cat scripts/acc.txt
+  echo "--------bmrt_test performance-----------"
+  bmrt_test_benchmark
+  echo "--------ppyoloe performance-----------"
+  cat tools/benchmark.txt
 fi
 
 if [[ $ALL_PASS -eq 0 ]]
