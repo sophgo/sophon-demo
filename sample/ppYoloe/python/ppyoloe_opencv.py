@@ -317,8 +317,8 @@ def argsparser():
     parser.add_argument('--input', type=str, default='../datasets/coco/val2017_1000', help='path of input')
     parser.add_argument('--bmodel', type=str, default='../models/BM1684/ppyoloe_fp32_1b.bmodel', help='path of bmodel')
     parser.add_argument('--dev_id', type=int, default=1, help='dev id')
-    parser.add_argument('--conf_thresh', type=float, default=0.01, help='confidence threshold')
-    parser.add_argument('--nms_thresh', type=float, default=0.7, help='nms threshold')
+    parser.add_argument('--conf_thresh', type=float, default=0.4, help='confidence threshold')
+    parser.add_argument('--nms_thresh', type=float, default=0.6, help='nms threshold')
     args = parser.parse_args()
     return args
 

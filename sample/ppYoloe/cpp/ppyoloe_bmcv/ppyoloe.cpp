@@ -122,23 +122,22 @@ int ppYoloe::batch_size() {
 int ppYoloe::Detect(const std::vector<bm_image>& input_images, std::vector<ppYoloeBoxVec>& boxes) {
     int ret = 0;
     // 1. preprocess
-    LOG_TS(m_ts, "ppyoloe preprocess");
+    m_ts->save("ppyoloe preprocess", max_batch);
     ret = pre_process(input_images);
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "ppyoloe preprocess");
-
+    m_ts->save("ppyoloe preprocess", max_batch);
 
     // 2. forward
-    LOG_TS(m_ts, "ppyoloe inference");
+    m_ts->save("ppyoloe inference", max_batch);
     ret = m_bmNetwork->forward();
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "ppyoloe inference");
+    m_ts->save("ppyoloe inference", max_batch);
 
     // 3. post process
-    LOG_TS(m_ts, "ppyoloe postprocess");
+    m_ts->save("ppyoloe postprocess", max_batch);
     ret = post_process(input_images, boxes);
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "ppyoloe postprocess");
+    m_ts->save("ppyoloe postprocess", max_batch);
     return ret;
 }
 
