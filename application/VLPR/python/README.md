@@ -4,22 +4,21 @@
 
 ## 目录
 
-* [1. 环境准备](#1-环境准备)
-    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
-    * [1.2 SoC平台](#12-soc平台)
-* [2. 程序编译](#2-程序编译)
-    * [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
-    * [2.2 SoC平台](#22-soc平台)
-* [3. 推理测试](#3-推理测试)
-    * [3.1 参数说明](#31-参数说明)
-    * [3.2 运行程序](#32-运行程序)
-    * [3.3 程序原理流程图](#33-程序原理流程图)
+- [python例程](#python例程)
+  - [目录](#目录)
+  - [1. 环境准备](#1-环境准备)
+    - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    - [1.2 SoC平台](#12-soc平台)
+  - [3. 推理测试](#3-推理测试)
+    - [3.1 参数说明](#31-参数说明)
+    - [3.2 运行程序](#32-运行程序)
+    - [3.2 程序原理流程图](#32-程序原理流程图)
 
 python目录下提供了python例程以供参考使用，具体情况如下：
-| 序号  | python例程                   | 说明                                 |
-| ---- | ----------------------------- | -----------------------------------  |
-| 1    | vlpr.py                       | 使用opencv解码、BMCV前处理、BMRT推理 |
-| 2    | chars.py                      | lprnet后处理使用的汉字字典           |
+| 序号 | python例程 | 说明                                 |
+| ---- | ---------- | ------------------------------------ |
+| 1    | vlpr.py    | 使用opencv解码、BMCV前处理、BMRT推理 |
+| 2    | chars.py   | lprnet后处理使用的汉字字典           |
 
 
 ## 1. 环境准备
@@ -44,27 +43,27 @@ unzip sophon-sail.zip
 ### 3.1 参数说明
 
 
-|   参数名               | 类型    |   说明                                        |
-|------------------------|---------|-----------------------------------------------|
-| max_que_size           | int     |   队列长度，默认为16                          |
-| video_nums             | string  |   视频测试路数，默认为16                      |
-| batch_size             | int     |   为输入bmodel的batch_size，默认为4           |
-| loops                  | int     |   对于一个进程的循环测试图片数，默认为1000    |
-| input                  | string  |   本地视频路径或视频流地址                    |
-| yolo_bmodel            | int     |   yolov5 bmodel路径                           |
-| lprnet_bmodel          | int     |   lprnet bmodel路径                           |  
-| dev_id                 | int     |   使用的设备id，默认为0号设备                 |
-| draw_images            | bool    |   是否保存图片，默认为False                   |
-| stress_test            | bool    |   是否循环压测，默认为False                   |
+| 参数名        | 类型   | 说明                                     |
+| ------------- | ------ | ---------------------------------------- |
+| max_que_size  | int    | 队列长度，默认为16                       |
+| video_nums    | string | 视频测试路数，默认为16                   |
+| batch_size    | int    | 为输入bmodel的batch_size，默认为4        |
+| loops         | int    | 对于一个进程的循环测试图片数，默认为1000 |
+| input         | string | 本地视频路径或视频流地址                 |
+| yolo_bmodel   | int    | yolov5 bmodel路径                        |
+| lprnet_bmodel | int    | lprnet bmodel路径                        |
+| dev_id        | int    | 使用的设备id，默认为0号设备              |
+| draw_images   | bool   | 是否保存图片，默认为False                |
+| stress_test   | bool   | 是否循环压测，默认为False                |
 
 ### 3.2 运行程序
 运行应用程序即可
 ```bash
-python3 vlpr.py --input ../datasets/licenseplate_640516-h264.mp4  --loops 1000 --video_nums 16 \
+python3 vlpr.py --input ../datasets/1080_1920_30s_512kb.mp4   --loops 1000 --video_nums 16 \
     --yolo_bmodel ../models/yolov5s-licensePlate/BM1684/yolov5s_v6.1_license_3output_int8_4b.bmodel \
     --lprnet_bmodel ../models/lprnet/BM1684/lprnet_int8_4b.bmodel
 ```
-测试过程会打印被检测和识别到的有效车牌信息，测试结束后，会在log中打印fps等信息。
+测试过程会打印被检测和识别到的有效车牌信息，测试结束后，会在log中打印FPS等信息。
 
 
 ### 3.2 程序原理流程图
