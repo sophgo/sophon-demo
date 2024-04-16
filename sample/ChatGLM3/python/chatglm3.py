@@ -7,10 +7,9 @@
 #
 #===----------------------------------------------------------------------===#
 import sophon.sail as sail
-import argparse
 import time
+import argparse
 from transformers import AutoTokenizer
-import sentencepiece as spm
 import numpy as np
 
 #convert sail_dtype to numpy dtype
@@ -34,24 +33,18 @@ def fp16_cast(arr:np.ndarray): #这个接口的作用在于把np.float16假冒�
         return arr
     
 class ChatGLM3:
-    def __init__(self, args):
+    def __init__(self, handle, engine, tokenizer):
         # load tokenizer
-        print("Load " + args.token + " ...")
-        self.input_str = ""
-        self.system = [{"role":"system",
-                        "content":"You are ChatGLM3, a large language model trained by Zhipu.AI. Follow the user's instructions carefully. Respond using markdown."}]
-        self.history = []
-        self.sp = AutoTokenizer.from_pretrained(args.token, trust_remote_code=True)
+        self.sp = tokenizer
+        self.handle = handle
         # warm up
         self.sp.decode([0]) 
-        self.EOS = [self.sp.eos_token_id,
-                    self.sp.get_command("<|user|>"),
-                    self.sp.get_command("<|observation|>")]
+        self.EOS = self.sp.eos_token_id
 
         # load bmodel
         # 这里devio，后面都没有创建系统内存的tensor
-        self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.DEVIO)
-        self.handle = sail.Handle(args.dev_id)
+        self.net = engine
+
         self.graph_names = self.net.get_graph_names()
         
         # initialize glm parameters
@@ -148,16 +141,12 @@ class ChatGLM3:
             tensor["data"] = sail.Tensor(self.handle, tensor["shape"], tensor["dtype"], False, True) 
         return tensor
         
-    def generate_tokens(self, input_str):
-        if not self.history or self.history[0]["role"] != "system":
-            self.history = self.system + self.history
-        tokens = self.sp.build_chat_input(input_str, history=self.history, role="user")
-        return tokens
-
     def forward_first(self, token):
         # Keep
-        # print("history length: ",len(token))
+
         input_ids = np.zeros(self.SEQLEN, type_convert(self.first_embed_input["dtype"]))
+
+        # token = token[-512:] if len(token) > 512 else token
         input_ids[:min(self.SEQLEN, len(token))] = token
         self.token_length = len(token)
         input_ids = input_ids.reshape(1, -1)
@@ -171,6 +160,7 @@ class ChatGLM3:
             for j in range(self.SEQLEN):
                 if not (j <= i and i < self.token_length):
                     attention_mask[i*self.SEQLEN + j] = -10000.0
+
         # embedding
         self.first_embed_input["data"].update_data(fp16_cast(input_ids))
         input_embed_tensors = {self.first_embed_input["name"]: self.first_embed_input["data"]}
@@ -182,7 +172,7 @@ class ChatGLM3:
         self.first_hidden_tensor.reshape(self.first_hidden_input["shape"])
         self.first_pid["data"].update_data(fp16_cast(position_id.reshape(self.first_pid["shape"])))
         self.first_attention["data"].update_data(fp16_cast(attention_mask.reshape(self.first_attention["shape"])))
-
+        
         input_blocks_tensors = {self.first_hidden_input["name"]: self.first_hidden_tensor, 
                                 self.first_pid["name"]: self.first_pid["data"], 
                                 self.first_attention["name"]: self.first_attention["data"]}
@@ -250,79 +240,73 @@ class ChatGLM3:
         output_lm_tensors = {self.lm_output["name"]: self.lm_output["data"]}
         self.net.process(self.name_lm, input_lm_tensors, output_lm_tensors)
         return int(self.lm_output["data"].asnumpy()) #int32
-        
-    def chat(self):
-        while True:
-            self.input_str = input("\nQuestion: ")
-            if self.input_str == "exit":
-                break
-            print("\nAnswer: ")
-            prompt = self.generate_tokens(self.input_str)
-            self.answer(prompt)
-            print()
-
-
-    def answer(self, prompt):
+            
+    def chat_stream(self, input, history):
+        input_tokens = self.sp.build_chat_input(input, history=[], role="user")
+        if (len(input_tokens) > self.SEQLEN / 3):
+            yield 'input length is too long'
+            return
         tok_num = 0
-        answer_cur = []
-        tokens = prompt
-        # input is empty
-        if not tokens:
-            print("Sorry: your question is too wierd!!")
-            return
-        if len(tokens) > self.SEQLEN:
-            print("The maximum question length should be shorter than {} but we get {} instead, \
-                history will be cleared, please ask again".format(self.SEQLEN, len(tokens)))
-            self.history.clear()
-            return
-        
+        tokens = self.sp.build_chat_input(input, history=history, role="user")
+        while (len(tokens) > self.SEQLEN / 2):
+            history = history[1:]
+            tokens = self.sp.build_chat_input(input, history=history, role="user")
         first_start = time.time()
-        token = self.forward_first(tokens)
+        pre_token = self.forward_first(tokens)
         first_end = time.time()
-        pre_token = 30910
-        pre_ids = [pre_token]
-        pre_word= self.sp.decode(pre_ids)
-        # Sentencepiece will remove space token if the token list it receive has only one token, we add a pre_token so that space token will not be removed.
-        while token not in self.EOS and self.token_length < self.SEQLEN:
-            ids = [pre_token, token]
-            word = self.sp.decode(ids)
-            diff = word[len(pre_word):]
-            answer_cur += [token]
-            print(diff, flush=True, end='')
-            # if self.token_length < self.SEQLEN:
+        token = pre_token
+        is_emoji = False
+        emoji_token = []
+        while token != self.EOS and self.token_length < self.SEQLEN:
+            if (token == 243 or is_emoji):
+                # 处理emoji表情
+                is_emoji = True
+                emoji_token += [token]
+                if (len(emoji_token) == 4):
+                    yield self.sp.decode(emoji_token)
+                    emoji_token = []
+                    is_emoji = False
+            else: 
+                yield self.sp.decode([pre_token, token])
             self.token_length += 1
             tok_num += 1
             token = self.forward_next()
-        
-        # 计时
+
         next_end = time.time()
         first_duration = first_end-first_start
         next_duration = next_end-first_end
         tps = tok_num / next_duration
-        # import pdb;pdb.set_trace()
-        if self.token_length >= self.SEQLEN:
-            print("\n... (history reach the maximal length)", flush=True, end='')
-            answer_cur_str=self.sp.decode(answer_cur)
-            self.history.extend([{"role":"user", "content":self.input_str},
-                                 {"role":"assistant", "content":answer_cur_str}])
-            self.history.clear()
-        else:
-            answer_cur_str=self.sp.decode(answer_cur)
-            self.history.extend([{"role":"user", "content":self.input_str},
-                                 {"role":"assistant", "content":answer_cur_str}])
-        print()
+        print('\n\n')
         print(f"FTL: {first_duration:.3f} s")
         print(f"TPS: {tps:.3f} token/s")
-            
+
+
+
+def app(client):
+    history = []
+    while True:
+        input_str = input("\nQuestion: ")
+        if input_str == "exit":
+            break
+        print("\nAnswer: ")
+        assistant_msg = ''
+        for response in client.chat_stream(input_str, history):
+            assistant_msg = response
+            print(response, flush=True, end='')
+        history.append({"role": "user", "content": input_str})
+        history.append({"role": "assistant", "content": assistant_msg})
+
 def main(args):
-    agent = ChatGLM3(args)
-    agent.chat()
-    pass
+    handle = sail.Handle(args.dev_id)
+    tokenizer = AutoTokenizer.from_pretrained(args.token, trust_remote_code=True)
+    engine = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.DEVIO)
+    client = ChatGLM3(handle, engine, tokenizer)
+    app(client)
 
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--bmodel', type=str, default='./chatglm3-6b_int4_1dev.bmodel', help='path of bmodel')
-    parser.add_argument('--token', type=str, default='./token_config/', help='path of tokenizer')
+    parser.add_argument('--bmodel', type=str, default='./models/BM1684X/chatglm3-6b_int4.bmodel', help='path of bmodel')
+    parser.add_argument('--token', type=str, default='./python/token_config/', help='path of tokenizer')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     args = parser.parse_args()
     return args
