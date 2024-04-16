@@ -158,13 +158,13 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_license_3output_fp32_1b.bmodel
 ### 6.2 程序运行性能
 参考[例程测试](#5-例程测试)运行程序，并查看统计的total fps。
 
-在不同的测试平台上，使用不同的例程、模型，输入视频`datasets/1080_1920_30s_512kb.mp4`，相应路数和模型根据下表修改，性能测试结果如下：
+在不同的测试平台上，使用不同的例程、模型，输入视频`datasets/1080_1920_30s_512kb.mp4`或`licenseplate_640516-h264.mp4`，相应路数和模型根据下表修改，性能测试结果如下：
 | 测试平台 | 测试程序      | 测试模型                                                                       | 配置文件           | 路数 | FPS | tpu利用率(%) | cpu利用率(%) | 系统内存占用(MB) | 设备内存占用(MB) |
 | -------- | ------------- | ------------------------------------------------------------------------------ | ------------------ | ---- | --- | ------------ | ------------ | ---------------- | ---------------- |
 | SE5-16   | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | config_se5.json    | 16   | 146 | 95-100       | 90-110       | 45-55            | 1800-2200        |
 | SE7-32   | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | config_se7.json    | 32   | 274 | 65-100       | 170-190      | 90-105           | 450-700          |
-| SE9-8    | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | config_se9-8.json  | 8    | 95  | 55-80        | 90-100       | 48-51            | 550-650          |
-| SE9-16   | vlpr_bmcv.soc | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | config_se9-16.json | 16   | 187 | 60-90        | 200-230      | 57-65            | 950-1050         |
+| SE9-8    | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | config_se9-8.json  | 8    | 89  | 95-100       | 200-250      | 40-50            | 900-1050         |
+| SE9-16   | vlpr_bmcv.soc | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | config_se9-16.json | 16   | 157 | 80-100       | 410-450      | 50-60            | 3100-3300        |
 | SE5-16   | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default            | 16   | 360 | 100          | 180-200      | 272-280          | 2750-2950        |
 | SE7-32   | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default            | 32   | 756 | 66-100       | 400-560      | 456-480          | 3300-3500        |
 | SE9-8    | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default            | 8    | 206 | 94-100       | 240-250      | 140-160          | 1720-1740        |
