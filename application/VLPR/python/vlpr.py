@@ -398,7 +398,7 @@ def argsparser():
     parser.add_argument('--video_nums', type=int, default=16, help='procress nums of input')
     parser.add_argument('--batch_size', type=int, default=4, help='video_nums/batch_size is procress nums of process and postprocess')
     parser.add_argument('--loops', type=int, default=1000, help='process loops for one process')
-    parser.add_argument('--input', type=str, default='../datasets/licenseplate_640516-h264.mp4', help='path of input, must be video path') 
+    parser.add_argument('--input', type=str, default='../datasets/1080_1920_30s_512kb.mp4', help='path of input, must be video path') 
     parser.add_argument('--yolo_bmodel', type=str, default='../models/yolov5s-licensePlate/BM1684X/yolov5s_v6.1_license_3output_int8_4b.bmodel', help='path of bmodel')
     parser.add_argument('--lprnet_bmodel', type=str, default='../models/lprnet/BM1684X/lprnet_int8_4b.bmodel', help='path of bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='tpu id')
