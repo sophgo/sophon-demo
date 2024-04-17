@@ -59,7 +59,7 @@ chmod -R +x scripts/
 ./models
 ├── BM1684X
 │   ├── decode_bmodel
-│   |   ├── SAM-ViT-B_auto_decoder_fp32_1b.bmodel           # decoder部分fp32 bmodel，全分割
+│   |   ├── SAM-ViT-B_auto_multi_decoder_fp32_1b.bmodel           # decoder部分fp32 bmodel，全分割
 │   │   ├── SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel     # decoder部分fp16 bmodel，输出置信度前三的mask  
 │   │   ├── SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel     # decoder部分fp32 bmodel，输出置信度前三的mask  
 │   │   ├── SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel    # decoder部分fp16 bmodel，输出置信度第一的mask  
@@ -70,7 +70,7 @@ chmod -R +x scripts/
 │   ├── decode_model_multi_mask.onnx                        # 由原模型导出的，decoder部分onnx模型，输出置信度前三的mask 
 │   ├── decode_model_single_mask.onnx                       # 由原模型导出的，decoder部分onnx模型，输出置信度第一的mask 
 │   ├── embedding_model.onnx                                # 由原模型导出的，embedding部分onnx模型
-│   └── vit-b-auto-scripts.onnx                             # 由原模型导出的auto_mask_decoder部分onnx模型
+│   └── vit-b-auto-multi_mask.onnx                             # 由原模型导出的auto_mask_decoder部分onnx模型
 └── torch
     └── sam_vit_b_01ec64.pth                                # 原torch模型
 

@@ -148,7 +148,7 @@ python3 python/sam_opencv.py --input_image datasets/truck.jpg --input_point 100,
 
 若是要使用无需点和框输入的全自动掩码生成则需要设置输入参数auto为1,并设置--bmodel为auto的bmodel，操作如下：
 ```bash
-python3 python/sam_opencv.py --input_image datasets/dog.jpg --embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_decoder_fp32_1b.bmodel --dev_id 0 --auto 1 --pred_iou_thresh 0.86
+python3 python/sam_opencv.py --input_image datasets/dog.jpg --embedding_bmodel models/BM1684X/embedding_bmodel/SAM-ViT-B_embedding_fp16_1b.bmodel --decode_bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_multi_decoder_fp32_1b.bmodel --dev_id 0 --auto 1 --pred_iou_thresh 0.86
 ```
 运行结束后，会将结果图保存在`results/`下，同时会打印推理时间等信息。
 

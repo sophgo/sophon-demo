@@ -291,11 +291,11 @@ class SAM_b(object):
                 start_time = time.time()
                 output_mask = self.predict(ort_inputs)
                 self.inference_time += time.time() - start_time
-                logging.debug("{} masks finish!".format(i))
+                logging.info("{} masks finish!".format(i))
 
                 start_time = time.time()
                 low_res_logits = output_mask[list(output_mask.keys())[3]]
-                iou_preds = output_mask[list(output_mask.keys())[1]]
+                iou_preds = output_mask[list(output_mask.keys())[2]]
                 low_res_logits = torch.from_numpy(low_res_logits)
 
                 input_image = predictor.transform.apply_image(image)

@@ -56,7 +56,48 @@ SAM官方仓库提供了模型导出脚本'scripts/export.onnx_model.py'和'note
 ```
 
 - 导出auto的decoder部分模型：
-使用上述decoder的onnx_model_example.ipynb代码为例，只需将"point_coords"中的size(1, 5, 2)修改为(64, 5, 2);"point_labels"中的size(1, 5)修改为(64, 5)和"mask_input"中的(1, 1)修改为(64, 1)即可导出auto的decoder部分模型;
+使用上述decoder的onnx_model_example.ipynb代码为例，首先需要对SamOnnxModel进行修改。
+
+- onnx.py中的SamOnnxModel修改部分：
+如下，将predict_masks方法注释掉，修改成masks, scores = self.model.mask_decoder......的形式。
+```
+def forward(
+        self,
+        image_embeddings: torch.Tensor,
+        point_coords: torch.Tensor,
+        point_labels: torch.Tensor,
+        mask_input: torch.Tensor,
+        has_mask_input: torch.Tensor,
+        orig_im_size: torch.Tensor,
+    ):
+        sparse_embedding = self._embed_points(point_coords, point_labels)
+        dense_embedding = self._embed_masks(mask_input, has_mask_input)
+        
+        masks, scores = self.model.mask_decoder(
+            image_embeddings=image_embeddings,
+            image_pe=self.model.prompt_encoder.get_dense_pe(),
+            sparse_prompt_embeddings=sparse_embedding,
+            dense_prompt_embeddings=dense_embedding,
+            multimask_output=True,
+        )
+        
+        # masks, scores = self.model.mask_decoder.predict_masks(
+        #     image_embeddings=image_embeddings,
+        #     image_pe=self.model.prompt_encoder.get_dense_pe(),
+        #     sparse_prompt_embeddings=sparse_embedding,
+        #     dense_prompt_embeddings=dense_embedding,
+        # )
+        if self.use_stability_score:
+            scores = calculate_stability_score(
+                masks, self.model.mask_threshold, self.stability_score_offset
+            )
+
+        if self.return_single_mask:
+            masks, scores = self.select_masks(masks, scores, point_coords.shape[1])
+        upscaled_masks = self.model.postprocess_masks(masks, self.input_size, orig_im_size)
+
+```
+然后只需将onnx_model_example.ipynb中的"point_coords"的size(1, 5, 2)修改为(64, 5, 2);"point_labels"中的size(1, 5)修改为(64, 5)和"mask_input"中的(1, 1)修改为(64, 1)并且onnx_model依然需要保持return_single_mask=True即可导出auto的decoder部分模型;
 
 - 导出embedding部分：
 需要您运行mata官方sam例程时，在实例化 `/segment-anything/segment_anything/build_sam.py` 中的`Class Sam()` 为`sam`后，直接导出`sam.image_encoder`。
