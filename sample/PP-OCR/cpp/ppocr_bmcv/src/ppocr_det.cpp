@@ -159,7 +159,7 @@ int PPOCR_Detector::run(const std::vector<bm_image> &input_images, std::vector<O
         }
     }
     // Last incomplete batch, use single batch model stage.
-    if(!batch1_flag){
+    if(!batch1_flag){//If the bmodel doesn't have stage with batch_size=1, use stage with batch_size=4 to do inference
         int batch_size_tmp = batch_images.size();
         for(int i = batch_images.size(); i < max_batch; i++){
             batch_images.push_back(batch_images[0]);
@@ -173,7 +173,7 @@ int PPOCR_Detector::run(const std::vector<bm_image> &input_images, std::vector<O
             output_boxes.push_back(batch_boxes[i]);
         }
     }
-    else for(int i = 0; i < batch_images.size(); i++){
+    else for(int i = 0; i < batch_images.size(); i++){//Otherwise, use stage with batch_size=1 to do inference.
         vector<vector<int>> resize_vector = preprocess_bmcv({batch_images[i]});
         m_ts->save("(per image)Det inference", 1);
         m_bmNetwork->forward();
@@ -219,12 +219,6 @@ std::vector<std::vector<int>> PPOCR_Detector::preprocess_bmcv(const std::vector<
         }
 
         resize_vector.push_back(resize_padding_op_(image_aligned, resize_bmcv_[i], det_limit_len_));
-
-    #if 0
-        cv::Mat test;
-        cv::bmcv::toMAT(&resize_bmcv_[i], test);
-        cv::imwrite("resized.jpg", test);
-    #endif
 
         assert(BM_SUCCESS == bmcv_image_convert_to(m_bmContext->handle(), 1, linear_trans_param_, &resize_bmcv_[i], &linear_trans_bmcv_[i]));
     #if USE_ZERO_PADDING

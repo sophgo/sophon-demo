@@ -47,11 +47,8 @@ int PPOCR_Rec::Init(const std::string &label_path)
         }
     }
 
-    // max_batch = batch_size;
     max_batch = m_bmNetwork->maxBatch();
 
-    // std::cout << "stage_num = " << m_bmNetwork->m_netinfo->stage_num << std::endl;
-    // std::cout << "input_num = " << m_bmNetwork->m_netinfo->input_num << std::endl;
     // get all stages' ratios and sizes.
     int pre_net_h = -1;
     for(int i = 0; i < m_bmNetwork->m_netinfo->stage_num; i++){
@@ -148,6 +145,7 @@ int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &b
     std::map<int, std::vector<std::pair<int, int>>> rec_id_map;
     int ret = 0;
     
+    //We assign the input_images to the stage which has the most appropriate shape
     for(int i = 0; i < input_images.size(); i++){
         float ratio = (float)input_images[i].width / (float)input_images[i].height;
         bool assign_flag = false;
@@ -165,6 +163,7 @@ int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &b
         }
     }
     
+    //Do inference by stage.
     for (auto it = rec_img_map.begin(); it != rec_img_map.end(); ++it) {
         auto input_images_staged = it->second;
         auto stage_w = it->first;
@@ -191,14 +190,6 @@ int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &b
                 for(int j = 0; j < results.size(); j++){
                     boxes_vec[batch_ids[j].first][batch_ids[j].second].rec_res = results[j].first;
                     boxes_vec[batch_ids[j].first][batch_ids[j].second].score = results[j].second;
-                    
-                    /*TODO: check this bug when batchsize == 9.*/
-                    // if(boxes_vec[batch_ids[j].first][batch_ids[j].second].x1 == 916 && boxes_vec[batch_ids[j].first][batch_ids[j].second].y1 == 307){
-                    //     cv::Mat img;
-                    //     cv::bmcv::toMAT(&batch_images[j], img);
-                    //     std::string fname = cv::format("test1.jpg");
-                    //     cv::imwrite(fname, img);
-                    // }
                 }
                 
                 batch_images.clear();
@@ -244,16 +235,6 @@ int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &b
             
             boxes_vec[batch_ids[i].first][batch_ids[i].second].rec_res = results[i].first;
             boxes_vec[batch_ids[i].first][batch_ids[i].second].score = results[i].second;
-                    
-                    /*DEBUG code, you can ignore this.*/
-                    // int j = i;
-                    // if(boxes_vec[batch_ids[j].first][batch_ids[j].second].x1 == 916 && boxes_vec[batch_ids[j].first][batch_ids[j].second].y1 == 307){ //batchsize == 9.
-                    //     cv::Mat img;
-                    //     cv::bmcv::toMAT(&batch_images[j], img);
-                    //     std::string fname = cv::format("test1.jpg");
-                    //     cv::imwrite(fname, img);
-                    // }
-
         }
         batch_images.clear();
         batch_ids.clear();
