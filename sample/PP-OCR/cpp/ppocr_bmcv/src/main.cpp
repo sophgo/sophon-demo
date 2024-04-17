@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
             ts.save("decode time", 1);
             bm_image bmimg;
         #if USE_OPENCV_DECODE        
-            cv::Mat cvmat = cv::imread(img_file);
+            cv::Mat cvmat = cv::imread(img_file, IMREAD_COLOR, dev_id);
             batch_cvmats.push_back(cvmat);//so that cvmat will not be released.
             cv::bmcv::toBMI(cvmat, &bmimg);
         #else    
@@ -356,7 +356,6 @@ int main(int argc, char* argv[]) {
                         batch_ids.push_back(std::make_pair(i, j));
                         total_crop_num += 1;
                     }
-                    // bm_image_destroy(input_bmimg_planar);  //TODO: if destroy the origin image for warp, crops will be abnormal.
                 }
 
 #if 0
