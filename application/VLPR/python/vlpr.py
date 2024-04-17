@@ -46,7 +46,7 @@ class MultiDecoderThread(object):
         
         for video_name in video_list:
             channel_index = self.multiDecoder.add_channel(video_name,0)
-            print("Process {}  Add Channel[{}]: {}".format(process_id,channel_index,video_name))
+            logging.info("Process {}  Add Channel[{}]: {}".format(process_id,channel_index,video_name))
             self.channel_list[channel_index] = video_name
 
         # yolov5
@@ -63,7 +63,7 @@ class MultiDecoderThread(object):
     def restart_multidecoder(self):
         for key in self.channel_list:
             self.multiDecoder.reconnect(int(key))
-            print("reconnect:",int(key))
+            logging.info("reconnect:",int(key))
 
     def get_exit_flag(self):
         self.flag_lock.acquire()
@@ -88,7 +88,7 @@ class MultiDecoderThread(object):
 
         # yolov5
         self.engine_image_pre_process = sail.EngineImagePreProcess(yolo_bmodel, self.tpu_id, 0)
-        self.engine_image_pre_process.InitImagePreProcess(self.resize_type, True, self.max_que_size - int(self.max_que_size/4)+1, self.max_que_size - int(self.max_que_size/4)+1) # queue_in_size, queue_out_size, avoid too much npu mem usage
+        self.engine_image_pre_process.InitImagePreProcess(self.resize_type, True, self.max_que_size, self.max_que_size) # queue_in_size, queue_out_size, avoid too much npu mem usage
         self.engine_image_pre_process.SetPaddingAtrr()
         self.engine_image_pre_process.SetConvertAtrr(self.alpha_beta)
         output_names = self.engine_image_pre_process.get_output_names()
@@ -98,7 +98,7 @@ class MultiDecoderThread(object):
 
         # lprnet
         self.lprnet_engine_image_pre_process = sail.EngineImagePreProcess(lprnet_bmodel, self.tpu_id, 0)
-        self.lprnet_engine_image_pre_process.InitImagePreProcess(self.resize_type_lprnet, True, 32 - int(self.max_que_size/2)+1, 32 - int(self.max_que_size/2)+1) # queue_in_size, queue_out_size
+        self.lprnet_engine_image_pre_process.InitImagePreProcess(self.resize_type_lprnet, True,self.max_que_size*3, self.max_que_size*3) # queue_in_size, queue_out_size
         self.lprnet_engine_image_pre_process.SetConvertAtrr(self.alpha_beta_lprnet)
         self.lprnet_output_names = self.lprnet_engine_image_pre_process.get_output_names()[0]
 
