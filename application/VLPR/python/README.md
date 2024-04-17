@@ -43,18 +43,18 @@ unzip sophon-sail.zip
 ### 3.1 参数说明
 
 
-| 参数名        | 类型   | 说明                                     |
-| ------------- | ------ | ---------------------------------------- |
-| max_que_size  | int    | 队列长度，默认为16                       |
-| video_nums    | string | 视频测试路数，默认为16                   |
-| batch_size    | int    | 为输入bmodel的batch_size，默认为4        |
-| loops         | int    | 对于一个进程的循环测试图片数，默认为1000 |
-| input         | string | 本地视频路径或视频流地址                 |
-| yolo_bmodel   | int    | yolov5 bmodel路径                        |
-| lprnet_bmodel | int    | lprnet bmodel路径                        |
-| dev_id        | int    | 使用的设备id，默认为0号设备              |
-| draw_images   | bool   | 是否保存图片，默认为False                |
-| stress_test   | bool   | 是否循环压测，默认为False                |
+| 参数名        | 类型   | 说明                                            |
+| ------------- | ------ | ----------------------------------------------- |
+| max_que_size  | int    | 队列长度，默认为4，不可小于输入模型的batch_size |
+| video_nums    | string | 视频测试路数，默认为16                          |
+| batch_size    | int    | 为输入bmodel的batch_size，默认为4               |
+| loops         | int    | 对于一个进程的循环测试图片数，默认为1000        |
+| input         | string | 本地视频路径或视频流地址                        |
+| yolo_bmodel   | int    | yolov5 bmodel路径                               |
+| lprnet_bmodel | int    | lprnet bmodel路径                               |
+| dev_id        | int    | 使用的设备id，默认为0号设备                     |
+| draw_images   | bool   | 是否保存图片，默认为False                       |
+| stress_test   | bool   | 是否循环压测，默认为False                       |
 
 ### 3.2 运行程序
 运行应用程序即可
