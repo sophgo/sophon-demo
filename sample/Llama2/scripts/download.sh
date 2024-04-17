@@ -36,3 +36,14 @@ if [ "$?" = "0" ]; then
 else
   echo "Tools unzip error"
 fi
+
+if [ ! -d "./python/token_config" ];
+then
+    pushd ./python
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Llama2/token_config.7z
+    7z x token_config.7z -o.
+    rm token_config.7z
+    popd
+else
+    echo "token_config exists! Remove it if you need to update."
+fi
