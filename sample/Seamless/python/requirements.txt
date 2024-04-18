@@ -1,0 +1,5 @@
+numpy
+torch
+fairseq2==0.2.0
+ffmpeg-python
+opencc
