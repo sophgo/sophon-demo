@@ -22,7 +22,7 @@
 作为一种经典的单阶段目标检测框架，YOLO系列的目标检测算法得到了学术界与工业界们的广泛关注。由于YOLO系列属于单阶段目标检测，因而具有较快的推理速度，能够更好的满足现实场景的需求。随着YOLOv3算法的出现，使得YOLO系列的检测算达到了高潮。YOLOv4则是在YOLOv3算法的基础上增加了很多实用的技巧，使得它的速度与精度都得到了极大的提升。本例程对YOLOv4和YOLOv3模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688上进行推理测试。
 
 
-**参考repo:** [​YOLOv3 Pytorch开源仓库](https://github.com/bubbliiiing/yolo3-pytorch)[​YOLOv4 Pytorch开源仓库](https://github.com/bubbliiiing/yolov4-pytorch)
+**参考repo:** [​YOLOv3 Pytorch开源仓库](https://github.com/ultralytics/yolov3)[​YOLOv4 Pytorch开源仓库](https://github.com/bubbliiiing/yolov4-pytorch)
 
 
 ## 2. 特性
@@ -35,7 +35,7 @@
 * 支持图片和视频测试
  
 ## 3. 准备模型与数据
-本例程采用的YOLOv3模型权重来自于[​YOLOv3_weights.pth](https://github.com/bubbliiiing/yolo3-pytorch/releases/download/v1.0/yolo_weights.pth)，YOLOv4模型权重来自于[​YOLOv4_weights.pth](https://github.com/bubbliiiing/yolov4-pytorch/releases/download/v1.0/yolo4_weights.pth)。
+本例程采用的YOLOv3模型权重通过命令`model = torch.hub.load('ultralytics/yolov3', 'yolov3', pretrained=True)`进行下载，YOLOv4模型权重来自于[​YOLOv4_weights.pth](https://github.com/bubbliiiing/yolov4-pytorch/releases/download/v1.0/yolo4_weights.pth)。
 
 建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。具体可参考[YOLOv34模型导出](./docs/YOLOv34_Export_Guide.md)。
 

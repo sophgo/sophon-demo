@@ -16,7 +16,7 @@ class PostProcess:
         self.multi_label = multi_label
         self.max_det = max_det
         self.nms = pseudo_torch_nms()
-
+        self.anchors_type = 'yolov4' if anchors[0][0] == 12 else 'yolov3'
         self.nl = 3
         self.anchor_grid = np.asarray(anchors, dtype=np.float32).reshape(self.nl, 1, -1, 1, 1, 2)
         self.grid = [np.zeros(1)] * self.nl
@@ -35,8 +35,14 @@ class PostProcess:
                 self.grid[i] = self._make_grid(nx, ny)
 
             y = 1 / (1 + np.exp(-feat))  # sigmoid
-            y[..., 0:2] = (y[..., 0:2] + self.grid[i]) * int(self.stride[i])  # xy
-            y[..., 2:4] = np.exp(-feat[..., 2:4]) * self.anchor_grid[i]  # wh
+            if self.anchors_type == 'yolov4':
+                # 以下是经典YOLO bbox解码过程（本例程YOLOv4采用的方式）
+                y[..., 0:2] = (y[..., 0:2] + self.grid[i]) * int(self.stride[i])  # xy
+                y[..., 2:4] = np.exp(feat[..., 2:4]) * self.anchor_grid[i]  # wh
+            else:
+                # 以下是改良版YOLO bbox解码过程（本例程YOLOv3采用的方式）
+                y[..., 0:2] = (y[..., 0:2] * 2. - 0.5 + self.grid[i]) * int(self.stride[i])  # xy
+                y[..., 2:4] = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
             z.append(y.reshape(bs, -1, nc))
         z = np.concatenate(z, axis=1)
         return z
