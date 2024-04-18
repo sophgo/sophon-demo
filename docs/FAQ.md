@@ -117,3 +117,14 @@ Summary:
 usage rate:4%, memory usage peak 144646144 bytes #memory usage peak是该heap的内存使用峰值
 ```
 如果某个heap的`memory usage peak`已经接近`heap size`了，那么可以考虑用这个工具调整设备内存各个heap的大小：[sophon内存修改工具](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/SophonSDK_doc/zh/html/appendix/2_mem_edit_tools.html)。
+
+### 7.4 刚开机首次执行某个函数慢(比如解码)，重启进程再次运行程序，时间正常
+
+可能是因为文件还没有缓存到内存中导致的刚开始比较慢。
+可以做个验证，如果不重启可复现，就说明是刚开机运行程序比较慢，是文件还没缓存的原因，步骤如下：
+    
+1. 上电后执行程序，第一次执行慢，第二次执行正常。
+
+2. 之后进入root用户清除cache，运行命令`echo 3 > /proc/sys/vm/drop_caches`。
+    
+3. 再次执行程序，运行慢，即可确定是cache导致的。
