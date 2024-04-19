@@ -105,22 +105,22 @@ int PPYOLO::Detect(const std::vector<bm_image>& input_images, std::vector<PPYOLO
 {
   int ret = 0;
   //3. preprocess
-  LOG_TS(m_ts, "ppyolov3 preprocess");
+  m_ts->save("ppyolov3 preprocess");
   ret = pre_process(input_images);
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "ppyolov3 preprocess");
+  m_ts->save("ppyolov3 preprocess");
 
   //4. forward
-  LOG_TS(m_ts, "ppyolov3 inference");
+  m_ts->save("ppyolov3 inference");
   ret = m_bmNetwork->forward();
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "ppyolov3 inference");
+  m_ts->save("ppyolov3 inference");
 
   //5. post process
-  LOG_TS(m_ts, "ppyolov3 postprocess");
+  m_ts->save("ppyolov3 postprocess");
   ret = post_process(input_images, boxes);
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "ppyolov3 postprocess");
+  m_ts->save("ppyolov3 postprocess");
   return ret;
 }
 
@@ -475,19 +475,23 @@ void PPYOLO::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, i
   bmcv_rect_t rect;
   rect.start_x = MIN(MAX(left, 0), frame.width);
   rect.start_y = MIN(MAX(top, 0), frame.height);
-  rect.crop_w = MAX(MIN(width, frame.width - left), 0);
-  rect.crop_h = MAX(MIN(height, frame.height - top), 0);
-  bmcv_image_draw_rectangle(handle, frame, 1, &rect, 3, colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
+  rect.crop_w = MAX(MIN(width, frame.width - rect.start_x), 0);
+  rect.crop_h = MAX(MIN(height, frame.height - rect.start_y), 0);
+  int thickness = 2;
+  if(rect.crop_w <= thickness * 2 || rect.crop_h <= thickness * 2){
+        std::cout << "width or height too small, this rect will not be drawed: " << 
+              "[" << rect.start_x << ", "<< rect.start_y << ", " << rect.crop_w << ", " << rect.crop_h << "]" << std::endl;
+  } else{
+    bmcv_image_draw_rectangle(handle, frame, 1, &rect, thickness, colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]);
+  } 
   if (put_text_flag){
     //Get the label for the class name and its confidence
     std::string label = m_class_names[classId] + ":" + cv::format("%.2f", conf);
-    bmcv_point_t org = {left, top};
+    bmcv_point_t org = {rect.start_x, rect.start_y};
     bmcv_color_t color = {colors[classId % colors_num][0], colors[classId % colors_num][1], colors[classId % colors_num][2]};
-    int thickness = 2;
     float fontScale = 2; 
     if (BM_SUCCESS != bmcv_image_put_text(handle, frame, label.c_str(), org, color, fontScale, thickness)) {
       std::cout << "bmcv put text error !!!" << std::endl;   
     }
   }
-  
 }

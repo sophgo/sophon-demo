@@ -22,7 +22,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 此外您可能还需要安装其他第三方库：
 ```bash
-pip3 install 'opencv-python-headless<4.3'
+pip3 install opencv-python-headless
 ```
 
 ### 1.2 SoC平台
@@ -31,7 +31,7 @@ pip3 install 'opencv-python-headless<4.3'
 
 此外您可能还需要安装其他第三方库：
 ```bash
-pip3 install 'opencv-python-headless<4.3'
+pip3 install opencv-python-headless
 ```
 
 ## 2. 推理测试
