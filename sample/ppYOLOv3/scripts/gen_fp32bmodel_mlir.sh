@@ -32,6 +32,17 @@ function gen_fp32bmodel()
         --model ppyolov3_fp32_$1b.bmodel
 
     mv ppyolov3_fp32_$1b.bmodel $outdir/
+
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir ppyolov3_$1b.mlir \
+            --quantize F32 \
+            --chip $target \
+            --num_core 2 \
+            --model ppyolov3_fp32_$1b_2core.bmodel
+    
+        mv ppyolov3_fp32_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir

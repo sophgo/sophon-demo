@@ -27,7 +27,7 @@ function gen_cali_table()
     run_calibration.py ppyolov3_$1b.mlir \
         --dataset ../datasets/coco128/ \
         --input_num 128 \
-        -o ppyolov3_cali_table
+        -o ppyolov3_cali_table_$1b
 }
 function gen_int8bmodel()
 {
@@ -35,10 +35,22 @@ function gen_int8bmodel()
         --mlir ppyolov3_$1b.mlir \
         --quantize INT8 \
         --chip $target \
-        --calibration_table ppyolov3_cali_table \
+        --calibration_table ppyolov3_cali_table_$1b \
         --model ppyolov3_int8_$1b.bmodel
 
     mv ppyolov3_int8_$1b.bmodel $outdir/
+    
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir ppyolov3_$1b.mlir \
+            --quantize INT8 \
+            --chip $target \
+            --num_core 2 \
+            --calibration_table ppyolov3_cali_table_$1b \
+            --model ppyolov3_int8_$1b_2core.bmodel
+    
+        mv ppyolov3_int8_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir
@@ -49,7 +61,5 @@ fi
 gen_mlir 1
 gen_cali_table 1
 gen_int8bmodel 1
-# batch_size=4
-gen_mlir 4
-gen_int8bmodel 4
+
 popd

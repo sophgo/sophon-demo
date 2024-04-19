@@ -144,7 +144,7 @@ int PPYOLO::batch_size() {
 int PPYOLO::Detect(std::vector<sail::BMImage>& input_images, std::vector<PPYOLOBoxVec>& boxes) {
     int ret = 0;
     // 1. preprocess
-    LOG_TS(m_ts, "ppyolov3 preprocess");
+    m_ts->save("ppyolov3 preprocess");
     if (input_images.size() == 4 && max_batch == 4) {
         ret = pre_process<4>(input_images);
     } else if (input_images.size() == 1 && max_batch == 1) {
@@ -154,18 +154,18 @@ int PPYOLO::Detect(std::vector<sail::BMImage>& input_images, std::vector<PPYOLOB
         exit(1);
     }
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "ppyolov3 preprocess");
+    m_ts->save("ppyolov3 preprocess");
     auto bmimg = bmcv->tensor_to_bm_image(*input_tensors[input_names[0]]);
     // 2. forward
-    LOG_TS(m_ts, "ppyolov3 inference");
+    m_ts->save("ppyolov3 inference");
     engine->process(graph_names[0], input_tensors, output_tensors);
-    LOG_TS(m_ts, "ppyolov3 inference");
+    m_ts->save("ppyolov3 inference");
 
     // 3. post process
-    LOG_TS(m_ts, "ppyolov3 postprocess");
+    m_ts->save("ppyolov3 postprocess");
     ret = post_process(input_images, boxes);
     CV_Assert(ret == 0);
-    LOG_TS(m_ts, "ppyolov3 postprocess");
+    m_ts->save("ppyolov3 postprocess");
     return ret;
 }
 
@@ -537,14 +537,20 @@ void PPYOLO::draw_bmcv(int classId,
     // Draw a rectangle displaying the bounding box
     int start_x = MIN(MAX(left, 0), frame.width());
     int start_y = MIN(MAX(top, 0), frame.height());
-    int crop_w = MAX(MIN(width, frame.width() - left), 0);
-    int crop_h = MAX(MIN(height, frame.height() - top), 0);
+    int crop_w = MAX(MIN(width, frame.width() - start_x), 0);
+    int crop_h = MAX(MIN(height, frame.height() - start_y), 0);
     auto color_tuple = std::make_tuple(colors[classId % colors_num][2], colors[classId % colors_num][1],
                                        colors[classId % colors_num][0]);
-    bmcv->rectangle(frame, start_x, start_y, crop_w, crop_h, color_tuple, 3);
+    int thickness = 2;
+    if(crop_w <= thickness * 2 || crop_h <= thickness * 2){
+        std::cout << "width or height too small, this rect will not be drawed: " << 
+              "[" << start_x << ", "<< start_y << ", " << crop_w << ", " << crop_h << "]" << std::endl;
+    } else{
+        bmcv->rectangle(frame, start_x, start_y, crop_w, crop_h, color_tuple, thickness);
+    }
     if (put_text_flag) {  // only support YUV420P, puttext not used here.
         std::string label = m_class_names[classId] + ":" + cv::format("%.2f", conf);
-        if (BM_SUCCESS != bmcv->putText(frame, label.c_str(), left, top, color_tuple, 2, 2)) {
+        if (BM_SUCCESS != bmcv->putText(frame, label.c_str(), start_x, start_y, color_tuple, 2, 2)) {
             std::cout << "bmcv put text error !!!" << std::endl;
         }
     }
