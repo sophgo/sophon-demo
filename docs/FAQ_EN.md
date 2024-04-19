@@ -112,3 +112,14 @@ Summary:
 usage rate:4%, memory usage peak 144646144 bytes #memory usage peak is the highest usage since startup
 ```
 if a heap's `memory usage peak` is very closed to its `heap size`, you can use this tool to manually set each heap's size: [sophon memedit tool](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/SophonSDK_doc/zh/html/appendix/2_mem_edit_tools.html).
+
+### 7.4 The first time a function is executed slowly (such as decoding) just after booting, restart the process and run the program again, the time is normal
+
+It may be that the file has not been cached in memory, which is slow at first.
+You can do a verification, if you don't restart it can be reproduced, it means that the program is slow to run just now, and the file has not been cached, the steps are as follows:
+    
+1. Execute the program after powering on, the first execution is slow, and the second execution is normal.
+
+2. Then go to the root user to clear the cache and run the command `echo 3 > /proc/sys/vm/drop_caches`.
+    
+3. If the program is slow to run again, it can be determined that it is caused by cache.
