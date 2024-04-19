@@ -36,24 +36,17 @@ def fp16_cast(arr:np.ndarray): #这个接口的作用在于把np.float16假冒�
         return arr
 
 class Qwen:
-    def __init__(self, args):
-        self.input_str = ""
-        self.system_prompt = "You are a helpful assistant."
-        self.history = []
-
-        # load tokenizer
-        print("Load " + args.token + " ...")
-        self.sp = AutoTokenizer.from_pretrained(args.token, trust_remote_code=True)
+    def __init__(self, handle, engine, tokenizer):
+        self.handle = handle
+        self.sp = tokenizer
         
         # warm up
         self.sp.decode([0]) 
         self.EOS = self.sp.im_end_id
-        print("Done!")
 
         # load bmodel
         # 这里devio，后面都没有创建系统内存的tensor
-        self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.DEVIO)
-        self.handle = sail.Handle(args.dev_id)
+        self.net = engine
         self.graph_names = self.net.get_graph_names()
 
         # initialize qwen parameters
@@ -147,16 +140,6 @@ class Qwen:
             tensor["dtype"] = self.net.get_output_dtype(name, tensor["name"])
             tensor["data"] = sail.Tensor(self.handle, tensor["shape"], tensor["dtype"], False, True) 
         return tensor
-
-    # Add prompt template and output tokens
-    def generate_tokens(self, input_str):
-        tokens = make_context(self.sp,
-                                input_str,
-                                history=self.history,
-                                system=self.system_prompt,
-                                max_window_size=self.SEQLEN,
-                                chat_format="chatml")
-        return tokens
 
     # inference for the first token
     def forward_first(self, token):
@@ -263,69 +246,77 @@ class Qwen:
         # Lm_head Inference
         self.net.process(self.name_lm, input_lm_tensors, output_lm_tensors)
         return int(self.lm_output["data"].asnumpy())
-        
-    def chat(self):
 
-        # Stop Chatting with "exit" input
-        while True:
-            self.input_str = input("\nQuestion: ")
-            if self.input_str == "exit":
-                break
-            tokens_with_template = self.generate_tokens(self.input_str)
-            print("\nAnswer: ")
-            self.answer(tokens_with_template)
+    def chat_stream(self, input, history, system=''):
+        input_tokens = make_context(self.sp, query=input, max_window_size=self.SEQLEN)
+        if (len(input_tokens) > self.SEQLEN / 3):
+            yield '##INPUT_TOO_LONG'
+            return
 
-    def answer(self, tokens):
         tok_num = 0
-        self.answer_cur = ""
-
-        if not tokens:
-            print("Sorry: your question is too wierd!!")
-            return
-        if self.token_length > self.SEQLEN:
-            print("The maximum question length should be shorter than {} but we get {} instead.".format(self.SEQLEN, self.token_length))
-            return
-        
-        # First token
+        tokens = make_context(self.sp, query=input, 
+                        history=history,
+                        system=system,
+                        max_window_size=self.SEQLEN,
+                        chat_format="chatml")
+        while (len(tokens) > self.SEQLEN / 2):
+            if (len(history) > 0):
+                history = history[1:]
+            else:
+                system = ''
+            tokens = make_context(self.sp, query=input, 
+                            history=history,
+                            system=system,
+                            max_window_size=self.SEQLEN,
+                            chat_format="chatml")
         first_start = time.time()
         token = self.forward_first(tokens)
         first_end = time.time()
-
-        # Following tokens
         while token != self.EOS and self.token_length < self.SEQLEN:
             diff = self.sp.decode([token])
-            self.answer_cur += diff
-            print(diff, flush=True, end='')
+            yield diff
             if self.token_length < self.SEQLEN:
                 self.token_length += 1
             tok_num += 1
             token = self.forward_next()
         
-        # counting time
+        if self.token_length >= self.SEQLEN:
+            yield '##TOKEN_LENGTH_MAX'
+            return
+        
         next_end = time.time()
         first_duration = first_end-first_start
         next_duration = next_end-first_end
         tps = tok_num / next_duration
-
-        if self.token_length >= self.SEQLEN - 128:
-            print("... (reach the maximal length)", flush=True, end='')
-            self.history.clear()
-        else:
-            self.history.append([self.input_str, self.answer_cur])
-
-        print()
+        print('\n\n')
         print(f"FTL: {first_duration:.3f} s")
         print(f"TPS: {tps:.3f} token/s")
 
+def app(client):
+    history = []
+    while True:
+        input_str = input("\nQuestion: ")
+        if input_str == "exit":
+            break
+        print("\nAnswer: ")
+        assistant_msg = ''
+        for response in client.chat_stream(input_str, history):
+            assistant_msg = response
+            print(response, flush=True, end='')
+        history.append({"role": "user", "content": input_str})
+        history.append({"role": "assistant", "content": assistant_msg})
+
 def main(args):
-    qwen = Qwen(args)
-    qwen.chat()
-    pass
+    handle = sail.Handle(args.dev_id)
+    tokenizer = AutoTokenizer.from_pretrained(args.token, trust_remote_code=True)
+    engine = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.DEVIO)
+    client = Qwen(handle, engine, tokenizer)
+    app(client)
 
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--bmodel', type=str, default='../models/BM1684X/qwen-7b_int4_1dev.bmodel', help='path of bmodel')
-    parser.add_argument('--token', type=str, default='./token_config/', help='path of tokenizer')
+    parser.add_argument('--bmodel', type=str, default='./models/BM1684X/qwen-7b_int4_1dev.bmodel', help='path of bmodel')
+    parser.add_argument('--token', type=str, default='./python/token_config/', help='path of tokenizer')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     args = parser.parse_args()
     return args
