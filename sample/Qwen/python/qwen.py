@@ -303,8 +303,7 @@ def app(client):
         for response in client.chat_stream(input_str, history):
             assistant_msg = response
             print(response, flush=True, end='')
-        history.append({"role": "user", "content": input_str})
-        history.append({"role": "assistant", "content": assistant_msg})
+        history.append([input_str, assistant_msg])
 
 def main(args):
     handle = sail.Handle(args.dev_id)
