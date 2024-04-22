@@ -54,7 +54,7 @@ if prompt := st.chat_input("请输入您的问题 "):
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
     
-        stream = client.chat_stream(input = prompt,history = [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages])
+        stream = client.chat_stream(input = prompt,history = [[m["role"], m["content"]] for m in st.session_state.messages])
         response = st.write_stream(stream)
 
         # Add assistant message to chat history
