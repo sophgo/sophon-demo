@@ -62,6 +62,11 @@ chmod -R +x scripts/
 │   └── bert4torch_output_fp32_8b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=8
 │   └── bert4torch_output_fp16_1b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
 │   └── bert4torch_output_fp16_8b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=8
+├── CV186X
+│   └── bert4torch_output_fp32_1b.bmodel     # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
+│   └── bert4torch_output_fp32_8b.bmodel     # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=8
+│   └── bert4torch_output_fp16_1b.bmodel     # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   └── bert4torch_output_fp16_8b.bmodel     # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=8
 ├── pre_train
 │   └── vocab.txt
 └── torch
