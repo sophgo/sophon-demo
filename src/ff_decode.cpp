@@ -201,7 +201,7 @@ int map_avformat_to_bmformat(int avformat) {
     return format;
 }
 
-bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out, bool is_jpeg, bool data_on_device_mem) {
+bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out, bool is_jpeg, bool data_on_device_mem, int coded_width, int coded_height) {
     int plane = 0;
     int data_four_denominator = -1;
     int data_five_denominator = -1;
@@ -275,7 +275,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out,
             return BM_ERR_PARAM;
         }
         bm_image cmp_bmimg;
-        bm_image_create(handle, in->height, in->width, FORMAT_COMPRESSED, DATA_TYPE_EXT_1N_BYTE, &cmp_bmimg);
+        bm_image_create(handle, coded_height, coded_width, FORMAT_COMPRESSED, DATA_TYPE_EXT_1N_BYTE, &cmp_bmimg);
 
         bm_device_mem_t input_addr[4];
         int size = in->height * in->linesize[4];
@@ -475,7 +475,7 @@ int VideoDecFFM::openCodecContext(int* stream_idx,
     av_dict_set(&opts, "refcounted_frames", refcount ? "1" : "0", 0);
     av_dict_set_int(&opts, "sophon_idx", sophon_idx, 0);
     av_dict_set_int(&opts, "extra_frame_buffer_num", EXTRA_FRAME_BUFFER_NUM, 0);  // if we use dma_buffer mode
-
+    av_dict_set_int(&opts, "output_format", output_format, 18);
     ret = avcodec_open2(*dec_ctx, dec, &opts);
     if (ret < 0) {
         av_log(NULL, AV_LOG_FATAL, "Failed to open %s codec\n", av_get_media_type_string(type));
@@ -586,7 +586,10 @@ void* VideoDecFFM::vidPushImage() {
         AVFrame* avframe = grabFrame();
         if (quit_flag)
             break;
-        avframe_to_bm_image(*(this->handle), avframe, img, false, this->data_on_device_mem);
+        coded_width  = video_dec_ctx->coded_width;
+        coded_height = video_dec_ctx->coded_height;
+        avframe_to_bm_image(*(this->handle), avframe, img, false, this->data_on_device_mem,
+                            coded_width, coded_height);
 
         std::lock_guard<std::mutex> my_lock_guard(lock);
         queue.push(img);
