@@ -4,7 +4,7 @@ include(${CMAKE_SOURCE_DIR}/../../../../cmake/common.cmake)
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 # SET(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_CXX_FLAGS "-O0")
+set(CMAKE_CXX_FLAGS "-O3")
 add_definitions(-w)
 
 if (NOT DEFINED TARGET_ARCH)
