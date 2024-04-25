@@ -10,11 +10,13 @@ SOPHONSDK is a custom deep learning SDK of SOPHGO based on its self-developed AI
 ## Directory Structure and Description.
 The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`, `sample`, and `application`, the `tutorial` module stores some examples of basic interfaces, the `sample` module stores some serial examples of classic algorithms on SOPHONSDK, and the `application` module stores some typical applications in typical scenarios.
 
-| tutorial                                                                  | code    | 
-|---                                                                        |---         | 
-| [resize](./tutorial/resize/README.md)                                     | C++/Python | 
-| [crop](./tutorial/crop/README.md)                                         | C++/Python | 
-| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)   | C++/Python | 
+| tutorial                                                                  | code    |
+|---                                                                        |---         |
+| [resize](./tutorial/resize/README.md)                                     | C++/Python |
+| [crop](./tutorial/crop/README.md)                                         | C++/Python |
+| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)   | C++/Python |
+| [ocv_jpubasic](./tutorial/ocv_jpubasic/README.md) | C++/Python |
+| [ocv_vidbasic](./tutorial/vid_jpubasic/README.md) | C++/Python |
 
 | contents                                                      | category                           | code       |  BModel       |
 |---                                                            |---                                 |---          | ---           |

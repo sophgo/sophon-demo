@@ -11,11 +11,13 @@ SOPHONSDK是算能科技基于其自主研发的深度学习处理器所定制�
 ## 目录结构与说明
 SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application`三个模块，`tutorial`模块存放一些基础接口的使用示例，`sample`模块存放一些经典算法在SOPHONSDK上的串行示例，`application`模块存放一些典型场景的典型应用。
 
-| tutorial                                                                  | 编程语言    | 
-|---                                                                        |---         | 
-| [resize](./tutorial/resize/README.md)                                     | C++/Python | 
-| [crop](./tutorial/crop/README.md)                                         | C++/Python | 
-| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)   | C++/Python | 
+| tutorial                                                                  | 编程语言    |
+|---                                                                        |---         |
+| [resize](./tutorial/resize/README.md)                                     | C++/Python |
+| [crop](./tutorial/crop/README.md)                                         | C++/Python |
+| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)   | C++/Python |
+| [ocv_jpubasic](./tutorial/ocv_jpubasic/README.md) | C++/Python |
+| [ocv_vidbasic](./tutorial/vid_jpubasic/README.md) | C++/Python |
 
 | sample                                                          | 算法类别          | 编程语言    | BModel         |
 |---                                                            |---               |---          | ---           |
