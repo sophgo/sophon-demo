@@ -278,82 +278,82 @@ bmrt_test --bmodel models/BM1684X/scrfd_10g_kps_fp32_1b.bmodel
 在不同的测试平台上，使用不同的例程、模型测试`datasets/WIDER_val`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
 |    测试平台  |     测试程序      |     测试模型          |decode_time|preprocess_time|inference_time|postprocess_time|
 | ----------- | --------------- | ----------------------------------- | ----- | ----- | ------ | ----- |
-|   SE5-16    |  scrfd_opencv.py  |   scrfd_10g_kps_fp32_1b.bmodel    |      35.41      |      24.20      |      25.04      |      8.57       |
-|   SE5-16    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_1b.bmodel    |      30.14      |      24.38      |      21.21      |      8.40       |
-|   SE5-16    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_4b.bmodel    |      30.24      |      26.42      |      8.70       |      8.33       |
-|   SE5-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp32_1b.bmodel    |      3.57       |      3.78       |      21.97      |      8.68       |
-|   SE5-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_1b.bmodel    |      3.56       |      3.78       |      18.13      |      8.51       |
-|   SE5-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_4b.bmodel    |      3.38       |      3.63       |      5.97       |      8.43       |
-|   SE5-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      4.41       |      0.97       |      20.06      |      6.42       |
-|   SE5-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      4.40       |      0.97       |      16.24      |      6.39       |
-|   SE5-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      4.20       |      0.91       |      5.03       |      6.93       |
-|   SE5-16    |  scrfd_sail.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      3.26       |      3.92       |      20.37      |      24.64      |
-|   SE5-16    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      3.21       |      3.92       |      16.55      |      24.65      |
-|   SE5-16    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      3.03       |      3.67       |      5.13       |      24.95      |
-|   SE7-32    |  scrfd_opencv.py  |   scrfd_10g_kps_fp32_1b.bmodel    |      29.94      |      25.92      |      40.39      |      8.57       |
-|   SE7-32    |  scrfd_opencv.py  |   scrfd_10g_kps_fp16_1b.bmodel    |      30.02      |      25.67      |      9.38       |      8.67       |
-|   SE7-32    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_1b.bmodel    |      30.01      |      25.65      |      8.18       |      8.68       |
-|   SE7-32    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_4b.bmodel    |      30.18      |      27.54      |      6.70       |      8.43       |
-|   SE7-32    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp32_1b.bmodel    |      3.02       |      2.97       |      36.84      |      8.75       |
-|   SE7-32    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp16_1b.bmodel    |      3.04       |      2.96       |      5.81       |      9.06       |
-|   SE7-32    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_1b.bmodel    |      3.02       |      2.97       |      4.66       |      8.85       |
-|   SE7-32    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_4b.bmodel    |      2.86       |      2.80       |      3.56       |      8.46       |
-|   SE7-32    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      3.88       |      0.87       |      34.84      |      6.39       |
-|   SE7-32    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      3.90       |      0.87       |      3.80       |      6.37       |
-|   SE7-32    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      3.90       |      0.87       |      2.65       |      6.39       |
-|   SE7-32    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      3.71       |      0.84       |      2.53       |      6.84       |
-|   SE7-32    |  scrfd_sail.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      2.69       |      3.15       |      35.15      |      24.78      |
-|   SE7-32    |  scrfd_sail.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      2.70       |      3.16       |      4.14       |      25.66      |
-|   SE7-32    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      2.69       |      3.16       |      2.98       |      25.04      |
-|   SE7-32    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      2.55       |      3.10       |      2.70       |      25.02      |
-|   SE9-16    |  scrfd_opencv.py  |   scrfd_10g_kps_fp32_1b.bmodel    |      53.97      |      46.81      |     181.32      |      13.20      |
-|   SE9-16    |  scrfd_opencv.py  |   scrfd_10g_kps_fp16_1b.bmodel    |      54.74      |      46.58      |      43.43      |      14.68      |
-|   SE9-16    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_1b.bmodel    |      56.00      |      45.49      |      28.14      |      15.90      |
-|   SE9-16    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_4b.bmodel    |      51.04      |      48.04      |      16.96      |      16.18      |
-|   SE9-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp32_1b.bmodel    |      12.16      |      10.85      |     176.44      |      13.21      |
-|   SE9-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp16_1b.bmodel    |      17.06      |      10.94      |      37.52      |      15.35      |
-|   SE9-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_1b.bmodel    |      17.75      |      11.15      |      22.63      |      16.77      |
-|   SE9-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_4b.bmodel    |      12.58      |      11.73      |      12.39      |      17.71      |
-|   SE9-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      11.99      |      3.08       |     171.05      |      9.60       |
-|   SE9-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      20.58      |      3.51       |      32.10      |      10.17      |
-|   SE9-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      19.33      |      3.61       |      16.78      |      10.93      |
-|   SE9-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      14.92      |      3.65       |      9.49       |      12.73      |
-|   SE9-16    |  scrfd_sail.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      13.56      |      10.02      |     171.81      |      39.02      |
-|   SE9-16    |  scrfd_sail.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      17.07      |      10.41      |      34.34      |      42.58      |
-|   SE9-16    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      17.73      |      10.36      |      18.59      |      43.38      |
-|   SE9-16    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      8.59       |      6.86       |      6.96       |      35.79      |
-|   SE9-16    |  scrfd_opencv.py  |scrfd_10g_kps_fp32_1b_2core.bmodel |      54.07      |      46.95      |     114.79      |      13.30      |
-|   SE9-16    |  scrfd_opencv.py  |scrfd_10g_kps_fp16_1b_2core.bmodel |      56.41      |      45.42      |      35.99      |      15.72      |
-|   SE9-16    |  scrfd_opencv.py  |scrfd_10g_kps_int8_1b_2core.bmodel |      56.86      |      47.33      |      27.13      |      15.78      |
-|   SE9-16    |  scrfd_opencv.py  |scrfd_10g_kps_int8_4b_2core.bmodel |      51.58      |      48.75      |      14.39      |      16.95      |
-|   SE9-16    |   scrfd_bmcv.py   |scrfd_10g_kps_fp32_1b_2core.bmodel |      13.62      |      10.92      |     109.40      |      13.14      |
-|   SE9-16    |   scrfd_bmcv.py   |scrfd_10g_kps_fp16_1b_2core.bmodel |      18.71      |      11.05      |      30.31      |      16.30      |
-|   SE9-16    |   scrfd_bmcv.py   |scrfd_10g_kps_int8_1b_2core.bmodel |      19.53      |      11.38      |      22.17      |      16.47      |
-|   SE9-16    |   scrfd_bmcv.py   |scrfd_10g_kps_int8_4b_2core.bmodel |      12.79      |      11.88      |      9.80       |      18.39      |
-|   SE9-16    |  scrfd_bmcv.soc   |scrfd_10g_kps_fp32_1b_2core.bmodel |      14.26      |      3.21       |     103.61      |      9.63       |
-|   SE9-16    |  scrfd_bmcv.soc   |scrfd_10g_kps_fp16_1b_2core.bmodel |      20.94      |      3.55       |      25.26      |      10.72      |
-|   SE9-16    |  scrfd_bmcv.soc   |scrfd_10g_kps_int8_1b_2core.bmodel |      20.70      |      3.55       |      16.02      |      11.29      |
-|   SE9-16    |  scrfd_bmcv.soc   |scrfd_10g_kps_int8_4b_2core.bmodel |      15.83      |      3.62       |      6.71       |      13.23      |
-|   SE9-16    |  scrfd_sail.soc   |scrfd_10g_kps_fp32_1b_2core.bmodel |      14.32      |      9.95       |     105.04      |      38.02      |
-|   SE9-16    |  scrfd_sail.soc   |scrfd_10g_kps_fp16_1b_2core.bmodel |      19.97      |      10.43      |      27.11      |      43.41      |
-|   SE9-16    |  scrfd_sail.soc   |scrfd_10g_kps_int8_1b_2core.bmodel |      20.05      |      10.37      |      17.78      |      43.43      |
-|   SE9-16    |  scrfd_sail.soc   |scrfd_10g_kps_int8_4b_2core.bmodel |      10.92      |      6.85       |      4.10       |      35.62      |
-|    SE9-8    |  scrfd_opencv.py  |   scrfd_10g_kps_fp32_1b.bmodel    |      50.64      |      33.73      |     324.48      |      11.60      |
-|    SE9-8    |  scrfd_opencv.py  |   scrfd_10g_kps_fp16_1b.bmodel    |      68.15      |      32.86      |      49.81      |      11.71      |
-|    SE9-8    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_1b.bmodel    |      72.49      |      33.02      |      20.37      |      11.67      |
-|    SE9-8    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_4b.bmodel    |      44.86      |      36.68      |      17.74      |      11.29      |
-|    SE9-8    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp32_1b.bmodel    |      12.48      |      7.23       |     320.43      |      11.63      |
-|    SE9-8    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp16_1b.bmodel    |      9.13       |      7.24       |      45.62      |      11.75      |
-|    SE9-8    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_1b.bmodel    |      11.81      |      7.27       |      15.96      |      11.90      |
-|    SE9-8    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_4b.bmodel    |      12.47      |      6.93       |      13.77      |      11.41      |
-|    SE9-8    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      11.96      |      2.58       |     317.28      |      9.02       |
-|    SE9-8    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      11.02      |      2.58       |      42.64      |      9.04       |
-|    SE9-8    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      11.93      |      2.57       |      13.00      |      8.95       |
-|    SE9-8    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      8.88       |      2.49       |      12.33      |      9.64       |
-|    SE9-8    |  scrfd_sail.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      10.24      |      7.08       |     317.86      |      36.12      |
-|    SE9-8    |  scrfd_sail.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      10.47      |      7.06       |      43.17      |      36.09      |
-|    SE9-8    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      9.85       |      7.06       |      13.51      |      35.63      |
-|    SE9-8    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      8.94       |      6.86       |      12.55      |      35.29      |
+|   SE5-16    |  scrfd_opencv.py  |   scrfd_10g_kps_fp32_1b.bmodel    |      35.23      |      24.33      |      24.99      |      8.54       |
+|   SE5-16    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_1b.bmodel    |      30.26      |      24.62      |      21.25      |      8.52       |
+|   SE5-16    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_4b.bmodel    |      30.21      |      26.23      |      8.69       |      8.39       |
+|   SE5-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp32_1b.bmodel    |      3.61       |      3.79       |      21.95      |      8.62       |
+|   SE5-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_1b.bmodel    |      3.61       |      3.77       |      18.13      |      8.53       |
+|   SE5-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_4b.bmodel    |      3.40       |      3.61       |      5.96       |      8.51       |
+|   SE5-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      4.42       |      0.97       |      20.06      |      8.46       |
+|   SE5-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      4.40       |      0.97       |      16.25      |      8.17       |
+|   SE5-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      4.19       |      0.91       |      5.03       |      8.52       |
+|   SE5-16    |  scrfd_sail.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      3.21       |      3.93       |      20.39      |      8.55       |
+|   SE5-16    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      3.22       |      3.94       |      16.58      |      8.38       |
+|   SE5-16    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      3.05       |      3.71       |      5.18       |      7.72       |
+|   SE7-32    |  scrfd_opencv.py  |   scrfd_10g_kps_fp32_1b.bmodel    |      30.32      |      24.94      |      40.36      |      8.45       |
+|   SE7-32    |  scrfd_opencv.py  |   scrfd_10g_kps_fp16_1b.bmodel    |      30.03      |      25.25      |      9.34       |      8.40       |
+|   SE7-32    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_1b.bmodel    |      30.07      |      25.90      |      8.19       |      8.42       |
+|   SE7-32    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_4b.bmodel    |      30.13      |      27.52      |      6.71       |      8.21       |
+|   SE7-32    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp32_1b.bmodel    |      3.08       |      3.00       |      36.84      |      8.55       |
+|   SE7-32    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp16_1b.bmodel    |      3.10       |      3.01       |      5.83       |      8.49       |
+|   SE7-32    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_1b.bmodel    |      3.07       |      2.99       |      4.65       |      8.60       |
+|   SE7-32    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_4b.bmodel    |      2.90       |      2.80       |      3.55       |      8.32       |
+|   SE7-32    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      3.92       |      0.87       |      34.85      |      8.45       |
+|   SE7-32    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      3.88       |      0.87       |      3.81       |      8.54       |
+|   SE7-32    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      3.90       |      0.87       |      2.65       |      8.45       |
+|   SE7-32    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      3.75       |      0.84       |      2.54       |      8.71       |
+|   SE7-32    |  scrfd_sail.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      2.67       |      3.15       |      35.16      |      8.71       |
+|   SE7-32    |  scrfd_sail.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      2.66       |      3.15       |      4.16       |      8.87       |
+|   SE7-32    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      2.66       |      3.16       |      3.00       |      8.76       |
+|   SE7-32    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      2.52       |      3.07       |      2.69       |      7.77       |
+|   SE9-16    |  scrfd_opencv.py  |   scrfd_10g_kps_fp32_1b.bmodel    |      45.48      |      33.19      |     170.02      |      11.41      |
+|   SE9-16    |  scrfd_opencv.py  |   scrfd_10g_kps_fp16_1b.bmodel    |      49.88      |      32.64      |      30.87      |      11.49      |
+|   SE9-16    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_1b.bmodel    |      50.62      |      32.52      |      14.32      |      11.57      |
+|   SE9-16    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_4b.bmodel    |      45.14      |      35.53      |      12.01      |      11.23      |
+|   SE9-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp32_1b.bmodel    |      9.31       |      6.89       |     165.62      |      11.49      |
+|   SE9-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp16_1b.bmodel    |      12.83      |      6.89       |      26.40      |      11.55      |
+|   SE9-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_1b.bmodel    |      12.73      |      6.88       |      9.98       |      11.55      |
+|   SE9-16    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_4b.bmodel    |      9.59       |      6.56       |      8.09       |      11.13      |
+|   SE9-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      8.38       |      2.43       |     162.74      |      11.78      |
+|   SE9-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      8.77       |      2.43       |      23.60      |      11.77      |
+|   SE9-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      6.41       |      2.43       |      7.19       |      11.58      |
+|   SE9-16    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      6.03       |      2.35       |      6.76       |      11.93      |
+|   SE9-16    |  scrfd_sail.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      11.47      |      6.84       |     163.27      |      11.98      |
+|   SE9-16    |  scrfd_sail.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      11.45      |      6.84       |      24.09      |      11.93      |
+|   SE9-16    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      10.16      |      6.83       |      7.67       |      12.02      |
+|   SE9-16    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      5.65       |      6.66       |      6.96       |      10.95      |
+|   SE9-16    |  scrfd_opencv.py  |scrfd_10g_kps_fp32_1b_2core.bmodel |      43.36      |      33.20      |     103.05      |      11.41      |
+|   SE9-16    |  scrfd_opencv.py  |scrfd_10g_kps_fp16_1b_2core.bmodel |      48.23      |      32.99      |      23.20      |      11.48      |
+|   SE9-16    |  scrfd_opencv.py  |scrfd_10g_kps_int8_1b_2core.bmodel |      50.92      |      33.15      |      13.04      |      11.50      |
+|   SE9-16    |  scrfd_opencv.py  |scrfd_10g_kps_int8_4b_2core.bmodel |      45.26      |      36.02      |      9.06       |      11.26      |
+|   SE9-16    |   scrfd_bmcv.py   |scrfd_10g_kps_fp32_1b_2core.bmodel |      11.12      |      6.91       |      98.64      |      11.47      |
+|   SE9-16    |   scrfd_bmcv.py   |scrfd_10g_kps_fp16_1b_2core.bmodel |      5.53       |      6.89       |      19.00      |      11.53      |
+|   SE9-16    |   scrfd_bmcv.py   |scrfd_10g_kps_int8_1b_2core.bmodel |      5.43       |      6.88       |      8.74       |      11.53      |
+|   SE9-16    |   scrfd_bmcv.py   |scrfd_10g_kps_int8_4b_2core.bmodel |      5.19       |      6.58       |      5.22       |      11.16      |
+|   SE9-16    |  scrfd_bmcv.soc   |scrfd_10g_kps_fp32_1b_2core.bmodel |      7.16       |      2.43       |      95.78      |      11.67      |
+|   SE9-16    |  scrfd_bmcv.soc   |scrfd_10g_kps_fp16_1b_2core.bmodel |      6.78       |      2.43       |      16.20      |      11.72      |
+|   SE9-16    |  scrfd_bmcv.soc   |scrfd_10g_kps_int8_1b_2core.bmodel |      6.21       |      2.43       |      5.92       |      11.72      |
+|   SE9-16    |  scrfd_bmcv.soc   |scrfd_10g_kps_int8_4b_2core.bmodel |      5.99       |      2.35       |      3.89       |      11.92      |
+|   SE9-16    |  scrfd_sail.soc   |scrfd_10g_kps_fp32_1b_2core.bmodel |      5.81       |      6.83       |      96.29      |      12.05      |
+|   SE9-16    |  scrfd_sail.soc   |scrfd_10g_kps_fp16_1b_2core.bmodel |      5.37       |      6.82       |      16.69      |      12.02      |
+|   SE9-16    |  scrfd_sail.soc   |scrfd_10g_kps_int8_1b_2core.bmodel |      4.83       |      6.82       |      6.41       |      11.95      |
+|   SE9-16    |  scrfd_sail.soc   |scrfd_10g_kps_int8_4b_2core.bmodel |      4.65       |      6.66       |      4.09       |      10.78      |
+|    SE9-8    |  scrfd_opencv.py  |   scrfd_10g_kps_fp32_1b.bmodel    |      45.91      |      34.23      |     324.44      |      11.54      |
+|    SE9-8    |  scrfd_opencv.py  |   scrfd_10g_kps_fp16_1b.bmodel    |      71.27      |      33.46      |      49.85      |      11.56      |
+|    SE9-8    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_1b.bmodel    |      78.83      |      32.81      |      20.13      |      11.57      |
+|    SE9-8    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_4b.bmodel    |      44.62      |      35.96      |      17.73      |      11.44      |
+|    SE9-8    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp32_1b.bmodel    |      13.58      |      7.24       |     320.40      |      11.52      |
+|    SE9-8    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp16_1b.bmodel    |      10.34      |      7.25       |      45.68      |      11.69      |
+|    SE9-8    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_1b.bmodel    |      9.94       |      7.26       |      16.01      |      11.62      |
+|    SE9-8    |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_4b.bmodel    |      15.90      |      6.96       |      13.84      |      11.17      |
+|    SE9-8    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      9.60       |      2.57       |     317.28      |      11.74      |
+|    SE9-8    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      10.47      |      2.58       |      42.64      |      11.71      |
+|    SE9-8    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      9.99       |      2.57       |      13.00      |      11.63      |
+|    SE9-8    |  scrfd_bmcv.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      8.39       |      2.49       |      12.34      |      12.01      |
+|    SE9-8    |  scrfd_sail.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      8.49       |      7.06       |     317.85      |      12.10      |
+|    SE9-8    |  scrfd_sail.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      9.08       |      7.06       |      43.18      |      12.02      |
+|    SE9-8    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      10.51      |      7.06       |      13.52      |      12.02      |
+|    SE9-8    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      8.79       |      6.86       |      12.55      |      10.79      |
 
 
 > **测试说明**：  

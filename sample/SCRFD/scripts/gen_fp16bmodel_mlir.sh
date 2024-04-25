@@ -18,8 +18,8 @@ outdir=../models/$target_dir
 function gen_mlir()
 {
     model_transform.py \
-        --model_name scrfd_10g_kps \
-        --model_def ../models/onnx/scrfd_10g_kps.onnx \
+        --model_name scrfd_10g_kps_$1b \
+        --model_def ../models/onnx/scrfd_10g_kps_$1b.onnx \
         --input_shapes [[$1,3,640,640]] \
         --mlir scrfd_10g_kps_$1b.mlir \
         --test_input ../datasets/test/men.jpg \
