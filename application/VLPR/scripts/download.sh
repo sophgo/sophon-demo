@@ -28,10 +28,6 @@ then
     unzip 1080_1920_5s.zip 
     mv 1080_1920_5s.mp4 ../datasets/   
     rm -f 1080_1920_5s.zip
-    python3 -m dfss --url=open@sophgo.com:/sophon-demo/license_plate_recognition/licenseplate_640516-h264.7z
-    7z x licenseplate_640516-h264.7z 
-    mv licenseplate_640516-h264.mp4 ../datasets/  
-    rm -f licenseplate_640516-h264.7z 
     python3 -m dfss --url=open@sophgo.com:/sophon-demo/application/VLPR/1080_1920_30s_512kb.7z 
     7z x 1080_1920_30s_512kb.7z 
     mv 1080_1920_30s_512kb.mp4 ../datasets/
