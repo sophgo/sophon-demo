@@ -1,17 +1,19 @@
 # LPRNet
 ## 目录
 
-  * [1. 简介](#1-简介)
-  * [2. 特性](#2-特性)
-  * [3. 准备模型与数据](#3-准备模型与数据)
-  * [4. 模型编译](#4-模型编译)
-  * [5. 例程测试](#5-例程测试)
-  * [6. 精度测试](#6-精度测试)
-    * [6.1 测试方法](#61-测试方法)
-    * [6.2 测试结果](#62-测试结果)
-  * [7. 性能测试](#7-性能测试)
-    * [7.1 bmrt_test](#71-bmrt_test)
-    * [7.2 程序运行性能](#72-程序运行性能)
+- [LPRNet](#lprnet)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
 
 ## 1. 简介
 
@@ -99,16 +101,16 @@ chmod -R +x scripts/
 ```
 模型信息：
 
-| 原始模型 | Final_LPRNet_model.pth  | 
-| ------- | ----------------------   |
-| 概述     | 基于ctc的车牌识别模型，支持蓝牌、新能源车牌等中国车牌，可识别字符共67个。| 
-| 骨干网络 | LPRNet                   | 
-| 训练集   | 未说明                    | 
-| 运算量   | 148.75 MFlops            |
-| 输入数据 | [batch_size, 3, 24, 94], FP32，NCHW |
-| 输出数据 | [batch_size, 68, 18], FP32 |
-| 前处理   | resize,减均值,除方差,HWC->CHW |
-| 后处理   | ctc_decode                 |
+| 原始模型 | Final_LPRNet_model.pth                                                    |
+| -------- | ------------------------------------------------------------------------- |
+| 概述     | 基于ctc的车牌识别模型，支持蓝牌、新能源车牌等中国车牌，可识别字符共67个。 |
+| 骨干网络 | LPRNet                                                                    |
+| 训练集   | 未说明                                                                    |
+| 运算量   | 148.75 MFlops                                                             |
+| 输入数据 | [batch_size, 3, 24, 94], FP32，NCHW                                       |
+| 输出数据 | [batch_size, 68, 18], FP32                                                |
+| 前处理   | resize,减均值,除方差,HWC->CHW                                             |
+| 后处理   | ctc_decode                                                                |
 
 
 ## 4. 模型编译
@@ -164,52 +166,52 @@ python3 tools/eval_ccpd.py --gt_path datasets/test_label.json --result_json cpp/
 
 ### 6.2 测试结果
 在test数据集上，精度测试结果如下：
-|   测试平台    |      测试程序      |        测试模型        |    acc    |
-| ------------ | ----------------   | --------------------- | ------------- 
-| SE5-16       | lprnet_opencv.py   | lprnet_fp32_1b.bmodel | 0.894       |
-| SE5-16       | lprnet_opencv.py   | lprnet_int8_1b.bmodel | 0.858         |
-| SE5-16       | lprnet_opencv.py   | lprnet_int8_4b.bmodel | 0.881         |
-| SE5-16       | lprnet_bmcv.py     | lprnet_fp32_1b.bmodel | 0.88          |
-| SE5-16       | lprnet_bmcv.py     | lprnet_int8_1b.bmodel | 0.857         |
-| SE5-16       | lprnet_bmcv.py     | lprnet_int8_4b.bmodel | 0.865         |
-| SE5-16       | lprnet_opencv.pcie | lprnet_fp32_1b.bmodel | 0.88          |
-| SE5-16       | lprnet_opencv.pcie | lprnet_int8_1b.bmodel | 0.857         |
-| SE5-16       | lprnet_opencv.pcie | lprnet_int8_4b.bmodel | 0.869         |
-| SE5-16       | lprnet_bmcv.pcie   | lprnet_fp32_1b.bmodel | 0.88          |
-| SE5-16       | lprnet_bmcv.pcie   | lprnet_int8_1b.bmodel | 0.857         |
-| SE5-16       | lprnet_bmcv.pcie   | lprnet_int8_4b.bmodel | 0.869         |
-| SE7-32       | lprnet_opencv.py   | lprnet_fp32_1b.bmodel | 0.894         |
-| SE7-32       | lprnet_opencv.py   | lprnet_fp16_1b.bmodel | 0.894         |
-| SE7-32       | lprnet_opencv.py   | lprnet_int8_1b.bmodel | 0.867         | 
-| SE7-32       | lprnet_opencv.py   | lprnet_int8_4b.bmodel | 0.88          | 
-| SE7-32       | lprnet_bmcv.py     | lprnet_fp32_1b.bmodel | 0.882         | 
-| SE7-32       | lprnet_bmcv.py     | lprnet_fp16_1b.bmodel | 0.882         | 
-| SE7-32       | lprnet_bmcv.py     | lprnet_int8_1b.bmodel | 0.861         | 
-| SE7-32       | lprnet_bmcv.py     | lprnet_int8_4b.bmodel | 0.88          | 
-| SE7-32       | lprnet_opencv.pcie | lprnet_fp32_1b.bmodel | 0.882         | 
-| SE7-32       | lprnet_opencv.pcie | lprnet_fp16_1b.bmodel | 0.882         | 
-| SE7-32       | lprnet_opencv.pcie | lprnet_int8_1b.bmodel | 0.861         | 
-| SE7-32       | lprnet_opencv.pcie | lprnet_int8_4b.bmodel | 0.872         | 
-| SE7-32       | lprnet_bmcv.pcie   | lprnet_fp32_1b.bmodel | 0.882         | 
-| SE7-32       | lprnet_bmcv.pcie   | lprnet_fp16_1b.bmodel | 0.882         | 
-| SE7-32       | lprnet_bmcv.pcie   | lprnet_int8_1b.bmodel | 0.861         | 
-| SE7-32       | lprnet_bmcv.pcie   | lprnet_int8_4b.bmodel | 0.872         | 
-| SE9-16       | lprnet_opencv.py   | lprnet_fp32_1b.bmodel | 0.894         |
-| SE9-16       | lprnet_opencv.py   | lprnet_fp16_1b.bmodel | 0.894         |
-| SE9-16       | lprnet_opencv.py   | lprnet_int8_1b.bmodel | 0.886         | 
-| SE9-16       | lprnet_opencv.py   | lprnet_int8_4b.bmodel | 0.909         | 
-| SE9-16       | lprnet_bmcv.py     | lprnet_fp32_1b.bmodel | 0.895         | 
-| SE9-16       | lprnet_bmcv.py     | lprnet_fp16_1b.bmodel | 0.895         | 
-| SE9-16       | lprnet_bmcv.py     | lprnet_int8_1b.bmodel | 0.878         | 
-| SE9-16       | lprnet_bmcv.py     | lprnet_int8_4b.bmodel | 0.907         | 
-| SE9-16       | lprnet_opencv.soc  | lprnet_fp32_1b.bmodel | 0.894         | 
-| SE9-16       | lprnet_opencv.soc  | lprnet_fp16_1b.bmodel | 0.894         | 
-| SE9-16       | lprnet_opencv.soc  | lprnet_int8_1b.bmodel | 0.879         | 
-| SE9-16       | lprnet_opencv.soc  | lprnet_int8_4b.bmodel | 0.895         | 
-| SE9-16       | lprnet_bmcv.soc    | lprnet_fp32_1b.bmodel | 0.895         | 
-| SE9-16       | lprnet_bmcv.soc    | lprnet_fp16_1b.bmodel | 0.895         | 
-| SE9-16       | lprnet_bmcv.soc    | lprnet_int8_1b.bmodel | 0.878         | 
-| SE9-16       | lprnet_bmcv.soc    | lprnet_int8_4b.bmodel | 0.894         | 
+| 测试平台 | 测试程序           | 测试模型              | acc   |
+| -------- | ------------------ | --------------------- | ----- |
+| SE5-16   | lprnet_opencv.py   | lprnet_fp32_1b.bmodel | 0.894 |
+| SE5-16   | lprnet_opencv.py   | lprnet_int8_1b.bmodel | 0.858 |
+| SE5-16   | lprnet_opencv.py   | lprnet_int8_4b.bmodel | 0.881 |
+| SE5-16   | lprnet_bmcv.py     | lprnet_fp32_1b.bmodel | 0.88  |
+| SE5-16   | lprnet_bmcv.py     | lprnet_int8_1b.bmodel | 0.857 |
+| SE5-16   | lprnet_bmcv.py     | lprnet_int8_4b.bmodel | 0.865 |
+| SE5-16   | lprnet_opencv.pcie | lprnet_fp32_1b.bmodel | 0.88  |
+| SE5-16   | lprnet_opencv.pcie | lprnet_int8_1b.bmodel | 0.857 |
+| SE5-16   | lprnet_opencv.pcie | lprnet_int8_4b.bmodel | 0.869 |
+| SE5-16   | lprnet_bmcv.pcie   | lprnet_fp32_1b.bmodel | 0.88  |
+| SE5-16   | lprnet_bmcv.pcie   | lprnet_int8_1b.bmodel | 0.857 |
+| SE5-16   | lprnet_bmcv.pcie   | lprnet_int8_4b.bmodel | 0.869 |
+| SE7-32   | lprnet_opencv.py   | lprnet_fp32_1b.bmodel | 0.894 |
+| SE7-32   | lprnet_opencv.py   | lprnet_fp16_1b.bmodel | 0.894 |
+| SE7-32   | lprnet_opencv.py   | lprnet_int8_1b.bmodel | 0.867 |
+| SE7-32   | lprnet_opencv.py   | lprnet_int8_4b.bmodel | 0.88  |
+| SE7-32   | lprnet_bmcv.py     | lprnet_fp32_1b.bmodel | 0.882 |
+| SE7-32   | lprnet_bmcv.py     | lprnet_fp16_1b.bmodel | 0.882 |
+| SE7-32   | lprnet_bmcv.py     | lprnet_int8_1b.bmodel | 0.861 |
+| SE7-32   | lprnet_bmcv.py     | lprnet_int8_4b.bmodel | 0.88  |
+| SE7-32   | lprnet_opencv.pcie | lprnet_fp32_1b.bmodel | 0.882 |
+| SE7-32   | lprnet_opencv.pcie | lprnet_fp16_1b.bmodel | 0.882 |
+| SE7-32   | lprnet_opencv.pcie | lprnet_int8_1b.bmodel | 0.861 |
+| SE7-32   | lprnet_opencv.pcie | lprnet_int8_4b.bmodel | 0.872 |
+| SE7-32   | lprnet_bmcv.pcie   | lprnet_fp32_1b.bmodel | 0.882 |
+| SE7-32   | lprnet_bmcv.pcie   | lprnet_fp16_1b.bmodel | 0.882 |
+| SE7-32   | lprnet_bmcv.pcie   | lprnet_int8_1b.bmodel | 0.861 |
+| SE7-32   | lprnet_bmcv.pcie   | lprnet_int8_4b.bmodel | 0.872 |
+| SE9-16   | lprnet_opencv.py   | lprnet_fp32_1b.bmodel | 0.894 |
+| SE9-16   | lprnet_opencv.py   | lprnet_fp16_1b.bmodel | 0.894 |
+| SE9-16   | lprnet_opencv.py   | lprnet_int8_1b.bmodel | 0.886 |
+| SE9-16   | lprnet_opencv.py   | lprnet_int8_4b.bmodel | 0.909 |
+| SE9-16   | lprnet_bmcv.py     | lprnet_fp32_1b.bmodel | 0.895 |
+| SE9-16   | lprnet_bmcv.py     | lprnet_fp16_1b.bmodel | 0.895 |
+| SE9-16   | lprnet_bmcv.py     | lprnet_int8_1b.bmodel | 0.878 |
+| SE9-16   | lprnet_bmcv.py     | lprnet_int8_4b.bmodel | 0.907 |
+| SE9-16   | lprnet_opencv.soc  | lprnet_fp32_1b.bmodel | 0.894 |
+| SE9-16   | lprnet_opencv.soc  | lprnet_fp16_1b.bmodel | 0.894 |
+| SE9-16   | lprnet_opencv.soc  | lprnet_int8_1b.bmodel | 0.879 |
+| SE9-16   | lprnet_opencv.soc  | lprnet_int8_4b.bmodel | 0.895 |
+| SE9-16   | lprnet_bmcv.soc    | lprnet_fp32_1b.bmodel | 0.895 |
+| SE9-16   | lprnet_bmcv.soc    | lprnet_fp16_1b.bmodel | 0.895 |
+| SE9-16   | lprnet_bmcv.soc    | lprnet_int8_1b.bmodel | 0.878 |
+| SE9-16   | lprnet_bmcv.soc    | lprnet_int8_4b.bmodel | 0.894 |
 
 
 > **测试说明**：  
@@ -228,23 +230,27 @@ bmrt_test --bmodel models/BM1684/lprnet_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|            测试模型            | calculate time(ms) |
-| ----------------------------- | -----------------  |
-| BM1684/lprnet_fp32_1b.bmodel  | 1.144              |
-| BM1684/lprnet_int8_1b.bmodel  | 1.070              |
-| BM1684/lprnet_int8_4b.bmodel  | 0.304              |
-| BM1684X/lprnet_fp32_1b.bmodel | 0.883              |
-| BM1684X/lprnet_fp16_1b.bmodel | 0.585              |
-| BM1684X/lprnet_int8_1b.bmodel | 0.507              |
-| BM1684X/lprnet_int8_4b.bmodel | 0.259              |
-| BM1688/lprnet_fp32_1b.bmodel  | 3.227              |
-| BM1688/lprnet_fp16_1b.bmodel  | 1.724              |
-| BM1688/lprnet_int8_1b.bmodel  | 1.545              |
-| BM1688/lprnet_int8_4b.bmodel  | 0.567              |
-| CV186X/lprnet_fp32_1b.bmodel       |           2.60  |
-| CV186X/lprnet_fp16_1b.bmodel       |           1.10  |
-| CV186X/lprnet_int8_1b.bmodel       |           0.68  |
-| CV186X/lprnet_int8_4b.bmodel       |           0.45  |
+| 测试模型                           | calculate time(ms) |
+| ---------------------------------- | ------------------ |
+| BM1684/lprnet_fp32_1b.bmodel       | 1.144              |
+| BM1684/lprnet_int8_1b.bmodel       | 1.070              |
+| BM1684/lprnet_int8_4b.bmodel       | 0.304              |
+| BM1684X/lprnet_fp32_1b.bmodel      | 0.883              |
+| BM1684X/lprnet_fp16_1b.bmodel      | 0.585              |
+| BM1684X/lprnet_int8_1b.bmodel      | 0.507              |
+| BM1684X/lprnet_int8_4b.bmodel      | 0.259              |
+| BM1688/lprnet_fp32_1b.bmodel       | 2.287              |
+| BM1688/lprnet_fp32_1b_2core.bmodel | 2.275              |
+| BM1688/lprnet_fp16_1b.bmodel       | 0.839              |
+| BM1688/lprnet_fp16_1b_2core.bmodel | 0.839              |
+| BM1688/lprnet_int8_1b.bmodel       | 0.550              |
+| BM1688/lprnet_int8_1b_2core.bmodel | 0.536              |
+| BM1688/lprnet_int8_4b.bmodel       | 0.331              |
+| BM1688/lprnet_int8_4b_2core.bmodel | 0.330              |
+| CV186X/lprnet_fp32_1b.bmodel       | 2.60               |
+| CV186X/lprnet_fp16_1b.bmodel       | 1.10               |
+| CV186X/lprnet_int8_1b.bmodel       | 0.68               |
+| CV186X/lprnet_int8_4b.bmodel       | 0.45               |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -255,68 +261,68 @@ bmrt_test --bmodel models/BM1684/lprnet_fp32_1b.bmodel
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/test`，性能测试结果如下：
-|    测试平台  |     测试程序      |      测试模型          |decode_time|preprocess_time|inference_time|postprocess_time| 
-| ----------- | ---------------- | --------------------- | --------   | ---------     | ---------    | ---------  |
-| SE5-16      | lprnet_opencv.py | lprnet_fp32_1b.bmodel | 0.5        | 0.14          | 2.33         | 0.13       |
-| SE5-16      | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.48       | 0.15          | 1.35         | 0.14       |
-| SE5-16      | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.32       | 0.08          | 0.45         | 0.06       |
-| SE5-16      | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 0.6        | 0.33          | 2.01         | 0.15       |
-| SE5-16      | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 0.66       | 0.35          | 1.07         | 0.15       |
-| SE5-16      | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 0.45       | 0.25          | 0.33         | 0.06       |
-| SE5-16      | lprnet_opencv.soc| lprnet_fp32_1b.bmodel | 0.537      | 0.211         | 1.642        | 0.072      |
-| SE5-16      | lprnet_opencv.soc| lprnet_int8_1b.bmodel | 0.696      | 0.277         | 0.656        | 0.077      |
-| SE5-16      | lprnet_opencv.soc| lprnet_int8_4b.bmodel | 0.46       | 0.695         | 0.232        | 0.048      |
-| SE5-16      | lprnet_bmcv.soc  | lprnet_fp32_1b.bmodel | 1.629      | 0.283         | 1.664        | 0.08       |
-| SE5-16      | lprnet_bmcv.soc  | lprnet_int8_1b.bmodel | 1.627      | 0.285         | 0.661        | 0.075      |
-| SE5-16      | lprnet_bmcv.soc  | lprnet_int8_4b.bmodel | 1.184      | 0.647         | 0.233        | 0.047      |
-| SE7-32      | lprnet_opencv.py  |       lprnet_fp32_1b.bmodel       |      0.39       |      0.11       |      1.50       |      0.11       |
-| SE7-32      | lprnet_opencv.py  |       lprnet_fp16_1b.bmodel       |      0.37       |      0.10       |      1.16       |      0.10       |
-| SE7-32      | lprnet_opencv.py  |       lprnet_int8_1b.bmodel       |      0.37       |      0.11       |      1.09       |      0.10       |
-| SE7-32      | lprnet_opencv.py  |       lprnet_int8_4b.bmodel       |      0.28       |      0.08       |      0.49       |      0.06       |
-| SE7-32      |  lprnet_bmcv.py   |       lprnet_fp32_1b.bmodel       |      0.74       |      0.31       |      1.32       |      0.13       |
-| SE7-32      |  lprnet_bmcv.py   |       lprnet_fp16_1b.bmodel       |      0.71       |      0.31       |      0.99       |      0.13       |
-| SE7-32      |  lprnet_bmcv.py   |       lprnet_int8_1b.bmodel       |      0.73       |      0.31       |      0.93       |      0.13       |
-| SE7-32      |  lprnet_bmcv.py   |       lprnet_int8_4b.bmodel       |      0.53       |      0.26       |      0.38       |      0.06       |
-| SE7-32      | lprnet_opencv.soc |       lprnet_fp32_1b.bmodel       |      0.34       |      0.15       |      0.83       |      0.05       |
-| SE7-32      | lprnet_opencv.soc |       lprnet_fp16_1b.bmodel       |      0.35       |      0.15       |      0.53       |      0.05       |
-| SE7-32      | lprnet_opencv.soc |       lprnet_int8_1b.bmodel       |      0.34       |      0.15       |      0.45       |      0.05       |
-| SE7-32      | lprnet_opencv.soc |       lprnet_int8_4b.bmodel       |      0.35       |      0.14       |      0.25       |      0.04       |
-| SE7-32      |  lprnet_bmcv.soc  |       lprnet_fp32_1b.bmodel       |      0.63       |      0.10       |      0.83       |      0.05       |
-| SE7-32      |  lprnet_bmcv.soc  |       lprnet_fp16_1b.bmodel       |      0.62       |      0.10       |      0.53       |      0.05       |
-| SE7-32      |  lprnet_bmcv.soc  |       lprnet_int8_1b.bmodel       |      0.62       |      0.10       |      0.45       |      0.05       |
-| SE7-32      |  lprnet_bmcv.soc  |       lprnet_int8_4b.bmodel       |      0.61       |      0.08       |      0.25       |      0.04       |
-| SE9-16      | lprnet_opencv.py | lprnet_fp32_1b.bmodel | 0.54       |  0.15         | 3.06         | 0.15       |
-| SE9-16      | lprnet_opencv.py | lprnet_fp16_1b.bmodel | 0.54       |  0.16         | 1.71         | 0.15       |
-| SE9-16      | lprnet_opencv.py | lprnet_int8_1b.bmodel | 0.54       |  0.16         | 1.38         | 0.15       |
-| SE9-16      | lprnet_opencv.py | lprnet_int8_4b.bmodel | 0.39       |  0.10         | 0.65         | 0.08       |
-| SE9-16      | lprnet_bmcv.py   | lprnet_fp32_1b.bmodel | 2.26       |  0.88         | 3.01         | 0.21       |
-| SE9-16      | lprnet_bmcv.py   | lprnet_fp16_1b.bmodel | 2.28       |  0.88         | 1.58         | 0.21       |
-| SE9-16      | lprnet_bmcv.py   | lprnet_int8_1b.bmodel | 2.26       |  0.88         | 1.29         | 0.21       |
-| SE9-16      | lprnet_bmcv.py   | lprnet_int8_4b.bmodel | 1.84       |  0.71         | 0.52         | 0.09       |
-| SE9-16      | lprnet_opencv.soc| lprnet_fp32_1b.bmodel | 1.53       |  1.11         | 2.31         | 0.10       |
-| SE9-16      | lprnet_opencv.soc| lprnet_fp16_1b.bmodel | 1.54       |  1.12         | 0.88         | 0.10       |
-| SE9-16      | lprnet_opencv.soc| lprnet_int8_1b.bmodel | 1.51       |  1.12         | 0.57         | 0.10       |
-| SE9-16      | lprnet_opencv.soc| lprnet_int8_4b.bmodel | 1.33       |  1.04         | 0.36         | 0.69       |
-| SE9-16      | lprnet_bmcv.soc  | lprnet_fp32_1b.bmodel | 2.17       |  0.69         | 2.34         | 0.09       |
-| SE9-16      | lprnet_bmcv.soc  | lprnet_fp16_1b.bmodel | 2.17       |  0.68         | 0.89         | 0.09       |
-| SE9-16      | lprnet_bmcv.soc  | lprnet_int8_1b.bmodel | 2.12       |  0.68         | 0.59         | 0.09       |
-| SE9-16      | lprnet_bmcv.soc  | lprnet_int8_4b.bmodel | 1.84       |  0.59         | 0.36         | 0.07       |
-|    SE9-8    | lprnet_opencv.py  |       lprnet_fp32_1b.bmodel       |      0.54       |      0.16       |      3.39       |      0.15       |
-|    SE9-8    | lprnet_opencv.py  |       lprnet_fp16_1b.bmodel       |      0.54       |      0.15       |      1.91       |      0.15       |
-|    SE9-8    | lprnet_opencv.py  |       lprnet_int8_1b.bmodel       |      0.53       |      0.15       |      1.49       |      0.15       |
-|    SE9-8    | lprnet_opencv.py  |       lprnet_int8_4b.bmodel       |      0.38       |      0.11       |      0.76       |      0.08       |
-|    SE9-8    |  lprnet_bmcv.py   |       lprnet_fp32_1b.bmodel       |      1.60       |      0.73       |      3.25       |      0.20       |
-|    SE9-8    |  lprnet_bmcv.py   |       lprnet_fp16_1b.bmodel       |      1.57       |      0.71       |      1.73       |      0.20       |
-|    SE9-8    |  lprnet_bmcv.py   |       lprnet_int8_1b.bmodel       |      1.65       |      0.73       |      1.35       |      0.20       |
-|    SE9-8    |  lprnet_bmcv.py   |       lprnet_int8_4b.bmodel       |      1.17       |      0.56       |      0.62       |      0.09       |
-|    SE9-8    | lprnet_opencv.soc |       lprnet_fp32_1b.bmodel       |      0.82       |      0.37       |      2.47       |      0.09       |
-|    SE9-8    | lprnet_opencv.soc |       lprnet_fp16_1b.bmodel       |      0.79       |      0.37       |      0.98       |      0.09       |
-|    SE9-8    | lprnet_opencv.soc |       lprnet_int8_1b.bmodel       |      0.80       |      0.37       |      0.56       |      0.08       |
-|    SE9-8    | lprnet_opencv.soc |       lprnet_int8_4b.bmodel       |      0.71       |      0.31       |      0.42       |      0.07       |
-|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_fp32_1b.bmodel       |      1.26       |      0.44       |      2.47       |      0.08       |
-|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_fp16_1b.bmodel       |      1.25       |      0.45       |      0.98       |      0.08       |
-|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_int8_1b.bmodel       |      1.20       |      0.45       |      0.56       |      0.08       |
-|    SE9-8    |  lprnet_bmcv.soc  |       lprnet_int8_4b.bmodel       |      1.10       |      0.36       |      0.42       |      0.06       |
+| 测试平台 | 测试程序          | 测试模型              | decode_time | preprocess_time | inference_time | postprocess_time |
+| -------- | ----------------- | --------------------- | ----------- | --------------- | -------------- | ---------------- |
+| SE5-16   | lprnet_opencv.py  | lprnet_fp32_1b.bmodel | 0.5         | 0.14            | 2.33           | 0.13             |
+| SE5-16   | lprnet_opencv.py  | lprnet_int8_1b.bmodel | 0.48        | 0.15            | 1.35           | 0.14             |
+| SE5-16   | lprnet_opencv.py  | lprnet_int8_4b.bmodel | 0.32        | 0.08            | 0.45           | 0.06             |
+| SE5-16   | lprnet_bmcv.py    | lprnet_fp32_1b.bmodel | 0.6         | 0.33            | 2.01           | 0.15             |
+| SE5-16   | lprnet_bmcv.py    | lprnet_int8_1b.bmodel | 0.66        | 0.35            | 1.07           | 0.15             |
+| SE5-16   | lprnet_bmcv.py    | lprnet_int8_4b.bmodel | 0.45        | 0.25            | 0.33           | 0.06             |
+| SE5-16   | lprnet_opencv.soc | lprnet_fp32_1b.bmodel | 0.537       | 0.211           | 1.642          | 0.072            |
+| SE5-16   | lprnet_opencv.soc | lprnet_int8_1b.bmodel | 0.696       | 0.277           | 0.656          | 0.077            |
+| SE5-16   | lprnet_opencv.soc | lprnet_int8_4b.bmodel | 0.46        | 0.695           | 0.232          | 0.048            |
+| SE5-16   | lprnet_bmcv.soc   | lprnet_fp32_1b.bmodel | 1.629       | 0.283           | 1.664          | 0.08             |
+| SE5-16   | lprnet_bmcv.soc   | lprnet_int8_1b.bmodel | 1.627       | 0.285           | 0.661          | 0.075            |
+| SE5-16   | lprnet_bmcv.soc   | lprnet_int8_4b.bmodel | 1.184       | 0.647           | 0.233          | 0.047            |
+| SE7-32   | lprnet_opencv.py  | lprnet_fp32_1b.bmodel | 0.39        | 0.11            | 1.50           | 0.11             |
+| SE7-32   | lprnet_opencv.py  | lprnet_fp16_1b.bmodel | 0.37        | 0.10            | 1.16           | 0.10             |
+| SE7-32   | lprnet_opencv.py  | lprnet_int8_1b.bmodel | 0.37        | 0.11            | 1.09           | 0.10             |
+| SE7-32   | lprnet_opencv.py  | lprnet_int8_4b.bmodel | 0.28        | 0.08            | 0.49           | 0.06             |
+| SE7-32   | lprnet_bmcv.py    | lprnet_fp32_1b.bmodel | 0.74        | 0.31            | 1.32           | 0.13             |
+| SE7-32   | lprnet_bmcv.py    | lprnet_fp16_1b.bmodel | 0.71        | 0.31            | 0.99           | 0.13             |
+| SE7-32   | lprnet_bmcv.py    | lprnet_int8_1b.bmodel | 0.73        | 0.31            | 0.93           | 0.13             |
+| SE7-32   | lprnet_bmcv.py    | lprnet_int8_4b.bmodel | 0.53        | 0.26            | 0.38           | 0.06             |
+| SE7-32   | lprnet_opencv.soc | lprnet_fp32_1b.bmodel | 0.34        | 0.15            | 0.83           | 0.05             |
+| SE7-32   | lprnet_opencv.soc | lprnet_fp16_1b.bmodel | 0.35        | 0.15            | 0.53           | 0.05             |
+| SE7-32   | lprnet_opencv.soc | lprnet_int8_1b.bmodel | 0.34        | 0.15            | 0.45           | 0.05             |
+| SE7-32   | lprnet_opencv.soc | lprnet_int8_4b.bmodel | 0.35        | 0.14            | 0.25           | 0.04             |
+| SE7-32   | lprnet_bmcv.soc   | lprnet_fp32_1b.bmodel | 0.63        | 0.10            | 0.83           | 0.05             |
+| SE7-32   | lprnet_bmcv.soc   | lprnet_fp16_1b.bmodel | 0.62        | 0.10            | 0.53           | 0.05             |
+| SE7-32   | lprnet_bmcv.soc   | lprnet_int8_1b.bmodel | 0.62        | 0.10            | 0.45           | 0.05             |
+| SE7-32   | lprnet_bmcv.soc   | lprnet_int8_4b.bmodel | 0.61        | 0.08            | 0.25           | 0.04             |
+| SE9-16   | lprnet_opencv.py  | lprnet_fp32_1b.bmodel | 0.54        | 0.15            | 3.06           | 0.15             |
+| SE9-16   | lprnet_opencv.py  | lprnet_fp16_1b.bmodel | 0.54        | 0.16            | 1.71           | 0.15             |
+| SE9-16   | lprnet_opencv.py  | lprnet_int8_1b.bmodel | 0.54        | 0.16            | 1.38           | 0.15             |
+| SE9-16   | lprnet_opencv.py  | lprnet_int8_4b.bmodel | 0.39        | 0.10            | 0.65           | 0.08             |
+| SE9-16   | lprnet_bmcv.py    | lprnet_fp32_1b.bmodel | 2.26        | 0.88            | 3.01           | 0.21             |
+| SE9-16   | lprnet_bmcv.py    | lprnet_fp16_1b.bmodel | 2.28        | 0.88            | 1.58           | 0.21             |
+| SE9-16   | lprnet_bmcv.py    | lprnet_int8_1b.bmodel | 2.26        | 0.88            | 1.29           | 0.21             |
+| SE9-16   | lprnet_bmcv.py    | lprnet_int8_4b.bmodel | 1.84        | 0.71            | 0.52           | 0.09             |
+| SE9-16   | lprnet_opencv.soc | lprnet_fp32_1b.bmodel | 1.53        | 1.11            | 2.31           | 0.10             |
+| SE9-16   | lprnet_opencv.soc | lprnet_fp16_1b.bmodel | 1.54        | 1.12            | 0.88           | 0.10             |
+| SE9-16   | lprnet_opencv.soc | lprnet_int8_1b.bmodel | 1.51        | 1.12            | 0.57           | 0.10             |
+| SE9-16   | lprnet_opencv.soc | lprnet_int8_4b.bmodel | 1.33        | 1.04            | 0.36           | 0.69             |
+| SE9-16   | lprnet_bmcv.soc   | lprnet_fp32_1b.bmodel | 2.17        | 0.69            | 2.34           | 0.09             |
+| SE9-16   | lprnet_bmcv.soc   | lprnet_fp16_1b.bmodel | 2.17        | 0.68            | 0.89           | 0.09             |
+| SE9-16   | lprnet_bmcv.soc   | lprnet_int8_1b.bmodel | 2.12        | 0.68            | 0.59           | 0.09             |
+| SE9-16   | lprnet_bmcv.soc   | lprnet_int8_4b.bmodel | 1.84        | 0.59            | 0.36           | 0.07             |
+| SE9-8    | lprnet_opencv.py  | lprnet_fp32_1b.bmodel | 0.54        | 0.16            | 3.39           | 0.15             |
+| SE9-8    | lprnet_opencv.py  | lprnet_fp16_1b.bmodel | 0.54        | 0.15            | 1.91           | 0.15             |
+| SE9-8    | lprnet_opencv.py  | lprnet_int8_1b.bmodel | 0.53        | 0.15            | 1.49           | 0.15             |
+| SE9-8    | lprnet_opencv.py  | lprnet_int8_4b.bmodel | 0.38        | 0.11            | 0.76           | 0.08             |
+| SE9-8    | lprnet_bmcv.py    | lprnet_fp32_1b.bmodel | 1.60        | 0.73            | 3.25           | 0.20             |
+| SE9-8    | lprnet_bmcv.py    | lprnet_fp16_1b.bmodel | 1.57        | 0.71            | 1.73           | 0.20             |
+| SE9-8    | lprnet_bmcv.py    | lprnet_int8_1b.bmodel | 1.65        | 0.73            | 1.35           | 0.20             |
+| SE9-8    | lprnet_bmcv.py    | lprnet_int8_4b.bmodel | 1.17        | 0.56            | 0.62           | 0.09             |
+| SE9-8    | lprnet_opencv.soc | lprnet_fp32_1b.bmodel | 0.82        | 0.37            | 2.47           | 0.09             |
+| SE9-8    | lprnet_opencv.soc | lprnet_fp16_1b.bmodel | 0.79        | 0.37            | 0.98           | 0.09             |
+| SE9-8    | lprnet_opencv.soc | lprnet_int8_1b.bmodel | 0.80        | 0.37            | 0.56           | 0.08             |
+| SE9-8    | lprnet_opencv.soc | lprnet_int8_4b.bmodel | 0.71        | 0.31            | 0.42           | 0.07             |
+| SE9-8    | lprnet_bmcv.soc   | lprnet_fp32_1b.bmodel | 1.26        | 0.44            | 2.47           | 0.08             |
+| SE9-8    | lprnet_bmcv.soc   | lprnet_fp16_1b.bmodel | 1.25        | 0.45            | 0.98           | 0.08             |
+| SE9-8    | lprnet_bmcv.soc   | lprnet_int8_1b.bmodel | 1.20        | 0.45            | 0.56           | 0.08             |
+| SE9-8    | lprnet_bmcv.soc   | lprnet_int8_4b.bmodel | 1.10        | 0.36            | 0.42           | 0.06             |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
