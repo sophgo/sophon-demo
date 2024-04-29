@@ -358,6 +358,7 @@ class MultiDecoderThread(object):
                             del template_infos[key]
 
             if self.loop_count <=  image_idx_list[-1]: 
+                file.close()
                 logging.info("LOOPS DONE")
                 end_time = time.time()
                 time_use = (end_time-start_time)*1000
