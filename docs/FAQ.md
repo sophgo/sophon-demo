@@ -72,6 +72,12 @@ export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
 sudo rm /tmp/vid_*
 ```
 
+### 4.5 bm_free_device失败
+可能的原因：
+1. 这块device_mem没有被分配过内存，或者已经被释放过。
+
+2. 如果一个bm_image的内存是attach过来的，注意只调用detach函数就好，不要调用bm_image_free_contiguous_mem释放它，否则后续那块device_mem会释放失败。
+
 ## 5 精度测试相关问题
 ### 5.1 FP32 BModel的推理结果与原模型的推理结果不一致
 在前后处理与原算法对齐的前提下，FP32 BModel的精度与原模型的最大误差通常在0.001以下，不会对最终的预测结果造成影响。FP32 BModel精度对齐的方法可以参考[相关文档](./FP32BModel_Precise_Alignment.md)。
@@ -128,3 +134,17 @@ usage rate:4%, memory usage peak 144646144 bytes #memory usage peak是该heap的
 2. 之后进入root用户清除cache，运行命令`echo 3 > /proc/sys/vm/drop_caches`。
     
 3. 再次执行程序，运行慢，即可确定是cache导致的。
+
+### 7.5 运行下载脚本`scripts/download.sh`报错
+
+可能有以下原因：
+
+1. 网络环境不好或者有防火墙。
+
+2. 一般下载脚本会最先安装dfss，如果是非ubuntu系统出现dfss安装失败，中间可能会打印类似`ERROR: Failed building wheel for cff`这种报错，这是因为缺少libffi-devel这个依赖，可以通过以下命令安装：
+
+    ```bash
+    sudo yum install libffi-devel
+    #然后重新运行下载脚本
+    ```
+    

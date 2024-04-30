@@ -5,7 +5,6 @@
 ## Directory
 
 * [1 Environment installation related Problems](#1-environment-installation-related-problems)
-
 * [2 Model derived Problems](#2-model-derived-related-problems)
 * [3 Issues related to Model compilation and Quantization](#3-issues-related-to-model-compilation-and-quantization)
 * [4 Algorithm migration related problems](#4-algorithm-migration-related-problems)
@@ -62,6 +61,11 @@ This is because the cache is not cleared in time, and the inference result is no
 ```bash
 sudo rm /tmp/vid_*
 ```
+### 4.5 bm_free_device failed
+May be caused by:
+1. This device_mem has not been allocated memory, or has been freed.
+
+2. If the memory of a bm_image is attached, it is better to call only the detach function, not to call the bm_image_free_contiguous_mem to release it, otherwise the subsequent device_mem will fail to be released.
 
 ## 5 Accuracy test related issues
 ### 5.1 The inference result of FP32 BModel is inconsistent with that of the original model
@@ -123,3 +127,17 @@ You can do a verification, if you don't restart it can be reproduced, it means t
 2. Then go to the root user to clear the cache and run the command `echo 3 > /proc/sys/vm/drop_caches`.
     
 3. If the program is slow to run again, it can be determined that it is caused by cache.
+
+### 7.5 `scripts/download.sh` failed
+
+May be caused by:
+
+1. The network environment is not good or there is a firewall.
+
+2. If the dfss installation fails on a non-ubuntu system, an error like `ERROR: Failed building wheel for cff` may be printed in the middle, which is due to the lack of libffi-devel dependency, which can be installed with the following command:
+
+    ```bash
+    sudo yum install libffi-devel
+    #then re-execute script/download.sh
+    ```
+    
