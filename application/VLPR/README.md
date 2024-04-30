@@ -107,8 +107,9 @@ chmod -R +x scripts/
 ```
 
 ## 4. 模型编译
-参考[sophon-demo lprnet模型编译](../../sample/LPRNet/README.md#4-模型编译)
-参考[sophon-demo yolov5模型编译](../../sample/YOLOv5/README.md#4-模型编译)
+若需要使用自己的模型，需要保证模型的输入输出和本例程的前后处理相对应。
+车牌识别模型编译过程参考[sophon-demo lprnet模型编译](../../sample/LPRNet/README.md#4-模型编译)，注意不能直接用该例程里面的模型。
+车牌检测模型编译过程参考[sophon-demo yolov5模型编译](../../sample/YOLOv5/README.md#4-模型编译)，注意不能直接用该例程里面的模型。
 
 > **说明**： 
 > 本例程中提供的yolov5s-licenseplate模型为基于绿牌数据集训练的模型，供示例使用参考，无原始模型及精度数据。
@@ -157,21 +158,17 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_license_3output_fp32_1b.bmodel
 ### 6.2 程序运行性能
 参考[例程测试](#5-例程测试)运行程序，并查看统计的total fps。
 
-在不同的测试平台上，使用不同的例程、模型，输入视频`datasets/1080_1920_30s_512kb.mp4`，相应路数和模型根据下表修改，性能测试结果如下：
+在不同的测试平台上，使用不同的例程和对应的配置文件，性能测试结果如下：
 | 测试平台 | 测试程序      | 测试模型                                                                       | 配置文件           | 路数 | FPS | tpu利用率(%) | cpu利用率(%) | 系统内存占用(MB) | 设备内存占用(MB) |
 | -------- | ------------- | ------------------------------------------------------------------------------ | ------------------ | ---- | --- | ------------ | ------------ | ---------------- | ---------------- |
-| SE5-16   | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | config_se5.json    | 16   | 146 | 95-100       | 90-110       | 45-55            | 1800-2200        |
-| SE7-32   | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | config_se7.json    | 32   | 274 | 65-100       | 170-190      | 90-105           | 450-700          |
 | SE9-8    | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | config_se9-8.json  | 8    | 89  | 95-100       | 200-250      | 40-50            | 900-1050         |
 | SE9-16   | vlpr_bmcv.soc | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | config_se9-16.json | 16   | 157 | 80-100       | 410-450      | 50-60            | 3100-3300        |
-| SE5-16   | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default            | 16   | 360 | 100          | 180-200      | 272-280          | 2750-2950        |
-| SE7-32   | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default            | 32   | 756 | 66-100       | 400-560      | 456-480          | 3300-3500        |
 | SE9-8    | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default            | 8    | 206 | 94-100       | 240-250      | 140-160          | 1720-1740        |
 | SE9-16   | vlpr.py       | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | default            | 16   | 400 | 95-99        | 400-480      | 272-320          | 3590-3595        |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
-> 2. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异； 
+> 2. SE9-16的主控处理器为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异； 
 > 3. 性能数据在程序启动前和结束前不准确，上面来自程序运行稳定后的数据；
 > 4. 各项指标的查看方式可以参考[测试指标查看方式](../../docs/Check_Statis.md)；
 > 5. 部署环境下的NPU等设备内存大小会显著影响例程运行的路数。如果默认的输入路数运行中出现了申请内存失败等错误，可以考虑把输入路数减少，或者参考[FAQ](../../docs/FAQ.md#73-程序运行时出现bm_ion_alloc-failed等报错)；
