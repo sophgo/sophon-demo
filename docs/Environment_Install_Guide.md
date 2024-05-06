@@ -448,4 +448,4 @@ sudo rm -rf /opt/sophon/sophon-ffmpeg_{x.y.z} /opt/sophon/sophon-opencv_{x.y.z} 
 如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。
 
 需从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的SDK，里面有sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
-您可以打开sophon-sail压缩包里面提供的用户手册(命名为sophon-sail_zh.pdf)，参考编译安装指南章节，选择您需要的模式(C++/Python，RSICV PCIE MODE)进行安装。
+您可以打开sophon-sail压缩包里面提供的用户手册(命名为sophon-sail_zh.pdf)，参考编译安装指南章节，选择您需要的模式(C++/Python，RISCV PCIE MODE)进行安装。
