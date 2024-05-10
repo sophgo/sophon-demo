@@ -164,7 +164,7 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_license_3output_fp32_1b.bmodel
 | SE9-8    | vlpr_bmcv.soc | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | config_se9-8.json  | 8    | 89  | 95-100       | 200-250      | 40-50            | 900-1050         |
 | SE9-16   | vlpr_bmcv.soc | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | config_se9-16.json | 16   | 157 | 80-100       | 410-450      | 50-60            | 3100-3300        |
 | SE9-8    | vlpr.py       | lprnet_int8_4b.bmodel，yolov5s_v6.1_license_3output_int8_4b.bmodel             | default            | 8    | 206 | 94-100       | 240-250      | 140-160          | 1720-1740        |
-| SE9-16   | vlpr.py       | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | default            | 16   | 400 | 95-99        | 400-480      | 272-320          | 3590-3595        |
+| SE9-16   | vlpr.py       | lprnet_int8_4b_2core.bmodel，yolov5s_v6.1_license_3output_int8_4b_2core.bmodel | default            | 16   | 380 | 95-99        | 400-480      | 272-320          | 3590-3595        |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
