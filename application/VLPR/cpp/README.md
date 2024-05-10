@@ -67,11 +67,11 @@ make
   "lprnet_bmodel_path": "../../models/lprnet/BM1684X/lprnet_int8_1b.bmodel",
   "channels": [
     {
-      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "url": "../../datasets/1080_1920_30s_512kb.mp4",
       "is_video": true
     },
     {
-      "url": "../../datasets/licenseplate_640516-h264.mp4",
+      "url": "../../datasets/1080_1920_30s_512kb.mp4",
       "is_video": true
     }
   ],
