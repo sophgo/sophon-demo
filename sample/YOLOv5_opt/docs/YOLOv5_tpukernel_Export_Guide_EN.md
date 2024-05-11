@@ -6,8 +6,6 @@
 
 ## 1. preparation
 YOLOv5 model export is carried out in the production environment of Pytorch models, you need to install the Pytorch environment in advance according to the requirements of [YOLOv5 official repo](https://github.com/ultralytics/yolov5), prepare the corresponding code and model, and ensure that the model can run normally in the Pytorch environment.
-> **Note**: 
-It is recommended to use the Torch version of '1.8.0+CPU' to avoid failure of the TPU-NNTTC model compilation due to the PyTorch version.
 
 ## 2. main step
 ### 2.1 modify models/yolo.py
@@ -43,7 +41,7 @@ The yolo post-processing interface in the tpu_kernel used in this example receiv
 ```
 
 ### 2.2 Export Torchscript models
-The Pytorch model must go through `torch.jit.trace` before compiling, and the traced model can be compiled BModel using tpu-nntc. The official YOLOv5 repository provides the model export script `export.py`, which can be used directly to export torchscript models:
+The Pytorch model must go through `torch.jit.trace` before compiling, and the traced model can be compiled to BModel. The official YOLOv5 repository provides the model export script `export.py`, which can be used directly to export torchscript models:
 
 ```bash
 # The following script may be adjusted according to the different version of YOLOv5, please refer to the official repository description
@@ -65,4 +63,23 @@ python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include onnx -
 The above script will generate the exported ONNX model in the same directory as the original PT model, and after exporting, you can modify the model name to distinguish different versions and output types, such as `yolov5s_tpukernel.onnx` to represent the ONNX model with 3 convolution outputs.
 
 ## 3. frequently asked questions
-TODO
+
+At some newer versions of yolov5 source code, after you changed model.py, it may cause problem in exporting: 
+```bash
+Traceback (most recent call last):
+  File "/workspace/open-source/yolov5/export.py", line 940, in <module>
+    main(opt)
+  File "/workspace/open-source/yolov5/export.py", line 935, in main
+    run(**vars(opt))
+  File "/usr/local/lib/python3.10/dist-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+  File "/workspace/open-source/yolov5/export.py", line 822, in run
+    shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
+AttributeError: 'list' object has no attribute 'shape'
+```
+Only need to comment these two lines at about line 822, then re-execute your export command.
+```bash
+# shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
+metadata = {"stride": int(max(model.stride)), "names": model.names}  # model metadata
+# LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with output shape {shape} ({file_size(file):.1f} MB)")
+```
