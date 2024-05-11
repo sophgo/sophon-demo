@@ -1,7 +1,6 @@
 # YOLOv5模型导出
 ## 1. 准备工作
 YOLOv5模型导出是在Pytorch模型的生产环境下进行的，需提前根据[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)的要求安装好Pytorch环境，准备好相应的代码和模型，并保证模型能够在Pytorch环境下正常推理运行。
-> **注意**：建议使用`1.8.0+cpu`的torch版本，避免因pytorch版本导致tpu-nntc模型编译失败。
 
 ## 2. 主要步骤
 ### 2.1 修改models/yolo.py
@@ -37,7 +36,7 @@ YOLOv5不同版本的代码导出的YOLOv5模型的输出会有所不同，根�
 ```
 
 ### 2.2 导出torchscript模型
-​Pytorch模型在编译前要经过`torch.jit.trace`，trace后的模型才能使用tpu-nntc编译BModel。YOLOv5官方仓库提供了模型导出脚本`export.py`，可以直接使用它导出torchscript模型：
+​Pytorch模型在编译前要经过`torch.jit.trace`，trace后的模型才能编译BModel。YOLOv5官方仓库提供了模型导出脚本`export.py`，可以直接使用它导出torchscript模型：
 
 ```bash
 # 下述脚本可能会根据不用版本的YOLOv5有所调整，请以官方仓库说明为准
@@ -59,4 +58,23 @@ python3 export.py --weights ${PATH_TO_YOLOV5S_MODEL}/yolov5s.pt --include onnx -
 上述脚本会在原始pt模型所在目录下生成导出的onnx模型，导出后可以修改模型名称以区分不同版本和输出类型，如`yolov5s_tpukernel.onnx`表示带有3个卷积输出的onnx模型。
 
 ## 3. 常见问题
-TODO
+
+版本较新的yolov5源码改了model.py之后运行export.py可能会出现这种报错：
+```bash
+Traceback (most recent call last):
+  File "/workspace/open-source/yolov5/export.py", line 940, in <module>
+    main(opt)
+  File "/workspace/open-source/yolov5/export.py", line 935, in main
+    run(**vars(opt))
+  File "/usr/local/lib/python3.10/dist-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+  File "/workspace/open-source/yolov5/export.py", line 822, in run
+    shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
+AttributeError: 'list' object has no attribute 'shape'
+```
+只需要把export.py大约822行左右的这两行代码注释掉即可，然后重新export：
+```bash
+# shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
+metadata = {"stride": int(max(model.stride)), "names": model.names}  # model metadata
+# LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with output shape {shape} ({file_size(file):.1f} MB)")
+```
