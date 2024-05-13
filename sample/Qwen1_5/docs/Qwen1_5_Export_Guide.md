@@ -7,7 +7,7 @@ Qwen1.5模型导出需要依赖[Qwen官方仓库](https://huggingface.co/Qwen)�
 **注意：** 
 
 - 编译模型需要在x86主机完成。
-- Qwen-7B官方库50G左右，转模型需要保证运行内存至少40G以上，导出onnx模型需要存储空间100G以上，请确有足够的内存完成对应的操作。
+- Qwen-7B官方库20G左右，转模型需要保证运行内存至少15G以上，导出onnx模型需要存储空间40G以上，请确有足够的内存完成对应的操作。
 
 ## 2. 主要步骤
 
@@ -59,7 +59,7 @@ Qwen1.5模型导出需要依赖[Qwen官方仓库](https://huggingface.co/Qwen)�
 
 ### 2.2.1 下载Qwen官方代码
 
-**注：** Qwen1.5-7B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。（Qwen1.5-1.8B / Qwen1.5-14B的操作相同，请保证满足对应内存需求）,以下代码以Qwen1.5-1.8B为例
+**注：** Qwen1.5-1.8B官方库5G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。（Qwen1.5-0.5B / Qwen1.5-4B / Qwen1.5-7B的操作相同，请保证满足对应内存需求）,以下代码以Qwen1.5-1.8B为例
 
 ```bash
 git lfs install
