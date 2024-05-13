@@ -64,6 +64,7 @@ chmod -R +x scripts/
 │       ├── qwen1.5-1.8b_int4_1dev.bmodel
 │       └── qwen1.5-1.8b_int8_1dev.bmodel
 │       └── qwen1.5-4b_int4_1dev.bmodel
+│       └── qwen1.5-7b_int4_1dev.bmodel
 ├── python
 │   ├── web_demo.py                 #Qwen1.5 web-demo
 │   ├── qwen1_5.py                  #Qwen1.5 python推理脚本
@@ -82,6 +83,12 @@ chmod -R +x scripts/
     │   ├── config.json
     │   └── modeling_qwen.py
     ├── Qwen1.5-1.8B-Chat            #修改过的Qwen-1.8B源码
+    │   ├── config.json
+    │   └── modeling_qwen.py
+        ├── Qwen1.5-4B-Chat        #修改过的Qwen-4B源码
+    │   ├── config.json
+    │   └── modeling_qwen.py
+        ├── Qwen1.5-7B-Chat        #修改过的Qwen-7B源码
     │   ├── config.json
     │   └── modeling_qwen.py
     └── export_onnx.py               #Qwen导出onnx脚本。
