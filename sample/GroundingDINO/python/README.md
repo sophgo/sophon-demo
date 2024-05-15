@@ -10,7 +10,6 @@
 * [2. 推理测试](#2-推理测试)
     * [2.1 参数说明](#21-参数说明)
     * [2.2 测试图片](#22-测试图片)
-    * [2.3 测试视频](#23-测试视频)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -70,7 +69,7 @@ usage: groundingdino_pil.py [--image_path INPUT_PATH] [--bmodel BMODEL] [--dev_i
 ### 2.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-python3 groundingdino_pil.py --image_path ../datasets/test/zidane.jpg --bmodel ../models/BM1684X/groundingdino_bm1684x_fp16.bmodel --dev_id 0 --box_threshold 0.3 --text_threshold 0.2 --text_prompt "person" --tokenizer_path ../models/BM1684X/bert-base-uncased --output_dir ./results
+python3 groundingdino_pil.py --image_path ../datasets/test/zidane.jpg --bmodel ../models/BM1684X/groundingdino_bm1684x_fp16.bmodel --dev_id 0 --box_threshold 0.3 --text_threshold 0.2 --text_prompt "person" --tokenizer_path ../models/bert-base-uncased --output_dir ./results
 ```
 测试结束后，会将预测的图片保存在`results`下.
 
