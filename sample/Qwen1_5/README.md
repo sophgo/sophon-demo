@@ -103,7 +103,7 @@ chmod -R +x scripts/
 | SE7-32  | qwen1_5.py      | qwen1.5-1.8b_int4_1dev.bmodel         |    0.191              |        31.863           | 
 | SE7-32  | qwen1_5.py      | qwen1.5-1.8b_int8_1dev.bmodel         |    0.177              |        22.117           |
 | SE7-32  | qwen1_5.py      | qwen1.5-4b_int4_1dev.bmodel           |    0.379              |        15.526           | 
-| SE7-32  | qwen1_5.py      | qwen1.5-7b_int8_1dev.bmodel           |    0.728              |        10.151           | 
+| SE7-32  | qwen1_5.py      | qwen1.5-7b_int4_1dev.bmodel           |    0.728              |        10.151           | 
  
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；

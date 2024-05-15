@@ -100,7 +100,7 @@ source envsetup.sh
 目前TPU-MLIR支持1684x对Qwen进行BF16(仅限Qwen-1.8B),INT8和INT4量化，使用如下命令生成bmodel。
 
 ```bash
-./scripts/gen_bmodel.sh --mode int4 --name qwen1.5-1.8b
+./scripts/gen_bmodel.sh --mode int4 --name qwen1.5-1.8b --seq_length 512
 ```
 
 其中，mode可以指定int8/int4，编译成功之后，模型将会存放在`models/BM1684X/`目录下。
