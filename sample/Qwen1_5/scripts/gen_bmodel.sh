@@ -1,8 +1,12 @@
 #!/bin/bash
 set -ex
+model_dir=$(dirname $(readlink -f "$0"))
+pushd $model_dir
+
 models=
 mode="f16"
 folder="./models"
+target_dir="BM1684X"
 num_device=1
 mode_args=""
 device_args=""
@@ -235,4 +239,4 @@ done
 popd
 echo $models
 
-model_tool --combine $models -o $out_model
+model_tool --combine $models -o $folder/$target_dir/$out_model
