@@ -26,8 +26,8 @@ YOLOx由旷世研究提出,是基于YOLO系列的改进，引入了解耦头和A
 **官方源码地址** (https://github.com/Megvii-BaseDetection/YOLOX)
 
 ## 2. 特性
-* 支持BM1688(SoC)、支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)、支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV、sail预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -73,6 +73,11 @@ chmod -R +x scripts/
 │   ├── yolox_s_int8_4b.bmodel         # 使用TPU-MLIR编译，用于BM1688的单核INT8 BModel，batch_size=4
 │   ├── yolox_s_int8_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的单核INT8 BModel，batch_size=1
 │   └── yolox_s_int8_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的双核INT8 BModel，batch_size=4
+├── CV186X
+│   ├── yolox_s_fp32_1b.bmodel         # 使用TPU-MLIR编译，用于CV186X的单核FP32 BModel，batch_size=1
+│   ├── yolox_s_fp16_1b.bmodel         # 使用TPU-MLIR编译，用于CV186X的单核FP16 BModel，batch_size=1
+│   ├── yolox_s_int8_1b.bmodel         # 使用TPU-MLIR编译，用于CV186X的单核INT8 BModel，batch_size=1
+│   ├── yolox_s_int8_4b.bmodel         # 使用TPU-MLIR编译，用于CV186X的单核INT8 BModel，batch_size=4
 │── torch
 │   ├── yolox_s.pt               # 源模型
 |   └── yolox_s.torchscript.pt   # 源模型trace后的torchscript模型
@@ -100,20 +105,20 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684`等文件夹下生成`yolox_s_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`yolox_s_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
@@ -123,7 +128,7 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
 ```
 
 ​上述脚本会在`models/BM1684`等文件夹下生成`yolox_s_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
@@ -149,43 +154,52 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 在`datasets/coco/val2017_1000`数据集上，参数设置为`nms_thresh=0.6,conf_thresh=0.001`,精度测试结果如下：
 |   测试平台    |      测试程序     |        测试模型        | AP@IoU=0.5:0.95 | AP@IoU=0.5 |
 | ------------ | ---------------- | ---------------------- | --------------- | ---------- |
-| BM1684 PCIe  | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.403      |   0.590    |
-| BM1684 PCIe  | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.397      |   0.583    |
-| BM1684 PCIe  | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
-| BM1684 PCIe  | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.397      |   0.582    |
-| BM1684 PCIe  | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
-| BM1684 PCIe  | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel |      0.396      |   0.587    |
-| BM1684 PCIe  | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
-| BM1684 PCIe  | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.396      |   0.587    |
-| BM1684X PCIe | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
-| BM1684X PCIe | yolox_opencv.py  | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
-| BM1684X PCIe | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
-| BM1684X PCIe | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
-| BM1684X PCIe | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
-| BM1684X PCIe | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.402      |   0.586    |
-| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
-| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
-| BM1684X PCIe | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel |      0.401      |   0.592    |
-| BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
-| BM1684X PCIe | yolox_sail.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
-| BM1684X PCIe | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.401      |   0.592    |
-| BM1688 SoC   | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.403      |   0.590    |
-| BM1688 SoC   | yolox_opencv.py  | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
-| BM1688 SoC   | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
-| BM1688 SoC   | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
-| BM1688 SoC   | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
-| BM1688 SoC   | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
-| BM1688 SoC   | yolox_bmcv.soc   | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
-| BM1688 SoC   | yolox_bmcv.soc   | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
-| BM1688 SoC   | yolox_bmcv.soc   | yolox_s_int8_1b.bmodel |      0.402      |   0.592    |
-| BM1688 SoC   | yolox_sail.soc   | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
-| BM1688 SoC   | yolox_sail.soc   | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
-| BM1688 SoC   | yolox_sail.soc   | yolox_s_int8_1b.bmodel |      0.402      |   0.592    |
+| SE5-16       | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.403      |   0.590    |
+| SE5-16       | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.397      |   0.583    |
+| SE5-16       | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
+| SE5-16       | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.397      |   0.582    |
+| SE5-16       | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| SE5-16       | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel |      0.396      |   0.587    |
+| SE5-16       | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| SE5-16       | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.396      |   0.587    |
+| SE7-32       | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
+| SE7-32       | yolox_opencv.py  | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| SE7-32       | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
+| SE7-32       | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
+| SE7-32       | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| SE7-32       | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.402      |   0.586    |
+| SE7-32       | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| SE7-32       | yolox_bmcv.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
+| SE7-32       | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel |      0.401      |   0.592    |
+| SE7-32       | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| SE7-32       | yolox_sail.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
+| SE7-32       | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.401      |   0.592    |
+| SE9-16       | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.403      |   0.590    |
+| SE9-16       | yolox_opencv.py  | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| SE9-16       | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
+| SE9-16       | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
+| SE9-16       | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| SE9-16       | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
+| SE9-16       | yolox_bmcv.soc   | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| SE9-16       | yolox_bmcv.soc   | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
+| SE9-16       | yolox_bmcv.soc   | yolox_s_int8_1b.bmodel |      0.402      |   0.592    |
+| SE9-16       | yolox_sail.soc   | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| SE9-16       | yolox_sail.soc   | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
+| SE9-16       | yolox_sail.soc   | yolox_s_int8_1b.bmodel |      0.402      |   0.592    |
+| SE9-8        | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.403      |   0.590    |
+| SE9-8        | yolox_opencv.py  | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| SE9-8        | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
+| SE9-8        | yolox_opencv.py  | yolox_s_int8_4b.bmodel |      0.402      |   0.587    |
+| SE9-8        | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
+| SE9-8        | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| SE9-8        | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.402      |   0.587    |
+| SE9-8        | yolox_bmcv.py    | yolox_s_int8_4b.bmodel |      0.402      |   0.587    |
 
 > **测试说明**：  
-> 1. 相同的程序、模型在SoC和PCIe上精度一致，batch_size=4和batch_size=1的模型精度一致，BM1688双核模型精度测试与单核模型精度一致；
-> 2. AP@IoU=0.5:0.95为area=all对应的指标；
-> 3. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
+> 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
+> 2. 相同的程序、模型在SoC和PCIe上精度一致，batch_size=4和batch_size=1的模型精度一致，BM1688双核模型精度测试与单核模型精度一致；
+> 3. AP@IoU=0.5:0.95为area=all对应的指标；
+> 4. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -197,7 +211,7 @@ bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|          测试模型                   | calculate time(ms) |
+|          测试模型 | calculate time(ms) |
 | ------------------------------      | ----------------- |
 | BM1684/yolox_s_fp32_1b.bmodel       |     26.01         |
 | BM1684/yolox_s_fp32_4b.bmodel       |     25.62         |
@@ -217,6 +231,11 @@ bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 | BM1688/yolox_s_fp16_1b_2core.bmodel |     23.58         |
 | BM1688/yolox_s_int8_1b_2core.bmodel |     15.97         |
 | BM1688/yolox_s_int8_4b_2core.bmodel |     11.92         |
+| CV186X/yolox_s_int8_4b.bmodel       |     20.09         |
+| CV186X/yolox_s_int8_4b.bmodel       |     20.09         |
+| CV186X/yolox_s_fp16_1b.bmodel       |     34.80         |
+| CV186X/yolox_s_fp32_1b.bmodel       |     154.24        |
+
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -229,55 +248,65 @@ bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，`conf_thresh=0.5, nms_thresh=0.5`，性能测试结果如下：
 |    测试平台  |     测试程序      |     测试模型          |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | --------------------- | --------  | -------------- | ---------     | --------- |
-| BM1684 SoC  | yolox_opencv.py  | yolox_s_fp32_1b.bmodel | 15.18    | 3.63           | 39.70         | 2.71     |
-| BM1684 SoC  | yolox_opencv.py  | yolox_s_int8_1b.bmodel | 15.20    | 3.64           | 33.27         | 2.69     |
-| BM1684 SoC  | yolox_opencv.py  | yolox_s_int8_4b.bmodel | 15.20    | 5.54           | 22.66         | 2.36     |
-| BM1684 SoC  | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel | 3.70     | 2.88           | 28.16         | 2.72     |
-| BM1684 SoC  | yolox_bmcv.py    | yolox_s_int8_1b.bmodel | 3.50     | 2.22           | 21.62         | 2.71     |
-| BM1684 SoC  | yolox_bmcv.py    | yolox_s_int8_4b.bmodel | 3.38     | 2.06           | 10.68         | 2.35     |
-| BM1684 SoC  | yolox_bmcv.soc   | yolox_s_fp32_1b.bmodel | 4.86     | 1.47           | 25.78         | 2.68     |
-| BM1684 SoC  | yolox_bmcv.soc   | yolox_s_int8_1b.bmodel | 4.57     | 1.46           | 19.44         | 2.68     |
-| BM1684 SoC  | yolox_bmcv.soc   | yolox_s_int8_4b.bmodel | 4.76     | 1.41           | 8.96          | 2.07     |
-| BM1684 SoC  | yolox_sail.soc   | yolox_s_fp32_1b.bmodel | 3.22     | 3.11           | 26.16         | 2.08     |
-| BM1684 SoC  | yolox_sail.soc   | yolox_s_int8_1b.bmodel | 3.21     | 3.11           | 19.83         | 2.07     |
-| BM1684 SoC  | yolox_sail.soc   | yolox_s_int8_4b.bmodel | 3.14     | 2.73           | 9.26          | 2.10     |
-| BM1684X SoC | yolox_opencv.py  | yolox_s_fp32_1b.bmodel | 13.87    | 3.40           | 44.02         | 2.84     |
-| BM1684X SoC | yolox_opencv.py  | yolox_s_fp16_1b.bmodel | 13.88    | 3.24           | 22.04         | 2.84     |
-| BM1684X SoC | yolox_opencv.py  | yolox_s_int8_1b.bmodel | 13.98    | 3.49           | 20.94         | 2.82     |
-| BM1684X SoC | yolox_opencv.py  | yolox_s_int8_4b.bmodel | 13.90    | 5.17           | 20.87         | 2.52     |
-| BM1684X SoC | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel | 3.22     | 2.40           | 30.33         | 2.86     |
-| BM1684X SoC | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel | 3.20     | 2.39           | 7.93          | 2.86     |
-| BM1684X SoC | yolox_bmcv.py    | yolox_s_int8_1b.bmodel | 3.19     | 2.38           | 6.81          | 2.87     |
-| BM1684X SoC | yolox_bmcv.py    | yolox_s_int8_4b.bmodel | 3.03     | 2.19           | 6.18          | 2.51     |
-| BM1684X SoC | yolox_bmcv.soc   | yolox_s_fp32_1b.bmodel | 4.51     | 0.75           | 27.86         | 2.72     |
-| BM1684X SoC | yolox_bmcv.soc   | yolox_s_fp16_1b.bmodel | 4.55     | 0.75           | 5.49          | 2.75     |
-| BM1684X SoC | yolox_bmcv.soc   | yolox_s_int8_1b.bmodel | 4.51     | 0.75           | 4.35          | 2.74     |
-| BM1684X SoC | yolox_bmcv.soc   | yolox_s_int8_4b.bmodel | 4.28     | 0.72           | 4.26          | 2.73     |
-| BM1684X SoC | yolox_sail.soc   | yolox_s_fp32_1b.bmodel | 2.92     | 2.72           | 28.29         | 2.12     |
-| BM1684X SoC | yolox_sail.soc   | yolox_s_fp16_1b.bmodel | 2.88     | 2.71           | 5.91          | 2.10     |
-| BM1684X SoC | yolox_sail.soc   | yolox_s_int8_1b.bmodel | 2.81     | 2.72           | 4.76          | 2.10     |
-| BM1684X SoC | yolox_sail.soc   | yolox_s_int8_4b.bmodel | 2.67     | 2.63           | 4.55          | 2.12     |
-| BM1688 SoC  | yolox_opencv.py  | yolox_s_fp32_1b.bmodel | 21.62    | 4.17           | 174.24        | 3.98     |
-| BM1688 SoC  | yolox_opencv.py  | yolox_s_fp16_1b.bmodel | 20.42    | 4.09           | 54.62         | 3.98     |
-| BM1688 SoC  | yolox_opencv.py  | yolox_s_int8_1b.bmodel | 20.19    | 4.14           | 40.05         | 3.97     |
-| BM1688 SoC  | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel | 4.68     | 5.18           | 157.73        | 4.01     |
-| BM1688 SoC  | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel | 5.16     | 5.25           | 38.22         | 4.03     |
-| BM1688 SoC  | yolox_bmcv.py    | yolox_s_int8_1b.bmodel | 4.53     | 5.18           | 23.63         | 3.99     |
-| BM1688 SoC  | yolox_bmcv.soc   | yolox_s_fp32_1b.bmodel | 5.84     | 1.96           | 154.59        | 3.76     |
-| BM1688 SoC  | yolox_bmcv.soc   | yolox_s_fp16_1b.bmodel | 5.83     | 1.94           | 35.05         | 3.75     |
-| BM1688 SoC  | yolox_bmcv.soc   | yolox_s_int8_1b.bmodel | 5.78     | 1.95           | 20.42         | 3.74     |
-| BM1688 SoC  | yolox_sail.soc   | yolox_s_fp32_1b.bmodel | 3.94     | 5.22           | 155.22        | 2.91     | 
-| BM1688 SoC  | yolox_sail.soc   | yolox_s_fp16_1b.bmodel | 3.92     | 5.21           | 5.65          | 2.91     |
-| BM1688 SoC  | yolox_sail.soc   | yolox_s_int8_1b.bmodel | 4.01     | 5.23           | 21.04         | 2.91     |
-
+| SE5-16      | yolox_opencv.py  | yolox_s_fp32_1b.bmodel | 15.18    | 3.63           | 39.70         | 2.71     |
+| SE5-16      | yolox_opencv.py  | yolox_s_int8_1b.bmodel | 15.20    | 3.64           | 33.27         | 2.69     |
+| SE5-16      | yolox_opencv.py  | yolox_s_int8_4b.bmodel | 15.20    | 5.54           | 22.66         | 2.36     |
+| SE5-16      | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel | 3.70     | 2.88           | 28.16         | 2.72     |
+| SE5-16      | yolox_bmcv.py    | yolox_s_int8_1b.bmodel | 3.50     | 2.22           | 21.62         | 2.71     |
+| SE5-16      | yolox_bmcv.py    | yolox_s_int8_4b.bmodel | 3.38     | 2.06           | 10.68         | 2.35     |
+| SE5-16      | yolox_bmcv.soc   | yolox_s_fp32_1b.bmodel | 4.86     | 1.47           | 25.78         | 2.68     |
+| SE5-16      | yolox_bmcv.soc   | yolox_s_int8_1b.bmodel | 4.57     | 1.46           | 19.44         | 2.68     |
+| SE5-16      | yolox_bmcv.soc   | yolox_s_int8_4b.bmodel | 4.76     | 1.41           | 8.96          | 2.07     |
+| SE5-16      | yolox_sail.soc   | yolox_s_fp32_1b.bmodel | 3.22     | 3.11           | 26.16         | 2.08     |
+| SE5-16      | yolox_sail.soc   | yolox_s_int8_1b.bmodel | 3.21     | 3.11           | 19.83         | 2.07     |
+| SE5-16      | yolox_sail.soc   | yolox_s_int8_4b.bmodel | 3.14     | 2.73           | 9.26          | 2.10     |
+| SE7-32      | yolox_opencv.py  | yolox_s_fp32_1b.bmodel | 13.87    | 3.40           | 44.02         | 2.84     |
+| SE7-32      | yolox_opencv.py  | yolox_s_fp16_1b.bmodel | 13.88    | 3.24           | 22.04         | 2.84     |
+| SE7-32      | yolox_opencv.py  | yolox_s_int8_1b.bmodel | 13.98    | 3.49           | 20.94         | 2.82     |
+| SE7-32      | yolox_opencv.py  | yolox_s_int8_4b.bmodel | 13.90    | 5.17           | 20.87         | 2.52     |
+| SE7-32      | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel | 3.22     | 2.40           | 30.33         | 2.86     |
+| SE7-32      | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel | 3.20     | 2.39           | 7.93          | 2.86     |
+| SE7-32      | yolox_bmcv.py    | yolox_s_int8_1b.bmodel | 3.19     | 2.38           | 6.81          | 2.87     |
+| SE7-32      | yolox_bmcv.py    | yolox_s_int8_4b.bmodel | 3.03     | 2.19           | 6.18          | 2.51     |
+| SE7-32      | yolox_bmcv.soc   | yolox_s_fp32_1b.bmodel | 4.51     | 0.75           | 27.86         | 2.72     |
+| SE7-32      | yolox_bmcv.soc   | yolox_s_fp16_1b.bmodel | 4.55     | 0.75           | 5.49          | 2.75     |
+| SE7-32      | yolox_bmcv.soc   | yolox_s_int8_1b.bmodel | 4.51     | 0.75           | 4.35          | 2.74     |
+| SE7-32      | yolox_bmcv.soc   | yolox_s_int8_4b.bmodel | 4.28     | 0.72           | 4.26          | 2.73     |
+| SE7-32      | yolox_sail.soc   | yolox_s_fp32_1b.bmodel | 2.92     | 2.72           | 28.29         | 2.12     |
+| SE7-32      | yolox_sail.soc   | yolox_s_fp16_1b.bmodel | 2.88     | 2.71           | 5.91          | 2.10     |
+| SE7-32      | yolox_sail.soc   | yolox_s_int8_1b.bmodel | 2.81     | 2.72           | 4.76          | 2.10     |
+| SE7-32      | yolox_sail.soc   | yolox_s_int8_4b.bmodel | 2.67     | 2.63           | 4.55          | 2.12     |
+| SE9-16      | yolox_opencv.py  | yolox_s_fp32_1b.bmodel | 21.62    | 4.17           | 174.24        | 3.98     |
+| SE9-16      | yolox_opencv.py  | yolox_s_fp16_1b.bmodel | 20.42    | 4.09           | 54.62         | 3.98     |
+| SE9-16      | yolox_opencv.py  | yolox_s_int8_1b.bmodel | 20.19    | 4.14           | 40.05         | 3.97     |
+| SE9-16      | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel | 4.68     | 5.18           | 157.73        | 4.01     |
+| SE9-16      | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel | 5.16     | 5.25           | 38.22         | 4.03     |
+| SE9-16      | yolox_bmcv.py    | yolox_s_int8_1b.bmodel | 4.53     | 5.18           | 23.63         | 3.99     |
+| SE9-16      | yolox_bmcv.soc   | yolox_s_fp32_1b.bmodel | 5.84     | 1.96           | 154.59        | 3.76     |
+| SE9-16      | yolox_bmcv.soc   | yolox_s_fp16_1b.bmodel | 5.83     | 1.94           | 35.05         | 3.75     |
+| SE9-16      | yolox_bmcv.soc   | yolox_s_int8_1b.bmodel | 5.78     | 1.95           | 20.42         | 3.74     |
+| SE9-16      | yolox_sail.soc   | yolox_s_fp32_1b.bmodel | 3.94     | 5.22           | 155.22        | 2.91     | 
+| SE9-16      | yolox_sail.soc   | yolox_s_fp16_1b.bmodel | 3.92     | 5.21           | 5.65          | 2.91     |
+| SE9-16      | yolox_sail.soc   | yolox_s_int8_1b.bmodel | 4.01     | 5.23           | 21.04         | 2.91     |
+| SE9-8       | yolox_opencv.py  | yolox_s_fp32_1b.bmodel | 24.61    | 4.17           | 173.98        | 4.35     |
+| SE9-8       | yolox_opencv.py  | yolox_s_fp16_1b.bmodel | 20.03    | 4.29           | 54.58         | 4.35     |
+| SE9-8       | yolox_opencv.py  | yolox_s_int8_1b.bmodel | 19.16    | 4.21           | 40.14         | 4.32     |
+| SE9-8       | yolox_opencv.py  | yolox_s_int8_4b.bmodel | 19.25    | 6.61           | 39.57         | 4.01     |
+| SE9-8       | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel | 4.12     | 4.61           | 157.66        | 4.38     |
+| SE9-8       | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel | 4.13     | 4.61           | 38.19         | 4.37     |
+| SE9-8       | yolox_bmcv.py    | yolox_s_int8_1b.bmodel | 4.12     | 4.61           | 23.70         | 4.33     |
+| SE9-8       | yolox_bmcv.py    | yolox_s_int8_4b.bmodel | 3.95     | 4.27           | 22.82         | 4.03     |
+| SE9-8       | yolox_bmcv.soc   | yolox_s_fp32_1b.bmodel | 5.55     | 1.73           | 154.12        | 3.74     |
+| SE9-8       | yolox_bmcv.soc   | yolox_s_fp16_1b.bmodel | 5.58     | 1.74           | 34.67         | 3.73     |
+| SE9-8       | yolox_bmcv.soc   | yolox_s_int8_1b.bmodel | 5.62     | 1.73           | 20.21         | 3.73     |
+| SE9-8       | yolox_bmcv.soc   | yolox_s_int8_4b.bmodel | 5.41     | 1.65           | 20.07         | 3.73     |
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 3. BM1684 SoC的测试平台为标准版SE5，BM1684X SoC的测试平台为标准版SE7；
-> 4. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
-> 5. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大；
-> 6. BM1688双核模型性能与单核模型相比，推理时间不同，其他部分基本一致，推理性能区别请参考[7.1小节](#71-bmrt_test)测试数据；
-> 7. `yolox_opencv.py`的decode_time基于公版opencv。
+> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异;
+> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大；
+> 5. BM1688双核模型性能与单核模型相比，推理时间不同，其他部分基本一致，推理性能区别请参考[7.1小节](#71-bmrt_test)测试数据；
+> 6. `yolox_opencv.py`的decode_time基于公版opencv。
 
 ## 8. FAQ
 [常见问题解答](../../docs/FAQ.md)
