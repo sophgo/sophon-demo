@@ -36,6 +36,17 @@ then
     unzip models.zip -d ../models
     rm models.zip
 
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/GroundingDINO.tar
+    mv GroundingDINO.tar ../models
+
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/bert-base-uncased.zip
+    unzip bert-base-uncased.zip -d ../models
+    rm bert-base-uncased.zip
+
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/onnx.zip
+    unzip onnx.zip -d ../models
+    rm onnx.zip
+
     echo "models download!"
 else
     echo "models exist!"
