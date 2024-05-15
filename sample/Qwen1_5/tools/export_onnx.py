@@ -23,7 +23,7 @@ parser.add_argument('-d', '--device', type=str, choices=["cpu", "cuda"], default
 args = parser.parse_args()
 
 model_path = args.model_path
-folder = f"./model/onnx"
+folder = f"./models/onnx"
 
 device = torch.device(args.device)
 origin_model = AutoModelForCausalLM.from_pretrained(

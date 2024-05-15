@@ -45,7 +45,7 @@ pip3 install dfss --upgrade #安装dfss依赖
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen1_5/sophon-sail.tar.gz
 tar xvf sophon-sail.tar.gz
 ```
-参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)编译安装sail。
+参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)编译不包含bmcv,sophon-ffmpeg,sophon-opencv的可被Python3接口调用的Wheel文件。
 
 ### 1.2 SoC平台
 
@@ -67,7 +67,8 @@ pip3 install dfss --upgrade #安装dfss依赖
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen1_5/sophon-sail.tar.gz
 tar xvf sophon-sail.tar.gz
 ```
-参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)编译安装sail。
+参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)编译不包含bmcv,sophon-ffmpeg,sophon-opencv的可被Python3接口调用的Wheel文件。
+注意，需要替换编译参数-DLIBSOPHON_BASIC_PATH为上面提供的libsophon.
 
 ## 2. 推理测试
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
@@ -87,6 +88,16 @@ usage: qwen1_5.py [--bmodel BMODEL] [--token TOKEN] [--dev_id DEV_ID]
 python3 python/qwen1_5.py --bmodel models/BM1684X/qwen1.5-1.8b_int4_1dev.bmodel --token python/token_config --dev_id 0 
 ```
 在读入模型后会显示"Question:"，然后输入就可以了。模型的回答会出现在"Answer"中。结束对话请输入"exit"。
+
+注意，如果soc环境上的SDK版本小于0.5.1版本，需要添加以下环境变量来链接新的libsophon：
+```bash
+export LD_LIBRARY_PATH=libsophon_0.5.1_aarch64/opt/sophon/libsophon-0.5.1/lib/:$LD_LIBRARY_PATH
+```
+
+您也可以直接刷机升级SDK为0.5.1版本。更推荐您采用刷机升级SDK的方式。由于本例程需要的SDK版本较新，相关功能还未发布，这里暂时提供一个可用的刷机包：
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen1_5/sdcard.tgz 
+```
 
 ## 3. 支持多会话的Web Demo
 我们提供了基于[streamlit](https://streamlit.io/)的web demo，可同时进行多个会话的推理。
