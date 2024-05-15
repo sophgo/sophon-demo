@@ -13,7 +13,8 @@ unzip GroundingDINO_Torch.zip
 ```
 下载得到GroundingDINO_Torch及对应文件.导出onnx方式为：
 ```bash
-./GroundingDINO_Torch/export_onnx.py --args
+cd GroundingDINO_Torch
+python3 export_onnx.py
 ```
-其中`--args`和源仓库中进行模型推理部分的一致,请参考[GroundingDINO官方开源仓库](https://github.com/IDEA-Research/GroundingDINO/tree/main)进行使用
+其中参数和源仓库中进行模型推理部分的一致,请参考[GroundingDINO官方开源仓库](https://github.com/IDEA-Research/GroundingDINO/tree/main)进行使用
 
