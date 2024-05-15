@@ -48,7 +48,7 @@ unzip sophon-sail.zip
 | max_que_size  | int    | 队列长度，默认为4，不可小于输入模型的batch_size |
 | video_nums    | string | 视频测试路数，默认为16                          |
 | batch_size    | int    | 为输入bmodel的batch_size，默认为4               |
-| loops         | int    | 对于一个进程的循环测试图片数，默认为1000        |
+| loops         | int    | 对于一个进程的循环测试图片数，默认为2000        |
 | input         | string | 本地视频路径或视频流地址                        |
 | yolo_bmodel   | int    | yolov5 bmodel路径                               |
 | lprnet_bmodel | int    | lprnet bmodel路径                               |
@@ -59,7 +59,7 @@ unzip sophon-sail.zip
 ### 3.2 运行程序
 运行应用程序即可
 ```bash
-python3 vlpr.py --input ../datasets/1080_1920_30s_512kb.mp4   --loops 1000 --video_nums 16 \
+python3 vlpr.py --input ../datasets/1080_1920_30s_512kb.mp4   --loops 2000 --video_nums 16 \
     --yolo_bmodel ../models/yolov5s-licensePlate/BM1684/yolov5s_v6.1_license_3output_int8_4b.bmodel \
     --lprnet_bmodel ../models/lprnet/BM1684/lprnet_int8_4b.bmodel
 ```
