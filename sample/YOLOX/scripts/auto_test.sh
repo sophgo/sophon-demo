@@ -18,7 +18,7 @@ fi
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -48,6 +48,34 @@ do
   esac
 done
 
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
+
+if [ -f "scripts/acc.txt" ]; then
+  rm scripts/acc.txt
+fi
+echo "|   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|" >> scripts/acc.txt
+
+PLATFORM=$TARGET
+if test $MODE = "soc_test"; then
+  if test $TARGET = "BM1684X"; then
+    PLATFORM="SE7-32"
+  elif test $TARGET = "BM1684"; then
+    PLATFORM="SE5-16"
+  elif test $TARGET = "BM1688"; then
+    PLATFORM="SE9-16"
+    cpu_core_num=$(nproc)
+    if [ "$cpu_core_num" -eq 6 ]; then
+      PLATFORM="SE9-8"
+    fi
+  elif test $TARGET = "CV186X"; then
+    PLATFORM="SE9-8"
+  else
+    echo "Unknown TARGET type: $TARGET"
+  fi
+fi
+
 if test $PYTEST = "pytest"
 then
   >${top_dir}auto_test_result.txt
@@ -74,7 +102,7 @@ function judge_ret() {
 
   if test $PYTEST = "pytest"
   then
-    if [[ $3 != 0 ]];then
+    if [[ -n "$3" ]];then
       tail -n ${ECHO_LINES} $3 >> ${top_dir}auto_test_result.txt
     fi
     echo "########Debug Info End########" >> ${top_dir}auto_test_result.txt
@@ -156,6 +184,60 @@ function compare_res(){
     fi
 }
 
+function bmrt_test_case(){
+   calculate_time_log=$(bmrt_test --bmodel $1 --devid $TPUID | grep "calculate" 2>&1)
+   is_4b=$(echo $1 |grep "4b")
+
+   if [ "$is_4b" != "" ]; then
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 250}')
+   else
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 1000}')
+   fi
+   for time in "${calculate_times[@]}"
+   do
+     printf "| %-35s| % 15s |\n" "$1" "$time"
+   done
+}
+
+function bmrt_test_benchmark(){
+    pushd models
+    printf "| %-35s| % 15s |\n" "测试模型" "calculate time(ms)"
+    printf "| %-35s| % 15s |\n" "-------------------" "--------------"
+   
+    if test $TARGET = "BM1684"; then
+      bmrt_test_case BM1684/yolox_s_fp32_1b.bmodel
+      bmrt_test_case BM1684/yolox_s_fp32_4b.bmodel
+      bmrt_test_case BM1684/yolox_s_int8_1b.bmodel
+      bmrt_test_case BM1684/yolox_s_int8_4b.bmodel
+    elif test $TARGET = "BM1684X"; then
+      bmrt_test_case BM1684X/yolox_s_int8_4b.bmodel
+      bmrt_test_case BM1684X/yolox_s_int8_1b.bmodel
+      bmrt_test_case BM1684X/yolox_s_fp32_4b.bmodel
+      bmrt_test_case BM1684X/yolox_s_fp32_1b.bmodel
+      bmrt_test_case BM1684X/yolox_s_fp16_1b.bmodel
+      bmrt_test_case BM1684X/yolox_s_fp16_4b.bmodel
+
+    elif test $TARGET = "BM1688"; then
+      bmrt_test_case BM1688/yolox_s_int8_4b.bmodel
+      bmrt_test_case BM1688/yolox_s_int8_4b.bmodel
+      bmrt_test_case BM1688/yolox_s_fp16_1b.bmodel
+      bmrt_test_case BM1688/yolox_s_fp32_1b.bmodel
+      if test "$PLATFORM" = "SE9-16"; then 
+        bmrt_test_case BM1688/yolox_s_int8_4b_2core.bmodel
+        bmrt_test_case BM1688/yolox_s_int8_4b_2core.bmodel
+        bmrt_test_case BM1688/yolox_s_fp16_1b_core.bmodel
+        bmrt_test_case BM1688/yolox_s_fp32_1b_2core.bmodel
+      fi
+    elif test $TARGET = "CV186X"; then
+      bmrt_test_case CV186X/yolox_s_int8_4b.bmodel
+      bmrt_test_case CV186X/yolox_s_int8_4b.bmodel
+      bmrt_test_case CV186X/yolox_s_fp16_1b.bmodel
+      bmrt_test_case CV186X/yolox_s_fp32_1b.bmodel
+    fi
+  
+    popd
+}
+
 function test_cpp()
 {
   pushd cpp/yolox_$2
@@ -194,6 +276,9 @@ function eval_cpp()
   acc=${array[1]}
   compare_res $acc $4
   judge_ret $? "$3_val2017_1000_$2_cpp_result: Precision compare!" log/$1_$2_$3_eval.log
+  ap0=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50:0.95 | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  ap1=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50      | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  printf "| %-12s | %-18s | %-40s | %8.3f | %8.3f |\n" "$PLATFORM" "yolox_$1.py" "$2" "$(printf "%.3f" $ap0)" "$(printf "%.3f" $ap1)">> scripts/acc.txt
   popd
   echo -e "########################\nCase End: eval cpp\n########################\n"
 }
@@ -232,6 +317,10 @@ function eval_python()
   acc=${array[1]}
   compare_res $acc $3
   judge_ret $? "$2_val2017_1000_$1_python_result: Precision compare!" python/log/$1_$2_eval.log
+  ap0=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50:0.95 | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  ap1=$(echo -e "$res"| grep "Average Precision  (AP) @\[ IoU\=0.50      | area\=   all | maxDets\=100 \]" | grep -oP ' = \K\d+\.\d+' | awk '{printf "%.3f \n", $1}')
+  printf "| %-12s | %-18s | %-40s | %8.3f | %8.3f |\n" "$PLATFORM" "yolox_$1.py" "$2" "$(printf "%.3f" $ap0)" "$(printf "%.3f" $ap1)">> scripts/acc.txt
+  
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
@@ -424,6 +513,7 @@ then
     eval_cpp soc sail yolox_s_int8_4b.bmodel 0.401
   elif test $TARGET = "BM1688"
   then
+    echo ""
     test_python opencv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
     test_python opencv yolox_s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
     test_python bmcv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -490,7 +580,67 @@ then
     eval_cpp soc sail yolox_s_fp16_1b_2core.bmodel 0.400
     eval_cpp soc sail yolox_s_int8_1b_2core.bmodel 0.402
     eval_cpp soc sail yolox_s_int8_4b_2core.bmodel 0.402
+
+  elif test $TARGET = "CV186X"
+  then
+    test_python opencv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python opencv yolox_s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolox_s_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_python bmcv yolox_s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    #performence test
+    test_python opencv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_fp16_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_fp16_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolox_s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc bmcv yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_int8_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp soc sail yolox_s_int8_4b.bmodel ../../datasets/coco/val2017_1000
+    
+    eval_python opencv yolox_s_fp32_1b.bmodel 0.403
+    eval_python opencv yolox_s_fp16_1b.bmodel 0.402
+    eval_python opencv yolox_s_int8_1b.bmodel 0.402
+    eval_python opencv yolox_s_int8_4b.bmodel 0.402
+
+    eval_python bmcv yolox_s_fp32_1b.bmodel 0.402
+    eval_python bmcv yolox_s_fp16_1b.bmodel 0.402
+    eval_python bmcv yolox_s_int8_1b.bmodel 0.402
+    eval_python bmcv yolox_s_int8_4b.bmodel 0.402
+
+    eval_cpp soc bmcv yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp soc bmcv yolox_s_fp16_1b.bmodel 0.400
+    eval_cpp soc bmcv yolox_s_int8_1b.bmodel 0.402
+    eval_cpp soc bmcv yolox_s_int8_4b.bmodel 0.402
+
+    eval_cpp soc sail yolox_s_fp32_1b.bmodel 0.400
+    eval_cpp soc sail yolox_s_fp16_1b.bmodel 0.400
+    eval_cpp soc sail yolox_s_int8_1b.bmodel 0.402
+    eval_cpp soc sail yolox_s_int8_4b.bmodel 0.402
+
   fi
+fi
+
+if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
+  echo "--------yolox mAP----------"
+  cat scripts/acc.txt
+  echo "--------bmrt_test performance-----------"
+  bmrt_test_benchmark
+  echo "--------yolox performance-----------"
+  cat tools/benchmark.txt
+
 fi
 
 if [[ $ALL_PASS -eq 0 ]]
