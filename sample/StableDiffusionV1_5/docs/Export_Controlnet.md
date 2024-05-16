@@ -276,7 +276,7 @@ hed_controlnet.pt后续可用tpu-mlir转换为bmodel，作为插件干预Stable 
 
 ### 3.3 准备测试图像
 
-在pics路径下，已经准备好了各类ControlNet对应的控制图像，若用户使用自己的图像作为控制图像，请将图像的高宽均调整为512。
+在pics路径下，已经准备好各类ControlNet对应的控制图像的样例，用户使用控制图像时，建议将图像的高宽比调整至与生成图像的高宽比相近的值。
 
 ## 4. 相关参数说明
 
@@ -290,7 +290,8 @@ usage: run.py
 --controlnet_name: controlnet的文件名
 --processor_name: processor net的文件名
 --controlnet_img: controlnet的图像路径
---prompt: 提示词
+--prompt: 提示词，希望图像中出现的内容，越靠前的词权重越大
+--neg_prompt: 负面提示词，不希望图像中出现的内容
 ```
 
 ## 5. 效果展示
@@ -318,7 +319,7 @@ python3 run.py --stage multilize --controlnet_name hed_controlnet_fp16.bmodel --
 <img src="../pics/hed.png" alt="hed" style="zoom:70%;" /><img src="../pics/hed_out.png" alt="hed_out" style="zoom:70%;" />
 
 ```python
-python3 run.py --stage multilize --controlnet_name openpose_controlnet_fp16.bmodel --processor_name openpose_body_fp16.bmodel --controlnet_img ../pics/openpose.png --prompt "chef in the kitchen"
+python3 run.py --stage multilize --controlnet_name openpose_controlnet_fp16.bmodel --processor_name openpose_body_processor_fp16.bmodel --controlnet_img ../pics/openpose.png --prompt "chef in the kitchen"
 ```
 
 <img src="../pics/openpose.png" alt="openpose" style="zoom:70%;" /><img src="../pics/openpose_out.png" alt="openpose_out" style="zoom:70%;" />

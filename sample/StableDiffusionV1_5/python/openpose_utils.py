@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import math
 from scipy.ndimage.filters import gaussian_filter
+from scipy.ndimage import zoom 
 from PIL import Image
 from skimage.measure import label
 
@@ -162,7 +163,7 @@ def draw_pose(pose, H, W, draw_body=True, draw_hand=True, draw_face=True):
 
     return canvas
 
-def _prepare_openpose_image(controlnet_img, body_model, hand_model):
+def _prepare_openpose_image(controlnet_img, body_model, hand_model = None, face_model = None):
 
     if not isinstance(controlnet_img, np.ndarray):
         controlnet_img = np.array(controlnet_img, dtype=np.uint8)
@@ -174,9 +175,10 @@ def _prepare_openpose_image(controlnet_img, body_model, hand_model):
     assert C == 1 or C == 3
     if C == 3:
         pass
-    if C == 1:
+    elif C == 1:
         controlnet_img = np.concatenate([controlnet_img, controlnet_img, controlnet_img], axis=2)
-    controlnet_img = controlnet_img[:, :, ::-1].copy()   # scale_search = [0.5, 1.0, 1.5, 2.0]
+    controlnet_img = resize_image(controlnet_img, 512)
+    controlnet_img = controlnet_img[:, :, ::-1].copy()
 
     scale_search = [0.5]
     boxsize = 368
@@ -359,7 +361,7 @@ def _prepare_openpose_image(controlnet_img, body_model, hand_model):
     hands = []
     faces = []
 
-        # Hand
+    # Hand
     if hand_model:
         hands_list = handDetect(candidate, subset, controlnet_img)
         for x, y, w, is_left in hands_list:
@@ -413,6 +415,37 @@ def _prepare_openpose_image(controlnet_img, body_model, hand_model):
                 peaks[:, 1] = np.where(peaks[:, 1] < 1e-6, -1, peaks[:, 1] + y) / float(H)
                 hands.append(peaks.tolist())
 
+    # Face
+    if face_model:
+        faces_list = faceDetect(candidate, subset, controlnet_img)
+        for x, y, w in faces_list:
+            face_img = controlnet_img[y:y+w, x:x+w, :]
+            face_img_h, face_img_w, face_img_c = face_img.shape
+            w_size = 384
+            x_data = smart_resize(face_img, (w_size, w_size)).transpose(2, 0, 1) / 256.0 - 0.5
+            x_data = face_model([x_data[None, ...]])[0]
+            heatmaps = zoom(x_data, zoom = (1, 1, face_img_h/x_data.shape[2], face_img_w/x_data.shape[3]), order=1)[0]
+
+            all_peaks = []
+            for part in range(heatmaps.shape[0]):
+                map_ori = heatmaps[part].copy()
+                binary = np.ascontiguousarray(map_ori > 0.05, dtype=np.uint8)
+
+                if np.sum(binary) == 0:
+                    continue
+
+                positions = np.where(binary > 0.5)
+                intensities = map_ori[positions]
+                mi = np.argmax(intensities)
+                y, x = positions[0][mi], positions[1][mi]
+                all_peaks.append([x, y])
+            peaks = np.array(all_peaks)
+
+            if peaks.ndim == 2 and peaks.shape[1] == 2:
+                peaks[:, 0] = np.where(peaks[:, 0] < 1e-6, -1, peaks[:, 0] + x) / float(W)
+                peaks[:, 1] = np.where(peaks[:, 1] < 1e-6, -1, peaks[:, 1] + y) / float(H)
+                faces.append(peaks.tolist())
+
     if candidate.ndim == 2 and candidate.shape[1] == 4:
         candidate = candidate[:, :2]
         candidate[:, 0] /= float(W)
@@ -424,8 +457,8 @@ def _prepare_openpose_image(controlnet_img, body_model, hand_model):
     canvas = draw_pose(pose, H, W, draw_body=True , draw_hand=False, draw_face=False)
 
     detected_map = HWC3(canvas)
-    img = resize_image(controlnet_img, 512)
-    H, W, C = img.shape
+    # img = resize_image(controlnet_img, 512)
+    # H, W, C = img.shape
 
     detected_map = cv2.resize(detected_map, (W, H), interpolation=cv2.INTER_NEAREST)
     controlnet_img = Image.fromarray(detected_map)
@@ -500,6 +533,76 @@ def handDetect(candidate, subset, oriImg):
     width=height since the network require squared input.
     x, y is the coordinate of top left
     '''
+    return detect_result
+
+# Written by Lvmin
+def faceDetect(candidate, subset, oriImg):
+    # left right eye ear 14 15 16 17
+    detect_result = []
+    image_height, image_width = oriImg.shape[0:2]
+    for person in subset.astype(int):
+        has_head = person[0] > -1
+        if not has_head:
+            continue
+
+        has_left_eye = person[14] > -1
+        has_right_eye = person[15] > -1
+        has_left_ear = person[16] > -1
+        has_right_ear = person[17] > -1
+
+        if not (has_left_eye or has_right_eye or has_left_ear or has_right_ear):
+            continue
+
+        head, left_eye, right_eye, left_ear, right_ear = person[[0, 14, 15, 16, 17]]
+
+        width = 0.0
+        x0, y0 = candidate[head][:2]
+
+        if has_left_eye:
+            x1, y1 = candidate[left_eye][:2]
+            d = max(abs(x0 - x1), abs(y0 - y1))
+            width = max(width, d * 3.0)
+
+        if has_right_eye:
+            x1, y1 = candidate[right_eye][:2]
+            d = max(abs(x0 - x1), abs(y0 - y1))
+            width = max(width, d * 3.0)
+
+        if has_left_ear:
+            x1, y1 = candidate[left_ear][:2]
+            d = max(abs(x0 - x1), abs(y0 - y1))
+            width = max(width, d * 1.5)
+
+        if has_right_ear:
+            x1, y1 = candidate[right_ear][:2]
+            d = max(abs(x0 - x1), abs(y0 - y1))
+            width = max(width, d * 1.5)
+
+        x, y = x0, y0
+
+        x -= width
+        y -= width
+
+        if x < 0:
+            x = 0
+
+        if y < 0:
+            y = 0
+
+        width1 = width * 2
+        width2 = width * 2
+
+        if x + width > image_width:
+            width1 = image_width - x
+
+        if y + width > image_height:
+            width2 = image_height - y
+
+        width = min(width1, width2)
+
+        if width >= 20:
+            detect_result.append([int(x), int(y), int(width)])
+
     return detect_result
 
 def hsv_to_rgb(hsv):
@@ -589,3 +692,16 @@ def npmax(array):
     i = arrayvalue.argmax()
     j = arrayindex[i]
     return i, j
+
+def smart_resize(x, s):
+    Ht, Wt = s
+    if x.ndim == 2:
+        Ho, Wo = x.shape
+        Co = 1
+    else:
+        Ho, Wo, Co = x.shape
+    if Co == 3 or Co == 1:
+        k = float(Ht + Wt) / float(Ho + Wo)
+        return cv2.resize(x, (int(Wt), int(Ht)), interpolation=cv2.INTER_AREA if k < 1 else cv2.INTER_LANCZOS4)
+    else:
+        return np.stack([smart_resize(x[:, :, i], s) for i in range(Co)], axis=2)

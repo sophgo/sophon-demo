@@ -8,14 +8,14 @@ from transformers import CLIPTokenizer
 from diffusers.utils import logging, load_image
 import PIL
 from PIL import Image
+import torch
 
 import logging
 logging.basicConfig(level=logging.INFO)
-# logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 def get_control_net(input_shape):
     res = []
-    _width, _height = input_shape
+    _height, _width = input_shape
     res.append(np.zeros((2, 320, _height//8,
                 _width//8)).astype(np.float32))
     res.append(np.zeros((2, 320, _height//8,
@@ -74,8 +74,9 @@ class StableDiffusionPipeline():
         if processor_name:
             processor_path = os.path.join(model_path, "processors", processor_name)
             self.processor = EngineOV(processor_path, device_id = dev_id)
-            if processor_name == "openpose_body_fp16.bmodel":
-                self.processor_hand = EngineOV(os.path.join(model_path, "processors", "openpose_hand_fp16.bmodel"), device_id = dev_id)
+            if processor_name == "openpose_body_processor_fp16.bmodel":
+                self.processor_hand = EngineOV(os.path.join(model_path, "processors", "openpose_hand_processor_fp16.bmodel"), device_id = dev_id)
+                self.processor_face = EngineOV(os.path.join(model_path, "processors", "openpose_face_processor_fp16.bmodel"), device_id = dev_id)
         else:
             self.processor = None
 
@@ -298,7 +299,7 @@ class StableDiffusionPipeline():
         return controlnet_img
 
     def _controlnet_prepare_image(self, image):
-        width, height = self.init_shape
+        height, width = self.init_shape
         # opencv to PIL
         if isinstance(image, Image.Image):
             image = image
@@ -347,12 +348,12 @@ class StableDiffusionPipeline():
         callback = None,
         callback_steps = 1,
         strength = 0.7,
-        offset = 1,
+        offset = 0,
     ):
         # 0. Default height and width to unet
         height = height or self.unet_config_sample_size * self.vae_scale_factor
         width = width or self.unet_config_sample_size * self.vae_scale_factor
-        self.init_shape = [width, height]
+        self.init_shape = [height, width]
 
         # 1. Check inputs. Raise error if not correct
         self.check_inputs(
@@ -400,7 +401,8 @@ class StableDiffusionPipeline():
             timesteps = self.scheduler.timesteps + offset
         else:
             init_image = cv2.imread(init_image)
-            init_latents = self._encode_image(init_image)
+            init_image_resized = cv2.resize(init_image, (width, height))
+            init_latents = self._encode_image(init_image_resized)
             init_timestep = int(num_inference_steps * strength)
             init_timestep = min(init_timestep, num_inference_steps)
             timesteps = np.array(self.scheduler.timesteps[-init_timestep:]).astype(np.long) + offset
@@ -417,11 +419,12 @@ class StableDiffusionPipeline():
         if self.controlnet:
             if controlnet_img is not None:
                 controlnet_img = load_image(controlnet_img)
+                controlnet_img = controlnet_img.resize((width, height), PIL.Image.LANCZOS)
             if self.controlnet_name == "canny_controlnet":
                 controlnet_img = self._prepare_canny_image(controlnet_img, {})
             elif self.controlnet_name == "openpose_controlnet":
                 from openpose_utils import _prepare_openpose_image
-                controlnet_img = _prepare_openpose_image(controlnet_img, self.processor, self.processor_hand)
+                controlnet_img = _prepare_openpose_image(controlnet_img, self.processor, self.processor_hand, self.processor_face)
             elif self.controlnet_name == "hed_controlnet":
                 from hed_utils import _prepare_hed_image
                 controlnet_img = _prepare_hed_image(controlnet_img, self.processor)
@@ -483,7 +486,10 @@ class StableDiffusionPipeline():
 
                 # compute the previous noisy sample x_t -> x_t-1
                 # (4,64,64) () (1, 4, 64, 64)
-                latents = self.scheduler.step(noise_pred, t, latents, return_dict=False)[0]
+                temp_noise_pred = torch.from_numpy(noise_pred)
+                temp_latents = torch.from_numpy(latents)
+                latents = self.scheduler.step(temp_noise_pred, t, temp_latents, return_dict=False)[0]
+                latents = latents.numpy()
 
                 # call the callback, if provided
                 if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):

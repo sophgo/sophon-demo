@@ -1,5 +1,6 @@
 import numpy as np
 from PIL import Image
+from scipy.ndimage import zoom
 
 ada_palette = np.asarray([
       [0, 0, 0],
@@ -156,6 +157,7 @@ ada_palette = np.asarray([
   ])
 
 def _prepare_seg_image(controlnet_img, seg_processor):
+    img_width, img_height = controlnet_img.size
     controlnet_img = controlnet_img.resize((576, 576), Image.BICUBIC)
     controlnet_img = np.array(controlnet_img)
     controlnet_img = controlnet_img * 0.00392156862745098
@@ -163,12 +165,12 @@ def _prepare_seg_image(controlnet_img, seg_processor):
     mean = np.array([0.485, 0.456, 0.406], dtype = controlnet_img.dtype)
     std = np.array([0.229, 0.224, 0.225], dtype = controlnet_img.dtype)
     controlnet_img = (controlnet_img - mean) / std
-    controlnet_img = controlnet_img.transpose((2,0,1))
-    controlnet_img = controlnet_img.reshape(1, 3, 576, 576)
-
+    controlnet_img = controlnet_img.transpose((2,0,1))[np.newaxis, ...]
     controlnet_img = [controlnet_img]
     seg_map = seg_processor(controlnet_img)
     seg_map = seg_map[0]
+
+    seg_map = zoom(seg_map, (1, 1, img_height/576, img_width/576), order=1)
 
     seg_map = np.squeeze(seg_map)
 
@@ -179,7 +181,6 @@ def _prepare_seg_image(controlnet_img, seg_processor):
         color_seg[semantic_map == label, :] = color
     color_seg = color_seg.astype(np.uint8)
     controlnet_img = Image.fromarray(color_seg)
-    controlnet_img = controlnet_img.resize((512, 512), Image.BICUBIC)
 
     controlnet_img = controlnet_img.convert("RGB")
     # pil to numpy

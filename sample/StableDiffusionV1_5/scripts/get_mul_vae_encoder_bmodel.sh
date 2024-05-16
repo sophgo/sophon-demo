@@ -1,9 +1,9 @@
 #!/bin/bash
 
 script_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-pushd "$script_directory/processors" || exit
 
-outdir=../../../../models/BM1684X/processors/
+pushd "$script_directory/../models/onnx_pt/multilize/vae_encoder" || exit
+outdir=../../../BM1684X/multilize/
 
 if [ ! -d $outdir ]; then
     mkdir -p $outdir
@@ -16,24 +16,24 @@ do
         width=${BASH_REMATCH[2]}
     
     model_transform.py \
-        --model_name scribble_processor \
-        --model_def scribble_processor_${height}_${width}.pt \
+        --model_name vae_encoder \
+        --model_def vae_encoder_${height}_${width}.pt \
         --input_shapes [1,3,${height},${width}] \
-        --mlir scribble_processor_${height}_${width}.mlir
+        --mlir vae_encoder_${height}_${width}.mlir
 
     model_deploy.py \
-        --mlir scribble_processor_${height}_${width}.mlir \
+        --mlir vae_encoder_${height}_${width}.mlir \
         --quantize BF16 \
         --chip bm1684x \
         --merge_weight \
-        --model scribble_processor_${height}_${width}.bmodel
+        --model vae_encoder_${height}_${width}.bmodel
     fi
 done
 
 model_tool \
     --combine *.bmodel \
-    -o scribble_processor_fp16.bmodel
+    -o vae_encoder_multize.bmodel
 
-mv scribble_processor_fp16.bmodel $outdir
+mv vae_encoder_multize.bmodel $outdir
 
 popd

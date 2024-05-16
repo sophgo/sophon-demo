@@ -20,7 +20,7 @@ device = "cpu"
 data_type = torch.float32
 
 controlnet = ControlNetModel.from_pretrained(
-    "lllyasviel/sd-controlnet-openpose", torch_dtype=data_type
+    "lllyasviel/sd-controlnet-depth", torch_dtype=data_type
 )
 
 pipe = StableDiffusionControlNetPipeline.from_pretrained(
@@ -63,6 +63,6 @@ def export_controlnet():
 
         traced_model = torch.jit.trace(
             build_controlnet, (control_model_input, t, controlnet_prompt_embeds, image))
-        traced_model.save(f"./{save_dir}/openpose_controlnet_{img_height}_{img_width}.pt")
+        traced_model.save(f"./{save_dir}/depth_controlnet_{img_height}_{img_width}.pt")
 
 export_controlnet()

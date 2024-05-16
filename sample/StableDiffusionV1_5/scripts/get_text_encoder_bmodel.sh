@@ -1,8 +1,17 @@
 #!/bin/bash
 model_dir=$(dirname $(readlink -f "$0"))
-outdir=../models/BM1684X/singlize/
+outdir1=../models/BM1684X/singlize/
+outdir2=../models/BM1684X/multilize/
 
-function gen_mlir()
+if [ ! -d $outdir1 ]; then
+    mkdir -p $outdir1
+fi
+
+if [ ! -d $outdir2 ]; then
+    mkdir -p $outdir2
+fi
+
+function gen_text_encoder_mlir()
 {
     model_transform.py \
         --model_name encoder \
@@ -11,7 +20,7 @@ function gen_mlir()
         --mlir encoder.mlir
 }
 
-function gen_fp32bmodel()
+function gen_text_encoder_fp32bmodel()
 {
     model_deploy.py \
         --mlir encoder.mlir \
@@ -19,16 +28,13 @@ function gen_fp32bmodel()
         --chip bm1684x \
         --model text_encoder_1684x_f32.bmodel
 
-    mv text_encoder_1684x_f32.bmodel $outdir/
+    cp text_encoder_1684x_f32.bmodel $outdir1/
+    mv text_encoder_1684x_f32.bmodel $outdir2/
 }
 
 pushd $model_dir
 
-if [ ! -d $outdir ]; then
-    mkdir -p $outdir
-fi
-
-gen_mlir
-gen_fp32bmodel
+gen_text_encoder_mlir
+gen_text_encoder_fp32bmodel
 
 popd
