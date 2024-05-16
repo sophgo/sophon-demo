@@ -5,7 +5,7 @@ pushd $model_dir
 
 models=
 mode="f16"
-folder="./models"
+folder="../models"
 target_dir="BM1684X"
 num_device=1
 mode_args=""
@@ -239,4 +239,5 @@ done
 popd
 echo $models
 
+mkdir -p $folder/$target_dir/
 model_tool --combine $models -o $folder/$target_dir/$out_model
