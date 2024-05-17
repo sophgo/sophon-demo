@@ -35,8 +35,14 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Real-ESRGAN/models/realesr-general-x4v3.onnx
     popd
     
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Real-ESRGAN/models/BM1688.tgz
+    tar xvf BM1688.tgz
+
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Real-ESRGAN/models/BM1684X.tgz
     tar xvf BM1684X.tgz
+
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Real-ESRGAN/models/CV186X.tgz
+    tar xvf CV186X.tgz
     popd    
     echo "models download!"
 else

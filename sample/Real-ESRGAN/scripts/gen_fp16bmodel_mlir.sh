@@ -52,8 +52,6 @@ gen_mlir 1
 gen_fp16bmodel 1
 
 
-# batch_size=4
-gen_mlir 4
-gen_fp16bmodel 4
+
 
 popd
