@@ -16,8 +16,10 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [resize](./tutorial/resize/README.md)                                     | C++/Python |
 | [crop](./tutorial/crop/README.md)                                         | C++/Python |
 | [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)   | C++/Python |
-| [ocv_jpubasic](./tutorial/ocv_jpubasic/README.md) | C++/Python |
-| [ocv_vidbasic](./tutorial/vid_jpubasic/README.md) | C++/Python |
+| [ocv_jpubasic](./tutorial/ocv_jpubasic/README.md)                         | C++/Python |
+| [ocv_vidbasic](./tutorial/vid_jpubasic/README.md)                         | C++/Python |
+| [blend](./blend)                                                          | C++/Python |
+| [stitch](./stitch)                                                        | C++/Python |
 
 | sample                                                          | 算法类别          | 编程语言    | BModel         |
 |---                                                            |---               |---          | ---           |
@@ -46,10 +48,12 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16      | 
 | [BERT](./sample/BERT/README.md)                               | 语言模型          | C++/Python | FP32/FP16      | 
 | [ChatGLM2](./sample/ChatGLM2/README.md)                       | 语言模型          | C++/Python | FP16/INT8/INT4 | 
-| [Llama2](./sample/Llama2/README.md)                           | 语言模型          | C++        | FP16/INT8/INT4 |
+| [Llama2](./sample/Llama2/README.md)                           | 语言模型          | C++/Python | FP16/INT8/INT4 |
 | [ChatGLM3](./sample/ChatGLM3/README.md)                       | 语言模型          | Python     | FP16/INT8/INT4 | 
 | [Qwen](./sample/Qwen/README.md)                               | 语言模型          | Python     | FP16/INT8/INT4 | 
+| [Qwen1_5](./sample/Qwen1_5/README.md)                         | 语言模型          | Python     | FP16/INT8/INT4 | 
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | 图像生成          | Python     | FP32/FP16      |
+| [GroundingDINO](./sample/GroundingDINO/README.md)             | 多模态目标检测     | Python     | FP16           |
 
 | application                                                    | 应用场景                  | 编程语言    | 
 |---                                                             |---                       |---          | 
@@ -60,6 +64,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.2.1  | 完善和修复文档、代码问题，部分例程补充CV186X支持，YOLOv5适配SG2042，sample模块新增例程GroundingDINO、Qwen1_5，StableDiffusionV1_5新支持多种分辨率，Qwen、Llama2、ChatGLM3添加web和多会话模式。tutorial模块新增blend和stitch例程 |
 | 0.2.0  | 完善和修复文档、代码问题，新增application和tutorial模块，新增例程ChatGLM3和Qwen，SAM添加web ui，BERT、ByteTrack、C3D适配BM1688，原YOLOv8更名为YOLOv8_det并且添加cpp后处理加速方法，优化常用例程的auto_test，更新TPU-MLIR安装方式为pip |
 | 0.1.10 | 修复文档、代码问题，新增ppYoloe、YOLOv8_seg、StableDiffusionV1.5、SAM，重构yolact，CenterNet、YOLOX、YOLOv8适配BM1688，YOLOv5、ResNet、PP-OCR、DeepSORT补充BM1688性能数据，WeNet提供C++交叉编译方法 |
 | 0.1.9	 | 修复文档、代码问题，新增segformer、YOLOv7、Llama2例程，重构YOLOv34，YOLOv5、ResNet、PP-OCR、DeepSORT、LPRNet、RetinaFace、YOLOv34、WeNet适配BM1688，OpenPose后处理加速，chatglm2添加编译方法和int8/int4量化。|
