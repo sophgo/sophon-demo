@@ -15,8 +15,10 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [resize](./tutorial/resize/README.md)                                     | C++/Python |
 | [crop](./tutorial/crop/README.md)                                         | C++/Python |
 | [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)   | C++/Python |
-| [ocv_jpubasic](./tutorial/ocv_jpubasic/README.md) | C++/Python |
-| [ocv_vidbasic](./tutorial/vid_jpubasic/README.md) | C++/Python |
+| [ocv_jpubasic](./tutorial/ocv_jpubasic/README.md)                         | C++/Python |
+| [ocv_vidbasic](./tutorial/vid_jpubasic/README.md)                         | C++/Python |
+| [blend](./blend)                                                          | C++/Python |
+| [stitch](./stitch)                                                        | C++/Python |
 
 | contents                                                      | category                           | code       |  BModel       |
 |---                                                            |---                                 |---          | ---           |
@@ -48,7 +50,9 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [Llama2](./sample/Llama2/README.md)                           | Language                           | C++        | FP16/INT8/INT4 |
 | [ChatGLM3](./sample/ChatGLM3/README.md)                       | Language                           | Python     | FP16/INT8/INT4 | 
 | [Qwen](./sample/Qwen/README.md)                               | Language                           | Python     | FP16/INT8/INT4 | 
+| [Qwen1_5](./sample/Qwen1_5/README.md)                         | Language                           | Python     | FP16/INT8/INT4 | 
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | Image Generation                   | Python     | FP32/FP16      |
+| [GroundingDINO](./sample/GroundingDINO/README.md)             | MultiModal Object Detection        | Python     | FP16           |
 
 | application                                                    | scenarios                 | code    | 
 |---                                                             |---                       |---          | 
@@ -59,7 +63,8 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
-| 0.2.0  |  Fix documentation and other issues, release application/tutorial modules, release new sample ChatGLM3/Qwen, add a web ui in SAM, BERT/ByteTrack/C3D support BM1688, YOLOv8 is renamed to YOLOv8_det and add cpp postproces acceleration, optimize auto_test in commonly used samples, upgrade TPU-MLIR installation to pip |
+| 0.2.1  | Fix documentation and other issues, some examples support CV186X, sample/YOLOv5 support SG2042, Release new samples GroundingDINO and Qwen1_5, StableDiffusionV1_5 newly support multilize resolution models, Qwen/Llama2/ChatGLM3 add web and multi-session support. tutorial module add blend and stitch examples. |
+| 0.2.0  |  Fix documentation and other issues, release application/tutorial modules, release new samples ChatGLM3 and Qwen, add a web ui in SAM, BERT/ByteTrack/C3D support BM1688, YOLOv8 is renamed to YOLOv8_det and add cpp postproces acceleration, optimize auto_test in commonly used samples, upgrade TPU-MLIR installation to pip |
 | 0.1.10 | Fix documentation and other issues, add ppYoloe/YOLOv8_seg/StableDiffusionV1.5/SAM, refactor yolact, CenterNet/YOLOX/YOLOv8 support BM1688, YOLOv5/ResNet/PP-OCR/DeepSORT add BM1688 performance statis, WeNet provide C++ cross compile option. |
 | 0.1.9	 | Fix documentation and other issues, add segformer/YOLOv7/Llama2, refactor YOLOv34/YOLOv5/ResNet/PP-OCR/DeepSORT/LPRNet/RetinaFace/YOLOv34/WeNet support BM1688, OpenPose postprocess acceleration, chatglm2 support int8/int4 and add compile method in readme.|
 | 0.1.8  | Fix documentation and other issues, added BERT/ppYOLOv3/ChatGLM2, refactor YOLOX, added beam search to PP-OCR, added tpu-kernel post-processing acceleration to OpenPose, and updated the SFTP download method.|
