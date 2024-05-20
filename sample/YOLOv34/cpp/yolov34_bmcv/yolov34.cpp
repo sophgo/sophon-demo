@@ -319,14 +319,14 @@ int Yolo::post_process(const std::vector<bm_image> &images, std::vector<YoloBoxV
           float *ptr = tensor_data + anchor_idx*feature_size;
           for (int i = 0; i < area; i++) {
             if(m_anchors_type ==1){
-              # 以下是经典YOLO bbox解码过程（本例程YOLOv4采用的方式）
+              // 以下是经典YOLO bbox解码过程（本例程YOLOv4采用的方式）
               dst[0] = (sigmoid(ptr[0])  + i % feat_w) / feat_w * m_net_w;
               dst[1] = (sigmoid(ptr[1])  + i / feat_w) / feat_h * m_net_h;
               dst[2] = expf(ptr[2]) * anchors[tidx][anchor_idx][0];
               dst[3] = expf(ptr[3]) * anchors[tidx][anchor_idx][1];
             }
             else{
-              # 以下是改良版YOLO bbox解码过程（本例程YOLOv3采用的方式）
+              // 以下是改良版YOLO bbox解码过程（本例程YOLOv3采用的方式）
               dst[0] = (sigmoid(ptr[0]) * 2 - 0.5 + i % feat_w) / feat_w * m_net_w;
               dst[1] = (sigmoid(ptr[1]) * 2 - 0.5 + i / feat_w) / feat_h * m_net_h;
               dst[2] = pow((sigmoid(ptr[2]) * 2), 2) * anchors[tidx][anchor_idx][0];
