@@ -18,8 +18,8 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)   | C++/Python |
 | [ocv_jpubasic](./tutorial/ocv_jpubasic/README.md)                         | C++/Python |
 | [ocv_vidbasic](./tutorial/vid_jpubasic/README.md)                         | C++/Python |
-| [blend](./blend)                                                          | C++/Python |
-| [stitch](./stitch)                                                        | C++/Python |
+| [blend](./tutorial/blend/README.md)                                       | C++/Python |
+| [stitch](./tutorial/stitch/README.md)                                     | C++/Python |
 
 | sample                                                          | 算法类别          | 编程语言    | BModel         |
 |---                                                            |---               |---          | ---           |
