@@ -4,6 +4,7 @@ shell_dir=$(dirname $(readlink -f "$0"))
 
 DEMO_BASIC_PATH=$shell_dir/..
 SOC_SDK_PATH=$DEMO_BASIC_PATH/soc-sdk-allin
+sail_list=("YOLOv5" "CenterNet" "BERT" "ppYOLOv3" "YOLOv34" "YOLOX" "segformer" "ppYoloe" "YOLOv5_opt") #c++ sail demo
 
 function judge_ret() {
   if [[ $1 == 0 ]]; then
@@ -43,213 +44,22 @@ function download_soc_sdk_allin()
     popd
 }
 
-function build_soc_YOLOv5(){
- 
-    pushd $DEMO_BASIC_PATH/sample/YOLOv5/cpp/yolov5_sail
-    if [ -d build ]; then
-        rm -rf build
+function test_sample(){
+    pushd $DEMO_BASIC_PATH/
+    echo "=============="
+    echo "NOW: $1"
+    echo "=============="
+    chmod +x ./sample/$1/scripts/auto_test.sh
+    current_time=$(date +%Y-%m-%d_%H:%M:%S)
+    if [[ " ${sail_list[*]} " == *" $1 "* ]]; then
+      ./sample/$1/scripts/auto_test.sh -m soc_build -s $SOC_SDK_PATH -a $SOC_SDK_PATH/sophon-sail
+    else
+      ./sample/$1/scripts/auto_test.sh -m soc_build -s $SOC_SDK_PATH
     fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc yolov5_sail"
-    cd ..
-    rm -rf build
-    popd
-
-    pushd $DEMO_BASIC_PATH/sample/YOLOv5/cpp/yolov5_bmcv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc yolov5_bmcv"
-    cd ..
-    rm -rf build
-    popd
-}
-
-function build_soc_BERT(){
- 
-    pushd $DEMO_BASIC_PATH/sample/BERT/cpp/bert_sail
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc bert_sail"
-    cd ..
-    rm -rf build
-    popd
-}
-
-function build_soc_C3D(){
- 
-    pushd $DEMO_BASIC_PATH/sample/C3D/cpp/c3d_bmcv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc c3d_bmcv"
-    cd ..
-    rm -rf build
-    popd
-
-    pushd $DEMO_BASIC_PATH/sample/C3D/cpp/c3d_opencv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc c3d_opencv"
-    cd ..
-    rm -rf build
-    popd
-}
-
-function build_soc_DeepSORT(){
- 
-    pushd $DEMO_BASIC_PATH/sample/DeepSORT/cpp/deepsort_bmcv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc deepsort_bmcv"
-    cd ..
-    rm -rf build
-    popd
-}
-
-function build_soc_LPRNet(){
- 
-    pushd $DEMO_BASIC_PATH/sample/LPRNet/cpp/lprnet_bmcv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc lprnet_bmcv"
-    cd ..
-    rm -rf build
-    popd
-
-    pushd $DEMO_BASIC_PATH/sample/LPRNet/cpp/lprnet_opencv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc lprnet_opencv"
-    cd ..
-    rm -rf build
-    popd
-}
-
-function build_soc_P2PNet(){
- 
-    pushd $DEMO_BASIC_PATH/sample/P2PNet/cpp/p2pnet_bmcv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc p2pnet_bmcv"
-    cd ..
-    rm -rf build
-    popd
-}
-
-function build_soc_CenterNet(){
-
-    
-    pushd $DEMO_BASIC_PATH/sample/CenterNet/cpp/centernet_sail
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc centernet_sail"
-    cd ..
-    rm -rf build
-    popd
-
-    pushd $DEMO_BASIC_PATH/sample/CenterNet/cpp/centernet_bmcv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc centernet_bmcv"
-    cd ..
-    rm -rf build
-    popd
-}
-
-function build_soc_OpenPose(){
- 
-    pushd $DEMO_BASIC_PATH/sample/OpenPose/cpp/openpose_bmcv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc openpose_bmcv"
-    cd ..
-    rm -rf build
-    popd
-}
-
-function build_soc_PPOCR(){
- 
-    pushd $DEMO_BASIC_PATH/sample/PP-OCR/cpp/ppocr_bmcv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc ppocr_bmcv"
-    cd ..
-    rm -rf build
-    popd
-}
-
-function build_soc_YOLOv5_opt(){
- 
-    pushd $DEMO_BASIC_PATH/sample/YOLOv5_opt/cpp/yolov5_sail
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc yolov5_opt_sail"
-    cd ..
-    rm -rf build
-    popd
-
-    pushd $DEMO_BASIC_PATH/sample/YOLOv5_opt/cpp/yolov5_bmcv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc yolov5_opt_bmcv"
-    cd ..
-    rm -rf build
-    popd
-}
-
-function build_soc_YOLOv8_det(){
- 
-    pushd $DEMO_BASIC_PATH/sample/YOLOv8_det/cpp/yolov8_bmcv
-    if [ -d build ]; then
-        rm -rf build
-    fi
-    mkdir build && cd build
-    cmake .. -DTARGET_ARCH=soc -DSDK=$1 -DSAIL_PATH=$1/sophon-sail && make -j
-    judge_ret $? "build soc yolov8_bmcv"
-    cd ..
-    rm -rf build
+    rm -r `find -name build`
+    echo "=============="
+    echo "EXIT: $1"
+    echo "=============="
     popd
 }
 
@@ -281,26 +91,38 @@ pip3_install_package dfss
 echo "-------------------------Start apt install ---------------------------------------"
 apt_install
 echo "-------------------------Start Download soc-sdk-allin v23.10.01 ------------------"
+
+#SE5
 download_soc_sdk_allin v23.10.01
-echo "-------------------------Start build_soc_YOLOv5 ------------------"
-build_soc_YOLOv5 $SOC_SDK_PATH
-# echo "-------------------------Start build_soc_BERT ------------------"
-# build_soc_BERT $SOC_SDK_PATH
-echo "-------------------------Start build_soc_C3D ------------------"
-build_soc_C3D $SOC_SDK_PATH
-echo "-------------------------Start build_soc_DeepSORT ------------------"
-build_soc_DeepSORT $SOC_SDK_PATH
-echo "-------------------------Start build_soc_LPRNet ------------------"
-build_soc_LPRNet $SOC_SDK_PATH
-# echo "-------------------------Start build_soc_P2PNet ------------------"
-# build_soc_P2PNet $SOC_SDK_PATH
-echo "-------------------------Start build_soc_CenterNet ------------------"
-build_soc_CenterNet $SOC_SDK_PATH
-echo "-------------------------Start build_soc_OpenPose ------------------"
-build_soc_OpenPose $SOC_SDK_PATH
-echo "-------------------------Start build_soc_PPOCR ------------------"
-build_soc_PPOCR $SOC_SDK_PATH
-echo "-------------------------Start build_soc_YOLOv5_opt ------------------"
-build_soc_YOLOv5_opt $SOC_SDK_PATH
-echo "-------------------------Start build_soc_YOLOv8 ------------------"
-build_soc_YOLOv8_det $SOC_SDK_PATH
+test_sample BERT
+test_sample PP-OCR
+test_sample YOLOv7
+test_sample YOLOv34
+test_sample ByteTrack
+test_sample C3D
+test_sample CenterNet
+test_sample DeepSORT
+test_sample LPRNet
+test_sample OpenPose
+test_sample ResNet
+test_sample YOLOv5
+test_sample YOLOv5_opt
+test_sample YOLOv8_det
+rm -r $SOC_SDK_PATH
+
+# SE9
+download_soc_sdk_allin v1.5.0
+test_sample BERT
+test_sample PP-OCR
+test_sample YOLOv7
+test_sample YOLOv34
+test_sample ByteTrack
+test_sample C3D
+test_sample CenterNet
+test_sample DeepSORT
+test_sample LPRNet
+test_sample OpenPose
+test_sample ResNet
+test_sample YOLOv5
+test_sample YOLOv8_det
+rm -r $SOC_SDK_PATH
