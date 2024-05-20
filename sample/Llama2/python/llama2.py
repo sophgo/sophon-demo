@@ -174,7 +174,6 @@ If a question does not make any sense, or is not factually coherent, explain why
         
         input_lm_tensors = {self.lm_input["name"]: self.lm_input["data"]}
         output_lm_tensors = {self.lm_output["name"]: self.lm_output["data"]}
-        import pdb;pdb.set_trace()
         self.net.process(self.name_lm, input_lm_tensors, output_lm_tensors)
         return int(self.lm_output["data"].asnumpy())
 
