@@ -97,22 +97,22 @@ int P2Pnet::Detect(const std::vector<bm_image>& input_images,
                    std::vector<PPointVec>& points) {
   int ret = 0;
   // 3. preprocess
-  LOG_TS(m_ts, "P2PNet preprocess");
+  m_ts->save("P2PNet preprocess", input_images.size());
   ret = pre_process(input_images);
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "P2PNet preprocess");
+  m_ts->save("P2PNet preprocess", input_images.size());
 
   // 4. forward
-  LOG_TS(m_ts, "P2PNet inference");
+  m_ts->save("P2PNet inference", input_images.size());
   ret = m_bmNetwork->forward();
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "P2PNet inference");
+  m_ts->save("P2PNet inference", input_images.size());
 
   // 5. post process
-  LOG_TS(m_ts, "P2PNet postprocess");
+  m_ts->save("P2PNet postprocess", input_images.size());
   ret = post_process(input_images, points);
   CV_Assert(ret == 0);
-  LOG_TS(m_ts, "P2PNet postprocess");
+  m_ts->save("P2PNet postprocess", input_images.size());
   return ret;
 }
 
