@@ -17,8 +17,8 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)   | C++/Python |
 | [ocv_jpubasic](./tutorial/ocv_jpubasic/README.md)                         | C++/Python |
 | [ocv_vidbasic](./tutorial/vid_jpubasic/README.md)                         | C++/Python |
-| [blend](./blend)                                                          | C++/Python |
-| [stitch](./stitch)                                                        | C++/Python |
+| [blend](./tutorial/blend/README.md)                                       | C++/Python |
+| [stitch](./tutorial/stitch/README.md)                                                        | C++/Python |
 
 | contents                                                      | category                           | code       |  BModel       |
 |---                                                            |---                                 |---          | ---           |
