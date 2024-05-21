@@ -128,9 +128,14 @@ fi
 if [ $PYTEST != "pytest" ]
 then
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+
+  #developer
+  test_sample BERT
+  test_sample PP-OCR
+  test_sample YOLOv7
+
+  #release
   test_sample ByteTrack
-  test_sample YOLOv5
-  test_sample YOLOv8
   test_sample C3D
   test_sample CenterNet
   test_sample DeepSORT
