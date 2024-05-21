@@ -48,20 +48,15 @@ chmod -R +x scripts/
 ├── BM1688
 |   ├── real_esrgan_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=1
 │   ├── real_esrgan_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=1
-│   ├── real_esrgan_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4，num_core=1
 │   ├── real_esrgan_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=1
 │   ├── real_esrgan_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=1
 │   ├── real_esrgan_fp32_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=2
-│   ├── real_esrgan_fp32_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4，num_core=2
 │   ├── real_esrgan_fp16_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=2
-│   ├── real_esrgan_fp16_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=4，num_core=2
 │   ├── real_esrgan_int8_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
 │   └── real_esrgan_int8_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=2
 ├── CV186X
 │   ├── real_esrgan_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
-│   ├── real_esrgan_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=4
 │   ├── real_esrgan_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
-│   ├── real_esrgan_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=4
 │   ├── real_esrgan_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
 │   └── real_esrgan_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=4
 └── onnx
