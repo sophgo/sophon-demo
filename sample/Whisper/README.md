@@ -76,7 +76,7 @@ chmod -R +x scripts/
     └── demo.wav
 ```
 ## 4. 模型编译
-此部分请参考[Whisper模型的导出与编译](./docs/ChatGLM3_Export_Guide.md)
+此部分请参考[Whisper模型的导出与编译](./docs/Whisper_Export_Guide.md)
 
 ## 5. 例程测试
 
