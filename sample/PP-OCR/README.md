@@ -136,11 +136,11 @@ F-score: 0.57488, Precision: 0.80639, Recall: 0.44665
 |   测试平台    |      测试程序           |   模型精度   | F-score |
 |------------- | ----------------------- | -----------  | ------ |
 | SE5-16       | ppocr_system_opencv.py  | fp32         | 0.575   |
-| SE5-16       | ppocr_bmcv.pcie         | fp32         | 0.573   |
-| SE7-32       | ppocr_system_opencv.py  | fp32         | 0.575   |
-| SE7-32       | ppocr_system_opencv.py  | fp16         | 0.575   |
-| SE7-32       | ppocr_bmcv.pcie         | fp32         | 0.572   |
-| SE7-32       | ppocr_bmcv.pcie         | fp16         | 0.572   |
+| SE5-16       | ppocr_bmcv.soc          | fp32         | 0.573   |
+| SE7-32       | ppocr_system_opencv.py    | fp32       |    0.575 |
+| SE7-32       | ppocr_system_opencv.py    | fp16       |    0.565 |
+| SE7-32       | ppocr_bmcv.soc            | fp32       |    0.573 |
+| SE7-32       | ppocr_bmcv.soc            | fp16       |    0.558 |
 | SE9-16       | ppocr_system_opencv.py    | fp32       |    0.575 |
 | SE9-16       | ppocr_system_opencv.py    | fp16       |    0.575 |
 | SE9-16       | ppocr_bmcv.soc            | fp32       |    0.571 |
