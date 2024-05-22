@@ -9,4 +9,5 @@
 | [ocv_vidbasic](./ocv_vidbasic)                       | 使用sophon-opencv硬件加速实现视频解码，并将视频记录为png或jpg格式 |
 | [blend](./blend)                       | 融合拼接两张图 |
 | [stitch](./stitch)                       | 拼接两张图片 |
+| [avframe_ocv](./avframe_ocv/)                         | avframe到cv::mat的转换例程|
 
