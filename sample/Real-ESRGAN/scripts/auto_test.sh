@@ -267,8 +267,8 @@ then
   compile_mlir
 elif test $MODE = "pcie_test"
 then
-  # build_pcie bmcv
-  # download
+  build_pcie bmcv
+  download
   if test $TARGET = "BM1684X"
   then
     #performence test
@@ -289,11 +289,9 @@ then
 elif test $MODE = "soc_build"
 then
   build_soc bmcv
-  build_soc sail
 elif test $MODE = "soc_test"
 then
   download
-  
   if test $TARGET = "BM1684X"
   then
     eval_python opencv real_esrgan_fp32_1b.bmodel 79.39919963297913
