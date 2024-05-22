@@ -18,7 +18,7 @@ then
     # test dataset
     # test input_test
     python3 -m dfss --url=open@sophgo.com:sophon-demo/segformer/datasets.zip
-    unzip datasets.zip -d ../
+    unzip datasets.zip -d ../datasets
     rm datasets.zip
     echo "datasets download!"
 else
