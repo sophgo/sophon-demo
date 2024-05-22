@@ -405,41 +405,33 @@ sudo rpm -e sophon-libsophon
 ### 6.2 安装sophon-ffmpeg和sophon-opencv
 从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)上下载符合[环境依赖](../README.md#环境依赖)的sophon-mw安装包，
 
-sophon-mw安装包由一个文件构成：
+sophon-mw安装包由四个文件构成：
 ```bash
-sophon-mw_{x.y.z}_riscv.tar.gz
+sophon-mw-sophon-ffmpeg_{x.y.z}_riscv64.rpm
+sophon-mw-sophon-ffmpeg-dev_{x.y.z}_riscv64.rpm
+sophon-mw-sophon-opencv_{x.y.z}_riscv64.rpm
+sophon-mw-sophon-opencv-dev_{x.y.z}_riscv64.rpm
 ```
+其中：
 
-安装之前需要保证libsophon已安装完毕，如果有老版本，请参考"卸载方式"卸载，安装步骤如下：
+1. sophon-ffmpeg/sophon-opencv包含了ffmpeg/opencv运行时环境（库文件、工具等）；sophon-ffmpeg-dev/sophon-opencv-dev包含了开发环境（头文件、pkgconfig、cmake等）。如果只是在部署环境上安装，则不需要安装sophon-ffmpeg-dev/sophon-opencv-dev。
+
+2. sophon-mw-sophon-ffmpeg依赖sophon-libsophon包，而sophon-mw-sophon-opencv依赖sophon-mw-sophon-ffmpeg，因此在安装次序上必须先安装libsophon,然后sophon-mw-sophon-ffmpeg,最后安装sophon-mw-sophon-opencv。
+
+安装之前请参考"卸载方式"卸载老版本，安装步骤如下：
 ```bash
-tar -xzvf sophon-mw_{x.y.z}_riscv_64.tar.gz
-sudo cp -r sophon-mw_{x.y.z}_riscv_64/* /
-sudo ln -s /opt/sophon/sophon-ffmpeg_{x.y.z} /opt/sophon/sophon-ffmpeg-latest
-sudo ln -s /opt/sophon/sophon-opencv_{x.y.z} /opt/sophon/sophon-opencv-latest
-sudo ln -s /opt/sophon/sophon-sample_{x.y.z} /opt/sophon/sophon-sample-latest
-sudo sed -i "s/usr\/local/opt\/sophon\/sophon-ffmpeg-latest/g" /opt/sophon/sophon-ffmpeg-latest/lib/pkgconfig/*.pc
-sudo sed -i "s/^prefix=.*$/prefix=\/opt\/sophon\/sophon-opencv-latest/g" /opt/sophon/sophon-opencv-latest/lib/pkgconfig/opencv4.pc
-sudo cp /opt/sophon/sophon-ffmpeg-latest/data/01_sophon-ffmpeg.conf /etc/ld.so.conf.d/
-sudo cp /opt/sophon/sophon-opencv-latest/data/02_sophon-opencv.conf /etc/ld.so.conf.d/
-sudo ldconfig
-sudo cp /opt/sophon/sophon-ffmpeg-latest/data/sophon-ffmpeg-autoconf.sh /etc/profile.d/
-sudo cp /opt/sophon/sophon-opencv-latest/data/sophon-opencv-autoconf.sh /etc/profile.d/
-sudo cp /opt/sophon/sophon-sample-latest/data/sophon-sample-autoconf.sh /etc/profile.d/
+sudo rpm -ivh sophon-mw-sophon-ffmpeg_{x.y.z}_riscv64.rpm sophon-mw-sophon-ffmpeg-dev_{x.y.z}_riscv64.rpm
+sudo rpm -ivh sophon-mw-sophon-opencv_{x.y.z}_riscv64.rpm sophon-mw-sophon-opencv-dev_{x.y.z}_riscv64.rpm
+在终端执行如下命令，或者logout再login当前用户后即可使用安装的工具：
 source /etc/profile
 ```
 
 卸载方式：
 ```bash
-sudo rm -f /etc/ld.so.conf.d/01_sophon-ffmpeg.conf
-sudo rm -f /etc/ld.so.conf.d/02_sophon-opencv.conf
-sudo ldconfig
-sudo rm -f /etc/profile.d/sophon-ffmpeg-autoconf.sh
-sudo rm -f /etc/profile.d/sophon-opencv-autoconf.sh
-sudo rm -f /etc/profile.d/sophon-sample-autoconf.sh
-sudo rm -f /opt/sophon/sophon-ffmpeg-latest
-sudo rm -f /opt/sophon/sophon-opencv-latest
-sudo rm -f /opt/sophon/sophon-sample-latest
-sudo rm -rf /opt/sophon/sophon-ffmpeg_{x.y.z} /opt/sophon/sophon-opencv_{x.y.z} /opt/sophon/sophon-sample_{x.y.z}
+sudo rpm -e sophon-mw-sophon-opencv-dev
+sudo rpm -e sophon-mw-sophon-opencv
+sudo rpm -e sophon-mw-sophon-ffmpeg-dev
+sudo rpm -e sophon-mw-sophon-ffmpeg
 ```
 
 其他平台机器请参考《MULTIMEDIA使用手册.pdf》、《MULTIMEDIA开发参考手册.pdf》。
