@@ -11,6 +11,7 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+export PYTHONPATH=/opt/sophon/sophon-opencv-latest/opencv-python/:$PYTHONPATH
 if [ -f "tools/benchmark.txt" ]; then
   rm tools/benchmark.txt
 fi
@@ -269,6 +270,7 @@ elif test $MODE = "pcie_test"
 then
   build_pcie bmcv
   download
+  pip3 install onnxruntime==1.14.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684X"
   then
     #performence test
@@ -292,6 +294,7 @@ then
 elif test $MODE = "soc_test"
 then
   download
+  pip3 install onnxruntime==1.14.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684X"
   then
     eval_python opencv real_esrgan_fp32_1b.bmodel 79.39919963297913
