@@ -68,7 +68,7 @@ git clone git@hf.co:THUDM/chatglm3-6b
 如果无法从官网下载，也可以下载我们之前下好的，压缩包20G左右
 ```bash
 pip3 install dfss
-python3 -m dfss --url=open@sophgo.com:LLM/chatglm3-6b.tar.gz
+python3 -m dfss --url=open@sophgo.com:ext_model_information/LLM/chatglm3-6b.tar.gz
 tar zxvf chatglm3-6b.tar.gz
 ```
 
