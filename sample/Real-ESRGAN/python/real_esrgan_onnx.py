@@ -204,7 +204,6 @@ def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--input', type=str, default='../datasets/coco128', help='path of input')
     parser.add_argument('--onnx', type=str, default='../models/onnx/realesr-general-x4v3.onnx', help='path of onnx')
-    parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     args = parser.parse_args()
     return args
 

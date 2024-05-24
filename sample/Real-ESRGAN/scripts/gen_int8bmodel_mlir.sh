@@ -21,7 +21,7 @@ function gen_mlir()
         --scale 0.0039216,0.0039216,0.0039216 \
         --keep_aspect_ratio \
         --pixel_format rgb  \
-        --test_input ../datasets/test/3.jpg \
+        --test_input ../datasets/coco128/000000000127.jpg \
         --test_result real_esrgan_top.npz \
         --mlir real_esrgan_$1b.mlir
 }
@@ -30,7 +30,7 @@ function gen_cali_table()
 {
     run_calibration.py real_esrgan_$1b.mlir \
         --dataset ../datasets/coco128/ \
-        --input_num 1 \
+        --input_num 16 \
         -o real_esrgan_cali_table
 }
 
@@ -42,7 +42,7 @@ function gen_int8bmodel()
         --chip $target \
         --calibration_table real_esrgan_cali_table \
         --model real_esrgan_int8_$1b.bmodel \
-        --test_input ../datasets/test/3.jpg \
+        --test_input ../datasets/coco128/000000000127.jpg \
         --test_reference real_esrgan_top.npz \
         --quant_input \
         --quant_output \
@@ -57,7 +57,7 @@ function gen_int8bmodel()
             --model real_esrgan_int8_$1b_2core.bmodel \
             --calibration_table real_esrgan_cali_table \
             --num_core 2 \
-            --test_input ../datasets/test/3.jpg \
+            --test_input ../datasets/coco128/000000000127.jpg \
             --test_reference real_esrgan_top.npz \
             --quant_input \
             --quant_output

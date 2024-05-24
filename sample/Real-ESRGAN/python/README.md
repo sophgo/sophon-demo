@@ -52,15 +52,14 @@ usage: real_esrgan_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DE
 real_esrgan_onnx.py：
 
 ```bash
-usage: real_esrgan_opencv.py [--input INPUT_PATH] [--onnx ONNX] [--dev_id DEV_ID]
+usage: real_esrgan_opencv.py [--input INPUT_PATH] [--onnx ONNX]
 --input: 测试数据路径，可输入整个图片文件夹的路径；
 --onnx: 用于推理的onnx路径；
---dev_id: 用于推理的tpu设备id；
 ```
 
 
 ### 2.2 测试图片
-图片测试实例如下，支持对整个图片文件夹进行测试。
+图片测试实例如下，支持对整个图片文件夹进行测试.
 
 ```bash
 python3 python/real_esrgan_opencv.py --input datasets/coco128 --bmodel models/BM1684X/real_esrgan_fp32_1b.bmodel --dev_id 0
@@ -73,6 +72,6 @@ python3 python/real_esrgan_bmcv.py --input datasets/coco128 --bmodel models/BM16
 测试结束后，会将预测的图片保存在`results/images_bmcv`下，同时会打印推理时间等信息。
 
 ```bash
-python3 python/real_esrgan_onnx.py --input datasets/coco128 --onnx models/BM1684X/realesr-general-x4v3.onnx --dev_id 0
+python3 python/real_esrgan_onnx.py --input datasets/coco128 --onnx models/onnx/realesr-general-x4v3.onnx 
 ```
-测试结束后，会将预测的图片保存在`results/images_onnx`下，同时会打印推理时间等信息。
+测试结束后，会将预测的图片保存在`results/images_onnx`下，同时会打印推理时间等信息。ONNX例程不支持在soc模式下跑，速度慢且容易出现内存不足的问题。
