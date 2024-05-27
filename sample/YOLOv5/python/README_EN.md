@@ -41,14 +41,18 @@ The python demo does not need to be compiled and can be run directly. The test p
 ### 2.1 Parameter Description
 The parameters of yolov5_opencv.py and yolov5_bmcv.py are the same. Here we take yolov5_opencv.py as an example:
 ```bash
-usage: yolov5_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
-                        [--conf_thresh CONF_THRESH] [--nms_thresh NMS_THRESH]
---input: The test data path. User can enter the path of the entire picture folder or video path;
---bmodel: bmodel path for inference. By default, the stage 0 network is used for inference;
---dev_id: tpu device id for inference;
---conf_thresh: confidence threshold;
---nms_thresh: Non-Maximum Suppression threshold;
---use_cpu_opt: Whether to use nms acceleration.
+usage: yolov5_opencv.py [-h] [--input INPUT] [--bmodel BMODEL] [--dev_id DEV_ID] [--conf_thresh CONF_THRESH] [--nms_thresh NMS_THRESH] [--use_cpu_opt]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --input INPUT         path of input
+  --bmodel BMODEL       path of bmodel
+  --dev_id DEV_ID       dev id
+  --conf_thresh CONF_THRESH
+                        confidence threshold
+  --nms_thresh NMS_THRESH
+                        nms threshold
+  --use_cpu_opt         accelerate cpu postprocess
 ```
 
 > **Note:** Currently, both CPP and Python default to disable nms acceleration. The optimization interface called by Python relies on SOPHON sail after version 3.7.0. If your SOPHON sail version has this interface, you can use the parameter `--use_cpu_opt` to enable the optimization,  `use_cpu_opt` only for model's outputs with 5 dimensions(normally 3 outputs model, if your model has more or less outputs, you should modify postprocess code by your self).

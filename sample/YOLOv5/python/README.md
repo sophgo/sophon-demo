@@ -42,14 +42,18 @@ python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测�
 ### 2.1 参数说明
 yolov5_opencv.py和yolov5_bmcv.py的参数一致，以yolov5_opencv.py为例：
 ```bash
-usage: yolov5_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
-                        [--conf_thresh CONF_THRESH] [--nms_thresh NMS_THRESH]
---input: 测试数据路径，可输入整个图片文件夹的路径或者视频路径；
---bmodel: 用于推理的bmodel路径，默认使用stage 0的网络进行推理；
---dev_id: 用于推理的tpu设备id；
---conf_thresh: 置信度阈值；
---nms_thresh: nms阈值；
---use_cpu_opt: 是否用nms优化的后处理。
+usage: yolov5_opencv.py [-h] [--input INPUT] [--bmodel BMODEL] [--dev_id DEV_ID] [--conf_thresh CONF_THRESH] [--nms_thresh NMS_THRESH] [--use_cpu_opt]
+
+optional arguments:
+  -h, --help            打印这个帮助日志然后退出
+  --input INPUT         测试数据路径，可输入整个图片文件夹的路径或者视频路径
+  --bmodel BMODEL       用于推理的bmodel路径，默认使用stage 0的网络进行推理
+  --dev_id DEV_ID       用于推理的tpu设备id
+  --conf_thresh CONF_THRESH
+                        置信度阈值
+  --nms_thresh NMS_THRESH
+                        nms阈值
+  --use_cpu_opt         是否用nms优化的后处理
 ```
 
 > **注意：** CPP和python目前都默认关闭nms优化，python调用的优化接口，依赖3.7.0版本之后的sophon-sail，如果您的sophon-sail版本有该接口，可以添加参数`--use_cpu_opt`来开启该接口优化，`use_cpu_opt`仅限输出维度为5的模型(一般是3输出，别的输出个数可能需要用户自行修改后处理代码)。
