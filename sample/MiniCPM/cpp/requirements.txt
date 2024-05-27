@@ -1,0 +1,4 @@
+transformers==4.36.0
+sentencepiece==0.1.99
+gradio==3.39.0
+mdtex2html==1.2.0
