@@ -1,5 +1,5 @@
 [简体中文](./README.md) | [English](./README_EN.md)
-# 人脸识别SCRFD
+# 人脸检测SCRFD
 
 ## 目录
 
