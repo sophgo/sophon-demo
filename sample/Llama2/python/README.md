@@ -5,15 +5,18 @@
 * [1. 环境准备](#1-环境准备)
     * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
     * [1.2 SoC平台](#12-soc平台)
-* [2. 支持多会话的Web Demo](#2-支持多会话的Web-Demo)
+* [2. 命令行推理测试](#2-命令行推理测试)
     * [2.1 参数说明](#21-参数说明)
     * [2.2 使用方式](#22-使用方式)
+* [3. 支持多会话的Web Demo](#3-支持多会话的Web-Demo)
+    * [3.1 参数说明](#31-参数说明)
+    * [3.2 使用方式](#32-使用方式)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
 | 序号 |  Python例程      |      说明           |
 | ---- | --------------- | ------------------  |
-| 1    | llama2.py       | Llama_sophon类的实现 |
+| 1    | llama2.py       | Llama_sophon类的实现，使用SAIL进行命令行推理 |
 | 2    | web_demo.py     | 支持多会话的web demo |
 
 
@@ -44,11 +47,28 @@ pip3 install -r python/requirements.txt
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Llama2/sail/sophon-sail_20240417.tar.gz
 tar xvf sophon-sail_20240417.tar.gz
 ```
+## 2. 命令行推理测试
+python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
+### 2.1 参数说明
 
-## 2. 支持多会话的Web Demo
+```bash
+usage: llama2.py [--bmodel BMODEL] [--token TOKEN] [--dev_id DEV_ID]
+--bmodel: 用于推理的bmodel路径；
+--token: tokenizer的模型路径；
+--dev_id: 用于推理的tpu设备id；
+```
+
+### 2.2 使用方式
+
+```bash
+python3 python/llama2.py --bmodel models/BM1684X/llama2-7b_int4_1dev.bmodel --token python/token_config/tokenizer.model --dev_id 0 
+```
+在读入模型后会显示"Question:"，然后输入就可以了。模型的回答会出现在"Answer"中。结束对话请输入"exit"。
+
+## 3. 支持多会话的Web Demo
 我们提供了基于[streamlit](https://streamlit.io/)的web demo，可同时进行多个会话的推理。
 
-### 2.1 参数说明
+### 3.1 参数说明
 
 ```bash
 usage: web_demo.py [--server.address ADDRESS] [--server.port PORT] 
@@ -56,7 +76,7 @@ usage: web_demo.py [--server.address ADDRESS] [--server.port PORT]
 --server.port: Streamlit 应用服务器的端口号；
 ```
 
-### 2.1 使用方式
+### 3.2 使用方式
 首先安装第三方库
 ```bash
 pip3 install -r python/requirements.txt
