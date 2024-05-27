@@ -4,8 +4,8 @@ from llama2 import Llama_sophon
 from token_config.tokenizer import Tokenizer
 
 
-token_path = './token_config/tokenizer.model'
-model_path = '../models/BM1684X/llama2-7b_int8_1dev.bmodel'
+token_path = './python/token_config/tokenizer.model'
+model_path = './models/BM1684X/llama2-7b_int8_1dev.bmodel'
 dev_id = 0
 
 st.title("Llama_sophon")
