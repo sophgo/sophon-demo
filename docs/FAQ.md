@@ -148,3 +148,14 @@ usage rate:4%, memory usage peak 144646144 bytes #memory usage peak是该heap的
     #然后重新运行下载脚本
     ```
     
+### 7.6 pycocotools等包通过pip安装失败，报错中含有`RequiredDependencyException: jpeg`
+
+该问题可能会发生在Risc-V架构的机器上，如SG2042，可以通过以下方法解决：
+```bash
+sudo dnf install libjpeg-turbo-devel #如果是fedora系统
+sudo apt install libjpeg-dev #如果是ubuntu系统
+```
+
+### 7.7 解码超过一定路数开始报错，但是设备内存没有满
+
+很可能是因为fd数量不足问题，使用ulimit -n 65536解决，如果还是不够可以调地更大，注意，ulimit -n只在当前终端生效。

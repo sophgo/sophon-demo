@@ -141,3 +141,14 @@ May be caused by:
     #then re-execute script/download.sh
     ```
     
+### 7.6 pip install pycocotools failed，error contains `RequiredDependencyException: jpeg`
+
+This problem may occurs on Risc-V arch marchine, like SG2042, it can be solved by:
+```bash
+sudo dnf install libjpeg-turbo-devel #fedora
+sudo apt install libjpeg-dev #ubuntu
+```
+
+### 7.7 Error occurs when the number of decoding channels exceeds a certain number, but the device memory is not full
+
+It is likely that the problem of insufficient number of fds is solved, use `ulimit -n 65536` to solve it, if it is still not enough, you can adjust it to a larger one, note that `ulimit -n` only takes effect in the current terminal.
