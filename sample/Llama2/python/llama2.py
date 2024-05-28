@@ -224,12 +224,12 @@ If a question does not make any sense, or is not factually coherent, explain why
 
     def chat_stream(self, input, history):
         input_tokens = self._make_context(input, history=[], role="user")
-        if (len(input_tokens) > self.SEQLEN / 3):
+        if (len(input_tokens) > self.MAX_LEN / 3):
             yield 'input length is too long'
             return
         tok_num = 0
         tokens = self._make_context(input, history=history, role="user")
-        while (len(tokens) > self.SEQLEN / 2):
+        while (len(tokens) > self.MAX_LEN / 2):
             history = history[1:]
             tokens = self._make_context(input, history=history, role="user")
         first_start = time.time()
@@ -238,17 +238,17 @@ If a question does not make any sense, or is not factually coherent, explain why
         token = pre_token
         is_emoji = False
         emoji_token = []
-        while token != self.EOS and self.token_length < self.SEQLEN:
+        while token != self.EOS and self.token_length < self.MAX_LEN:
             if (token == 243 or is_emoji):
                 # 处理emoji表情
                 is_emoji = True
                 emoji_token += [token]
                 if (len(emoji_token) == 4):
-                    yield self.sp.decode(emoji_token)
+                    yield self.tokenizer.decode(emoji_token)
                     emoji_token = []
                     is_emoji = False
             else: 
-                yield self.sp.decode([pre_token, token])
+                yield self.tokenizer.decode([pre_token, token])
             self.token_length += 1
             tok_num += 1
             token = self.forward_next()
