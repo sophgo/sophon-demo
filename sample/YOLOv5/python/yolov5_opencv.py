@@ -269,12 +269,15 @@ def main(args):
                         det = results[i]
                         # save image
                         if args.use_cpu_opt:
-                            if len(det.shape) > 1:
+                            if det.shape[0] >= 1:
                                 res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -2], conf_scores=det[:, -1])
                             else:
                                 res_img = img_list[i]
                         else:
-                            res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                            if det.shape[0] >= 1:
+                                res_img = draw_numpy(img_list[i], det[:,:4], masks=None, classes_ids=det[:, -1], conf_scores=det[:, -2])
+                            else:
+                                res_img = img_list[i]
                         cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
                         
                         # save result
@@ -333,6 +336,8 @@ def main(args):
                     det = results[i]
                     cn += 1
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
+                    if det.shape[0] <= 0:
+                        continue
                     if args.use_cpu_opt:
                         res_frame = draw_numpy(frame_list[i], det[:,:4], masks=None, classes_ids=det[:, -2], conf_scores=det[:, -1])
                     else:
