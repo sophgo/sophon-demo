@@ -301,10 +301,12 @@ class BMNNNetwork : public NoCopyable {
       return m_max_batch;
   }
 
-  std::shared_ptr<BMNNTensor> inputTensor(int index, int stage_idx=0){
+  std::shared_ptr<BMNNTensor> inputTensor(int index, int stage_idx=-1){
     assert(index < m_netinfo->input_num);
-    for(int i = 0; i < m_netinfo->input_num; ++i) {
-      m_inputTensors[i].shape = m_netinfo->stages[stage_idx].input_shapes[i];
+    if(stage_idx >= 0){
+      for(int i = 0; i < m_netinfo->input_num; ++i) {
+        m_inputTensors[i].shape = m_netinfo->stages[stage_idx].input_shapes[i];
+      }
     }
     return std::make_shared<BMNNTensor>(m_handle, m_netinfo->input_names[index],
         m_netinfo->input_scales[index], &m_inputTensors[index], is_soc);
@@ -314,10 +316,12 @@ class BMNNNetwork : public NoCopyable {
     return m_netinfo->output_num;
   }
 
-  std::shared_ptr<BMNNTensor> outputTensor(int index, int stage_idx=0){
+  std::shared_ptr<BMNNTensor> outputTensor(int index, int stage_idx=-1){
     assert(index < m_netinfo->output_num);
-    for(int i = 0; i < m_netinfo->output_num; ++i) {
-      m_outputTensors[i].shape = m_netinfo->stages[stage_idx].output_shapes[i];
+    if(stage_idx >= 0){
+      for(int i = 0; i < m_netinfo->output_num; ++i) {
+        m_outputTensors[i].shape = m_netinfo->stages[stage_idx].output_shapes[i];
+      }
     }
     return std::make_shared<BMNNTensor>(m_handle, m_netinfo->output_names[index],
         m_netinfo->output_scales[index], &m_outputTensors[index], is_soc);
