@@ -308,12 +308,14 @@ def main(args):
                         det = results[i]
                         # save image
                         save_path = os.path.join(output_img_dir, filename)
-                        if args.use_cpu_opt:
-                            if len(det.shape) > 1:
+                        if det.shape[0] >= 1:
+                            if args.use_cpu_opt:
                                 draw_bmcv(bmcv, bmimg_list[i], det[:,:4], classes_ids=det[:, -2], conf_scores=det[:, -1], save_path=save_path)
+                            else:
+                                draw_bmcv(bmcv, bmimg_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
                         else:
-                            draw_bmcv(bmcv, bmimg_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
-                        
+                            bmcv.imwrite(save_path, bmimg_list[i])
+                                                    
                         # save result
                         res_dict = dict()
                         res_dict['image_name'] = filename
@@ -367,10 +369,13 @@ def main(args):
                     cn += 1
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
                     save_path = os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg')
-                    if args.use_cpu_opt:
-                        draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -2], conf_scores=det[:, -1], save_path=save_path)
+                    if det.shape[0] >= 1:
+                        if args.use_cpu_opt:
+                            draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -2], conf_scores=det[:, -1], save_path=save_path)
+                        else:
+                            draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
                     else:
-                        draw_bmcv(bmcv, frame_list[i], det[:,:4], classes_ids=det[:, -1], conf_scores=det[:, -2], save_path=save_path)
+                        bmcv.imwrite(save_path, frame_list[i])
                 frame_list.clear()
         decoder.release()
         logging.info("result saved in {}".format(output_img_dir))
