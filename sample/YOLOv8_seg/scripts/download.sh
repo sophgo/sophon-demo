@@ -21,12 +21,22 @@ else
     echo "Datasets folder exist! Remove it if you need to update."
 fi
 
-models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_seg/models_1120/models.zip
-    unzip models.zip -d ../
-    rm models.zip
+    mkdir ../models
+    pushd ../models
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_seg/models/BM1684.tar.gz
+    tar xvf BM1684.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_seg/models/BM1684X.tar.gz
+    tar xvf BM1684X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_seg/models/BM1688.tar.gz
+    tar xvf BM1688.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_seg/models/onnx.tar.gz
+    tar xvf onnx.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_seg/models/torch.tar.gz
+    tar xvf torch.tar.gz
+    rm *.tar.gz
+    popd
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
