@@ -20,10 +20,10 @@ function gen_mlir()
         --mean 0.0,0.0,0.0 \
         --scale 0.0039216,0.0039216,0.0039216 \
         --keep_aspect_ratio \
-        --pixel_format rgb  \
-        --test_input ../datasets/test/dog.jpg \
-        --test_result yolov8s_top_outputs.npz \
-        --mlir yolov8s_$1b.mlir 
+        --pixel_format rgb
+        # --test_input ../datasets/test/dog.jpg \
+        # --test_result yolov8s_top_outputs.npz \
+        # --mlir yolov8s_$1b.mlir 
 }
 
 function gen_cali_table()
@@ -42,11 +42,27 @@ function gen_int8bmodel()
         --chip $target \
         --quantize_table ../models/onnx/yolov8s_seg_${target}_qtable \
         --calibration_table yolov8s_cali_table \
-        --test_input yolov8s_in_f32.npz \
-        --test_reference yolov8s_top_outputs.npz \
         --model yolov8s_int8_$1b.bmodel
+        # --test_input yolov8s_in_f32.npz \
+        # --test_reference yolov8s_top_outputs.npz \
+        # --compare_all
 
     mv yolov8s_int8_$1b.bmodel $outdir/
+    # if test $target = "bm1688";then
+    #     model_deploy.py \
+    #         --mlir yolov8s_$1b.mlir \
+    #         --quantize INT8 \
+    #         --chip $target \
+    #         --model yolov8s_int8_$1b_2core.bmodel \
+    #         --quantize_table ../models/onnx/yolov8s_seg_${target}_qtable \
+    #         --calibration_table yolov8s_cali_table \
+    #         --num_core 2 \
+    #         --test_input yolov8s_in_f32.npz \
+    #         --test_reference yolov8s_top_outputs.npz \
+    #         --compare_all
+
+    #     mv yolov8s_int8_$1b_2core.bmodel $outdir/
+    # fi
 }
 
 
@@ -60,7 +76,7 @@ gen_cali_table 1
 gen_int8bmodel 1
 
 # batch_size=4
-gen_mlir 4
-gen_int8bmodel 4
+# gen_mlir 4
+# gen_int8bmodel 4
 
 popd

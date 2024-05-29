@@ -127,8 +127,9 @@ class PostProcess:
             x = x[self.nms.nms_boxes(x[:, :4], x[:, 4], iou_threshold)]
        
         ans1,ans2,ans3=[],[],[]
-        for i in range((int(x.shape[0]/100)+1)):
-            X=x[i*100:min((i+1)*100,x.shape[0])]
+        post_batch_size = 1
+        for i in range((int(x.shape[0]/post_batch_size)+1)):
+            X=x[i*post_batch_size:min((i+1)*post_batch_size,x.shape[0])]
             X=self.get_mask_distrubute(X,im0_shape, ratio, pad_w, pad_h,protos)
             ans1.extend(X[0])
             ans2.extend(X[1])
@@ -149,7 +150,7 @@ class PostProcess:
             # Bounding boxes boundary clamp
             x[..., [0, 2]] = x[:, [0, 2]].clip(0, im0_shape[1])
             x[..., [1, 3]] = x[:, [1, 3]].clip(0, im0_shape[0])
-            x = x[np.bitwise_and(x[..., 2] > x[..., 0], x[..., 3] > x[..., 1])]
+
             # Process masks
             masks = self.process_mask(protos[0], x[:, 6:], x[:, :4], im0_shape)
 

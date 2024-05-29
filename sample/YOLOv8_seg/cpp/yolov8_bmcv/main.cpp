@@ -243,6 +243,7 @@ int main(int argc, char* argv[]) {
                     }
                     free(jpeg_data);
 #endif
+                    bm_image_destroy(batch_imgs[i]);
                 }
                 batch_imgs.clear();
                 batch_names.clear();
