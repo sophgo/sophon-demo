@@ -53,7 +53,7 @@ optional arguments:
                         置信度阈值
   --nms_thresh NMS_THRESH
                         nms阈值
-  --use_cpu_opt         是否用nms优化的后处理
+  --use_cpu_opt         开启cpu后处理优化
 ```
 
 > **注意：** CPP和python目前都默认关闭nms优化，python调用的优化接口，依赖3.7.0版本之后的sophon-sail，如果您的sophon-sail版本有该接口，可以添加参数`--use_cpu_opt`来开启该接口优化，`use_cpu_opt`仅限输出维度为5的模型(一般是3输出，别的输出个数可能需要用户自行修改后处理代码)。
