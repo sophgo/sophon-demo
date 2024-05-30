@@ -28,11 +28,36 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
 使用TPU-MLIR编译BModel，通常需要在x86主机上安装TPU-MLIR环境，x86主机已安装Ubuntu16.04/18.04/20.04系统，并且运行内存在12GB以上。TPU-MLIR环境安装步骤主要包括：
 
 1. 安装Docker
-
    若已安装docker，请跳过本节。
     ```bash
-    # 安装docker
-    sudo apt-get install docker.io
+    # 如果您的docker环境损坏，可以先卸载docker
+    sudo apt-get remove docker docker.io containerd runc
+
+    # 安装依赖
+    sudo apt-get update
+    sudo apt-get install \
+            ca-certificates \
+            curl \
+            gnupg \
+            lsb-release
+
+    # 获取密钥
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL \
+        https://download.docker.com/linux/ubuntu/gpg | \
+        gpg --dearmor -o docker.gpg && \
+        sudo mv -f docker.gpg /etc/apt/keyrings/
+
+    # 添加 docker 软件包
+    echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+        https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
+        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    # 安装 docker
+    sudo apt-get update
+    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    
     # docker命令免root权限执行
     # 创建docker用户组，若已有docker组会报错，没关系可忽略
     sudo groupadd docker
