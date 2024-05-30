@@ -56,6 +56,10 @@ If you are using BM1684X, it is recommended to use TPU-MLIR to compile BModel. U
         https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
         sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
+    # install docker
+    sudo apt-get update
+    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    
     # In docker, commands can be executed without root privileges
     # Create docker user group,if there is already a docker user group, it will raise an error,this error can be ignored
     sudo groupadd docker
