@@ -4,11 +4,9 @@
 ## 目录
 
 * [1. 环境准备](#1-环境准备)
-    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
-    * [1.2 SoC平台](#12-soc平台)
+    * [1.1 SoC平台](#12-soc平台)
 * [2. 程序编译](#2-程序编译)
-    * [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
-    * [2.2 SoC平台](#22-soc平台)
+    * [2.1 SoC平台](#21-soc平台)
 * [3. 推理测试](#3-推理测试)
     * [3.1 参数说明](#31-参数说明)
     * [3.2 测试图片](#32-测试图片)
@@ -19,33 +17,17 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 1    | [blend_bmcv](./blend_bmcv) | 使用BMCV接口做融合拼接 |
 
 ## 1. 环境准备
-### 1.1 x86/arm PCIe平台
-如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
-
-### 1.2 SoC平台
+### 1.1 SoC平台
 如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
 
-
 ## 2. 程序编译
-C++程序运行前需要编译可执行文件。
-### 2.1 x86/arm PCIe平台
-可以直接在PCIe平台上编译程序：
-#### 2.1.1 bmcv
-```bash
-cd cpp/blend_bmcv
-mkdir build && cd build
-cmake .. 
-make
-cd ..
-```
-编译完成后，会在blend_bmcv目录下生成blend_bmcv.pcie。
+C++程序运行前需要编译可执行文件，目前该功能只支持在BM1688/CV186X(SoC)上使用。
 
-
-### 2.2 SoC平台
+### 2.1 SoC平台
 通常在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件：
-#### 2.2.1 bmcv
+#### 2.1.1 bmcv
 ```bash
 cd cpp/blend_bmcv
 mkdir build && cd build

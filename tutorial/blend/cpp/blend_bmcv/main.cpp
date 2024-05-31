@@ -13,27 +13,10 @@ bool is_file_exists(const std::string& filename) {
     return (file.good()); 
 }
 
-#ifndef BMCV_VERSION_MAJOR
-#define BMCV_VERSION_MAJOR 1
-#endif
-/*for multi version compatible*/
-#if BMCV_VERSION_MAJOR > 1
-typedef bmcv_padding_attr_t bmcv_padding_atrr_t;
-/**
- * @name    bm_image_destroy
- * @brief   To solve incompatible issue in a2 sdk.
- * @ingroup bmcv
- *
- * @param [image]        input bm_image
- * @retval BM_SUCCESS    change success.
- * @retval other values  change failed.
- */
+// 只支持BM1688/CV186X(SoC)
 static inline bm_status_t bm_image_destroy(bm_image& image){
   return bm_image_destroy(&image);
 }
-#endif
-
-extern void bm_read_bin(bm_image src, const char* input_name);
 
 extern void bm_dem_read_bin(bm_handle_t handle, bm_device_mem_t* dmem, const char *input_name, unsigned int size) __attribute__((weak));
 
