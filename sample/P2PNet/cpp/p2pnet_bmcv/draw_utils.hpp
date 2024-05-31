@@ -8,7 +8,7 @@
 #define USE_OPENCV 1
 
 void draw_bmcv(bm_handle_t h, const std::vector<std::vector<PPoint>>& points,
-               const std::vector<bm_image>& batch_imgs,
+               std::vector<bm_image>& batch_imgs,
                const std::vector<std::string>& batch_names,
                std::string save_folder) {
   for (size_t i = 0; i < batch_imgs.size(); i++) {
