@@ -214,15 +214,12 @@ source /etc/profile
 ### 4.1 交叉编译环境搭建
 需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中。
 1. 安装交叉编译工具链
-    ```bash
-    sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-    ```
-    如果报错：`/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
+    **如果现有的交叉编译工具链的版本高于边缘设备的gcc版本**，那么在编译完成之后运行程序时会报类似的错误：`/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
     这是由于您主机上的交叉编译工具链版本太高导致，可以在[linaro官方网站](https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/)下载不高于边缘设备gcc版本的交叉编译工具链。
 
     这里提供一个ubuntu配置的例子：
     ```bash
-    sudo apt remove cpp-*-aarch64-linux-gnu
+    sudo apt remove cpp-*-aarch64-linux-gnu #卸载现有的交叉编译工具链，如果没有可以不用运行
 
     wget -nd https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
     

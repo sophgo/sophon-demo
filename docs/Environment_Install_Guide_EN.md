@@ -214,15 +214,12 @@ For SoC platforms, the SophonSDK (>=v22.09.02) has been installed with the corre
 ### 4.1 Cross-compiling Environment Construction
 You need to build a cross-compilation environment on an x86 host using SOPHON SDK and package the header and library files that the program depends on into the soc-sdk directory.
 1. Install the cross-compilation tool chain
-    ```bash
-    sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-    ```
-    If you encount this error: `/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
+    **If the version your current cross-compilation tool chain is higher than the SoC environment**, then you will encounter this error when you running your program after cross-compilation: `/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
     You can install gcc with lower version by downloading source from [release.linaro.org](https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/)
 
     here we provide an example of ubuntu configuration：
     ```bash
-    sudo apt remove cpp-*-aarch64-linux-gnu
+    sudo apt remove cpp-*-aarch64-linux-gnu #uninstall current toolchain, you can skip if you don't have any.
 
     wget -nd https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
     
