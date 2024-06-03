@@ -170,7 +170,7 @@ bmrt_test --bmodel models/BM1684X/superpoint_fp32_1b.bmodel
 
 |    测试平台  |     测试程序     | superpoint模型            |   superglue模型                    | decode_time    |superpoint_time  |superglue_time   | 
 | ----------- | ---------------- | ---------------          | ----------------                   | --------       | ---------       | ---------     |
-|   SE7-32    |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp32_1b_iter20_1024.bmodel|      12.38      |      97.33      |     301.75      |
+|   SE7-32    |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp32_1b_iter20_1024.bmodel|      5.70      |      97.33      |     301.75      |
 |   SE9-16    |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp32_1b_iter20_1024.bmodel|      5.70       |     263.51      |     686.38      |
 |   SE9-16    |superglue_bmcv.soc |superpoint_fp16_1b.bmodel|superglue_fp16_1b_iter20_1024.bmodel|      5.62       |      89.39      |     198.20      |
 |    SE9-8    |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp32_1b_iter20_1024.bmodel|      5.45       |     269.53      |     686.53      |
