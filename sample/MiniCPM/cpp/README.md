@@ -18,11 +18,6 @@
 
 - 请确保您的驱动及libsophon版本满足本例程的要求，具体请参考[简介](../README.md#1-简介)
 
-此外您还需要安装其他第三方库：
-```bash
-pip3 install -r python/requirements.txt
-```
-
 ### 1.2 SoC平台
 
 如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon运行库包。

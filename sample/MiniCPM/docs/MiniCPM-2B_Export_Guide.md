@@ -113,7 +113,15 @@ cp tools/MiniCPM-2B/modeling_minicpm.py MiniCPM-2B-sft-bf16/
 
 ## 2.1.3 导出onnx
 
-- 导出所有onnx模型，如果过程中提示缺少某些组件，直接**pip install**组件即可
+- 导出所有onnx模型前，您还需要安装其他第三方库：
+
+```bash
+pip3 install -r tools/requirements.txt
+```
+
+- 如果过程中提示缺少某些组件，直接 **pip install** 组件即可
+
+接下来，您可以使用下面的脚本来导出MiniCPM-2B的onnx模型：
 
 ``` shell
 cd tools
