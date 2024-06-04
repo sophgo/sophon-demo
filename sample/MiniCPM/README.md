@@ -124,11 +124,11 @@ C++例程的详细编译请参考[C++例程](./cpp/README.md)
 
 这里的测试输入为："山东省最高的山是哪座山？"
 根据测试，我们得到了如下表的模型性能表：
-|    测试平台   |     测试程序       |           测试模型          |first token latency(s)|token per second(tokens/s)| 
-| -----------  | ---------------- | ---------------------------  | --------------------- | ----------------------- | 
-|   SE7-32     | demo.cpp  | minicpm-2b_bm1684x_int4       | 0.384 s |   19 token/s  |
-|   SE9-16     | demo.cpp  | minicpm-2b_bm1688_int4_1core  | 2.059 s |   9  token/s  |
-|   SE9-16     | demo.cpp  | minicpm-2b_bm1688_int4_2core  | 1.230 s |   10 token/s  |
+|    测试平台   |     测试程序       |           测试模型          |first token latency(s)|token per second(tokens/s)|
+| -----------  | ---------------- | ---------------------------  | --------------------- | ----------------------- |
+|   SE7-32     | demo.cpp  | minicpm-2b_bm1684x_int4       | 0.355 s |   26 token/s  |
+|   SE9-16     | demo.cpp  | minicpm-2b_bm1688_int4_1core  | 2.039 s |   11 token/s  |
+|   SE9-16     | demo.cpp  | minicpm-2b_bm1688_int4_2core  | 1.206 s |   13 token/s  |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；

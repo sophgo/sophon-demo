@@ -125,7 +125,7 @@ model_transform.py \
 
 model_deploy.py \
     --mlir lm_head.mlir \
-    --quantize BF16 \
+    $quantize_args \
     --quant_input \
     --quant_output \
     --chip $target \

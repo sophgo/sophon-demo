@@ -403,9 +403,6 @@ class MiniCPMAttention(nn.Module):
             key_states = self.k_proj(hidden_states)
             value_states = self.v_proj(hidden_states)
 
-        # query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        # key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
-        # value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
         query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim)
         key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim)
         value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim)
@@ -419,13 +416,9 @@ class MiniCPMAttention(nn.Module):
                     "for auto-regressive decoding with k/v caching, please make sure to initialize the attention class "
                     "with a layer index."
                 )
-            # kv_seq_len += past_key_value[0].shape[-2]
             kv_seq_len += past_key_value[0].shape[-3]
-        cos, sin = self.rotary_emb(value_states.to(torch.float32), seq_len=kv_seq_len)
-        # if past_key_value is not None:
-        #   cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len-1)
-        # else:
-        #   cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
+        emb_len = key_states.shape[-3] if past_key_value is None else  past_key_value[0].shape[-3]
+        cos, sin = self.rotary_emb(value_states.to(torch.float32), seq_len=emb_len)
 
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
         past_kv = (key_states, value_states) if use_cache else None
@@ -477,7 +470,7 @@ class MiniCPMAttention(nn.Module):
 
         if not output_attentions:
             attn_weights = None
-        
+
         return attn_output, attn_weights, past_kv
 
 
@@ -828,7 +821,7 @@ class MiniCPMDecoderLayer(nn.Module):
             use_cache=use_cache,
             **kwargs,
         )
-        
+
         hidden_states = residual + hidden_states * (self.scale_depth / math.sqrt(self.num_hidden_layers))
 
         # Fully Connected
@@ -1129,7 +1122,7 @@ class MiniCPMModel(MiniCPMPreTrainedModel):
         next_cache = next_decoder_cache if use_cache else None
         if not return_dict:
             return tuple(v for v in [hidden_states, next_cache, all_hidden_states, all_self_attns] if v is not None)
-        
+
         return BaseModelOutputWithPast(
             last_hidden_state=hidden_states,
             past_key_values=next_cache,
@@ -1265,34 +1258,33 @@ class MiniCPMForCausalLM(MiniCPMPreTrainedModel):
         self, input_ids, past_key_values=None, attention_mask=None, inputs_embeds=None, **kwargs
     ):
         if past_key_values is not None:
-            # if isinstance(past_key_values, Cache):
-            #     cache_length = past_key_values.get_seq_length()
-            #     past_length = past_key_values.seen_tokens
-            #     max_cache_length = past_key_values.get_max_length()
-            # else:
-            #     cache_length = past_length = past_key_values[0][0].shape[2]
-            #     max_cache_length = None
+            if isinstance(past_key_values, Cache):
+                cache_length = past_key_values.get_seq_length()
+                past_length = past_key_values.seen_tokens
+                max_cache_length = past_key_values.get_max_length()
+            else:
+                cache_length = past_length = past_key_values[0][0].shape[2]
+                max_cache_length = None
 
-            # # Keep only the unprocessed tokens:
-            # # 1 - If the length of the attention_mask exceeds the length of input_ids, then we are in a setting where
-            # # some of the inputs are exclusivelly passed as part of the cache (e.g. when passing input_embeds as
-            # # input)
-            # if attention_mask is not None and attention_mask.shape[1] > input_ids.shape[1]:
-            #     input_ids = input_ids[:, -(attention_mask.shape[1] - past_length) :]
-            # # 2 - If the past_length is smaller than input_ids', then input_ids holds all input tokens. We can discard
-            # # input_ids based on the past_length.
-            # elif past_length < input_ids.shape[1]:
-            #     input_ids = input_ids[:, past_length:]
-            # # 3 - Otherwise (past_length >= input_ids.shape[1]), let's assume input_ids only has unprocessed tokens.
+            # Keep only the unprocessed tokens:
+            # 1 - If the length of the attention_mask exceeds the length of input_ids, then we are in a setting where
+            # some of the inputs are exclusivelly passed as part of the cache (e.g. when passing input_embeds as
+            # input)
+            if attention_mask is not None and attention_mask.shape[1] > input_ids.shape[1]:
+                input_ids = input_ids[:, -(attention_mask.shape[1] - past_length) :]
+            # 2 - If the past_length is smaller than input_ids', then input_ids holds all input tokens. We can discard
+            # input_ids based on the past_length.
+            elif past_length < input_ids.shape[1]:
+                input_ids = input_ids[:, past_length:]
+            # 3 - Otherwise (past_length >= input_ids.shape[1]), let's assume input_ids only has unprocessed tokens.
 
-            # # If we are about to go beyond the maximum cache length, we need to crop the input attention mask.
-            # if (
-            #     max_cache_length is not None
-            #     and attention_mask is not None
-            #     and cache_length + input_ids.shape[1] > max_cache_length
-            # ):
-            #     attention_mask = attention_mask[:, -max_cache_length:]
-            input_ids = input_ids[:, -1:]
+            # If we are about to go beyond the maximum cache length, we need to crop the input attention mask.
+            if (
+                max_cache_length is not None
+                and attention_mask is not None
+                and cache_length + input_ids.shape[1] > max_cache_length
+            ):
+                attention_mask = attention_mask[:, -max_cache_length:]
 
         position_ids = kwargs.get("position_ids", None)
         if attention_mask is not None and position_ids is None:
@@ -1300,8 +1292,7 @@ class MiniCPMForCausalLM(MiniCPMPreTrainedModel):
             position_ids = attention_mask.long().cumsum(-1) - 1
             position_ids.masked_fill_(attention_mask == 0, 1)
             if past_key_values:
-                # position_ids = position_ids[:, -input_ids.shape[1] :]
-                position_ids = position_ids[:, -1].unsqueeze(-1)
+                position_ids = position_ids[:, -input_ids.shape[1] :]
 
         # if `inputs_embeds` are passed, we only want to use them in the 1st generation step
         if inputs_embeds is not None and past_key_values is None:
@@ -1327,7 +1318,7 @@ class MiniCPMForCausalLM(MiniCPMPreTrainedModel):
                 tuple(past_state.index_select(0, beam_idx.to(past_state.device)) for past_state in layer_past),
             )
         return reordered_past
-    
+
     @torch.inference_mode()
     def chat(self, tokenizer, query: str, history: List[Dict] = None, role: str = "user",
              max_length: int = 4096, num_beams=1, do_sample=True, top_p=0.8, temperature=0.3, logits_processor=None,
@@ -1340,7 +1331,7 @@ class MiniCPMForCausalLM(MiniCPMPreTrainedModel):
         else:
             gen_kwargs = {"max_length": max_length, "num_beams": num_beams, "do_sample": do_sample, "top_p": top_p,
                         "temperature": temperature, "logits_processor": logits_processor, **kwargs}
-        
+
         history.append({"role": role, "content": query})
         history_str = tokenizer.apply_chat_template(history, tokenize=False, add_generation_prompt=False)
         inputs = tokenizer(history_str, return_tensors='pt').to(self.device)

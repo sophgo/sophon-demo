@@ -11,6 +11,7 @@
 import os
 import torch
 import argparse
+import numpy as np
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -153,7 +154,7 @@ def convert_embedding():
 def convert_lm_head():
     model = LmHead()
     input = torch.randn((1, HIDDEN_SIZE)).bfloat16()
-    
+
     torch.onnx.export(model, (input),
                       f'{folder}/lm_head.onnx',
                       verbose=False,
@@ -212,6 +213,15 @@ def test_net_with_mask():
         #     (1, 1, 1, SEQ_LENGTH)).float()
         attention_mask[:, :, :, token_len-1:SEQ_LENGTH] = -10000.0
         for i in range(NUM_LAYERS):
+            if i == 0:
+                inputs = {
+                    'input_states':out.float().numpy(),
+                    'position_ids':position_ids.numpy().astype(np.int32),
+                    'attention_mask':attention_mask.float().numpy(),
+                    'history_k':k_cache[i].float().numpy(),
+                    'history_v':v_cache[i].float().numpy(),
+                }
+                np.savez("input_ref.npz", **inputs)
             out, k, v = block_kvs[i](out.bfloat16(), position_ids,
                                      attention_mask.bfloat16(),
                                      k_cache[i].bfloat16(), v_cache[i].bfloat16())
