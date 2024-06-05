@@ -49,13 +49,13 @@ def main(args):
 
 
     logging.info(("-------------------Image num {}, Preprocess average time ------------------------").format(image_input.shape[0]))
-    logging.info("preprocess(ms): {:.2f}".format( model.preprocess_time / image_input.shape[0] * 1000))
+    logging.info("preprocess(ms): {:.2f}".format(model.preprocess_time / image_input.shape[0] * 1000))
+
+    logging.info(("------------------ Image num {}, Image Encoding average time ----------------------").format(image_input.shape[0]))
+    logging.info("image_encode(ms): {:.2f}".format(model.encode_image_time / image_input.shape[0] * 1000))
 
     logging.info(("------------------ Image num {}, Text Encoding average time ----------------------").format(image_input.shape[0]))
-    logging.info("text_encode(ms): {:.2f}".format( model.encode_text_time / image_input.shape[0] * 1000))
-
-    logging.info(("------------------ Image num {},Image Encoding average time ----------------------").format(image_input.shape[0]))
-    logging.info("image_encode(ms): {:.2f}".format( model.encode_image_time / image_input.shape[0] * 1000))
+    logging.info("text_encode(ms): {:.2f}".format(model.encode_text_time / image_input.shape[0] * 1000))
 
 
 

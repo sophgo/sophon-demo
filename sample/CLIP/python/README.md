@@ -29,7 +29,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 ```bash
 pip3 install ftfy
 pip3 install regex
-pip3 install torch==1.7.1
+pip3 install torch
 pip3 install torchvision
 ```
 ### 1.2 SoC平台
@@ -38,7 +38,7 @@ pip3 install torchvision
 ```bash
 pip3 install ftfy
 pip3 install regex
-pip3 install torch==1.7.1
+pip3 install torch
 pip3 install torchvision
 ```
 
@@ -76,9 +76,9 @@ INFO:root:Text: a cat, Similarity: 0.0008334724698215723
 INFO:root:Text: a dog, Similarity: 0.0004982181708328426
 INFO:root:-------------------Image num 1, Preprocess average time ------------------------
 INFO:root:preprocess(ms): 11.55
-INFO:root:------------------ Image num 1, Text Encoding average time ----------------------
-INFO:root:text_encode(ms): 26.06
 INFO:root:------------------ Image num 1,Image Encoding average time ----------------------
 INFO:root:image_encode(ms): 8.09
+INFO:root:------------------ Image num 1, Text Encoding average time ----------------------
+INFO:root:text_encode(ms): 26.06
 ```
 

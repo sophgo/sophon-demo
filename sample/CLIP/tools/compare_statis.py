@@ -8,9 +8,9 @@ import multiprocessing
 baseline = """
 | 测试平台 | 测试程序            | image_encode模型                        | text_encode模型                        | Preprocess_Time | Image_Encoding_Time | Text_Encoding_Time |
 | -------- | ------------------- | --------------------------------------- | -------------------------------------- | --------------- | ------------------- | ------------------ |
-| SE7-32   | zeroshot_predict.py | clip_image_vitb32_bm1684x_f16_1b.bmodel | clip_text_vitb32_bm1684x_f16_1b.bmodel | 12.17           | 18.90               | 9.63               |
-| SE9-16   | zeroshot_predict.py | clip_image_vitb32_bm1688_f16_1b.bmodel  | clip_text_vitb32_bm1688_f16_1b.bmodel  | 16.92           | 59.61               | 30.04              |
-| SE9-8    | zeroshot_predict.py | clip_image_vitb32_cv186x_f16_1b.bmodel  | clip_text_vitb32_cv186x_f16_1b.bmodel  | 17.09           | 46.56               | 23.59              |
+| SE7-32   | zeroshot_predict.py | clip_image_vitb32_bm1684x_f16_1b.bmodel | clip_text_vitb32_bm1684x_f16_1b.bmodel | 12.17           | 9.63                | 18.90              |
+| SE9-16   | zeroshot_predict.py | clip_image_vitb32_bm1688_f16_1b.bmodel  | clip_text_vitb32_bm1688_f16_1b.bmodel  | 16.92           | 25.04               | 49.61              |
+| SE9-8    | zeroshot_predict.py | clip_image_vitb32_cv186x_f16_1b.bmodel  | clip_text_vitb32_cv186x_f16_1b.bmodel  | 17.09           | 30.59               | 59.56              |
 """
 
 table_data = {
