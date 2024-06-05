@@ -38,6 +38,17 @@ gen_fp16bmodel()
         --model p2pnet_${target}_fp16_$1b.bmodel
 
     mv p2pnet_${target}_fp16_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir p2pnet_$1b.mlir \
+            --quantize F16 \
+            --chip $target \
+            --model p2pnet_fp16_$1b_2core.bmodel \
+            --num_core 2
+            # --test_input p2pnet_$1b_in_f32.npz \
+            # --test_reference p2pnet_$1b_top_outputs.npz
+        mv p2pnet_fp16_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir
