@@ -10,4 +10,6 @@
 | [blend](./blend)                       | 融合拼接两张图 |
 | [stitch](./stitch)                       | 拼接两张图片 |
 | [avframe_ocv](./avframe_ocv/)                         | avframe到cv::mat的转换例程|
+| [ocv_avframe](./ocv_avframe/)                         | bgr mat到yuv420p avframe的转换例程|
+
 
