@@ -125,10 +125,10 @@ pip3 install -r tools/requirements.txt
 
 ``` shell
 cd tools
-python3 export_onnx.py --model_path tools/MiniCPM-2B-sft-bf16/ 
+python3 export_onnx.py --model_path ./MiniCPM-2B-sft-bf16/ 
 ```
 
-此时有大量onnx模型被导出到tmp目录。模型`seq_length`默认为512，如果想要支持更长序列，请在 `export_onnx.py`脚本运行时指定`--seq_length your_seq_length`
+此时有大量onnx模型被导出到../scripts/tmp目录。模型`seq_length`默认为512，如果想要支持更长序列，请在 `export_onnx.py`脚本运行时指定`--seq_length your_seq_length`
 
 ### 2.2 bmodel编译
 
@@ -152,7 +152,7 @@ gen_bmodel.sh的参数解析：
 2.2 目前TPU-MLIR、BM1688支持对MiniCPM进行INT4量化，如果要生成单核模型，则执行以下命令，最终生成`minicpm-2b_bm1688_int4_1core.bmodel`文件
 
 ```shell
-./gen_bmodel.sh --name minicpm-2b --mode int4 --target BM16888 --num_core 1 
+./gen_bmodel.sh --name minicpm-2b --mode int4 --target BM1688 --num_core 1 
 ```
 
 2.3 如果要生成双核模型，则执行以下命令，最终生成`minicpm-2b_bm1688_int4_2core.bmodel`文件
