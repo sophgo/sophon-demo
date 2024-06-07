@@ -26,7 +26,7 @@ CLIP（Contrastive Language-Image Pre-Training）是一个在多种（图像，�
 
 ## 3. 准备数据与模型
 
-Pytorch模型在编译前要导出成onnx模型，具体可参考[CLIP模型导出](./docs/CLIP_Export_Guide.md)。
+Pytorch模型在编译前要导出成onnx模型，具体可参考[CLIP模型导出](./docs/Clip_Export_Guide.md)。
 ​
 本例程在`scripts`目录下提供了相关模型和数据集的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
@@ -116,11 +116,11 @@ bmrt_test --bmodel models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel
 
 测试结果如下，测试结果有一定波动性，取稳定后的性能数据（时间单位为ms）：
 
-| 测试平台 | 测试程序            | Preprocess Time | Text Encoding Time | Image Encoding Time |
-| -------- | ------------------- | --------------- | ------------------ | ------------------- |
-| SE7-32   | zeroshot_predict.py | 12.17           | 18.90              | 9.63                |
-| SE9-16   | zeroshot_predict.py | 16.92           | 59.61              | 30.04               |
-| SE9-8    | zeroshot_predict.py | 17.09           | 46.56              | 23.59               |
+| 测试平台 | 测试程序            | Preprocess Time | Image Encoding Time | Text Encoding Time |
+| -------- | ------------------- | --------------- | ------------------- | ------------------ |
+| SE7-32   | zeroshot_predict.py | 12.17           | 9.63                | 18.90              |
+| SE9-16   | zeroshot_predict.py | 16.92           | 25.04               | 49.61              |
+| SE9-8    | zeroshot_predict.py | 17.09           | 30.59               | 59.56              |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性，实测结果与该表结果有误差属正常现象，建议取稳定后的性能数据、并多次测试取平均值。

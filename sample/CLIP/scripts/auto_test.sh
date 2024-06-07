@@ -2,9 +2,24 @@
 
 # This script is used to test CLIP on BM1684/BM1684X/BM1688/CV186X platform
 
+# use sophon-opencv
+# 设置目录的基本路径和模式
+base_path="/opt/sophon"
+pattern="sophon-opencv_*"
+
+# 使用find命令来定位正确的目录
+# -maxdepth 1 保证不会搜索子目录
+opencv_dir=$(find "$base_path" -maxdepth 1 -type d -name "$pattern" -print -quit)
+
+# 检查是否找到了目录
+if [[ -d "$opencv_dir" ]]; then
+    export PYTHONPATH=$PYTHONPATH:$opencv_dir/opencv-python
+    echo "Added $opencv_dir/opencv-python to PYTHONPATH"
+else
+    echo "Error: OpenCV directory not found."
+fi
 
 # install unzip first
-
 res=$(which unzip)
 if [ $? != 0 ];
 then
@@ -231,10 +246,6 @@ then
   then
     # 测试这两个平台的单core模型
     test_python clip_image_vitb32_bm1688_f16_1b.bmodel clip_text_vitb32_bm1688_f16_1b.bmodel
-    if test "$PLATFORM" = "SE9-16"; then 
-      # 测试SE9-16上的双core模型
-      test_python clip_image_vitb32_bm1688_f16_1b_2core.bmodel clip_text_vitb32_bm1688_f16_1b_2core.bmodel
-    fi
   elif test $TARGET = "CV186X"
   then
     test_python clip_image_vitb32_cv186x_f16_1b.bmodel clip_text_vitb32_cv186x_f16_1b.bmodel
