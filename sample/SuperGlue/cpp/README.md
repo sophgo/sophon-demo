@@ -48,14 +48,33 @@ cd ..
 
 ### 2.2 SoC平台
 
-通常在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包以及以下第三方库：
+通常在x86主机上（**本例程使用ubuntu20.04系统**）交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包以及一些第三方库，为了在x86上下载这些arm64架构的第三方库，您可能需要更换apt源，将如下源替换掉您`/etc/apt/source.list`里的源，**注意对原来的源做好备份**。
+
+```bash
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse
+```
+
+然后在`/etc/apt/sources.list.d/`目录下新建`arm-cross-compile-sources.list`文件，写入如下内容：
+```bash
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal main restricted universe multiverse
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal-security main restricted universe multiverse
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal-updates main restricted universe multiverse
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal-backports main restricted universe multiverse
+```
+
+然后运行如下命令，下载第三方依赖：
 
 ```bash
 sudo dpkg --add-architecture arm64
+sudo apt update
 sudo apt install libopenblas-dev:arm64
 sudo apt install ccache:arm64
 sudo apt install numactl:arm64
-sudo apt-get install libhwloc-dev:arm64
+sudo apt install libhwloc-dev:arm64
+sudo apt install libevent-dev:arm64
 ```
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件：
@@ -103,8 +122,9 @@ Usage: superglue_bmcv.pcie [params]
 
 ### 3.2 测试图片
 
-如果是在SoC平台上进行测试，需要设置环境变量：
+如果是在SoC平台上进行测试，需要安装如下第三方依赖并设置环境变量：
 ```bash
+sudo apt install libopenblas-dev
 export LD_LIBRARY_PATH=$PWD/../aarch64_lib/libtorch/lib:$LD_LIBRARY_PATH
 ```
 
