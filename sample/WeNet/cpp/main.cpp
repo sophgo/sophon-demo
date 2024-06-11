@@ -25,6 +25,9 @@
 using namespace bmruntime;
 
 void show_wenet_profile(TimeStamp& ts, const std::string& tag, int num){
+    if(ts.records_.count(tag) <= 0){
+        return;
+    }
     int sum = ts.total_duration_ms(tag);
     std::cout << "[" << std::setw(20) << tag << "] "
               << " loops: "  << std::setw(4) << num

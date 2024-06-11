@@ -99,7 +99,7 @@ Usage: wenet.pcie [params]
         --result_file (value:./result.txt)
                 result file path
         --input (value:../datasets/aishell_S0764/aishell_S0764.list)
-                input path, images direction or video file path
+                input path, audio data list
         --mode (value:ctc_prefix_beam_search)
                 decoding mode, choose from 'ctc_greedy_search', 'ctc_prefix_beam_search' and 'attention_rescoring'
         --dev_id (value:0)

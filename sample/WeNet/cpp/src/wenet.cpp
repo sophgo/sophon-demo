@@ -63,7 +63,6 @@ void showInfo(const bm_net_info_t* m_netinfo)
 int WeNet::Init(const std::vector<std::string>& dict, int sample_frequency, int num_mel_bins, int frame_shift, int frame_length, int decoding_chunk_size, int subsampling_rate, int context, const std::string& mode) {
     this->dict = dict;
     this->sample_frequency = sample_frequency;
-    this->sample_frequency = sample_frequency;
     this->num_mel_bins = num_mel_bins;
     this->frame_shift = frame_shift;
     this->frame_length = frame_length;
@@ -230,8 +229,8 @@ int WeNet::inference() {
         std::free(chunk_xs_ptr);
     }
 
-    if(mode == "attention_rescoring") {
-        LOG_TS(m_ts, "wenet postprocess");
+    if(mode == "attention_rescoring" && max_len + 2 >= encoder_out.n_rows) {
+        LOG_TS(m_ts, "wenet preprocess");
         int eos = dict.size() - 1;
         int sos = dict.size() - 1;
         std::vector<std::vector<std::pair<double, std::vector<int>>>> score_hyps;
@@ -282,9 +281,11 @@ int WeNet::inference() {
             k += 1;
         }
 
-        arma::fmat pad_matrix(max_len + 2 - encoder_out.n_rows, encoder_out.n_cols, arma::fill::zeros);
-        encoder_out = arma::join_cols(encoder_out, pad_matrix);
-
+        // std::cout<<"max_len:"<<max_len<<"; encoder_out.n_rows:"<<encoder_out.n_rows<<"; encoder_out.n_cols:"<<encoder_out.n_cols<<std::endl;
+        if(max_len + 2 > encoder_out.n_rows){
+            arma::fmat pad_matrix(max_len + 2 - encoder_out.n_rows, encoder_out.n_cols, arma::fill::zeros);
+            encoder_out = arma::join_cols(encoder_out, pad_matrix);
+        }
         void* encoder_out_ptr = mat_to_sys_mem<float>(encoder_out);
         int encoder_out_lens = max_len + 2;
         void* encoder_out_lens_ptr = static_cast<void*>(&encoder_out_lens);
@@ -303,7 +304,7 @@ int WeNet::inference() {
         decoder_inputs[3]->CopyFrom(hyps_lens_sos_ptr);
         decoder_inputs[4]->CopyFrom(r_hyps_pad_sos_eos_ptr);
         decoder_inputs[5]->CopyFrom(ctc_score_ptr);
-        LOG_TS(m_ts, "wenet postprocess");
+        LOG_TS(m_ts, "wenet preprocess");
         LOG_TS(m_ts, "wenet decoder inference");
         auto status = decoder_net->Forward();
         LOG_TS(m_ts, "wenet decoder inference");
@@ -337,6 +338,8 @@ int WeNet::inference() {
         std::free(beam_log_probs_idx_ptr);
         std::free(best_idx);
         LOG_TS(m_ts, "wenet postprocess");
+    } else{
+        std::cout<<"encoder_output's length is too long for decoder, skip decoder part..."<<std::endl;
     }
     
     std::free(att_cache);
