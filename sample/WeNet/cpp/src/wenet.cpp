@@ -338,7 +338,7 @@ int WeNet::inference() {
         std::free(beam_log_probs_idx_ptr);
         std::free(best_idx);
         LOG_TS(m_ts, "wenet postprocess");
-    } else{
+    } else if(max_len + 2 >= encoder_out.n_rows){
         std::cout<<"encoder_output's length is too long for decoder, skip decoder part..."<<std::endl;
     }
     
