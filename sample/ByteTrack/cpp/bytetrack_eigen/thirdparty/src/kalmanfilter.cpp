@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 #include "kalmanfilter.h"
 
-#include <eigen3/Eigen/Cholesky>
+#include <Eigen/Cholesky>
 
 const double KalmanFilter::chi2inv95[10] = {
     0, 3.8415, 5.9915, 7.8147, 9.4877, 11.070, 12.592, 14.067, 15.507, 16.919};
