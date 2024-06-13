@@ -16,10 +16,8 @@ fi
 # models
 if [ ! -d "../models" ]; 
 then
-    mkdir ../models
-    pushd ../models
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/models.tar.gz
-    tar xvf models.tar.gz
+    tar xvf models.tar.gz -C ../
     popd
     echo "models download!"
 else
