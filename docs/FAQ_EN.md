@@ -81,7 +81,9 @@ The input data type of int8bmodel is int8 with a scale factor that is not equal 
 If you want to use the opencv-python demo for deployment, it is recommended to keep the input and output layers of int8bmodel as floating-point calculations.
 
 ### 6.3 Can sophon-demo be used for performance testing?
-It is not recommended. Sophon-demo provides a series of transplant demos for mainstream algorithms, and users can perform model algorithm transplantation and accuracy testing based on sophon-demo. However, the preprocessing/inference/post-processing of sophon-demo is serial, and even if multiple processes are opened, it is difficult to fully utilize the performance of TPU.  can run preprocessing/inference/post-processing on three threads respectively, maximizing parallelism. Therefore, it is recommended to use sophon-pipeline for performance testing.
+It is not recommended. Sophon-demo provides a series of transplant demos for mainstream algorithms, and users can perform model algorithm transplantation and accuracy testing based on sophon-demo. However, the preprocessing/inference/post-processing of sophon-demo is serial, and even if multiple processes are opened, it is difficult to fully utilize the performance of TPU.
+[sophon-stream](https://github.com/sophgo/sophon-stream) is a framework which supports concurrent processing of multiple video streams, it can fully utilize the decoding/encoding/inference capabilities that SOPHON hardware provide, so that it will achieve higher performance. We recommend you use sophon-stream to do performance stress testing.
+是一套支持多路数据流并发处理的流水线框架，可以充分发挥算丰硬件的编解码能力及深度学习算法的推理能力，从而获得较高的性能。因此建议使用sophon-stream进行性能压测。
 
 ### 6.4 Performance testing results are lower than README
 If the performance drops more than 10% compared to the README, you need to confirm the product model. The sophon-demo demos are all based on standard products (such as SE-16) for testing. If you are using a low-end product (such as SE5-8), performance degradation is normal. The int8 computing power of SE5-16 is 17.6 TOPS, while that of SE5-8 is 10.6 TOPS, so there may be a loss of 2/5 of the performance.
