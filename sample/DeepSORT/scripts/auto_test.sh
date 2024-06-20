@@ -39,6 +39,93 @@ do
   esac
 done
 
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
+if [ -f "scripts/acc.txt" ]; then
+  rm scripts/acc.txt
+fi
+
+PLATFORM=$TARGET
+if test $MODE = "soc_test"; then
+  if test $TARGET = "BM1684X"; then
+    PLATFORM="SE7-32"
+  elif test $TARGET = "BM1684"; then
+    PLATFORM="SE5-16"
+  elif test $TARGET = "BM1688"; then
+    PLATFORM="SE9-16"
+    cpu_core_num=$(nproc)
+    if [ "$cpu_core_num" -eq 6 ]; then
+      PLATFORM="SE9-8"
+    fi
+  elif test $TARGET = "CV186X"; then
+    PLATFORM="SE9-8"
+  else
+    echo "Unknown TARGET type: $TARGET"
+  fi
+fi
+
+
+function bmrt_test_case(){
+   calculate_time_log=$(bmrt_test --bmodel $1 --devid $TPUID | grep "calculate" 2>&1)
+   is_4b=$(echo $1 |grep "4b")
+
+   if [ "$is_4b" != "" ]; then
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 250}')
+   else
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 1000}')
+   fi
+   for time in "${calculate_times[@]}"
+   do
+     printf "| %-35s| % 15s |\n" "$1" "$time"
+   done
+}
+function bmrt_test_benchmark(){
+    pushd models
+    printf "| %-35s| % 15s |\n" "测试模型" "calculate time(ms)"
+    printf "| %-35s| % 15s |\n" "-------------------" "--------------"
+   
+    if test $TARGET = "BM1684"; then
+      bmrt_test_case BM1684/extractor_fp32_1b.bmodel
+      bmrt_test_case BM1684/extractor_fp32_4b.bmodel
+      bmrt_test_case BM1684/extractor_int8_1b.bmodel
+      bmrt_test_case BM1684/extractor_int8_4b.bmodel
+    elif test $TARGET = "BM1684X"; then
+      bmrt_test_case BM1684X/extractor_fp32_1b.bmodel
+      bmrt_test_case BM1684X/extractor_fp32_4b.bmodel
+      bmrt_test_case BM1684X/extractor_fp16_1b.bmodel
+      bmrt_test_case BM1684X/extractor_fp16_4b.bmodel
+      bmrt_test_case BM1684X/extractor_int8_1b.bmodel
+      bmrt_test_case BM1684X/extractor_int8_4b.bmodel
+    elif test $TARGET = "BM1688"; then
+      bmrt_test_case BM1688/extractor_fp32_1b.bmodel
+      bmrt_test_case BM1688/extractor_fp32_4b.bmodel
+      bmrt_test_case BM1688/extractor_fp16_1b.bmodel
+      bmrt_test_case BM1688/extractor_fp16_4b.bmodel
+      bmrt_test_case BM1688/extractor_int8_1b.bmodel
+      bmrt_test_case BM1688/extractor_int8_4b.bmodel
+      if test "$PLATFORM" = "SE9-16"; then 
+        bmrt_test_case BM1688/extractor_fp32_1b_2core.bmodel
+        bmrt_test_case BM1688/extractor_fp32_4b_2core.bmodel
+        bmrt_test_case BM1688/extractor_fp16_1b_2core.bmodel
+        bmrt_test_case BM1688/extractor_fp16_4b_2core.bmodel
+        bmrt_test_case BM1688/extractor_int8_1b_2core.bmodel
+        bmrt_test_case BM1688/extractor_int8_4b_2core.bmodel
+      fi
+    elif test $TARGET = "CV186X"; then
+      bmrt_test_case CV186X/extractor_fp32_1b.bmodel
+      bmrt_test_case CV186X/extractor_fp32_4b.bmodel
+      bmrt_test_case CV186X/extractor_fp16_1b.bmodel
+      bmrt_test_case CV186X/extractor_fp16_4b.bmodel
+      bmrt_test_case CV186X/extractor_int8_1b.bmodel
+      bmrt_test_case CV186X/extractor_int8_4b.bmodel
+    fi
+  
+    popd
+}
+
+
+
 if test $PYTEST = "pytest"
 then
   >${top_dir}auto_test_result.txt
@@ -147,8 +234,9 @@ function test_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./deepsort_$2.$1 --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log 2>&1
-  judge_ret $? "./deepsort_$2.$1 --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id=$TPUID" log/$1_$2_$3_cpp_test.log
+  ./deepsort_$2.$1 --input=$4 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log 2>&1
+  judge_ret $? "./deepsort_$2.$1 --input=$4  --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id=$TPUID" log/$1_$2_$3_cpp_test.log
+  tail -n 20 log/$1_$2_$3_cpp_test.log
   popd
 }
 
@@ -162,15 +250,22 @@ function eval_cpp()
   ./deepsort_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
   judge_ret $? "./deepsort_$2.$1 --input=../../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector=../../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
   tail -n 20 log/$1_$2_$3_debug.log
+  echo "==================="
+  echo "Comparing statis..."
+  python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=deepsort_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3
+  judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=deepsort_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3"
+  echo "==================="
 
   echo "Evaluating..."
   res=$(python3 ../../tools/eval_mot15.py --gt_file ../../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$3.txt 2>&1 | tee log/$1_$2_$3_eval.log)
   echo -e "$res"
-
   array=(${res//=/ })
   acc=${array[1]}
   compare_res $acc $4
   judge_ret $? "mot_eval/ADL-Rundle-6_$3: Precision compare!" log/$1_$2_$3_eval.log
+  mota=$(echo "$res" | grep -oP 'MOTA = \K\d+\.\d+'| xargs printf "%.3f")
+  printf "| %-12s | %-18s | %-40s | %8s |\n" "$PLATFORM" "deepsort_$2.$1" "$3" "$mota" >> ../../scripts/acc.txt
+
   popd
   echo -e "########################\nCase End: eval cpp\n########################\n"
 }
@@ -181,8 +276,9 @@ function test_python()
   if [ ! -d log ];then
     mkdir log
   fi
-  python3 deepsort_$1.py --input ../datasets/test_car_person_1080P.mp4 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id=$TPUID > log/$1_$2_python_test.log 2>&1
-  judge_ret $? "deepsort_$1.py --input ../datasets/test_car_person_1080P.mp4 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id=$TPUID" log/$1_$2_python_test.log
+  python3 deepsort_$1.py --input $3 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id=$TPUID > log/$1_$2_python_test.log 2>&1
+  judge_ret $? "deepsort_$1.py --input $3 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id=$TPUID" log/$1_$2_python_test.log
+  tail -n 30 log/$1_$2_python_test.log
   popd
 }
 
@@ -196,7 +292,13 @@ function eval_python()
   python3 deepsort_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id=$TPUID > log/$1_$2_debug.log 2>&1
   judge_ret $? "python3 deepsort_$1.py --input ../datasets/mot15_trainset/ADL-Rundle-6/img1 --bmodel_detector ../models/$TARGET/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor ../models/$TARGET/$2 --dev_id=$TPUID > log/$1_$2_debug.log 2>&1" log/$1_$2_debug.log
   tail -n 30 log/$1_$2_debug.log | head -n 20
-  
+
+  echo "==================="
+  echo "Comparing statis..."
+  python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=deepsort_$1.py --language=python --input=log/$1_$2_debug.log --bmodel=$2
+  judge_ret $? "python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=deepsort_$1.py --language=python --input=log/$1_$2_debug.log --bmodel=$2"
+  echo "==================="
+
   echo "Evaluating..."
   res=$(python3 ../tools/eval_mot15.py --gt_file ../datasets/mot15_trainset/ADL-Rundle-6/gt/gt.txt --ts_file results/mot_eval/ADL-Rundle-6_$2.txt 2>&1 | tee log/$1_$2_eval.log)
   echo -e "$res"
@@ -204,8 +306,11 @@ function eval_python()
   acc=${array[1]}
   compare_res $acc $3
   judge_ret $? "mot_eval/ADL-Rundle-6_$2: Precision compare!" log/$1_$2_eval.log
+  mota=$(echo "$res" | grep -oP 'MOTA = \K\d+\.\d+'| xargs printf "%.3f")
+  printf "| %-12s | %-18s | %-40s | %8s |\n" "$PLATFORM" "deepsort_$1.py" "$2" "$mota" >> ../scripts/acc.txt
   popd
   echo -e "########################\nCase End: eval python\n########################\n"
+
 }
 
 if test $MODE = "compile_nntc"
@@ -224,14 +329,24 @@ then
   pip3 install motmetrics
   if test $TARGET = "BM1684"
   then
-    test_python opencv extractor_fp32_1b.bmodel
-    test_python opencv extractor_fp32_4b.bmodel
-    test_python opencv extractor_int8_1b.bmodel
-    test_python opencv extractor_int8_4b.bmodel
-    test_cpp pcie bmcv extractor_fp32_1b.bmodel
-    test_cpp pcie bmcv extractor_fp32_4b.bmodel
-    test_cpp pcie bmcv extractor_int8_1b.bmodel
-    test_cpp pcie bmcv extractor_int8_4b.bmodel
+
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_cpp pcie bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp pcie bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp pcie bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp pcie bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp pcie bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp pcie bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
 
     eval_python opencv extractor_fp32_1b.bmodel 0.45717708125374323
     eval_python opencv extractor_fp32_4b.bmodel 0.45717708125374323
@@ -244,29 +359,39 @@ then
 
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv extractor_fp32_1b.bmodel
-    test_python opencv extractor_fp32_4b.bmodel
-    test_python opencv extractor_fp16_1b.bmodel
-    test_python opencv extractor_fp16_4b.bmodel
-    test_python opencv extractor_int8_1b.bmodel
-    test_python opencv extractor_int8_4b.bmodel
-    test_cpp pcie bmcv extractor_fp32_1b.bmodel
-    test_cpp pcie bmcv extractor_fp32_4b.bmodel
-    test_cpp pcie bmcv extractor_fp16_1b.bmodel
-    test_cpp pcie bmcv extractor_fp16_4b.bmodel
-    test_cpp pcie bmcv extractor_int8_1b.bmodel
-    test_cpp pcie bmcv extractor_int8_4b.bmodel
 
-    eval_python opencv extractor_fp32_1b.bmodel 0.43940906368536636
-    eval_python opencv extractor_fp32_4b.bmodel 0.43940906368536636
-    eval_python opencv extractor_fp16_1b.bmodel 0.43940906368536636
-    eval_python opencv extractor_fp16_4b.bmodel 0.43940906368536636
-    eval_python opencv extractor_int8_1b.bmodel 0.43601517268915946
-    eval_python opencv extractor_int8_4b.bmodel 0.43601517268915946
-    eval_cpp pcie bmcv extractor_fp32_1b.bmodel 0.44200439209423037
-    eval_cpp pcie bmcv extractor_fp32_4b.bmodel 0.44200439209423037
-    eval_cpp pcie bmcv extractor_fp16_1b.bmodel 0.44200439209423037
-    eval_cpp pcie bmcv extractor_fp16_4b.bmodel 0.44200439209423037
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_cpp pcie bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp pcie bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp pcie bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp16_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp16_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp pcie bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp pcie bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp pcie bmcv extractor_fp16_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp pcie bmcv extractor_fp16_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp pcie bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+
+    eval_python opencv extractor_fp32_1b.bmodel 0.43801157915751643
+    eval_python opencv extractor_fp32_4b.bmodel 0.43801157915751643
+    eval_python opencv extractor_fp16_1b.bmodel 0.43801157915751643
+    eval_python opencv extractor_fp16_4b.bmodel 0.43801157915751643
+    eval_python opencv extractor_int8_1b.bmodel 0.43162307845877423
+    eval_python opencv extractor_int8_4b.bmodel 0.43162307845877423
+    eval_cpp pcie bmcv extractor_fp32_1b.bmodel 0.44320223597524455
+    eval_cpp pcie bmcv extractor_fp32_4b.bmodel 0.44320223597524455
+    eval_cpp pcie bmcv extractor_fp16_1b.bmodel 0.44320223597524455
+    eval_cpp pcie bmcv extractor_fp16_4b.bmodel 0.44320223597524455
     eval_cpp pcie bmcv extractor_int8_1b.bmodel 0.43761229786384503
     eval_cpp pcie bmcv extractor_int8_4b.bmodel 0.43761229786384503
   fi
@@ -280,14 +405,24 @@ then
   pip3 install opencv-python-headless motmetrics
   if test $TARGET = "BM1684"
   then
-    test_python opencv extractor_fp32_1b.bmodel
-    test_python opencv extractor_fp32_4b.bmodel
-    test_python opencv extractor_int8_1b.bmodel
-    test_python opencv extractor_int8_4b.bmodel
-    test_cpp soc bmcv extractor_fp32_1b.bmodel
-    test_cpp soc bmcv extractor_fp32_4b.bmodel
-    test_cpp soc bmcv extractor_int8_1b.bmodel
-    test_cpp soc bmcv extractor_int8_4b.bmodel
+
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
 
     eval_python opencv extractor_fp32_1b.bmodel 0.45717708125374323
     eval_python opencv extractor_fp32_4b.bmodel 0.45717708125374323
@@ -299,18 +434,27 @@ then
     eval_cpp soc bmcv extractor_int8_4b.bmodel 0.4523857057296866
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv extractor_fp32_1b.bmodel
-    test_python opencv extractor_fp32_4b.bmodel
-    test_python opencv extractor_fp16_1b.bmodel
-    test_python opencv extractor_fp16_4b.bmodel
-    test_python opencv extractor_int8_1b.bmodel
-    test_python opencv extractor_int8_4b.bmodel
-    test_cpp soc bmcv extractor_fp32_1b.bmodel
-    test_cpp soc bmcv extractor_fp32_4b.bmodel
-    test_cpp soc bmcv extractor_fp16_1b.bmodel
-    test_cpp soc bmcv extractor_fp16_4b.bmodel
-    test_cpp soc bmcv extractor_int8_1b.bmodel
-    test_cpp soc bmcv extractor_int8_4b.bmodel
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp16_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp16_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp16_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp16_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
 
     eval_python opencv extractor_fp32_1b.bmodel 0.43940906368536636
     eval_python opencv extractor_fp32_4b.bmodel 0.43940906368536636
@@ -324,20 +468,68 @@ then
     eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.44200439209423037
     eval_cpp soc bmcv extractor_int8_1b.bmodel  0.43761229786384503
     eval_cpp soc bmcv extractor_int8_4b.bmodel  0.43761229786384503
+  elif test $TARGET = "CV186X"
+  then
+
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp16_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp16_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp16_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp16_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+
+    eval_python opencv extractor_fp32_1b.bmodel 0.441
+    eval_python opencv extractor_fp32_4b.bmodel 0.441
+    eval_python opencv extractor_fp16_1b.bmodel 0.441
+    eval_python opencv extractor_fp16_4b.bmodel 0.441
+    eval_python opencv extractor_int8_1b.bmodel 0.441
+    eval_python opencv extractor_int8_4b.bmodel 0.441
+    eval_cpp soc bmcv extractor_fp32_1b.bmodel  0.4298263126372529
+    eval_cpp soc bmcv extractor_fp32_4b.bmodel  0.4298263126372529
+    eval_cpp soc bmcv extractor_fp16_1b.bmodel  0.43002595328408866
+    eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.43002595328408866
+    eval_cpp soc bmcv extractor_int8_1b.bmodel  0.4294270313435815
+    eval_cpp soc bmcv extractor_int8_4b.bmodel  0.4294270313435815
   elif test $TARGET = "BM1688"
   then
-    test_python opencv extractor_fp32_1b.bmodel
-    test_python opencv extractor_fp32_4b.bmodel
-    test_python opencv extractor_fp16_1b.bmodel
-    test_python opencv extractor_fp16_4b.bmodel
-    test_python opencv extractor_int8_1b.bmodel
-    test_python opencv extractor_int8_4b.bmodel
-    test_cpp soc bmcv extractor_fp32_1b.bmodel
-    test_cpp soc bmcv extractor_fp32_4b.bmodel
-    test_cpp soc bmcv extractor_fp16_1b.bmodel
-    test_cpp soc bmcv extractor_fp16_4b.bmodel
-    test_cpp soc bmcv extractor_int8_1b.bmodel
-    test_cpp soc bmcv extractor_int8_4b.bmodel
+
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp16_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_fp16_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp16_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_fp16_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
 
     eval_python opencv extractor_fp32_1b.bmodel 0.441
     eval_python opencv extractor_fp32_4b.bmodel 0.441
@@ -367,6 +559,16 @@ then
   fi
 fi
 
+if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]
+then
+ 
+  echo "--------bmrt_test performance-----------"
+  bmrt_test_benchmark
+  echo "--------DeepSORT performance-----------"
+  cat tools/benchmark.txt
+
+fi
+
 if [ $ALL_PASS -eq 0 ]
 then
     echo "====================================================================="
@@ -377,5 +579,3 @@ else
     echo "Test cases all pass!"
     echo "===================="
 fi
-
-popd
