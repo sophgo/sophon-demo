@@ -38,6 +38,17 @@ else
     echo "BM1688 folder exist! Remove it if you need to update."
 fi
 
+# 检查 CV186X 文件夹 是否存在
+if [ ! -d "../models/CV186X" ]; 
+then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPM/CV186X.zip
+    unzip CV186X.zip -d ../models/
+    rm CV186X.zip
+    echo "CV186X download!"
+else
+    echo "CV186X folder exist! Remove it if you need to update."
+fi
+
 # 检查 BM1684X文件夹 是否存在
 if [ ! -d "../models/BM1684X" ]; 
 then
@@ -80,6 +91,17 @@ then
     echo "lib_soc_bm1688 download!"
 else
     echo "lib_soc_bm1688 folder exist! Remove it if you need to update."
+fi
+
+# 检查 lib_soc_cv186x文件夹 是否存在
+if [ ! -d "../cpp/lib_soc_cv186x" ]; 
+then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPM/lib_soc_cv186x.zip
+    unzip lib_soc_cv186x.zip -d ../cpp/
+    rm lib_soc_cv186x.zip
+    echo "lib_soc_cv186x download!"
+else
+    echo "lib_soc_cv186x folder exist! Remove it if you need to update."
 fi
 
 # 检查 token_config文件夹 是否存在
