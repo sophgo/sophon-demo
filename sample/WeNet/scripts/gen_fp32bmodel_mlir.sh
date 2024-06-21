@@ -14,21 +14,35 @@ outdir=../models/$target_dir
 function gen_mlir_encoder()
 {
     model_transform.py \
-        --model_name wenet_encoder \
-        --model_def ../models/onnx/wenet_encoder.onnx \
+        --model_name wenet_encoder_streaming \
+        --model_def ../models/onnx/wenet_encoder_streaming.onnx \
         --input_shapes [[1,67,80],[1],[1,1],[1,12,4,80,128],[1,12,256,7],[1,1,80]] \
-        --mlir wenet_encoder.mlir
+        --mlir wenet_encoder_streaming.mlir
+
+    model_transform.py \
+        --model_name wenet_encoder_non_streaming \
+        --model_def ../models/onnx/wenet_encoder_non_streaming.onnx \
+        --input_shapes [[1,1200,80],[1]] \
+        --mlir wenet_encoder_non_streaming.mlir
 }
 
 function gen_fp32bmodel_encoder()
 {
     model_deploy.py \
-        --mlir wenet_encoder.mlir \
+        --mlir wenet_encoder_streaming.mlir \
         --quantize F32 \
         --chip $target \
-        --model wenet_encoder_fp32.bmodel
+        --model wenet_encoder_streaming_fp32.bmodel
 
-    mv wenet_encoder_fp32.bmodel $outdir/
+    mv wenet_encoder_streaming_fp32.bmodel $outdir/
+
+    model_deploy.py \
+        --mlir wenet_encoder_non_streaming.mlir \
+        --quantize F32 \
+        --chip $target \
+        --model wenet_encoder_non_streaming_fp32.bmodel
+
+    mv wenet_encoder_non_streaming_fp32.bmodel $outdir/
 }
 
 

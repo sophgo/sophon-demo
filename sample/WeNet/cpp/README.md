@@ -37,8 +37,11 @@ sudo apt-get install libsuperlu-dev
 sudo apt-get install -y liblapack-dev libblas-dev libopenblas-dev libarmadillo-dev libsndfile1-dev
 # install yaml-cpp
 sudo apt-get install libyaml-cpp-dev libyaml-cpp0.6
-# install ctcdecode and follow the readme in ctcdecode-cpp to compile it
 cd cpp/
+```
+本例程的下载脚本中有提供编译好的ctcdecode-cpp，如果您需要重新编译ctcdecode-cpp，可以参考下面命令克隆ctcdecode-cpp项目。
+```bash
+rm -r ctcdecode-cpp
 git clone https://github.com/Kevindurant111/ctcdecode-cpp.git
 ```
 将ctcdecode-cpp项目克隆到本地后，请参考其提供的README进行编译，编译完成之后，回到`WeNet/`主目录下。 
@@ -90,7 +93,7 @@ PCIe和SoC平台的测试参数及运行方式是一致的，下面主要以PCIe
 
 ```bash
 Usage: wenet.pcie [params]
-        --encoder_bmodel (value:../models/BM1684/wenet_encoder_fp32.bmodel)
+        --encoder_bmodel (value:../models/BM1684/wenet_encoder_streaming_fp32.bmodel)
                 encoder bmodel file path
         --decoder_bmodel (value: )
                 decoder bmodel file path
@@ -111,12 +114,14 @@ Usage: wenet.pcie [params]
 - CPP传参与python不同，需要用等于号，例如`./wenet.pcie --encoder_bmodel=xxx`。  
 
 ### 3.2 测试音频
-测试实例如下：
+流式测试实例如下：
 ```bash
-./wenet.pcie --encoder_bmodel=../models/BM1684/wenet_encoder_fp32.bmodel --dict_file=../config/lang_char.txt --config_file=../config/train_u2++_conformer.yaml --result_file=./result.txt --input=../datasets/aishell_S0764/aishell_S0764.list --mode=ctc_prefix_beam_search --dev_id=0
+./wenet.pcie --encoder_bmodel=../models/BM1684/wenet_encoder_streaming_fp32.bmodel --dict_file=../config/lang_char.txt --config_file=../config/train_u2++_conformer.yaml --result_file=./result.txt --input=../datasets/aishell_S0764/aishell_S0764.list --mode=ctc_prefix_beam_search --dev_id=0
 ```
+如果需要测试非流式，只需要设置`--encoder_bmodel`为非流式的encoder bmodel即可。
+
 默认情况下decoder不开启，如果想要开启decoder重打分，请指定mode和decoder_bmodel参数如下：
 ```bash
-./wenet.pcie --encoder_bmodel=../models/BM1684/wenet_encoder_fp32.bmodel --decoder_bmodel=../models/BM1684/wenet_decoder_fp32.bmodel --dict_file=../config/lang_char.txt --config_file=../config/train_u2++_conformer.yaml --result_file=./result.txt --input=../datasets/aishell_S0764/aishell_S0764.list --mode=attention_rescoring --dev_id=0
+./wenet.pcie --encoder_bmodel=../models/BM1684/wenet_encoder_streaming_fp32.bmodel --decoder_bmodel=../models/BM1684/wenet_decoder_fp32.bmodel --dict_file=../config/lang_char.txt --config_file=../config/train_u2++_conformer.yaml --result_file=./result.txt --input=../datasets/aishell_S0764/aishell_S0764.list --mode=attention_rescoring --dev_id=0
 ```
 测试结束后，会将预测的结果文本保存在`result.txt`下，同时会打印预测结果、推理时间等信息。  

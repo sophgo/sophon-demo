@@ -23,6 +23,7 @@ class WeNet {
     int decoding_chunk_size;
     int subsampling_rate;
     int context;
+    float total_data_time=0.0;
     std::vector<std::string> dict;
 
     int batch_size;
@@ -55,4 +56,7 @@ class WeNet {
     int Init(const std::vector<std::string>& dict, int sample_frequency, int num_mel_bins, int frame_shift, int frame_length, int decoding_chunk_size, int subsampling_rate, int context, const std::string& mode);
     std::string Recognize(const char* file_path);
     void enableProfile(TimeStamp *ts);
+    float get_total_data_time(){
+        return total_data_time;
+    }
 };

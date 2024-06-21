@@ -50,6 +50,17 @@ else
     echo "cross_compile_module exist, please remove it if you want to update."
 fi
 
+if [ ! -d "../cpp/ctcdecode-cpp" ];
+then
+    pushd ../cpp
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/pcie/ctcdecode-cpp.tar.gz
+    tar xvf ctcdecode-cpp.tar.gz
+    rm ctcdecode-cpp.tar.gz
+    popd
+else
+    echo "ctcdecode-cpp exist, please remove it if you want to update."
+fi
+
 # swig decoders module
 if [ ! -d "../python/swig_decoders_aarch64" ]; 
 then
