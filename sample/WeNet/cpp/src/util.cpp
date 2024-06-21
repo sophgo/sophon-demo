@@ -43,7 +43,6 @@ std::vector<std::string> ctc_decoding(void* log_probs, void* log_probs_idx, void
     int32_t *log_probs_idx_ptr = static_cast<int32_t*>(log_probs_idx);
     float* log_probs_ptr = static_cast<float*>(log_probs);
     float *chunk_out_lens_ptr = static_cast<float*>(chunk_out_lens);
-
     for(int i = 0; i < batch_size; i++) {
         chunk_out_lens_vector[i] = chunk_out_lens_ptr[i];
     }

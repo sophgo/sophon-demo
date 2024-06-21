@@ -75,17 +75,27 @@ int WeNet::Init(const std::vector<std::string>& dict, int sample_frequency, int 
     std::vector<const char *> network_names;
     encoder_ctx->get_network_names(&network_names);
     encoder_net = std::make_shared<Network>(*encoder_ctx, network_names[0], 0); // use stage[0]
-    assert(encoder_net->info()->input_num == 6);
+    assert(encoder_net->info()->input_num == 6 || encoder_net->info()->input_num == 2);
     // showInfo(encoder_net->info());
     // Initialize the memory space required for the input and output tensors
     encoder_inputs = encoder_net->Inputs();
     encoder_outputs = encoder_net->Outputs();
-    const bm_tensor_t * log_probs_bm_tensor_t = encoder_outputs[0]->tensor();
-    batch_size = log_probs_bm_tensor_t->shape.dims[0];
-    out_size = log_probs_bm_tensor_t->shape.dims[1];
-    beam_size = log_probs_bm_tensor_t->shape.dims[2];
-    out_length = encoder_outputs[2]->tensor()->shape.dims[2];
-    assert(batch_size == 1 && "Streaming inference only supports batch size = 1!");
+
+    if(encoder_inputs.size() == 2){ // non streaming
+        const bm_tensor_t * log_probs_bm_tensor_t = encoder_outputs[3]->tensor();
+        batch_size = log_probs_bm_tensor_t->shape.dims[0];
+        out_size = log_probs_bm_tensor_t->shape.dims[1];
+        beam_size = log_probs_bm_tensor_t->shape.dims[2];
+        out_length = encoder_outputs[0]->tensor()->shape.dims[2];
+        assert(batch_size == 1 && "Streaming inference only supports batch size = 1!");
+    } else {
+        const bm_tensor_t * log_probs_bm_tensor_t = encoder_outputs[0]->tensor();
+        batch_size = log_probs_bm_tensor_t->shape.dims[0];
+        out_size = log_probs_bm_tensor_t->shape.dims[1];
+        beam_size = log_probs_bm_tensor_t->shape.dims[2];
+        out_length = encoder_outputs[2]->tensor()->shape.dims[2];
+        assert(batch_size == 1 && "Streaming inference only supports batch size = 1!");
+    }
 
     if(mode == "attention_rescoring") {
         decoder_ctx->get_network_names(&network_names);
@@ -112,6 +122,7 @@ int WeNet::pre_process(const char* file_path) {
         return 1;
     }
 
+    total_data_time += (float)sfinfo.frames / (float)sfinfo.samplerate;
     // std::cout << "Sample rate: " << sfinfo.samplerate << std::endl;
     // std::cout << "Channels: " << sfinfo.channels << std::endl;
     // std::cout << "Frames: " << sfinfo.frames << std::endl;
@@ -153,80 +164,137 @@ int WeNet::pre_process(const char* file_path) {
 }
 
 int WeNet::inference() {
-    void* offset = calloc(encoder_inputs[2]->num_elements(), sizeof(int32_t));
-    void* att_cache = calloc(encoder_inputs[3]->num_elements(), sizeof(float));
-    void* cnn_cache = calloc(encoder_inputs[4]->num_elements(), sizeof(float));
-    void* cache_mask = calloc(encoder_inputs[5]->num_elements(), sizeof(float));
-
-    void* log_probs = calloc(encoder_outputs[0]->num_elements(), sizeof(float));
-    void* log_probs_idx = calloc(encoder_outputs[1]->num_elements(), sizeof(int32_t));
-    void* chunk_out = calloc(encoder_outputs[2]->num_elements(), sizeof(float));
-    void* chunk_out_lens = calloc(encoder_outputs[3]->num_elements(), sizeof(float));
-
-    // inference
-    int num_frames = feats.n_rows;
-    int stride = subsampling_rate * decoding_chunk_size;
-    int decoding_window = (decoding_chunk_size - 1) * subsampling_rate + context;
-    
     result = "";
     arma::fmat encoder_out;
+    void *chunk_out_lens_ptr=NULL;
     arma::fmat beam_log_probs;
     arma::Mat<int32_t> beam_log_probs_idx;
-    for(int cur = 0; cur < num_frames - context + 1; cur += stride) {
-        int end = std::min(cur + decoding_window, num_frames);
-        arma::fmat chunk_xs = feats.submat(cur, 0, end - 1, feats.n_cols - 1);
-        // pad if needed
-        if((int)chunk_xs.n_rows < decoding_window) {
-            arma::fmat pad_zeros(decoding_window - chunk_xs.n_rows, chunk_xs.n_cols, arma::fill::zeros);
-            chunk_xs = arma::join_cols(chunk_xs, pad_zeros);
-        }
-        
-        void* chunk_xs_ptr = mat_to_sys_mem<float>(chunk_xs);
-        int chunk_lens = chunk_xs.n_rows;
-        int* chunk_lens_ptr = (int*) malloc(sizeof(int));
-        if (chunk_lens_ptr != nullptr) {
-            *chunk_lens_ptr = chunk_lens;
-        }
-        else {
-            std::cerr << "Failed to request memory space" << std::endl;
-            exit(1);
-        }
-        void* void_chunk_lens_ptr = chunk_lens_ptr;
+    if(encoder_inputs.size() == 2){ // non streaming
+        int encoder_feat_len = encoder_inputs[0]->tensor()->shape.dims[1];
+        int input_feat_len = feats.n_rows;
+        if(encoder_feat_len < input_feat_len){
+            std::cout << "Skipping this audio, input feat length exceed bmodel's input shape: feat_length " << input_feat_len << " > bmodel_input_shape " << encoder_feat_len << std::endl;
+            return 0;
+        } else{
+            if(encoder_feat_len > input_feat_len){
+                arma::fmat pad_zeros(encoder_feat_len - input_feat_len, feats.n_cols, arma::fill::zeros);
+                feats = arma::join_cols(feats, pad_zeros);
+            }
+            void* speech = mat_to_sys_mem<float>(feats);
+            encoder_inputs[0]->CopyFrom(speech);
+            encoder_inputs[1]->CopyFrom((void*)&input_feat_len);
+            LOG_TS(m_ts, "wenet encoder inference");
+            bool status = encoder_net->Forward();
+            LOG_TS(m_ts, "wenet encoder inference");
+            assert(BM_SUCCESS == status);
 
-        //Ensure your bmodel's input names encount following order.
-        encoder_inputs[0]->CopyFrom(chunk_xs_ptr);
-        encoder_inputs[1]->CopyFrom(void_chunk_lens_ptr);
-        encoder_inputs[2]->CopyFrom(offset);
-        encoder_inputs[3]->CopyFrom(att_cache);
-        encoder_inputs[4]->CopyFrom(cnn_cache);
-        encoder_inputs[5]->CopyFrom(cache_mask);
-        LOG_TS(m_ts, "wenet encoder inference");
-        bool status = encoder_net->Forward();
-        LOG_TS(m_ts, "wenet encoder inference");
-        assert(BM_SUCCESS == status);
+            void* encoder_out_ptr = calloc(encoder_outputs[0]->num_elements(), sizeof(float));
+            chunk_out_lens_ptr = calloc(encoder_outputs[1]->num_elements(), sizeof(float));
+            void* beam_log_probs_ptr = calloc(encoder_outputs[3]->num_elements(), sizeof(float));
+            void* beam_log_probs_idx_ptr = calloc(encoder_outputs[4]->num_elements(), sizeof(int32_t));
+
+            encoder_outputs[0]->CopyTo(encoder_out_ptr);
+            encoder_outputs[1]->CopyTo(chunk_out_lens_ptr);
+            encoder_outputs[3]->CopyTo(beam_log_probs_ptr);
+            encoder_outputs[4]->CopyTo(beam_log_probs_idx_ptr);
+            
+            std::vector<std::vector<std::pair<double, std::vector<int>>>> score_hyps;
+            LOG_TS(m_ts, "wenet postprocess");
+            std::vector<std::string> hyps = ctc_decoding(beam_log_probs_ptr, beam_log_probs_idx_ptr, chunk_out_lens_ptr, beam_size, batch_size, dict, score_hyps);
+            LOG_TS(m_ts, "wenet postprocess");
+
+            encoder_out = arma::join_cols(encoder_out, sys_mem_to_mat<float>(encoder_out_ptr, out_size, out_length));
+            beam_log_probs = arma::join_cols(beam_log_probs, sys_mem_to_mat<float>(beam_log_probs_ptr, out_size, beam_size));
+            beam_log_probs_idx = arma::join_cols(beam_log_probs_idx, sys_mem_to_mat<int32_t>(beam_log_probs_idx_ptr, out_size, beam_size));
+            result += hyps[0];
+            
+            std::free(speech);
+            std::free(encoder_out_ptr);
+            std::free(beam_log_probs_ptr);
+            std::free(beam_log_probs_idx_ptr);
+        }
+    }else{ // streaming
+        void* offset = calloc(encoder_inputs[2]->num_elements(), sizeof(int32_t));
+        void* att_cache = calloc(encoder_inputs[3]->num_elements(), sizeof(float));
+        void* cnn_cache = calloc(encoder_inputs[4]->num_elements(), sizeof(float));
+        void* cache_mask = calloc(encoder_inputs[5]->num_elements(), sizeof(float));
+
+        void* log_probs = calloc(encoder_outputs[0]->num_elements(), sizeof(float));
+        void* log_probs_idx = calloc(encoder_outputs[1]->num_elements(), sizeof(int32_t));
+        void* chunk_out = calloc(encoder_outputs[2]->num_elements(), sizeof(float));
+        void* chunk_out_lens = calloc(encoder_outputs[3]->num_elements(), sizeof(float));
+
+        // inference
+        int num_frames = feats.n_rows;
+        int stride = subsampling_rate * decoding_chunk_size;
+        int decoding_window = (decoding_chunk_size - 1) * subsampling_rate + context;
+        
+        for(int cur = 0; cur < num_frames - context + 1; cur += stride) {
+            int end = std::min(cur + decoding_window, num_frames);
+            arma::fmat chunk_xs = feats.submat(cur, 0, end - 1, feats.n_cols - 1);
+            // pad if needed
+            if((int)chunk_xs.n_rows < decoding_window) {
+                arma::fmat pad_zeros(decoding_window - chunk_xs.n_rows, chunk_xs.n_cols, arma::fill::zeros);
+                chunk_xs = arma::join_cols(chunk_xs, pad_zeros);
+            }
+            
+            void* chunk_xs_ptr = mat_to_sys_mem<float>(chunk_xs);
+            int chunk_lens = chunk_xs.n_rows;
+            int* chunk_lens_ptr = (int*) malloc(sizeof(int));
+            if (chunk_lens_ptr != nullptr) {
+                *chunk_lens_ptr = chunk_lens;
+            }
+            else {
+                std::cerr << "Failed to request memory space" << std::endl;
+                exit(1);
+            }
+            void* void_chunk_lens_ptr = chunk_lens_ptr;
+
+            //Ensure your bmodel's input names encount following order.
+            encoder_inputs[0]->CopyFrom(chunk_xs_ptr);
+            encoder_inputs[1]->CopyFrom(void_chunk_lens_ptr);
+            encoder_inputs[2]->CopyFrom(offset);
+            encoder_inputs[3]->CopyFrom(att_cache);
+            encoder_inputs[4]->CopyFrom(cnn_cache);
+            encoder_inputs[5]->CopyFrom(cache_mask);
+            LOG_TS(m_ts, "wenet encoder inference");
+            bool status = encoder_net->Forward();
+            LOG_TS(m_ts, "wenet encoder inference");
+            assert(BM_SUCCESS == status);
+        
+            //Ensure your bmodel's output names encount following order.
+            encoder_outputs[0]->CopyTo(log_probs);
+            encoder_outputs[1]->CopyTo(log_probs_idx);
+            encoder_outputs[2]->CopyTo(chunk_out);
+            encoder_outputs[3]->CopyTo(chunk_out_lens);
+            encoder_outputs[4]->CopyTo(offset);
+            encoder_outputs[5]->CopyTo(att_cache);
+            encoder_outputs[6]->CopyTo(cnn_cache);
+            encoder_outputs[7]->CopyTo(cache_mask);
+            
+            std::vector<std::vector<std::pair<double, std::vector<int>>>> score_hyps;
+            LOG_TS(m_ts, "wenet postprocess");
+            std::vector<std::string> hyps = ctc_decoding(log_probs, log_probs_idx, chunk_out_lens, beam_size, batch_size, dict, score_hyps);
+            LOG_TS(m_ts, "wenet postprocess");
+            // std::cout << hyps[0] << std::endl;
+            result += hyps[0];
+            encoder_out = arma::join_cols(encoder_out, sys_mem_to_mat<float>(chunk_out, out_size, out_length));
+            beam_log_probs = arma::join_cols(beam_log_probs, sys_mem_to_mat<float>(log_probs, out_size, beam_size));
+            beam_log_probs_idx = arma::join_cols(beam_log_probs_idx, sys_mem_to_mat<int32_t>(log_probs_idx, out_size, beam_size));
+
+            std::free(chunk_lens_ptr);
+            std::free(chunk_xs_ptr);
+        }
     
-        //Ensure your bmodel's output names encount following order.
-        encoder_outputs[0]->CopyTo(log_probs);
-        encoder_outputs[1]->CopyTo(log_probs_idx);
-        encoder_outputs[2]->CopyTo(chunk_out);
-        encoder_outputs[3]->CopyTo(chunk_out_lens);
-        encoder_outputs[4]->CopyTo(offset);
-        encoder_outputs[5]->CopyTo(att_cache);
-        encoder_outputs[6]->CopyTo(cnn_cache);
-        encoder_outputs[7]->CopyTo(cache_mask);
-        
-        std::vector<std::vector<std::pair<double, std::vector<int>>>> score_hyps;
-        LOG_TS(m_ts, "wenet postprocess");
-        std::vector<std::string> hyps = ctc_decoding(log_probs, log_probs_idx, chunk_out_lens, beam_size, batch_size, dict, score_hyps);
-        LOG_TS(m_ts, "wenet postprocess");
-        // std::cout << hyps[0] << std::endl;
-        result += hyps[0];
-        encoder_out = arma::join_cols(encoder_out, sys_mem_to_mat<float>(chunk_out, out_size, out_length));
-        beam_log_probs = arma::join_cols(beam_log_probs, sys_mem_to_mat<float>(log_probs, out_size, beam_size));
-        beam_log_probs_idx = arma::join_cols(beam_log_probs_idx, sys_mem_to_mat<int32_t>(log_probs_idx, out_size, beam_size));
+        std::free(att_cache);
+        std::free(cnn_cache);
+        std::free(cache_mask);
+        std::free(offset);
 
-        std::free(chunk_lens_ptr);
-        std::free(chunk_xs_ptr);
+        std::free(log_probs);
+        std::free(log_probs_idx);
+        std::free(chunk_out);
+        std::free(chunk_out_lens);
     }
 
     if(mode == "attention_rescoring" && max_len + 2 >= encoder_out.n_rows) {
@@ -235,12 +303,16 @@ int WeNet::inference() {
         int sos = dict.size() - 1;
         std::vector<std::vector<std::pair<double, std::vector<int>>>> score_hyps;
         
-        float* ptr = static_cast<float*>(chunk_out_lens);
-        *ptr = (float)beam_log_probs.n_rows;
+        if(encoder_inputs.size() > 2){ //streaming
+            chunk_out_lens_ptr = calloc(encoder_outputs[3]->num_elements(), sizeof(float));
+            *(float*)chunk_out_lens_ptr = (float)beam_log_probs.n_rows;
+        }
         void* beam_log_probs_ptr = mat_to_sys_mem(beam_log_probs);
         void* beam_log_probs_idx_ptr = mat_to_sys_mem<int32_t>(beam_log_probs_idx);
-        ctc_decoding(beam_log_probs_ptr, beam_log_probs_idx_ptr, chunk_out_lens, beam_size, batch_size, dict, score_hyps, mode);
+        ctc_decoding(beam_log_probs_ptr, beam_log_probs_idx_ptr, chunk_out_lens_ptr, beam_size, batch_size, dict, score_hyps, mode);
         
+        std::free(chunk_out_lens_ptr);
+
         std::vector<std::vector<float>> ctc_score;
         std::vector<std::vector<int>> all_hyps;
         for(auto& hyps : score_hyps) {
@@ -341,16 +413,7 @@ int WeNet::inference() {
     } else if(max_len + 2 >= encoder_out.n_rows){
         std::cout<<"encoder_output's length is too long for decoder, skip decoder part..."<<std::endl;
     }
-    
-    std::free(att_cache);
-    std::free(cnn_cache);
-    std::free(cache_mask);
-    std::free(offset);
 
-    std::free(log_probs);
-    std::free(log_probs_idx);
-    std::free(chunk_out);
-    std::free(chunk_out_lens);
     
     return 0;
 }
