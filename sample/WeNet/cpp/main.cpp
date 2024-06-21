@@ -24,7 +24,7 @@
 
 using namespace bmruntime;
 
-void show_wenet_profile(TimeStamp& ts, const std::string& tag, int num){
+void show_wenet_profile(TimeStamp& ts, const std::string& tag, float num){
     if(ts.records_.count(tag) <= 0){
         return;
     }
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     auto start_time = std::chrono::high_resolution_clock::now();
     std::cout.setf(std::ios::fixed);
     // get params
-    const char *keys="{encoder_bmodel | ../models/BM1684/wenet_encoder_fp32.bmodel | encoder bmodel file path}"
+    const char *keys="{encoder_bmodel | ../models/BM1684/wenet_encoder_streaming_fp32.bmodel | encoder bmodel file path}"
     "{decoder_bmodel |  | decoder bmodel file path}"
     "{dict_file | ../config/lang_char.txt | dictionary file path}"
     "{config_file | ../config/train_u2++_conformer.yaml | config file path}"
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     int decoding_chunk_size = 16;
     int subsampling_rate = 4;
     int context = 7;
-
+    float total_data_time = 0.0;
     // check params
     struct stat info;
     if (stat(encoder_bmodel.c_str(), &info) != 0) {
@@ -161,16 +161,19 @@ int main(int argc, char** argv) {
     // wenet_ts.build_timeline("wenet test");
     // wenet_ts.show_summary("wenet test");
     // wenet_ts.clear();
+    std::cout << "total_data_time: " << wenet.get_total_data_time() << std::endl;
     std::cout << std::endl;
     std::cout << "############################" << std::endl;
     std::cout << "SUMMARY: wenet test" << std::endl;
     std::cout << "############################" << std::endl;
-    show_wenet_profile(wenet_ts, "wenet preprocess", data_map.size());
-    show_wenet_profile(wenet_ts, "wenet encoder inference", wenet_ts.records_["wenet encoder inference"]->size() / 2);
+    show_wenet_profile(wenet_ts, "wenet preprocess", wenet.get_total_data_time());
+    show_wenet_profile(wenet_ts, "wenet load file", wenet.get_total_data_time());
+    show_wenet_profile(wenet_ts, "wenet fbank", wenet.get_total_data_time());
+    show_wenet_profile(wenet_ts, "wenet encoder inference", wenet.get_total_data_time());
     if(mode == "attention_rescoring"){
-        show_wenet_profile(wenet_ts, "wenet decoder inference", data_map.size());
+        show_wenet_profile(wenet_ts, "wenet decoder inference", wenet.get_total_data_time());
     }
-    show_wenet_profile(wenet_ts, "wenet postprocess", data_map.size());
+    show_wenet_profile(wenet_ts, "wenet postprocess", wenet.get_total_data_time());
 
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);

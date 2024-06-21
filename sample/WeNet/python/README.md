@@ -44,12 +44,14 @@ usage: wenet.py [--input INPUT_PATH] [--encoder_bmodel ENCODER_BMODEL] [--decode
 --mode: 对整句进行解码采用的方式。
 ```
 ### 2.2 测试音频
-音频测试实例如下，通过传入相应的模型路径参数进行测试即可。
+流式测试实例如下，通过传入相应的模型路径参数进行测试即可。
 ```bash
-python3 wenet.py --input ../datasets/aishell_S0764/aishell_S0764.list --encoder_bmodel ../models/BM1684/wenet_encoder_fp32.bmodel --dev_id 0 --result_file ./result.txt --mode ctc_prefix_beam_search
+python3 wenet.py --input ../datasets/aishell_S0764/aishell_S0764.list --encoder_bmodel ../models/BM1684/wenet_encoder_streaming_fp32.bmodel --dev_id 0 --result_file ./result.txt --mode ctc_prefix_beam_search
 ```
+如果需要测试非流式，只需要设置`--encoder_bmodel`为非流式的encoder bmodel即可。
+
 默认情况下decoder不开启，如果想要开启decoder重打分，请指定mode和decoder_bmodel参数如下：
 ```bash
-python3 wenet.py --input ../datasets/aishell_S0764/aishell_S0764.list --encoder_bmodel ../models/BM1684/wenet_encoder_fp32.bmodel --decoder_bmodel ../models/BM1684/wenet_decoder_fp32.bmodel --dev_id 0 --result_file ./result.txt --mode attention_rescoring
+python3 wenet.py --input ../datasets/aishell_S0764/aishell_S0764.list --encoder_bmodel ../models/BM1684/wenet_encoder_streaming_fp32.bmodel --decoder_bmodel ../models/BM1684/wenet_decoder_fp32.bmodel --dev_id 0 --result_file ./result.txt --mode attention_rescoring
 ```
 测试结束后，会将预测的文本结果保存在`result.txt`下，同时会打印预测结果、推理时间等信息。
