@@ -46,7 +46,7 @@ class Qwen1_5:
 
         self.EOS = self.tokenizer.eos_token_id
         self.NUM_LAYERS = (len(self.graph_names) - 5) // 2
-        _, self.SEQLEN, self.HIDDEN_SIZE = self.first_hidden_input_shape = self.net.get_input_shape("block_0", self.net.get_input_names("block_0")[0])
+        _, self.SEQLEN, self.HIDDEN_SIZE = self.first_hidden_input_shape = self.net.get_input_shape("block_0", 0)
 
         self.is_greedy_sample = True
         self.name_embed = "embedding"
@@ -131,13 +131,13 @@ class Qwen1_5:
         tensor = {}
         if is_input:
             tensor["name"] = self.net.get_input_names(name)[tensor_idx]
-            tensor["shape"] = self.net.get_input_shape(name, tensor["name"]) if shape is None else shape
-            tensor["dtype"] = self.net.get_input_dtype(name, tensor["name"])
+            tensor["shape"] = self.net.get_input_shape(name, tensor_idx) if shape is None else shape
+            tensor["dtype"] = self.net.get_input_dtype(name, tensor_idx)
             tensor["data"] = sail.Tensor(self.handle, tensor["shape"], tensor["dtype"], False, True)
         else:
             tensor["name"] = self.net.get_output_names(name)[tensor_idx]
-            tensor["shape"] = self.net.get_output_shape(name, tensor["name"]) if shape is None else shape
-            tensor["dtype"] = self.net.get_output_dtype(name, tensor["name"])
+            tensor["shape"] = self.net.get_output_shape(name, tensor_idx) if shape is None else shape
+            tensor["dtype"] = self.net.get_output_dtype(name, tensor_idx)
             tensor["data"] = sail.Tensor(self.handle, tensor["shape"], tensor["dtype"], False, True) 
         
         return tensor
@@ -158,11 +158,11 @@ class Qwen1_5:
             for j in range(self.SEQLEN):
                 if (j <= i):
                     attention_mask[i*self.SEQLEN + j] = 0
-
+        
         # embedding
         self.first_embed_input["data"].update_data(input_ids)
-        input_embed_tensors = {(self.first_embed_input["name"], self.dev_id): self.first_embed_input["data"]}
-        output_embed_tensors = {(self.first_embed_output["name"], self.dev_id): self.first_embed_output["data"]}
+        input_embed_tensors = {0: self.first_embed_input["data"]}
+        output_embed_tensors = {0: self.first_embed_output["data"]}
         self.net.process(self.name_embed, input_embed_tensors, output_embed_tensors)
 
         # blocks
@@ -170,16 +170,16 @@ class Qwen1_5:
         self.first_hidden_tensor.reshape(self.first_hidden_input["shape"])
         self.first_pid["data"].update_data(position_id.reshape(self.first_pid["shape"]))
         self.first_attention["data"].update_data(fp16_cast(attention_mask.reshape(self.first_attention["shape"])))
-
-        input_blocks_tensors = {(self.first_hidden_input["name"], self.dev_id): self.first_hidden_tensor, 
-                                (self.first_pid["name"], self.dev_id): self.first_pid["data"], 
-                                (self.first_attention["name"], self.dev_id): self.first_attention["data"]}
+        
+        input_blocks_tensors = {0: self.first_hidden_tensor, 
+                                1: self.first_pid["data"], 
+                                2: self.first_attention["data"]}
         for i in range(self.NUM_LAYERS):
-            output_blocks_tensors = {(self.first_hidden_output["name"], self.dev_id): self.first_hidden_tensor,
-                                    (self.past_key_output[i]["name"], self.dev_id): self.past_key_output[i]["data"],
-                                    (self.past_value_output[i]["name"], self.dev_id): self.past_value_output[i]["data"],}
+            output_blocks_tensors = {0: self.first_hidden_tensor,
+                                    1: self.past_key_output[i]["data"],
+                                    2: self.past_value_output[i]["data"],}
             self.net.process(self.name_blocks[i], input_blocks_tensors, output_blocks_tensors)
-
+        
         # lm_head
         # hidden_states 的最后一个位置的元素取出来作为 lm_head的输入
         copy_len = self.first_hidden_tensor.shape()[-1]
@@ -188,14 +188,14 @@ class Qwen1_5:
                                       0, 
                                       copy_len)
         
-        input_lm_tensors = {(self.lm_input["name"], self.dev_id): self.lm_input["data"]}
-        output_lm_tensors = {(self.lm_output["name"], self.dev_id): self.lm_output["data"]}
+        input_lm_tensors = {0: self.lm_input["data"]}
+        output_lm_tensors = {0: self.lm_output["data"]}
 
         self.net.process(self.name_lm, input_lm_tensors, output_lm_tensors)
         
         # sample
-        input_sample_tensor = {(self.sample_input["name"], self.dev_id):self.lm_output["data"]}
-        output_sample_tensor = {(self.sample_output["name"], self.dev_id):self.sample_output["data"]}
+        input_sample_tensor = {0:self.lm_output["data"]}
+        output_sample_tensor = {0:self.sample_output["data"]}
         self.net.process(self.name_sample, input_sample_tensor, output_sample_tensor)
         return int(self.sample_output["data"].asnumpy())
 
@@ -210,8 +210,8 @@ class Qwen1_5:
         self.next_embed_input["data"] = self.sample_output["data"]
         self.next_embed_input["data"].reshape(self.next_embed_input["shape"])
 
-        input_embed_tensors = {(self.next_embed_input["name"], self.dev_id): self.next_embed_input["data"]}
-        output_embed_tensors = {(self.next_embed_output["name"], self.dev_id): self.next_embed_output["data"]}
+        input_embed_tensors = {0: self.next_embed_input["data"]}
+        output_embed_tensors = {0: self.next_embed_output["data"]}
         # Embedding Layer Inference
         self.net.process(self.name_embed_cache, input_embed_tensors, output_embed_tensors)
 
@@ -224,14 +224,14 @@ class Qwen1_5:
 
         # Transformer Block Inference
         for i in range(self.NUM_LAYERS):
-            inputs_block_cache_tensors = {(self.next_hidden_input["name"], self.dev_id): self.next_hidden_tensor, 
-                                        (self.next_pid["name"], self.dev_id): self.next_pid["data"], 
-                                        (self.next_attention["name"], self.dev_id): self.next_attention["data"], 
-                                        (self.cache_key_input[i]["name"], self.dev_id): self.past_key_output[i]["data"], 
-                                        (self.cache_value_input[i]["name"], self.dev_id): self.past_value_output[i]["data"]}
-            outputs_block_cache_tensors = {(self.next_hidden_output["name"], self.dev_id): self.next_hidden_tensor,
-                                        (self.cache_key_output[i]["name"], self.dev_id): self.present_key["data"],
-                                        (self.cache_value_output[i]["name"], self.dev_id): self.present_value["data"]}
+            inputs_block_cache_tensors = {0: self.next_hidden_tensor, 
+                                        1: self.next_pid["data"], 
+                                        2: self.next_attention["data"], 
+                                        3: self.past_key_output[i]["data"], 
+                                        4: self.past_value_output[i]["data"]}
+            outputs_block_cache_tensors = {0: self.next_hidden_tensor,
+                                        1: self.present_key["data"],
+                                        2: self.present_value["data"]}
             self.net.process(self.name_blocks_cache[i], inputs_block_cache_tensors, outputs_block_cache_tensors)
 
             # update kv_cache()
@@ -242,15 +242,15 @@ class Qwen1_5:
         self.lm_input_tensor = self.next_hidden_tensor
         self.lm_input_tensor.reshape(self.lm_input["shape"])
         
-        input_lm_tensors = {(self.lm_input["name"], self.dev_id): self.lm_input_tensor}
-        output_lm_tensors = {(self.lm_output["name"], self.dev_id): self.lm_output["data"]}
+        input_lm_tensors = {0: self.lm_input_tensor}
+        output_lm_tensors = {0: self.lm_output["data"]}
         
         # Lm_head Inference
         self.net.process(self.name_lm, input_lm_tensors, output_lm_tensors)
 
         # sample
-        input_sample_tensor = {(self.sample_input["name"], self.dev_id):self.lm_output["data"]}
-        output_sample_tensor = {(self.sample_output["name"], self.dev_id):self.sample_output["data"]}
+        input_sample_tensor = {0:self.lm_output["data"]}
+        output_sample_tensor = {0:self.sample_output["data"]}
         self.net.process(self.name_sample, input_sample_tensor, output_sample_tensor)
         return int(self.sample_output["data"].asnumpy())
 
