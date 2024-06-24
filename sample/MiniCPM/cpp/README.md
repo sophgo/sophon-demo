@@ -32,6 +32,7 @@ PCIE环境下和SOC环境下都可以直接进行编译。
 您需要根据您使用的开发板及芯片种类进行选择
 
 - 如果您是 `soc BM1688芯片` 请将参数设置为 `-DTARGET_ARCH=soc_bm1688`；
+- 如果您是 `soc CV186X芯片` 请将参数设置为 `-DTARGET_ARCH=soc_cv186x`；
 - 如果您是 `soc BM1684x芯片` 请将参数设置为 `-DTARGET_ARCH=soc_bm1684x`；
 - 如果您是 `pcie BM1684x芯片` 请将参数设置为 `-DTARGET_ARCH=pcie`；
 

@@ -132,13 +132,13 @@ python3 export_onnx.py --model_path ./MiniCPM-2B-sft-bf16/
 
 ### 2.2 bmodel编译
 
-目前TPU-MLIR支持1684x对 MiniCPM-2B 进行INT8(BM1684X)、INT4(BM1684X/BM1688)量化，使用如下命令生成bmodel。编译过程会花一些时间，最终会生成`minicpm-2b_XXX.bmodel`文件
+目前TPU-MLIR支持1684x对 MiniCPM-2B 进行INT8(BM1684X)、INT4(BM1684X/BM1688/CV186X)量化，使用如下命令生成bmodel。编译过程会花一些时间，最终会生成`minicpm-2b_XXX.bmodel`文件
 
 ```bash
 gen_bmodel.sh的参数解析：
     --name minicpm-2b  #模型名字
     --mode int4        #量化模型参数
-    --target BM1688   #编译的模型芯片名
+    --target BM1688   #编译的模型芯片名，支持 BM1684X、BM1688和CV186X
     --num_core 1       #模型所需推理内核数，其中BM1684X不需要指定，默认为1
 ```
 
@@ -159,6 +159,12 @@ gen_bmodel.sh的参数解析：
 
 ```shell
 ./gen_bmodel.sh --name minicpm-2b --mode int4 --target BM1688 --num_core 2 
+```
+
+2.4 如果要生成CV186X的单核模型，则执行以下命令，最终生成`minicpm-2b_cv186x_int4_1core.bmodel`文件，请注意CV186X目前只支持单核模型的转出。
+
+```shell
+./gen_bmodel.sh --name minicpm-2b --mode int4 --target CV186X --num_core 1 
 ```
 
 针对BM1688，其中num_core决定了后续所需要使用的推理芯片的内核数量, (scripts/download.sh 中提供已经转好的`1 core 和 2 core`bmodel),提供的模型文件均可以在执行scripts/download.sh 中下载
