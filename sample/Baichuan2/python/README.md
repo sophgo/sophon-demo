@@ -12,6 +12,7 @@
     * [3.1 使用方式](#31-使用方式)
     * [3.2 程序流程图](#32-程序流程图)
     * [3.3 程序二次开发说明](#33-程序二次开发说明)
+* [4. FAQ](#4-faq)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -23,51 +24,68 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 ## 1. 环境准备
 ### 1.1 x86/arm PCIe平台
+首先您需要安装第三方库：
+```bash
+pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
 如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
 
 其中，libsophon需要使用0.5.1版本，相关功能暂未发布，这里暂时提供一个可用的libsophon版本，您可以通过下面的命令下载：
 ```bash
-pip3 install dfss --upgrade  #安装dfss依赖
+pip3 install dfss  --upgrade -i https://pypi.tuna.tsinghua.edu.cn/simple  #安装dfss依赖
 python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/libsophon/libsophon.tar.gz  #下载libsophon软件包
 tar xvf libsophon.tar.gz
 ```
-下载完libsophon后，可参考[libsophon用户手册](https://doc.sophgo.com/sdk-docs/v23.09.01-lts/docs_latest_release/docs/libsophon/guide/html/1_install.html#)，根据对应的Linux发行版进行安装。
+下载完libsophon后，可参考[libsophon用户手册3.](https://doc.sophgo.com/sdk-docs/v23.09.01-lts/docs_latest_release/docs/libsophon/guide/html/1_install.html#)，根据您的Linux发行版选择对应的方式进行安装。
 
-此外您还需要安装其他第三方库：
-```bash
-pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-```
 您还需要安装sophon-sail，由于本例程需要的sophon-sail版本为3.8.0，相关功能暂未发布，这里暂时提供一个可用的sophon-sail版本，x86 PCIe环境可以通过下面的命令下载：
 ```bash
 #x86 pcie, py38
 python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/sail/sophon-3.8.0-py3-none-any.whl
-pip3 install sophon-3.8.0-py3-none-any.whl
+pip3 install sophon-3.8.0-py3-none-any.whl --force-reinstall
 ```
-如果您需要其他版本的sophon-sail，或者遇到glibc版本问题（pcie环境常见），可以通过以下命令下载源码，并参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)自己编译sophon-sail。
+如果您需要其他版本的sophon-sail，或者遇到glibc版本问题（pcie环境常见），可以通过以下命令下载源码，并参考[sophon-sail编译安装指南3.2.2.1](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#id4)自己编译sophon-sail。
 ```bash
 python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/sail/sophon-sail_3.8.0.tar.gz
 tar xvf sophon-sail_3.8.0.tar.gz
 ```
 
 ### 1.2 SoC平台
-
-如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
-
-此外您还需要安装其他第三方库：
+首先您需要安装第三方库：
 ```bash
 pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
-由于本例程需要的sophon-sail版本为3.8.0，这里提供一个可用的sophon-sail whl包，SoC环境可以通过下面的命令下载：
+> **注意：**
+> 1. 若`xformers`安装失败，报错`ModuleNotFoundError: No module named 'torch'`，原因可能是刷机后的新环境没有顺利安装`torch`。按以下方法单独安装好torch后，即可继续安装第三方库。
 ```bash
-pip3 install dfss --upgrade
-python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/sail/sophon_arm-3.8.0-py3-none-any.whl #arm soc, py38
+pip3 install torch==2.1.2 --force-reinstall
 ```
-如果您需要其他版本的sophon-sail，或者遇到glibc版本问题，可以通过以下命令下载libsophon软件包和sophon-sail源码，并参考[libsophon安装指南](https://doc.sophgo.com/sdk-docs/v23.09.01-lts/docs_latest_release/docs/libsophon/guide/html/1_install.html#)自己安装libsophon，然后参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)自己编译sophon-sail。
+> 2. 若安装`xformers`时卡死，请查看cpu内存是否达到4096MB。内存不足可参考[SoC内存修改方法](../README.md#3-运行环境准备)降低tpu内存，待安装完python第三方库后再将tpu内存改至 所需大小。
+
+如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
+若预装的libsophon版本不是0.5.1，您还需要通过以下命令下载SD卡刷机包，并参考[BSP-软件更新](https://doc.sophgo.com/sdk-docs/v23.09.01-lts/docs_latest_release/docs/sophon-img/reference/html/1_BM1684X-software.html#id14)对设备进行刷机。刷机后libsophon版本即为0.5.1。
 ```bash
-#libsophon软件包
+#下载SD卡刷机包
+python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/libsophon/sdcard.tgz  
+```
+
+由于本例程需要的sophon-sail版本为3.8.0，这里提供一个可用的sophon-sail whl包，SoC环境可以通过下面的命令下载并安装：
+```bash
+pip3 install dfss  --upgrade -i https://pypi.tuna.tsinghua.edu.cn/simple
+python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/sail/sophon_arm-3.8.0-py3-none-any.whl #arm soc, py38
+pip3 install sophon_arm-3.8.0-py3-none-any.whl --force-reinstall
+```
+
+如果您需要其他版本的sophon-sail，或者遇到glibc版本问题，可以参考以下步骤，下载源码、交叉编译sophon-sail并安装：
+先下载交叉编译所需的libsophon软件包；
+```bash
+#libsophon交叉编译软件包
 python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/libsophon/libsophon_soc_0.5.1_aarch64.tar.gz
 tar xvf libsophon_soc_0.5.1_aarch64.tar.gz
-
+```
+然后再通过以下命令下载sophon-sail源码，并参考[sophon-sail编译安装指南3.2.3.2](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#id5)，交叉编译sophon-sail。
+```bash
 #sophon-sail源码
 python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/sail/sophon-sail_3.8.0.tar.gz
 tar xvf sophon-sail_3.8.0.tar.gz
@@ -161,4 +179,16 @@ history = [
 client = Qwen(st.session_state.handle, st.session_state.engine, st.session_state.tokenizer)
 ...
 stream = client.chat_stream(...)
+```
+
+## 4. FAQ
+
+若在SoC模式下运行web demo时出现以下报错：
+```bash
+ImportError: /home/linaro/.local/lib/python3.8/site-packages/torch/lib/../../torch.libs/libgomp-6e1a1d1b.so.1.0.0: cannot allocate memory in static TLS block
+```
+原因是加载动态链接库时，TLS内存分配不足所致。解决方法如下：
+运行如下命令，预加载libgomp-6e1a1d1b.so.1.0.0库，再启动web应用即可正常运行。
+```bash
+export LD_PRELOAD=/home/linaro/.local/lib/python3.8/site-packages/torch/lib/../../torch.libs/libgomp-6e1a1d1b.so.1.0.0
 ```

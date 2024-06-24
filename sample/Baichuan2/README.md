@@ -23,7 +23,7 @@ Baichuan2-7B 是开源中英双语对话模型 Baichuan-7B 的第二代版本，
 
 
 ## 3. 运行环境准备
-在PCIe上无需修改内存，以下为soc模式相关：
+在PCIe上无需修改内存，以下为SoC模式相关：
 对于1684X系列设备（如SE7/SM7），都可以通过这种方式完成环境准备，使得满足Baichuan2运行条件。首先，在1684x SoC环境上，参考如下命令修改设备内存。
 ```bash
 cd /data/
@@ -31,16 +31,17 @@ mkdir memedit && cd memedit
 wget -nd https://sophon-file.sophon.cn/sophon-prod-s3/drive/23/09/11/13/DeviceMemoryModificationKit.tgz
 tar xvf DeviceMemoryModificationKit.tgz
 cd DeviceMemoryModificationKit
-tar xvf memory_edit_{vx.x}.tar.xz #vx.x是版本号
+tar xvf memory_edit_v2.9.tar.xz
 cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息
 ./memory_edit.sh -c -npu 7615 -vpu 3072 -vpp 3072 #npu也可以访问vpu和vpp的内存
-sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/boot.itb /boot/boot.itb && sync
+sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/emmcboot.itb /boot/emmcboot.itb && sync
 sudo reboot
 ```
 > **注意：**
 > 1. tpu总内存为npu/vpu/vpp三者之和，int8应满足tpu内存 >= 9216MB，int4应满足tpu内存 >= 6144MB。
-> 2. 更多教程请参考[SoC内存修改工具](https://doc.sophgo.com/sdk-docs/v23.09.01-lts/docs_latest_release/docs/SophonSDK_doc/zh/html/appendix/2_mem_edit_tools.html)
+> 2. 安装python第三方库需要满足cpu内存 >= 4096MB。若不满足，需要先减小tpu内存，安装python第三方库后再按以上步骤修改tpu内存。
+> 3. 更多教程请参考[SoC内存修改工具](https://doc.sophgo.com/sdk-docs/v23.09.01-lts/docs_latest_release/docs/SophonSDK_doc/zh/html/appendix/2_mem_edit_tools.html)。
 
 ## 4. 准备模型
 该模型目前只支持在1684X上运行，已提供编译好的bmodel。
@@ -48,7 +49,7 @@ sudo reboot
 
 ​本例程在`scripts`目录下提供了下载脚本`download.sh`
 
-**注意：**在运行前，应该保证存储空间大于15GB。
+**注意：**在运行前，应该保证存储空间大于15GB。对于SoC模式，建议将模型下载到`/data`目录。
 
 ```bash
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
@@ -61,7 +62,7 @@ chmod -R +x scripts/
 
 ```bash
 ├── docs
-│   └── Baichuan2_Export_Guide.md   #Baichuan2 onnx导出和bmodel编译指南
+│   └── Baichuan2_Export_Compile.md   #Baichuan2 onnx导出和bmodel编译指南
 ├── models
 │   └── BM1684X                     #download.sh下载的bmodel
 │       ├── baichuan2-7b_int4_1dev.bmodel
@@ -88,7 +89,7 @@ chmod -R +x scripts/
 
 ### 4.2 自行编译模型
 
-此部分请参考[Baichuan2模型导出与编译](./docs/Baichuan2_Export_Guide.md)
+此部分请参考[Baichuan2模型导出与编译](./docs/Baichuan2_Export_Compile.md)
 
 ## 5. 例程测试
 
@@ -105,4 +106,5 @@ chmod -R +x scripts/
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
-> 3. 这里使用的SDK版本是V24.04.01。
+> 3. 这里使用的SDK版本是V24.04.01；
+> 4. 用`baichuan2.py`命令行和web demo两种方式测试的结果没有明显差异。
