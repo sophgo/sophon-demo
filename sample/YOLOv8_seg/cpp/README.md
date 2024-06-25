@@ -1,14 +1,15 @@
 # C++例程
-* [1. 环境准备](#1-环境准备)
-   * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
-   * [1.2 SoC平台](#12-soc平台)
-* [2. 程序编译](#2-程序编译)
-   * [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
-   * [2.2 SoC平台](#22-soc平台)
-* [3. 推理测试](#3-推理测试)
-   * [3.1 参数说明](#31-参数说明)
-   * [3.2 测试图片](#32-测试图片)
-   * [3.3 测试视频](#33-测试视频)
+- [C++例程](#c例程)
+  - [1. 环境准备](#1-环境准备)
+    - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    - [1.2 SoC平台](#12-soc平台)
+  - [2. 程序编译](#2-程序编译)
+    - [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
+    - [2.2 SoC平台](#22-soc平台)
+  - [3. 推理测试](#3-推理测试)
+    - [3.1 参数说明](#31-参数说明)
+    - [3.2 测试图片](#32-测试图片)
+    - [3.3 测试视频](#33-测试视频)
 
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
@@ -65,6 +66,10 @@ Usage: yolov8_bmcv.pcie [params]
                 class names file path
         --conf_thresh (value:0.25)
                 confidence threshold for filter boxes
+        --tpu_post (value:false)
+                use tpu post process
+        --mask_bmodel (value:../../model/BM1684X/yolov8s_getmask_32_fp32.bmodel)
+                bmodel file path for mask post process
         --dev_id (value:0)
                 TPU device id
         --help (value:true)
@@ -80,6 +85,10 @@ Usage: yolov8_bmcv.pcie [params]
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
 ./yolov8_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/yolov8s_fp32_1b.bmodel --dev_id=0 --conf_thresh=0.25 --nms_thresh=0.7 --classnames=../../datasets/coco.names 
+```
+如果需要使用tpu加速后处理，可以使用如下命令：
+```bash
+./yolov8_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/yolov8s_fp32_1b.bmodel --tpu_post=True --mask_bmodel=../../models/BM1684X/yolov8s_getmask_32_fp32.bmodel  --dev_id=0 --conf_thresh=0.25 --nms_thresh=0.7 --classnames=../../datasets/coco.names 
 ```
 测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov8s_fp32_1b.bmodel_test_bmcv_cpp_result.json`下，同时会打印预测结果、推理时间等信息。
 
