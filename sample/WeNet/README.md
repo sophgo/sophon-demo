@@ -24,7 +24,7 @@ WeNet是一款面向工业落地应用的语音识别工具包，提供了从语
 * 支持FP32、FP16(BM1688/BM1684X/CV186X)模型编译和推理
 * 支持基于torchaudio的Python推理和基于Armadillo的C++推理
 * 支持单batch模型推理
-* 支持流式语音的测试
+* 支持流式和非流式语音的测试
 
 ## 3. 准备模型与数据
 建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。
@@ -47,26 +47,35 @@ chmod -R +x scripts/
 ```
 ./models
 ├── BM1684
-│   ├── wenet_decoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1684的FP32 Decoder BModel，batch_size=1
-│   └── wenet_encoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1684的FP32 Encoder BModel，batch_size=1
+│   ├── wenet_decoder_fp32.bmodel               # 使用TPU-MLIR编译，用于BM1684的FP32 Decoder BModel，batch_size=1
+│   ├── wenet_encoder_non_streaming_fp32.bmodel # 使用TPU-MLIR编译，用于BM1684的非流式FP32 Encoder BModel，batch_size=1
+│   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于BM1684的流式FP32 Encoder BModel，batch_size=1
 ├── BM1684X
-│   ├── wenet_decoder_fp16.bmodel             # 使用TPU-MLIR编译，用于BM1684X的FP16 Decoder BModel，batch_size=1
-│   ├── wenet_decoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1684X的FP32 Decoder BModel，batch_size=1
-│   ├── wenet_encoder_fp16.bmodel             # 使用TPU-MLIR编译，用于BM1684X的FP16 Encoder BModel，batch_size=1
-│   └── wenet_encoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1684X的FP32 Encoder BModel，batch_size=1
+│   ├── wenet_decoder_fp16.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP16 Decoder BModel，batch_size=1     
+│   ├── wenet_decoder_fp32.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP32 Decoder BModel，batch_size=1     
+│   ├── wenet_encoder_non_streaming_fp16.bmodel # 使用TPU-MLIR编译，用于BM1684X的非流式FP16 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_non_streaming_fp32.bmodel # 使用TPU-MLIR编译，用于BM1684X的非流式FP32 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_streaming_fp16.bmodel     # 使用TPU-MLIR编译，用于BM1684X的流式FP16 Encoder BModel，batch_size=1  
+│   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于BM1684X的流式FP32 Encoder BModel，batch_size=1  
 ├── BM1688
-│   ├── wenet_decoder_fp16.bmodel             # 使用TPU-MLIR编译，用于BM1688的FP16 Decoder BModel，batch_size=1
-│   ├── wenet_decoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1688的FP32 Decoder BModel，batch_size=1
-│   ├── wenet_encoder_fp16.bmodel             # 使用TPU-MLIR编译，用于BM1688的FP16 Encoder BModel，batch_size=1
-│   └── wenet_encoder_fp32.bmodel             # 使用TPU-MLIR编译，用于BM1688的FP32 Encoder BModel，batch_size=1
+│   ├── wenet_decoder_fp16.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP16 Decoder BModel，batch_size=1     
+│   ├── wenet_decoder_fp32.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP32 Decoder BModel，batch_size=1   
+│   ├── wenet_encoder_non_streaming_fp16.bmodel # 使用TPU-MLIR编译，用于BM1688的非流式FP16 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_non_streaming_fp32.bmodel # 使用TPU-MLIR编译，用于BM1688的非流式FP32 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_streaming_fp16.bmodel     # 使用TPU-MLIR编译，用于BM1688的流式FP16 Encoder BModel，batch_size=1 
+│   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于BM1688的流式FP32 Encoder BModel，batch_size=1 
 ├── CV186X
-│   ├── wenet_decoder_fp16.bmodel             # 使用TPU-MLIR编译，用于CV186X的FP16 Decoder BModel，batch_size=1
-│   ├── wenet_decoder_fp32.bmodel             # 使用TPU-MLIR编译，用于CV186X的FP32 Decoder BModel，batch_size=1
-│   ├── wenet_encoder_fp16.bmodel             # 使用TPU-MLIR编译，用于CV186X的FP16 Encoder BModel，batch_size=1
-│   └── wenet_encoder_fp32.bmodel             # 使用TPU-MLIR编译，用于CV186X的FP32 Encoder BModel，batch_size=1
+│   ├── wenet_decoder_fp16.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP16 Decoder BModel，batch_size=1     
+│   ├── wenet_decoder_fp32.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP32 Decoder BModel，batch_size=1         
+│   ├── wenet_encoder_non_streaming_fp16.bmodel # 使用TPU-MLIR编译，用于CV186X的非流式FP16 Encoder BModel，batch_size=1    
+│   ├── wenet_encoder_non_streaming_fp32.bmodel # 使用TPU-MLIR编译，用于CV186X的非流式FP32 Encoder BModel，batch_size=1  
+│   ├── wenet_encoder_streaming_fp16.bmodel     # 使用TPU-MLIR编译，用于CV186X的流式FP16 Encoder BModel，batch_size=1 
+│   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于CV186X的流式FP32 Encoder BModel，batch_size=1 
 └── onnx
-    ├── wenet_encoder.onnx                    # 导出的encoder onnx模型
-    └── wenet_decoder.onnx                    # 导出的decoder onnx模型       
+    ├── wenet_decoder.onnx                      # 导出的流式decoder onnx模型
+    ├── wenet_decoder_qtable                    # 转fp16的decoder时，传给model_deploy的混精度敏感层
+    ├── wenet_encoder_non_streaming.onnx        # 导出的非流式encoder onnx模型
+    └── wenet_encoder_streaming.onnx            # 导出的流式encoder onnx模型
 ```
 
 下载的数据包括：
