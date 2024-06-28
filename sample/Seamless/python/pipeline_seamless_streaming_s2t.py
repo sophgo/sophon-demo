@@ -23,6 +23,7 @@ import logging
 import math
 
 from fairseq2.data.audio import WaveformToFbankConverter, WaveformToFbankInput
+from fairseq2.models.nllb.tokenizer import NllbTokenizer
 from fairseq2.data.data_pipeline import Collater
 from fairseq2.nn.padding import get_seqs_and_padding_mask
 
@@ -37,111 +38,6 @@ def buf_to_float(x, *, n_bytes=2, dtype=np.float32):
     scale = 1.0 / float(1 << ((8 * n_bytes) - 1))
     fmt = "<i{:d}".format(n_bytes)
     return scale * np.frombuffer(x, fmt).astype(dtype)
-
-@final
-class NllbTokenizer(SentencePieceTokenizerBase):
-    """Represents the tokenizer used by NLLB models."""
-
-    langs: Set[str]
-    default_lang: str
-
-    def __init__(
-        self, pathname: PathLike, langs: Sequence[str], default_lang: str
-    ) -> None:
-        """
-        :param pathname:
-            The pathname of the SentencePiece model file.
-        :param langs:
-            The list of supported languages.
-        :param default_lang:
-            The fall-back language if no language is specified.
-        """
-        # Each language is represented by a `__lang__` control symbol.
-        control_symbols = [f"__{lang}__" for lang in langs]
-
-        # Internal control symbols that are not relevant for eval use.
-        control_symbols.extend(["<MINED_DATA>", "<MMT_BT_DATA>", "<SMT_BT_DATA>"])
-
-        # The SentencePiece model of NLLB is peculiar as it does not define a
-        # PAD symbol. We use an undocumented feature of our C++ API to insert
-        # it to the model at index 0.
-        control_symbols.append("<pad>@0")
-
-        super().__init__(pathname, control_symbols)
-
-        self.langs = set(langs)
-
-        self.default_lang = default_lang
-
-    @finaloverride
-    def create_encoder(
-        self,
-        *,
-        task: Optional[str] = None,
-        lang: Optional[str] = None,
-        mode: Optional[str] = None,
-        device: Optional[Device] = None,
-        pin_memory: bool = False,
-    ) -> SentencePieceEncoder:
-        """Create a token encoder.
-
-        :param task:
-            Must be 'translation'. If ``None``, defaults to 'translation'.
-        :param lang:
-            A language from :attr:`langs`. If ``None``, defaults to
-            :attr:`default_lang`.
-        :param mode:
-            Must be 'source' or 'target'. Set to 'source' if ``lang`` is the
-            source language; set to 'target' if ``lang`` is the target language.
-            If ``None``, defaults to 'source'.
-        :param device:
-            The device on which to construct tensors.
-        :param pin_memory:
-            If ``True``, uses pinned memory while constructing tensors.
-        """
-        if task is not None and task != "translation":
-            raise ValueError(f"`task` must be 'translation', but is '{task}' instead.")
-
-        if lang is None:
-            lang = self.default_lang
-
-        # print('NllbTokenizer self.langs: ', self.langs)
-        if lang not in self.langs:
-            raise ValueError(
-                f"`lang` must be a supported language, but is '{lang}' instead."
-            )
-
-        if mode is None or mode == "source":
-            # NLLB models expect a language token in place of BOS in source
-            # sequences.
-            prefix_tokens = [f"__{lang}__"]
-            suffix_tokens = ["</s>"]
-        elif mode == "source_mining":
-            prefix_tokens = [f"__{lang}__", "<MINED_DATA>"]
-            suffix_tokens = ["</s>"]
-        elif mode == "source_mmt_bt":
-            prefix_tokens = [f"__{lang}__", "<MMT_BT_DATA>"]
-            suffix_tokens = ["</s>"]
-        elif mode == "source_smt_bt":
-            prefix_tokens = [f"__{lang}__", "<SMT_BT_DATA>"]
-            suffix_tokens = ["</s>"]
-        elif mode == "target":
-            # Target sequences are expected to start with an EOS, followed by
-            # the language token.
-            prefix_tokens = ["</s>", f"__{lang}__"]
-            suffix_tokens = []
-        else:
-            raise ValueError(
-                f"`mode` must be 'source' or 'target', but is '{mode}' instead."
-            )
-
-        return SentencePieceEncoder(
-            self.model,
-            prefix_tokens=prefix_tokens,
-            suffix_tokens=suffix_tokens,
-            device=device,
-            pin_memory=pin_memory,
-        )
 
 class SileroVADSilenceRemover:
     def __init__(self, sample_rate: int = 16000) -> None:
@@ -182,16 +78,14 @@ class seamless_stream_s2tt:
     def __init__(self, args):
         self.silence_remover = SileroVADSilenceRemover()
         self.is_standardized = False
-        self.source_segment_size = args.source_segment_size # NOTE: original code: 320
+        self.chunk_duration_ms = args.chunk_duration_ms # NOTE: original code: 320
         self.tgt_lang = args.tgt_lang
         self.handle = sail.Handle(args.dev_id)
         self.use_slience_remover = args.use_slience_remover
 
-        # max input length of unity
-        self.unity_max_encoder_input_length = 320
-        # self.unity_max_encoder_frontend_input_length must be even
-        self.unity_max_encoder_frontend_input_length = 2 * self.unity_max_encoder_input_length
-        self.unity_max_encoder_output_length = 41
+        # NOTE: the value effect the final result, meaning the number of segments, the value * self.chunk_duration_ms * 16 + self.previous_residual_samples don't exceed self.unity_max_encoder_frontend_input_length. 
+        # the longer the value is, the richer the context is, the higher the precision might be, the more the compute cost is 
+        self.consecutive_segments_num = args.consecutive_segments_num
 
         # OnlineFeatureExtractorAgent
         self.convert_to_fbank = WaveformToFbankConverter(
@@ -203,7 +97,6 @@ class seamless_stream_s2tt:
         )
         self.previous_residual_samples = []
         self.cur_input = []
-        self.cur_input_lens = []
         self.window_size = 25 # 50 # NOTE: original code: 25
         # NOTE: adaptively change by input, original code default param: 16000
         self.sample_rate = args.sample_rate 
@@ -213,8 +106,8 @@ class seamless_stream_s2tt:
         self.num_samples_per_shift = int(self.shift_size * self.sample_rate / 1000)
 
         # OfflineWav2VecBertEncoderAgent
-        self.min_starting_wait = 192
-        self.min_input_length = 2
+        self.min_starting_wait = args.fbank_min_starting_wait # 96 # 192
+        self.min_input_length = args.fbank_min_input_length # 2
         # self.collate = Collater(
         #     pad_value=0, pad_to_multiple=2 # pad_value=text_tokenizer.vocab_info.pad_idx, pad_to_multiple=2
         # )
@@ -224,7 +117,6 @@ class seamless_stream_s2tt:
         self.adapter_stride = 8
         self.adapter_pad = self.adapter_kernel_size // 2
         self.cur_target_indices = []
-        self.cur_target_indice_lens = []
 
         # Wav2Vec2Frontend
         print('Wav2Vec2Frontend model loading ...')
@@ -259,6 +151,13 @@ class seamless_stream_s2tt:
             self.unitY_encoder_adaptor_output_dtype[output_name] = self.unitY_encoder_adaptor_net.get_output_dtype(self.unitY_encoder_adaptor_graph_name, output_name)
         print('UnitYEncoderAdaptor model loaded')
 
+        # max input length of unity
+        # NOTE: the value effect the final result, the better value is 320
+        self.unity_max_encoder_input_length = self.unitY_encoder_adaptor_input_shapes[self.unitY_encoder_adaptor_input_names[0]][1]
+        # self.unity_max_encoder_frontend_input_length must be even
+        self.unity_max_encoder_frontend_input_length = 2 * self.unity_max_encoder_input_length
+        self.unity_max_encoder_output_length = self.unitY_encoder_adaptor_output_shapes[self.unitY_encoder_adaptor_output_names[0]][1]
+
         self.tokenizer = NllbTokenizer(args.tokenizer_model, ['afr', 'amh', 'arb', 'ary', 'arz', 'asm', 
                                                               'azj', 'bel', 'ben', 'bos', 'bul', 'cat', 'ceb', 
                                                               'ces', 'ckb', 'cmn', 'cmn_Hant', 'cym', 'dan', 
@@ -283,9 +182,8 @@ class seamless_stream_s2tt:
         # monotonic max input length = 64
         self.monotonic_max_input_length = 64
         print('monotonic text decoder frontend model loading ...')
-        # dynamic bmodel
-        self.monotonic_text_decoder_frontend_net = sail.Engine(args.decoder_frontend_step_bigger_1_bmodel, args.dev_id, sail.IOMode.DEVIO)
-        logging.info("load {} success!".format(args.decoder_frontend_step_bigger_1_bmodel))
+        self.monotonic_text_decoder_frontend_net = sail.Engine(args.decoder_frontend_bmodel, args.dev_id, sail.IOMode.DEVIO)
+        logging.info("load {} success!".format(args.decoder_frontend_bmodel))
         self.monotonic_text_decoder_frontend_graph_name = self.monotonic_text_decoder_frontend_net.get_graph_names()[0]
         self.monotonic_text_decoder_frontend_input_names = self.monotonic_text_decoder_frontend_net.get_input_names(self.monotonic_text_decoder_frontend_graph_name)
         self.monotonic_text_decoder_frontend_output_names = self.monotonic_text_decoder_frontend_net.get_output_names(self.monotonic_text_decoder_frontend_graph_name)
@@ -293,29 +191,12 @@ class seamless_stream_s2tt:
         for output_name in self.monotonic_text_decoder_frontend_output_names:
             output_shape = self.monotonic_text_decoder_frontend_net.get_output_shape(self.monotonic_text_decoder_frontend_graph_name, output_name)
             output_dtype = self.monotonic_text_decoder_frontend_net.get_output_dtype(self.monotonic_text_decoder_frontend_graph_name, output_name)
-            output_shape[1] = 1
             output = sail.Tensor(self.handle, output_shape, output_dtype, True, True)
             self.monotonic_text_decoder_frontend_output_tensors[output_name] = output
         self.monotonic_text_decoder_frontend_input_shapes = {}
         for input_name in self.monotonic_text_decoder_frontend_input_names:
             self.monotonic_text_decoder_frontend_input_shapes[input_name] = self.monotonic_text_decoder_frontend_net.get_input_shape(self.monotonic_text_decoder_frontend_graph_name, input_name)
         print('monotonic text decoder frontend model loaded')
-        print('monotonic text decoder frontend step=0 model loading ...')
-        self.monotonic_text_decoder_frontend_step0_net = sail.Engine(args.decoder_frontend_step_equal_1_bmodel, args.dev_id, sail.IOMode.DEVIO)
-        logging.info("load {} success!".format(args.decoder_frontend_step_equal_1_bmodel))
-        self.monotonic_text_decoder_frontend_step0_graph_name = self.monotonic_text_decoder_frontend_step0_net.get_graph_names()[0]
-        self.monotonic_text_decoder_frontend_step0_input_names = self.monotonic_text_decoder_frontend_step0_net.get_input_names(self.monotonic_text_decoder_frontend_step0_graph_name)
-        self.monotonic_text_decoder_frontend_step0_output_names = self.monotonic_text_decoder_frontend_step0_net.get_output_names(self.monotonic_text_decoder_frontend_step0_graph_name)
-        self.monotonic_text_decoder_frontend_step0_output_tensors = {}
-        for output_name in self.monotonic_text_decoder_frontend_step0_output_names:
-            output_shape = self.monotonic_text_decoder_frontend_step0_net.get_output_shape(self.monotonic_text_decoder_frontend_step0_graph_name, output_name)
-            output_dtype = self.monotonic_text_decoder_frontend_step0_net.get_output_dtype(self.monotonic_text_decoder_frontend_step0_graph_name, output_name)
-            output = sail.Tensor(self.handle, output_shape, output_dtype, True, True)
-            self.monotonic_text_decoder_frontend_step0_output_tensors[output_name] = output
-        self.monotonic_text_decoder_frontend_step0_input_shapes = {}
-        for input_name in self.monotonic_text_decoder_frontend_step0_input_names:
-            self.monotonic_text_decoder_frontend_step0_input_shapes[input_name] = self.monotonic_text_decoder_frontend_step0_net.get_input_shape(self.monotonic_text_decoder_frontend_step0_graph_name, input_name)
-        print('monotonic text decoder frontend step=0 model loaded')
 
         # monotonic max kvcache length = 4096
         self.monotonic_max_kvcache_length = 64 # 4096
@@ -399,9 +280,7 @@ class seamless_stream_s2tt:
     def reset(self):
         self.previous_residual_samples = []
         self.cur_target_indices = []
-        self.cur_target_indice_lens = []
         self.cur_input = []
-        self.cur_input_lens = []
 
     def preprocess(self, ori_audio):
         preprocessed_audio = {}
@@ -412,7 +291,7 @@ class seamless_stream_s2tt:
             # NOTE: following code keep whole audio, maybe better
             preprocessed_audio['seqs'] = torch.tensor(ori_audio['seqs']).squeeze().tolist()
 
-        num_samples = math.ceil(self.source_segment_size / 1000 * ori_audio['samplerate'])
+        num_samples = math.ceil(self.chunk_duration_ms / 1000 * ori_audio['samplerate'])
         step = 0
         segments = []
         while step < len(preprocessed_audio['seqs']):
@@ -491,10 +370,8 @@ class seamless_stream_s2tt:
         outputs = []
         valid_encoder_output_lens = []
         finish = False
-        is_to_clear_target_indx = []
         for inp in inputs:
             self.cur_input += inp['content']
-            self.cur_input_lens.append(len(inp['content']))
             if (
                 self.min_starting_wait is not None
                 and len(self.cur_input) < self.min_starting_wait
@@ -503,19 +380,9 @@ class seamless_stream_s2tt:
                 continue
             if len(self.cur_input) < self.min_input_length:
                 if inp['finished']:
-                    return None
+                    return [], [], True
                 else:
                     continue
-            if len(self.cur_input) > self.unity_max_encoder_frontend_input_length:
-                accumulated_len = 0
-                for idx in range(len(self.cur_input_lens)-1, -1, -1):
-                    accumulated_len += self.cur_input_lens[idx]
-                    if accumulated_len > self.unity_max_encoder_frontend_input_length:
-                        self.cur_input = self.cur_input[-(accumulated_len - self.cur_input_lens[idx]):]
-                        self.cur_input_lens = self.cur_input_lens[idx+1:]
-                        is_to_clear_target_indx.append(idx+1)
-            else:
-                is_to_clear_target_indx.append(-1)
             # original code
             # inps = torch.stack(cur_input).to(device="cpu", dtype=torch.float32)
             # src = self.collate(inps)
@@ -568,7 +435,7 @@ class seamless_stream_s2tt:
             valid_encoder_output_lens.append(valid_encoder_output_len)
             # TODO: following implement check precision
             # cur_input = []
-        return outputs, is_to_clear_target_indx, valid_encoder_output_lens, finish
+        return outputs, valid_encoder_output_lens, finish
 
     def enforce_tgt_lang_in_prefix(self):
         tgt_lang_tag = f"__{self.tgt_lang}__"
@@ -579,35 +446,28 @@ class seamless_stream_s2tt:
         """only support 1b"""
         assert len(seqs) <= self.monotonic_max_input_length, "bigger than max input length in monotonic decoder"
         assert cur_step >= 0
-        if cur_step > 0 or len(seqs) == 1:
-            assert len(seqs) == 1
-            seqs_tensor = sail.Tensor(self.handle, np.array([seqs]).astype(np.int32), True, True)
-            seqs_tensor.sync_s2d()
-            cur_step = sail.Tensor(self.handle, np.array([cur_step]).astype(np.int32), True, True)
-            cur_step.sync_s2d()
-            input_data = {self.monotonic_text_decoder_frontend_input_names[0]: seqs_tensor, 
-                        self.monotonic_text_decoder_frontend_input_names[1]: cur_step}
-            self.monotonic_text_decoder_frontend_net.process(self.monotonic_text_decoder_frontend_graph_name, input_data, self.monotonic_text_decoder_frontend_input_shapes, self.monotonic_text_decoder_frontend_output_tensors)
-            output_name = self.monotonic_text_decoder_frontend_output_names[0]
-            return self.monotonic_text_decoder_frontend_output_tensors[output_name], len(seqs)
-        else:
-            seqs_tensor = sail.Tensor(self.handle, np.array([seqs + [0] * (self.monotonic_max_input_length - len(seqs))]).astype(np.int32), True, True)
-            seqs_tensor.sync_s2d()
-            cur_step = sail.Tensor(self.handle, np.array([cur_step]).astype(np.int32), True, True)
-            cur_step.sync_s2d()
-            input_data = {self.monotonic_text_decoder_frontend_step0_input_names[0]: seqs_tensor, 
-                        self.monotonic_text_decoder_frontend_step0_input_names[1]: cur_step}
-            self.monotonic_text_decoder_frontend_step0_net.process(self.monotonic_text_decoder_frontend_step0_graph_name, input_data, self.monotonic_text_decoder_frontend_step0_input_shapes, self.monotonic_text_decoder_frontend_step0_output_tensors)
-            output_name = self.monotonic_text_decoder_frontend_step0_output_names[0]
-            return self.monotonic_text_decoder_frontend_step0_output_tensors[output_name], len(seqs)
+        seqs_tensor = sail.Tensor(self.handle, np.array([seqs + [0] * (self.monotonic_max_input_length - len(seqs))]).astype(np.int32), True, True)
+        seqs_tensor.sync_s2d()
+        cur_step_tensor = sail.Tensor(self.handle, np.array([cur_step]).astype(np.int32), True, True)
+        cur_step_tensor.sync_s2d()
+        input_data = {self.monotonic_text_decoder_frontend_input_names[0]: seqs_tensor, 
+                    self.monotonic_text_decoder_frontend_input_names[1]: cur_step_tensor}
+        self.monotonic_text_decoder_frontend_net.process(self.monotonic_text_decoder_frontend_graph_name, input_data, self.monotonic_text_decoder_frontend_input_shapes, self.monotonic_text_decoder_frontend_output_tensors)
+        output_name = self.monotonic_text_decoder_frontend_output_names[0]
+        output_tensor = self.monotonic_text_decoder_frontend_output_tensors[output_name]
+        if cur_step > 0:
+            new_output_tensor = sail.Tensor(self.handle, (output_tensor.shape()[0], 1, output_tensor.shape()[2]), output_tensor.dtype(), True, True)
+            new_output_tensor.sync_d2d(output_tensor, 0, 0, output_tensor.shape()[0] * 1 * output_tensor.shape()[2])
+            output_tensor = new_output_tensor
+        return output_tensor, len(seqs)
     
     def monotonic_text_decoder_predict(self, cur_step: int, seqs, seqs_valid_len, encoder_output, valid_encoder_output_len, kcache, vcache, valid_kv_len):
         assert cur_step >= 0
         if cur_step > 0:
             assert seqs_valid_len == 1
-            self_attn_mask = np.ones((seqs_valid_len, self.monotonic_max_kvcache_length), dtype=np.float32) * (-10000)
+            self_attn_mask = np.ones((seqs_valid_len, self.monotonic_max_kvcache_length), dtype=np.float32) * (-1000)
             self_attn_mask[:, -valid_kv_len-seqs_valid_len:] = 0
-            cross_attn_mask = np.ones((seqs_valid_len, self.unity_max_encoder_output_length), dtype=np.float32) * (-10000)
+            cross_attn_mask = np.ones((seqs_valid_len, self.unity_max_encoder_output_length), dtype=np.float32) * (-1000)
             cross_attn_mask[:, :valid_encoder_output_len] = 0
             self_attn_mask = sail.Tensor(self.handle, self_attn_mask, True, True)
             cross_attn_mask = sail.Tensor(self.handle, cross_attn_mask, True, True)
@@ -628,12 +488,12 @@ class seamless_stream_s2tt:
             self.monotonic_text_decoder_net.process(self.monotonic_text_decoder_graph_name, input_data, self.monotonic_text_decoder_input_shapes, self.monotonic_text_decoder_output_tensors)
             output_seqs, p_choose = self.monotonic_text_decoder_output_tensors[self.monotonic_text_decoder_output_names[0]], self.monotonic_text_decoder_output_tensors[self.monotonic_text_decoder_output_names[1]]
         else:
-            self_attn_mask = np.ones((self.monotonic_max_input_length, self.monotonic_max_input_length), dtype=np.float32) * (-10000)
+            self_attn_mask = np.ones((self.monotonic_max_input_length, self.monotonic_max_input_length), dtype=np.float32) * (-1000)
             self_attn_mask = np.triu(self_attn_mask, 1)
-            self_attn_mask[seqs_valid_len:] = -10000
+            self_attn_mask[seqs_valid_len:] = -1000
             cross_attn_mask = np.zeros((self.monotonic_max_input_length, self.unity_max_encoder_output_length), dtype=np.float32)
-            cross_attn_mask[seqs_valid_len:] = -10000
-            cross_attn_mask[:, valid_encoder_output_len:] = -10000
+            cross_attn_mask[seqs_valid_len:] = -1000
+            cross_attn_mask[:, valid_encoder_output_len:] = -1000
             self_attn_mask = sail.Tensor(self.handle, self_attn_mask, True, True)
             cross_attn_mask = sail.Tensor(self.handle, cross_attn_mask, True, True)
             self_attn_mask.sync_s2d()
@@ -709,20 +569,26 @@ class seamless_stream_s2tt:
 
     def predict(self, preprocessed_audio_list):
         assert len(preprocessed_audio_list) == 1
-        seqs = self.online_feature_extractor_agent_predict(preprocessed_audio_list[0])
-        encoder_outputs, is_to_clear_target_indx, valid_encoder_output_lens, finish = self.offline_wav2Vec_bert_encoder_agent_predict(seqs)
         target_indices = []
         
-        for segment_encoder_output, clear_idx, valid_encoder_output_len in zip(encoder_outputs, is_to_clear_target_indx, valid_encoder_output_lens):
-            if clear_idx != -1:
-                self.cur_target_indices = self.cur_target_indices[-sum(self.cur_target_indice_lens[clear_idx:]):]
-                self.cur_target_indice_lens = self.cur_target_indice_lens[clear_idx:]
+        for segment in preprocessed_audio_list[0]:
+            s_t = time.time()
+            seqs = self.online_feature_extractor_agent_predict([segment])
+            logging.info("online fbank extraction cost time(ms): " + str((time.time() - s_t) * 1000.))
+            s_t = time.time()
+            encoder_outputs, valid_encoder_output_lens, finish = self.offline_wav2Vec_bert_encoder_agent_predict(seqs)
+            logging.info("online encode cost time(ms): " + str((time.time() - s_t) * 1000.))
+            if len(encoder_outputs) == 0:
+                continue
+            segment_encoder_output, valid_encoder_output_len = encoder_outputs[0], valid_encoder_output_lens[0]
+
             pred_seq_list = []
             kcaches = [None] * self.monotonic_layer_num
             vcaches = [None] * self.monotonic_layer_num
             valid_kv_len = 0
             step = 0
             finished = False
+            s_t = time.time()
             while True:
                 # NOTE: check valid_encoder_output_len, due to padding
                 index, prob, _, kcaches, vcaches, valid_kv_len, seqs_valid_len = self.monotonic_predict(step, self.cur_target_indices, pred_seq_list, segment_encoder_output, valid_encoder_output_len, kcaches, vcaches, valid_kv_len)
@@ -778,38 +644,48 @@ class seamless_stream_s2tt:
 
                 pred_seq_list.append(index)
                 step += seqs_valid_len
+            logging.info("online decode cost time(ms): " + str((time.time() - s_t) * 1000.))
             
             if len(pred_seq_list) > 0:
-                results = "segment result: " + "".join([self.tokenizer.model.index_to_token(idx) for idx in pred_seq_list])
+                results = "online segment result: " + "".join([self.tokenizer.model.index_to_token(idx) for idx in pred_seq_list])
                 logging.info(results.replace('▁', ' '))
             else:
-                logging.info("")
+                logging.info("online segment result:")
             target_indices += pred_seq_list
             self.cur_target_indices += pred_seq_list
-            self.cur_target_indice_lens.append(len(pred_seq_list))
 
-        if len(target_indices) > 0 or finished:
+        if len(target_indices) > 0:
             rec_res =  "".join([self.tokenizer.model.index_to_token(idx) for idx in target_indices])
             return rec_res.replace('▁', ' '), len(target_indices)
         else:
             return "", 0
     
     def __call__(self, audio_list):
-        self.reset()
         assert len(audio_list) == 1
         preprocessed_audio_list = []
+        s_t = time.time()
         for ori_audio in audio_list:
             start_time = time.time()
             preprocessed_audio = self.preprocess(ori_audio)
             self.preprocess_time += time.time() - start_time
             preprocessed_audio_list.append(preprocessed_audio)
+        logging.info("online preprocess cost time(ms): " + str((time.time() - s_t) * 1000.))
             
-        start_time = time.time()
-        outputs, output_tokens_num = self.predict(preprocessed_audio_list)
-        self.output_tokens_num += output_tokens_num
-        self.inference_time += time.time() - start_time
+        all_outputs = ''
+        for preprocessed_audio in preprocessed_audio_list:
+            for seg_si in range(0, len(preprocessed_audio), self.consecutive_segments_num):
+                self.reset()
+                if seg_si + self.consecutive_segments_num > len(preprocessed_audio):
+                    seg_ei = len(preprocessed_audio)
+                else:
+                    seg_ei = seg_si + self.consecutive_segments_num
+                start_time = time.time()
+                outputs, output_tokens_num = self.predict([preprocessed_audio[seg_si:seg_ei]])
+                self.output_tokens_num += output_tokens_num
+                self.inference_time += time.time() - start_time
+                all_outputs += outputs.strip()
 
-        return outputs
+        return all_outputs
    
 def main(args):
     # check params
@@ -819,7 +695,7 @@ def main(args):
         raise ValueError("{} is not a directory".format(args.input))
     
     bmodels_path = [args.encoder_frontend_bmodel, args.encoder_bmodel, args.tokenizer_model,
-                    args.decoder_frontend_step_bigger_1_bmodel, args.decoder_frontend_step_equal_1_bmodel,
+                    args.decoder_frontend_bmodel, 
                     args.decoder_step_bigger_1_bmodel, args.decoder_step_equal_1_bmodel,
                     args.decoder_final_proj_bmodel]
     for bmodel_path in bmodels_path:
@@ -860,6 +736,7 @@ def main(args):
                 filename_list.append(filename)
                 if (len(audio_list) == 1 or cn == len(filenames)) and len(audio_list):
                     # predict
+                    seamless.reset()
                     results = seamless(audio_list)
                     logging.info("whole result: " + results)
                     results_list.append({'filename' : filename_list[0], 'content' : results.strip()})
@@ -888,20 +765,22 @@ def main(args):
 
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--input', type=str, default='../datasets/test', help='path of input')
-    parser.add_argument('--tgt_lang', type=str, default='jpn', help='output langauge')
-    parser.add_argument('--encoder_frontend_bmodel', type=str, default='', help='path of Wav2Vec2Frontend bmodel')
-    parser.add_argument('--encoder_bmodel', type=str, default='', help='path of UnitYEncoderAdaptor bmodel')
-    parser.add_argument('--tokenizer_model', type=str, default='', help='path of tokenizer model')
-    parser.add_argument('--decoder_frontend_step_bigger_1_bmodel', type=str, default='', help='path of monotonic text decoder frontend bmodel')
-    parser.add_argument('--decoder_frontend_step_equal_1_bmodel', type=str, default='', help='path of monotonic text decoder frontend step=0 bmodel')
-    parser.add_argument('--decoder_step_bigger_1_bmodel', type=str, default='', help='path of monotonic text decoder bmodel')
-    parser.add_argument('--decoder_step_equal_1_bmodel', type=str, default='', help='path of monotonic text decoder step=0 bmodel')
-    parser.add_argument('--decoder_final_proj_bmodel', type=str, default='', help='path of monotonic final proj bmodel')
+    parser.add_argument('--input', type=str, default='../datasets/aishell_S0764', help='path of input')
+    parser.add_argument('--tgt_lang', type=str, default='cmn', help='output langauge')
+    parser.add_argument('--encoder_frontend_bmodel', type=str, default='../models/BM1684X/seamless_streaming_encoder_frontend_fp16_s2t.bmodel', help='path of Wav2Vec2Frontend bmodel')
+    parser.add_argument('--encoder_bmodel', type=str, default='../models/BM1684X/seamless_streaming_encoder_fp16_s2t.bmodel', help='path of UnitYEncoderAdaptor bmodel')
+    parser.add_argument('--tokenizer_model', type=str, default='../models/tokenizer.model', help='path of tokenizer model')
+    parser.add_argument('--decoder_frontend_bmodel', type=str, default='../models/BM1684X/seamless_streaming_decoder_frontend_fp16_s2t.bmodel', help='path of monotonic text decoder frontend bmodel')
+    parser.add_argument('--decoder_step_bigger_1_bmodel', type=str, default='../models/BM1684X/seamless_streaming_decoder_step_bigger_1_fp16_s2t.bmodel', help='path of monotonic text decoder bmodel')
+    parser.add_argument('--decoder_step_equal_1_bmodel', type=str, default='../models/BM1684X/seamless_streaming_decoder_step_equal_1_fp16_s2t.bmodel', help='path of monotonic text decoder step=0 bmodel')
+    parser.add_argument('--decoder_final_proj_bmodel', type=str, default='../models/BM1684X/seamless_streaming_decoder_final_proj_fp16_s2t.bmodel', help='path of monotonic final proj bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--sample_rate', type=int, default=16000, help='audio sample ratio')
     parser.add_argument('--use_slience_remover', action='store_true', default=False, help='whether to use slience remover')
-    parser.add_argument('--source_segment_size', type=int, default=320, help='segment length')
+    parser.add_argument('--chunk_duration_ms', type=int, default=1600, help='segment length (ms)')
+    parser.add_argument('--consecutive_segments_num', type=int, default=1, help='the processed number of segments once')
+    parser.add_argument('--fbank_min_input_length', type=int, default=80, help="the min length of fbank input to encoder")
+    parser.add_argument('--fbank_min_starting_wait', type=int, default=48, help="the waitting min length of fbank input to encoder, valid when it > fbank_min_input_length")
     args = parser.parse_args()
     return args
 
