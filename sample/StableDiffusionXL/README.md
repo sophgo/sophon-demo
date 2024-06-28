@@ -6,9 +6,10 @@
 * [3. 准备模型](#3-准备模型)
   * [3.1 自己下载并且编译模型](#31-自己下载并且编译模型)
   * [3.2 使用准备好的模型文件](#32-使用准备好的模型文件)
-* [4. 例程测试](#4-例程测试)
-* [5. 运行性能测试](#5-运行性能测试)
-* [6. FAQ](#6-FAQ)
+* [4. 运行环境准备](#4-运行环境准备)
+* [5. 例程测试](#5-例程测试)
+* [6. 运行性能测试](#6-运行性能测试)
+* [7. FAQ](#7-FAQ)
 
 ## 1. 简介
 StableDiffusionXL 是开源AIGC模型:[Huggingface官网stable-diffusion-xl-base-1.0](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)，可以依据文本提示生成相应的图像内容，目前支持了python版的文本生成图像和图像生成图像。该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，若bmodel推理出现NAN，或生成图像全黑的情况，请注意驱动版本是否达到要求。
@@ -94,17 +95,38 @@ cd scripts
         └── vae_encoder.pt					      # 导出的vae encoder的pt模型，用户自行使用
 ```
 
-## 4. 例程测试
+## 4. 运行环境准备
+
+在PCIe上无需修改内存，以下为soc模式相关：
+
+对于1684X系列设备（如SE7/SM7），都可以通过这种方式完成环境准备，使得满足StableDiffusionXL的运行条件。首先，在1684x SoC环境上，参考如下命令修改设备内存:
+
+```bash
+cd /data/
+mkdir memedit && cd memedit
+wget -nd https://sophon-file.sophon.cn/sophon-prod-s3/drive/23/09/11/13/DeviceMemoryModificationKit.tgz
+tar xvf DeviceMemoryModificationKit.tgz
+cd DeviceMemoryModificationKit
+tar xvf memory_edit_{vx.x}.tar.xz #vx.x是版本号
+cd memory_edit
+./memory_edit.sh -p #这个命令会打印当前的内存布局信息
+./memory_edit.sh -c -npu 7615 -vpu 3072 -vpp 3072 #npu也可以访问vpu和vpp的内存
+sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/emmcboot.itb /boot/emmcboot.itb && sync
+sudo reboot
+```
+
+
+## 5. 例程测试
 - [Python例程](./python/README.md)
 
-## 5. 运行性能测试
+## 6. 运行性能测试
 
-图像生成的总体时间与设定的迭代次数相关，此处设定迭代20次，图像大小为(512,512)，性能如下:
+图像生成的总体时间与设定的迭代次数相关，此处设定迭代20次，图像大小为(1024, 1024)，性能如下（单位ms）:
 
 |   测试平台    |    测试模式     | text_encoder_time | inference_time | vae_encoder_time | vae_decoder_time |
 | -----------  | ------------- | ---------------   | -------------  | ---------------- | ---------------- |
-| BM1684X SoC  |    text2img   |      113.75       |    36052.3     |    null          |     2104.87      |
-| BM1684X SoC  |    img2img    |      113.75       | 36050.7        |    1137.56       |     2099.22      |
+| BM1684X SoC  |    text2img   |      178.96      |    37450.7    |    null          |     2099.22     |
+| BM1684X SoC  |    img2img    |      178.96      |    37450.7    |    1195.56    |     2099.22      |
 
-## 6. FAQ
+## 7. FAQ
 [常见问题解答](../../docs/FAQ.md)
