@@ -10,15 +10,19 @@ SOPHONSDK is a custom deep learning SDK of SOPHGO based on its self-developed AI
 ## Directory Structure and Description.
 The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`, `sample`, and `application`, the `tutorial` module stores some examples of basic interfaces, the `sample` module stores some serial examples of classic algorithms on SOPHONSDK, and the `application` module stores some typical applications in typical scenarios.
 
-| tutorial                                                                  | code    |
-|---                                                                        |---         |
-| [resize](./tutorial/resize/README.md)                                     | C++/Python |
-| [crop](./tutorial/crop/README.md)                                         | C++/Python |
-| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)   | C++/Python |
-| [ocv_jpubasic](./tutorial/ocv_jpubasic/README.md)                         | C++/Python |
-| [ocv_vidbasic](./tutorial/vid_jpubasic/README.md)                         | C++/Python |
-| [blend](./tutorial/blend/README.md)                                       | C++/Python |
-| [stitch](./tutorial/stitch/README.md)                                     | C++/Python |
+
+| tutorial                                                                 | introduction                                                              |
+| ----------------------------------------------------                     | ------------------------------------------------------------              |
+| [resize](./tutorial/resize/README.md)                                    | resize api usage, rescale image data.                                          |
+| [crop](./tutorial/crop/README.md)                                        | crop api usage, crop the target area from input image.                         |
+| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)  | crop target area from input image, and resize the crop, and padding in another image, fill the padding with a pix which can be customly set. |
+| [ocv_jpgbasic](./tutorial/ocv_jpubasic/README.md)                        | decoding and encoding jpgs using sophon-opencv which is hardware accelerated.                                 |
+| [ocv_vidbasic](./tutorial/ocv_vidbasic/README.md)                        | decoding video using sophon-opencv which is hardware accelerated, recording frames as jpgs or pngs.             |
+| [blend](./tutorial/blend/README.md)                                      | blend two pictures.                                                  |
+| [stitch](./tutorial/stitch/README.md)                                    | stitch two pictures.                                                  |
+| [avframe_ocv](./tutorial/avframe_ocv/README.md)                          | from avframe to cv::Mat.                                                  |
+| [ocv_avframe](./tutorial/ocv_avframe/README.md)                          | from bgr cv::mat to yuv420p avframe.                                      |
+| [bm1688_2core2task_yolov5](./tutorial/bm1688_2core2task_yolov5/README.md)| yolov5 deployment using the 2core-2task feature of bm1688.                |
 
 | contents                                                      | category                           | code       |  BModel       |
 |---                                                            |---                                 |---          | ---           |
