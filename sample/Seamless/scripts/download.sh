@@ -26,33 +26,32 @@ fi
 if [ ! -d "../models" ];
 then
     mkdir ../models/BM1684X
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/streaming_s2t_BM1684X.zip
-    unzip streaming_s2t_BM1684X.zip -d ../models/
-    echo "bmodel download!"
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/online/streaming_s2t_BM1684X.zip
+    unzip streaming_s2t_BM1684X.zip
+    mv streaming_s2t_BM1684X/* ../models/BM1684X
+    rm -r streaming_s2t_BM1684X
+    rm -f streaming_s2t_BM1684X.zip
+    echo "streaming bmodel download!"
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/m4t_offline/m4t_s2t_BM1684X.zip
+    unzip m4t_s2t_BM1684X.zip
+    mv m4t_s2t_BM1684X/* ../models/BM1684X
+    rm -f m4t_s2t_BM1684X
+    rm -f m4t_s2t_BM1684X.zip
+    echo "m4t bmodel download!"
     
     mkdir ../models/onnx
-    python3 -m dfss --url=open@sophgo.com:test/seamless_static/seamless_streaming_unity_speech_encoder_frontend.zip
-    unzip seamless_streaming_unity_speech_encoder_frontend.zip -d ../models/onnx
-    rm seamless_streaming_unity_speech_encoder_frontend.zip
-    python3 -m dfss --url=open@sophgo.com:test/seamless_static/seamless_streaming_unity_speech_encoder.zip
-    unzip seamless_streaming_unity_speech_encoder.zip -d ../models/onnx
-    rm seamless_streaming_unity_speech_encoder.zip
-    python3 -m dfss --url=open@sophgo.com:test/seamless_static/seamless_communication_monotonic_text_decoder_frontend_step_equal_1.zip
-    unzip seamless_communication_monotonic_text_decoder_frontend_step_equal_1.zip -d ../models/onnx
-    rm seamless_communication_monotonic_text_decoder_frontend_step_equal_1.zip
-    python3 -m dfss --url=open@sophgo.com:test/seamless_static/seamless_communication_monotonic_text_decoder_frontend_step_bigger_than_1.zip
-    unzip seamless_communication_monotonic_text_decoder_frontend_step_bigger_than_1.zip -d ../models/onnx
-    rm seamless_communication_monotonic_text_decoder_frontend_step_bigger_than_1.zip
-    python3 -m dfss --url=open@sophgo.com:test/seamless_static/seamless_communication_monotonic_text_decoder_step_equal_1.zip
-    unzip seamless_communication_monotonic_text_decoder_step_equal_1.zip -d ../models/onnx
-    rm seamless_communication_monotonic_text_decoder_step_equal_1.zip
-    python3 -m dfss --url=open@sophgo.com:test/seamless_static/seamless_communication_monotonic_text_decoder_step_bigger_than_1_64kvcache.zip
-    unzip seamless_communication_monotonic_text_decoder_step_bigger_than_1_64kvcache.zip -d ../models/onnx
-    rm seamless_communication_monotonic_text_decoder_step_bigger_than_1_64kvcache.zip
-    python3 -m dfss --url=open@sophgo.com:test/seamless_static/seamless_streaming_monotonic_decoder_final_proj.zip
-    unzip seamless_streaming_monotonic_decoder_final_proj.zip -d ../models/onnx
-    rm seamless_streaming_monotonic_decoder_final_proj.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/online/streaming_s2t_onnx.zip
+    unzip streaming_s2t_onnx.zip -d ../models/onnx
+    rm streaming_s2t_onnx.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/m4t_offline/m4t_s2t_onnx.zip
+    unzip m4t_s2t_onnx.zip -d ../models/onnx
+    rm m4t_s2t_onnx.zip
     echo "onnx models download!"
+
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727.zip
+    unzip punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727.zip -d ../models
+    rm -f punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727.zip
+    echo "punc models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
 fi

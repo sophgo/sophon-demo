@@ -1,0 +1,118 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+from abc import ABC, abstractmethod
+from typing import Dict, Optional, Type, TypeVar
+
+from torch import Tensor
+from torch.nn import Module
+import sophon.sail as sail
+
+
+class IncrementalState(ABC):
+    """Holds the state of a module during incremental decoding.
+
+    Incremental decoding is a special mode at inference time where the module
+    only receives an input corresponding to the previous output and must produce
+    the next output incrementally. Thus the module must cache any long-term
+    state that is needed about the sequence.
+    """
+
+    @abstractmethod
+    def reorder(self, new_order: Tensor) -> None:
+        """Rearrange the state according to a new batch order.
+
+        This will be called when the order of the batch has changed. A typical
+        use case is beam search, where the batch order changes between steps
+        based on the selection of beams.
+
+        :param new_order:
+            The new order of the batch. It is frequently used with
+            :func:`torch.index_select` to rearrange the state tensors. *Shape:*
+            :math:`(N)`, where :math:`N` is the batch size.
+        """
+
+
+T = TypeVar("T", bound=IncrementalState)
+
+
+class IncrementalStateBag:
+    """Holds the module states during incremental decoding."""
+
+    step_nr: int
+    max_num_steps: int
+
+    _module_states: Dict[Module, IncrementalState]
+
+    def __init__(self, max_num_steps: int) -> None:
+        """
+        :param max_num_steps:
+            The expected maximum number of steps to take.
+        """
+        self.step_nr = 0
+        self.max_num_steps = max_num_steps
+
+        self._module_states = {}
+
+    def increment_step_nr(self, value: int = 1) -> None:
+        """Increment the step number.
+
+        This method should be called after every decoding step. It is used by
+        modules to keep track of the position in the sequence.
+
+        :param value:
+            The value by which to increment the step number.
+        """
+        step_nr = self.step_nr + value
+
+        if step_nr >= self.max_num_steps:
+            raise ValueError(
+                f"The current step number ({self.step_nr}) with `value` increment must be less than or equal to the maximum number of steps ({self.max_num_steps}), but is {self.step_nr + value} instead."
+            )
+
+        self.step_nr = step_nr
+
+    def get_state(self, m: Module, kls: Type[T]) -> Optional[T]:
+        """Get the state of ``m`` if present in the bag.
+
+        :param m:
+            The module.
+        :param kls:
+            The expected ``type`` of the state. If the type of the state in the
+            bag does not match ``kls``, ``None`` will be returned.
+
+        :returns:
+            The state of the module.
+        """
+        state = self._module_states.get(m, None)
+        if isinstance(state, kls):
+            return state
+        else:
+            return None
+
+    def set_state(self, m: Module, state: IncrementalState) -> None:
+        """Set the state of ``m``.
+
+        :param m:
+            The module.
+        :param state:
+            The state to store.
+        """
+        self._module_states[m] = state
+
+    def reorder(self, new_order: Tensor, handle: sail.Handle=None) -> None:
+        """Reorder all module states in the bag.
+
+        See :meth:`IncrementalState.reorder` for more information.
+        """
+        if len(list(self._module_states.values())) != 0:
+            state = list(self._module_states.values())[0]
+            tmp_tensor = sail.Tensor(handle, state.shape(), state.dtype(), False, True)
+        for state in self._module_states.values():
+            # state.reorder(new_order)
+            tmp_tensor.sync_d2d(state, 0, 0, state.shape()[0] * state.shape()[1] * state.shape()[2] * state.shape()[3])
+            for indx, i in enumerate(new_order):
+                state.sync_d2d(tmp_tensor, i.item() * state.shape()[1] * state.shape()[2] * state.shape()[3], indx * state.shape()[1] * state.shape()[2] * state.shape()[3], state.shape()[1] * state.shape()[2] * state.shape()[3])
