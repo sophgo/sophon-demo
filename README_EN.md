@@ -24,11 +24,13 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 |---                                                            |---                                 |---          | ---           |
 | [LPRNet](./sample/LPRNet/README.md)                           | License Plate Recognition          | C++/Python | FP32/FP16/INT8 |
 | [ResNet](./sample/ResNet/README.md)                           | Image classification               | C++/Python | FP32/FP16/INT8 |
-| [RetinaFace](./sample/RetinaFace/README.md)                   | Face detection                     | C++/Python | FP32           |
+| [RetinaFace](./sample/RetinaFace/README.md)                   | Face detection                     | C++/Python | FP32/FP16/INT8 |
+| [SCRFD](./sample/SCRFD/README.md)                             | Face detection                     | C++/Python | FP32/FP16/INT8 |
 | [segformer](./sample/segformer/README.md)                     | Semantic segmentation              | C++/Python | FP32/FP16      |
 | [SAM](./sample/SAM/README.md)                                 | Semantic segmentation              | Python     | FP32/FP16      |
 | [yolact](./sample/yolact/README.md)                           | Instance segmentation              | C++/Python | FP32/FP16/INT8 |
 | [YOLOv8_seg](./sample/YOLOv8_seg/README.md)                   | Instance segmentation              | C++/Python | FP32/FP16/INT8 |
+| [YOLOv9_seg](./sample/YOLOv9_seg/README.md)                   | Instance segmentation              | C++/Python | FP32/FP16/INT8 |
 | [PP-OCR](./sample/PP-OCR/README.md)                           | OCR                                | C++/Python | FP32/FP16      |
 | [OpenPose](./sample/OpenPose/README.md)                       | Keypoint detection                 | C++/Python | FP32/FP16/INT8 |
 | [C3D](./sample/C3D/README.md)                                 | Video recognition                  | C++/Python | FP32/FP16/INT8 |
@@ -42,9 +44,12 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [YOLOv7](./sample/YOLOv7/README.md)                           | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [YOLOv8_det](./sample/YOLOv8_det/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [YOLOv5_opt](./sample/YOLOv5_opt/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 |
+| [YOLOv5_fuse](./sample/YOLOv5_fuse/README.md)                 | Object Detection                   | C++/Python | FP32/FP16/INT8 |
+| [YOLOv9_det](./sample/YOLOv9_det/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16      |
 | [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16      |
+| [Whisper](./sample/Whisper/README.md)                         | Speech Recognition                 | Python     | FP16           | 
 | [BERT](./sample/BERT/README.md)                               | Language                           | C++/Python | FP32/FP16      |
 | [ChatGLM2](./sample/ChatGLM2/README.md)                       | Language                           | C++/Python | FP16/INT8/INT4 |
 | [Llama2](./sample/Llama2/README.md)                           | Language                           | C++        | FP16/INT8/INT4 |
@@ -53,6 +58,10 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [Qwen1_5](./sample/Qwen1_5/README.md)                         | Language                           | Python     | FP16/INT8/INT4 | 
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | Image Generation                   | Python     | FP32/FP16      |
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | MultiModal Object Detection        | Python     | FP16           |
+| [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 |
+| [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 |
+| [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | Python     | FP16           |
+| [SuperGlue](./sample/SuperGlue/README.md)                     | Keypoint Matching                  | C++        | FP32/FP16      |
 
 | application                                                    | scenarios                 | code    | 
 |---                                                             |---                       |---          | 
@@ -63,7 +72,8 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
-| 0.2.1  | Fix documentation and other issues, some examples support CV186X, sample/YOLOv5 support SG2042, Release new samples GroundingDINO and Qwen1_5, StableDiffusionV1_5 newly support multilize resolution models, Qwen/Llama2/ChatGLM3 add web and multi-session support. tutorial module add blend and stitch examples. |
+| 0.2.2  | Fix documentation and other issues, some examples support CV186X. Relase new samples including Whisper/Real-ESRGAN/SCRFD/P2PNet/MiniCPM/CLIP/SuperGlue/YOLOv5_fuse/YOLOv8_seg/YOLOv9_seg/Baichuan2, new tutorials including avframe_ocv/ocv_avframe/bm1688_2core2task_yolov5. |
+| 0.2.1  | Fix documentation and other issues, some examples support CV186X, sample/YOLOv5 support SG2042, release new samples GroundingDINO and Qwen1_5, StableDiffusionV1_5 newly support multilize resolution models, Qwen/Llama2/ChatGLM3 add web and multi-session support. tutorial module add blend and stitch examples. |
 | 0.2.0  |  Fix documentation and other issues, release application/tutorial modules, release new samples ChatGLM3 and Qwen, add a web ui in SAM, BERT/ByteTrack/C3D support BM1688, YOLOv8 is renamed to YOLOv8_det and add cpp postproces acceleration, optimize auto_test in commonly used samples, upgrade TPU-MLIR installation to pip |
 | 0.1.10 | Fix documentation and other issues, add ppYoloe/YOLOv8_seg/StableDiffusionV1.5/SAM, refactor yolact, CenterNet/YOLOX/YOLOv8 support BM1688, YOLOv5/ResNet/PP-OCR/DeepSORT add BM1688 performance statis, WeNet provide C++ cross compile option. |
 | 0.1.9	 | Fix documentation and other issues, add segformer/YOLOv7/Llama2, refactor YOLOv34/YOLOv5/ResNet/PP-OCR/DeepSORT/LPRNet/RetinaFace/YOLOv34/WeNet support BM1688, OpenPose postprocess acceleration, chatglm2 support int8/int4 and add compile method in readme.|
@@ -81,6 +91,8 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, whose version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| Release Date |
 |--------|------------| --------|---------|---------    |----------   | ------    | ----------    |
+| 0.2.2  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=23.10.01|
+| 0.2.1  | >=1.7       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=23.10.01|
 | 0.2.0  | >=1.6       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=23.10.01|
 | 0.1.10 | >=1.2.2    | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.7.0   | >=23.07.01  |
 | 0.1.9  | >=1.2.2    | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.7.0   | >=23.07.01  |
@@ -95,7 +107,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPH
 | 0.1.0  | Not support| >=3.1.3 | >=0.3.0 | >=0.2.4     | >=0.2.4     | >=3.1.0   |    -        |
 > **Note**: 
 > 1. The version requirements may vary from sample to sample, depending on the README of the routine, and other third-party libraries may need to be installed.
-> 2. SDK for BM1688(CV186X) is not the same as BM1684/BM1684X, it is not released on our official site yet, you can contact us to get BM1688 SDK if you are interested in BM1688.
+> 2. SDK for BM1688/CV186X is not the same as BM1684/BM1684X, it is not released on our official site yet, you can contact us to get BM1688 SDK if you are interested in BM1688.
 
 ## Technical Data
 
