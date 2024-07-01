@@ -1,0 +1,11 @@
+accelerate==0.30.1
+diffusers==0.24.0
+numpy==1.24.4
+opencv-python-headless==4.9.0.80
+Pillow==9.0.1
+python-dateutil==2.8.2
+scikit-image==0.21.0
+scipy==1.10.1
+torch==1.12.0
+tqdm
+transformers==4.33.2
