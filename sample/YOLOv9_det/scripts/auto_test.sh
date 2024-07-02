@@ -374,7 +374,7 @@ then
     test_cpp pcie bmcv yolov9s_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_cpp pcie bmcv yolov9s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    performence test
+    #performence test
     test_python opencv yolov9s_fp32_1b.bmodel datasets/coco/val2017_1000
     test_python opencv yolov9s_fp16_1b.bmodel datasets/coco/val2017_1000
     test_python opencv yolov9s_int8_1b.bmodel datasets/coco/val2017_1000
