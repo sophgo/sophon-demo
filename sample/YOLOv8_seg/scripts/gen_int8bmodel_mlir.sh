@@ -20,7 +20,7 @@ function gen_mlir()
         --mean 0.0,0.0,0.0 \
         --scale 0.0039216,0.0039216,0.0039216 \
         --keep_aspect_ratio \
-        --pixel_format rgb
+        --pixel_format rgb \
         --test_input ../datasets/test/dog.jpg \
         --test_result yolov8s_top_outputs.npz \
         --mlir yolov8s_$1b.mlir 
@@ -42,7 +42,7 @@ function gen_int8bmodel()
         --chip $target \
         --quantize_table ../models/onnx/yolov8s_seg_${target}_qtable \
         --calibration_table yolov8s_cali_table \
-        --model yolov8s_int8_$1b.bmodel
+        --model yolov8s_int8_$1b.bmodel \
         --test_input yolov8s_in_f32.npz \
         --test_reference yolov8s_top_outputs.npz \
         --compare_all
