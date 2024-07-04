@@ -13,7 +13,7 @@ pushd $scripts_dir
 # datasets
 if [ ! -d "../datasets" ];
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/Whisper/datasets_240327/datasets.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/datasets.zip
     unzip datasets.zip -d ../
     rm datasets.zip
 

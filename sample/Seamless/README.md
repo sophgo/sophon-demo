@@ -93,6 +93,7 @@ chmod -R +x scripts/
 ├── aishell_S0764.list                        # 从aishell数据集的文件列表
 ├── ground_truth.txt                          # 从aishell数据集的预测真实值
 └── test                                      # 测试使用的音频文件
+    ├── long_audio.wav                        # 2分58秒的长语音音频文件
     └── demo.wav
 ```
 ## 5. 模型编译
