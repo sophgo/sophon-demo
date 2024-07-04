@@ -37,6 +37,11 @@ parser.add_argument("--vad_level",
 					type=int,
 					default=2,
 					help="vad granularity, [0,3], the bigger the number is, the finer granularity is")
+parser.add_argument("--online_use_vad",
+					action='store_true',
+					default=False,
+					help="whether to use vad for removing noise or empty audio segment during online"
+					)
 parser.add_argument("--encoder_chunk_look_back",
                     type=int,
                     default=4,
@@ -304,11 +309,15 @@ async def record_microphone(mode, websocket):
                     clip_audio += i.to_bytes(2, byteorder='little', signed=False)
                     await websocket.send(clip_audio)
         else:
-            for sub_message in sub_messages:
-                clip_audio = vad_collector_online(args.audio_fs, sub_message)
-                if clip_audio is not None:
-                    clip_audio += i.to_bytes(2, byteorder='little', signed=False)
-                    await websocket.send(clip_audio)
+            if args.online_use_vad:
+                for sub_message in sub_messages:
+                    clip_audio = vad_collector_online(args.audio_fs, sub_message)
+                    if clip_audio is not None:
+                        clip_audio += i.to_bytes(2, byteorder='little', signed=False)
+                        await websocket.send(clip_audio)
+            else:
+                message += i.to_bytes(2, byteorder='little', signed=False)
+                await websocket.send(message)
         i += 1
         #voices.put(message)
         await asyncio.sleep(sleep_duration)
@@ -397,7 +406,7 @@ async def record_from_scp(mode, websocket, chunk_begin, chunk_size, web_id):
         #voices.put(message)
         await websocket.send(message)
         is_speaking = True
-        if mode == "online" or mode == "parallel2pass":
+        if args.mode == "online" or args.mode == "parallel2pass":
             # TODO: update sleep_duration to adapt for microphone streaming
             sleep_duration = args.chunk_duration_ms / 1000. # input time - inference cost time(ignored)
         else:
@@ -416,13 +425,17 @@ async def record_from_scp(mode, websocket, chunk_begin, chunk_size, web_id):
                         clip_audio += i.to_bytes(2, byteorder='little', signed=False)
                         await websocket.send(clip_audio)
             else:
-                for sub_message in sub_messages:
-                    clip_audio = vad_collector_online(sample_rate, sub_message)
-                    if clip_audio is not None:
-                        clip_audio += i.to_bytes(2, byteorder='little', signed=False)
-                        await websocket.send(clip_audio)
+                if args.online_use_vad:
+                    for sub_message in sub_messages:
+                        clip_audio = vad_collector_online(sample_rate, sub_message)
+                        if clip_audio is not None:
+                            clip_audio += i.to_bytes(2, byteorder='little', signed=False)
+                            await websocket.send(clip_audio)
+                else:
+                     message += i.to_bytes(2, byteorder='little', signed=False)
+                     await websocket.send(message)
             if i == chunk_num - 1:
-                if voiced_frames and mode == "offline":
+                if mode == "offline" and voiced_frames:
                     audio_in = b''.join([f.bytes for f in voiced_frames])
                     voiced_frames = []
                     audio_in += i.to_bytes(2, byteorder='little', signed=False)

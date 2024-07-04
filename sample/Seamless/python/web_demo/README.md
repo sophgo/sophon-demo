@@ -130,7 +130,7 @@ usage: wss_server.py [-h] [--host HOST] [--port PORT] [--use_offline] [--offline
 
 客户端参数说明如下：
 ```bash
-usage: wss_client.py [-h] [--hosts HOSTS [HOSTS ...]] [--ports PORTS [PORTS ...]] [--chunk_duration_ms CHUNK_DURATION_MS] [--vad_level VAD_LEVEL]
+usage: wss_client.py [-h] [--hosts HOSTS [HOSTS ...]] [--ports PORTS [PORTS ...]] [--chunk_duration_ms CHUNK_DURATION_MS] [--vad_level VAD_LEVEL] [--online_use_vad ONLINE_USE_VAD]
                      [--encoder_chunk_look_back ENCODER_CHUNK_LOOK_BACK] [--decoder_chunk_look_back DECODER_CHUNK_LOOK_BACK]
                      [--chunk_interval CHUNK_INTERVAL] [--hotword HOTWORD] [--audio_in AUDIO_IN] [--audio_fs AUDIO_FS] [--microphone_dev_id MICROPHONE_DEV_ID] [--thread_num THREAD_NUM] [--words_max_print WORDS_MAX_PRINT]
                      [--output_dir OUTPUT_DIR] [--ssl SSL] [--use_itn USE_ITN] [--mode MODE]
@@ -138,6 +138,7 @@ usage: wss_client.py [-h] [--hosts HOSTS [HOSTS ...]] [--ports PORTS [PORTS ...]
 --ports: 服务端端口，对于parallel2pass模式，需要分别给出流式服务器端口和离线服务器端口
 --chunk_duration_ms: 流式模型的输入切片大小，单位为毫秒
 --vad_level: webrtcvad识别语音和非语音的敏感度，取值范围为[0,3]，值越大越敏感
+--online_use_vad: 是否在音频传入流式模型前使用vad过滤无人声片段，默认不使用
 --encoder_chunk_look_back: 暂无用，用于后期扩展
 --decoder_chunk_look_back: 暂无用，用于后期扩展
 --chunk_interval: 暂无用，用于后期扩展
@@ -171,7 +172,10 @@ python3 wss_server.py --port 10096 --use_offline
 
 然后使用如下命令启动客户端，客户端会发送指令和音频数据给服务端进行语音识别，可根据实际情况修改IP
 ```bash
+# 若使用本地音频文件，使用如下命令
 python wss_client.py --hosts 127.0.0.1 127.0.0.1 --ports 10095 10096 --mode parallel2pass --audio_in ../../datasets/test/long_audio.wav
+# 若使用麦克风输入，使用如下命令，需根据实际情况修改麦克风设备id
+python wss_client.py --hosts 127.0.0.1 127.0.0.1 --ports 10095 10096 --mode parallel2pass --microphone_dev_id 1 --online_use_vad
 ```
 
 ### 2.2.2 流式方式
@@ -184,7 +188,10 @@ python3 wss_server.py --port 10095 --use_online
 然后使用如下命令启动客户端，客户端会发送指令和音频数据给服务端进行语音识别，可根据实际情况修改IP
 
 ```bash
+# 若使用本地音频文件，使用如下命令
 python wss_client.py --hosts 127.0.0.1 --ports 10095 --mode online --audio_in ../../datasets/test/long_audio.wav
+# 若使用麦克风输入，使用如下命令，需根据实际情况修改麦克风设备id
+python wss_client.py --hosts 127.0.0.1 --ports 10095 --mode online --microphone_dev_id 1 --online_use_vad
 ```
 
 ### 2.2.3 离线方式
@@ -198,5 +205,8 @@ python3 wss_server.py --port 10095 --use_offline
 然后使用如下命令启动客户端，客户端会发送指令和音频数据给服务端进行语音识别，可根据实际情况修改IP
 
 ```bash
+# 若使用本地音频文件，使用如下命令
 python wss_client.py --hosts 127.0.0.1 --ports 10095 --mode offline --audio_in ../../datasets/test/long_audio.wav
+# 若使用麦克风输入，使用如下命令，需根据实际情况修改麦克风设备id
+python wss_client.py --hosts 127.0.0.1 --ports 10095 --mode offline --microphone_dev_id 1
 ```

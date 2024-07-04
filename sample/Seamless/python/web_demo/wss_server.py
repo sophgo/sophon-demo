@@ -89,7 +89,7 @@ parser.add_argument('--chunk_duration_ms',
 					help='segment length in online rec')
 parser.add_argument('--consecutive_segments_num',
 					type=int,
-					default=1,
+					default=2,
 					help='the processed number of segments once during streaming')
 parser.add_argument('--fbank_min_input_length',
 					type=int,
@@ -402,6 +402,11 @@ async def async_asr_online(websocket, audio_in, last_segment_id):
 	if len(audio_in) > 0:
 		# print(websocket.status_dict_asr_online.get("is_final", False))
 		# print('online input: ', audio_in)
+		es = websocket.status_dict_asr["chunk_duration_ms"] * (last_segment_id + 1) / 1000.
+		m, s = divmod(es, 60)
+		h, m = divmod(m, 60)
+		ess = "%d:%02d:%02d" % (h, m, s)
+		logging.info('audio segment in ' + ess)
 		rec_result = model_asr_streaming.generate(input=audio_in, **websocket.status_dict_asr_online)[0]
 		# print("online, ", rec_result)
 		if len(rec_result["text"]):
