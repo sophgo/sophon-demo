@@ -45,6 +45,15 @@ struct ImageInfo {
     cv::Vec4d trans;
 };
 
+struct Paras {
+    int r_x;
+    int r_y;
+    int r_w;
+    int r_h;
+    int width;
+    int height;
+};
+
 using YoloV8BoxVec = std::vector<YoloV8Box>;
 
 class YoloV8 {
@@ -53,10 +62,12 @@ class YoloV8 {
 
     std::vector<bm_image> m_resized_imgs;
     std::vector<bm_image> m_converto_imgs;
-
+    
     // configuration
     float m_confThreshold = 0.25;
     float m_nmsThreshold = 0.7;
+    
+
 
     std::vector<std::string> m_class_names;
     int m_class_num = 80;  // default is coco names
@@ -84,7 +95,12 @@ class YoloV8 {
                   const ImageInfo& para,
                   cv::Rect bound,
                   cv::Mat& mast_out);
-
+    
+    void *mask_bmrt=nullptr;
+    bm_net_info_t *mask_net_info;
+    bm_tensor_t input_tensors[2];
+    bm_tensor_t output_tensors[1];
+    
    public:
     YoloV8(std::shared_ptr<BMNNContext> context);
     virtual ~YoloV8();
@@ -94,6 +110,11 @@ class YoloV8 {
     int Detect(const std::vector<bm_image>& images, std::vector<YoloV8BoxVec>& boxes);
     void draw_bmcv(bm_handle_t& handle, bm_image& frame, YoloV8BoxVec& result, bool put_text_flag);
     void draw_result(cv::Mat& img, YoloV8BoxVec& result);
+    void getmask_tpu(void *mask_bmrt, YoloV8BoxVec &yolobox_vec, std::shared_ptr<BMNNTensor> &out_tensor1,Paras& paras,YoloV8BoxVec &yolobox_vec_tmp);
+    
+    void tpumask_Init();
+    bool tpu_post = false;
+    std::string mask_bmodel;
 };
 
 #endif  //! YOLOV8_H
