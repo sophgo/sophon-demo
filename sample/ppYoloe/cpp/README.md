@@ -24,7 +24,7 @@
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程       | 说明                                 |
 | ---- | ------------- | ----------------------------------- |
-| 1    | ppyoloe_bmcv  | 使用FFmpeg解码、BMCV前处理、BMRT推理s  |
+| 1    | ppyoloe_bmcv  | 使用FFmpeg解码、BMCV前处理、BMRT推理  |
 | 2    | ppyoloe_sail  | 使用SAIL解码、SAIL前处理、SAIL推理     |
 
 ## 1. 环境准备
@@ -131,7 +131,9 @@ Usage: ppyoloe_bmcv.pcie [params]
 
 >**注意：**
 
-若在SoC模式下执行报错:
+1.cpp程序不会在图片上写字，如果希望在图片上写字，可以查阅bmcv_image_put_text接口文档使用bmcv写字，或者将bm_image转为cv::Mat使用opencv写字。
+
+2.若在SoC模式下执行报错:
 ```bash
 ./ppyoloe_sail.soc: error while loading shared libraries: libsail.so: cannot open shared object file: No such file or directory
 ```
