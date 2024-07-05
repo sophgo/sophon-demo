@@ -24,9 +24,11 @@ MLIR具体步骤如下：
    ![Alt text](../pics/cali_guide_image0.png)
    如上图所示，层名一般是该层在netron.app中对应的OUTPUTS name。参考如下命令生成qtable：
    ```bash
-   fp_forward.py xxx.mlir --fpfwd_outputs 357_Gather --chip bm1684 --fp_type F32 -o xxx_qtable
+   fp_forward.py xxx.mlir --fpfwd_outputs 357_Gather --chip bm1684 --fp_type F32 -o xxx_qtable 
    ```
    使用上面的命令生成的qtable，357_Gather及之后的层都会被设置为F32。
+   
+   **注意，在部分版本mlir中，--chip参数或许不支持bm1688/cv186x，您可以使用bm1684x代替，生成的qtable都是通用的，您也可以自由地更改qtable中每一层对应的的fp_type。**
 
 3. 生成的qtable传给model_deploy.py，配合加入test_input和test_reference来验证混精度策略是否有效。
 
