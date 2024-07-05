@@ -65,7 +65,7 @@ pip3 install dfss --upgrade
 python3 -m dfss --url=open@sophgo.com:/aigc/tpu_mlir-1.6.404-py3-none-any.whl
 ```
 
-安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
+安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
 
 最后参考TPU-MLIR工具的使用方式激活对应的环境，并在scripts路径下执行四个bmodel的导出脚本文件（get_text_encoder_bmodel.sh, get_vae_encoder_bmodel.sh, get_vae_decoder_bmodel.sh, get_unet_bmodel.sh），会将models/onnx_pt/下的pt文件转换为bmodel，并将bmodel移入models/BM1684X/singlize文件夹下。
 

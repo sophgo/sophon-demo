@@ -2,7 +2,7 @@
 
 # Model quantization
 
-To find more about models quantify tutorial, please refer to the TPU-MLIR/TPU-NNTC development reference (please visit sophgo website (https://developer.sophgo.com/site/index/material/28/all.html) to get the corresponding version of the SDK).
+To find more about models quantify tutorial, please refer to the TPU-MLIR/TPU-NNTC development reference (please visit sophgo website (https://developer.sophgo.com/site/index.html?categoryActive=material) to get the corresponding version of the SDK).
 
 ## 1. Notice
 ### 1.1 Quantized dataset
