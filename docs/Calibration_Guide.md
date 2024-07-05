@@ -2,7 +2,7 @@
 
 # 模型量化
 更多模型量化教程请参考
-《TPU-MLIR开发参考手册》和《TPU-NNTC开发参考手册》的“模型量化”(请从[算能官网](https://developer.sophgo.com/site/index/material/28/all.html)相应版本的SDK中获取)。
+《TPU-MLIR开发参考手册》和《TPU-NNTC开发参考手册》的“模型量化”(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
 
 ## 1. 注意事项
 ### 1.1 量化数据集

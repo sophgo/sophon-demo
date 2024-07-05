@@ -111,7 +111,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPH
 | 0.1.0  | Not support| >=3.1.3 | >=0.3.0 | >=0.2.4     | >=0.2.4     | >=3.1.0   |    -        |
 > **Note**: 
 > 1. The version requirements may vary from sample to sample, depending on the README of the routine, and other third-party libraries may need to be installed.
-> 2. SDK for BM1688/CV186X is not the same as BM1684/BM1684X, it is not released on our official site yet, you can contact us to get BM1688 SDK if you are interested in BM1688.
+> 2. SDK for BM1688(CV186X) is not the same as BM1684/BM1684X, it is distinguished on our official site, please pay attention.
 
 ## Technical Data
 

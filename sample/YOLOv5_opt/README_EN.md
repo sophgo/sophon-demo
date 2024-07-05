@@ -69,7 +69,7 @@ datasets downloaded including：
 The exported model needs to be compiled into a BModel to run on SOPHON TPU. If a downloaded BModel is used, this section can be skipped. It is recommended to use TPU-MLIR to compile the BModel.
 
 ### 4.1 Compile BModel with TPU-MLIR
-Before compiling BModel, TPU-MLIR should be installed, please refer to [TPU-MLIR-SETUP](../../docs/Environment_Install_Guide_EN.md#1-tpu-mlir-environmental-installation). After installation, enter the demo directory in the TPU-MLIR environment. Use TPU-MLIR to compile the ONNX model into a BModel. For specific instructions, please refer to "3. Compiling ONNX models" in the "TPU-MLIR Quick Start Guide" (available from the corresponding version of the SDK on the [Sophon website](https://developer.sophgo.com/site/index/material/31/all.html)).
+Before compiling BModel, TPU-MLIR should be installed, please refer to [TPU-MLIR-SETUP](../../docs/Environment_Install_Guide_EN.md#1-tpu-mlir-environmental-installation). After installation, enter the demo directory in the TPU-MLIR environment. Use TPU-MLIR to compile the ONNX model into a BModel. For specific instructions, please refer to "3. Compiling ONNX models" in the "TPU-MLIR Quick Start Guide" (available from the corresponding version of the SDK on the [Sophon website](https://developer.sophgo.com/site/index.html?categoryActive=material)).
 
 - Compile FP32 BModel
 
