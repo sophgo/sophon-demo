@@ -1,2 +1,2 @@
 websockets==11.0
-funasr
+funasr==1.0.27
