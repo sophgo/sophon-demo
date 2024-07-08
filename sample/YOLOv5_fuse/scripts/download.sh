@@ -28,17 +28,15 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5_fuse/models_240611/BM1688.zip
     unzip BM1688.zip -d ../models
     rm BM1688.zip
-    pushd ../models/
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5_fuse/models_240611/CV186X.zip
-    unzip CV186X.zip
+    unzip CV186X.zip -d ../models
     rm -r CV186X.zip
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5_fuse/models_240611/BM1684X.zip
-    unzip BM1684X.zip
+    unzip BM1684X.zip -d ../models
     rm -r BM1684X.zip
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5_fuse/models_240611/models.zip
-    unzip models.zip
-    rm -r models.zip
-    popd
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5_fuse/models_240611/onnx.zip
+    unzip onnx.zip -d ../models
+    rm -r onnx.zip
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
