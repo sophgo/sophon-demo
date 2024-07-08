@@ -13,7 +13,6 @@ import cv2
 import argparse
 import numpy as np
 import sophon.sail as sail
-from postprocess_numpy import PostProcess
 from utils import COLORS, COCO_CLASSES
 import logging
 import ast

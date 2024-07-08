@@ -12,7 +12,6 @@ import json
 import argparse
 import numpy as np
 import sophon.sail as sail
-from postprocess_numpy import PostProcess
 from utils import COLORS
 import logging
 logging.basicConfig(level=logging.INFO)
