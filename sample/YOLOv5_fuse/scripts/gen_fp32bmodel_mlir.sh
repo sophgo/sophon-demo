@@ -20,9 +20,9 @@ function gen_fp32bmodel()
         --processor  $target \
         --fuse_preprocess \
         --customization_format BGR_PACKED \
-        --model yolov5s_v6.1_3output_fp32_$1b.bmodel
+        --model yolov5s_v6.1_fuse_fp32_$1b.bmodel
 
-    mv yolov5s_v6.1_3output_fp32_$1b.bmodel $outdir/
+    mv yolov5s_v6.1_fuse_fp32_$1b.bmodel $outdir/
     if test $target = "bm1688";then
         model_deploy.py \
             --mlir yolov5s_v6.1_3output_$1b.mlir \
@@ -32,8 +32,8 @@ function gen_fp32bmodel()
             --fuse_preprocess \
             --customization_format BGR_PACKED \
             --num_core 2 \
-            --model yolov5s_v6.1_3output_fp32_$1b_2core.bmodel
-        mv yolov5s_v6.1_3output_fp32_$1b_2core.bmodel $outdir/
+            --model yolov5s_v6.1_fuse_fp32_$1b_2core.bmodel
+        mv yolov5s_v6.1_fuse_fp32_$1b_2core.bmodel $outdir/
     fi
 }
 
