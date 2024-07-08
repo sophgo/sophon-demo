@@ -46,6 +46,7 @@ python 版本
 3. `sophon-sail/sample/python/yolov5_multi_3output_pic.py`,例程源码位于SDK中`sophon-sail`，使用python调用C++封装的接口,从而将解码，前处理，推理，后处理放在不同的线程上，提高整体的性能
 4. 《TPU-MLIR快速入门手册》第8、9小节，使用TPU做前处理、后处理，需要您参考对应的[文档](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/tpu-mlir/quick_start/html/08_fuse_preprocess.html),编写对应的例程，将算法的前处理，后处理全部放在模型里面，提高端到端的性能；
 5. 使用python多进程库`multiprocessing`,将耗时较多的的接口，使用多进程的方式调用，可提高整体吞吐量；
+6. `sophon-demo/sample/YOLOv5_fuse/python`，将前后处理融合进模型，**显著提升端到端性能，SE7&SE9强烈推荐**，对SDK版本要求较高，建议使用官网最新的libsophon驱动和mlir工具链。
 
 c++版本
 1. `sophon-demo/sample/YOLOv5/cpp`,例程源码位于本仓库内，分别基于`bmcv`,`sail`的接口实现的简易例程，用于准确性的验证
@@ -53,9 +54,10 @@ c++版本
 3. `sophon-stream/samples/yolov5`,例程源码位于SDK（V23.10.01及以上版本）中`sophon-stream`,将前处理、推理、后处理放在不同的线程上，大幅提高整体性能；
 4. `sophon-pipeline/examples/yolov5`,[例程源码链接](https://github.com/sophgo/sophon-pipeline),基于线程池实现整个算法推理过程，提高整体性能；
 5. 《TPU-MLIR快速入门手册》第8、9小节，使用TPU做前处理、后处理，提高端到端的性能
+6. `sophon-demo/sample/YOLOv5_fuse/cpp`，将前后处理融合进模型，**显著提升端到端性能，SE7&SE9强烈推荐**，对SDK版本要求较高，建议使用官网最新的libsophon驱动和mlir工具链。
 
 > **注意：**  
-> 本例程支持三输出以及单输出模型，其中单输出模型性能更高，但是量化容易出现问题；三输出模型量化简单，在**用于验证模型准确性时，推荐使用三输出模型**
+> 本例程支持三输出以及单输出模型，其中单输出模型性能更高，但是量化需要设置敏感层；三输出模型量化简单，在**用于验证模型准确性时，推荐使用三输出模型**
 
 ## 3. 准备模型与数据
 建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型，如果您使用的tpu-mlir版本>=v1.3.0（即官网v23.07.01），可以直接使用torchscript模型。具体可参考[YOLOv5模型导出](./docs/YOLOv5_Export_Guide.md)。
