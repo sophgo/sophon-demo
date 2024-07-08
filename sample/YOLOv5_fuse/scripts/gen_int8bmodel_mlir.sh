@@ -29,9 +29,9 @@ function gen_int8bmodel()
         --fuse_preprocess \
         --calibration_table yolov5s_cali_table \
         --customization_format BGR_PACKED \
-        --model yolov5s_v6.1_3output_int8_$1b.bmodel
+        --model yolov5s_v6.1_fuse_int8_$1b.bmodel
 
-    mv yolov5s_v6.1_3output_int8_$1b.bmodel $outdir/
+    mv yolov5s_v6.1_fuse_int8_$1b.bmodel $outdir/
     if test $target = "bm1688";then
         model_deploy.py \
             --mlir yolov5s_v6.1_3output_$1b.mlir \
@@ -42,9 +42,9 @@ function gen_int8bmodel()
             --calibration_table yolov5s_cali_table \
             --customization_format BGR_PACKED \
             --num_core 2 \
-            --model yolov5s_v6.1_3output_int8_$1b_2core.bmodel
+            --model yolov5s_v6.1_fuse_int8_$1b_2core.bmodel
 
-        mv yolov5s_v6.1_3output_int8_$1b_2core.bmodel $outdir/
+        mv yolov5s_v6.1_fuse_int8_$1b_2core.bmodel $outdir/
     fi
 }
 
