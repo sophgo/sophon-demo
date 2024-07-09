@@ -15,9 +15,10 @@ using namespace std;
 int main(int argc, char *argv[]){
   cout.setf(ios::fixed);
   // get params
-  const char *keys="{bmodel | ../../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel | bmodel file path}"
+  const char *keys="{bmodel | ../../models/BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel | bmodel file path}"
     "{dev_id | 0 | TPU device id}"
     "{help | 0 | print help information.}"
+    "{draw_thresh | 0.5 | draw threshold}"
     "{input | ../../datasets/test | input path, images direction or video file path}"
     "{classnames | ../../datasets/coco.names | class names file path}";
   cv::CommandLineParser parser(argc, argv, keys);
@@ -28,6 +29,7 @@ int main(int argc, char *argv[]){
   string bmodel_file = parser.get<string>("bmodel");
   string input = parser.get<string>("input");
   int dev_id = parser.get<int>("dev_id");
+  float draw_thresh = parser.get<float>("draw_thresh");
 
   // check params
   struct stat info;
@@ -126,7 +128,7 @@ int main(int argc, char *argv[]){
             cout << "  class id=" << bbox.class_id << ", score = " << bbox.score << " (x=" << bbox.x << ",y=" << bbox.y << ",w=" << bbox.width << ",h=" << bbox.height << ")" << endl;
 #endif
             // draw image
-            yolov5.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i]);
+            yolov5.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i], draw_thresh);
 
             // save result
             json bbox_json;
@@ -199,7 +201,7 @@ int main(int argc, char *argv[]){
             batch_imgs[i] = frame;
           }
           for (auto bbox : boxes[i]) {
-            yolov5.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i], false);
+            yolov5.draw_bmcv(h, bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height, batch_imgs[i], draw_thresh, false);
           }
           string img_file = "results/images/" + to_string(id) + ".jpg";
           void* jpeg_data = NULL;

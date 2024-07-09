@@ -76,6 +76,7 @@ class YoloV5 {
                    int right,
                    int bottom,
                    sail::BMImage& frame,
+                   float draw_thresh,
                    bool put_text_flag = false);
 };
 

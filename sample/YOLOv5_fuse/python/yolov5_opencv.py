@@ -167,12 +167,12 @@ class YOLOv5:
 
         return results
 
-def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None):
+def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None, draw_thresh=None):
     for idx in range(len(boxes)):
         x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
 
         logging.debug("class id={}, score={}, (x1={},y1={},x2={},y2={})".format(classes_ids[idx],conf_scores[idx], x1, y1, x2, y2))
-        if conf_scores[idx] < 0.25:
+        if conf_scores[idx] < draw_thresh:
             continue
         if classes_ids is not None:
             color = COLORS[int(classes_ids[idx]) + 1]
@@ -244,7 +244,7 @@ def main(args):
                     for i, filename in enumerate(filename_list):
                         det = results[i]
                         # save image
-                        res_img = draw_numpy(img_list[i], det[:,3:7], masks=None, classes_ids=det[:, 1], conf_scores=det[:, 2])
+                        res_img = draw_numpy(img_list[i], det[:,3:7], masks=None, classes_ids=det[:, 1], conf_scores=det[:, 2], draw_thresh=args.draw_thresh)
                         cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
                         
                         # save result
@@ -301,7 +301,7 @@ def main(args):
                    
                     cn += 1
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
-                    res_frame = draw_numpy(frame_list[i], det[:,3:7], masks=None, classes_ids=det[:, 1], conf_scores=det[:, 2])
+                    res_frame = draw_numpy(frame_list[i], det[:,3:7], masks=None, classes_ids=det[:, 1], conf_scores=det[:, 2], draw_thresh=args.draw_thresh)
                     out.write(res_frame)
                 frame_list.clear()
         cap.release()
@@ -326,11 +326,9 @@ def main(args):
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--input', type=str, default='../datasets/test', help='path of input')
-    parser.add_argument('--bmodel', type=str, default='../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--bmodel', type=str, default='../models/BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel', help='path of bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
-    parser.add_argument('--conf_thresh', type=float, default=0.001, help='confidence threshold')
-    parser.add_argument('--nms_thresh', type=float, default=0.6, help='nms threshold')
-    parser.add_argument('--use_cpu_opt', action="store_true", default=False, help='accelerate cpu postprocess')
+    parser.add_argument('--draw_thresh', type=float, default=0.5, help='draw threshold')
     args = parser.parse_args()
     return args
 
