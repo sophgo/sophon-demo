@@ -176,3 +176,6 @@ cat online_wer | grep "Overall"
 > 4. BM1684X SoC的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz。
 > 5. 运行时均采用默认参数。
 
+
+## 9. FAQ
+若遇错误`OSError: libsndfile is not found! Use your system package manager to install it (e.g. 'apt install libsndfile1').`，则执行命令`sudo apt install libsndfile1`即可。
