@@ -24,6 +24,7 @@ int main(int argc, char* argv[]) {
         "{bmodel | ../../models/BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel | bmodel file path}"
         "{dev_id | 0 | TPU device id}"
         "{help | 0 | print help information.}"
+        "{draw_thresh | 0.5 | draw threshold}"
         "{input | ../../datasets/test | input path, images direction or video file path}"
         "{classnames | ../../datasets/coco.names | class names file path}";
     cv::CommandLineParser parser(argc, argv, keys);
@@ -34,6 +35,7 @@ int main(int argc, char* argv[]) {
     string bmodel_file = parser.get<string>("bmodel");
     string input = parser.get<string>("input");
     int dev_id = parser.get<int>("dev_id");
+    float draw_thresh = parser.get<float>("draw_thresh");
 
     // check params
     struct stat info;
@@ -140,7 +142,7 @@ int main(int argc, char* argv[]) {
 #endif
                     // draw image
                     yolov5.draw_bmcv(bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height,
-                                     batch_imgs[i], false);
+                                     batch_imgs[i], draw_thresh, false);
                     // save result
                     json bbox_json;
                     bbox_json["category_id"] = bbox.class_id;
@@ -201,7 +203,7 @@ int main(int argc, char* argv[]) {
 #endif
                     // draw image
                     yolov5.draw_bmcv(bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width, bbox.height,
-                                     batch_imgs[i], false);
+                                     batch_imgs[i], draw_thresh, false);
                 }
                 bmcv.imwrite("./results/images/" + to_string(id) + ".jpg" , batch_imgs[i]);
             }

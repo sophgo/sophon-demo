@@ -225,13 +225,13 @@ class YOLOv5:
 
         return results
 
-def draw_bmcv(bmcv, bmimg, boxes, classes_ids=None, conf_scores=None, save_path=""):
+def draw_bmcv(bmcv, bmimg, boxes, classes_ids=None, conf_scores=None, save_path="", draw_thresh=None):
     img_bgr_planar = bmcv.convert_format(bmimg)
     thickness = 2
     for idx in range(len(boxes)):
         x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
         logging.debug("class id={}, score={}, (x1={},y1={},w={},h={})".format(int(classes_ids[idx]), conf_scores[idx], x1, y1, x2-x1, y2-y1))
-        if conf_scores[idx] < 0.25:
+        if conf_scores[idx] < draw_thresh:
             continue
         if classes_ids is not None:
             color = np.array(COLORS[int(classes_ids[idx]) + 1]).astype(np.uint8).tolist()
@@ -308,7 +308,7 @@ def main(args):
                         save_path = os.path.join(output_img_dir, filename)
 
                         if len(det.shape) > 1:
-                            draw_bmcv(bmcv, bmimg_list[i], det[:,3:7], classes_ids=det[:, 1], conf_scores=det[:, 2], save_path=save_path)
+                            draw_bmcv(bmcv, bmimg_list[i], det[:,3:7], classes_ids=det[:, 1], conf_scores=det[:, 2], save_path=save_path, draw_thresh=args.draw_thresh)
 
                         
                         # save result
@@ -362,7 +362,7 @@ def main(args):
                     cn += 1
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
                     save_path = os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg')
-                    draw_bmcv(bmcv, frame_list[i],  det[:,3:7], classes_ids=det[:, 1], conf_scores=det[:, 2], save_path=save_path)
+                    draw_bmcv(bmcv, frame_list[i],  det[:,3:7], classes_ids=det[:, 1], conf_scores=det[:, 2], save_path=save_path, draw_thresh=args.draw_thresh)
                 frame_list.clear()
         decoder.release()
         logging.info("result saved in {}".format(output_img_dir))
@@ -385,8 +385,9 @@ def main(args):
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--input', type=str, default='../datasets/test', help='path of input')
-    parser.add_argument('--bmodel', type=str, default='../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--bmodel', type=str, default='../models/BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel', help='path of bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
+    parser.add_argument('--draw_thresh', type=float, default=0.5, help='draw threshold')
     args = parser.parse_args()
     return args
 

@@ -333,9 +333,10 @@ void YoloV5::draw_bmcv(int classId,
                        int width,
                        int height,
                        sail::BMImage& frame,
+                       float draw_thresh,
                        bool put_text_flag)  // Draw the predicted bounding box
 {
-    if (conf < 0.25)
+    if (conf < draw_thresh)
         return;
     int colors_num = colors.size();
     // Draw a rectangle displaying the bounding box
