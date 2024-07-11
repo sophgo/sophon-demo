@@ -18,7 +18,6 @@ if [ ! -d "../models" ];
 then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/models.tar.gz
     tar xvf models.tar.gz -C ../
-    popd
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
@@ -27,7 +26,6 @@ fi
 # cpp_dependencies
 if [ ! -d "../cpp/libtorch" ]; 
 then
-    mkdir ../cpp
     pushd ../cpp
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/libtorch.tar.gz
     tar xvf libtorch.tar.gz
@@ -39,7 +37,6 @@ fi
 
 if [ ! -d "../cpp/aarch64_lib" ]; 
 then
-    mkdir ../cpp
     pushd ../cpp
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/aarch64_lib.tar.gz
     tar xvf aarch64_lib.tar.gz

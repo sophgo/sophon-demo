@@ -148,9 +148,7 @@ bmrt_test --bmodel models/BM1684X/superpoint_fp32_1b.bmodel
 |                  测试模型                         | calculate time(ms) |
 | -------------------------------------------       | ----------------- |
 | BM1684X/superpoint_fp32_1b.bmodel  |          51.49  |
-| BM1684X/superpoint_fp16_1b.bmodel  |          10.69  |
 | BM1684X/superglue_fp32_1b_iter20_1024.bmodel|         289.83  |
-| BM1684X/superglue_fp16_1b_iter20_1024.bmodel|          38.91  |
 | BM1688/superpoint_fp32_1b.bmodel   |         224.76  |
 | BM1688/superpoint_fp16_1b.bmodel   |          41.47  |
 | BM1688/superglue_fp32_1b_iter20_1024.bmodel|         670.28  |
