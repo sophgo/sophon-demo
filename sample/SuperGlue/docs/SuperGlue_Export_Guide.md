@@ -5,6 +5,11 @@ SuperGlue算法分为superpoint和superglue两个模型，`tools/`目录提供�
 cd tools
 ```
 
+需要安装torch和onnxruntime的依赖：
+```bash
+pip3 install torch onnxruntime
+```
+
 # superpoint导出
 
 由于mlir暂不支持superpoint simple_nms之后的动态输出部分，本例程对源码的`superpoint.py`做了一些修改，您可以直接运行该命令导出`superpoint_to_nms.onnx`
