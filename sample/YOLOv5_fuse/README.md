@@ -88,7 +88,7 @@ chmod -R +x scripts/
 ## 4. 模型编译
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，建议使用TPU-MLIR编译BModel。
 
-模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。  
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/all/all.html)相应版本的SDK中获取)。  
 
 本例程在模型生成过程中，需要先执行`./scripts/gen_mlir.sh`生成mlir文件（`yolov5s_v6.1_3output_1b.mlir`、`yolov5s_v6.1_3output_4b.mlir`）， 请注意修改`gen_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**）,gen_mlir.sh内容如下：
 ```bash
