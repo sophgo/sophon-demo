@@ -190,8 +190,8 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 | SE5-16       | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.338 |    0.544 |
 | SE7-32       | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
 | SE7-32       | yolov5_opencv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.377 |    0.580 |
-| SE7-32       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.363 |    0.572 |
-| SE7-32       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.363 |    0.572 |
+| SE7-32       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.361 |    0.570 |
+| SE7-32       | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.361 |    0.570 |
 | SE7-32       | yolov5_bmcv.py     | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.373 |    0.573 |
 | SE7-32       | yolov5_bmcv.py     | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.373 |    0.573 |
 | SE7-32       | yolov5_bmcv.py     | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.356 |    0.563 |
