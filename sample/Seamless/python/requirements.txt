@@ -1,0 +1,7 @@
+numpy==1.23
+torch==2.2.2
+torchaudio==2.2.2
+fairseq2==0.2.0
+ffmpeg-python
+opencc
+webrtcvad
