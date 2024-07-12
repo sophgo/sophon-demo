@@ -99,13 +99,14 @@ chmod -R +x scripts/
 ## 5. 模型编译
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。使用TPU-MLIR编译BModel。
 
-模型编译前需要安装TPU-MLIR，需要参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)并替换`3. 安装TPU-MLIR`步骤中安装的TPU-MLIR为如下下载的。
+模型编译前需要安装TPU-MLIR，需要参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中1、2步骤，执行如下命令下载mlir包，并在docker容器中启动。
 ```bash
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/tpu-mlir_v1.8.beta.0-157-g261716f91-20240621.tar.gz
 tar -zxvf tpu-mlir_v1.8.beta.0-157-g261716f91-20240621.tar.gz
+source tpu-mlir_v1.8.beta.0-157-g261716f91-20240621/envsetup.sh
 ```
 
-安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
+安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophon.cn/site/index/material/all/all.html)相应版本的SDK中获取)。
 
 - 生成SeamlessStreaming BModel
 
