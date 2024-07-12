@@ -1,0 +1,15 @@
+{
+  "configure": {
+    "is_gray": false,
+    "is_resize": false,
+    "dst_h": 2048,
+    "dst_w": 4096,
+    "dwa_mode": "DWA_FISHEYE_MODE",
+    "dis_mode": "BMCV_MODE_PANORAMA_360",
+    "use_grid": true,
+    "grid_name": "../data/gridinfo/Rgrid_info_bev_128_64_4413_128_64_dst_4096x2048_src_2240x2240.dat",
+    "grid_size": 487600,
+    "resize_h": 2240,
+    "resize_w": 2240
+  }
+}

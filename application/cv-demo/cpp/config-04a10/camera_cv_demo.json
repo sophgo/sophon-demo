@@ -1,0 +1,10 @@
+{
+  "channels": [
+    {
+      "url": "/dev/video0"
+    },
+    {
+      "url": "/dev/video1"
+    }
+  ]
+}

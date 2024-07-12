@@ -1,0 +1,16 @@
+{
+  "configure": {
+    "is_gray": false,
+    "is_resize": true,
+    "dst_h": 1440,
+    "dst_w": 2560,
+    "dwa_mode": "DWA_GDC_MODE",
+    "is_rot": false,
+    "dis_mode": "BMCV_MODE_PANORAMA_360",
+    "use_grid": true,
+    "grid_name": "../data/gridinfo/LL3.dat",
+    "grid_size": 348016,
+    "resize_h": 1440,
+    "resize_w": 1440
+  }
+}

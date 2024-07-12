@@ -1,0 +1,13 @@
+{
+  "configure": {
+    "wgt1": "../data/wgt/c01_alpha_444p_m2__0_1440x32_b.bin",
+    "wgt2": "../data/wgt/c01_beta_444p_m2__0_1440x32_b.bin",
+    "src_h": 1440,
+    "ovlp_lx": 2528,
+    "ovlp_rx": 2559,
+    "bd_lx0": 0,
+    "bd_rx0": 0,
+    "bd_lx1": 0,
+    "bd_rx1": 0
+  }
+}

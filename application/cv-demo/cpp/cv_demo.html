@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html style='margin:0;padding: 0;width: 100%;height: 100%;'>
+
+<head>
+  <meta charset='utf-8'>
+</head>
+<style type="text/css">
+  body {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+
+<body style='margin:0;padding: 0;width: 100%;height: 100%;'>
+  <img class="videoImage" style='display: block;-webkit-user-select: none;width: 100%;height: 100%;'>
+
+  <script>
+
+    const videoImages = document.getElementsByClassName('videoImage');
+    function connectWebSocket(socketUrl, i) {
+      const socket = new WebSocket(socketUrl);
+      socket.binaryType = 'arraybuffer';
+
+      socket.onopen = function () {
+        console.log(`连接成功：${socketUrl}/`);
+      };
+      socket.onmessage = function (event) {
+
+ 
+     let urlSafeBase64 = new TextDecoder().decode(event.data);
+
+       videoImages[i].src = "data:image/jpeg;base64," + urlSafeBase64;//base64;
+      };
+      socket.onclose = function (event) {
+        console.log(`${socketUrl}/连接断开，尝试重连...`);
+ 
+        setTimeout(connectWebSocket(socketUrl, i), 2000); // 2秒后尝试重新连接
+      };
+
+      socket.onerror = function (error) {
+        console.error(`${socketUrl}WebSocket错误:`, error);
+      };
+    }
+    for (let i = 0; i < videoImages.length ; i++) {
+      connectWebSocket(`ws://172.26.13.138:${9002 + i}/`, i)
+    }
+
+  </script>
+</body>
+
+</html>
