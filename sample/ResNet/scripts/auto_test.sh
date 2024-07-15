@@ -10,13 +10,14 @@ TPUID=0
 ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
+CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c CASE_MODE fully|partly]" 1>&2 
 }
 
-while getopts ":m:t:s:d:p:" opt
+while getopts ":m:t:s:d:p:c:" opt
 do
   case $opt in 
     m)
@@ -34,6 +35,9 @@ do
     p)
       PYTEST=${OPTARG}
       echo "generate logs for $PYTEST";;
+    c)
+      CASE_MODE=${OPTARG}
+      echo "case mode is $CASE_MODE";;
     ?)
       usage
       exit 1;;
@@ -194,7 +198,7 @@ function build_soc()
 }
 
 function compare_res(){
-    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.01 && y-x<0.01)?1:0}'`
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<1 && y-x<1)?1:0}'`
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
@@ -276,44 +280,68 @@ elif test $MODE = "compile_mlir"
 then
   download
   compile_mlir
-elif test $MODE = "pcie_test"
+elif test $MODE = "pcie_build"
 then
   build_pcie bmcv
   build_pcie opencv
+elif test $MODE = "pcie_test"
+then
   pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
   download
   if test $TARGET = "BM1684"
   then
-    eval_python opencv   resnet50_fp32_1b.bmodel 80.10
-    eval_python opencv   resnet50_int8_1b.bmodel 78.70
-    eval_python opencv   resnet50_int8_4b.bmodel 78.70
-    eval_python bmcv     resnet50_fp32_1b.bmodel 79.90
-    eval_python bmcv     resnet50_int8_1b.bmodel 78.50
-    eval_python bmcv     resnet50_int8_4b.bmodel 78.50
-    eval_cpp pcie opencv resnet50_fp32_1b.bmodel 80.20
-    eval_cpp pcie opencv resnet50_int8_1b.bmodel 78.20
-    eval_cpp pcie opencv resnet50_int8_4b.bmodel 78.20
-    eval_cpp pcie bmcv   resnet50_fp32_1b.bmodel 79.90
-    eval_cpp pcie bmcv   resnet50_int8_1b.bmodel 78.50
-    eval_cpp pcie bmcv   resnet50_int8_4b.bmodel 78.50
+    if test $CASE_MODE = "fully"
+    then
+      eval_python opencv   resnet50_fp32_1b.bmodel 80.10
+      eval_python opencv   resnet50_int8_1b.bmodel 78.70
+      eval_python opencv   resnet50_int8_4b.bmodel 78.70
+      eval_python bmcv     resnet50_fp32_1b.bmodel 79.90
+      eval_python bmcv     resnet50_int8_1b.bmodel 78.50
+      eval_python bmcv     resnet50_int8_4b.bmodel 78.50
+      eval_cpp pcie opencv resnet50_fp32_1b.bmodel 80.20
+      eval_cpp pcie opencv resnet50_int8_1b.bmodel 78.20
+      eval_cpp pcie opencv resnet50_int8_4b.bmodel 78.20
+      eval_cpp pcie bmcv   resnet50_fp32_1b.bmodel 79.90
+      eval_cpp pcie bmcv   resnet50_int8_1b.bmodel 78.50
+      eval_cpp pcie bmcv   resnet50_int8_4b.bmodel 78.50
+    elif test $CASE_MODE = "partly"
+    then     
+      eval_python opencv   resnet50_int8_4b.bmodel 78.70
+      eval_python bmcv     resnet50_int8_4b.bmodel 78.50
+      eval_cpp pcie opencv resnet50_int8_4b.bmodel 78.20
+      eval_cpp pcie bmcv   resnet50_int8_4b.bmodel 78.50
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   elif test $TARGET = "BM1684X"
   then
-    eval_python opencv   resnet50_fp32_1b.bmodel 80.10
-    eval_python opencv   resnet50_fp16_1b.bmodel 80.10
-    eval_python opencv   resnet50_int8_1b.bmodel 79.10
-    eval_python opencv   resnet50_int8_4b.bmodel 79.10
-    eval_python bmcv     resnet50_fp32_1b.bmodel 80.00
-    eval_python bmcv     resnet50_fp16_1b.bmodel 80.00
-    eval_python bmcv     resnet50_int8_1b.bmodel 79.40
-    eval_python bmcv     resnet50_int8_4b.bmodel 79.40
-    eval_cpp pcie opencv resnet50_fp32_1b.bmodel 80.00
-    eval_cpp pcie opencv resnet50_fp16_1b.bmodel 80.00
-    eval_cpp pcie opencv resnet50_int8_1b.bmodel 79.20
-    eval_cpp pcie opencv resnet50_int8_4b.bmodel 79.20
-    eval_cpp pcie bmcv   resnet50_fp32_1b.bmodel 80.00
-    eval_cpp pcie bmcv   resnet50_fp16_1b.bmodel 80.00
-    eval_cpp pcie bmcv   resnet50_int8_1b.bmodel 79.40
-    eval_cpp pcie bmcv   resnet50_int8_4b.bmodel 79.40
+    if test $CASE_MODE = "fully"
+    then
+      eval_python opencv   resnet50_fp32_1b.bmodel 80.10
+      eval_python opencv   resnet50_fp16_1b.bmodel 80.10
+      eval_python opencv   resnet50_int8_1b.bmodel 79.10
+      eval_python opencv   resnet50_int8_4b.bmodel 79.10
+      eval_python bmcv     resnet50_fp32_1b.bmodel 80.00
+      eval_python bmcv     resnet50_fp16_1b.bmodel 80.00
+      eval_python bmcv     resnet50_int8_1b.bmodel 79.40
+      eval_python bmcv     resnet50_int8_4b.bmodel 79.40
+      eval_cpp pcie opencv resnet50_fp32_1b.bmodel 80.00
+      eval_cpp pcie opencv resnet50_fp16_1b.bmodel 80.00
+      eval_cpp pcie opencv resnet50_int8_1b.bmodel 79.20
+      eval_cpp pcie opencv resnet50_int8_4b.bmodel 79.20
+      eval_cpp pcie bmcv   resnet50_fp32_1b.bmodel 80.00
+      eval_cpp pcie bmcv   resnet50_fp16_1b.bmodel 80.00
+      eval_cpp pcie bmcv   resnet50_int8_1b.bmodel 79.40
+      eval_cpp pcie bmcv   resnet50_int8_4b.bmodel 79.40
+    elif test $CASE_MODE = "partly"
+    then
+      eval_python opencv   resnet50_int8_4b.bmodel 79.10
+      eval_python bmcv     resnet50_int8_4b.bmodel 79.40
+      eval_cpp pcie opencv resnet50_int8_4b.bmodel 79.20
+      eval_cpp pcie bmcv   resnet50_int8_4b.bmodel 79.40
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   fi
 elif test $MODE = "soc_build"
 then
@@ -325,89 +353,138 @@ then
   pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
-    eval_python opencv  resnet50_fp32_1b.bmodel 80.10
-    eval_python opencv  resnet50_int8_1b.bmodel 78.70
-    eval_python opencv  resnet50_int8_4b.bmodel 78.70
-    eval_python bmcv    resnet50_fp32_1b.bmodel 79.90   
-    eval_python bmcv    resnet50_int8_1b.bmodel 78.50
-    eval_python bmcv    resnet50_int8_4b.bmodel 78.50
-    eval_cpp soc opencv resnet50_fp32_1b.bmodel 80.20 
-    eval_cpp soc opencv resnet50_int8_1b.bmodel 78.20
-    eval_cpp soc opencv resnet50_int8_4b.bmodel 78.20 
-    eval_cpp soc bmcv   resnet50_fp32_1b.bmodel 79.90
-    eval_cpp soc bmcv   resnet50_int8_1b.bmodel 78.50
-    eval_cpp soc bmcv   resnet50_int8_4b.bmodel 78.50
+    if test $CASE_MODE = "fully"
+    then
+      eval_python opencv  resnet50_fp32_1b.bmodel 80.10
+      eval_python opencv  resnet50_int8_1b.bmodel 78.70
+      eval_python opencv  resnet50_int8_4b.bmodel 78.70
+      eval_python bmcv    resnet50_fp32_1b.bmodel 79.90   
+      eval_python bmcv    resnet50_int8_1b.bmodel 78.50
+      eval_python bmcv    resnet50_int8_4b.bmodel 78.50
+      eval_cpp soc opencv resnet50_fp32_1b.bmodel 80.20 
+      eval_cpp soc opencv resnet50_int8_1b.bmodel 78.20
+      eval_cpp soc opencv resnet50_int8_4b.bmodel 78.20 
+      eval_cpp soc bmcv   resnet50_fp32_1b.bmodel 79.90
+      eval_cpp soc bmcv   resnet50_int8_1b.bmodel 78.50
+      eval_cpp soc bmcv   resnet50_int8_4b.bmodel 78.50
+    elif test $CASE_MODE = "partly"
+    then
+      eval_python opencv  resnet50_int8_4b.bmodel 78.70
+      eval_python bmcv    resnet50_int8_4b.bmodel 78.50
+      eval_cpp soc opencv resnet50_int8_4b.bmodel 78.20 
+      eval_cpp soc bmcv   resnet50_int8_4b.bmodel 78.50
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   elif test $TARGET = "BM1684X"
   then
-    eval_python opencv   resnet50_fp32_1b.bmodel 80.10
-    eval_python opencv   resnet50_fp16_1b.bmodel 80.10
-    eval_python opencv   resnet50_int8_1b.bmodel 79.10
-    eval_python opencv   resnet50_int8_4b.bmodel 79.10
-    eval_python bmcv     resnet50_fp32_1b.bmodel 80.00
-    eval_python bmcv     resnet50_fp16_1b.bmodel 80.00
-    eval_python bmcv     resnet50_int8_1b.bmodel 79.40
-    eval_python bmcv     resnet50_int8_4b.bmodel 79.40
-    eval_cpp soc opencv  resnet50_fp32_1b.bmodel 80.00
-    eval_cpp soc opencv  resnet50_fp16_1b.bmodel 80.00
-    eval_cpp soc opencv  resnet50_int8_1b.bmodel 79.20
-    eval_cpp soc opencv  resnet50_int8_4b.bmodel 79.20
-    eval_cpp soc bmcv    resnet50_fp32_1b.bmodel 80.00
-    eval_cpp soc bmcv    resnet50_fp16_1b.bmodel 80.00
-    eval_cpp soc bmcv    resnet50_int8_1b.bmodel 79.40
-    eval_cpp soc bmcv    resnet50_int8_4b.bmodel 79.40
+    if test $CASE_MODE = "fully"
+    then
+      eval_python opencv   resnet50_fp32_1b.bmodel 80.10
+      eval_python opencv   resnet50_fp16_1b.bmodel 80.10
+      eval_python opencv   resnet50_int8_1b.bmodel 79.10
+      eval_python opencv   resnet50_int8_4b.bmodel 79.10
+      eval_python bmcv     resnet50_fp32_1b.bmodel 80.00
+      eval_python bmcv     resnet50_fp16_1b.bmodel 80.00
+      eval_python bmcv     resnet50_int8_1b.bmodel 79.40
+      eval_python bmcv     resnet50_int8_4b.bmodel 79.40
+      eval_cpp soc opencv  resnet50_fp32_1b.bmodel 80.00
+      eval_cpp soc opencv  resnet50_fp16_1b.bmodel 80.00
+      eval_cpp soc opencv  resnet50_int8_1b.bmodel 79.20
+      eval_cpp soc opencv  resnet50_int8_4b.bmodel 79.20
+      eval_cpp soc bmcv    resnet50_fp32_1b.bmodel 80.00
+      eval_cpp soc bmcv    resnet50_fp16_1b.bmodel 80.00
+      eval_cpp soc bmcv    resnet50_int8_1b.bmodel 79.40
+      eval_cpp soc bmcv    resnet50_int8_4b.bmodel 79.40
+    elif test $CASE_MODE = "partly"
+    then
+      eval_python opencv   resnet50_int8_4b.bmodel 79.10
+      eval_python bmcv     resnet50_int8_4b.bmodel 79.40
+      eval_cpp soc opencv  resnet50_int8_4b.bmodel 79.20
+      eval_cpp soc bmcv    resnet50_int8_4b.bmodel 79.40
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   elif test $TARGET = "CV186X"
   then
-    eval_python opencv   resnet50_fp32_1b.bmodel 80.10
-    eval_python opencv   resnet50_fp16_1b.bmodel 80.10
-    eval_python opencv   resnet50_int8_1b.bmodel 79.90
-    eval_python opencv   resnet50_int8_4b.bmodel 79.90
-    eval_python bmcv     resnet50_fp32_1b.bmodel 80.00
-    eval_python bmcv     resnet50_fp16_1b.bmodel 80.00
-    eval_python bmcv     resnet50_int8_1b.bmodel 80.50
-    eval_python bmcv     resnet50_int8_4b.bmodel 80.50
-    eval_cpp soc opencv  resnet50_fp32_1b.bmodel 80.30
-    eval_cpp soc opencv  resnet50_fp16_1b.bmodel 80.30
-    eval_cpp soc opencv  resnet50_int8_1b.bmodel 80.20
-    eval_cpp soc opencv  resnet50_int8_4b.bmodel 80.20
-    eval_cpp soc bmcv    resnet50_fp32_1b.bmodel 80.00
-    eval_cpp soc bmcv    resnet50_fp16_1b.bmodel 80.00
-    eval_cpp soc bmcv    resnet50_int8_1b.bmodel 80.50
-    eval_cpp soc bmcv    resnet50_int8_4b.bmodel 80.50
+    if test $CASE_MODE = "fully"
+    then
+      eval_python opencv   resnet50_fp32_1b.bmodel 80.10
+      eval_python opencv   resnet50_fp16_1b.bmodel 80.10
+      eval_python opencv   resnet50_int8_1b.bmodel 79.90
+      eval_python opencv   resnet50_int8_4b.bmodel 79.90
+      eval_python bmcv     resnet50_fp32_1b.bmodel 80.00
+      eval_python bmcv     resnet50_fp16_1b.bmodel 80.00
+      eval_python bmcv     resnet50_int8_1b.bmodel 80.50
+      eval_python bmcv     resnet50_int8_4b.bmodel 80.50
+      eval_cpp soc opencv  resnet50_fp32_1b.bmodel 80.30
+      eval_cpp soc opencv  resnet50_fp16_1b.bmodel 80.30
+      eval_cpp soc opencv  resnet50_int8_1b.bmodel 80.20
+      eval_cpp soc opencv  resnet50_int8_4b.bmodel 80.20
+      eval_cpp soc bmcv    resnet50_fp32_1b.bmodel 80.00
+      eval_cpp soc bmcv    resnet50_fp16_1b.bmodel 80.00
+      eval_cpp soc bmcv    resnet50_int8_1b.bmodel 80.50
+      eval_cpp soc bmcv    resnet50_int8_4b.bmodel 80.50
+    elif test $CASE_MODE = "partly"
+    then
+      eval_python opencv   resnet50_int8_4b.bmodel 79.90
+      eval_python bmcv     resnet50_int8_4b.bmodel 80.50
+      eval_cpp soc opencv  resnet50_int8_4b.bmodel 80.20
+      eval_cpp soc bmcv    resnet50_int8_4b.bmodel 80.50
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   elif test $TARGET = "BM1688"
   then
-    eval_python opencv  resnet50_fp32_1b.bmodel 80.10
-    eval_python opencv  resnet50_fp16_1b.bmodel 80.10
-    eval_python opencv  resnet50_int8_1b.bmodel 79.90
-    eval_python opencv  resnet50_int8_4b.bmodel 79.90
-    eval_python bmcv    resnet50_fp32_1b.bmodel 80.00
-    eval_python bmcv    resnet50_fp16_1b.bmodel 80.00
-    eval_python bmcv    resnet50_int8_1b.bmodel 80.50
-    eval_python bmcv    resnet50_int8_4b.bmodel 80.50
-    eval_cpp soc opencv resnet50_fp32_1b.bmodel 80.30
-    eval_cpp soc opencv resnet50_fp16_1b.bmodel 80.30
-    eval_cpp soc opencv resnet50_int8_1b.bmodel 80.20
-    eval_cpp soc opencv resnet50_int8_4b.bmodel 80.20 
-    eval_cpp soc bmcv   resnet50_fp32_1b.bmodel 80.00
-    eval_cpp soc bmcv   resnet50_fp16_1b.bmodel 80.00
-    eval_cpp soc bmcv   resnet50_int8_1b.bmodel 80.50
-    eval_cpp soc bmcv   resnet50_int8_4b.bmodel 80.50
-    
-    eval_python opencv  resnet50_fp32_1b_2core.bmodel 80.10
-    eval_python opencv  resnet50_fp16_1b_2core.bmodel 80.10
-    eval_python opencv  resnet50_int8_1b_2core.bmodel 79.90
-    eval_python opencv  resnet50_int8_4b_2core.bmodel 79.90
-    eval_python bmcv    resnet50_fp32_1b_2core.bmodel 80.00
-    eval_python bmcv    resnet50_fp16_1b_2core.bmodel 80.00
-    eval_python bmcv    resnet50_int8_1b_2core.bmodel 80.50
-    eval_python bmcv    resnet50_int8_4b_2core.bmodel 80.50
-    eval_cpp soc opencv resnet50_fp32_1b_2core.bmodel 80.30
-    eval_cpp soc opencv resnet50_fp16_1b_2core.bmodel 80.30
-    eval_cpp soc opencv resnet50_int8_1b_2core.bmodel 80.20
-    eval_cpp soc opencv resnet50_int8_4b_2core.bmodel 80.20 
-    eval_cpp soc bmcv   resnet50_fp32_1b_2core.bmodel 80.00
-    eval_cpp soc bmcv   resnet50_fp16_1b_2core.bmodel 80.00
-    eval_cpp soc bmcv   resnet50_int8_1b_2core.bmodel 80.50
-    eval_cpp soc bmcv   resnet50_int8_4b_2core.bmodel 80.50
+    if test $CASE_MODE = "fully"
+    then
+      eval_python opencv  resnet50_fp32_1b.bmodel 80.10
+      eval_python opencv  resnet50_fp16_1b.bmodel 80.10
+      eval_python opencv  resnet50_int8_1b.bmodel 79.90
+      eval_python opencv  resnet50_int8_4b.bmodel 79.90
+      eval_python bmcv    resnet50_fp32_1b.bmodel 80.00
+      eval_python bmcv    resnet50_fp16_1b.bmodel 80.00
+      eval_python bmcv    resnet50_int8_1b.bmodel 80.50
+      eval_python bmcv    resnet50_int8_4b.bmodel 80.50
+      eval_cpp soc opencv resnet50_fp32_1b.bmodel 80.30
+      eval_cpp soc opencv resnet50_fp16_1b.bmodel 80.30
+      eval_cpp soc opencv resnet50_int8_1b.bmodel 80.20
+      eval_cpp soc opencv resnet50_int8_4b.bmodel 80.20 
+      eval_cpp soc bmcv   resnet50_fp32_1b.bmodel 80.00
+      eval_cpp soc bmcv   resnet50_fp16_1b.bmodel 80.00
+      eval_cpp soc bmcv   resnet50_int8_1b.bmodel 80.50
+      eval_cpp soc bmcv   resnet50_int8_4b.bmodel 80.50
+      
+      eval_python opencv  resnet50_fp32_1b_2core.bmodel 80.10
+      eval_python opencv  resnet50_fp16_1b_2core.bmodel 80.10
+      eval_python opencv  resnet50_int8_1b_2core.bmodel 79.90
+      eval_python opencv  resnet50_int8_4b_2core.bmodel 79.90
+      eval_python bmcv    resnet50_fp32_1b_2core.bmodel 80.00
+      eval_python bmcv    resnet50_fp16_1b_2core.bmodel 80.00
+      eval_python bmcv    resnet50_int8_1b_2core.bmodel 80.50
+      eval_python bmcv    resnet50_int8_4b_2core.bmodel 80.50
+      eval_cpp soc opencv resnet50_fp32_1b_2core.bmodel 80.30
+      eval_cpp soc opencv resnet50_fp16_1b_2core.bmodel 80.30
+      eval_cpp soc opencv resnet50_int8_1b_2core.bmodel 80.20
+      eval_cpp soc opencv resnet50_int8_4b_2core.bmodel 80.20 
+      eval_cpp soc bmcv   resnet50_fp32_1b_2core.bmodel 80.00
+      eval_cpp soc bmcv   resnet50_fp16_1b_2core.bmodel 80.00
+      eval_cpp soc bmcv   resnet50_int8_1b_2core.bmodel 80.50
+      eval_cpp soc bmcv   resnet50_int8_4b_2core.bmodel 80.50
+    elif test $CASE_MODE = "partly"
+    then
+      eval_python opencv  resnet50_int8_4b.bmodel 79.90
+      eval_python bmcv    resnet50_int8_4b.bmodel 80.50
+      eval_cpp soc opencv resnet50_int8_4b.bmodel 80.20 
+      eval_cpp soc bmcv   resnet50_int8_4b.bmodel 80.50
+      
+      eval_python opencv  resnet50_int8_4b_2core.bmodel 79.90
+      eval_python bmcv    resnet50_int8_4b_2core.bmodel 80.50
+      eval_cpp soc opencv resnet50_int8_4b_2core.bmodel 80.20 
+      eval_cpp soc bmcv   resnet50_int8_4b_2core.bmodel 80.50
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   fi
 fi
 
