@@ -36,8 +36,8 @@ then
     unzip models.zip -d ../models
     rm models.zip
 
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/GroundingDINO.tar
-    mv GroundingDINO.tar ../models
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/tpu-mlir_v1.9.beta.0-89-g009410603-20240715.tar.gz
+    mv tpu-mlir_v1.9.beta.0-89-g009410603-20240715.tar.gz ../models
 
     python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/bert-base-uncased.zip
     unzip bert-base-uncased.zip -d ../models
@@ -46,6 +46,14 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/onnx.zip
     unzip onnx.zip -d ../models
     rm onnx.zip
+
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/bm1688_cv186x/BM1688.zip
+    unzip BM1688.zip -d ../models
+    rm BM1688.zip
+
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/bm1688_cv186x/CV186X.zip
+    unzip CV186X.zip -d ../models
+    rm CV186X.zip
 
     echo "models download!"
 else

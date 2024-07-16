@@ -28,7 +28,7 @@ GroundingDINO是一种多模态的目标检测模型。
 ## 3. 准备模型与数据
 建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型，其中Pytorch转onnx模型具体可参考[常见问题](./docs/GroundingDINO_Common_Problems.md)。
 
-​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，通过下载的mlir工具`GroundingDINO.tar`，并参考[4. 模型编译](#4-模型编译)进行模型转换。
+​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，通过下载的mlir工具`tpu-mlir_v1.9.beta.0-89-g009410603-20240715.tar.gz`，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
 ```bash
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
@@ -43,9 +43,13 @@ chmod -R +x scripts/
 │   └── GroundingDINO_Common_Problems.md        #GroundingDINO 常见问题及解答
 ├── models
 │   ├── bert-base-uncased                       # tokenizer 分词器文件夹					
-│   ├── GroundingDINO.tar                       # TPU-MLIR工具包				
+│   ├── tpu-mlir_v1.9.beta.0-89-g009410603-20240715.tar.gz                       # TPU-MLIR工具包				
 │   ├── BM1684X
 │   │  └── groundingdino_bm1684x_fp16.bmodel    # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+|   ├── BM1688
+│   │   └── groundingdino_bm1688_fp16.bmodel    # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=1
+|   ├── CV186X
+│   │   └── groundingdino_cv186x_fp16.bmodel    # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
 │   ├── torch
 │   │   └── groundingdino_swint_ogc.pth	     # pytorch模型
 │   └── onnx
@@ -73,22 +77,26 @@ chmod -R +x scripts/
 ## 4. 模型编译
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。若需要自行编译BModel，建议使用前一节下载的TPU-MLIR编译BModel。解压前一节下载的tpu-mlir包
 ```bash
-tar -xf GroundingDINO.tar
-cd GroundingDINO/
-tar -zxvf tpu-mlir_dino_20240312.tar.gz
+tar -zxvf tpu-mlir_v1.9.beta.0-89-g009410603-20240715.tar.gz
+cd tpu-mlir_v1.9.beta.0-89-g009410603-20240715/
 ```
 
-模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中1、2步骤。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
 
 ```bash
+# 针对bm1684x平台
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
+# 针对bm1688平台
+./scripts/gen_fp16bmodel_mlir.sh bm1688
+# 针对cv186x平台
+./scripts/gen_fp16bmodel_mlir.sh cv186x
 ```
 
-​执行上述命令会在`models/BM1684X`下生成`groundingdino_bm1684x_fp16.bmodel` 即用于推理的FP16 BModel。
+​执行上述命令会在`models/{平台}`下生成`groundingdino_{平台}_fp16.bmodel` 即用于推理的FP16 BModel。
 
 ## 5. 例程测试
 目前提供python版本的例程，请参考:
@@ -108,6 +116,8 @@ bmrt_test --bmodel models/BM1684X/groundingdino_bm1684x_fp16.bmodel
 |              测试模型                | calculate time(s)         |
 | ------------------------------------| --------------------------|
 | groundingdino_bm1684x_fp16.bmodel   | 0.532807                  |
+| groundingdino_bm1688_fp16.bmodel    | 1.256347                  |
+| groundingdino_cv186x_fp16.bmodel    | 1.662021                  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -121,6 +131,8 @@ bmrt_test --bmodel models/BM1684X/groundingdino_bm1684x_fp16.bmodel
 | 测试平台     |       测试程序         |               测试模型             | decode_time | preprocess_time | inference_time  |postprocess_time | 
 | ----------- | ------------------   | --------------------------------- | ----------- | --------------- | --------------- | ---------------- |
 | BM1684X SoC | groundingdino_pil.py | groundingdino_bm1684x_fp16.bmodel | 3.50        | 36.25           | 547.12          | 2.73                |
+| BM1688 SoC  | groundingdino_pil.py | groundingdino_bm1688_fp16.bmodel  | 46.94       | 274.95          | 1336.27         | 31.67             |
+| CV186X SoC  | groundingdino_pil.py | groundingdino_cv186x_fp16.bmodel  | 42.92       | 233.76          | 1719.74         | 35.34             |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(s)；
