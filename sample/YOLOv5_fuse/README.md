@@ -33,7 +33,7 @@
 * 支持图片和视频测试
 
 ## 3. 准备模型与数据
-建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型，如果您使用的tpu-mlir版本>=v1.3.0（即官网v23.07.01），可以直接使用torchscript模型。具体可参考[YOLOv5模型导出](./docs/YOLOv5_Export_Guide.md)。
+建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型，如果您使用的tpu-mlir版本>=v1.6.0，可以直接使用torchscript模型。具体可参考[YOLOv5模型导出](./docs/YOLOv5_Export_Guide.md)。
 
 ​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
@@ -71,7 +71,7 @@ chmod -R +x scripts/
 └── onnx
   └── yolov5s_v6.1_3output.onnx            # 导出的onnx动态模型 
 ```
-以上bmodel模型均由yolov5s_v6.1_fuse.onnx模型通过TPU-MLIR编译，bmodel模型名称中`1b`表示batch_size=1, `2core`表示num_core=2（适配BM1688）。
+以上bmodel模型均由yolov5s_v6.1_3output.onnx模型通过TPU-MLIR编译，bmodel模型名称中`1b`表示batch_size=1, `2core`表示num_core=2（适配BM1688）。
 
 下载的数据包括：
 ```
@@ -108,7 +108,7 @@ model_transform \
 ![res](./pics/output-name.jpg)
 执行完上述脚本后生成的mlir文件最后被插入了一个`top.YoloDetection`,如下:
 ```
-    %263 = "top.YoloDetection"(%256, %259, %262) {agnostic_nms = false, anchors = [10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326], class_num = 80 : i64, keep_topk = 200 : i64, net_input_h = 640 : i64, net_input_w = 640 : i64, nms_threshold = 5.000000e-01 : f64, num_boxes = 3 : i64, obj_threshold = 5.000000e-01 : f64, version = "yolov5"} : (tensor<1x255x80x80xf32>, tensor<1x255x40x40xf32>, tensor<1x255x20x20xf32>) -> tensor<1x1x200x7xf32> loc(#loc264)
+    %263 = "top.YoloDetection"(%256, %259, %262) {agnostic_nms = false, anchors = [10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326], class_num = 80 : i64, keep_topk = 200 : i64, net_input_h = 640 : i64, net_input_w = 640 : i64, nms_threshold = 6.000000e-01 : f64, num_boxes = 3 : i64, obj_threshold = 1.000000e-03 : f64, version = "yolov5"} : (tensor<1x255x80x80xf32>, tensor<1x255x40x40xf32>, tensor<1x255x20x20xf32>) -> tensor<1x1x200x7xf32> loc(#loc264)
     return %263 : tensor<1x1x200x7xf32> loc(#loc)
 ```
 这里看到 `top.YoloDetection` 包括了`anchors`、`num_boxes`等等参数, 如果并非标准的yolo后处理, 需要改成其他参数, 可以直接修改mlir文件的这些参数。
@@ -284,7 +284,7 @@ bmrt_test --bmodel models/BM1684X/yolov5s_v6.1_fuse_fp32_1b.bmodel
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)和[Python例程](./python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。例程打印的时间已经折算为单张图片的处理时间。
 
-在不同的测试平台上，使用cpp的bmcv例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
+在不同的测试平台上，使用cpp的bmcv例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 | 测试平台 | 测试程序         | 测试模型                                  | decode_time | preprocess_time | inference_time | postprocess_time |
 | -------- | ---------------- | ----------------------------------------- | ----------- | --------------- | -------------- | ---------------- |
 |   SE7-32    | yolov5_opencv.py  |yolov5s_v6.1_fuse_fp32_1b.bmodel|      13.95      |      1.01       |      37.94      |      2.86       |
@@ -361,7 +361,7 @@ bmrt_test --bmodel models/BM1684X/yolov5s_v6.1_fuse_fp32_1b.bmodel
 ### 7.3 程序运行端到端性能对比
 参考[C++例程](cpp/README.md)和[Python例程](./python/README.md)运行程序，并查看统计的端到端处理时间（预处理时间+推理时间+后处理时间）。打印的时间已经折算为单张图片的处理时间。
 
-在不同的测试平台上，使用cpp的bmcv例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.001，nms_thresh=0.6，性能测试结果如下：
+在不同的测试平台上，使用cpp的bmcv例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 | 测试平台 | 测试程序         | 测试模型                                  | yolov5_fuse时间 | yolov5_opt时间 | yolov5时间 |
 | -------- | ---------------- | ----------------------------------------- | --------------- | -------------- | ---------- |
 |   SE7-32    | yolov5_opencv.py  |yolov5s_v6.1_fuse_fp32_1b.bmodel|      41.81      |      60.74      |     170.07      |

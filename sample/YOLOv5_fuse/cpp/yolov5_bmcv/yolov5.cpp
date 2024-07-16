@@ -283,9 +283,9 @@ int YoloV5::get_result(const std::vector<bm_image>& images, std::vector<YoloV5Bo
 
 
 
-void YoloV5::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, int top, int width, int height, bm_image& frame, bool put_text_flag)   // Draw the predicted bounding box
+void YoloV5::draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, int top, int width, int height, bm_image& frame, float draw_thresh, bool put_text_flag)   // Draw the predicted bounding box
 {
-  if (conf < 0.25) return;
+  if (conf < draw_thresh) return;
   int colors_num = colors.size();
   //Draw a rectangle displaying the bounding box
   bmcv_rect_t rect;
