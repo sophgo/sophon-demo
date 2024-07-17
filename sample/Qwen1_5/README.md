@@ -9,9 +9,9 @@
   - [6. 程序性能测试](#6-程序性能测试)
 
 ## 1. 简介
-Qwen1.5 是Qwen的第二代版本，它是开源中英双语对话模型，关于它的特性，请前往源repo查看：https://huggingface.co/Qwen。本例程对Qwen1.5进行移植，使之能在SOPHON BM1684X上进行推理测试。
+Qwen1.5和Qwen2是Qwen的升级版本，它是开源中英双语对话模型，关于它们的特性，请前往源repo查看：https://huggingface.co/Qwen。本例程对Qwen1.5和Qwen2进行移植，使之能在SOPHON BM1684X上进行推理测试。
 
-该例程支持在V23.07.01(libsophon_0.4.9)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
+该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
 * 支持BM1684X(x86 PCIe、SoC)
@@ -62,9 +62,11 @@ chmod -R +x scripts/
 ├── models
 │   └── BM1684X                     #download.sh下载的bmodel
 │       ├── qwen1.5-1.8b_int4_1dev.bmodel
-│       └── qwen1.5-1.8b_int8_1dev.bmodel
-│       └── qwen1.5-4b_int4_1dev.bmodel
-│       └── qwen1.5-7b_int4_1dev.bmodel
+│       ├── qwen1.5-1.8b_int8_1dev.bmodel
+│       ├── qwen1.5-4b_int4_1dev.bmodel
+│       ├── qwen1.5-7b_int4_1dev.bmodel
+│       ├── qwen2-1.5b_int4_seq512_1dev.bmodel
+│       └── qwen2-1.5b_int8_seq512_1dev.bmodel
 ├── python
 │   ├── web_demo.py                 #Qwen1.5 web-demo
 │   ├── qwen1_5.py                  #Qwen1.5 python推理脚本
@@ -79,18 +81,21 @@ chmod -R +x scripts/
 │   ├── download.sh                 #下载脚本
 │   └── gen_bmodel.sh               #模型编译脚本
 └── tools
-    ├── Qwen1.5-0.5B-Chat            #修改过的Qwen-0.5B源码
+    ├── Qwen1.5-0.5B-Chat            #修改过的Qwen1.5-0.5B源码
     │   ├── config.json
     │   └── modeling_qwen.py
-    ├── Qwen1.5-1.8B-Chat            #修改过的Qwen-1.8B源码
+    ├── Qwen1.5-1.8B-Chat            #修改过的Qwen1.5-1.8B源码
     │   ├── config.json
     │   └── modeling_qwen.py
-        ├── Qwen1.5-4B-Chat        #修改过的Qwen-4B源码
+    ├── Qwen1.5-4B-Chat             #修改过的Qwen1.5-4B源码
     │   ├── config.json
     │   └── modeling_qwen.py
-        ├── Qwen1.5-7B-Chat        #修改过的Qwen-7B源码
+    ├── Qwen1.5-7B-Chat             #修改过的Qwen1.5-7B源码
     │   ├── config.json
     │   └── modeling_qwen.py
+    ├── Qwen2-7B-Instruct             #修改过的Qwen2-7B源码
+    │   ├── config.json
+    │   └── modeling_qwen2.py
     └── export_onnx.py               #Qwen导出onnx脚本。
 ```
 
@@ -111,6 +116,8 @@ chmod -R +x scripts/
 | SE7-32  | qwen1_5.py      | qwen1.5-1.8b_int8_1dev.bmodel         |    0.177              |        22.117           |
 | SE7-32  | qwen1_5.py      | qwen1.5-4b_int4_1dev.bmodel           |    0.379              |        15.526           | 
 | SE7-32  | qwen1_5.py      | qwen1.5-7b_int4_1dev.bmodel           |    0.728              |        10.151           | 
+| SE7-32  | qwen1_5.py      | qwen2-1.5b_int4_seq512_1dev.bmodel    |    0.201              |        29.615           |
+| SE7-32  | qwen1_5.py      | qwen2-1.5b_int8_seq512_1dev.bmodel    |    0.197              |        20.525           |
  
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；

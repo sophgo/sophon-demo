@@ -21,6 +21,8 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen1_5/qwen1.5-1.8b_int8_1dev.bmodel
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen1_5/qwen1.5-4b_int4_1dev.bmodel
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen1_5/qwen1.5-7b_int4_1dev.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen1_5/qwen2-1.5b_int4_seq512_1dev.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen1_5/qwen2-1.5b_int8_seq512_1dev.bmodel
     popd
     echo "models download!"
 else

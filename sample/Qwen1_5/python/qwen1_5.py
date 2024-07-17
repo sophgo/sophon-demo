@@ -22,8 +22,8 @@ def type_convert(sail_dtype):
         return np.float16
     if sail_dtype == sail.Dtype.BM_INT32:
         return np.int32
-    if sail_dtype == sail.Dtype.BM_BFLOAT16: # 后续需要修改bf16的接口,现在先用fp16的代替
-        return np.float16
+    if sail_dtype == sail.Dtype.BM_BFLOAT16:
+        return np.uint16
     
     raise TypeError("only support float32 and int32 right now")
 
@@ -152,8 +152,10 @@ class Qwen1_5:
         position_id = np.zeros(self.SEQLEN, type_convert(self.first_pid["dtype"])) 
         for i in range(self.token_length):
             position_id[i] = i
-            
-        attention_mask = np.ones(self.SEQLEN*self.SEQLEN, type_convert(self.first_attention["dtype"])) * (-10000.0)
+        if  self.first_attention["dtype"] == sail.Dtype.BM_BFLOAT16:
+            attention_mask = np.ones(self.SEQLEN*self.SEQLEN, type_convert(self.first_attention["dtype"])) * 50716
+        else:
+            attention_mask = np.ones(self.SEQLEN*self.SEQLEN, type_convert(self.first_attention["dtype"])) * (-10000.0)
         for i in range(self.token_length):
             for j in range(self.SEQLEN):
                 if (j <= i):
@@ -202,8 +204,10 @@ class Qwen1_5:
     # The following tokens prediction
     def forward_next(self, ):
         attention_mask = np.zeros(self.SEQLEN+1, type_convert(self.next_attention["dtype"]))
-        for i in range(self.token_length-1, self.SEQLEN):
-            attention_mask[i] = -10000.0
+        if self.first_attention["dtype"] == sail.Dtype.BM_BFLOAT16:
+            attention_mask[self.token_length-1: self.SEQLEN] = 50716
+        else:    
+            attention_mask[self.token_length-1: self.SEQLEN] = -10000.0
         position_id = np.array(self.token_length - 1, type_convert(self.next_pid["dtype"]))
 
         # embedding

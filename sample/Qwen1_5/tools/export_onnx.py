@@ -26,9 +26,13 @@ model_path = args.model_path
 folder = f"./models/onnx"
 
 device = torch.device(args.device)
+if args.device == "cpu":
+    dtype = torch.float
+else:
+    dtype = torch.bfloat16
 origin_model = AutoModelForCausalLM.from_pretrained(
     model_path, trust_remote_code=True,
-    torch_dtype=torch.float).eval()
+    torch_dtype=dtype).eval()
 
 for param in origin_model.parameters():
     param.requires_grad = False
@@ -147,11 +151,11 @@ class PenaltySampleHead(torch.nn.Module):
 def convert_block(layer_id):
     model = QwenBlock(layer_id)
     hidden_states = torch.randn(
-        (1, SEQ_LENGTH, HIDDEN_SIZE)).to(torch.float).to(device)
+        (1, SEQ_LENGTH, HIDDEN_SIZE)).to(dtype).to(device)
     position_ids = torch.tensor(
         [range(SEQ_LENGTH)], dtype=torch.long).to(device)
     attention_mask = torch.randn(
-        (1, 1, SEQ_LENGTH, SEQ_LENGTH)).to(torch.float).to(device)
+        (1, 1, SEQ_LENGTH, SEQ_LENGTH)).to(dtype).to(device)
 
     torch.onnx.export(
         model, (hidden_states, position_ids, attention_mask),
@@ -165,12 +169,12 @@ def convert_block(layer_id):
 
 def convert_block_cache(layer_id):
     model = QwenBlockCache(layer_id)
-    hidden_states = torch.randn((1, 1, HIDDEN_SIZE)).to(torch.float).to(device)
+    hidden_states = torch.randn((1, 1, HIDDEN_SIZE)).to(dtype).to(device)
     position_ids = torch.tensor([range(1)], dtype=torch.long).to(device)
     attention_mask = torch.ones(
-        (1, 1, 1, SEQ_LENGTH + 1)).to(torch.float).to(device)
-    past_k = torch.randn((1, SEQ_LENGTH, NUM_ATTENTION_HEADS, HEAD_DIM)).to(torch.float).to(device)
-    past_v = torch.randn((1, SEQ_LENGTH, NUM_ATTENTION_HEADS, HEAD_DIM)).to(torch.float).to(device)
+        (1, 1, 1, SEQ_LENGTH + 1)).to(dtype).to(device)
+    past_k = torch.randn((1, SEQ_LENGTH, NUM_ATTENTION_HEADS, HEAD_DIM)).to(dtype).to(device)
+    past_v = torch.randn((1, SEQ_LENGTH, NUM_ATTENTION_HEADS, HEAD_DIM)).to(dtype).to(device)
 
     torch.onnx.export(
         model, (hidden_states, position_ids, attention_mask, past_k, past_v),
@@ -187,14 +191,14 @@ def convert_block_cache(layer_id):
 
 def convert_embedding():
     model = Embedding()
-    input_ids = torch.tensor([range(SEQ_LENGTH)]).to(device)
+    input_ids = torch.tensor([range(SEQ_LENGTH)], dtype=torch.int32).to(device)
     module = torch.jit.trace(model.forward, input_ids)
     torch.jit.save(module, f'{folder}/embedding.pt')
 
 
 def convert_lm_head():
     model = LmHead()
-    hidden_states = torch.randn(1, HIDDEN_SIZE).bfloat16().to(device)
+    hidden_states = torch.randn(1, HIDDEN_SIZE).to(dtype).to(device)
     module = torch.jit.trace(model.forward, hidden_states)
     torch.jit.save(module, f'{folder}/lm_head.pt')
 
