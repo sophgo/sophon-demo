@@ -501,7 +501,7 @@ class StableDiffusionPipeline():
 
         #8. vae decoder
         vae_decoder_time = time.time()
-        image = self.vae_decoder({"x.1": latents / 0.18125})[0]
+        image = self.vae_decoder({"x.1": latents / 0.18215})[0]
         self.vae_decoder_time = time.time()-vae_decoder_time
 
         #9. postprocess

@@ -1,14 +1,16 @@
 # StableDiffusionV1.5
 
 ## 目录
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型](#3-准备模型)
-  * [3.1 自己下载并且编译模型](#31-自己下载并且编译模型)
-  * [3.2 使用准备好的模型文件](#32-使用准备好的模型文件)
-* [4. 例程测试](#4-例程测试)
-* [5. 运行性能测试](#5-运行性能测试)
-* [6. FAQ](#6-FAQ)
+- [StableDiffusionV1.5](#stablediffusionv15)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型](#3-准备模型)
+    - [3.1 自己下载并且编译模型](#31-自己下载并且编译模型)
+    - [3.2 使用准备好的模型文件](#32-使用准备好的模型文件)
+  - [4. 例程测试](#4-例程测试)
+  - [5. 运行性能测试](#5-运行性能测试)
+  - [6. FAQ](#6-faq)
 
 ## 1. 简介
 StableDiffusion V1.5 是开源AIGC模型:[Huggingface官网stable-diffusion-v1-5](https://huggingface.co/runwayml/stable-diffusion-v1-5)，可以依据文本提示生成相应的图像内容。
@@ -50,7 +52,7 @@ cd scripts
 python3 export_singlize_pt_from_Huggingface.py
 ```
 
-**注意：**若执行上述导出脚本时，出现无法连接Huggingface的情况，可使用如下指令从镜像站下载模型（仅在当前终端生效）：
+注意：若执行上述导出脚本时，出现无法连接Huggingface的情况，可使用如下指令从镜像站下载模型（仅在当前终端生效）：
 
 ```bash
 pip3 install -U huggingface_hub
@@ -58,7 +60,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 python3 export_singlize_pt_from_Huggingface.py
 ```
 
-模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)创建并进入docker环境，**注意：**请在docker中使用如下指令安装mlir:
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)创建并进入docker环境，注意：请在docker中使用如下指令安装mlir:
 
 ```bash
 pip3 install dfss --upgrade
