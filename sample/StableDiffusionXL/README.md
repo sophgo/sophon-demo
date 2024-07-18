@@ -1,15 +1,17 @@
 # StableDiffusionXL
 
 ## 目录
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型](#3-准备模型)
-  * [3.1 自己下载并且编译模型](#31-自己下载并且编译模型)
-  * [3.2 使用准备好的模型文件](#32-使用准备好的模型文件)
-* [4. 运行环境准备](#4-运行环境准备)
-* [5. 例程测试](#5-例程测试)
-* [6. 运行性能测试](#6-运行性能测试)
-* [7. FAQ](#7-FAQ)
+- [StableDiffusionXL](#stablediffusionxl)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型](#3-准备模型)
+    - [3.1 自己下载并且编译模型](#31-自己下载并且编译模型)
+    - [3.2 使用准备好的模型文件](#32-使用准备好的模型文件)
+  - [4. 运行环境准备](#4-运行环境准备)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 运行性能测试](#6-运行性能测试)
+  - [7. FAQ](#7-faq)
 
 ## 1. 简介
 StableDiffusionXL 是开源AIGC模型:[Huggingface官网stable-diffusion-xl-base-1.0](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)，可以依据文本提示生成相应的图像内容，目前支持了python版的文本生成图像和图像生成图像。该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，若bmodel推理出现NAN，或生成图像全黑的情况，请注意驱动版本是否达到要求。
@@ -38,7 +40,7 @@ cd scripts
 python3 export_models_from_Huggingface.py
 ```
 
-**注意：**若执行上述导出脚本时，出现无法连接Huggingface的情况，可使用如下指令从镜像站下载模型（仅在当前终端生效）：
+注意：若执行上述导出脚本时，出现无法连接Huggingface的情况，可使用如下指令从镜像站下载模型（仅在当前终端生效）：
 
 ```bash
 pip3 install -U huggingface_hub
@@ -46,7 +48,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 python3 export_models_from_Huggingface.py
 ```
 
-模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)创建并进入docker环境，**注意：**请在docker中使用如下指令安装mlir:
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)创建并进入docker环境，注意：请在docker中使用如下指令安装mlir:
 
 ```bash
 pip3 install dfss --upgrade
@@ -77,22 +79,22 @@ cd scripts
 ```
 ./models
 ├── BM1684X
-│   ├── text_encoder_1_1684x_f32.bmodel		# 使用TPU-MLIR编译，用于BM1684X的FP32 text encoder 1 BModel，最大编码长度为77
-│   ├── text_encoder_2_1684x_f16.bmodel		# 使用TPU-MLIR编译，用于BM1684X的FP16 text encoder 2 BModel，最大编码长度为77
-│   ├── unet_base_1684x_bf16.bmodel			  # 使用TPU-MLIR编译，用于BM1684X的BF16 unet base，对应图像尺寸为1024*1024
-│   ├── vae_decoder_1684x_bf16.bmodel		  # 使用TPU-MLIR编译，用于BM1684X的BF16 vae decoder
-│   └── vae_encoder_1684x_bf16.bmodel		  # 使用TPU-MLIR编译，用于BM1684X的BF16 vae encoder
+│   ├── text_encoder_1_1684x_f32.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 text encoder 1 BModel，最大编码长度为77
+│   ├── text_encoder_2_1684x_f16.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 text encoder 2 BModel，最大编码长度为77
+│   ├── unet_base_1684x_bf16.bmodel       # 使用TPU-MLIR编译，用于BM1684X的BF16 unet base，对应图像尺寸为1024*1024
+│   ├── vae_decoder_1684x_bf16.bmodel     # 使用TPU-MLIR编译，用于BM1684X的BF16 vae decoder
+│   └── vae_encoder_1684x_bf16.bmodel     # 使用TPU-MLIR编译，用于BM1684X的BF16 vae encoder
 └── onnx_pt
     ├── text_encoder_1
-    │   └── text_encoder_1.onnx				    # 导出的text encoder 1的onnx模型，用户自行使用
+    │   └── text_encoder_1.onnx           # 导出的text encoder 1的onnx模型，用户自行使用
     ├── text_encoder_2
-    │   └── text_encoder_2.onnx				    # 导出的text encoder 2的onnx模型，用户自行使用
+    │   └── text_encoder_2.onnx           # 导出的text encoder 2的onnx模型，用户自行使用
     ├── unet
-    │   └── unet_base.pt					        # 导出的unet base的pt模型，用户自行使用
+    │   └── unet_base.pt                  # 导出的unet base的pt模型，用户自行使用
     ├── vae_decoder
-    │   └── vae_decoder.pt					      # 导出的vae decoder的pt模型，用户自行使用
+    │   └── vae_decoder.pt                # 导出的vae decoder的pt模型，用户自行使用
     └── vae_encoder
-        └── vae_encoder.pt					      # 导出的vae encoder的pt模型，用户自行使用
+        └── vae_encoder.pt                # 导出的vae encoder的pt模型，用户自行使用
 ```
 
 ## 4. 运行环境准备
@@ -125,8 +127,8 @@ sudo reboot
 
 |   测试平台    |    测试模式     | text_encoder_time | inference_time | vae_encoder_time | vae_decoder_time |
 | -----------  | ------------- | ---------------   | -------------  | ---------------- | ---------------- |
-| BM1684X SoC  |    text2img   |      178.96      |    37450.7    |    null          |     2099.22     |
-| BM1684X SoC  |    img2img    |      178.96      |    37450.7    |    1195.56    |     2099.22      |
+| BM1684X SoC  |    text2img   |      178.96       |    37450.7     |    null          |     2099.22      |
+| BM1684X SoC  |    img2img    |      178.96       |    37450.7     |    1195.56       |     2099.22      |
 
 ## 7. FAQ
 [常见问题解答](../../docs/FAQ.md)
