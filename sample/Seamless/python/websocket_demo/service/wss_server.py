@@ -140,6 +140,8 @@ args = parser.parse_args()
 websocket_users = set()
 
 print("model loading")
+import sys
+sys.path.append('./utils')
 from auto_model import AutoModel
 
 # asr
