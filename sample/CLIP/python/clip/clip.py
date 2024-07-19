@@ -8,7 +8,7 @@
 #===----------------------------------------------------------------------===#
 import numpy as np
 import cv2
-
+import os
 import time
 
 import sophon.sail as sail
@@ -41,8 +41,13 @@ class CLIP:
         self.text_net_input_shape = self.text_net.get_input_shape(self.text_net_graph_name, self.text_net_input_name)
         self.text_net_batch_size = self.text_net_input_shape[0]
 
+        self.top_k = 5 # 前5个相似数据
         # 使用转onnx时保存的固定数据
-        self.text_projection = np.load('./models/text_projection_512_512.npy')
+        # 获取当前脚本文件的绝对路径
+        script_path = os.path.abspath(__file__)
+        # 获取当前脚本所在的目录
+        script_dir = os.path.dirname(script_path)
+        self.text_projection = np.load(os.path.join(script_dir, '../../models/text_projection_512_512.npy'))
 
         # self.logit_scale = torch.tensor(4.605170249938965)
 
@@ -53,6 +58,15 @@ class CLIP:
         self.encode_image_time = 0.0
         self.encode_text_time = 0.0
         self.preprocess_time = 0.0
+
+    def softmax(self, x, axis=None):
+        e_x = np.exp(x - np.max(x, axis=axis, keepdims=True))
+        return e_x / e_x.sum(axis=axis, keepdims=True)
+
+    def topk(self, x, k):
+        indices = np.argpartition(x, -k)[-k:]
+        indices = indices[np.argsort(-x[indices])]
+        return x[indices], indices
 
     def preprocess_cpu(self, image):
         image = cv2.resize(image, (self.image_resolution, self.image_resolution), interpolation=cv2.INTER_CUBIC)
@@ -129,18 +143,25 @@ class CLIP:
         return processed_outputs
 
 
-    # def __call__(self, image, text):
-    #     image_features = self.encode_image(image)
-    #     text_features = self.encode_text(text)
+    def predict(self, image, text):
+        image_features = self.encode_image(image)
+        text_features = self.encode_text(text)
 
-    #     # normalized features
-    #     image_features = image_features / image_features.norm(dim=1, keepdim=True)
-    #     text_features = text_features / text_features.norm(dim=1, keepdim=True)
+        # normalized features
+        # image_features = image_features / image_features.norm(dim=1, keepdim=True)
+        # text_features = text_features / text_features.norm(dim=1, keepdim=True)
 
-    #     # cosine similarity as logits
-    #     logit_scale = self.logit_scale.exp()
-    #     logits_per_image = logit_scale * image_features @ text_features.t()
-    #     logits_per_text = logits_per_image.t()
+        # # cosine similarity as logits
+        # logit_scale = self.logit_scale.exp()
+        # logits_per_image = logit_scale * image_features @ text_features.t()
+        # logits_per_text = logits_per_image.t()
 
-    #     # shape = [global_batch_size, global_batch_size]
-    #     return logits_per_image, logits_per_text
+        # # shape = [global_batch_size, global_batch_size]
+        # return logits_per_image, logits_per_text
+
+        image_features /= np.linalg.norm(image_features,axis=-1, keepdims=True)
+        text_features /= np.linalg.norm(text_features,axis=-1, keepdims=True)
+        similarity = self.softmax((100.0 * np.dot(image_features , text_features.T)),axis=-1) #计算相似度，并转换为概率分布  
+        values, indices = self.topk(similarity[0],min(len(text), self.top_k))
+        return values, indices
+

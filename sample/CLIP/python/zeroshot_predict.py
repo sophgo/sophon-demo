@@ -4,18 +4,26 @@ import clip
 import argparse
 import logging
 import numpy as np
+import sys
 
-logging.basicConfig(level=logging.INFO)
+# 创建一个处理器，将日志输出到 stdout
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.INFO)
 
+# 创建一个格式化器
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
 
-def softmax(x, axis=None):
-    e_x = np.exp(x - np.max(x, axis=axis, keepdims=True))
-    return e_x / e_x.sum(axis=axis, keepdims=True)
+# 获取根日志记录器，并添加处理器
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
 
-def topk(x, k):
-    indices = np.argpartition(x, -k)[-k:]
-    indices = indices[np.argsort(-x[indices])]
-    return x[indices], indices
+# 确保没有其他处理器
+if logger.hasHandlers():
+    logger.handlers.clear()
+    logger.addHandler(handler)
+
 
 def main(args):
     # Load bmodel
@@ -31,21 +39,14 @@ def main(args):
         image_paths = [os.path.join(args.image_path, fname) for fname in os.listdir(args.image_path)]
     
     for filename in image_paths:
+        # Preprocess
         image = cv2.imread(filename)
         image_input = np.expand_dims(preprocess(image), axis=0)
-
-
-        image_features = model.encode_image(image_input)
-        text_features = model.encode_text(text_inputs)
-
-        image_features /= np.linalg.norm(image_features,axis=-1, keepdims=True)
-        text_features /= np.linalg.norm(text_features,axis=-1, keepdims=True)
-
-        similarity = softmax((100.0 * np.dot(image_features , text_features.T)),axis=-1) #计算相似度，并转换为概率分布  
-        values, indices = topk(similarity[0],min(len(text), 5))
-
+        # predict
+        values, indices = model.predict(image_input, text_inputs)
         for i in range(len(text)):
             logging.info(f"Text: {text[indices[i]]}, Similarity: {values[i].item()}")
+
 
 
     logging.info(("-------------------Image num {}, Preprocess average time ------------------------").format(image_input.shape[0]))
