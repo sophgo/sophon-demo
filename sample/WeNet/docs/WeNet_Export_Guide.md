@@ -23,27 +23,35 @@ pip3 install -r requirements.txt
 ## 准备导出环境
 ```bash
 export PYTHONPATH=$PWD:$PYTHONPATH
-cd examples/aishell/s0
-mkdir exp
-mv ../../../aishell_u2pp_conformer_exp.tar.gz .
+mkdir exp && cd exp 
+mv ../aishell_u2pp_conformer_exp.tar.gz .
 tar xvf aishell_u2pp_conformer_exp.tar.gz
-cd ../../../
-mkdir -p exp/20210601_u2++_conformer_exp
-cp examples/aishell/s0/aishell_u2pp_conformer_exp/global_cmvn exp/20210601_u2++_conformer_exp/
+cd ../
+cp examples/aishell/s0/aishell_u2pp_conformer_exp/global_cmvn exp/20210601_u2++_conformer_exp_aishell/
 ```
 
 ## 导出流式wenet encoder/decoder的onnx
 ```bash
-python3 wenet/bin/export_onnx_gpu.py --config examples/aishell/s0/aishell_u2pp_conformer_exp/train.yaml --checkpoint examples/aishell/s0/aishell_u2pp_conformer_exp/final.pt --output_onnx_dir ./onnx --num_decoding_left_chunks 5 --reverse_weight 0.3 --streaming
+python3 wenet/bin/export_onnx_gpu.py --config exp/20210601_u2++_conformer_exp_aishell/train.yaml --cmvn_file exp/20210601_u2++_conformer_exp_aishell/global_cmvn --checkpoint exp/20210601_u2++_conformer_exp_aishell/final.pt --output_onnx_dir ./onnx --num_decoding_left_chunks 5 --reverse_weight 0.3 --streaming
 ```
 在运行完上述命令后，会在`onnx`目录下生成`config.yaml，decoder.onnx，encoder.onnx`。
 
 ## 导出非流式wenet encoder/decoder的onnx
 ```bash
-python3 wenet/bin/export_onnx_gpu.py --config examples/aishell/s0/aishell_u2pp_conformer_exp/train.yaml --checkpoint examples/aishell/s0/aishell_u2pp_conformer_exp/final.pt --output_onnx_dir ./onnx_non_streaming --num_decoding_left_chunks 5 --reverse_weight 0.3
+python3 wenet/bin/export_onnx_gpu.py --config exp/20210601_u2++_conformer_exp_aishell/train.yaml --cmvn_file exp/20210601_u2++_conformer_exp_aishell/global_cmvn --checkpoint exp/20210601_u2++_conformer_exp_aishell/final.pt --output_onnx_dir ./onnx_non_streaming --num_decoding_left_chunks 5 --reverse_weight 0.3
 ```
 在运行完上述命令后，会在`onnx_non_streaming`目录下生成`config.yaml，decoder.onnx，encoder.onnx`。
 
+如果报错:
+```
+Traceback (most recent call last):
+  File "/workspace/open-source/wenet/wenet/bin/export_onnx_gpu.py", line 963, in <module>
+    model = init_model(configs)
+  File "/workspace/open-source/wenet/wenet/utils/init_model.py", line 35, in init_model
+    mean, istd = load_cmvn(configs['cmvn_file'], configs['is_json_cmvn'])
+KeyError: 'is_json_cmvn'
+```
+将`wenet/wenet/utils/init_model.py`的第35行的`configs['is_json_cmvn']`直接改成`True`。
 
 ## author & date: 
  - liheng.fang@sophgo.com, 2023.12.12
