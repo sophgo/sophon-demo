@@ -22,7 +22,7 @@ SuperGlue是Magic Leap完成的CVPR 2020研究项目。SuperGlue网络是一个�
 ## 2. 特性
 
 * 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
-* 支持FP32、FP16(BM1688/CV186X)模型编译和推理
+* 支持FP32、FP16(BM1684X/BM1688/CV186X)模型编译和推理
 * 支持基于OpenCV解码、BMCV预处理、BMRT推理、LIBTORCH后处理的C++推理
 * 支持单batch模型
 
@@ -39,7 +39,9 @@ chmod -R +x scripts/
 ```bash
 ./models
 ├── BM1684X
+│   ├── superglue_fp16_1b_iter20_1024.bmodel # 使用TPU-MLIR编译，用于BM1684X的superglue FP16 BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
 │   ├── superglue_fp32_1b_iter20_1024.bmodel # 使用TPU-MLIR编译，用于BM1684X的superglue FP32 BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
+│   ├── superpoint_fp16_1b.bmodel            # 使用TPU-MLIR编译，用于BM1684X的superpoint FP16 BModel，batch_size=1
 │   └── superpoint_fp32_1b.bmodel            # 使用TPU-MLIR编译，用于BM1684X的superpoint FP32 BModel，batch_size=1
 ├── BM1688
 │   ├── superglue_fp16_1b_iter20_1024.bmodel # 使用TPU-MLIR编译，用于BM1688的superglue FP16 BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
@@ -96,13 +98,13 @@ Pytorch模型在编译前要导出成onnx模型，如果您希望自己导出模
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1688 #cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
 ```
 
-​执行上述命令会在`models/BM1688/`等文件夹下生成`superpoint_fp16_1b.bmodel`和`superglue_fp16_1b_iter20_1024.bmodel`文件，即转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`superpoint_fp16_1b.bmodel`和`superglue_fp16_1b_iter20_1024.bmodel`文件，即转换好的FP16 BModel。
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
@@ -125,6 +127,7 @@ python3 eval.py --input_pairs ../datasets/scannet_sample_pairs_with_gt.txt --res
 | 测试平台      |  测试程序        |  superpoint模型  |   superglue模型  |MScore|
 | ------------ | ---------------- | ----------------| ---------------  | ----- |
 | SE7-32       | superglue_bmcv.soc | superpoint_fp32_1b.bmodel | superglue_fp32_1b_iter20_1024.bmodel |    16.90 |
+| SE7-32       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.69 |
 | SE9-16       | superglue_bmcv.soc | superpoint_fp32_1b.bmodel | superglue_fp32_1b_iter20_1024.bmodel |    16.90 |
 | SE9-16       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.71 |
 | SE9-8        | superglue_bmcv.soc | superpoint_fp32_1b.bmodel | superglue_fp32_1b_iter20_1024.bmodel |    16.90 |
@@ -147,8 +150,10 @@ bmrt_test --bmodel models/BM1684X/superpoint_fp32_1b.bmodel
 
 |                  测试模型                         | calculate time(ms) |
 | -------------------------------------------       | ----------------- |
-| BM1684X/superpoint_fp32_1b.bmodel  |          51.49  |
-| BM1684X/superglue_fp32_1b_iter20_1024.bmodel|         289.83  |
+| BM1684X/superpoint_fp32_1b.bmodel            |          51.46  |
+| BM1684X/superpoint_fp16_1b.bmodel            |          10.76  |
+| BM1684X/superglue_fp32_1b_iter20_1024.bmodel |         289.65  |
+| BM1684X/superglue_fp16_1b_iter20_1024.bmodel |          75.51  |
 | BM1688/superpoint_fp32_1b.bmodel   |         224.76  |
 | BM1688/superpoint_fp16_1b.bmodel   |          41.47  |
 | BM1688/superglue_fp32_1b_iter20_1024.bmodel|         670.28  |
@@ -168,7 +173,8 @@ bmrt_test --bmodel models/BM1684X/superpoint_fp32_1b.bmodel
 
 |    测试平台  |     测试程序     | superpoint模型            |   superglue模型                    | decode_time    |superpoint_time  |superglue_time   | 
 | ----------- | ---------------- | ---------------          | ----------------                   | --------       | ---------       | ---------     |
-|   SE7-32    |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp32_1b_iter20_1024.bmodel|      5.70      |      97.33      |     301.75      |
+|   SE7-32    |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp32_1b_iter20_1024.bmodel|      4.16       |      83.09      |     300.97      |
+|   SE7-32    |superglue_bmcv.soc |superpoint_fp16_1b.bmodel|superglue_fp16_1b_iter20_1024.bmodel|      4.18       |      52.52      |      86.55      |
 |   SE9-16    |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp32_1b_iter20_1024.bmodel|      5.70       |     263.51      |     686.38      |
 |   SE9-16    |superglue_bmcv.soc |superpoint_fp16_1b.bmodel|superglue_fp16_1b_iter20_1024.bmodel|      5.62       |      89.39      |     198.20      |
 |    SE9-8    |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp32_1b_iter20_1024.bmodel|      5.45       |     269.53      |     686.53      |
