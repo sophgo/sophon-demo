@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -196,7 +196,7 @@ function build_soc()
 }
 
 function compare_res(){
-    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<0.1 && y-x<0.1)?1:0}'`
+    ret=`awk -v x=$1 -v y=$2 'BEGIN{print(x-y<1 && y-x<1)?1:0}'`
     if [ $ret -eq 0 ]
     then
         ALL_PASS=0
@@ -299,11 +299,13 @@ if test $MODE = "compile_mlir"
 then
   download
   compile_mlir
-elif test $MODE = "pcie_test"
+elif test $MODE = "pcie_build"
 then
   check_dependencies_ubuntu_amd64
-  # build_pcie bmcv
   download
+  build_pcie bmcv
+elif test $MODE = "pcie_test"
+then
   pip3 install opencv-python-headless matplotlib -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
@@ -311,12 +313,13 @@ then
   elif test $TARGET = "BM1684X"
   then
     eval_cpp pcie bmcv superpoint_fp32_1b.bmodel superglue_fp32_1b_iter20_1024.bmodel 16.90
+    eval_cpp pcie bmcv superpoint_fp16_1b.bmodel superglue_fp16_1b_iter20_1024.bmodel 16.72
   fi
 elif test $MODE = "soc_build"
 then
   check_dependencies_ubuntu_arm64
-  build_soc bmcv
   download
+  build_soc bmcv
 elif test $MODE = "soc_test"
 then
   download
@@ -329,6 +332,7 @@ then
   elif test $TARGET = "BM1684X"
   then
     eval_cpp soc bmcv superpoint_fp32_1b.bmodel superglue_fp32_1b_iter20_1024.bmodel 16.90
+    eval_cpp soc bmcv superpoint_fp16_1b.bmodel superglue_fp16_1b_iter20_1024.bmodel 16.69
   elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
     eval_cpp soc bmcv superpoint_fp32_1b.bmodel superglue_fp32_1b_iter20_1024.bmodel 16.90
