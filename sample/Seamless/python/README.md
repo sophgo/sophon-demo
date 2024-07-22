@@ -4,9 +4,10 @@
 - [1. 环境准备](#1-环境准备)
   - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
   - [1.2 SoC平台](#12-soc平台)
-- [2. 推理测试](#2-推理测试)
-  - [2.1 参数说明](#21-参数说明)
-  - [2.2 使用方式](#22-使用方式)
+- [2. 准备模型与数据](#2-准备模型与数据)
+- [3. 推理测试](#3-推理测试)
+  - [3.1 参数说明](#31-参数说明)
+  - [3.2 使用方式](#32-使用方式)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -39,6 +40,7 @@ git checkout v0.2.0
 
 此外您还需要安装其他第三方库：
 ```bash
+sudo apt install libsndfile1
 pip3 install -r requirements.txt
 ```
 您还需要安装sophon-sail，由于本例程需要的sophon-sail版本较新，相关功能还未发布，这里暂时提供一个可用的sophon-sail版本，x86/arm PCIe环境可以通过下面的命令下载：
@@ -69,19 +71,70 @@ python3 -m dfss --url=open@sophgo.com:test/seamless_bmodel/0415/fairseq2n-0.2.0-
 pip3 install fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 rm -f fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 
+sudo apt install libsndfile1
 pip3 install -r requirements.txt
 ```
 由于本例程需要的sophon-sail版本较新，这里提供一个可用的sophon-sail whl包，SoC环境可以通过下面的命令下载和安装：
 ```bash
 pip3 install dfss --upgrade
+# SE7和SE5使用如下whl安装包
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/sophon_arm-3.8.0-py3-none-any.whl #arm soc, py38
 pip3 install sophon_arm-3.8.0-py3-none-any.whl --force-reinstall
 ```
 如果您需要其他版本的sophon-sail，可以参考上一小节，下载源码自己编译。
 
-## 2. 推理测试
+## 2. 准备模型与数据
+该模型目前只支持在1684X上运行，已提供编译好的bmodel和测试数据，​同时，您也可以自行准备用于测试的数据集，以及重新编译模型，可参考[模型编译](../../README.md#4-模型编译)。
+
+​本例程在`scripts`目录下提供了相关模型和数据的下载脚本
+```bash
+└── scripts
+    ├── download_bmodel.sh                                                   # 通过该脚本下载SeamlessStreaming(s2t任务)和M4t(s2t任务)的BModel
+    └── download_datasets.sh                                                 # 通过该脚本下载测试数据
+```
+
+```bash
+# 安装unzip，若已安装请跳过
+sudo apt install unzip
+chmod -R +x scripts/
+./scripts/download_bmodel.sh
+./scripts/download_datasets.sh
+```
+
+下载的模型包括：
+```
+./models
+├── BM1684X
+|   ├── m4t_encoder_frontend_fp16_s2t.bmodel                                                         # M4t(s2t任务) Encoder的前端模块，fp16 BModel
+|   ├── m4t_decoder_frontend_beam_size_fp16_s2t.bmodel                                               # M4t(s2t任务) Decoder的前端模块，fp16 BModel
+|   ├── m4t_decoder_final_proj_beam_size_fp16_s2t.bmodel                                             # M4t(s2t任务) Decoder的线性模块，fp16 BModel
+|   ├── m4t_encoder_fp16_s2t.bmodel                                                                  # M4t(s2t任务) Encoder模型，fp16 BModel
+|   ├── m4t_decoder_beam_size_fp16_s2t.bmodel                                                        # M4t(s2t任务) Decoder模块，fp16 BModel
+|   ├── seamless_streaming_encoder_frontend_fp16_s2t.bmodel                                          # SeamlessStreaming(s2t任务) Encoder的前端模块，fp16 BModel
+|   ├── seamless_streaming_decoder_frontend_fp16_s2t.bmodel                                          # SeamlessStreaming(s2t任务) Decoder的前端模块，fp16 BModel
+|   ├── seamless_streaming_decoder_final_proj_fp16_s2t.bmodel                                        # SeamlessStreaming(s2t任务) Decoder的线性模块，fp16 BModel
+|   ├── seamless_streaming_encoder_fp16_s2t.bmodel                                                   # SeamlessStreaming(s2t任务) Encoder模型，fp16 BModel
+|   ├── seamless_streaming_decoder_step_bigger_1_fp16_s2t.bmodel                                     # SeamlessStreaming(s2t任务) Decoder模块，大于第一步解码的fp16 BModel
+|   └── seamless_streaming_decoder_step_equal_1_fp32_s2t.bmodel                                      # SeamlessStreaming(s2t任务) Decoder模块，第一步解码的fp32 BModel
+├── punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727                                        # 标点符号恢复模型目录
+└── tokenizer.model                                                                                  # SeamlessStreaming(s2t任务)和M4t(s2t任务)的 tokenizer
+```
+
+下载的数据包括：
+```
+./datasets
+|── aishell_S0764                             # 从aishell数据集中抽取的用于测试的音频文件
+|   └── *.wav
+├── aishell_S0764.list                        # 从aishell数据集的文件列表
+├── ground_truth.txt                          # 从aishell数据集的预测真实值
+└── test                                      # 测试使用的音频文件
+    ├── long_audio.wav                        # 2分58秒的长语音音频文件
+    └── demo.wav
+```
+
+## 3. 推理测试
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
-### 2.1 参数说明
+### 3.1 参数说明
 
 流式算法配置参数说明：
 ```bash
@@ -129,7 +182,7 @@ usage: pipeline_m4t_s2t.py [-h] [--input INPUT] [--tgt_lang TGT_LANG] [--encoder
 --dev_id: 设备id，默认为 0。
 ```
 
-### 2.2 使用方式
+### 3.2 使用方式
 为了测试实时中文语音转英文文字，可使用如下命令
 
 ```bash
