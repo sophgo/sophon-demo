@@ -15,6 +15,7 @@
   * [7.1 bmrt_test](#71-bmrt_test)
   * [7.2 程序运行性能](#72-程序运行性能)
 * [8. FAQ](#8-faq)
+* [9. WeNetSpeech适配](#9-WeNetSpeech适配)
 
 ## 1. 简介
 WeNet是一款面向工业落地应用的语音识别工具包，提供了从语音识别模型的训练到部署的一条龙服务。本例程对[WeNet官方开源仓库](https://github.com/wenet-e2e/wenet)中基于aishell的预训练模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X上进行推理测试。后处理用到的ctc decoder代码来自[Ctc Decoder](https://github.com/Kevindurant111/ctcdecode-cpp.git)。
@@ -336,3 +337,6 @@ sudo ./setup.sh
 3. encoder与decoder的shape暂时无法调整，仅能编译和使用固定shape的bmodel，因此目前C++和Python例程的某些参数为固定参数。  
 
 其他常见问题请参考[SOPHON-DEMO FAQ](../../docs/FAQ.md)。
+
+## 9. WeNetSpeech适配
+除了基于Aishell的源模型，本例程也提供了基于WeNetSpeech源模型的适配方法，见[WeNetSpeech_Guide](./docs/WeNetSpeech_Guide.md)。
