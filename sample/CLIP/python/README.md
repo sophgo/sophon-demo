@@ -14,10 +14,10 @@
 
 python目录下提供了一系列Python例程，具体情况如下：
 
-| 序号 | Python例程          | 说明         |
-| ---- | ------------------- | ------------ |
-| 1    | zeroshot_predict.py | 使用SAIL推理 |
-
+| 序号 | Python例程          | 说明                                                                     |
+| ---- | ------------------- | ------------------------------------------------------------------------ |
+| 1    | zeroshot_predict.py | 使用opencv预处理，SAIL推理                                               |
+| 2    | clip_server.py      | 使用opencv预处理，SAIL推理，基于线程和队列的思想为http前后端接口提供服务 |
 
 ## 1. 环境准备
 ### 1.1 x86/arm PCIe平台
@@ -49,7 +49,9 @@ export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv_<x.x.x>/opencv-python
 
 ## 2. 推理测试
 
-python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
+zeroshot_predict.py 不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
+clip_server.py 是一个封装好的class，为网页后端提供接口调用服务，在web_ui文件夹中调用，详情见[web_ui](../web_ui/README.md)。
+
 
 ### 2.1 参数说明
 

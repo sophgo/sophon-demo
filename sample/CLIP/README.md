@@ -78,6 +78,7 @@ chmod -R +x scripts/
 ## 5. 例程测试
 
 - [Python例程](./python/README.md)
+- [WebUI例程](./web_ui/README.md)
 
 ## 6. 性能测试
 
