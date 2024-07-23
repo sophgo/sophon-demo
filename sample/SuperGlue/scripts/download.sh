@@ -38,7 +38,7 @@ fi
 if [ ! -d "../cpp/libtorch" ]; 
 then
     pushd ../cpp
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/libtorch.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/libtorch.tar.gz #from https://download.pytorch.org/libtorch/nightly/cpu/, libtorch-cxx11-abi-shared-with-deps-xxx.zip
     tar xvf libtorch.tar.gz && rm libtorch.tar.gz
     popd
     echo "x86 libtorch download!"
@@ -49,7 +49,7 @@ fi
 if [ ! -d "../cpp/aarch64_lib" ]; 
 then
     pushd ../cpp
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/aarch64_lib.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/aarch64_lib.tar.gz #from https://github.com/ljk53/pytorch-rpi, compiled on SE7 using source code.
     tar xvf aarch64_lib.tar.gz && rm aarch64_lib.tar.gz
     popd
     echo "aarch64_lib download!"
