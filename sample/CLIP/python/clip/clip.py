@@ -68,9 +68,60 @@ class CLIP:
         indices = indices[np.argsort(-x[indices])]
         return x[indices], indices
 
+    def letterbox(self, im, new_shape, color=(114, 114, 114), auto=False, scaleFill=False, scaleup=True, stride=32):
+        # Resize and pad image while meeting stride-multiple constraints
+        shape = im.shape[:2]  # current shape [height, width]
+        if isinstance(new_shape, int):
+            new_shape = (new_shape, new_shape)
+
+        # Scale ratio (new / old)
+        r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+        if not scaleup:  # only scale down, do not scale up (for better val mAP)
+            r = min(r, 1.0)
+
+        # Compute padding
+        ratio = r, r  # width, height ratios
+        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
+        if auto:  # minimum rectangle
+            dw, dh = np.mod(dw, stride), np.mod(dh, stride)  # wh padding
+        elif scaleFill:  # stretch
+            dw, dh = 0.0, 0.0
+            new_unpad = (new_shape[1], new_shape[0])
+            ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]  # width, height ratios
+
+        dw /= 2  # divide padding into 2 sides
+        dh /= 2
+
+        if shape[::-1] != new_unpad:  # resize
+            im = cv2.resize(im, new_unpad, interpolation=cv2.INTER_CUBIC)
+        top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
+        left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+        im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
+        return im, ratio, (dw, dh)
+    
+
     def preprocess_cpu(self, image):
+        # 此处resize和源码不一致，源码经过了center_crop
         image = cv2.resize(image, (self.image_resolution, self.image_resolution), interpolation=cv2.INTER_CUBIC)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype('float32')
+        image = (image/255-self.mean)/self.std
+        image = np.transpose(image, (2, 0, 1))
+        return image
+    
+    def preprocess_cpu_letterbox(self, image):
+        letterbox_img, ratio, (tx1, ty1) = self.letterbox(
+            image,
+            new_shape=(self.image_resolution, self.image_resolution),
+            color=(114, 114, 114), # 填充边框的颜色
+            auto=False,
+            scaleFill=False,
+            scaleup=True,
+            stride=32
+        )
+
+        image = cv2.cvtColor(letterbox_img, cv2.COLOR_BGR2RGB)
+        image = letterbox_img
         image = image.astype('float32')
         image = (image/255-self.mean)/self.std
         image = np.transpose(image, (2, 0, 1))
@@ -78,7 +129,9 @@ class CLIP:
 
     def preprocess(self, image):
         start_time = time.time()
-        image = self.preprocess_cpu(image)
+        # 根据实际场景选择预处理方式
+        image = self.preprocess_cpu_letterbox(image)
+        # image = self.preprocess_cpu(image)
         self.preprocess_time += time.time() - start_time
         return image
 
