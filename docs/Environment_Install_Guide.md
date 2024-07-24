@@ -215,26 +215,55 @@ source /etc/profile
 对于SoC平台，安装好SophonSDK(>=v22.09.02)后内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下，可直接用于运行环境。通常在x86主机上交叉编译程序，使之能够在SoC平台运行。SophonSDK固件刷新方法可参考[FAQ文档](./FAQ.md#12-soc模式下如何使用sd卡刷更新固件).
 
 ### 4.1 交叉编译环境搭建
-需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中。
-1. 安装交叉编译工具链
+需要在x86主机上使用SOPHONSDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中。
+1. 搭建交叉编译环境，这里提供两种方式：
+    
+    (1)通过apt安装交叉编译工具链：
 
-    **如果您在此前安装过交叉编译工具链**，需要注意，如果现有的交叉编译工具链的版本，高于边缘设备的gcc版本，会导致程序在编译完成之后运行程序时会报类似的错误：`/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
-    这是由于您主机上的交叉编译工具链版本太高导致，可以在[linaro官方网站](https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/)下载不高于边缘设备gcc版本的交叉编译工具链，或者参考如下方式配置。
-
-    这里提供一个ubuntu配置交叉编译工具链的例子：
+    如果您的系统是ubuntu20.04，GLIBC版本<=2.31，可以使用如下命令安装：
     ```bash
-    sudo apt remove cpp-*-aarch64-linux-gnu #卸载现有的交叉编译工具链，如果没有可以不用运行
+    sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+    ```
+    卸载方法：
+    ```bash
+    sudo apt remove cpp-*-aarch64-linux-gnu
+    ```
+    如果您的环境不满足上述要求，建议使用第(2)种方法。
+    
+    (2)通过docker搭建交叉编译环境：
+    
+    **请注意，不要将下文的stream_dev镜像和用于模型编译的tpuc_dev镜像混用。**
 
-    wget -nd https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
-    
-    tar xvf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
-    
-    echo "export PATH=$PWD/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/:$PATH" >> ~/.bashrc
-    
-    source ~/.bashrc
+    这里提供一个ubuntu20.04的docker镜像作为交叉编译环境，通过dfss下载：
+    ```bash
+    pip3 install dfss
+    python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev.tar
     ```
 
+    如果是首次使用Docker, 可执行下述命令进行安装和配置(仅首次执行):
+    ```bash
+    sudo apt install docker.io
+    sudo systemctl start docker
+    sudo systemctl enable docker
+    sudo groupadd docker
+    sudo usermod -aG docker $USER
+    newgrp docker
+    ```
 
+    在下载好的镜像目录中加载镜像
+    ```bash
+    docker load -i stream_dev.tar
+    ```
+    可以通过`docker images`查看加载好的镜像，默认为stream_dev:latest
+
+    创建容器
+    ```bash
+    docker run --privileged --name stream_dev -v $PWD:/workspace  -it stream_dev:latest
+    # stream_dev只是举个名字的例子, 请指定成自己想要的容器的名字
+    ```
+    容器中的`workspace`目录会挂载到您运行`docker run`时所在的宿主机目录，您可以在此容器中编译项目
+
+    > 注：该镜像来自[sophon-stream](https://github.com/sophgo/sophon-stream/blob/master/docs/HowToMake.md#使用开发镜像编译)。
 
 2. 打包libsophon
 
