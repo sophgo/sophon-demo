@@ -23,3 +23,7 @@ python3 export_superpoint.py
 ```bash
 python3 export_superglue.py
 ```
+
+# FAQ
+
+如果在导出时，还有类似报错：`No module named xxx`，可以通过`pip3 install xxx`下载缺失的依赖，或自行使用搜索引擎搜索缺失的依赖如何安装。
