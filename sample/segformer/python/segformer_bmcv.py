@@ -372,15 +372,13 @@ def main(args):
         logging.info("result saved in {}".format(os.path.join(output_dir, json_name)))
     # test video
     else:
+        decoder = sail.Decoder(args.input, True, args.dev_id)
         video_output_dir = 'python/results/video'
         if not os.path.exists(video_output_dir):
             os.makedirs(video_output_dir)
         else:
             shutil.rmtree(video_output_dir)
             os.makedirs(video_output_dir)
-        cap = cv2.VideoCapture()
-        if not cap.open(args.input):
-            raise Exception("can not open the video")
         frame_list = []
         frame_num = 0
         flag = True
@@ -406,7 +404,7 @@ def main(args):
                     frame_list.append(bmimg)
    
                 output, seg= segformer(frame_list)
-                for i, in range(record_size):
+                for i in range(record_size):
                     save_name = os.path.join(video_output_dir, str(frame_num - len(frame_list) + i + 1))
                     # save image   
                     if SELECT_NUMPY:
