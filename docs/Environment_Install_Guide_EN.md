@@ -110,6 +110,8 @@ It is recommended that TPU-MLIR's docker image is only for compiling and quantif
 
 ## 2 TPU-NNTC Environmental Installation
 
+**Attention, TPU-NNTC has stopped maintenance. If there are any issues with using TPU-NNTC, we recommend using TPU-MLIR.**
+
 If you are using BM1684, it is recommended to use TPU-NNTC to compile BModel. Usually, you need to install TPU-NNTC environment on an x86 host with Ubuntu 16.04/18.04/20.04 installed and running memory of 12GB or more. Here are the installation steps for TPU-NNTC environment:
 
 1. Installation of Docker
@@ -161,7 +163,7 @@ If you have installed a PCIe accelerator card on an x86 platform, the developmen
 **Attention：** mlir's docker is for compiling bmodel, it is not recommended to use it as runtime environment. If you need to set up a docker test environment on the host, please refer to "Chapter 6 - Using test environment by Docker" in <u>LIBSOPHON_User_Guide.pdf</u>.
 
 ### 3.1 Installation of libsophon
-Download the [Compatible](../README_EN.md#environment-dependencies) libsophon installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), which includes:
+Download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), libsophon installation package is under the directory `libsophon_{date}_{time}`, which includes:
 * sophon-driver_x.y.z_amd64.deb
 * sophon-libsophon_x.y.z_amd64.deb
 * sophon-libsophon-dev_x.y.z_amd64.deb
@@ -180,7 +182,7 @@ For more information on libsophon, please refer to "LIBSOPHON Manual".
 
 ### 3.2 Installation of sophon-ffmpeg and sophon-opencv
 
-Download the [Compatible](../README_EN.md#environment-dependencies) sophon-mw installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), which includes:
+Download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), sophon-mw installation package is under the directory `sophon-mw_{date}_{time}`, which includes:
 * sophon-mw-sophon-ffmpeg_x.y.z_amd64.deb
 * sophon-mw-sophon-ffmpeg-dev_x.y.z_amd64.deb
 * sophon-mw-sophon-opencv_x.y.z_amd64.deb
@@ -205,7 +207,7 @@ For more information on libsophon, please refer to "MULTIMEDIA User Manual", "Mu
 
 ### 3.3 Compilation and Installation of sophon-sail
 
-If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of sophon-sail from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
+If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), under the directory `sophon-sail_{date}_{time}`, the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
 You can open the user manual provided in the sophon-sail compressed package (named sophon-sail_en.pdf), refer to the compilation and installation guide chapter, and select the mode you need (C++/Python, PCIE MODE) for installation. 
 
 ## 4 SoC Platform Development and Runtime Environment Construction
@@ -213,11 +215,11 @@ For SoC platforms, the SophonSDK (>=v22.09.02) has been installed with the corre
 
 ### 4.1 Cross-compiling Environment Construction
 You need to build a cross-compilation environment on an x86 host using SOPHON SDK and package the header and library files that the program depends on into the soc-sdk directory.
-1. Install the cross-compilation tool chain
-    **If the version your current cross-compilation tool chain is higher than the SoC environment**, then you will encounter this error when you running your program after cross-compilation: `/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
+1. Install the cross-compilation toolchain
+    **If you already installed the cross-compilation toolchain**, You should notice if the version of your current cross-compilation toolchain is higher than the SoC environment, then you will encounter this error when you running your program after cross-compilation: `/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
     You can install gcc with lower version by downloading source from [release.linaro.org](https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/)
 
-    here we provide an example of ubuntu configuration：
+    Here we provide an cross-compilation toolchain configuration example of Ubuntu：
     ```bash
     sudo apt remove cpp-*-aarch64-linux-gnu #uninstall current toolchain, you can skip if you don't have any.
 
@@ -231,7 +233,7 @@ You need to build a cross-compilation environment on an x86 host using SOPHON SD
     ```
 2. Package libsophon
 
-    Download and unzip the [Compatible](../README_EN.md#environment-dependencies) sophon-img installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), which includes libsophon_soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number.
+    Download and unzip the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material),directory sophon-img_{date}_{time} includes libsophon_soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number.
 
 
     ```bash
@@ -246,7 +248,7 @@ You need to build a cross-compilation environment on an x86 host using SOPHON SD
 
 3. Package sophon-ffmpeg and sophon-opencv
 
-    Download and unzip the [Compatible](../README_EN.md#environment-dependencies) sophon-mw installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), which includes libsophon_soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number. If you are using BM1688 SOPHONSDK, the prefix "sophon-mw" may be changed to "sophon-media".
+    Download and unzip the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), directory sophon-mw_{date}_{time} includes sophon-mw-soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number. If you are using BM1688 SOPHONSDK, the prefix "sophon-mw" may be changed to "sophon-media".
     ```bash
     # unzip sophon-mw-soc_x.y.z_aarch64.tar.gz
     tar -zxf sophon-mw-soc_${x.y.z}_aarch64.tar.gz
@@ -268,7 +270,7 @@ Here, the cross-compilation environment has been built, and then you can use the
 
 ### 4.2 Cross-compiling and sophon-sail Installation
 
-If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), enter sophon-sail_${date} directory, the sophon-sail source package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
+If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), enter sophon-sail_{date}_{time} directory, the sophon-sail source package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
 You can open the user manual provided in the same directory (named sophon-sail_en.pdf or SOPHON-SAIL_en.pdf). Refer to the compilation and installation guide chapter, and select the mode you need (C++/Python, SoC MODE) for installation. **Note that you need to select Contains the compilation methods of ffmpeg and opencv.**
 After you have followed the tutorial and copied the library files of Sophon Sail to the target SoC, you also need to set the following environment variables:
 ```bash
@@ -279,7 +281,7 @@ source ~/.bashrc
 If you have installed PCIe accelerator card in arm platform, the development environment and running environment can be unified, you can directly build the development and running environment on the host.
 Here we provide the environment installation method for NeoKylin v10 machine, other types of machines please refer to the official development manual for details.
 ### 5.1 Installation of libsophon
-Download the [Compatible](../README_EN.md#environment-dependencies) libsophon installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), the installation package consists of a file where "$arch" is the hardware architecture of the current machine, and the current server's arch can be obtained using the following command.
+Download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), libsophon installation package is under the directory `libsophon_{date}_{time}`, the installation package consists of a file where "$arch" is the hardware architecture of the current machine, and the current server's arch can be obtained using the following command.
 ```
 uname -m
 ```
@@ -333,8 +335,7 @@ sudo cp /opt/sophon/libsophon-current/data/libsophon-config.cmake /usr/lib/cmake
 For other platform machines, please refer to "LIBSOPHON Manual"
 
 ### 5.2 Installation of sophon-ffmpeg and sophon-opencv
-Download the [Compatible](../README_EN.md#environment-dependencies) installation package of sophon-mw from [the official website of sophongo](https://developer.sophgo.com/site/index.html?categoryActive=material),
-The installation package consists of one file:
+Download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of sophongo](https://developer.sophgo.com/site/index.html?categoryActive=material), sophon-mw installation package is under the directory `sophon-mw_{date}_{time}`, the installation package consists of one file:
 ```
 sophon-mw_x.y.z_aarch64.tar.gz，x.y.z indicates the version number
 ```
@@ -366,7 +367,7 @@ source /etc/profile
 For other platform machines, please refer to "MULTIMEDIA User Manual", "Multimedia Development Reference Manual".
 
 ### 5.3 Compilation and Installation of sophon-sail
-If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of sophon-sail from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
+If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), sophon-sail installation package is under the directory `sophon-sail_{date}_{time}`, the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
 You can open the user manual provided in the sophon-sail compressed package (named sophon-sail_en.pdf), refer to the compilation and installation guide chapter, and select the mode you need (C++/Python, ARM PCIE MODE) for installation. 
 
 ## 6 riscv PCIe Platform Development and Runtime Environment Construction
@@ -374,7 +375,7 @@ If you have installed PCIe accelerator card in riscv platform, the development e
 Here we provide the environment installation method for SG2042, other types of machines please refer to the official development manual for details.
 
 ### 6.1 Installation of libsophon
-Download the [Compatible](../README_EN.md#environment-dependencies) libsophon installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), the installation package consists of three files:
+Download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), libsophon installation package is under the directory `libsophon_{date}_{time}`, the installation package consists of three files:
 ```bash
 sophon-libsophon-dev-{x.y.z}.riscv64.rpm
 sophon-libsophon-{x.y.z}.riscv64.rpm
@@ -402,7 +403,7 @@ sudo rpm -e sophon-libsophon
 For other platform machines, please refer to "LIBSOPHON Manual".
 
 ### 6.2 Installation of sophon-ffmpeg and sophon-opencv
-Download the [Compatible](../README_EN.md#environment-dependencies) sophon-mw installation package from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), the installation package consists of four files:
+Download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), sophon-mw installation package is under the directory `sophon-mw_{date}_{time}`, the installation package consists of four files:
 ```bash
 sophon-mw-sophon-ffmpeg_{x.y.z}_riscv64.rpm
 sophon-mw-sophon-ffmpeg-dev_{x.y.z}_riscv64.rpm
@@ -433,5 +434,5 @@ sudo rpm -e sophon-mw-sophon-ffmpeg
 For other platform machines, please refer to "MULTIMEDIA User Manual", "Multimedia Development Reference Manual".
 
 ### 6.3 Compilation and Installation of sophon-sail
-If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of sophon-sail from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
+If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), sophon-sail installation package is under the directory `sophon-sail_{date}_{time}`, the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
 You can open the user manual provided in the sophon-sail compressed package (named sophon-sail_en.pdf), refer to the compilation and installation guide chapter, and select the mode you need (C++/Python, RISCV PCIE MODE) for installation. 

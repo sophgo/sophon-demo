@@ -107,6 +107,9 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
 建议TPU-MLIR的镜像仅用于编译和量化模型，程序编译和运行请在开发和运行环境中进行。更多TPU-MLIR的教程请参考[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)的《TPU-MLIR快速入门手册》和《TPU-MLIR开发参考手册》。
 
 ## 2 TPU-NNTC环境搭建
+
+**注意，TPU-NNTC已停止维护，如果使用TPU-NNTC出现问题，建议您使用TPU-MLIR。**
+
 使用TPU-NNTC编译BModel，通常需要在x86主机上安装TPU-NNTC环境，x86主机已安装Ubuntu16.04/18.04/20.04系统，并且运行内存在12GB以上。TPU-NNTC环境安装步骤主要包括：
 
 1. 安装Docker
@@ -159,7 +162,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
 **注意：** mlir提供的docker环境用来编译模型的，不建议与运行环境混用，如果您需要在主机上搭建docker测试环境，请参考官网《LIBSOPHON使用手册.pdf》第6章-使用Docker搭建测试环境。
 
 ### 3.1 安装libsophon
-从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的libsophon安装包，包括:
+从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，解压后在libsophon_{date}_{time}文件夹下面有这几个文件:
 * sophon-driver_x.y.z_amd64.deb
 * sophon-libsophon_x.y.z_amd64.deb
 * sophon-libsophon-dev_x.y.z_amd64.deb
@@ -177,7 +180,7 @@ source /etc/profile
 更多libsophon信息请参考《LIBSOPHON使用手册.pdf》。
 
 ### 3.2 安装sophon-ffmpeg和sophon-opencv
-从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的sophon-mw安装包，包括:
+从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，解压后在sophon-mw_{date}_{time}文件夹下面有这几个文件:
 * sophon-mw-sophon-ffmpeg_x.y.z_amd64.deb
 * sophon-mw-sophon-ffmpeg-dev_x.y.z_amd64.deb
 * sophon-mw-sophon-opencv_x.y.z_amd64.deb
@@ -204,7 +207,7 @@ source /etc/profile
 ### 3.3 编译安装sophon-sail
 如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。
 
-需从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SDK，里面有sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
+需从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，解压后在sophon-sail_{date}_{time}文件夹里面有sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
 您可以打开sophon-sail压缩包里面提供的用户手册(命名为sophon-sail_zh.pdf)，参考编译安装指南章节，选择您需要的模式(C++/Python，PCIE MODE)进行安装。
 
 
@@ -214,10 +217,11 @@ source /etc/profile
 ### 4.1 交叉编译环境搭建
 需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中。
 1. 安装交叉编译工具链
-    **如果现有的交叉编译工具链的版本高于边缘设备的gcc版本**，那么在编译完成之后运行程序时会报类似的错误：`/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
-    这是由于您主机上的交叉编译工具链版本太高导致，可以在[linaro官方网站](https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/)下载不高于边缘设备gcc版本的交叉编译工具链。
 
-    这里提供一个ubuntu配置的例子：
+    **如果您在此前安装过交叉编译工具链**，需要注意，如果现有的交叉编译工具链的版本，高于边缘设备的gcc版本，会导致程序在编译完成之后运行程序时会报类似的错误：`/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
+    这是由于您主机上的交叉编译工具链版本太高导致，可以在[linaro官方网站](https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/)下载不高于边缘设备gcc版本的交叉编译工具链，或者参考如下方式配置。
+
+    这里提供一个ubuntu配置交叉编译工具链的例子：
     ```bash
     sudo apt remove cpp-*-aarch64-linux-gnu #卸载现有的交叉编译工具链，如果没有可以不用运行
 
@@ -230,9 +234,11 @@ source /etc/profile
     source ~/.bashrc
     ```
 
+
+
 2. 打包libsophon
 
-    从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的sophon-img安装包，其中包括libsophon_soc_x.y.z_aarch64.tar.gz，x.y.z表示版本号，并进行解压。
+    从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，在sophon-img_{date}_{time}文件夹中包括libsophon_soc_x.y.z_aarch64.tar.gz，x.y.z表示版本号，并进行解压。
 
     ```bash
     # 创建依赖文件的根目录
@@ -246,7 +252,7 @@ source /etc/profile
 
 3. 打包sophon-ffmpeg和sophon-opencv
 
-    从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的sophon-mw安装包，其中包括sophon-mw-soc_x.y.z_aarch64.tar.gz，x.y.z表示版本号，并进行解压，如果您使用BM1688 SOPHONSDK，“sophon-mw”这个名字或许需要替换成“sophon-media”。
+    从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，在sophon-mw_{date}_{time}文件夹中包括sophon-mw-soc_x.y.z_aarch64.tar.gz，x.y.z表示版本号，并进行解压，如果您使用BM1688 SOPHONSDK，“sophon-mw”这个名字或许需要替换成“sophon-media”。
     ```bash
     # 解压sophon-mw-soc_x.y.z_aarch64.tar.gz
     tar -zxf sophon-mw-soc_${x.y.z}_aarch64.tar.gz
@@ -269,7 +275,7 @@ source /etc/profile
 ### 4.2 交叉编译安装sophon-sail
 如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。需要在x86主机上交叉编译sophon-sail，并在SoC平台上安装。
 
-需从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，进入sophon-sail_${date}文件夹，sophon-sail的发布包命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号，您可以打开同级目录下的用户手册(命名为sophon-sail_zh.pdf或SOPHON-SAIL_zh.pdf)。
+需从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，进入sophon-sail_{date}_{time}文件夹，sophon-sail的发布包命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号，您可以打开同级目录下的用户手册(命名为sophon-sail_zh.pdf或SOPHON-SAIL_zh.pdf)。
 参考编译安装指南章节，选择您需要的模式(C++/Python，SoC MODE)进行安装，**注意需要选择包含ffmpeg和opencv的编译方式。**
 
 
@@ -282,7 +288,7 @@ source ~/.bashrc
 如果您在arm平台安装了PCIe加速卡，开发环境与运行环境可以是统一的，您可以直接在宿主机上搭建开发和运行环境。
 这里提供银河麒麟v10机器的环境安装方法，其他类型机器具体请参考官网开发手册。
 ### 5.1 安装libsophon
-从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的libsophon安装包，
+从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，解压后在libsophon_{date}_{time}文件夹下面有安装包，
 安装包由一个文件构成，其中“$arch”为当前机器的硬件架构，使用以下命令可以获取当前服务器的arch：
 ```
 uname -m
@@ -353,7 +359,7 @@ sudo rm -rf /opt/sophon/driver-0.4.6
 其他平台机器请参考《LIBSOPHON使用手册.pdf》
 
 ### 5.2 安装sophon-ffmpeg和sophon-opencv
-从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的sophon-mw安装包，
+从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，解压后在sophon-mw_{date}_{time}文件夹下面有安装包，
 安装包由一个文件构成：
 ```
 sophon-mw_x.y.z_aarch64.tar.gz，x.y.z表示版本号
@@ -388,7 +394,7 @@ source /etc/profile
 ### 5.3 编译安装sophon-sail
 如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。
 
-需从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SDK，里面有sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
+需从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，解压后在sophon-sail_{date}_{time}文件夹里面有sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
 您可以打开sophon-sail压缩包里面提供的用户手册(命名为sophon-sail_zh.pdf)，参考编译安装指南章节，选择您需要的模式(C++/Python, ARM PCIE MODE)进行安装。
 
 ## 6 riscv PCIe平台的开发和运行环境搭建
@@ -396,7 +402,7 @@ source /etc/profile
 这里提供SG2042服务器的环境安装方法，其他类型机器具体请参考官网开发手册。
 
 ### 6.1 安装libsophon
-从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的libsophon安装包，
+从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，解压后在libsophon_{date}_{time}文件夹下面有安装包，
 安装包由以下3个文件构成：
 ```bash
 sophon-libsophon-dev-{x.y.z}.riscv64.rpm
@@ -425,7 +431,7 @@ sudo rpm -e sophon-libsophon
 其他平台机器请参考《LIBSOPHON使用手册.pdf》。
 
 ### 6.2 安装sophon-ffmpeg和sophon-opencv
-从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的sophon-mw安装包，
+从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，解压后在sophon-mw_{date}_{time}文件夹下面有安装包，
 
 sophon-mw安装包由四个文件构成：
 ```bash
@@ -461,5 +467,5 @@ sudo rpm -e sophon-mw-sophon-ffmpeg
 ### 6.3 编译安装sophon-sail
 如果例程依赖sophon-sail则需要编译和安装sophon-sail，否则可跳过本章节。
 
-需从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SDK，里面有sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
+需从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，解压后在sophon-sail_{date}_{time}文件夹里面有sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
 您可以打开sophon-sail压缩包里面提供的用户手册(命名为sophon-sail_zh.pdf)，参考编译安装指南章节，选择您需要的模式(C++/Python，RISCV PCIE MODE)进行安装。
