@@ -9,17 +9,17 @@
 * [5. 例程测试](#5-例程测试)
 
 ## 1. 简介
-SegFormer是一种用于语义分割的简单、高效和强大的方法。SegFormer使用了Transformer技术，Transformer是一种用于序列建模的深度学习模型，它在自然语言处理中广泛应用。本例程对[​SegFormer官方开源仓库](https://github.com/NVlabs/SegFormer)版本的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
+SegFormer是一种用于语义分割的简单、高效和强大的方法。SegFormer使用了Transformer技术，Transformer是一种用于序列建模的深度学习模型，它在自然语言处理中广泛应用。本例程对[​SegFormer官方开源仓库](https://github.com/NVlabs/SegFormer)版本的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688\CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1688/BM1684X/CV186X)模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持图片和视频测试
 
 ## 3. 准备模型与数据
-如果您使用BM1684，建议使用TPU-NNTC编译BModel，目前官方的Segfomer只有pth预训练模型，pth模型在编译前要导出成onnx模型；如果您使用BM1684X，建议使用TPU-MLIR编译BModel，pth模型在编译前要导出成onnx模型。具体可参考[Segformer模型导出](./docs/Segformer_Export_Guide.md)。
+建议使用TPU-MLIR编译BModel，目前官方的Segfomer只有pth预训练模型，pth模型在编译前要导出成onnx模型。具体可参考[Segformer模型导出](./docs/Segformer_Export_Guide.md)。
 
 同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
@@ -37,12 +37,20 @@ chmod -R +x scripts/
 ```
 ./models
 ├── BM1684
-│   ├── segformer.b0.512x1024.city.160k_fp32_1b.bmodel # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1
+│   └── segformer.b0.512x1024.city.160k_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684的FP32 BModel， batch_size=1
 ├── BM1684X
-│   ├── segformer.b0.512x1024.city.160k_fp32_1b.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
-│   ├── segformer.b0.512x1024.city.160k_fp16_1b.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── segformer.b0.512x1024.city.160k_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
+│   └── segformer.b0.512x1024.city.160k_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+├── BM1688
+│   ├── segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
+│   ├── segformer.b0.512x1024.city.160k_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=1
+│   ├── segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+│   └── segformer.b0.512x1024.city.160k_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=1
+├── CV186X
+│   ├── segformer.b0.512x1024.city.160k_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
+│   ├── segformer.b0.512x1024.city.160k_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
 └── onnx
-    └── segformer.b0.512x1024.city.160k.onnx # pt导出的onnx动态模型
+    └── segformer.b0.512x1024.city.160k.onnx                         # pt导出的onnx动态模型
 ```
 下载的数据包括：
 ```
@@ -56,7 +64,7 @@ chmod -R +x scripts/
 ├── cityscapes_small                    #测试图片集—小
 │   ├── gtFine                          #评价图片
 │   └── leftImg8bit                     #测试图片
-└── cityscapes_video.avi           #测试视频
+└── cityscapes_video.avi                #测试视频
 ```
 ## 4. 模型编译
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
@@ -65,15 +73,14 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh BM1684
-#or
-./scripts/gen_fp32bmodel_mlir.sh BM1684X
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
+
 ```
 
-​执行上述命令会在`models/BM1684`或`models/BM1684X/`下生成`segformer.b0.512x1024.city.160k_fp32_1b.bmodel`等文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`下生成`segformer.b0.512x1024.city.160k_fp32_1b.bmodel`等文件，即转换好的FP32 BModel。
 
 
 - 生成FP16 BModel
@@ -81,7 +88,7 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh BM1684X
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`segformer.b0.512x1024.city.160k_fp16_1b.bmodel`等文件，即转换好的FP16 BModel。
@@ -105,21 +112,43 @@ python3 tools/segformer_eval.py --result_json cpp/segformer_bmcv/results/segform
 ```
 
 ### 6.2 测试结果
-采用1684 fp32模型在cityscapes数据集上，其精度如下精度测试结果如下：
-|   测试平台    |      测试程序        |                     测试模型                   |  mIoU | mAcc  | aAcc  |
-| ------------ | ------------------- | ---------------------------------------------- | ----- | ----- |-------|
-| BM1684 PCIe  | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 68.35 | 76.96 | 94.75 |
-| BM1684 PCIe  | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 68.05 | 76.60 | 94.68 |
-| BM1684 PCIe  | segformer_bmcv.cpp  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 68.33 | 76.94 | 94.75 |
-| BM1684 PCIe  | segformer_sail.cpp  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 68.24 | 76.82 | 94.73 |
-| BM1684X PCIe | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 68.35 | 76.96 | 94.75 |
-| BM1684X PCIe | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 68.04 | 76.58 | 94.68 |
-| BM1684X PCIe | segformer_bmcv.pcie | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 68.35 | 76.96 | 94.75 |
-| BM1684X PCIe | segformer_sail.pcie | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 68.35 | 76.96 | 94.75 |
-| BM1684X PCIe | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b.bmodel | 68.34 | 76.95 | 94.75 |
-| BM1684X PCIe | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel | 68.02 | 76.53 | 94.68 |
-| BM1684X PCIe | segformer_bmcv.pcie | segformer.b0.512x1024.city.160k_fp16_1b.bmodel | 68.35 | 76.96 | 94.75 |
-| BM1684X PCIe | segformer_sail.pcie | segformer.b0.512x1024.city.160k_fp16_1b.bmodel | 68.34 | 76.96 | 94.75 |
+在cityscapes数据集上，其精度如下精度测试结果如下：
+|   测试平台    |      测试程序       |                     测试模型                    |   mIoU   |   mAcc   |   aAcc   |
+| ------------ | ------------------- | ---------------------------------------------- | -------- | -------- |----------|
+| SE5-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.35 |    76.96 |    94.75 |
+| SE5-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.05 |    76.60 |    94.68 |
+| SE5-16       | segformer_bmcv.cpp  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.33 |    76.94 |    94.75 |
+| SE5-16       | segformer_sail.cpp  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.24 |    76.82 |    94.73 |
+| SE7-32       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.35 |    76.96 |    94.75 |
+| SE7-32       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.04 |    76.58 |    94.68 |
+| SE7-32       | segformer_bmcv.pcie | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.35 |    76.96 |    94.75 |
+| SE7-32       | segformer_sail.pcie | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.35 |    76.96 |    94.75 |
+| SE7-32       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.34 |    76.95 |    94.75 |
+| SE7-32       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.02 |    76.53 |    94.68 |
+| SE7-32       | segformer_bmcv.pcie | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.35 |    76.96 |    94.75 |
+| SE7-32       | segformer_sail.pcie | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.34 |    76.96 |    94.75 |
+| SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.35 |    76.96 |    94.75 |
+| SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.34 |    76.95 |    94.75 |
+| SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.17 |    76.70 |    94.70 |
+| SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.17 |    76.70 |    94.70 |
+| SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.33 |    76.94 |    94.75 |
+| SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.32 |    76.93 |    94.75 |
+| SE9-16       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.33 |    76.94 |    94.75 |
+| SE9-16       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.32 |    76.93 |    94.75 |
+| SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel |    68.35 |    76.96 |    94.75 |
+| SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel |    68.34 |    76.95 |    94.75 |
+| SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel |    68.17 |    76.70 |    94.70 |
+| SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel |    68.17 |    76.70 |    94.70 |
+| SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel |    68.33 |    76.94 |    94.75 |
+| SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel |    68.32 |    76.93 |    94.75 |
+| SE9-16       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel |    68.33 |    76.94 |    94.75 |
+| SE9-16       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel |    68.32 |    76.93 |    94.75 |
+| SE9-8        | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.35 |    76.96 |    94.75 |
+| SE9-8        | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.34 |    76.95 |    94.75 |
+| SE9-8        | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.17 |    76.70 |    94.70 |
+| SE9-8        | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.17 |    76.70 |    94.70 |
+| SE9-8        | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.33 |    76.94 |    94.75 |
+| SE9-8        | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.32 |    76.93 |    94.75 |
 
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
@@ -133,11 +162,17 @@ python3 tools/segformer_eval.py --result_json cpp/segformer_bmcv/results/segform
 bmrt_test --bmodel models/BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
 ```
 在cityscapes测试各个模型的理论推理时间，结果如下：
-|                  测试模型            |stage| calculate time(ms) |
-| ----------------------------------  |  ---| ----------------- |
-| BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel   |  1  | 370.067         |
-| BM1684X/segformer.b0.512x1024.city.160k_fp32_1b.bmodel  |  1  | 288.866         |
-| BM1684X/segformer.b0.512x1024.city.160k_fp16_1b.bmodel  |  1  | 54.229          |
+|                          测试模型                           | calculate time(ms) |
+| ---------------------------------------------------------- | -------------------|
+| SE5-16 /segformer.b0.512x1024.city.160k_fp32_1b.bmodel     | 365.63             |
+| SE7-32 /segformer.b0.512x1024.city.160k_fp32_1b.bmodel     | 288.866            |
+| SE7-32 /segformer.b0.512x1024.city.160k_fp16_1b.bmodel     | 54.229             |
+| SE9-16/segformer.b0.512x1024.city.160k_fp32_1b.bmodel      | 413.63             |
+| SE9-16/segformer.b0.512x1024.city.160k_fp16_1b.bmodel      | 119.02             |
+| SE9-16/segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel| 288.31             |
+| SE9-16/segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel| 104.02             |
+| SE9-8/segformer.b0.512x1024.city.160k_fp32_1b.bmodel       | 473.95             |
+| SE9-8/segformer.b0.512x1024.city.160k_fp16_1b.bmodel       | 157.45             |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -150,26 +185,48 @@ bmrt_test --bmodel models/BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/cityscapes`,性能测试结果如下：
 
-|    测试平台   |       测试程序      |                       测试模型                  |decode_time|preprocess_time|inference_time |postprocess_time| 
+|  测试平台     |    测试程序         |                 测试模型                        |decode_time|preprocess_time|inference_time |postprocess_time| 
 | -----------  | ------------------- | ---------------------------------------------- | --------- | ------------- | ------------- | -------------- |
-| BM1684 SoC   | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 109.20    | 25.02         | 391.65        | 186.31         |
-| BM1684 SoC   | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 353.90    | 5.62          | 369.59        | 141.78         |
-| BM1684 SoC   | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 114.52    | 1.38          | 364.12        | 261.13         | 
-| BM1684 SoC   | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 370.24    | 6.89          | 365.85        | 256.61         |
-| BM1684X SoC  | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 109.69    | 30.40         | 335.98        | 178.17         |
-| BM1684X SoC  | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 355.00    | 5.15          | 317.73        | 126.43         |
-| BM1684X SoC  | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 114.30    | 1.39          | 313.07        | 265.03         |
-| BM1684X SoC  | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 0.027     | 7.91          | 313.40        | 260.65         |
-| BM1684X SoC  | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 109.69    | 30.40         | 335.98        | 178.17         |
-| BM1684X SoC  | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 355.00    | 5.15          | 317.73        | 126.43         |
-| BM1684X SoC  | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 114.56    | 1.39          | 69.45         | 260.90         |
-| BM1684X SoC  | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel | 0.027     | 7.91          | 69.77         | 260.36         |
+|    SE5-16    | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   110.23  |      23.15    |     389.67    |     182.70     |
+|    SE5-16    | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   140.67  |      5.93     |     369.88    |     141.78     |
+|    SE5-16    | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   126.51  |      1.52     |     365.50    |     261.71     |
+|    SE5-16    | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   106.44  |      7.14     |     365.86    |     259.91     |
+|    SE7-32    |segformer_opencv.py  |segformer.b0.512x1024.city.160k_fp32_1b.bmodel  |   145.98  |      21.14    |     320.01    |     166.92     |
+|    SE7-32    |segformer_opencv.py  |segformer.b0.512x1024.city.160k_fp16_1b.bmodel  |   153.89  |      21.21    |      74.10    |     167.25     |
+|    SE7-32    | segformer_bmcv.py   |segformer.b0.512x1024.city.160k_fp32_1b.bmodel  |   154.53  |      5.19     |     303.69    |     123.74     |
+|    SE7-32    | segformer_bmcv.py   |segformer.b0.512x1024.city.160k_fp16_1b.bmodel  |   146.50  |      5.15     |      57.59    |     123.58     |
+|    SE7-32    |segformer_bmcv.soc   |segformer.b0.512x1024.city.160k_fp32_1b.bmodel  |   161.21  |      1.54     |     300.34    |     249.28     |
+|    SE7-32    |segformer_bmcv.soc   |segformer.b0.512x1024.city.160k_fp16_1b.bmodel  |   148.56  |      1.54     |      54.27    |     249.03     |
+|    SE7-32    |segformer_sail.soc   |segformer.b0.512x1024.city.160k_fp32_1b.bmodel  |   154.23  |      5.95     |     300.70    |     250.16     |
+|    SE7-32    |segformer_sail.soc   |segformer.b0.512x1024.city.160k_fp16_1b.bmodel  |   152.21  |      5.96     |      54.60    |     249.54     |
+|    SE9-16    |segformer_opencv.py  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   156.92  |      27.17    |     447.52    |   248.12       |
+|    SE9-16    |segformer_opencv.py  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   162.62  |      27.15    |     153.11    |   250.05       |
+|    SE9-16    | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   183.98  |      12.02    |     419.88    |   194.48       |
+|    SE9-16    | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   185.24  |      12.03    |     125.12    |   194.61       |
+|    SE9-16    |segformer_bmcv.soc   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   207.84  |      4.28     |     413.60    |     344.03     |
+|    SE9-16    |segformer_bmcv.soc   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   207.85  |      4.28     |     118.95    |     348.56     |
+|    SE9-16    |segformer_sail.soc   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   179.58  |      13.25    |     414.41    |     338.35     |
+|    SE9-16    |segformer_sail.soc   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   181.23  |      13.22    |     119.71    |     338.43     |
+|    SE9-16    |segformer_opencv.py  |segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel|   160.19    |    28.94    |   322.68    |   253.40     |
+|    SE9-16    |segformer_opencv.py  |segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel|   163.17    |    27.50    |   139.36    |   252.66     |
+|    SE9-16    | segformer_bmcv.py   |segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel|   183.64    |    12.06    |   294.23    |   195.08     |
+|    SE9-16    | segformer_bmcv.py   |segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel|   184.64    |    12.06    |   110.32    |   194.97     |
+|    SE9-16    |segformer_bmcv.soc   |segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel|   206.37    |    4.28     |   288.10    |   347.99     |
+|    SE9-16    |segformer_bmcv.soc   |segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel|   206.85    |    4.28     |   104.27    |   345.63     |
+|    SE9-16    |segformer_sail.soc   |segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel|   184.14    |    13.25    |   288.70    |   339.33     |
+|    SE9-16    |segformer_sail.soc   |segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel|   186.15    |    13.27    |   105.01    |   338.84     |
+|    SE9-8     |segformer_opencv.py  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   157.53  |      29.47    |     508.93    |   223.66       |
+|    SE9-8     |segformer_opencv.py  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   164.70  |      29.17    |     190.92    |   224.96       |
+|    SE9-8     | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   185.69  |      11.82    |     481.06    |   192.43       |
+|    SE9-8     | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   185.56  |      11.89    |     162.81    |   197.55       |
+|    SE9-8     |segformer_sail.soc   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   183.28  |      12.80    |     413.78    |   341.59       |
+|    SE9-8     |segformer_sail.soc   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   183.28  |      12.80    |     413.78    |     341.59     |
 
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 3. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异。 
 
 ## 8. FAQ
