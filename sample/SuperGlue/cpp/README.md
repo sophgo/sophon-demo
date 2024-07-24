@@ -68,6 +68,7 @@ deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal-backports main r
 然后运行如下命令，下载第三方依赖：
 
 ```bash
+#如果当前环境在stream_dev的docker镜像中，可以不用加sudo
 sudo dpkg --add-architecture arm64
 sudo apt update
 sudo apt install libopenblas-dev:arm64
