@@ -214,23 +214,59 @@ You can open the user manual provided in the sophon-sail compressed package (nam
 For SoC platforms, the SophonSDK (>=v22.09.02) has been installed with the corresponding libsophon, sophon-opencv and sophon-ffmpeg runtime library packages integrated inside, located under `/opt/sophon/`, which can be used directly for the runtime environment. Programs are usually cross-compiled on x86 hosts to enable them to run on SoC platforms. SophonSDK firmware refresh methods can be found in the [FAQ document](./FAQ_EN.md#12-how-do-i-use-an-sd-card-to-update-firmware-in-soc-mode).
 
 ### 4.1 Cross-compiling Environment Construction
-You need to build a cross-compilation environment on an x86 host using SOPHON SDK and package the header and library files that the program depends on into the soc-sdk directory.
-1. Install the cross-compilation toolchain
-    **If you already installed the cross-compilation toolchain**, You should notice if the version of your current cross-compilation toolchain is higher than the SoC environment, then you will encounter this error when you running your program after cross-compilation: `/lib/aarch64-linux-gnu/libc.so.6: version 'GLIBC_2.33' not found`。
-    You can install gcc with lower version by downloading source from [release.linaro.org](https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/)
+You need to build a cross-compilation environment on an x86 host using SOPHONSDK and package the header and library files that the program depends on into the soc-sdk directory.
 
-    Here we provide an cross-compilation toolchain configuration example of Ubuntu：
+1. Build a cross-compilation environment, here we provide two methods:
+
+    (1)Install cross-compilation toolchain by apt:
+
+    If your environment satisfies `system ubuntu20.04` and `GLIBC version <= 2.31`, you can use following commands to install:
     ```bash
-    sudo apt remove cpp-*-aarch64-linux-gnu #uninstall current toolchain, you can skip if you don't have any.
-
-    wget -nd https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
-    
-    tar xvf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
-    
-    echo "export PATH=$PWD/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/:$PATH" >> ~/.bashrc
-    
-    source ~/.bashrc
+    sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
     ```
+    uninstall:
+    ```bash
+    sudo apt remove cpp-*-aarch64-linux-gnu
+    ```
+    If your environment doesn't qualify conditions above, we recommend you method (2).
+    如果您的环境不满足上述要求，建议使用第(2)种方法。
+    
+    (2)Using docker image：
+    
+    **Please note that you should not mix the stream_dev image below with the tpuc_dev image for model compilation.**
+
+    Download the ubuntu20.04 image through dfss:
+    ```bash
+    pip3 install dfss
+    python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev.tar
+    ```
+
+    If you're using Docker for the first time, you can execute the following commands to install and configure it (only for the first-time setup):
+
+    ```bash
+    sudo apt install docker.io
+    sudo systemctl start docker
+    sudo systemctl enable docker
+    sudo groupadd docker
+    sudo usermod -aG docker $USER
+    newgrp docker
+    ```
+    
+    Load the image from the downloaded image directory:
+    ```bash
+    docker load -i stream_dev.tar
+    ```
+    You can check the loaded image using `docker images`, which defaults to `stream_dev:latest`.
+
+    Create a container:
+    ```bash
+    docker run --privileged --name stream_dev -v $PWD:/workspace  -it stream_dev:latest
+    # stream_dev is just an example name; please specify your own container name.
+    ```
+
+    The `workspace` directory in the container will be mounted to the directory of the host machine where you ran `docker run`. You can use this container to compile the project.
+
+    > Note: this docker image came from [sophon-stream](https://github.com/sophgo/sophon-stream/blob/master/docs/HowToMake_EN.md#building-using-development-docker-image)。
 2. Package libsophon
 
     Download and unzip the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material),directory sophon-img_{date}_{time} includes libsophon_soc_x.y.z_aarch64.tar.gz, where x.y.z indicates the version number.
