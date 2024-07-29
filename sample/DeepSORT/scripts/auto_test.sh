@@ -9,13 +9,13 @@ TPUID=0
 ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
-
+CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c CASE_MODE fully|partly]" 1>&2 
 }
 
-while getopts ":m:t:s:d:p:" opt
+while getopts ":m:t:s:d:p:c:" opt
 do
   case $opt in 
     m)
@@ -33,6 +33,9 @@ do
     p)
       PYTEST=${OPTARG}
       echo "generate logs for $PYTEST";;
+    c)
+      CASE_MODE=${OPTARG}
+      echo "case mode is $CASE_MODE";;
     ?)
       usage
       exit 1;;
@@ -321,79 +324,81 @@ elif test $MODE = "compile_mlir"
 then
   download
   compile_mlir
+elif test $MODE = "pcie_build"
+then
+  build_pcie bmcv
 elif test $MODE = "pcie_test"
 then
   download
-  build_pcie bmcv
   pip3 install -r python/requirements.txt
   pip3 install motmetrics
   if test $TARGET = "BM1684"
   then
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp pcie bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp pcie bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp pcie bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      eval_python opencv extractor_fp32_1b.bmodel 0.45717708125374323
+      eval_python opencv extractor_fp32_4b.bmodel 0.45717708125374323
+      eval_python opencv extractor_int8_1b.bmodel 0.45897384707526456
+      eval_python opencv extractor_int8_4b.bmodel 0.45897384707526456
+      eval_cpp pcie bmcv extractor_fp32_1b.bmodel 0.4497903773208225
+      eval_cpp pcie bmcv extractor_fp32_4b.bmodel 0.4497903773208225
+      eval_cpp pcie bmcv extractor_int8_1b.bmodel 0.4523857057296866
+      eval_cpp pcie bmcv extractor_int8_4b.bmodel 0.4523857057296866
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp pcie bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp pcie bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp pcie bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-
-    eval_python opencv extractor_fp32_1b.bmodel 0.45717708125374323
-    eval_python opencv extractor_fp32_4b.bmodel 0.45717708125374323
-    eval_python opencv extractor_int8_1b.bmodel 0.45897384707526456
-    eval_python opencv extractor_int8_4b.bmodel 0.45897384707526456
-    eval_cpp pcie bmcv extractor_fp32_1b.bmodel 0.4497903773208225
-    eval_cpp pcie bmcv extractor_fp32_4b.bmodel 0.4497903773208225
-    eval_cpp pcie bmcv extractor_int8_1b.bmodel 0.4523857057296866
-    eval_cpp pcie bmcv extractor_int8_4b.bmodel 0.4523857057296866
+      eval_python opencv extractor_int8_4b.bmodel 0.45897384707526456
+      eval_cpp pcie bmcv extractor_int8_4b.bmodel 0.4523857057296866
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
 
   elif test $TARGET = "BM1684X"
   then
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp pcie bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp pcie bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp pcie bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      eval_python opencv extractor_fp32_1b.bmodel 0.43801157915751643
+      eval_python opencv extractor_fp32_4b.bmodel 0.43801157915751643
+      eval_python opencv extractor_fp16_1b.bmodel 0.43801157915751643
+      eval_python opencv extractor_fp16_4b.bmodel 0.43801157915751643
+      eval_python opencv extractor_int8_1b.bmodel 0.43162307845877423
+      eval_python opencv extractor_int8_4b.bmodel 0.43162307845877423
+      eval_cpp pcie bmcv extractor_fp32_1b.bmodel 0.44320223597524455
+      eval_cpp pcie bmcv extractor_fp32_4b.bmodel 0.44320223597524455
+      eval_cpp pcie bmcv extractor_fp16_1b.bmodel 0.44320223597524455
+      eval_cpp pcie bmcv extractor_fp16_4b.bmodel 0.44320223597524455
+      eval_cpp pcie bmcv extractor_int8_1b.bmodel 0.43761229786384503
+      eval_cpp pcie bmcv extractor_int8_4b.bmodel 0.43761229786384503
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp16_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp16_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp pcie bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp pcie bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp pcie bmcv extractor_fp16_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp pcie bmcv extractor_fp16_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp pcie bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp pcie bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-
-    eval_python opencv extractor_fp32_1b.bmodel 0.43801157915751643
-    eval_python opencv extractor_fp32_4b.bmodel 0.43801157915751643
-    eval_python opencv extractor_fp16_1b.bmodel 0.43801157915751643
-    eval_python opencv extractor_fp16_4b.bmodel 0.43801157915751643
-    eval_python opencv extractor_int8_1b.bmodel 0.43162307845877423
-    eval_python opencv extractor_int8_4b.bmodel 0.43162307845877423
-    eval_cpp pcie bmcv extractor_fp32_1b.bmodel 0.44320223597524455
-    eval_cpp pcie bmcv extractor_fp32_4b.bmodel 0.44320223597524455
-    eval_cpp pcie bmcv extractor_fp16_1b.bmodel 0.44320223597524455
-    eval_cpp pcie bmcv extractor_fp16_4b.bmodel 0.44320223597524455
-    eval_cpp pcie bmcv extractor_int8_1b.bmodel 0.43761229786384503
-    eval_cpp pcie bmcv extractor_int8_4b.bmodel 0.43761229786384503
+      eval_python opencv extractor_int8_4b.bmodel 0.43162307845877423
+      eval_cpp pcie bmcv extractor_int8_4b.bmodel 0.43761229786384503
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   fi
 elif test $MODE = "soc_build"
 then
@@ -405,168 +410,169 @@ then
   pip3 install opencv-python-headless motmetrics
   if test $TARGET = "BM1684"
   then
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      eval_python opencv extractor_fp32_1b.bmodel 0.45717708125374323
+      eval_python opencv extractor_fp32_4b.bmodel 0.45717708125374323
+      eval_python opencv extractor_int8_1b.bmodel 0.45897384707526456
+      eval_python opencv extractor_int8_4b.bmodel 0.45897384707526456
+      eval_cpp soc bmcv extractor_fp32_1b.bmodel 0.4497903773208225
+      eval_cpp soc bmcv extractor_fp32_4b.bmodel 0.4497903773208225
+      eval_cpp soc bmcv extractor_int8_1b.bmodel 0.4523857057296866
+      eval_cpp soc bmcv extractor_int8_4b.bmodel 0.4523857057296866
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-
-    eval_python opencv extractor_fp32_1b.bmodel 0.45717708125374323
-    eval_python opencv extractor_fp32_4b.bmodel 0.45717708125374323
-    eval_python opencv extractor_int8_1b.bmodel 0.45897384707526456
-    eval_python opencv extractor_int8_4b.bmodel 0.45897384707526456
-    eval_cpp soc bmcv extractor_fp32_1b.bmodel 0.4497903773208225
-    eval_cpp soc bmcv extractor_fp32_4b.bmodel 0.4497903773208225
-    eval_cpp soc bmcv extractor_int8_1b.bmodel 0.4523857057296866
-    eval_cpp soc bmcv extractor_int8_4b.bmodel 0.4523857057296866
+      eval_python opencv extractor_int8_4b.bmodel 0.45897384707526456
+      eval_cpp soc bmcv extractor_int8_4b.bmodel 0.4523857057296866
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp16_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp16_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp16_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp16_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
+      eval_python opencv extractor_fp32_1b.bmodel 0.43940906368536636
+      eval_python opencv extractor_fp32_4b.bmodel 0.43940906368536636
+      eval_python opencv extractor_fp16_1b.bmodel 0.43940906368536636
+      eval_python opencv extractor_fp16_4b.bmodel 0.43940906368536636
+      eval_python opencv extractor_int8_1b.bmodel 0.43601517268915946
+      eval_python opencv extractor_int8_4b.bmodel 0.43601517268915946
+      eval_cpp soc bmcv extractor_fp32_1b.bmodel  0.44200439209423037
+      eval_cpp soc bmcv extractor_fp32_4b.bmodel  0.44200439209423037
+      eval_cpp soc bmcv extractor_fp16_1b.bmodel  0.44200439209423037
+      eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.44200439209423037
+      eval_cpp soc bmcv extractor_int8_1b.bmodel  0.43761229786384503
+      eval_cpp soc bmcv extractor_int8_4b.bmodel  0.43761229786384503
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    eval_python opencv extractor_fp32_1b.bmodel 0.43940906368536636
-    eval_python opencv extractor_fp32_4b.bmodel 0.43940906368536636
-    eval_python opencv extractor_fp16_1b.bmodel 0.43940906368536636
-    eval_python opencv extractor_fp16_4b.bmodel 0.43940906368536636
-    eval_python opencv extractor_int8_1b.bmodel 0.43601517268915946
-    eval_python opencv extractor_int8_4b.bmodel 0.43601517268915946
-    eval_cpp soc bmcv extractor_fp32_1b.bmodel  0.44200439209423037
-    eval_cpp soc bmcv extractor_fp32_4b.bmodel  0.44200439209423037
-    eval_cpp soc bmcv extractor_fp16_1b.bmodel  0.44200439209423037
-    eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.44200439209423037
-    eval_cpp soc bmcv extractor_int8_1b.bmodel  0.43761229786384503
-    eval_cpp soc bmcv extractor_int8_4b.bmodel  0.43761229786384503
+      eval_python opencv extractor_int8_4b.bmodel 0.43601517268915946
+      eval_cpp soc bmcv extractor_int8_4b.bmodel  0.43761229786384503
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   elif test $TARGET = "CV186X"
   then
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      eval_python opencv extractor_fp32_1b.bmodel 0.441
+      eval_python opencv extractor_fp32_4b.bmodel 0.441
+      eval_python opencv extractor_fp16_1b.bmodel 0.441
+      eval_python opencv extractor_fp16_4b.bmodel 0.441
+      eval_python opencv extractor_int8_1b.bmodel 0.441
+      eval_python opencv extractor_int8_4b.bmodel 0.441
+      eval_cpp soc bmcv extractor_fp32_1b.bmodel  0.4298263126372529
+      eval_cpp soc bmcv extractor_fp32_4b.bmodel  0.4298263126372529
+      eval_cpp soc bmcv extractor_fp16_1b.bmodel  0.43002595328408866
+      eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.43002595328408866
+      eval_cpp soc bmcv extractor_int8_1b.bmodel  0.4294270313435815
+      eval_cpp soc bmcv extractor_int8_4b.bmodel  0.4294270313435815
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp16_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp16_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp16_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp16_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-
-    eval_python opencv extractor_fp32_1b.bmodel 0.441
-    eval_python opencv extractor_fp32_4b.bmodel 0.441
-    eval_python opencv extractor_fp16_1b.bmodel 0.441
-    eval_python opencv extractor_fp16_4b.bmodel 0.441
-    eval_python opencv extractor_int8_1b.bmodel 0.441
-    eval_python opencv extractor_int8_4b.bmodel 0.441
-    eval_cpp soc bmcv extractor_fp32_1b.bmodel  0.4298263126372529
-    eval_cpp soc bmcv extractor_fp32_4b.bmodel  0.4298263126372529
-    eval_cpp soc bmcv extractor_fp16_1b.bmodel  0.43002595328408866
-    eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.43002595328408866
-    eval_cpp soc bmcv extractor_int8_1b.bmodel  0.4294270313435815
-    eval_cpp soc bmcv extractor_int8_4b.bmodel  0.4294270313435815
-  elif test $TARGET = "BM1688"
+      eval_python opencv extractor_int8_4b.bmodel 0.441
+      eval_cpp soc bmcv extractor_int8_4b.bmodel  0.4294270313435815
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
+  elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_1b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      eval_python opencv extractor_fp32_1b.bmodel 0.441
+      eval_python opencv extractor_fp32_4b.bmodel 0.441
+      eval_python opencv extractor_fp16_1b.bmodel 0.441
+      eval_python opencv extractor_fp16_4b.bmodel 0.441
+      eval_python opencv extractor_int8_1b.bmodel 0.440
+      eval_python opencv extractor_int8_4b.bmodel 0.440
+      eval_cpp soc bmcv extractor_fp32_1b.bmodel  0.430
+      eval_cpp soc bmcv extractor_fp32_4b.bmodel  0.430
+      eval_cpp soc bmcv extractor_fp16_1b.bmodel  0.430
+      eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.430
+      eval_cpp soc bmcv extractor_int8_1b.bmodel  0.429
+      eval_cpp soc bmcv extractor_int8_4b.bmodel  0.429
+      if test "$PLATFORM" = "SE9-16"; then 
+        eval_python opencv extractor_fp32_1b_2core.bmodel 0.441
+        eval_python opencv extractor_fp32_4b_2core.bmodel 0.441
+        eval_python opencv extractor_fp16_1b_2core.bmodel 0.441
+        eval_python opencv extractor_fp16_4b_2core.bmodel 0.441
+        eval_python opencv extractor_int8_1b_2core.bmodel 0.440
+        eval_python opencv extractor_int8_4b_2core.bmodel 0.440
+        eval_cpp soc bmcv extractor_fp32_1b_2core.bmodel  0.430
+        eval_cpp soc bmcv extractor_fp32_4b_2core.bmodel  0.430
+        eval_cpp soc bmcv extractor_fp16_1b_2core.bmodel  0.430
+        eval_cpp soc bmcv extractor_fp16_4b_2core.bmodel  0.430
+        eval_cpp soc bmcv extractor_int8_1b_2core.bmodel  0.429
+        eval_cpp soc bmcv extractor_int8_4b_2core.bmodel  0.429
+      fi
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv extractor_int8_4b.bmodel ../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-    test_python opencv extractor_fp32_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp32_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp16_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_fp16_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_1b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_python opencv extractor_int8_4b.bmodel ../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp32_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp32_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp16_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_fp16_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_int8_1b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-    test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/mot15_trainset/ADL-Rundle-6/img1
-
-    eval_python opencv extractor_fp32_1b.bmodel 0.441
-    eval_python opencv extractor_fp32_4b.bmodel 0.441
-    eval_python opencv extractor_fp16_1b.bmodel 0.441
-    eval_python opencv extractor_fp16_4b.bmodel 0.441
-    eval_python opencv extractor_int8_1b.bmodel 0.440
-    eval_python opencv extractor_int8_4b.bmodel 0.440
-    eval_cpp soc bmcv extractor_fp32_1b.bmodel  0.430
-    eval_cpp soc bmcv extractor_fp32_4b.bmodel  0.430
-    eval_cpp soc bmcv extractor_fp16_1b.bmodel  0.430
-    eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.430
-    eval_cpp soc bmcv extractor_int8_1b.bmodel  0.429
-    eval_cpp soc bmcv extractor_int8_4b.bmodel  0.429
-
-    eval_python opencv extractor_fp32_1b_2core.bmodel 0.441
-    eval_python opencv extractor_fp32_4b_2core.bmodel 0.441
-    eval_python opencv extractor_fp16_1b_2core.bmodel 0.441
-    eval_python opencv extractor_fp16_4b_2core.bmodel 0.441
-    eval_python opencv extractor_int8_1b_2core.bmodel 0.440
-    eval_python opencv extractor_int8_4b_2core.bmodel 0.440
-    eval_cpp soc bmcv extractor_fp32_1b_2core.bmodel  0.430
-    eval_cpp soc bmcv extractor_fp32_4b_2core.bmodel  0.430
-    eval_cpp soc bmcv extractor_fp16_1b_2core.bmodel  0.430
-    eval_cpp soc bmcv extractor_fp16_4b_2core.bmodel  0.430
-    eval_cpp soc bmcv extractor_int8_1b_2core.bmodel  0.429
-    eval_cpp soc bmcv extractor_int8_4b_2core.bmodel  0.429
+      eval_python opencv extractor_int8_4b.bmodel 0.440
+      eval_cpp soc bmcv extractor_int8_4b.bmodel  0.429
+      if test "$PLATFORM" = "SE9-16"; then 
+        eval_python opencv extractor_int8_4b_2core.bmodel 0.440
+        eval_cpp soc bmcv extractor_int8_4b_2core.bmodel  0.429
+      fi
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   fi
 fi
 
 if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]
 then
- 
+  echo "--------DeepSORT MOTA----------"
+  cat scripts/acc.txt
   echo "--------bmrt_test performance-----------"
   bmrt_test_benchmark
   echo "--------DeepSORT performance-----------"
   cat tools/benchmark.txt
-
 fi
 
 if [ $ALL_PASS -eq 0 ]
