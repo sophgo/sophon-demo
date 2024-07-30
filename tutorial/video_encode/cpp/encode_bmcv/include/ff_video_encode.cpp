@@ -9,9 +9,6 @@
 
 
 #include "ff_video_encode.h"
-#include "ff_avframe_convert.h"
-#include <iostream>
-
 
 VideoEnc_FFMPEG::VideoEnc_FFMPEG()
 {
@@ -100,16 +97,16 @@ int VideoEnc_FFMPEG::openEnc(const char* output_filename, const char* codec_name
 
     if(is_by_filename && output_filename){
 
-        pOutfmtormat = av_guess_format(NULL, output_filename, NULL);
+        pOutfmtormat = const_cast<AVOutputFormat*>(av_guess_format(NULL, output_filename, NULL));
         if(pOutfmtormat->video_codec == AV_CODEC_ID_NONE){
             printf("Unable to assign encoder automatically by file name, please specify by parameter...\n");
             return -1;
         }
         pFormatCtx->oformat = pOutfmtormat;
-        encoder = avcodec_find_encoder(pOutfmtormat->video_codec);
+        encoder = const_cast<AVCodec*>(avcodec_find_encoder(pOutfmtormat->video_codec));
     }
     if(codec_name != NULL)
-        encoder = avcodec_find_encoder_by_name(codec_name);
+        encoder = const_cast<AVCodec*>(avcodec_find_encoder_by_name(codec_name));
     if(!encoder){
         printf("Failed to find encoder please try again\n");
         return -1;

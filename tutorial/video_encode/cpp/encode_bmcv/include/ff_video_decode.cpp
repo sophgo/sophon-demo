@@ -107,9 +107,9 @@ AVCodec* VideoDec_FFMPEG::findBmDecoder(AVCodecID dec_id, const char *name, int 
         const AVCodecDescriptor *desc;
         const char *codec_string = "decoder";
 
-        codec = avcodec_find_decoder_by_name(name);
+        codec = const_cast<AVCodec*>(avcodec_find_decoder_by_name(name));
         if (!codec && (desc = avcodec_descriptor_get_by_name(name))) {
-            codec = avcodec_find_decoder(desc->id);
+            codec = const_cast<AVCodec*>(avcodec_find_decoder(desc->id));
         }
 
         if (!codec) {
@@ -121,7 +121,7 @@ AVCodec* VideoDec_FFMPEG::findBmDecoder(AVCodecID dec_id, const char *name, int 
             exit(1);
         }
     } else {
-        codec = avcodec_find_decoder(dec_id);
+        codec = const_cast<AVCodec*>(avcodec_find_decoder(dec_id));
     }
 
 
