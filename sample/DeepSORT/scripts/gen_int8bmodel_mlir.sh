@@ -18,7 +18,7 @@ function gen_mlir()
         --model_name extractor \
         --model_def ../models/onnx/extractor.onnx \
         --input_shapes [[$1,3,128,64]] \
-        --mean 2.1179039,1.9912664,1.772926 \
+        --mean 123.7,116.3,103.5 \
         --scale 0.0171248,0.017507,0.0174292 \
         --pixel_format rgb  \
         --mlir extractor_$1b.mlir
