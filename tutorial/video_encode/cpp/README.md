@@ -86,23 +86,37 @@ make
 对于PCIe平台，可以直接在PCIe平台上测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据拷贝到SoC平台中测试。测试的参数及运行方式是一致的，下面主要以PCIe模式进行介绍。
 
 ### 3.1 参数说明
-可执行程序默认有一套参数，请注意根据实际情况进行传参，`resize_bmcv.pcie与resize_sail.pcie参数相同。`以encode_bmcv.pcie为例，具体参数说明如下：
+可执行程序默认有一套参数，请注意根据实际情况进行传参，`encode_bmcv.pcie与encode_sail.pcie参数相同。`以encode_bmcv.pcie为例，具体参数说明如下：
 ```bash
-usage:
-        ./encode_bmcv.pcie <input_path> <output_path> <dev_id> <compressed_nv12> <height> <width> <enc_fmt> <bitrate> <pix_fmt> <gop> <gop_preset> <framerate>
-params:
-        <input_path>: Path or rtsp url to the video/image file. Default: ../datasets/test_car_person_1080P.mp4
-        <output_path>: Local file path or stream url
-        <dev_id>: Optional device id. Default: 0
-        <compressed_nv12>: Whether the format of decoded output is compressed NV12. Default: true
-        <height>: The height of the encoded video. Default: 1080
-        <width>: The width of the encoded video. Default: 1920
-        <enc_fmt>: Encoded video format, h264_bm/hevc_bm. Default: h264_bm
-        <bitrate>: Encoded bitrate. Default: 2000
-        <pix_fmt>: Encoded pixel format. Default: NV12
-        <gop>: GOP size. Default: 32
-        <gop_preset>: GOP preset. Default: 2
-        <framerate>: Encode frame rate. Default: 25
+Usage: encode_bmcv.pcie [params]
+
+        --bitrate (value:2000)
+                encoded bitrate
+        --compressed_nv12 (value:true)
+                Whether the format of decoded output is compressed NV12.
+        --dev_id (value:0)
+                Device id
+        --enc_fmt (value:h264_bm)
+                encoded video format, h264_bm/hevc_bm
+        --framerate (value:25)
+                encode frame rate
+        --gop (value:32)
+                gop size
+        --gop_preset (value:2)
+                gop_preset
+        --height (value:1080)
+                The height of the encoded video
+        --help (value:true)
+                print help information.
+        --input_path (value:../datasets/test_car_person_1080P.mp4)
+                Path or rtsp url to the video/image file.
+        --output_path (value:output.mp4)
+                Local file path or stream url
+        --pix_fmt (value:NV12)
+                encoded pixel format
+        --width (value:1920)
+                The width of the encoded video
+
 ```
 ### 3.2 测试视频
 视频测试实例1如下：

@@ -11,18 +11,7 @@
 #ifndef __FF_VIDEO_ENCODE_
 #define __FF_VIDEO_ENCODE_
 
-extern "C" {
-#include "libavcodec/avcodec.h"
-#include "libswscale/swscale.h"
-#include "libavutil/imgutils.h"
-#include "libavformat/avformat.h"
-#include "libavfilter/buffersink.h"
-#include "libavfilter/buffersrc.h"
-#include "libavutil/opt.h"
-#include "libavutil/pixdesc.h"
-#include <stdio.h>
-#include <unistd.h>
-}
+#include "ff_avframe_convert.h"
 
 #define STEP_ALIGNMENT 32
 
@@ -33,6 +22,30 @@ enum OUTPUT_TYPE{
         VIDEO_LOCAL_FILE
 };
 
+#if LIBAVCODEC_VERSION_MAJOR > 58
+    static int avcodec_encode_video2(AVCodecContext *avctx, AVPacket *avpkt, const AVFrame *frame, int *got_packet_ptr) {
+        int ret = avcodec_send_frame(avctx, frame);
+        *got_packet_ptr = 0;
+        if (ret < 0) {
+            return ret;
+        }
+
+        ret = avcodec_receive_packet(avctx, avpkt);
+        if(ret == 0){
+            *got_packet_ptr = 1;
+        } else if (ret == AVERROR(EAGAIN)){
+            printf("Need more frame for one packet");
+            ret = 0;
+        } else if (ret == AVERROR_EOF) {
+            printf("File end");
+            ret = 0;
+        } else if (ret < 0){
+            printf("Error during encoding");
+        }
+        
+        return ret;
+    }
+#endif
 
 class VideoEnc_FFMPEG
 {

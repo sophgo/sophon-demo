@@ -127,11 +127,11 @@ int main(int argc, char* argv[]) {
   cout.setf(ios::fixed);
   // get params
   const char* keys =
-      "{help h usage ? |      | print this message}"
+      "{help | 0 | print help information.}"
       "{input_path     | ../datasets/test_car_person_1080P.mp4 | Path or rtsp "
       "url to the video/image file.}"
-      "{output_path    |      | Local file path or stream url}"
-      "{dev_id      | 0    | Device id}"
+      "{output_path    |   output.mp4   | Local file path or stream url}"
+      "{dev_id         | 0    | Device id}"
       "{compressed_nv12| true | Whether the format of decoded output is "
       "compressed NV12.}"
       "{height         | 1080 | The height of the encoded video}"
@@ -143,6 +143,11 @@ int main(int argc, char* argv[]) {
       "{gop_preset     | 2    | gop_preset}"
       "{framerate      | 25   | encode frame rate}";
   cv::CommandLineParser parser(argc, argv, keys);
+
+  if (parser.get<bool>("help")) {
+    parser.printMessage();
+    return 0;
+  }
 
   std::string input_path = parser.get<std::string>("input_path");
   int dev_id = parser.get<int>("dev_id");

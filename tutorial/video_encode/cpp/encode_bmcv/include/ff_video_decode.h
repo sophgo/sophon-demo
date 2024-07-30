@@ -12,13 +12,47 @@
 #define __FF_VIDEO_DECODE_H
 
 #include <iostream>
+#include "ff_avframe_convert.h"
 
-extern "C" {
-#include <libavformat/avformat.h>
-#include <libavutil/imgutils.h>
-
-}
-
+#if LIBAVCODEC_VERSION_MAJOR > 58
+    static int avcodec_decode_video2(AVCodecContext* dec_ctx, AVFrame *frame, int *got_picture, AVPacket* pkt)
+    {
+        int ret;
+        *got_picture = 0;
+        ret = avcodec_send_packet(dec_ctx, pkt);
+        if (ret == AVERROR_EOF) {
+            ret = 0;
+        }
+        else if (ret < 0) {
+            char err[256] = {0};
+            av_strerror(ret, err, sizeof(err));
+            fprintf(stderr, "Error sending a packet for decoding, %s\n", err);
+            return -1;
+        }
+        while (ret >= 0) {
+            ret = avcodec_receive_frame(dec_ctx, frame);
+            if (ret == AVERROR(EAGAIN)) {
+                ret = 0;
+                break;
+            }else if (ret == AVERROR_EOF) {
+                printf("File end!\n");
+                avcodec_flush_buffers(dec_ctx);
+                ret = 0;
+                break;
+            }
+            else if (ret < 0) {
+                fprintf(stderr, "Error during decoding\n");
+                break;
+            }
+            *got_picture += 1;
+            break;
+        }
+        if (*got_picture > 1) {
+            printf("got picture %d\n", *got_picture);
+        }
+        return ret;
+    }
+#endif
 class VideoDec_FFMPEG
 {
 public:
