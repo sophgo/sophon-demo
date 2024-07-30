@@ -47,6 +47,9 @@ tar xvf memory_edit_{vx.x}.tar.xz #vx.x是版本号
 cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息
 ./memory_edit.sh -c -npu 1536 -vpu 0 -vpp 4096 #npu也可以访问vpu和vpp的内存
+# 根据上一句命令输出最后一行的提示替换itb文件，对于1684X系列设备，执行
+sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/emmcboot.itb /boot/emmcboot.itb && sync
+# 对于1688系列设备，执行
 sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/boot.itb /boot/boot.itb && sync
 sudo reboot
 ```
