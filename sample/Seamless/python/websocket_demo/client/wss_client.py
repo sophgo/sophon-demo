@@ -13,6 +13,7 @@ import webrtcvad
 
 import logging
 import pyaudio
+from funasr import AutoModel
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -36,12 +37,16 @@ parser.add_argument("--chunk_duration_ms",
 parser.add_argument("--vad_level",
 					type=int,
 					default=2,
-					help="vad granularity, [0,3], the bigger the number is, the finer granularity is")
+					help="webrtcvad vad granularity, [0,3], the bigger the number is, the finer granularity is")
 parser.add_argument("--online_use_vad",
 					action='store_true',
 					default=False,
 					help="whether to use vad for removing noise or empty audio segment during online"
 					)
+parser.add_argument("--vad_type",
+                    type=str,
+                    default='webrtcvad',
+                    help="vad model type, support webrtcvad,fsmn-vad(only for offline)")
 parser.add_argument("--encoder_chunk_look_back",
                     type=int,
                     default=4,
@@ -73,7 +78,7 @@ parser.add_argument("--microphone_dev_id",
 parser.add_argument("--thread_num",
                     type=int,
                     default=1,
-                    help="thread_num")
+                    help="thread_num, only support 1")
 parser.add_argument("--words_max_print",
                     type=int,
                     default=10000,
@@ -102,6 +107,10 @@ if args.mode == "parallel2pass":
 else:
     assert len(args.hosts) == 1
 assert (args.chunk_duration_ms % 10 == 0 or args.chunk_duration_ms % 20 == 0 or args.chunk_duration_ms % 30 == 0) and args.chunk_duration_ms > 300
+assert args.vad_type in ["webrtcvad", "fsmn-vad"]
+if args.audio_in is None:
+     assert args.vad_type == "webrtcvad"
+assert args.thread_num == 1
 if args.mode == "parallel2pass":
     lock = asyncio.Lock()
     text_print_parallel2pass_online = collections.deque()
@@ -112,22 +121,28 @@ if args.mode == "parallel2pass":
 VAD_FRAME_DURATION_MS = 30
 PADDING_DURATION_MS = 300
 num_padding_frames = int(PADDING_DURATION_MS / VAD_FRAME_DURATION_MS)
-if args.mode == 'parallel2pass' or args.mode == 'offline':
-    ring_buffer = collections.deque(maxlen=num_padding_frames)
-    is_voice_buffer = collections.deque(maxlen=num_padding_frames)
-    num_voiced = 0
-    num_unvoiced = 0
-    triggered = False
+if args.vad_type == 'webrtcvad':
+    if args.mode == 'parallel2pass' or args.mode == 'offline':
+        ring_buffer = collections.deque(maxlen=num_padding_frames)
+        is_voice_buffer = collections.deque(maxlen=num_padding_frames)
+        num_voiced = 0
+        num_unvoiced = 0
+        triggered = False
+        voiced_frames = []
+        vad = webrtcvad.Vad(args.vad_level)
+    if (args.mode == 'parallel2pass' or args.mode == 'online') and args.online_use_vad:
+        ring_buffer_online = collections.deque(maxlen=num_padding_frames)
+        is_voice_buffer_online = collections.deque(maxlen=num_padding_frames)
+        num_voiced_online = 0
+        num_unvoiced_online = 0
+        triggered_online = False
+        voiced_frames_online = []
+        vad_online = webrtcvad.Vad(args.vad_level)
+elif args.vad_type == 'fsmn-vad':
+    assert args.mode == 'offline'
     voiced_frames = []
-    vad = webrtcvad.Vad(args.vad_level)
-if args.mode == 'parallel2pass' or args.mode == 'online':
-    ring_buffer_online = collections.deque(maxlen=num_padding_frames)
-    is_voice_buffer_online = collections.deque(maxlen=num_padding_frames)
-    num_voiced_online = 0
-    num_unvoiced_online = 0
-    triggered_online = False
-    voiced_frames_online = []
-    vad_online = webrtcvad.Vad(args.vad_level)
+    vad = AutoModel(model=args.vad_type,
+                    device='cpu', disable_pbar=True, log=False)
 
 print(args)
 # voices = asyncio.Queue()
@@ -411,41 +426,53 @@ async def record_from_scp(mode, websocket, chunk_begin, chunk_size, web_id):
             sleep_duration = args.chunk_duration_ms / 1000. # input time - inference cost time(ignored)
         else:
              sleep_duration = 0
-        for i in range(chunk_num):
+        if args.vad_type == 'webrtcvad':
+            for i in range(chunk_num):
 
-            beg = i * stride
-            data = audio_bytes[beg:beg + stride]
-            message = data
-            #voices.put(message)
-            sub_messages = list(frame_generator(VAD_FRAME_DURATION_MS, message, sample_rate))
-            if mode == "offline":
-                for sub_message in sub_messages:
-                    clip_audio = vad_collector(sample_rate, sub_message)
-                    if clip_audio is not None:
-                        clip_audio += i.to_bytes(2, byteorder='little', signed=False)
-                        await websocket.send(clip_audio)
-            else:
-                if args.online_use_vad:
+                beg = i * stride
+                data = audio_bytes[beg:beg + stride]
+                message = data
+                #voices.put(message)
+                sub_messages = list(frame_generator(VAD_FRAME_DURATION_MS, message, sample_rate))
+                if mode == "offline":
                     for sub_message in sub_messages:
-                        clip_audio = vad_collector_online(sample_rate, sub_message)
+                        clip_audio = vad_collector(sample_rate, sub_message)
                         if clip_audio is not None:
                             clip_audio += i.to_bytes(2, byteorder='little', signed=False)
                             await websocket.send(clip_audio)
                 else:
-                     message += i.to_bytes(2, byteorder='little', signed=False)
-                     await websocket.send(message)
-            if i == chunk_num - 1:
-                if mode == "offline" and voiced_frames:
-                    audio_in = b''.join([f.bytes for f in voiced_frames])
-                    voiced_frames = []
-                    audio_in += i.to_bytes(2, byteorder='little', signed=False)
-                    await websocket.send(audio_in)
-                is_speaking = False
-                message = json.dumps({"is_speaking": is_speaking})
-                #voices.put(message)
-                await websocket.send(message)
-            
-            await asyncio.sleep(sleep_duration)
+                    if args.online_use_vad:
+                        for sub_message in sub_messages:
+                            clip_audio = vad_collector_online(sample_rate, sub_message)
+                            if clip_audio is not None:
+                                clip_audio += i.to_bytes(2, byteorder='little', signed=False)
+                                await websocket.send(clip_audio)
+                    else:
+                        message += i.to_bytes(2, byteorder='little', signed=False)
+                        await websocket.send(message)
+                if i == chunk_num - 1:
+                    if mode == "offline" and voiced_frames:
+                        audio_in = b''.join([f.bytes for f in voiced_frames])
+                        voiced_frames = []
+                        audio_in += i.to_bytes(2, byteorder='little', signed=False)
+                        await websocket.send(audio_in)
+                    is_speaking = False
+                    message = json.dumps({"is_speaking": is_speaking})
+                    #voices.put(message)
+                    await websocket.send(message)
+                
+                await asyncio.sleep(sleep_duration)
+        else:
+            all_segs = vad.generate(input=wavs[0])[0]['value']
+            for i, seg in enumerate(all_segs):
+                seg = audio_bytes[seg[0] * 16 * 2 : seg[1] * 16 * 2]
+                seg += i.to_bytes(2, byteorder='little', signed=False)
+                await websocket.send(seg)
+                await asyncio.sleep(sleep_duration)
+            is_speaking = False
+            message = json.dumps({"is_speaking": is_speaking})
+            #voices.put(message)
+            await websocket.send(message)
     
     # NOTE: ori
     # await asyncio.sleep(2)
@@ -602,9 +629,10 @@ def one_thread(id, chunk_begin, chunk_size):
 if __name__ == '__main__':
     # for microphone
     if args.audio_in is None:
-        p = Process(target=one_thread, args=(0, 0, 0))
-        p.start()
-        p.join()
+        # p = Process(target=one_thread, args=(0, 0, 0))
+        # p.start()
+        # p.join()
+        one_thread(0, 0, 0)
         print('end')
     else:
         # calculate the number of wavs for each preocess
@@ -636,12 +664,13 @@ if __name__ == '__main__':
                 now_chunk_size = chunk_size + 1
                 remain_wavs = remain_wavs - 1
             # process i handle wavs at chunk_begin and size of now_chunk_size
-            p = Process(target=one_thread, args=(i, chunk_begin, now_chunk_size))
+            # p = Process(target=one_thread, args=(i, chunk_begin, now_chunk_size))
+            one_thread(i, chunk_begin, now_chunk_size)
             chunk_begin = chunk_begin + now_chunk_size
-            p.start()
-            process_list.append(p)
+            # p.start()
+            # process_list.append(p)
 
-        for i in process_list:
-            p.join()
+        # for i in process_list:
+        #     p.join()
 
         print('end')
