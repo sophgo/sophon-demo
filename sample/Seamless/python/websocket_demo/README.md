@@ -212,6 +212,7 @@ usage: client/wss_client.py [-h] [--hosts HOSTS [HOSTS ...]] [--ports PORTS [POR
 --chunk_duration_ms: 流式模型的输入切片大小，单位为毫秒
 --vad_level: webrtcvad识别语音和非语音的敏感度，取值范围为[0,3]，值越大越敏感
 --online_use_vad: 是否在音频传入流式模型前使用vad过滤无人声片段，默认不使用
+--vad_type: vad的类型，默认使用webrtcvad，对于离线文件的离线识别可以使用fsmn-vad
 --encoder_chunk_look_back: 暂无用，用于后期扩展
 --decoder_chunk_look_back: 暂无用，用于后期扩展
 --chunk_interval: 暂无用，用于后期扩展
@@ -280,6 +281,8 @@ python3 service/wss_server.py --port 10095 --use_offline
 ```bash
 # 若使用本地音频文件，使用如下命令
 python3 client/wss_client.py --hosts 127.0.0.1 --ports 10095 --mode offline --audio_in ../../datasets/test/long_audio.wav
+# 若使用本地音频文件，且使用fsmn-vad，可使用如下命令
+python3 client/wss_client.py --hosts 127.0.0.1 --ports 10095 --mode offline --audio_in ../../datasets/test/long_audio.wav --vad_type fsmn-vad
 # 若使用麦克风输入，使用如下命令，需根据实际情况修改麦克风设备id
 python3 client/wss_client.py --hosts 127.0.0.1 --ports 10095 --mode offline --microphone_dev_id 1
 ```
