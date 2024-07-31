@@ -83,7 +83,7 @@ If you are using BM1684X, it is recommended to use TPU-MLIR to compile BModel. U
 
 3. Install TPU-MLIR
 
-    Currently supported 2 methods to install:
+    Currently supported 3 methods to install:
 
     (1)Download and install directly from pypi:
     ```bash
@@ -105,7 +105,16 @@ If you are using BM1684X, it is recommended to use TPU-MLIR to compile BModel. U
     pip install tpu_mlir[onnx,torch,caffe]
     pip install tpu_mlir[all]
     ```
+    (3)If you attained tpu-mlir release build, such as `tpu-mlir_${version}-${hash}-${date}.tar.gz`, here are configurations:
+    ```bash
+    # uninstall tpu_mlir if you installed it before.
+    pip uninstall tpu_mlir
 
+    tar xvf tpu-mlir_${version}-${hash}-${date}.tar.gz
+    cd tpu-mlir_${version}-${hash}-${date}
+    source envsetup.sh #configure environment variables.
+    ```
+    
 It is recommended that TPU-MLIR's docker image is only for compiling and quantifying the model, please compile and run the program in the development and runtime environment. For more tutorials on TPU-MLIR, please refer to the "TPU-MLIR Quick Start" and the "TPU-MLIR Technical Reference Manual" on [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material).
 
 ## 2 TPU-NNTC Environmental Installation

@@ -81,7 +81,7 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
 
 3. 安装TPU-MLIR
     
-    目前支持两种安装方法：
+    目前支持三种安装方法：
 
     (1)直接从pypi下载并安装：
     ```bash
@@ -102,6 +102,15 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
     ```bash
     pip install tpu_mlir[onnx,torch,caffe]
     pip install tpu_mlir[all]
+    ```
+    (3)如果您获取了类似`tpu-mlir_${version}-${hash}-${date}.tar.gz`这种形式的发布包，可以通过这种方式配置：
+    ```bash
+    # 如果此前有通过pip安装过mlir，需要卸载掉
+    pip uninstall tpu_mlir
+    
+    tar xvf tpu-mlir_${version}-${hash}-${date}.tar.gz
+    cd tpu-mlir_${version}-${hash}-${date}
+    source envsetup.sh #配置环境变量
     ```
 
 建议TPU-MLIR的镜像仅用于编译和量化模型，程序编译和运行请在开发和运行环境中进行。更多TPU-MLIR的教程请参考[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)的《TPU-MLIR快速入门手册》和《TPU-MLIR开发参考手册》。
