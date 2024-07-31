@@ -18,7 +18,7 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-​YOLOv10引入了一种新的实时目标检测方法，解决了YOLO 以前版本在后处理和模型架构方面的不足。通过消除非最大抑制（NMS）和优化各种模型组件，YOLOv10 在显著降低计算开销的同时实现了最先进的性能。本例程对[​YOLOv10官方开源仓库](https://github.com/THU-MIG/yolov10)的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X上进行推理测试。
+​YOLOv10引入了一种新的实时目标检测方法，解决了YOLO 以前版本在后处理和模型架构方面的不足。通过消除非最大抑制（NMS）和优化各种模型组件，YOLOv10 在显著降低计算开销的同时实现了最先进的性能。本例程对[​YOLOv10官方开源仓库](https://github.com/THU-MIG/yolov10)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
 * 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
@@ -35,7 +35,7 @@
 
 ​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
-​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
+​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，通过下载的mlir工具`tpu-mlir_v1.9.beta.0-116-g3c9d40a6d-20240720.tar.gz`，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
 ```bash
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
@@ -49,9 +49,10 @@ chmod -R +x scripts/
 ```
 下载的模型包括：
 ./models
+├── tpu-mlir_v1.9.beta.0-116-g3c9d40a6d-20240720.tar.gz # TPU-MLIR工具包	
 ├── BM1684X
-│   ├── yolov10s_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
-│   ├── yolov10s_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── yolov10s_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1  
+│   ├── yolov10s_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1 
 │   ├── yolov10s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── yolov10s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
 ├── BM1688
@@ -82,39 +83,38 @@ chmod -R +x scripts/
 ```
 
 ## 4. 模型编译
-导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
+导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。若需要自行编译BModel，**建议使用前一节下载的TPU-MLIR编译BModel**。
 
-模型编译前需要安装TPU-MLIR，本例程使用的TPU-MLIR版本是`v1.6`，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
-
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中1、2、3(3)步骤。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
+./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x
 ```
 
-​执行上述命令会在`models/BM1684`下生成`yolov10s_fp32_1b.bmodel`和`yolov10s_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684X`下生成`yolov10s_fp32_1b.bmodel`和`yolov10s_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`yolov10s_fp16_1b.bmodel`和`yolov10s_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x
 ```
 
-​执行上述命令会在`models/BM1684`下生成`yolov10s_int8_1b.bmodel`和`yolov10s_int8_1b.bmodel`等文件，即转换好的INT8 BModel。量化模型出现问题可以参考：[Calibration_Guide](../../docs/Calibration_Guide.md)。
+​执行上述命令会在`models/BM1684X`下生成`yolov10s_int8_1b.bmodel`和`yolov10s_int8_1b.bmodel`等文件，即转换好的INT8 BModel。量化模型出现问题可以参考：[Calibration_Guide](../../docs/Calibration_Guide.md)。
 
 
 ## 5. 例程测试
@@ -176,7 +176,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 3. AP@IoU=0.5:0.95为area=all对应的指标。
-> 4. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 4. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
 
 
 ## 7. 性能测试
@@ -184,7 +184,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 使用bmrt_test测试模型的理论性能：
 ```bash
 # 请根据实际情况修改要测试的bmodel路径和devid参数
-bmrt_test --bmodel models/BM1684/yolov10s_fp32_1b.bmodel
+bmrt_test --bmodel models/BM1684X/yolov10s_fp32_1b.bmodel
 ```
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
@@ -254,7 +254,7 @@ bmrt_test --bmodel models/BM1684/yolov10s_fp32_1b.bmodel
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 3. SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 
 
