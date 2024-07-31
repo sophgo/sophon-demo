@@ -56,9 +56,12 @@ class GroundingDINO():
         self.input_name = self.net.get_input_names(self.graph_name)
         self.output_names = self.net.get_output_names(self.graph_name)
         self.img_input_shape = self.net.get_input_shape(self.graph_name, self.input_name[0])
-
+        
         # make dir
-        os.makedirs(self.output_dir, exist_ok=True)
+        if self.output_dir is not None:
+            os.makedirs(self.output_dir, exist_ok=True)
+        else:
+            print("Output directory is not specified, please ignore")
 
         # check batch size
         self.batch_size = self.img_input_shape[0]
@@ -101,9 +104,16 @@ class GroundingDINO():
     def decode(self, img_path):
         self.img = Image.open(img_path)
     
-    def preprocess(self, tokenizer, captions):
-        self.image_pil, samples = load_image(self.img)
-        samples = samples[None, :, :, :]
+    def preprocess(self, tokenizer, captions, np_image=None):
+        if np_image is None:
+            self.image_pil, samples = load_image(self.img)
+            samples = samples[None, :, :, :]
+        else:
+            mean = np.array([0.485, 0.456, 0.406])
+            std = np.array([0.229, 0.224, 0.225])
+            samples = (np_image / 255.0 - mean) / std
+            samples = np.transpose(samples, (2, 0, 1))
+            samples = samples[None, :, :, :]
 
         captions = captions.lower().strip()
         if not captions.endswith("."):
@@ -151,6 +161,7 @@ class GroundingDINO():
         data = {}
         for i in range(len(values)):
             data[self.input_name[i]] = values[i]
+        
         output = self.net.process(self.graph_name, data)
         res = []
 
@@ -162,7 +173,6 @@ def main(args):
 
     # Initial
     groundingdino = GroundingDINO(args)
-
     groundingdino.init()
 
     # decode
@@ -180,11 +190,13 @@ def main(args):
     
     # Inference
     inference_start = time.time()
+
     output = groundingdino(data)
     inference_time = time.time() - inference_start
 
     # PostProcess
     postprocess_start = time.time()
+    
     boxes_filt, pred_phrases = groundingdino.postprocess(output)
     postprocess_time = time.time() - postprocess_start
 
@@ -193,7 +205,7 @@ def main(args):
         "boxes": boxes_filt,
         "labels": pred_phrases,
     }
-
+    
     # PIL format
     image_with_box = plot_boxes_to_image(groundingdino.image_pil, pred_dict)[0]
     image_with_box.save(os.path.join(groundingdino.output_dir, "pred_bmodel_new.jpg"))
