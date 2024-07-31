@@ -61,14 +61,14 @@ ChatGLM4模型导出需要依赖[ChatGLM4官方仓库](https://huggingface.co/TH
 
 ### 2.2.1 下载ChatGLM4官方代码
 
-**注：** ChatGLM4-9B官方库60G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
+**注：** ChatGLM4-9B官方库18G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
 ```bash
 git lfs install
 git clone git@hf.co:THUDM/glm-4-9b-chat
 ```
 如果git clone完代码之后出现卡住，可以尝试`ctrl+c`中断，然后进入仓库运行`git lfs pull`。
 
-如果无法从官网下载，也可以下载我们之前下好的，压缩包30G左右
+如果无法从官网下载，也可以下载我们之前下好的，压缩包14G左右
 ```bash
 pip3 install dfss  --upgrade -i https://pypi.tuna.tsinghua.edu.cn/simple
 python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/glm-4-9b-chat-torch.zip
@@ -80,7 +80,7 @@ unzip glm-4-9b-chat-torch.zip
 ```bash
 sudo apt-get update
 sudo apt-get install pybind11-dev
-pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install -r tools/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 cp tools/glm-4-9b-chat/config.json glm-4-9b-chat/
 cp tools/glm-4-9b-chat/modeling_chatglm.py glm-4-9b-chat/
 ```
@@ -98,7 +98,7 @@ export PYTHONPATH=/workspace/glm-4-9b-chat:$PYTHONPATH
 
 ```bash
 # 将/workspace/glm-4-9b-chat换成docker环境中您的glm-4-9b-chat仓库的路径
-python3 tools/export_onnx.py --model_path /workspace/glm-4-9b-chat --onnx_path ./models/onnx
+python3 tools/export_onnx.py --model_path /workspace/glm-4-9b-chat --seq_length 512
 ```
 此时有大量onnx模型被导出到本例程中`ChatGLM4/models/onnx`的目录。
 
