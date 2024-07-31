@@ -45,6 +45,7 @@ SEQ_LENGTH = args.seq_length
 NUM_LAYERS = config.num_hidden_layers
 HIDDEN_SIZE = config.hidden_size
 NUM_ATTENTION_HEADS = config.num_attention_heads
+NUM_KEY_VALUE_HEADS = config.num_key_value_heads
 HEAD_DIM = HIDDEN_SIZE // NUM_ATTENTION_HEADS
 VOCAB_SIZE = config.vocab_size
 
@@ -173,8 +174,8 @@ def convert_block_cache(layer_id):
     position_ids = torch.tensor([range(1)], dtype=torch.long).to(device)
     attention_mask = torch.ones(
         (1, 1, 1, SEQ_LENGTH + 1)).to(dtype).to(device)
-    past_k = torch.randn((1, SEQ_LENGTH, NUM_ATTENTION_HEADS, HEAD_DIM)).to(dtype).to(device)
-    past_v = torch.randn((1, SEQ_LENGTH, NUM_ATTENTION_HEADS, HEAD_DIM)).to(dtype).to(device)
+    past_k = torch.randn((1, SEQ_LENGTH, NUM_KEY_VALUE_HEADS, HEAD_DIM)).to(dtype).to(device)
+    past_v = torch.randn((1, SEQ_LENGTH, NUM_KEY_VALUE_HEADS, HEAD_DIM)).to(dtype).to(device)
 
     torch.onnx.export(
         model, (hidden_states, position_ids, attention_mask, past_k, past_v),
