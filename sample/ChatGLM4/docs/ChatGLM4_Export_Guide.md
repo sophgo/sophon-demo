@@ -107,7 +107,8 @@ python3 tools/export_onnx.py --model_path /workspace/glm-4-9b-chat --seq_length 
 目前TPU-MLIR支持1684x对ChatGLM4进行INT8和INT4量化，使用如下命令生成bmodel。
 
 ```bash
-./script/gen_bmodel.sh --mode int4
+mv ./tmp ./scripts
+./scripts/gen_bmodel.sh --mode int4 #int8
 ```
 
 其中，mode可以指定int8/int4，编译成功之后，模型将会存放在`models/BM1684X/`目录下。
