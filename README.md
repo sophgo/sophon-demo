@@ -23,7 +23,8 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [avframe_ocv](./tutorial/avframe_ocv/README.md)                          | avframe到cv::mat的转换例程                                                  |
 | [ocv_avframe](./tutorial/ocv_avframe/README.md)                          | bgr mat到yuv420p avframe的转换例程                                          |
 | [bm1688_2core2task_yolov5](./tutorial/bm1688_2core2task_yolov5/README.md)| 使用bm1688的双核双任务推理部署的yolov5                                       |
-
+| [mmap](./tutorial/mmap/README.md)                                        | mmap接口，映射TPU内存到CPU                                                  |
+| [video_encode](./tutorial/video_encode/README.md)                        | 视频编码和推流                                                              |
 
 | sample                                                          | 算法类别          | 编程语言    | BModel         |
 |---                                                            |---               |---          | ---           |
@@ -51,10 +52,12 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [YOLOv5_opt](./sample/YOLOv5_opt/README.md)                   | 目标检测          | C++/Python | FP32/FP16/INT8 |
 | [YOLOv5_fuse](./sample/YOLOv5_fuse/README.md)                 | 目标检测          | C++/Python | FP32/FP16/INT8 |
 | [YOLOv9_det](./sample/YOLOv9_det/README.md)                   | 目标检测          | C++/Python | FP32/FP16/INT8 |
+| [YOLOv10](./sample/YOLOv10/README.md)                         | 目标检测          | C++/Python | FP32/FP16/INT8 |
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16      |
 | [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16      | 
 | [Whisper](./sample/Whisper/README.md)                         | 语音识别          | Python     | FP16           | 
+| [Seamless](./sample/Seamless/README.md)                       | 语音识别          | Python     | FP32/FP16      | 
 | [BERT](./sample/BERT/README.md)                               | 语言模型          | C++/Python | FP32/FP16      | 
 | [ChatGLM2](./sample/ChatGLM2/README.md)                       | 语言模型          | C++/Python | FP16/INT8/INT4 | 
 | [Llama2](./sample/Llama2/README.md)                           | 语言模型          | C++/Python | FP16/INT8/INT4 |
@@ -63,7 +66,9 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [Qwen1_5](./sample/Qwen1_5/README.md)                         | 语言模型          | Python     | FP16/INT8/INT4 | 
 | [MiniCPM](./sample/MiniCPM/README.md)                         | 语言模型          | C++        | INT8/INT4      | 
 | [Baichuan2](./sample/Baichuan2/README.md)                     | 语言模型          | Python     | INT8/INT4      | 
+| [ChatGLM4](./sample/ChatGLM4/README.md)                       | 语言模型          | Python     | INT8/INT4      | 
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | 图像生成          | Python     | FP32/FP16      |
+| [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | 图像生成          | Python     | FP32/FP16      |
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | 多模态目标检测     | Python     | FP16           |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | 超分辨            | C++/Python | FP32/FP16/INT8 |
 | [P2PNet](./sample/P2PNet/README.md)                           | 人群计数          | C++/Python | FP32/FP16/INT8 |
@@ -79,6 +84,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.2.3  | 完善和修复文档、代码问题，sample模块新增例程StableDiffusionXL、ChatGLM4、Seamless、WeNet，tutorial模块新增mmap、video_encode例程。 |
 | 0.2.2  | 完善和修复文档、代码问题，部分例程补充CV186X支持，sample模块新增例程Whisper、Real-ESRGAN、SCRFD、P2PNet、MiniCPM、CLIP、SuperGlue、YOLOv5_fuse、YOLOv8_seg、YOLOv9_seg、Baichuan2等例程，tutorial模块新增avframe_ocv、ocv_avframe、bm1688_2core2task_yolov5例程。 |
 | 0.2.1  | 完善和修复文档、代码问题，部分例程补充CV186X支持，YOLOv5适配SG2042，sample模块新增例程GroundingDINO、Qwen1_5，StableDiffusionV1_5新支持多种分辨率，Qwen、Llama2、ChatGLM3添加web和多会话模式。tutorial模块新增blend和stitch例程 |
 | 0.2.0  | 完善和修复文档、代码问题，新增application和tutorial模块，新增例程ChatGLM3和Qwen，SAM添加web ui，BERT、ByteTrack、C3D适配BM1688，原YOLOv8更名为YOLOv8_det并且添加cpp后处理加速方法，优化常用例程的auto_test，更新TPU-MLIR安装方式为pip |
@@ -98,6 +104,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 SOPHON-DEMO主要依赖TPU-MLIR、TPU-NNTC、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SOPHON-SAIL，对于BM1684/BM1684X SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
+| 0.2.3  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.2  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v23.10.01|
 | 0.2.1  | >=1.7       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v23.10.01|
 | 0.2.0  | >=1.6       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v23.10.01|
@@ -116,6 +123,7 @@ SOPHON-DEMO主要依赖TPU-MLIR、TPU-NNTC、LIBSOPHON、SOPHON-FFMPEG、SOPHON-
 对于BM1688/CV186AH SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.2.3  | >=1.8       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.2  | >=1.8       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.6.0  |
 | 0.2.1  | >=1.7       | >=0.4.9 | >=1.5.0     | >=1.5.0     | >=3.8.0   | >=v1.5.0  |
 | 0.2.0  | >=1.6       | >=0.4.9 | >=1.5.0     | >=1.5.0     | >=3.7.0   | >=v1.5.0  |
