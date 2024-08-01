@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 model_dir=$(dirname $(readlink -f "$0"))
 pushd $model_dir
 
@@ -79,7 +80,7 @@ else
     out_model=$name'_'$mode'_1dev.bmodel'
 fi
 
-outdir=tmp/embedding
+outdir=${folder}/$mode"_"$num_device"dev"/embedding
 mkdir -p $outdir
 pushd $outdir
 
