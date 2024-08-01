@@ -1,0 +1,5 @@
+streamlit==1.31.0
+streamlit-chat==0.1.1
+torch==2.1.0
+transformers==4.42.4
+tiktoken>=0.7.0
