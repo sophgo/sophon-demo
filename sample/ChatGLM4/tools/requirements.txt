@@ -1,0 +1,15 @@
+streamlit==1.31.0
+streamlit-chat==0.1.1
+torch==2.3.0
+transformers==4.42.4
+huggingface-hub>=0.23.1
+sentencepiece>=0.2.0
+pydantic>=2.8.2
+timm>=1.0.7
+tiktoken>=0.7.0
+accelerate>=0.32.1
+sentence_transformers>=3.0.1
+gradio>=4.38.1 # web demo
+einops>=0.8.0
+sse-starlette>=2.1.2
+bitsandbytes>=0.42.0 # INT4 Loading
