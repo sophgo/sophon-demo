@@ -75,7 +75,7 @@ function judge_ret() {
 
   if test $PYTEST = "pytest"
   then
-    if [[ $3 != 0 ]];then
+    if [[ $3 != 0 ]] && [[ $3 != "" ]];then
       tail -n ${ECHO_LINES} $3 >> ${top_dir}auto_test_result.txt
     fi
     echo "########Debug Info End########" >> ${top_dir}auto_test_result.txt
