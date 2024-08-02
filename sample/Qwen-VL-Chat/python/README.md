@@ -13,7 +13,7 @@
 
 由于Qwen-vl需要上传/切换图片，python目录下提供了web_demo例程，具体情况如下：
 
-| 序号 |  Python例程       |            说明                 |
+| 序号  |  Python例程       |            说明                 |
 | ---- | ---------------- | ------------------------------ |
 |   1  | web_demo.py      | 使用SAIL推理，支持多会话的web demo |
 
@@ -27,6 +27,14 @@
 
 ```bash
 pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+您还需要安装sophon-sail，由于本例程需要的sophon-sail版本较新，可以用如下命令下载sophon-sail源码，并参考[sophon-sail python3接口编译安装指南](https://doc.sophgo.com/sdk-docs/v24.04.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#python3wheel)自己编译sophon-sail，该例程编译不包含bmcv,sophon-ffmpeg,sophon-opencv的SAIL的即可。
+
+```bash
+pip3 install dfss --upgrade
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen-VL/sophon-sail_20240715.zip
+unzip sophon-sail_20240715.zip
 ```
 
 ### 1.2 SoC平台
@@ -70,4 +78,5 @@ usage: config.ini [--bmodel BMODEL] [--token TOKEN] [--dev_id DEV_ID]
 streamlit run python/web_demo.py
 ```
 
-根据终端打印的url信息，在浏览器中访问相应的url地址，即可开始使用。
+根据终端打印的url信息，在浏览器中访问相应的url地址，即可开始使用，若出现红框Network issue警告，请参照[Qwen-VL-Chat FAQ](../README.md)的FAQ章节解决。
+`pics/example.png`提供了一张样例图像进行测试，所有图像输入ViT前会被Resize为(448, 448)，因此建议使用方形图像作为输入。

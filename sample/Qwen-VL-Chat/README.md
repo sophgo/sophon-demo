@@ -11,6 +11,7 @@
     - [4.2 自行编译模型](#42-自行编译模型)
   - [5. 例程测试](#5-例程测试)
   - [6. 程序性能测试](#6-程序性能测试)
+  - [6. FAQ](#6-faq)
 
 ## 1. 简介
 Qwen-VL是阿里云研发的大规模视觉语言模型（Large Vision Language Model, LVLM）。Qwen-VL可以以图像、文本、检测框作为输入，并以文本和检测框作为输出。Qwen-VL系列模型性能强大，具备多语言对话、多图交错对话等能力，Qwen-VL仓库可见[Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat)。
@@ -142,3 +143,18 @@ cd scripts
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+
+## 6. FAQ
+
+1. 使用`streamlit run python/web_demo.py`命令启动服务后，从浏览器进入web界面，若出现如下警告：
+   Network issue: Cannot load Streamlit fronted code.
+   此时不要上传图像，先`F5`刷新界面，再上传图像和问答；或者清理浏览器缓存，再重新进入界面进行上传图像和问答。
+
+2. soc模式下安装streamlit后，若启动服务时出现找不到streamlit命令，使用如下命令增加streamlit搜索路径：
+   ```bash
+   pip3 show streamlit
+   # 找到安装位置，例如： Location: /home/linaro/.local/lib/python3.8/site-packages
+
+   # 将路径添加到$PATH
+   export PATH=$PATH:/home/linaro/.local/lib/python3.8/site-packages
+   ```
