@@ -8,13 +8,15 @@ TARGET="BM1684X"
 MODE="pcie_test"
 TPUID=0
 ALL_PASS=1
- 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+CASE_MODE="fully"
+
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_test|soc_build] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -d TPUID] [-s SOCSDK] [-a SAIL_PATH]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_test|soc_build] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -d TPUID] [-s SOCSDK] [-a SAIL_PATH] [ -c fully|partly]" 1>&2 
 }
  
-while getopts ":m:t:s:a:d:" opt
+while getopts ":m:t:s:a:d:p:c:" opt
 do
   case $opt in 
     m)
@@ -23,15 +25,21 @@ do
     t)
       TARGET=${OPTARG}
       echo "target is $TARGET";;
-    d)
-      TPUID=${OPTARG}
-      echo "using tpu $TPUID";;
     s)
       SOCSDK=${OPTARG}
       echo "soc-sdk is $SOCSDK";;
     a)
       SAIL_PATH=${OPTARG}
       echo "sail_path is $SAIL_PATH";;
+    d)
+      TPUID=${OPTARG}
+      echo "using tpu $TPUID";;
+    p)
+      PYTEST=${OPTARG}
+      echo "generate logs for $PYTEST";;
+    c)
+      CASE_MODE=${OPTARG}
+      echo "case mode is $CASE_MODE";;
     ?)
       usage
       exit 1;;

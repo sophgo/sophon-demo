@@ -11,10 +11,11 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -38,6 +39,9 @@ do
     p)
       PYTEST=${OPTARG}
       echo "generate logs for $PYTEST";;
+    c)
+      CASE_MODE=${OPTARG}
+      echo "case mode is $CASE_MODE";;
     ?)
       usage
       exit 1;;

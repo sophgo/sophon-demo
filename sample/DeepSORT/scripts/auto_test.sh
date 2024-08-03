@@ -2,6 +2,7 @@
 scripts_dir=$(dirname $(readlink -f "$0"))
 top_dir=$scripts_dir/../
 pushd $top_dir
+
 #default config
 TARGET="BM1684X"
 MODE="pcie_test"
@@ -9,13 +10,14 @@ TPUID=0
 ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c CASE_MODE fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
 }
 
-while getopts ":m:t:s:d:p:c:" opt
+while getopts ":m:t:s:a:d:p:c:" opt
 do
   case $opt in 
     m)
@@ -27,6 +29,9 @@ do
     s)
       SOCSDK=${OPTARG}
       echo "soc-sdk is $SOCSDK";;
+    a)
+      SAIL_PATH=${OPTARG}
+      echo "sail_path is $SAIL_PATH";;
     d)
       TPUID=${OPTARG}
       echo "using tpu $TPUID";;
