@@ -279,6 +279,7 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
     return 0;
 }
 
+
 int YoloV8::ProcessPoseBox(YoloV8BoxVec& v, float* d, int n) {
     for (int i = 0; i < n; i++) {
         if (d[4 * n + i] < m_confThreshold) {

@@ -76,7 +76,7 @@ void DetectAndDump(YoloV8& yolov8, bm_handle_t h, vector<bm_image>& batch_imgs, 
 int main(int argc, char *argv[]){
     cout.setf(ios::fixed);
     // get params
-    const char *keys="{bmodel | ../../models/BM1684X/yolov8s_fp32_1b.bmodel | bmodel file path}"
+    const char *keys="{bmodel | ../../models/BM1684X/yolov8s-pose_fp32_1b.bmodel | bmodel file path}"
         "{dev_id | 0 | TPU device id}"
         "{conf_thresh | 0.25 | confidence threshold for filter boxes}"
         "{nms_thresh | 0.7 | iou threshold for nms}"

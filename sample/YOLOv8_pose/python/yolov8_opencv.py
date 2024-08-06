@@ -467,7 +467,7 @@ def main(args):
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--input', type=str, default='../datasets/test', help='path of input')
-    parser.add_argument('--bmodel', type=str, default='../models/BM1684X/yolov8s_fp32_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--bmodel', type=str, default='../models/BM1684X/yolov8s-pose_fp32_1b.bmodel', help='path of bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--conf_thresh', type=float, default=0.25, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.7, help='nms threshold')
