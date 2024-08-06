@@ -60,11 +60,17 @@ if [[ -z "$seq_length" ]]; then
 fi
 
 if [ "$name" = "qwen2-7b" ]; then
-  num_layers=27
+  num_layers=28
   hidden_size=3584
   mode="bf16"
   quantize_embedding="--quantize BF16"
   echo "Compile Qwen2-7B"
+elif [ "$name" = "qwen2-1.5b" ]; then
+  num_layers=28
+  hidden_size=1536
+  mode="bf16"
+  quantize_embedding="--quantize BF16"
+  echo "Compile Qwen2-1.5B"
 elif [ "$name" = "qwen1.5-7b" ]; then
   num_layers=31
   hidden_size=4096
@@ -223,6 +229,7 @@ for ((i=0; i<=$num_layers; i++)); do
         --quant_output \
         --chip bm1684x \
         $device_args \
+        --disable_layer_group \
         --model block_$i.bmodel
 
     model_transform.py \
