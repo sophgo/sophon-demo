@@ -70,9 +70,9 @@ chmod -R +x scripts/
 │   ├── yolov8s-pose_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
 │   └── yolov8s-pose_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=4
 │── torch
-│   └── yolov8s.pt        # pytorch模型
+│   └── yolov8s-pose.pt        # pytorch模型
 └── onnx
-    └── yolov8s.onnx      # 导出的动态onnx模型
+    └── yolov8s-pose.onnx      # 导出的动态onnx模型
 ```
 
 下载的数据包括：
@@ -135,7 +135,7 @@ chmod -R +x scripts/
 # 安装pycocotools，若已安装请跳过
 pip3 install pycocotools
 # 请根据实际情况修改程序路径和json文件路径
-python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000.json --result_json results/yolov8s_fp32_1b.bmodel_val2017_1000_opencv_python_result.json
+python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000.json --result_json results/yolov8s-pose_fp32_1b.bmodel_val2017_1000_opencv_python_result.json
 ```
 
 ### 6.2 测试结果

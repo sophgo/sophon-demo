@@ -49,15 +49,15 @@ usage: yolov8_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 ### 2.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-python3 python/yolov8_opencv.py --input datasets/test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.25 --nms_thresh 0.7
+python3 python/yolov8_opencv.py --input datasets/test --bmodel models/BM1684/yolov8s-pose_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.25 --nms_thresh 0.7
 ```
-测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov8s_fp32_1b.bmodel_test_opencv_python_result.json`下，同时会打印预测结果、推理时间等信息。
+测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov8s-pose_fp32_1b.bmodel_test_opencv_python_result.json`下，同时会打印预测结果、推理时间等信息。
 
 ![res](../pics/bus_python_opencv.jpg)
 
 ### 2.3 测试视频
 视频测试实例如下，支持对视频流进行测试。
 ```bash
-python3 python/yolov8_opencv.py --input datasets/dance_1080P.mp4 --bmodel models/BM1684/yolov8s_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.25 --nms_thresh 0.7
+python3 python/yolov8_opencv.py --input datasets/dance_1080P.mp4 --bmodel models/BM1684/yolov8s-pose_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.25 --nms_thresh 0.7
 ```
 测试结束后，`yolov8_opencv.py`会将预测的结果画在`results/dance_1080P.avi`中，同时会打印预测结果、推理时间等信息。`yolov8_bmcv.py`会将预测结果画在图片上并保存在`results/images`中。
