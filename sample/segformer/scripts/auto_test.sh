@@ -11,10 +11,11 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -43,6 +44,68 @@ do
       exit 1;;
   esac
 done
+
+
+if [ -f "tools/benchmark.txt" ]; then
+  rm tools/benchmark.txt
+fi
+if [ -f "scripts/acc.txt" ]; then
+  rm scripts/acc.txt
+fi
+echo "|   测试平台    |      测试程序       |                     测试模型                   |   mIoU  |   mAcc  |   aAcc  |" >> scripts/acc.txt
+PLATFORM=$TARGET
+if test $MODE = "soc_test"; then
+  if test $TARGET = "BM1684X"; then
+    PLATFORM="SE7-32"
+  elif test $TARGET = "BM1684"; then
+    PLATFORM="SE5-16"
+  elif test $TARGET = "BM1688"; then
+    PLATFORM="SE9-16"
+  elif test $TARGET = "CV186X"; then
+    PLATFORM="SE9-8"
+  else
+    echo "Unknown TARGET type: $TARGET"
+  fi
+fi
+
+function bmrt_test_case(){
+   calculate_time_log=$(bmrt_test --bmodel $1 --devid $TPUID | grep "calculate" 2>&1)
+  
+   readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 1000}')
+   
+   for time in "${calculate_times[@]}"
+   do
+     printf "| %-35s| % 15s |\n" "$1" "$time"      
+   done
+}
+function bmrt_test_benchmark(){
+    pushd models
+    printf "| %-60s| % 15s |\n" "测试模型" "calculate time(ms)"            
+    printf "| %-60s| % 15s |\n" "-------------------" "--------------"   
+   
+    if test $TARGET = "BM1684"; then
+      bmrt_test_case BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
+
+    elif test $TARGET = "BM1684X"; then
+      bmrt_test_case BM1684X/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
+      bmrt_test_case BM1684X/segformer.b0.512x1024.city.160k_fp16_1b.bmodel
+
+    elif test $TARGET = "BM1688"; then
+      bmrt_test_case BM1688/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
+      bmrt_test_case BM1688/segformer.b0.512x1024.city.160k_fp16_1b.bmodel
+     
+      bmrt_test_case BM1688/segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel
+      bmrt_test_case BM1688/segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel
+
+    elif test $TARGET = "CV186X"; then
+      bmrt_test_case CV186X/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
+      bmrt_test_case CV186X/segformer.b0.512x1024.city.160k_fp16_1b.bmodel
+
+    fi
+  
+    popd
+}
+
 
 
 if test $PYTEST = "pytest"
@@ -146,17 +209,6 @@ function compare_res(){
     fi
 }
 
-function test_cpp()
-{
-  pushd cpp/segformer_$2
-  echo -e "\n########################\nCase Start: test cpp\n########################"
-  if [ ! -d log ];then
-    mkdir log
-  fi
-  ./segformer_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log
-  judge_ret $? "./segformer_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID" log/$1_$2_$3_cpp_test.log
-  popd
-}
 
 
 function eval_cpp()
@@ -169,9 +221,17 @@ function eval_cpp()
   ./segformer_$2.$1 --input=../../datasets/cityscapes --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
   judge_ret $? "./segformer_$2.$1 --input=../../datasets/cityscapes --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
   tail -n 15 log/$1_$2_$3_debug.log
+
+  
+
+  echo "==================="
+  echo "Comparing statis..."
+  python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=segformer_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3
+  judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=resnet_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3"
+  echo "==================="
   
   popd
-  
+
   echo "Evaluating..."
   res=$(python3 tools/segformer_eval.py --result_json cpp/segformer_$2/results/$3_cityscapes_$2_cpp_result.json 2>&1 | tee cpp/segformer_$2/log/$1_$2_$3_eval.log)
   echo -e "$res"
@@ -180,19 +240,17 @@ function eval_cpp()
   acc=${array[1]}
   compare_res $acc $4
   judge_ret $? "$3_cityscapes_$2_cpp_result: Precision compare!" cpp/segformer_$2/log/$1_$2_$3_eval.log
+
+  ap0=$(echo -e "$res"| grep "global" |  awk -F "|" '{printf "%.2f", $3}')
+  ap1=$(echo -e "$res"| grep "global" |  awk -F "|" '{printf "%.2f", $4}')
+  ap2=$(echo -e "$res"| grep "global" |  awk -F "|" '{printf "%.2f", $5}')
+
+  printf "| %-12s | %-18s | %-46s | %8.2f | %8.2f | %8.2f |\n" "$PLATFORM" "segformer_$2.$1" "$3" "$(printf "%.2f" $ap0)" "$(printf "%.2f" $ap1)" "$(printf "%.2f" $ap2)" >> scripts/acc.txt
   
   echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 
 
-function test_python()
-{
-  if [ ! -d python/log ];then
-    mkdir python/log
-  fi
-  python3 python/segformer_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID > python/log/$1_$2_python_test.log
-  judge_ret $? "python3 python/segformer_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID" log/$1_$2_python_test.log
-}
 
 function eval_python()
 {  
@@ -204,6 +262,12 @@ function eval_python()
   judge_ret $? "python3 python/segformer_$1.py --input datasets/cityscapes --bmodel models/$TARGET/$2 --dev_id $TPUID  > python/log/$1_$2_debug.log 2>&1" python/log/$1_$2_debug.log
   tail -n 20 python/log/$1_$2_debug.log
   
+  echo "==================="
+  echo "Comparing statis..."
+  python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=segformer_$1.py --language=python --input=python/log/$1_$2_debug.log --bmodel=$2
+  judge_ret $? "python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=resnet_$1.py --language=python --input=python/log/$1_$2_debug.log  --bmodel=$2"
+  echo "==================="
+
   echo "Evaluating..."
   res=$(python3 tools/segformer_eval.py --result_json python/results/$2_cityscapes_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
   echo -e "$res"
@@ -211,6 +275,13 @@ function eval_python()
   acc=${array[1]}
   compare_res $acc $3
   judge_ret $? "$2_cityscapes_small_$1_python_result: Precision compare!" python/log/$1_$2_eval.log
+  
+  ap0=$(echo -e "$res"| grep "global" |  awk -F "|" '{printf "%.2f", $3}')
+  ap1=$(echo -e "$res"| grep "global" |  awk -F "|" '{printf "%.2f", $4}')
+  ap2=$(echo -e "$res"| grep "global" |  awk -F "|" '{printf "%.2f", $5}')
+
+  printf "| %-12s | %-18s | %-46s | %8.2f | %8.2f | %8.2f |\n" "$PLATFORM" "segformer_$1.py" "$2" "$(printf "%.2f" $ap0)" "$(printf "%.2f" $ap1)" "$(printf "%.2f" $ap2)" >> scripts/acc.txt
+
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
@@ -227,44 +298,22 @@ then
   if test $TARGET = "BM1684"
   then
     
-    test_python opencv segformer.b0.512x1024.city.160k_fp32_1b.bmodel datasets/cityscapes
     eval_python opencv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-    test_python bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel datasets/cityscapes
     eval_python bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-    test_cpp pcie bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel ../../datasets/cityscapes
     eval_cpp pcie bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-    test_cpp pcie sail segformer.b0.512x1024.city.160k_fp32_1b.bmodel ../../datasets/cityscapes
     eval_cpp pcie sail segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
 
   elif test $TARGET = "BM1684X"
   then 
-    test_python opencv segformer.b0.512x1024.city.160k_fp32_1b.bmodel datasets/cityscapes
+ 
     eval_python opencv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-
-    test_python opencv segformer.b0.512x1024.city.160k_fp16_1b.bmodel datasets/cityscapes
     eval_python opencv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
-
-    test_python bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel datasets/cityscapes
     eval_python bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-    test_python bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel datasets/cityscapes
     eval_python bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
 
-    test_cpp pcie bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel ../../datasets/cityscapes
     eval_cpp pcie bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-    
-    test_cpp pcie bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel ../../datasets/cityscapes
-    eval_cpp bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
-
-    test_cpp pcie sail segformer.b0.512x1024.city.160k_fp32_1b.bmodel ../../datasets/cityscapes
+    eval_cpp pcie bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
     eval_cpp pcie sail segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-    test_cpp pcie sail segformer.b0.512x1024.city.160k_fp16_1b.bmodel ../../datasets/cityscapes
     eval_cpp pcie sail segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
 
   fi
@@ -277,45 +326,70 @@ then
   download
   if test $TARGET = "BM1684"
   then
-    test_python opencv segformer.b0.512x1024.city.160k_fp32_1b.bmodel datasets/cityscapes
+
     eval_python opencv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-    test_python bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel datasets/cityscapes
     eval_python bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-    test_cpp soc bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel ../../datasets/cityscapes
     eval_cpp soc bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-    
-    test_cpp soc sail segformer.b0.512x1024.city.160k_fp32_1b.bmodel ../../datasets/cityscapes
     eval_cpp soc sail segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
+  
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv segformer.b0.512x1024.city.160k_fp32_1b.bmodel datasets/cityscapes
+
     eval_python opencv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-    test_python opencv segformer.b0.512x1024.city.160k_fp16_1b.bmodel datasets/cityscapes
     eval_python opencv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
-
-    test_python bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel datasets/cityscapes
     eval_python bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
+    eval_python bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+    eval_cpp soc bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
+    eval_cpp soc bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+    eval_cpp soc sail segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
+    eval_cpp soc sail segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+  
+  elif test $TARGET = "BM1688"
+  then
 
-    test_python bmcv segformer.b0.512x1024.city.160k_fp316_1b.bmodel datasets/cityscapes
+    eval_python opencv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
+    eval_python opencv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+    eval_python bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
+    eval_python bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+    eval_cpp soc bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
+    eval_cpp soc bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+    eval_cpp soc sail segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
+    eval_cpp soc sail segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+  
+    eval_python opencv segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel 0.945
+    eval_python opencv segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel 0.945
+    eval_python bmcv segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel 0.945
+    eval_python bmcv segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel 0.945
+    eval_cpp soc bmcv segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel 0.945
+    eval_cpp soc bmcv segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel 0.945
+    eval_cpp soc sail segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel 0.945
+    eval_cpp soc sail segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel 0.945
+
+  elif test $TARGET = "CV186X"
+  then
+    
+    eval_python opencv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
+    eval_python opencv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+    eval_python bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
     eval_python bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
 
-    test_cpp soc bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel ../../datasets/cityscapes
-    eval_cpp soc bmcv segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-    test_cpp soc bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel ../../datasets/cityscapes
-    eval_cpp soc bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
-
-    test_cpp soc sail segformer.b0.512x1024.city.160k_fp32_1b.bmodel ../../datasets/cityscapes
     eval_cpp soc sail segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
-
-    test_cpp soc sail segformer.b0.512x1024.city.160k_fp16_1b.bmodel ../../datasets/cityscapes
     eval_cpp soc sail segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+    
+
   fi
 fi
+
+
+if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
+  echo "--------segformer acc----------"
+  cat scripts/acc.txt
+  echo "--------bmrt_test performance-----------"
+  bmrt_test_benchmark
+  echo "--------segformer performance-----------"
+  cat tools/benchmark.txt
+fi
+
 
 if [ $ALL_PASS -eq 0 ]
 then

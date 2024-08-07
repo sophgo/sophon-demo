@@ -377,7 +377,7 @@ def main(args):
                     frame_list.append(frame)
 
                 output, seg= segformer(frame_list)
-                for i, in range(record_size):
+                for i in range(record_size):
                     save_name = os.path.join(video_output_dir, str(frame_num - len(frame_list) + i + 1))
                     cv2.imwrite(save_name+".jpg",seg[i])
                     print("frame:"+str(frame_num)+" success !!!")

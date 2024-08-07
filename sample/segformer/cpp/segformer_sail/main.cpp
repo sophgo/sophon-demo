@@ -135,13 +135,15 @@ int main(int argc, char *argv[])
             sail::BMImage bmimg;
             ts->save("decode time");
             sail::Decoder decoder((const string)img_file, true, dev_id);
-            ts->save("decode time");
+            
             int ret = decoder.read(handle, bmimg);
             if (ret != 0)
             {
                 cout << "read failed" << endl;
             }
 
+            ts->save("decode time");
+            
             size_t index = img_file.rfind("/");
             string img_name = img_file.substr(index + 1);
             batch_imgs.push_back(std::move(bmimg));

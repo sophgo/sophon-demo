@@ -28,14 +28,6 @@ function gen_mlir(){
 }
 
 
-function gen_cali_table()
-{
-    run_calibration.py segformer.b0.512x1024.city.160k_$1b.mlir  \
-        --dataset ../datasets/cityscapes_small/ \
-        --input_num 128 \
-        -o yolov5s_cali_table
-}
-
 
 function gen_fp32bmodel(){
     model_deploy.py \
@@ -44,6 +36,17 @@ function gen_fp32bmodel(){
         --chip $target \
         --model segformer.b0.512x1024.city.160k_fp32_$1b.bmodel
     mv segformer.b0.512x1024.city.160k_fp32_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir segformer.b0.512x1024.city.160k_$1b.mlir \
+            --quantize F32 \
+            --chip $target \
+            --model segformer.b0.512x1024.city.160k_fp32_$1b_2core.bmodel \
+            --num_core 2
+ 
+        mv segformer.b0.512x1024.city.160k_fp32_$1b_2core.bmodel $outdir/
+    fi
+
 }
 
 # 从当前目录进入modol_dir

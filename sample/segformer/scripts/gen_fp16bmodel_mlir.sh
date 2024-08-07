@@ -36,6 +36,16 @@ function gen_fp16bmodel()
         --model segformer.b0.512x1024.city.160k_fp16_$1b.bmodel
 
     mv segformer.b0.512x1024.city.160k_fp16_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir segformer.b0.512x1024.city.160k_$1b.mlir \
+            --quantize F16 \
+            --chip $target \
+            --model segformer.b0.512x1024.city.160k_fp16_$1b_2core.bmodel \
+            --num_core 2
+
+        mv segformer.b0.512x1024.city.160k_fp16_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir
