@@ -26,6 +26,7 @@ from torch import Tensor
 import numpy as np
 import torch
 import sophon.sail as sail
+from fairseq2.nn.position_encoder import SinusoidalPositionEncoder
 
 
 class KVCache:
@@ -63,6 +64,8 @@ class UnitYX2TModel(EncoderDecoderModel):
         target_vocab_info: VocabularyInfo,
     ) -> None:
         self.handle = sail.Handle(dev_id)
+        self.dev_type = self.handle.get_target()
+        assert self.dev_type in ['BM1684X', 'BM1688'], "only support BM1684X and BM1688 devices"
         model_dim = -1
         self.layer_num = 24
         self.seq_len = 0
@@ -87,6 +90,8 @@ class UnitYX2TModel(EncoderDecoderModel):
             output_dtype = self.encoder_frontend.get_output_dtype(self.encoder_frontend_graph_name, output_name)
             output = sail.Tensor(self.handle, output_shape, output_dtype, True, True)
             self.encoder_frontend_output_tensors[output_name] = output
+        input_shape = self.encoder_frontend.get_input_shape(self.encoder_frontend_graph_name, self.encoder_frontend_input_names[0])
+        self.max_input_len = input_shape[1]
 
         self.max_encoder_input_length = 576
         self.max_decoder_output_length = 73
@@ -159,6 +164,9 @@ class UnitYX2TModel(EncoderDecoderModel):
         for input_name in self.final_proj_input_names:
             self.final_proj_input_shapes[input_name] = self.final_proj.get_input_shape(self.final_proj_graph_name, input_name)
 
+        if self.dev_type == "BM1688":
+            self.pos = SinusoidalPositionEncoder(1024, 4096, _legacy_pad_idx=1, device="cpu")
+
         kv_num = self.layer_num * 2
         for i in range(kv_num):
             self.kvcache[i] = np.zeros((self.beam_size, 16, 32, 64), dtype=np.float32) # KVCache(5, 64)
@@ -173,9 +181,14 @@ class UnitYX2TModel(EncoderDecoderModel):
             offset = -1
         else:
             offset = 0
+        if self.dev_type == "BM1688":
+            seqs_len = seqs.shape[1]
+            if seqs_len != self.max_input_len:
+                seqs = torch.cat((seqs, torch.zeros((seqs.shape[0], self.max_input_len - seqs_len, seqs.shape[2]), dtype=seqs.dtype)), dim=1)
         seqs = sail.Tensor(self.handle, seqs.numpy(), True, True)
         seqs.sync_s2d()
-        seqs_len = seqs.shape()[1]
+        if self.dev_type == "BM1684X":
+            seqs_len = seqs.shape()[1]
         input_seqs = seqs
         input_data = {self.encoder_frontend_input_names[0]: input_seqs}
         encoder_frontend_input_shapes = {}
@@ -264,7 +277,11 @@ class UnitYX2TModel(EncoderDecoderModel):
             input_seqs = np.concatenate((input_seqs, np.zeros((self.beam_size-input_seqs.shape[0], 1), dtype=np.int32)), axis=0)
         seqs_tensor = sail.Tensor(self.handle, input_seqs, True, True)
         seqs_tensor.sync_s2d()
-        cur_step = sail.Tensor(self.handle, np.array([state_bag.step_nr]).astype(np.int32), True, True)
+        if self.dev_type == "BM1688":
+            cur_step = self.pos.freqs[state_bag.step_nr : state_bag.step_nr + input_seqs.shape[1]].unsqueeze(0)
+            cur_step = sail.Tensor(self.handle, cur_step.cpu().numpy(), True, True)
+        elif self.dev_type == "BM1684X":
+            cur_step = sail.Tensor(self.handle, np.array([state_bag.step_nr]).astype(np.int32), True, True)
         cur_step.sync_s2d()
         input_data = {self.decoder_frontend_input_names[0]: seqs_tensor, 
                     self.decoder_frontend_input_names[1]: cur_step}
