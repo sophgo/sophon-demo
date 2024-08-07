@@ -12,16 +12,17 @@
 - [7. 性能测试](#7-性能测试)
 
 ## 1. 简介
-Seamless 是一个开源的深度学习语音识别模型，由 Meta 开发，它能够实现实时、多语言的语音识别、翻译，并支持跨多种环境和设备的灵活部署。本例程对[Seamless官方开源仓库](https://github.com/facebookresearch/seamless_communication)中的SeamlessStreaming（流式识别）和M4t（离线识别）算法进行移植，使之能在SOPHON BM1684X上进行推理。同时该例程也参考了[FunASR官方开源仓库](https://github.com/modelscope/FunASR)搭建推理的websocket服务端和客户端。
+Seamless 是一个开源的深度学习语音识别模型，由 Meta 开发，它能够实现实时、多语言的语音识别、翻译，并支持跨多种环境和设备的灵活部署。本例程对[Seamless官方开源仓库](https://github.com/facebookresearch/seamless_communication)中的SeamlessStreaming（流式识别）和M4t（离线识别）算法进行移植，使之能在SOPHON BM1684X和BM1688上进行推理。同时该例程也参考了[FunASR官方开源仓库](https://github.com/modelscope/FunASR)搭建推理的websocket服务端和客户端。
 
 ## 2. 特性
 * 支持BM1684X(x86 PCIe, SoC)
 * 支持FP16(BM1684X)和FP32(BM1684X)模型编译和推理
+* 支持FP16(BM1688)和FP32(BM1688)模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持websocket服务客户端高性能推理
 
 ## 3. 运行环境准备
-在PCIe上无需修改内存，以下为SoC模式相关：
+在PCIe和BM1688 SOC上无需修改内存，以下为BM1684X SoC模式相关：
 对于1684X系列设备（如SE7/SM7），都可以通过这种方式完成环境准备，使得满足Seamless运行条件。首先，在1684x SoC环境上，参考如下命令修改设备内存。
 ```bash
 cd /data/
@@ -41,7 +42,7 @@ sudo reboot
 
 ## 4. 模型编译
 ### 4.1 准备原始模型
-该模型目前只支持在1684X上运行，已提供原始导出的onnx模型，onnx模型导出方法可参考[Seamless(S2T)_Export_ONNX.md](docs/Seamless(S2T)_Export_ONNX.md)
+该模型目前只支持在BM1684X和BM1688上运行，已提供原始导出的onnx模型，onnx模型导出方法可参考[Seamless(S2T)_Export_ONNX.md](docs/Seamless(S2T)_Export_ONNX.md)
 
 ​本例程在`scripts`目录下提供了相关模型和数据的下载脚本
 ```bash
@@ -62,14 +63,16 @@ chmod -R +x scripts/
 ├── onnx
     ├── m4t_s2t_onnx
     |   ├── m4t_s2t_decoder                                                                          # M4t(s2t任务) Decoder模块，onnx模型目录
-    |   ├── m4t_s2t_decoder_frontend                                                                 # M4t(s2t任务) Decoder前端模块，onnx模型目录
+    |   ├── m4t_s2t_decoder_frontend                                                                 # M4t(s2t任务) Decoder前端模块，用于BM1684X的onnx模型目录
+    |   ├── m4t_s2t_decoder_frontend_bm1688                                                          # M4t(s2t任务) Decoder前端模块，用于BM1688的onnx模型目录
     |   ├── m4t_s2t_encoder                                                                          # M4t(s2t任务) Encoder模块，onnx模型目录
     |   ├── m4t_s2t_encoder_frontend                                                                 # M4t(s2t任务) Encoder前端模块，onnx模型目录
     |   └── m4t_s2t_final_proj                                                                       # M4t(s2t任务) Decoder线性模块，onnx模型目录
     └── streaming_s2t_onnx
         ├── streaming_s2t_decoder_step_bigger_than_1                                                 # SeamlessStreaming(s2t任务) Decoder模块，onnx模型目录
         ├── streaming_s2t_decoder_step_equal_1                                                       # SeamlessStreaming(s2t任务) Decoder模块，onnx模型目录
-        ├── streaming_s2t_decoder_frontend                                                           # SeamlessStreaming(s2t任务) Decoder前端模块，onnx模型目录
+        ├── streaming_s2t_decoder_frontend                                                           # SeamlessStreaming(s2t任务) Decoder前端模块，用于BM1684X的onnx模型目录
+        ├── streaming_s2t_decoder_frontend_bm1688                                                    # SeamlessStreaming(s2t任务) Decoder前端模块，用于BM1688的onnx模型目录
         ├── streaming_s2t_encoder                                                                    # SeamlessStreaming(s2t任务) Encoder模块，onnx模型目录
         ├── streaming_s2t_encoder_frontend                                                           # SeamlessStreaming(s2t任务) Encoder前端模块，onnx模型目录
         └── streaming_s2t_final_proj                                                                 # SeamlessStreaming(s2t任务) Decoder线性模块，onnx模型目录
@@ -78,11 +81,11 @@ chmod -R +x scripts/
 ### 4.2 编译环境搭建
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，需要使用TPU-MLIR编译BModel。
 
-模型编译前需要安装TPU-MLIR，需要参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中1、2步骤，执行如下命令下载mlir包，并在docker容器中启动。
+模型编译前需要安装TPU-MLIR，需要参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中1、2、3(3)步骤，执行如下命令下载mlir包，并在docker容器中启动。
 ```bash
-python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/tpu-mlir_v1.8.beta.0-157-g261716f91-20240621.tar.gz
-tar -zxvf tpu-mlir_v1.8.beta.0-157-g261716f91-20240621.tar.gz
-source tpu-mlir_v1.8.beta.0-157-g261716f91-20240621/envsetup.sh
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/tpu-mlir_v1.10.beta.0-3-gdf397407d-20240805.tar.gz
+tar -zxvf tpu-mlir_v1.10.beta.0-3-gdf397407d-20240805.tar.gz
+source tpu-mlir_v1.10.beta.0-3-gdf397407d-20240805/envsetup.sh
 ```
 
 ### 4.3 编译命令执行
@@ -94,10 +97,13 @@ source tpu-mlir_v1.8.beta.0-157-g261716f91-20240621/envsetup.sh
 
 ```bash
 cd ./scripts
-./gen_streaming_s2t_bmodel.sh
+# 编译BM1684X上的模型
+./gen_streaming_s2t_bmodel.sh bm1684x
+# 编译BM1688上的模型
+./gen_streaming_s2t_bmodel.sh bm1688
 ```
 
-​执行上述命令会在`models/BM1684X`文件夹下生成`seamless_streaming_encoder_fp16_s2t.bmodel `等文件，即转换好的BModel。
+​执行上述命令会在`models/BM1684X`或`models/BM1688`文件夹下生成`seamless_streaming_encoder_fp16_s2t.bmodel `等文件，即转换好的BModel。
 
 - 生成M4t BModel
 
@@ -105,10 +111,13 @@ cd ./scripts
 
 ```bash
 cd ./scripts
-./gen_m4t_s2t_bmodel.sh
+# 编译BM1684X上的模型
+./gen_m4t_s2t_bmodel.sh bm1684x
+# 编译BM1688上的模型
+./gen_m4t_s2t_bmodel.sh bm1688
 ```
 
-​执行上述命令会在`models/BM1684X`文件夹下生成`m4t_decoder_beam_size_fp16_s2t.bmodel`等文件，即转换好的BModel。
+​执行上述命令会在`models/BM1684X`或`models/BM1688`文件夹下生成`m4t_decoder_beam_size_fp16_s2t.bmodel`等文件，即转换好的BModel。
 
 ## 5. 例程测试
 
@@ -138,6 +147,10 @@ cat online_wer | grep "Overall"
 | ------------ | ------------------------------------ | ----------------------------------------------------- | ------ |
 |   SE7-32     | pipeline_seamless_streaming_s2t.py   |     SeamlessStreaming(s2t任务)模型                     | 18.73% |
 |   SE7-32     | pipeline_m4t_s2t.py                  |     M4t(s2t任务)模型                                   | 2.10%  |
+|   SE9-16     | pipeline_seamless_streaming_s2t.py   |     SeamlessStreaming(s2t任务)模型                     | 18.95% |
+|   SE9-16     | pipeline_seamless_streaming_s2t.py   |     SeamlessStreaming(s2t任务)2core模型                | 18.80% |
+|   SE9-16     | pipeline_m4t_s2t.py                  |     M4t(s2t任务)模型                                   | 2.32%  |
+|   SE9-16     | pipeline_m4t_s2t.py                  |     M4t(s2t任务)2core模型                              | 2.10%  |
 
 > **测试说明**：
 > 1. 在使用的模型相同的情况下，wer在不同的测试平台上是相同的。
@@ -149,6 +162,10 @@ cat online_wer | grep "Overall"
 | -----------  | ------------------------------------- | -----------------------------------| ---------------- | ------------------- | ---------------- | ------------------ | 
 |   SE7-32     | pipeline_seamless_streaming_s2t.py    |   SeamlessStreaming(s2t任务)模型    | 26.15            |  387.62             |  28.36           |  340.70            |           
 |   SE7-32     | pipeline_m4t_s2t.py                   |   M4t(s2t任务)模型                  | 17.30            |  358.25             |  21.78           |  309.99            |
+|   SE9-16     | pipeline_seamless_streaming_s2t.py    |   SeamlessStreaming(s2t任务)模型    | 27.28            |  851.11             |  109.34          |  720.05            |
+|   SE9-16     | pipeline_seamless_streaming_s2t.py    | SeamlessStreaming(s2t任务)2core模型 | 27.64            |  947.19             |  143.10          |  825.02            |               
+|   SE9-16     | pipeline_m4t_s2t.py                   |   M4t(s2t任务)模型                  | 13.98            |  956.21             |  82.21           |  853.54            |      
+|   SE9-16     | pipeline_m4t_s2t.py                   |   M4t(s2t任务)2core模型             | 8.18             |  785.10             |  52.65           |  720.89            |
 
 > **测试说明**：
 > 1. 该性能使用datasets/test/demo.wav音频进行测试，执行ASR+翻译为中文任务，计算后得出平均每秒音频所需推理时间。
@@ -156,3 +173,4 @@ cat online_wer | grep "Overall"
 > 3. 性能测试结果具有一定的波动性，实测结果与该表结果有误差属正常现象，建议多次测试取平均值。
 > 4. BM1684X SoC的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz。
 > 5. 运行时均采用默认参数。
+> 6. `encode time`和`decode time`未包含全流程中涉及的cpu操作，例如beam search，而`Inference time`包含。

@@ -30,6 +30,7 @@ from fairseq2.nn.padding import get_seqs_and_padding_mask
 from fairseq2.data.text import SentencePieceEncoder, SentencePieceTokenizerBase
 from fairseq2.data.typing import PathLike
 from fairseq2.typing import Device, finaloverride
+from fairseq2.nn.position_encoder import SinusoidalPositionEncoder
 logging.basicConfig(level=logging.INFO)
 # sail.set_print_flag(1)
 
@@ -81,7 +82,12 @@ class seamless_stream_s2tt:
         self.chunk_duration_ms = args.chunk_duration_ms # NOTE: original code: 320
         self.tgt_lang = args.tgt_lang
         self.handle = sail.Handle(args.dev_id)
+        self.dev_type = self.handle.get_target()
+        assert self.dev_type in ['BM1684X', 'BM1688'], "only support BM1684X and BM1688 devices"
         self.use_slience_remover = args.use_slience_remover
+
+        if self.dev_type == "BM1688":
+            self.pos = SinusoidalPositionEncoder(1024, 4096, _legacy_pad_idx=1, device="cpu")
 
         # NOTE: the value effect the final result, meaning the number of segments, the value * self.chunk_duration_ms * 16 + self.previous_residual_samples don't exceed self.unity_max_encoder_frontend_input_length. 
         # the longer the value is, the richer the context is, the higher the precision might be, the more the compute cost is 
@@ -132,6 +138,8 @@ class seamless_stream_s2tt:
             output_dtype = self.wav2Vec2Frontend_net.get_output_dtype(self.wav2Vec2Frontend_graph_name, output_name)
             output = sail.Tensor(self.handle, output_shape, output_dtype, True, True)
             self.wav2Vec2Frontend_output_tensors[output_name] = output
+        input_shape = self.wav2Vec2Frontend_net.get_input_shape(self.wav2Vec2Frontend_graph_name, self.wav2Vec2Frontend_input_names[0])
+        self.max_input_len = input_shape[1]
         print('Wav2Vec2Frontend model loaded')
 
         # UnitYEncoderAdaptor
@@ -408,6 +416,10 @@ class seamless_stream_s2tt:
                 raise ValueError('error value: inps.shape[1] > self.unity_max_encoder_frontend_input_length')
             if inps.shape[1] % 2 != 0:                
                 inps = np.concatenate((inps, np.zeros((inps.shape[0], 1, inps.shape[2]), dtype=inps.dtype)), axis=1)
+            if self.dev_type == "BM1688":
+                seqs_len = inps.shape[1]
+                if seqs_len != self.max_input_len:
+                    inps = np.concatenate((inps, np.zeros((inps.shape[0], self.max_input_len - seqs_len, inps.shape[2]), dtype=inps.dtype)), axis=1)
             inps = sail.Tensor(self.handle, inps, True, True)
             inps.sync_s2d()
             
@@ -448,7 +460,11 @@ class seamless_stream_s2tt:
         assert cur_step >= 0
         seqs_tensor = sail.Tensor(self.handle, np.array([seqs + [0] * (self.monotonic_max_input_length - len(seqs))]).astype(np.int32), True, True)
         seqs_tensor.sync_s2d()
-        cur_step_tensor = sail.Tensor(self.handle, np.array([cur_step]).astype(np.int32), True, True)
+        if self.dev_type == "BM1688":
+            cur_step_tensor = self.pos.freqs[cur_step : cur_step + seqs_tensor.shape()[1]].unsqueeze(0)
+            cur_step_tensor = sail.Tensor(self.handle, cur_step_tensor.cpu().numpy(), True, True)
+        elif self.dev_type == "BM1684X":
+            cur_step_tensor = sail.Tensor(self.handle, np.array([cur_step]).astype(np.int32), True, True)
         cur_step_tensor.sync_s2d()
         input_data = {self.monotonic_text_decoder_frontend_input_names[0]: seqs_tensor, 
                     self.monotonic_text_decoder_frontend_input_names[1]: cur_step_tensor}

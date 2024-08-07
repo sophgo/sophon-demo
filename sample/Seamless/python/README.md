@@ -79,17 +79,21 @@ pip3 install -r requirements.txt
 pip3 install dfss --upgrade
 # SE7和SE5使用如下whl安装包
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/sophon_arm-3.8.0-py3-none-any.whl #arm soc, py38
+# SE9使用如下whl安装包
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/bm1688/sophon_arm-3.8.0-py3-none-any.whl
 pip3 install sophon_arm-3.8.0-py3-none-any.whl --force-reinstall
 ```
 如果您需要其他版本的sophon-sail，可以参考上一小节，下载源码自己编译。
 
 ## 2. 准备模型与数据
-该模型目前只支持在1684X上运行，已提供编译好的bmodel和测试数据，​同时，您也可以自行准备用于测试的数据集，以及重新编译模型，可参考[模型编译](../../README.md#4-模型编译)。
+该模型目前只支持在BM1684X和BM1688上运行，已提供编译好的bmodel和测试数据，​同时，您也可以自行准备用于测试的数据集，以及重新编译模型，可参考[模型编译](../../README.md#4-模型编译)。
 
 ​本例程在`scripts`目录下提供了相关模型和数据的下载脚本
 ```bash
 └── scripts
-    ├── download_bmodel.sh                                                   # 通过该脚本下载SeamlessStreaming(s2t任务)和M4t(s2t任务)的BModel
+    ├── download_bm1684x_bmodel.sh                                           # 通过该脚本下载BM1684X平台的SeamlessStreaming(s2t任务)和M4t(s2t任务)的BModel
+    ├── download_bm1688_1core_bmodel.sh                                      # 通过该脚本下载BM1688平台的SeamlessStreaming(s2t任务)和M4t(s2t任务)的单core BModel
+    ├── download_bm1688_2core_bmodel.sh                                      # 通过该脚本下载BM1688平台的SeamlessStreaming(s2t任务)和M4t(s2t任务)的2core BModel
     └── download_datasets.sh                                                 # 通过该脚本下载测试数据
 ```
 
@@ -97,14 +101,20 @@ pip3 install sophon_arm-3.8.0-py3-none-any.whl --force-reinstall
 # 安装unzip，若已安装请跳过
 sudo apt install unzip
 chmod -R +x scripts/
-./scripts/download_bmodel.sh
+# 若使用BM1684X平台模型
+./scripts/download_bm1684x_bmodel.sh
+# 若使用BM1688平台单core模型
+./scripts/download_bm1688_1core_bmodel.sh
+# 若使用BM1688平台2core模型
+./scripts/download_bm1688_2core_bmodel.sh
+# 下载测试数据
 ./scripts/download_datasets.sh
 ```
 
 下载的模型包括：
 ```
 ./models
-├── BM1684X
+├── BM1684X或BM1688
 |   ├── m4t_encoder_frontend_fp16_s2t.bmodel                                                         # M4t(s2t任务) Encoder的前端模块，fp16 BModel
 |   ├── m4t_decoder_frontend_beam_size_fp16_s2t.bmodel                                               # M4t(s2t任务) Decoder的前端模块，fp16 BModel
 |   ├── m4t_decoder_final_proj_beam_size_fp16_s2t.bmodel                                             # M4t(s2t任务) Decoder的线性模块，fp16 BModel
@@ -118,6 +128,22 @@ chmod -R +x scripts/
 |   └── seamless_streaming_decoder_step_equal_1_fp32_s2t.bmodel                                      # SeamlessStreaming(s2t任务) Decoder模块，第一步解码的fp32 BModel
 ├── punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727                                        # 标点符号恢复模型目录
 └── tokenizer.model                                                                                  # SeamlessStreaming(s2t任务)和M4t(s2t任务)的 tokenizer
+或
+./models
+├── BM1688
+|   ├── m4t_encoder_frontend_fp16_s2t_2core.bmodel                                                   # M4t(s2t任务) Encoder的前端模块，fp16 2core BModel
+|   ├── m4t_decoder_frontend_beam_size_fp16_s2t_2core.bmodel                                         # M4t(s2t任务) Decoder的前端模块，fp16 2core BModel
+|   ├── m4t_decoder_final_proj_beam_size_fp16_s2t_2core.bmodel                                       # M4t(s2t任务) Decoder的线性模块，fp16 2core BModel
+|   ├── m4t_encoder_fp16_s2t_2core.bmodel                                                            # M4t(s2t任务) Encoder模型，fp16 2core BModel
+|   ├── m4t_decoder_beam_size_fp16_s2t_2core.bmodel                                                  # M4t(s2t任务) Decoder模块，fp16 2core BModel
+|   ├── seamless_streaming_encoder_frontend_fp16_s2t_2core.bmodel                                    # SeamlessStreaming(s2t任务) Encoder的前端模块，fp16 2core BModel
+|   ├── seamless_streaming_decoder_frontend_fp16_s2t_2core.bmodel                                    # SeamlessStreaming(s2t任务) Decoder的前端模块，fp16 2core BModel
+|   ├── seamless_streaming_decoder_final_proj_fp16_s2t_2core.bmodel                                  # SeamlessStreaming(s2t任务) Decoder的线性模块，fp16 2core BModel
+|   ├── seamless_streaming_encoder_fp16_s2t_2core.bmodel                                             # SeamlessStreaming(s2t任务) Encoder模型，fp16 2core BModel
+|   ├── seamless_streaming_decoder_step_bigger_1_fp16_s2t_2core.bmodel                               # SeamlessStreaming(s2t任务) Decoder模块，大于第一步解码的fp16 2core BModel
+|   └── seamless_streaming_decoder_step_equal_1_fp32_s2t_2core.bmodel                                # SeamlessStreaming(s2t任务) Decoder模块，第一步解码的fp32 2core BModel
+├── punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727                                        # 标点符号恢复模型目录
+└── tokenizer.model    
 ```
 
 下载的数据包括：
@@ -183,6 +209,8 @@ usage: pipeline_m4t_s2t.py [-h] [--input INPUT] [--tgt_lang TGT_LANG] [--encoder
 ```
 
 ### 3.2 使用方式
+这里以BM1684X平台为例，其他平台需要修改模型路径参数。
+
 为了测试实时中文语音转英文文字，可使用如下命令
 
 ```bash
