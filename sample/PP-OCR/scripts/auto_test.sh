@@ -11,13 +11,13 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
-
+CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
 }
 
-while getopts ":m:t:s:a:d:p:" opt
+while getopts ":m:t:s:a:d:p:c:" opt
 do
   case $opt in 
     m)
@@ -38,6 +38,9 @@ do
     p)
       PYTEST=${OPTARG}
       echo "generate logs for $PYTEST";;
+    c)
+      CASE_MODE=${OPTARG}
+      echo "case mode is $CASE_MODE";;
     ?)
       usage
       exit 1;;
@@ -307,9 +310,11 @@ elif test $MODE = "compile_mlir"
 then
   download
   compile_mlir
-elif test $MODE = "pcie_test"
+elif test $MODE = "pcie_build"
 then
   build_pcie bmcv
+elif test $MODE = "pcie_test"
+then
   pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
   download
   if test $TARGET = "BM1684"

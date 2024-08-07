@@ -292,9 +292,6 @@ std::vector<int> PPOCR_Detector::resize_padding_op_(bm_image src_img, bm_image &
     int resize_h = int(h * ratio);
     int resize_w = int(w * ratio);
 
-    resize_h = max(int(pythonRound((float)resize_h / 32) * 32), 32);
-    resize_w = max(int(pythonRound((float)resize_w / 32) * 32), 32);
-
     std::vector<int> resize_hw;
     resize_hw.push_back(resize_h);
     resize_hw.push_back(resize_w);
