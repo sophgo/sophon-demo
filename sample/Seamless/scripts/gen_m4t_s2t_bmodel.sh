@@ -6,7 +6,20 @@ if [ ! -d "$work_dir/onnx" ]; then
     exit 1
 fi
 
-bmodel_dir="../models/BM1684X"
+if [ ! $1 ]; then
+    target=bm1684x
+    target_dir=BM1684X
+else
+    target=${1,,}
+    target_dir=${target^^}
+    if test $target = "bm1684"
+    then
+        echo "do not support bm1684"
+        exit
+    fi
+fi
+
+bmodel_dir=../models/$target_dir
 if [ ! -d "$bmodel_dir" ]; then
     mkdir "$bmodel_dir"
     echo "[Cmd] mkdir $bmodel_dir"
@@ -27,7 +40,7 @@ function gen_dynamic_fp16bmodel()
     model_deploy.py \
         --mlir transformed.mlir \
         --quantize F16 \
-        --chip bm1684x \
+        --chip $target \
         --model $4 \
         --dynamic
     mv $4 $bmodel_dir/
@@ -47,7 +60,7 @@ function gen_dynamic_frontend_fp16bmodel()
 
     model_deploy.py --mlir transformed.mlir \
         --quantize F16 \
-        --chip bm1684x \
+        --chip $target \
         --model $4 \
         --tolerance 0.99,0.85
     mv $4 $bmodel_dir/
@@ -64,9 +77,19 @@ function gen_static_fp16bmodel()
     model_deploy.py \
         --mlir transformed.mlir \
         --quantize F16 \
-        --chip bm1684x \
+        --chip $target \
         --model $4
     mv $4 $bmodel_dir/
+    if test $target = "bm1688";then
+        name_arr=(${4//./ })
+        model_deploy.py \
+            --mlir transformed.mlir \
+            --quantize F16 \
+            --chip $target \
+            --model ${name_arr[0]}_2core.${name_arr[1]} \
+            --num_core 2
+        mv ${name_arr[0]}_2core.${name_arr[1]} $bmodel_dir/
+    fi
 }
 
 function gen_static_fp32bmodel()
@@ -80,7 +103,7 @@ function gen_static_fp32bmodel()
     model_deploy.py \
         --mlir transformed.mlir \
         --quantize F32 \
-        --chip bm1684x \
+        --chip $target \
         --model $4
     mv $4 $bmodel_dir/
 }
@@ -89,7 +112,11 @@ encoder_frontend_model_name=m4t_unity_speech_encoder_frontend
 encoder_frontend_onnx_file=onnx/m4t_s2t_onnx/m4t_s2t_encoder_frontend/m4t_unity_speech_encoder_frontend.onnx
 encoder_frontend_input_shapes=[[1,1152,80]]
 encoder_frontend_bmodel_file=m4t_encoder_frontend_fp16_s2t.bmodel 
+if test $target = "bm1688";then 
+gen_static_fp16bmodel $encoder_frontend_model_name $encoder_frontend_onnx_file $encoder_frontend_input_shapes $encoder_frontend_bmodel_file
+else
 gen_dynamic_fp16bmodel $encoder_frontend_model_name $encoder_frontend_onnx_file $encoder_frontend_input_shapes $encoder_frontend_bmodel_file
+fi
 
 encoder_model_name=m4t_unity_speech_encoder
 encoder_onnx_file=onnx/m4t_s2t_onnx/m4t_s2t_encoder/m4t_unity_speech_encoder.onnx
@@ -98,10 +125,16 @@ encoder_bmodel_file=m4t_encoder_fp16_s2t.bmodel
 gen_static_fp16bmodel $encoder_model_name $encoder_onnx_file $encoder_input_shapes $encoder_bmodel_file
 
 decoder_frontend_model_name=m4t_decoder_frontend_beam_size_s2t
-decoder_frontend_onnx_file=onnx/m4t_s2t_onnx/m4t_s2t_decoder_frontend/m4t_decoder_frontend_beam_size_s2t.onnx
-decoder_frontend_input_shapes=[[5,1],[1]]
 decoder_frontend_bmodel_file=m4t_decoder_frontend_beam_size_fp16_s2t.bmodel
+if test $target = "bm1688";then 
+decoder_frontend_input_shapes=[[5,1],[1,1,1024]]
+decoder_frontend_onnx_file=onnx/m4t_s2t_onnx/m4t_s2t_decoder_frontend_bm1688/m4t_decoder_frontend_beam_size_s2t.onnx
+gen_static_fp16bmodel $decoder_frontend_model_name $decoder_frontend_onnx_file $decoder_frontend_input_shapes $decoder_frontend_bmodel_file
+else
+decoder_frontend_input_shapes=[[5,1],[1]]
+decoder_frontend_onnx_file=onnx/m4t_s2t_onnx/m4t_s2t_decoder_frontend/m4t_decoder_frontend_beam_size_s2t.onnx
 gen_dynamic_frontend_fp16bmodel $decoder_frontend_model_name $decoder_frontend_onnx_file $decoder_frontend_input_shapes $decoder_frontend_bmodel_file
+fi
 
 decoder_model_name=m4t_decoder_beam_size_s2t
 decoder_onnx_file=onnx/m4t_s2t_onnx/m4t_s2t_decoder/m4t_decoder_beam_size_s2t.onnx
