@@ -220,8 +220,6 @@ class PPOCRv2Det(object):
                     break
         resize_h = int(h * ratio)
         resize_w = int(w * ratio)
-        resize_h = max(int(round(float(resize_h) / 32) * 32), 32)
-        resize_w = max(int(round(float(resize_w) / 32) * 32), 32)
         
         if h != resize_h or w != resize_w:
             img = cv2.resize(img, (resize_w, resize_h))
