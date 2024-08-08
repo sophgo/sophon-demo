@@ -26,8 +26,8 @@ if [ ! -d "../models" ];
 then
     mkdir -p ../models
     
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv10/tpu-mlir_v1.9.beta.0-116-g3c9d40a6d-20240720.tar.gz
-    mv tpu-mlir_v1.9.beta.0-116-g3c9d40a6d-20240720.tar.gz  ../models
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv10/tpu-mlir_v1.10.beta.0-30-g3ec897598-20240808.tar.gz
+    mv tpu-mlir_v1.10.beta.0-30-g3ec897598-20240808.tar.gz  ../models
 
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv10/BM1684X.zip
     unzip BM1684X.zip -d ../models
