@@ -20,7 +20,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 message("cur dir: ${PROJECT_SOURCE_DIR}")
 
 if (NOT DEFINED TARGET_ARCH)
-    set(TARGET_ARCH soc)
+    set(TARGET_ARCH pcie)
 endif()
 
 
