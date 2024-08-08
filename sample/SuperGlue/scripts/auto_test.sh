@@ -18,7 +18,7 @@ usage()
   echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
 }
 
-while getopts ":m:t:s:a:d:p:" opt
+while getopts ":m:t:s:a:d:p:c:" opt
 do
   case $opt in 
     m)
@@ -47,7 +47,6 @@ do
       exit 1;;
   esac
 done
-
 
 if [ -f "tools/benchmark.txt" ]; then
   rm tools/benchmark.txt
