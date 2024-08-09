@@ -17,7 +17,7 @@
 python目录下提供了python例程以供参考使用，具体情况如下：
 | 序号 | python例程 | 说明                                 |
 | ---- | ---------- | ------------------------------------ |
-| 1    | vlpr.py    | 使用opencv解码、BMCV前处理、BMRT推理 |
+| 1    | vlpr.py    | 使用SAIL解码、SAIL前处理、BMRT推理 |
 | 2    | chars.py   | lprnet后处理使用的汉字字典           |
 
 

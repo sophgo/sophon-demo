@@ -55,3 +55,5 @@ export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python
 python3 ocv_vidbasic.py --video_path road.mp4 --frame_num 300 --device_id 0 --output_name out
 ```
 测试结束后，会将视频解码后再记录为jpg格式，保存到当前文件夹下。
+
+**注意，若使用sophon-opencv需要保证python版本小于等于3.8。**

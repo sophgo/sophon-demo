@@ -13,6 +13,15 @@ python目录下提供了一系列Python例程，具体情况如下：
 ```
 pip3 install -r requirements.txt
 ```
+
+> **注:**
+>
+> 上述命令安装的opencv是公版opencv，如果您希望使用sophon-opencv，可以设置如下环境变量：
+> ```bash
+> export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
+> ```
+> **若使用sophon-opencv需要保证python版本小于等于3.8。**
+
 ### 1.2 测试命令
 python例程不需要编译，可以直接运行。参数说明如下:
 ```shell
@@ -42,6 +51,15 @@ avg_infer_time(ms): 255.88
 ```
 pip3 install -r requirements.txt
 ```
+
+> **注:**
+>
+> 上述命令安装的opencv是公版opencv，如果您希望使用sophon-opencv，可以设置如下环境变量：
+> ```bash
+> export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
+> ```
+> **若使用sophon-opencv需要保证python版本小于等于3.8。**
+
 ### 2.2 测试命令
 SoC平台的测试方法与x86 PCIe平台相同，请参考[1.2 测试命令](#12-测试命令)。
 

@@ -28,6 +28,8 @@ python目录下提供了Python例程，具体情况如下：
 ```bash
 export PYTHONPATH=$PYTHONPATH:/opt/sophon/libsophon-current/lib:/opt/sophon/sophon-opencv-latest/opencv-python/
 ```
+> **注:**
+> **若使用sophon-opencv需要保证python版本小于等于3.8。**
 
 此外您可能还需要安装其他第三方库：
 ```bash

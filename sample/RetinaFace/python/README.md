@@ -15,10 +15,19 @@ python目录下提供了一系列Python例程，具体情况如下：
 $ cd python
 $ pip3 install -r requirements.txt
 ```
-
-```
-注意：若报错ImportError: libGL.so.1: cannot open shared object file: No such file or directory，需要执行命令sudo apt-get install libgl1
-```
+> **注:**
+>
+> 上述命令安装的opencv是公版opencv，如果您希望使用sophon-opencv，可以设置如下环境变量：
+> ```bash
+> export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
+> ```
+> **若使用sophon-opencv需要保证python版本小于等于3.8。**
+> 
+> 若报错ImportError: 
+> ```
+> libGL.so.1: cannot open shared object file: No such file or directory
+> ```
+> 需要执行命令`sudo apt-get install libgl1`
 
 ## 1.2 测试命令
 retinaface_opencv.py和retinaface_bmcv.py的命令参数相同，以retinaface_opencv.py的推理为例，参数说明如下：
@@ -91,3 +100,11 @@ $ pip3 install -r requirements.txt
 ```
 ### 2.2 测试命令
 Soc平台的测试方法与x86 PCIe平台相同，请参考1.2测试命令。
+
+> **注:**
+>
+> 上述命令安装的opencv是公版opencv，如果您希望使用sophon-opencv，可以设置如下环境变量：
+> ```bash
+> export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
+> ```
+> **若使用sophon-opencv需要保证python版本小于等于3.8。**
