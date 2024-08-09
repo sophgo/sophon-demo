@@ -35,6 +35,14 @@ pip3 install 'opencv-python-headless<4.3'
 pip3 install 'opencv-python-headless<4.3'
 ```
 
+> **注:**
+>
+> 上述命令安装的是公版opencv，如果您希望使用sophon-opencv，可以设置如下环境变量：
+> ```bash
+> export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
+> ```
+> **若使用sophon-opencv需要保证python版本小于等于3.8。**
+
 ## 2. 推理测试
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
 ### 2.1 参数说明

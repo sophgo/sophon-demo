@@ -37,6 +37,14 @@ cd python
 pip3 install -r requirements.txt
 ```
 
+> **注:**
+>
+> 上述命令安装的是公版opencv，如果您希望使用sophon-opencv，可以设置如下环境变量：
+> ```bash
+> export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
+> ```
+> **若使用sophon-opencv需要保证python版本小于等于3.8。**
+
 ## 2. 推理测试
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。bmcv例程与opencv运行方式相同，下面以opencv例程为例。
 

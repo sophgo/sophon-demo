@@ -42,7 +42,7 @@ pip3 install torch
 pip3 install torchvision
 ```
 
-若您使用sophon-opencv，需要设置环境变量
+若您使用sophon-opencv，需要设置环境变量，**使用sophon-opencv需要保证python版本小于等于3.8。**
 ```bash
 export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv_<x.x.x>/opencv-python
 ```
