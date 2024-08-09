@@ -48,3 +48,5 @@ export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python
 python3 python/ocv_jpubasic.py --image_path zidane.jpg --device_id 0
 ```
 测试结束后，会将图片解码后再编码保存到当前文件夹下。
+
+**注意，使用sophon-opencv需要保证python版本小于等于3.8。**

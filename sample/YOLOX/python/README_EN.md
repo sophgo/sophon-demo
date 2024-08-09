@@ -39,10 +39,13 @@ You may need to install other third-party libraries:
 pip3 install opencv-python-headless
 ```
 
-If you want to use sophon-opencv directly, you can directly set the following environment variables without performing the above steps. Attention, using sophon-opencv has higher performance, but may cause a little bit difference in mAP.
-```bash
-export PYTHONPATH=/opt/sophon/sophon-opencv-latest/opencv-python:$PYTHONPATH
-```
+> **Note:**
+>
+> The command above will install official-opencv, if you wish to use sophon-opencv, you can set environment variables:
+> ```bash
+> export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
+> ```
+> **If you use sophon-opencv, you should guarantee that your python version <= 3.8**
 
 ## 2. Inference Test
 The python demo does not need to be compiled and can be run directly. The test parameters and operation methods of PCIe platform and SoC platform are the same.

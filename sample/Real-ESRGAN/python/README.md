@@ -37,6 +37,10 @@ pip3 install onnxruntime==1.14.1
 export PYTHONPATH=/opt/sophon/sophon-opencv-latest/opencv-python/:$PYTHONPATH #使用sophon-opencv
 pip3 install onnxruntime==1.14.1
 ```
+
+> **注:**
+> **若使用sophon-opencv需要保证python版本小于等于3.8。**
+
 ## 2. 推理测试
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
 ### 2.1 参数说明
