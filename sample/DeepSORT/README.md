@@ -165,10 +165,10 @@ acc         525  0.524889  0.544908  0.506289  0.687163  0.739579  5009  10  12 
 这里使用目标检测模型`yolov5s_v6.1_3output_int8_1b.bmodel`，使用数据集ADL-Rundle-6，记录MOTA作为精度指标，精度测试结果如下：
 |   测试平台    |      测试程序     |           测试模型         | MOTA |
 | ------------ | ---------------- | -------------------------- | ---- |
-|      SE5     | deepsort_opencv.py | extractor_fp32_1b.bmodel | 0.457 |
-|      SE5     | deepsort_opencv.py | extractor_int8_1b.bmodel | 0.459 |
-|      SE5     | deepsort_bmcv.pcie | extractor_fp32_1b.bmodel | 0.450 |
-|      SE5     | deepsort_bmcv.pcie | extractor_int8_1b.bmodel | 0.452 |
+|    SE5-16    | deepsort_opencv.py | extractor_fp32_1b.bmodel | 0.457 |
+|    SE5-16    | deepsort_opencv.py | extractor_int8_1b.bmodel | 0.459 |
+|    SE5-16    | deepsort_bmcv.pcie | extractor_fp32_1b.bmodel | 0.450 |
+|    SE5-16    | deepsort_bmcv.pcie | extractor_int8_1b.bmodel | 0.452 |
 |    SE7-32    | deepsort_opencv.py | extractor_fp32_1b.bmodel | 0.439 |
 |    SE7-32    | deepsort_opencv.py | extractor_fp16_1b.bmodel | 0.439 |
 |    SE7-32    | deepsort_opencv.py | extractor_int8_1b.bmodel | 0.436 |
