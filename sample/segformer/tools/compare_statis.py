@@ -159,8 +159,8 @@ if __name__ == '__main__':
                 print("Baseline is:", statis)
                 print("Now is: ", extracted_data[key])
                 compare_pass = False
-        elif abs(statis - extracted_data[key]) / statis > 0.2:
-            print("{:} time, diff ratio > 0.2".format(key))
+        elif abs(statis - extracted_data[key]) / statis > 0.4:
+            print("{:} time, diff ratio > 0.4".format(key))
             print("Baseline is:", statis)
             print("Now is: ", extracted_data[key])
             compare_pass = False

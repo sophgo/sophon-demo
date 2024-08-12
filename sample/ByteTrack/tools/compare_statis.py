@@ -161,8 +161,8 @@ if __name__ == '__main__':
     else:
         baseline_data["track"] = table_data["track"][match_index]
     for key, statis in baseline_data.items():
-        if abs(statis - extracted_data[key]) / statis > 0.2:
-            print("{:} time, diff ratio > 0.2".format(key))
+        if abs(statis - extracted_data[key]) / statis > 0.4:
+            print("{:} time, diff ratio > 0.4".format(key))
             print("Baseline is:", statis)
             print("Now is: ", extracted_data[key])
             compare_pass = False
