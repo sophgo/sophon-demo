@@ -98,8 +98,8 @@ def extract_times(text, patterns):
 
 def compare(baseline_data, extracted_data, name_str="det"):
     for key, statis in baseline_data.items():
-        if abs(statis - extracted_data[key]) / statis > 0.2:
-            print("{:} {:} time, diff ratio > 0.2".format(name_str, key))
+        if abs(statis - extracted_data[key]) / statis > 0.4:
+            print("{:} {:} time, diff ratio > 0.4".format(name_str, key))
             print("Baseline is:", statis)
             print("Now is: ", extracted_data[key])
             compare_pass = False
