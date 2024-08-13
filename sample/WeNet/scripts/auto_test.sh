@@ -292,7 +292,8 @@ then
   check_dependency_ubuntu libbz2-dev
   check_dependency_ubuntu liblzma-dev
   if [ $if_exit == true ]; then
-      exit 1
+    judge_ret 1 "check_dependency_ubuntu"
+    exit 1
   fi
   build_pcie
 elif test $MODE = "pcie_test"
@@ -337,7 +338,8 @@ then
   download
   check_dependency_ubuntu libsuperlu-dev
   if [ $if_exit == true ]; then
-      exit
+    judge_ret 1 "check_dependency_ubuntu"
+    exit 1
   fi
   build_soc
 elif test $MODE = "soc_test"
