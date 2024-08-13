@@ -1,3 +1,12 @@
+#===----------------------------------------------------------------------===#
+#
+# Copyright (C) 2022 Sophgo Technologies Inc.  All rights reserved.
+#
+# SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
+# third-party components.
+#
+#===----------------------------------------------------------------------===#
+import numpy as np
 import os
 import cv2
 import clip
@@ -40,6 +49,7 @@ def main(args):
     
     for filename in image_paths:
         # Preprocess
+        logging.info("Filename: {}".format(filename))
         image = cv2.imread(filename)
         image_input = np.expand_dims(preprocess(image), axis=0)
         # predict
@@ -48,15 +58,15 @@ def main(args):
             logging.info(f"Text: {text[indices[i]]}, Similarity: {values[i].item()}")
 
 
+    image_num = len(image_paths)
+    logging.info(("-------------------Image num {}, Preprocess average time ------------------------").format(image_num))
+    logging.info("preprocess(ms): {:.2f}".format(model.preprocess_time / image_num * 1000))
 
-    logging.info(("-------------------Image num {}, Preprocess average time ------------------------").format(image_input.shape[0]))
-    logging.info("preprocess(ms): {:.2f}".format(model.preprocess_time / image_input.shape[0] * 1000))
+    logging.info(("------------------ Image num {}, Image Encoding average time ----------------------").format(image_num))
+    logging.info("image_encode(ms): {:.2f}".format(model.encode_image_time / image_num * 1000))
 
-    logging.info(("------------------ Image num {}, Image Encoding average time ----------------------").format(image_input.shape[0]))
-    logging.info("image_encode(ms): {:.2f}".format(model.encode_image_time / image_input.shape[0] * 1000))
-
-    logging.info(("------------------ Image num {}, Text Encoding average time ----------------------").format(image_input.shape[0]))
-    logging.info("text_encode(ms): {:.2f}".format(model.encode_text_time / image_input.shape[0] * 1000))
+    logging.info(("------------------ Image num {}, Text Encoding average time ----------------------").format(image_num))
+    logging.info("text_encode(ms): {:.2f}".format(model.encode_text_time / image_num * 1000))
 
 
 
