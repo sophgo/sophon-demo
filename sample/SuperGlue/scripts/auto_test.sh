@@ -262,7 +262,7 @@ function check_dependencies_ubuntu_amd64(){
         if_exit=true
     fi
     if [ $if_exit == true ]; then
-        exit
+        exit 1
     fi
 }
 
@@ -294,7 +294,7 @@ function check_dependencies_ubuntu_arm64(){
         if_exit=true
     fi
     if [ $if_exit == true ]; then
-        exit
+        exit 1
     fi
 }
 
