@@ -292,7 +292,7 @@ then
   check_dependency_ubuntu libbz2-dev
   check_dependency_ubuntu liblzma-dev
   if [ $if_exit == true ]; then
-      exit
+      exit 1
   fi
   build_pcie
 elif test $MODE = "pcie_test"
