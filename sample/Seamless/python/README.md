@@ -127,6 +127,7 @@ chmod -R +x scripts/
 |   ├── seamless_streaming_decoder_step_bigger_1_fp16_s2t.bmodel                                     # SeamlessStreaming(s2t任务) Decoder模块，大于第一步解码的fp16 BModel
 |   └── seamless_streaming_decoder_step_equal_1_fp32_s2t.bmodel                                      # SeamlessStreaming(s2t任务) Decoder模块，第一步解码的fp32 BModel
 ├── punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727                                        # 标点符号恢复模型目录
+├── campplus_cn_common.bin                                                                           # 说话人识别模型CAM++文件
 └── tokenizer.model                                                                                  # SeamlessStreaming(s2t任务)和M4t(s2t任务)的 tokenizer
 或
 ./models
@@ -143,6 +144,7 @@ chmod -R +x scripts/
 |   ├── seamless_streaming_decoder_step_bigger_1_fp16_s2t_2core.bmodel                               # SeamlessStreaming(s2t任务) Decoder模块，大于第一步解码的fp16 2core BModel
 |   └── seamless_streaming_decoder_step_equal_1_fp32_s2t_2core.bmodel                                # SeamlessStreaming(s2t任务) Decoder模块，第一步解码的fp32 2core BModel
 ├── punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727                                        # 标点符号恢复模型目录
+├── campplus_cn_common.bin                                                                           # 说话人识别模型CAM++文件
 └── tokenizer.model    
 ```
 
