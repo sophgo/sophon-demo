@@ -140,6 +140,7 @@ chmod -R +x scripts/
 |   ├── seamless_streaming_decoder_step_bigger_1_fp16_s2t.bmodel                                     # SeamlessStreaming(s2t任务) Decoder模块，大于第一步解码的fp16 BModel
 |   └── seamless_streaming_decoder_step_equal_1_fp32_s2t.bmodel                                      # SeamlessStreaming(s2t任务) Decoder模块，第一步解码的fp32 BModel
 ├── punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727                                        # 标点符号恢复模型目录
+├── campplus_cn_common.bin                                                                           # 说话人识别模型CAM++文件
 └── tokenizer.model                                                                                  # SeamlessStreaming(s2t任务)和M4t(s2t任务)的 tokenizer
 或
 ./models
@@ -156,6 +157,7 @@ chmod -R +x scripts/
 |   ├── seamless_streaming_decoder_step_bigger_1_fp16_s2t_2core.bmodel                               # SeamlessStreaming(s2t任务) Decoder模块，大于第一步解码的fp16 2core BModel
 |   └── seamless_streaming_decoder_step_equal_1_fp32_s2t_2core.bmodel                                # SeamlessStreaming(s2t任务) Decoder模块，第一步解码的fp32 2core BModel
 ├── punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727                                        # 标点符号恢复模型目录
+├── campplus_cn_common.bin                                                                           # 说话人识别模型CAM++文件
 └── tokenizer.model    
 ```
 
@@ -196,7 +198,7 @@ usage: service/wss_server.py [-h] [--host HOST] [--port PORT] [--use_offline] [-
                      [--online_encoder_bmodel ONLINE_ENCODER_BMODEL] [--tokenizer_model TOKENIZER_MODEL] [--online_decoder_frontend_bmodel ONLINE_DECODER_FRONTEND_BMODEL]
                      [--online_decoder_step_bigger_1_bmodel ONLINE_DECODER_STEP_BIGGER_1_BMODEL] [--online_decoder_step_equal_1_bmodel ONLINE_DECODER_STEP_EQUAL_1_BMODEL]
                      [--online_decoder_final_proj_bmodel ONLINE_DECODER_FINAL_PROJ_BMODEL] [--chunk_duration_ms CHUNK_DURATION_MS] [--consecutive_segments_num CONSECUTIVE_SEGMENTS_NUM]
-                     [--fbank_min_input_length FBANK_MIN_INPUT_LENGTH] [--fbank_min_starting_wait FBANK_MIN_STARTING_WAIT] [--tgt_lang TGT_LANG] [--dev_id DEV_ID] [--punc_model PUNC_MODEL] [--punc_model_revision PUNC_MODEL_REVISION] [--device DEVICE] [--ncpu NCPU] [--certfile CERTFILE] [--keyfile KEYFILE]
+                     [--fbank_min_input_length FBANK_MIN_INPUT_LENGTH] [--fbank_min_starting_wait FBANK_MIN_STARTING_WAIT] [--use_campplus_sd USE_CAMPPLUS_SD] [--campplus_model_path CAMPPLUS_MODEL_PATH] [--tgt_lang TGT_LANG] [--dev_id DEV_ID] [--punc_model PUNC_MODEL] [--punc_model_revision PUNC_MODEL_REVISION] [--device DEVICE] [--ncpu NCPU] [--certfile CERTFILE] [--keyfile KEYFILE]
 
 --host: websocket服务ip，一般保持默认为本地主机ip
 --port: websocket服务端口
@@ -220,6 +222,8 @@ usage: service/wss_server.py [-h] [--host HOST] [--port PORT] [--use_offline] [-
 --consecutive_segments_num: 流式SeamlessStreaming模型输入切片的数量，大小会影响精度和性能
 --fbank_min_input_length: 流式SeamlessStreaming模型将切片转为fbank，模型Encoder能够接受的fbank最小长度，若末尾的语音片段小于该值，将被丢弃
 --fbank_min_starting_wait: 流式SeamlessStreaming模型将切片转为fbank，输入到模型的fbank最小长度，若末尾的语音片段小于该值，会保留，当它大于fbank_min_input_length的值时才有效
+--use_campplus_sd: 是否用CAM++提取说话人声纹特征，然后进行识别
+--campplus_model_path: CAM++模型路径
 --tgt_lang: 输出的目标语言
 --dev_id: 设备id
 --punc_model: PUNC标点符号恢复模型的路径，cpu执行
@@ -255,6 +259,7 @@ usage: client/wss_client.py [-h] [--hosts HOSTS [HOSTS ...]] [--ports PORTS [POR
 --ssl: 是否使用ssl加密传输，0表示不使用，1表示使用
 --use_itn: 暂无用，用于后期扩展
 --mode: 模式，支持offline、online、parallel2pass，分别表示仅vad断句+离线识别+标点符号恢复、仅流式识别、流式识别+vad断句+离线纠正+标点符号恢复
+--verbose: 是否打印说话人id等信息
 ```
 
 ### 5.2 使用方式
@@ -272,14 +277,16 @@ python3 service/wss_server.py --port 10095 --use_online
 ```bash
 # 启动离线推理进程
 python3 service/wss_server.py --port 10096 --use_offline
+# 若使用说话人识别，可以执行如下命令
+python3 service/wss_server.py --port 10096 --use_offline --use_campplus_sd
 ```
 
 然后在Client端使用如下命令启动客户端，客户端会发送指令和音频数据给服务端进行语音识别，可根据实际情况修改IP
 ```bash
 # 若使用本地音频文件，使用如下命令
-python3 client/wss_client.py --hosts 127.0.0.1 127.0.0.1 --ports 10095 10096 --mode parallel2pass --audio_in ../../datasets/test/long_audio.wav
+python3 client/wss_client.py --hosts 127.0.0.1 127.0.0.1 --ports 10095 10096 --mode parallel2pass --audio_in ../../datasets/test/long_audio.wav --verbose
 # 若使用麦克风输入，使用如下命令，需根据实际情况修改麦克风设备id
-python3 client/wss_client.py --hosts 127.0.0.1 127.0.0.1 --ports 10095 10096 --mode parallel2pass --microphone_dev_id 1 --online_use_vad
+python3 client/wss_client.py --hosts 127.0.0.1 127.0.0.1 --ports 10095 10096 --mode parallel2pass --microphone_dev_id 1 --online_use_vad --verbose
 ```
 
 ### 5.2.2 流式方式
@@ -304,15 +311,17 @@ python3 client/wss_client.py --hosts 127.0.0.1 --ports 10095 --mode online --mic
 ```bash
 # 启动离线推理进程
 python3 service/wss_server.py --port 10095 --use_offline
+# 若使用说话人识别，可以执行如下命令
+python3 service/wss_server.py --port 10095 --use_offline --use_campplus_sd
 ```
 
 然后在Client端使用如下命令在Server端启动客户端，客户端会发送指令和音频数据给服务端进行语音识别，可根据实际情况修改IP
 
 ```bash
 # 若使用本地音频文件，使用如下命令
-python3 client/wss_client.py --hosts 127.0.0.1 --ports 10095 --mode offline --audio_in ../../datasets/test/long_audio.wav
+python3 client/wss_client.py --hosts 127.0.0.1 --ports 10095 --mode offline --audio_in ../../datasets/test/long_audio.wav --verbose
 # 若使用本地音频文件，且使用fsmn-vad，可使用如下命令
-python3 client/wss_client.py --hosts 127.0.0.1 --ports 10095 --mode offline --audio_in ../../datasets/test/long_audio.wav --vad_type fsmn-vad
+python3 client/wss_client.py --hosts 127.0.0.1 --ports 10095 --mode offline --audio_in ../../datasets/test/long_audio.wav --vad_type fsmn-vad --verbose
 # 若使用麦克风输入，使用如下命令，需根据实际情况修改麦克风设备id
-python3 client/wss_client.py --hosts 127.0.0.1 --ports 10095 --mode offline --microphone_dev_id 1
+python3 client/wss_client.py --hosts 127.0.0.1 --ports 10095 --mode offline --microphone_dev_id 1 --verbose
 ```

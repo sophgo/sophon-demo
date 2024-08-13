@@ -99,6 +99,14 @@ parser.add_argument('--fbank_min_starting_wait',
 					type=int,
 					default=48,
 					help='the waitting min length of fbank input to encoder, valid when it > fbank_min_input_length')
+parser.add_argument('--use_campplus_sd',
+					action='store_true',
+					default=False,
+					help="whether to use cam++ speaker diarization")
+parser.add_argument('--campplus_model_path', 
+					type=str, 
+					default='../../models/campplus_cn_common.bin', 
+					help='path of campplus model')
 parser.add_argument('--tgt_lang', 
 					type=str, 
 					default='cmn', 
@@ -194,6 +202,13 @@ else:
 	model_punc = None
 model_vad = None
 
+if args.use_campplus_sd:
+	from campplus_infer_sv import CampplusSV
+	sv_pipeline = CampplusSV(
+		model_path=args.campplus_model_path
+	)
+else:
+	sv_pipeline = None
 
 
 print("model loaded! only support one client at the same time now!!!!")
@@ -324,8 +339,13 @@ async def ws_serve(websocket, path):
 						# NOTE: ori
 						# audio_in = b"".join(frames_asr)
 						audio_in = frames_asr_bytes
+						# speaker
+						if sv_pipeline is not None:
+							_, sp_id = sv_pipeline.infer_sv(audio_in)
+						else:
+							sp_id = None
 						try:
-							await async_asr(websocket, audio_in, last_segment_id)
+							await async_asr(websocket, audio_in, last_segment_id, sp_id)
 						except Exception as e:
 							print("error in asr offline")
 							print("Exception:", e)
@@ -349,6 +369,8 @@ async def ws_serve(websocket, path):
 		print("ConnectionClosed...", websocket_users,flush=True)
 		await ws_reset(websocket)
 		websocket_users.remove(websocket)
+		if sv_pipeline is not None:
+			sv_pipeline.reset()
 	except websockets.InvalidState:
 		print("InvalidState...")
 	except Exception as e:
@@ -373,7 +395,7 @@ async def async_vad(websocket, audio_in):
 	return speech_start, speech_end
 
 
-async def async_asr(websocket, audio_in, last_segment_id):
+async def async_asr(websocket, audio_in, last_segment_id, sp_id):
 	logging.info('asyn_asr')
 	# model_asr_streaming.reset()
 	if len(audio_in) > 0:
@@ -394,7 +416,10 @@ async def async_asr(websocket, audio_in, last_segment_id):
 			mode = websocket.mode
 			# NOTE: ori
 			# message = json.dumps({"mode": mode, "text": rec_result["text"], "wav_name": websocket.wav_name,"is_final":websocket.is_speaking})
-			message = json.dumps({"mode": mode, "text": rec_result["text"], "wav_name": websocket.wav_name,"is_final":not websocket.is_speaking, "last_segment_id": last_segment_id})
+			if sp_id is not None:
+				message = json.dumps({"mode": mode, "text": rec_result["text"], "wav_name": websocket.wav_name,"is_final":not websocket.is_speaking, "last_segment_id": last_segment_id, "sp_id": sp_id})
+			else:
+				message = json.dumps({"mode": mode, "text": rec_result["text"], "wav_name": websocket.wav_name,"is_final":not websocket.is_speaking, "last_segment_id": last_segment_id})
 			await websocket.send(message)
 
 

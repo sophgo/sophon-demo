@@ -1,2 +1,6 @@
 websockets==11.0
 funasr==1.0.27
+modelscope
+addict
+datasets
+pillow

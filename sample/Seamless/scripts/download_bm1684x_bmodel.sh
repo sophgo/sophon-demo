@@ -36,6 +36,10 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/tokenizer.model
     mv tokenizer.model ../models
     echo "tokenizer model download!"
+
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/campplus_cn_common.bin
+    mv campplus_cn_common.bin ../models
+    echo "cam++ model download!"
 else
     echo "Models folder exist! Remove it if you need to update."
 fi
