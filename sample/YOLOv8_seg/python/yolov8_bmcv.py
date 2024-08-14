@@ -67,11 +67,18 @@ class YOLOv8:
         self.agnostic = False
         self.multi_label = False
         self.max_det = 300
-
-        self.postprocess = PostProcess(
-            conf_thres=self.conf_thresh,
-            iou_thres=self.nms_thresh
-        )
+        if(args.use_tpu):
+            self.postprocess = PostProcess(
+                conf_thres=self.conf_thresh,
+                iou_thres=self.nms_thresh,
+                use_tpu=1,
+                model_path=args.model_path
+            )
+        else:
+            self.postprocess = PostProcess(
+                conf_thres=self.conf_thresh,
+                iou_thres=self.nms_thresh
+            )
         
         # init time
         self.preprocess_time = 0.0
@@ -264,7 +271,8 @@ def main(args):
                     # predict
                     results = yolov8(bmimg_list)
                     for i, filename in enumerate(filename_list):
-                        boxes, segments, masks =  results[i]
+                        boxes, masks =  results[i]
+                        segments=[yolov8.postprocess.masks2segments(mask[np.newaxis,:]) for mask in masks]
                         def single_encode(x):
                             """Encode predicted masks as RLE and append results to jdict.
                             https://github.com/ultralytics/ultralytics/blob/465df3024f44fa97d4fad9986530d5a13cdabdca/ultralytics/models/yolo/segment/val.py#L195
@@ -329,7 +337,8 @@ def main(args):
             if (len(frame_list) == batch_size or end_flag) and len(frame_list):
                 results = yolov8(frame_list)
                 for i, frame in enumerate(frame_list):
-                    boxes, segments, _ =  results[i] 
+                    boxes, masks =  results[i]
+                    segments=[yolov8.postprocess.masks2segments(mask[np.newaxis,:]) for mask in masks] 
                     cn += 1
                     logging.info("{}".format(cn))
                     
@@ -359,6 +368,9 @@ def argsparser():
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--conf_thresh', type=float, default=0.25, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.7, help='nms threshold')
+    parser.add_argument('--use_tpu', type=int, default=0, help='if use tpu matul')
+    parser.add_argument('--model_path', type=str, default="../models/BM1688/yolov8s_getmask_32_fp32_2core.bmodel", help='tpu matul bmodel path')
+
     args = parser.parse_args()
     return args
 
