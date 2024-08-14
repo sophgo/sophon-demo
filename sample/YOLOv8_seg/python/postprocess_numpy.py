@@ -14,15 +14,47 @@ import numpy as np
 from pycocotools.mask import encode
 from utils import *
 
+import sophon.sail as sail
 
 
 class PostProcess:
 
-    def __init__(self, conf_thres=0.7, iou_thres=0.5, num_masks=32):
+    def __init__(self, conf_thres=0.7, iou_thres=0.5, use_tpu=1, model_path="../models/BM1688/yolov8s_getmask_32_fp32_2core.bmodel", num_masks=32):
         self.conf_threshold = conf_thres
         self.iou_threshold = iou_thres
         self.num_masks = num_masks
         self.nms = pseudo_torch_nms()
+
+        if(use_tpu):
+            self.net = sail.Engine(model_path, 0, sail.IOMode.SYSIO)
+            self.handle = sail.Handle(0)
+            self.bmcv = sail.Bmcv(self.handle)
+            self.graph_name = self.net.get_graph_names()[0]
+            
+            # get input
+            self.input_names = self.net.get_input_names(self.graph_name)
+            self.input_tensors = {}
+            self.input_scales = {}
+            for input_name in self.input_names:
+                input_shape = self.net.get_input_shape(self.graph_name, input_name)
+                input_dtype = self.net.get_input_dtype(self.graph_name, input_name)
+                input_scale = self.net.get_input_scale(self.graph_name, input_name)
+                input = sail.Tensor(self.handle, input_shape, input_dtype, True, True)
+                self.input_tensors[input_name] = input
+                self.input_scales[input_name] = input_scale
+            
+            # get output
+            self.output_names = self.net.get_output_names(self.graph_name)
+            self.output_tensors = {}
+            self.output_scales = {}
+            for output_name in self.output_names:
+                output_shape = self.net.get_output_shape(self.graph_name, output_name)
+                output_dtype = self.net.get_output_dtype(self.graph_name, output_name)
+                output_scale = self.net.get_output_scale(self.graph_name, output_name)
+                output = sail.Tensor(self.handle, output_shape, output_dtype, True, True)
+                self.output_tensors[output_name] = output
+                self.output_scales[output_name] = output_scale
+        self.use_tpu=use_tpu
   
     def __call__(self, outputs,im0_shape,ratio, txy):
         results=[]
@@ -111,7 +143,6 @@ class PostProcess:
             masks (np.ndarray): [N, H, W], output masks.
         """
         x, protos = preds[0], preds[1]  # Two outputs: predictions and protos
-
         # Transpose the first output: (Batch_size, xywh_conf_cls_nm, Num_anchors) -> (Batch_size, Num_anchors, xywh_conf_cls_nm)
         x = np.einsum('bcn->bnc', x)
 
@@ -125,16 +156,16 @@ class PostProcess:
         # NMS filtering
         if(x.shape[0]):
             x = x[self.nms.nms_boxes(x[:, :4], x[:, 4], iou_threshold)]
-       
-        ans1,ans2,ans3=[],[],[]
-        post_batch_size = 1
+        # print(x.shape)
+        ans1,ans2=[],[]
+        post_batch_size = 32
+        
         for i in range((int(x.shape[0]/post_batch_size)+1)):
             X=x[i*post_batch_size:min((i+1)*post_batch_size,x.shape[0])]
             X=self.get_mask_distrubute(X,im0_shape, ratio, pad_w, pad_h,protos)
             ans1.extend(X[0])
             ans2.extend(X[1])
-            ans3.extend(X[2])
-        return ans1,ans2,ans3
+        return ans1,ans2
         
     def get_mask_distrubute(self,x,im0_shape, ratio, pad_w, pad_h,protos):
         if len(x) > 0:
@@ -155,10 +186,9 @@ class PostProcess:
             masks = self.process_mask(protos[0], x[:, 6:], x[:, :4], im0_shape)
 
             # Masks -> Segments(contours)
-            segments = self.masks2segments(masks)
-            return x[..., :6], segments, masks  # boxes, segments, masks
+            return x[..., :6], masks  # boxes, segments, masks
         else:
-            return [], [], []
+            return [], []
     @staticmethod
     def masks2segments(masks):
         """
@@ -222,12 +252,35 @@ class PostProcess:
             (numpy.ndarray): The upsampled masks.
         """
         c, mh, mw = protos.shape
-        masks = np.matmul(masks_in, protos.reshape((c, -1))).reshape((-1, mh, mw)).transpose(1, 2, 0)  # HWN
-        masks = np.ascontiguousarray(masks)
+        if(self.use_tpu):
+            masks_in = masks_in[np.newaxis, :, :]
+            protos=protos[np.newaxis, :, :]
+     
+            input_tensors = {self.input_names[0]: masks_in,self.input_names[1]: protos} 
+            self.output_tensors=self.net.process(self.graph_name, input_tensors)
+      
+            outputs_dict = {}
+            for name in self.output_names:
+                outputs_dict[name] = self.output_tensors[name]
+            out_keys = list(outputs_dict.keys())
+            ord = []
+            for n in self.output_names:
+                for i, k in enumerate(out_keys):
+                    if n in k:
+                        ord.append(i)
+                        break
+            out = [outputs_dict[out_keys[i]] for i in ord]
+            masks=out[0][0]
+        else:
+            masks = np.matmul(masks_in, protos.reshape((c, -1)))
+  
+    
+        masks=masks.reshape((-1, mh, mw)).transpose(1, 2, 0) 
+   
         masks = self.scale_mask(masks, im0_shape)  # re-scale mask from P3 shape to original input image shape
         masks = np.einsum('HWN -> NHW', masks)  # HWN -> NHW
-        masks = self.crop_mask(masks, bboxes)
-        return np.greater(masks, 0.5)
+
+        return masks
 
     @staticmethod
     def scale_mask(masks, im0_shape, ratio_pad=None):

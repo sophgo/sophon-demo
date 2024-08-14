@@ -53,11 +53,17 @@ usage: yolov8_opencv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 --dev_id: 用于推理的tpu设备id；
 --conf_thresh: 置信度阈值；
 --nms_thresh: nms阈值。
+--postprocess_use_tpu: 后处理矩阵乘是否用tpu
+--mask_bmodel_path:  后处理中矩阵乘的bmodel路径
 ```
 ### 2.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
 python3 python/yolov8_opencv.py --input datasets/test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.25 --nms_thresh 0.7
+```
+如果需要使用tpu加速后处理，可以使用如下命令：
+```bash
+python3 python/yolov8_opencv.py --input datasets/test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.25 --nms_thresh 0.7 --postprocess_use_tpu 1 --mask_bmodel_path=models/BM1684X/yolov8s_getmask_32_fp32.bmodel
 ```
 测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov8s_fp32_1b.bmodel_test_opencv_python_result.json`下，同时会打印预测结果、推理时间等信息。
 

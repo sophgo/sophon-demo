@@ -1,6 +1,3 @@
-
-
-
 #!/bin/bash
 model_dir=$(dirname $(readlink -f "$0"))
 
@@ -33,6 +30,18 @@ function gen_fp32bmodel()
         --model yolov8s_getmask_32_fp32.bmodel \
         --dynamic
     mv yolov8s_getmask_32_fp32.bmodel $outdir/
+     if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir yolov8s_getmask_32.mlir \
+            --quantize F32 \
+            --chip $target \
+            --model yolov8s_getmask_32_fp32_2core.bmodel \
+            --dynamic \
+            --num_core 2 
+           
+
+        mv yolov8s_getmask_32_fp32_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir
