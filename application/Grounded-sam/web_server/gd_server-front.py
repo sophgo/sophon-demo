@@ -7,12 +7,21 @@ from PIL import Image
 from io import BytesIO
 import pandas as pd
 import sys
+import os
 
 if len(sys.argv) > 1:
     server_url = sys.argv[1]
 else:
     server_url = 'http://localhost:8080'
 
+
+script_path = os.path.abspath(__file__)
+script_dir = os.path.dirname(script_path)
+sys.path.append(script_dir)
+# 设置默认图片和文本
+default_image_path = script_dir+'/../assets/dog.jpg'
+
+use_default_image = False
 st.title("Groundedsam Server Frontend")
 
 # 创建一个全局字典来存储历史记录
@@ -21,16 +30,26 @@ if 'history' not in st.session_state:
 def update_selected_id():
     st.session_state.selected_id = st.session_state["temp_selected_id"]
 
-
 tab1, tab2 = st.tabs(["当前上传", "历史记录"])
 with tab1:
     with st.sidebar.form("my-form", clear_on_submit=True):
         # 上传多个图片文件
         uploaded_files = st.file_uploader("选择图片", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
+        
+        # 如果没有上传文件，则使用默认图片
+        if uploaded_files is None or len(uploaded_files) == 0:
+            uploaded_files = [default_image_path]
+            use_default_image = True
+    
         text_prompt = st.text_input("输入Prompt")
         text_threshold = st.number_input("text_threshold, default=0.20", min_value=0.0, max_value=1.0, value=0.2)
         box_threshold = st.number_input("box_threshold, default=0.30", min_value=0.0, max_value=1.0, value=0.3)
         submitted = st.form_submit_button("UPLOAD!")
+
+    if submitted:
+        if text_prompt == "":
+            error_placeholder = st.empty()
+            error_placeholder.error("Prompt不能为空，请输入有效内容！")
 
     if submitted and uploaded_files is not None:
         st.write("进行推理")
@@ -40,15 +59,18 @@ with tab1:
             id = int(time.time() * 1000) + random.randint(0, 999)
 
             # 显示上传的图片
-            uploaded_file.seek(0)  # 重置文件指针位置
-            image = Image.open(uploaded_file)
-            st.image(image, caption=f'上传的图片: {uploaded_file.name}', use_column_width=True)
-            
             start_time = time.time() 
-            # 将图片转换为base64格式，然后发给后端，节省网络带宽
-            uploaded_file.seek(0)  # 再次重置文件指针位置
-            image_base64 = base64.b64encode(uploaded_file.read()).decode('utf-8')
+            image = Image.open(uploaded_file)
+            if use_default_image:
+                st.image(image, caption=f'上传的图片: {"default"}', use_column_width=True)
+                with open(uploaded_file, "rb") as f:
+                    image_base64 = base64.b64encode(f.read()).decode('utf-8')
 
+            else:
+                st.image(image, caption=f'上传的图片: {uploaded_file.name}', use_column_width=True)
+                uploaded_file.seek(0)  # 再次重置文件指针位置
+                image_base64 = base64.b64encode(uploaded_file.read()).decode('utf-8')
+            
             # 发送数据到后端
             response = requests.post(f'{server_url}/push_data', data={
                 'id': id,
@@ -71,11 +93,11 @@ with tab1:
                     else:
                         time.sleep(0.1)  # 等待0.1秒后重试
                 st.success(f"结果获取成功，ID: {id}, 数据处理及获取结果耗时: {time.time() - submit_time:.2f}秒")
+
                 # 使用pandas DataFrame来格式化显示结果
                 result_df = pd.DataFrame({
                     'text_prompt': result['text_prompt'],
                     '预测文本': result['pred_phrases'],
-                    # 'boxes_filt': result['boxes_filt']
                 })
                 img_data = base64.b64decode(result["pred_image"])
                 img_bytes = BytesIO(img_data)
@@ -87,16 +109,26 @@ with tab1:
                 st.table(result_df)
 
                 # 添加当前上传记录到历史记录
-                st.session_state.history[id] = {
-                    'id': id,
-                    'image': uploaded_file,
-                    'filename': uploaded_file.name,
-                    'result': result,
-                    'pred_img': pred_img
-                }
-
+                if use_default_image:
+                    st.session_state.history[id] = {
+                        'id': id,
+                        'image': image,
+                        'filename': "default",
+                        'result': result,
+                        'pred_img': pred_img
+                    }
+                else:
+                    st.session_state.history[id] = {
+                        'id': id,
+                        'image': uploaded_file,
+                        'filename': uploaded_file.name,
+                        'result': result,
+                        'pred_img': pred_img
+                    }
+                
             else:
                 st.error(f"错误: {response.json().get('error')}")
+
 
 with tab2:
     if st.sidebar.button("删除历史记录"):
