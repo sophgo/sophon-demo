@@ -121,11 +121,7 @@ class gdsamServer:
                 print("predict start,id:",data["id"])
                 print("==================================================")
                 # self.existing_ids.remove(data["id"])  # 从集合中移除已处理的id
-                
-                self.dino_engine.init()
-                            
-                #decode image
-                # self.dino_engine.decode(data["image"])
+
                 # Tokenize
                 tokenizer = self.dino_engine.tokenizer
                 # Preprocess
@@ -151,25 +147,19 @@ class gdsamServer:
                 results = [','.join(map(str, box)) for box in boxes_filt]
                 # 循环预测多个box
                 masks = []
+                mask = np.empty((0,0))
                 for result in results:
-                    input_point = np.array([list(map(int, result.split(',')))])
                     self.sam_vit_b = custom_model.create_SAM_b(result, config_default["SAM"], config_default["dev_id"])
                     # preprocess
-                    img = self.sam_vit_b.preprocess(data["image"], self.sam_encoder, self.sam)
+                    img = self.sam_vit_b.preprocess(data["image"], self.sam_encoder, self.sam, result)
                     # 预测
                     outputs_0 = self.sam_vit_b.predict(img)
                     sam_results = self.sam_vit_b.postprocess(outputs_0)
-                    # 预测
-                    # sam_results = self.sam_vit_b(data["image"], self.sam_encoder, self.sam) # (mask,score) or [(mask,score),(mask,score),(mask,score)]
-
-                    
+                   
                     # 把预测结果mask合并
                     mask = sam_results[0][0]
                     masks.append(mask)
-                masks = np.array(masks).reshape(len(results), 1, mask.shape[0], mask.shape[1])
-                    # 测试图片
-                    # save_image_point(data["image"],sam_results,input_point, box=True)
-                
+                masks = np.array(masks).reshape(len(results), 1, mask.shape[0], mask.shape[1])       
                 pred_image = util.draw_output_image(data["image"], masks, boxes_filt, pred_phrases)
                 
                 self.result_queue.put({
@@ -177,8 +167,6 @@ class gdsamServer:
                         "text_prompt": data["text_prompt"],
                         "pred_phrases": pred_phrases,
                         "pred_image":pred_image
-                        # "masks" : masks
-                        # "boxes_filt" : boxes_filt
                     })
                 print("predict success,id:",data["id"])
                 

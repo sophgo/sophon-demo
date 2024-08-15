@@ -12,7 +12,7 @@
 
 
 ## 简介
-Grounded_SAM_WEB_UI 例程是一个基于 Grounded_SAM 模型的图像检测和分割系统，支持输入为图像与文本，输出为 检测和分割后的图片和文本输入相关信息。可以实现只输入图片，就可以无交互式完全自动化标注出图片的检测框和分割掩码，能够应对从自动驾驶、机器人视觉到医疗影像分析等多样化的应用场景。
+Grounded_SAM_WEB_UI 例程是一个基于 Grounded_SAM 模型的图像检测和分割系统，支持输入为图像与文本，输出为检测和分割后的图片和文本输入相关信息。可以实现只输入图片，就可以无交互式完全自动化标注出图片的检测框和分割掩码，能够应对从自动驾驶、机器人视觉到医疗影像分析等多样化的应用场景。
 
 此例程由三部分组成：
 
@@ -24,6 +24,8 @@ Grounded_SAM_WEB_UI 例程是一个基于 Grounded_SAM 模型的图像检测和�
 
 ```bash
 Grounded-sam
+├── assets
+│   └── dog.jpg
 ├── models
 │   ├── bert-base-uncased     # tokenizer 分词器文件夹	
 │   └── BM1684X
@@ -66,16 +68,33 @@ chmod -R +x scripts/
 ```
 
 ## 3. 环境准备
+
+如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+
+此外您可能还需要安装其他第三方库：
+
 ```bash
 pip3 install -r requirements.txt
 ```
 
 ## 4. 启动前后端程序
 
-您需要启动前后端程序，前端程序运行在您的客户端，后端程序运行在您的服务器端，如SE7 SE9微服务器。
+1. 您需要启动前后端程序，前端程序运行在您的客户端，后端程序运行在您的服务器端，如SC7服务器。
 
 ```bash
 cd web_server
 python3 gd_server-back.py --host 0.0.0.0 --port 8080 # 启动后端接口服务，在您的服务器端启动，如SE7 SE9微服务器，其中--host 0.0.0.0 --port 8080 用于指定后端服务器的地址和端口
 streamlit run gd_server-front.py  # 启动前端网页，在您的客户端启动，会在终端显示前端网页的服务器地址和端口
 ```
+
+推荐Prompt的使用语言为英文；
+
+2. 您可以选择本地图片上传，并输入文本，点击“UPLOAD”按钮，您将看到预测结果；
+
+  2.1 若您不选择本地图片，默认为本例程../assets/dog.jpg 的图片，直接在页面的Prompt处输入如下Prompt： 
+
+    > dog and tree
+
+  2.2. 点击“UPLOAD”按钮，您将看到预测结果
+
+  2.3. 若您多次提交图片，您可以在“历史记录”中查看您的提交记录

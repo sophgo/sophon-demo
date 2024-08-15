@@ -128,18 +128,18 @@ class SAM_b(object):
         self.inference_time = 0.0
         self.postprocess_time = 0.0
 
-
-    def preprocess(self, img, sam_encoder,sam):
+    #  new change self.args.input_point to input_point
+    def preprocess(self, img, sam_encoder,sam, input_point):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         predictor = SamPredictor(sam_encoder, sam)
         predictor.set_image(img)
 
         # use TPU to embedding input_image
         image_embedding = predictor.get_image_embedding() 
-        assert len(np.array(list(map(int, self.args.input_point.split(','))))) == 2 or len(np.array(list(map(int, self.args.input_point.split(','))))) == 4, "input coordinate length must be 2 or 4"
+        assert len(np.array(list(map(int, input_point.split(','))))) == 2 or len(np.array(list(map(int, input_point.split(','))))) == 4, "input coordinate length must be 2 or 4"
         # point input
-        if (len(np.array(list(map(int, self.args.input_point.split(','))))) == 2):
-            input_point = np.array([list(map(int, self.args.input_point.split(',')))])
+        if (len(np.array(list(map(int, input_point.split(','))))) == 2):
+            input_point = np.array([list(map(int, input_point.split(',')))])
             input_label = np.array([1])
             ori_coord = np.concatenate([input_point, np.array([[0.0, 0.0]])], axis=0)[None, :, :]
             ori_label = np.concatenate([input_label, np.array([-1])], axis=0)[None, :].astype(np.float32)
@@ -166,7 +166,7 @@ class SAM_b(object):
             self.orig_im_size = ort_inputs["orig_im_size"]
         # box input
         else:
-            input_point = np.array(list(map(int, self.args.input_point.split(',')))).reshape(2, 2)
+            input_point = np.array(list(map(int, input_point.split(',')))).reshape(2, 2)
             input_label = np.array([2,3])
             ori_coord = input_point[None, :, :]
             ori_label = input_label[None, :].astype(np.float32)
