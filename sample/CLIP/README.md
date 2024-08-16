@@ -35,7 +35,8 @@ Pytorch模型在编译前要导出成onnx模型，具体可参考[CLIP模型导�
 sudo apt install unzip
 sudo apt install p7zip p7zip-full
 chmod -R +x scripts/
-./scripts/download.sh
+# 下载模型，target可选输入BM1684X, BM1688, CV186X；不输入默认下载全部模型
+./scripts/download.sh [target] 
 ```
 
 下载的模型包括：

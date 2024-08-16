@@ -6,9 +6,10 @@
   - [目录](#目录)
   - [简介](#简介)
   - [1. 工程目录](#1-工程目录)
-  - [2. 环境准备](#2-环境准备)
-  - [3. 启动前后端程序](#3-启动前后端程序)
-  - [4.运行示例](#4运行示例)
+  - [2. 准备数据与模型](#2-准备数据与模型)
+  - [3.准备环境：](#3准备环境)
+  - [4. 启动前后端程序](#4-启动前后端程序)
+  - [5.运行示例](#5运行示例)
 
 
 ## 简介
@@ -32,7 +33,21 @@ web_ui
 └── server-front.py     # 前端网页
 ```
 
-## 2. 环境准备
+## 2. 准备数据与模型
+
+本例程在`../scripts`目录下提供了相关模型和数据集的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](../README.md#4-模型编译)进行模型转换。
+
+```bash
+# 安装7z和zip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
+sudo apt install unzip
+sudo apt install p7zip p7zip-full
+chmod -R +x scripts/
+# 下载模型，target可选输入BM1684X, BM1688, CV186X；不输入默认下载全部模型 
+./scripts/download.sh [target] 
+```
+
+
+## 3.准备环境：
 
 后端程序启动时会自动检查安装依赖库，您也可以使用以下命令安装依赖库：
 ```bash
@@ -48,16 +63,28 @@ export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv_<x.x.x>/opencv-python
 ```
 
 
-## 3. 启动前后端程序
+## 4. 启动前后端程序
 
-您需要启动前后端程序，前端程序运行在您的客户端，后端程序运行在您的服务器端，如SE7 SE9微服务器。
+前端程序运行在您的客户端，可以是SE7 SE9服务器，也可以是个人PC，用于网页交互显示；后端程序运行在您的服务器端，如SE7 SE9微服务器，用于处理任务。
 
-```bash
-python3 server-backend.py --host 0.0.0.0 --port 8080 # 启动后端接口服务，在您的服务器端启动，如SE7 SE9微服务器，其中--host 0.0.0.0 --port 8080 用于指定后端服务器的地址和端口
-streamlit run server-front.py "http://localhost:8080" --server.address 0.0.0.0 --server.port 5000  # 启动前端网页，在您的客户端启动，其中 "http://localhost:8080" 用于指定第一步中后端网页的服务器地址和端口， --server.address 0.0.0.0 --server.port 5000 是streamlit的参数，用于指定前端网页的服务器地址和端口
-```
+- 后端
+  
+  首先启动后端接口服务，在您的服务器端执行如下命令，如SE7 SE9微服务器，其中 --host 0.0.0.0 --port 8080 用于指定当前后端服务器的地址和端口。
+  ```bash
+  python3 server-backend.py --host 0.0.0.0 --port 8080 
+  ```
 
-## 4.运行示例
+
+- 前端
+
+  在您的客户端执行如下命令启动前端网页，其中 "http://localhost:8080" 用于指定第一步中后端程序服务器地址和端口； --server.address 0.0.0.0 --server.port 5000 是streamlit服务的参数，用于指定前端网页的服务器地址和端口。
+
+  ```bash
+  streamlit run server-front.py "http://localhost:8080" --server.address 0.0.0.0 --server.port 5000 
+  ```
+
+
+## 5.运行示例
 
 1. 分别启动前后端程序；启动参数可以替换成您启动脚本所在服务器的IP地址；
 2. 按照上述默认参数，前端启动后打开浏览器，输入http://127.0.0.1:5000，您将看到前端网页，如下图所示：

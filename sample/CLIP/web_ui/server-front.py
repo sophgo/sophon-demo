@@ -26,14 +26,14 @@ else:
     server_url = 'http://localhost:8080'
 
 
-# 设置默认文本
-default_texts = ['A person is not wearing a hard safety helmet, they may be wearing casual headwear or no headwear at all.', 'A person is wearing a hard safety helmet designed for construction or industrial safety']
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
 sys.path.append(script_dir)
 # 设置默认图片
 default_image_path = script_dir+'/../datasets/Clothes-and-hats-misidentified-as-safety-helmet.jpg'
 
+# 设置全局图片样式
+st.markdown("<style>img { height: 300px; }</style>", unsafe_allow_html=True)  # 设置图片高度为300
 
 use_default_image = False
 st.title("CLIP Server Frontend")
@@ -58,12 +58,11 @@ with tab1:
 
         # 动态文本输入框数量
         num_texts = st.number_input("输入文本框数量", min_value=1, max_value=10, value=2)
-        # texts = [st.text_input(f"输入文本 {i+1}", value=default_texts[i] if i < len(default_texts) else '') for i in range(num_texts)]
         texts = [st.text_input(f"输入文本 {i+1}") for i in range(num_texts)]
         submitted = st.form_submit_button("UPLOAD!")
 
     if submitted and uploaded_files is not None:
-        st.write("进行推理")
+        st.write("进行推理：")
 
         for uploaded_file in uploaded_files:
             # 生成不重复的id
@@ -74,18 +73,22 @@ with tab1:
             start_time = time.time() 
             image = Image.open(uploaded_file)
             if use_default_image:
-                st.image(image, caption=f'上传的图片: {"default"}', use_column_width=True)
+                st.image(image, caption=f'上传的图片: {"default"}', use_column_width="auto")  
+                
                 with open(uploaded_file, "rb") as f:
                     image_base64 = base64.b64encode(f.read()).decode('utf-8')
                 
             else:
-                st.image(image, caption=f'上传的图片: {uploaded_file.name}', use_column_width=True)
+                st.image(image, caption=f'上传的图片: {uploaded_file.name}', use_column_width="auto")  
                 uploaded_file.seek(0)  # 再次重置文件指针位置
                 image_base64 = base64.b64encode(uploaded_file.read()).decode('utf-8')
 
 
             # 检查texts的值，如果为空就删掉
             texts = [text for text in texts if text]
+            if texts is None or len(texts) == 0:
+                st.error("请输入文本内容")
+
             # 发送数据到后端
             response = requests.post(f'{server_url}/push_data', data={
                 'id': id,
@@ -104,7 +107,7 @@ with tab1:
                     if result_response.status_code == 200:
                         result = result_response.json()
                     else:
-                        time.sleep(0.1)  # 等待0.1秒后重试
+                        time.sleep(0.01)  # 等待0.1秒后重试
                 st.success(f"结果获取成功，ID: {id}, 数据处理及获取结果耗时: {time.time() - submit_time:.2f}秒")
                 # 使用pandas DataFrame来格式化显示结果
                 result_df = pd.DataFrame({
@@ -153,7 +156,7 @@ with tab2:
         if 'selected_id' in st.session_state:
             try:
                 selected_record = st.session_state.history[st.session_state.selected_id]
-                st.image(selected_record['image'], caption=f'上传的图片: {selected_record["filename"]}', use_column_width=True)
+                st.image(selected_record['image'], caption=f'上传的图片: {selected_record["filename"]}', use_column_width="auto")  
                 # 使用pandas DataFrame来格式化显示结果
                 result_df = pd.DataFrame({
                     '文本': selected_record['result']['texts'],

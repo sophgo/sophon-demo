@@ -12,14 +12,38 @@ pushd $scripts_dir
 # datasets
 
 # models
-if [ ! -d "../models" ];
-then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/CLIP/models.zip
-    unzip models.zip -d ../
-    rm models.zip
-    popd
-    echo "models download!"
+if [ ! $1 ]; then  
+    target=all
 else
-    echo "Models folder exist! Remove it if you need to update."
+    target=${1^^}
+
+    if [[ $target != "BM1684X" && $target != "BM1688" && $target != "CV186X" ]]
+        then
+        echo "Only support BM1684X, BM1688, CV186X"
+        exit
+    fi
+
+fi
+
+if [ ! -e "../models" ];
+then
+    if [ "$target" = "all" ];
+    then 
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/CLIP/models.zip
+        unzip models.zip -d ../
+        rm models.zip
+        echo "models download!"
+    else
+        mkdir -p ../models
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/CLIP/text_projection_512_512.npy
+        mv text_projection_512_512.npy ../models
+
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/CLIP/$target.zip
+        unzip $target.zip -d ../models
+        rm $target.zip
+        echo "$target models download!"
+    fi
+else
+    echo "Models folder or file exist! Remove it if you need to update."
 fi
 popd
