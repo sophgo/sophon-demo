@@ -14,12 +14,14 @@ mkdir -p models/BM1688
 pip3 install dfss --upgrade
 python3 -m dfss --url=open@sophgo.com:sophon-demo/common/test_car_person_1080P.mp4
 python3 -m dfss --url=open@sophgo.com:sophon-demo/tutorials/bm1688_2core2task_yolov5/yolov5s_v6.1_3output_int8_4b.bmodel
+python3 -m dfss --url=open@sophgo.com:sophon-demo/common/coco.names
 mv test_car_person_1080P.mp4 datasets/
 mv yolov5s_v6.1_3output_int8_4b.bmodel models/BM1688
+mv coco.names datasets/
 ```
 模型来源：[YOLOv5例程](../../sample/YOLOv5/README.md#3-准备模型与数据)
 
 ### 3.样例测试
 
 - [C++例程](./cpp/README.md)
-
+- [Python例程](./python/README.md)
