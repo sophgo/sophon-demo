@@ -21,6 +21,12 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatGLM3/models/BM1684X/chatglm3-6b_int8.bmodel
     python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatGLM3/models/BM1684X/chatglm3-6b_int4.bmodel
     popd
+
+    mkdir -p ../models/BM1688
+    pushd ../models/BM1688
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatGLM3/models/BM1688/chatglm3-6b_int4_2core.bmodel
+    popd
+
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
