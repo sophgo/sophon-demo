@@ -34,8 +34,28 @@ YoloV8::~YoloV8() {
         bm_image_destroy(m_converto_imgs[i]);
         bm_image_destroy(m_resized_imgs[i]);
     }
+}
 
-    bmrt_destroy(mask_bmrt);
+void YoloV8::tpumask_Init(std::shared_ptr<BMNNContext> tpu_mask_context) {
+    m_tpu_mask_bmContext = tpu_mask_context;
+
+    // get tpu_mask network
+    m_tpu_mask_bmNetwork = m_tpu_mask_bmContext -> network(0);
+
+    // get input
+    auto mask_info  = m_tpu_mask_bmNetwork->inputTensor(0);
+    auto output1 = m_tpu_mask_bmNetwork->inputTensor(1);
+    m_tpumask_net_h = output1->get_shape()->dims[2];
+    m_tpumask_net_w = output1->get_shape()->dims[3];
+    
+
+    assert(output1->get_shape()->dims[1] == mask_info->get_shape()->dims[2]);
+    mask_num = output1->get_shape()->dims[1];
+    tpumask_max_batch =  output1->get_shape()->dims[0];
+
+    auto outputTensor_type = m_tpu_mask_bmNetwork->outputTensor(0)->get_dtype();
+    assert(outputTensor_type == BM_UINT8);
+
 }
 
 int YoloV8::Init(float confThresh, float nmsThresh, const std::string& coco_names_file) {
@@ -97,33 +117,6 @@ int YoloV8::Init(float confThresh, float nmsThresh, const std::string& coco_name
 
     return 0;
 }
-
-void YoloV8::tpumask_Init(){
-
-    mask_bmrt = bmrt_create(m_bmContext->handle());
-    bmrt_load_bmodel(mask_bmrt, mask_bmodel.c_str());
-
-    mask_net_info = const_cast<bm_net_info_t*>(bmrt_get_network_info(mask_bmrt, "yolov8s"));
-    assert(NULL != mask_net_info);
-
-    // init input tensors
-    bm_status_t status = bm_malloc_device_byte(m_bmContext->handle(), &input_tensors[0].device_mem,
-                                    mask_net_info->max_input_bytes[0]);
-    assert(BM_SUCCESS == status);
-    input_tensors[0].dtype = BM_FLOAT32;
-    input_tensors[0].st_mode = BM_STORE_1N;
-    status = bm_malloc_device_byte(m_bmContext->handle(), &input_tensors[1].device_mem,
-                                    mask_net_info->max_input_bytes[1]);
-    assert(BM_SUCCESS == status);
-    input_tensors[1].dtype = BM_FLOAT32;
-    input_tensors[1].st_mode = BM_STORE_1N;
-
-    // init output tensors  
-    status = bm_malloc_device_byte(m_bmContext->handle(), &output_tensors[0].device_mem,
-                                    mask_net_info->max_output_bytes[0]);
-    assert(BM_SUCCESS == status);
-}
-
 
 void YoloV8::enableProfile(TimeStamp* ts) {
     m_ts = ts;
@@ -252,44 +245,72 @@ float YoloV8::get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h
     return ratio;
 }
 
-void YoloV8::getmask_tpu(void *mask_bmrt, YoloV8BoxVec &yolobox_vec, std::shared_ptr<BMNNTensor> &out_tensor1,Paras& paras,YoloV8BoxVec &yolobox_vec_tmp) {
+void YoloV8::getmask_tpu(YoloV8BoxVec &yolobox_vec, std::shared_ptr<BMNNTensor> &out_tensor1,Paras& paras,YoloV8BoxVec &yolobox_vec_tmp) {
     //dynamic shape
-    input_tensors[0].shape = {3, {1,yolobox_vec.size(),32}};
-    input_tensors[1].shape = {4, {1,32,160,160}};
-
+    std::shared_ptr<BMNNTensor> mask_info = m_bmNetwork->inputTensor(0);
+    std::shared_ptr<BMNNTensor> output1 = m_bmNetwork->inputTensor(1);
+    
+    const int mask_info_shape[3] = {1,yolobox_vec.size(),mask_num};
+    mask_info->set_shape(mask_info_shape,3);
+    bm_device_mem_t mask_info_dev = *mask_info->get_device_mem();
     //parepare bmodel inputs
     for (size_t i = 0; i < yolobox_vec.size(); i++)
     {
-        bm_memcpy_s2d_partial_offset(m_bmContext->handle(), input_tensors[0].device_mem, reinterpret_cast<void*>(yolobox_vec[i].mask.data()), 32*4, 32*4*i);
+        bm_memcpy_s2d_partial_offset(m_tpu_mask_bmContext->handle(), mask_info_dev, reinterpret_cast<void*>(yolobox_vec[i].mask.data()), 32*4, 32*4*i);
     }
-    input_tensors[1].device_mem=*out_tensor1->get_device_mem();
+    
+    output1->set_device_mem(const_cast<bm_device_mem_t*>(out_tensor1->get_device_mem()));
 
-    //run bmodel
-    auto ret = bmrt_launch_tensor_ex(mask_bmrt, "yolov8s", input_tensors, 2,
-                                output_tensors, 1, true, false);
-    assert(true == ret);
-
-    // sync, wait for finishing inference
-    bm_thread_sync(m_bmContext->handle());
+    // run bmodel
+    auto ret = m_tpu_mask_bmNetwork->forward();
+    CV_Assert(ret == 0);
 
     //get outputs
-    float output0[1*yolobox_vec.size()*160*160];
-    bm_memcpy_d2s_partial(m_bmContext->handle(), output0, output_tensors[0].device_mem,
-                            bmrt_tensor_bytesize(&output_tensors[0]));
+    auto outputTensor = m_bmNetwork->outputTensor(0);
+    bm_device_mem_t outputTensor_dev= *outputTensor->get_device_mem();
 
-    //crop and resize    
-    for (int i = 0; i < yolobox_vec.size(); i++) {
-        //crop 160*160-->r_w*r_h
-        cv::Mat temp_mask(160, 160, CV_32FC1, output0+i*160*160);
-        cv::Mat masks_feature = temp_mask(cv::Rect(paras.r_x, paras.r_y, paras.r_w, paras.r_h));
+    int num = yolobox_vec.size();
+    // 转bm_image
+    std::vector<bm_image> bmimg_vec(num);
+    ret = bm_image_create_batch(m_tpu_mask_bmContext->handle(),m_tpumask_net_h, m_tpumask_net_w,FORMAT_GRAY,DATA_TYPE_EXT_1N_BYTE,bmimg_vec.data(),num);
+    assert(ret == BM_SUCCESS);
+    
+    // attach
+    ret = bm_image_attach_contiguous_mem(num,bmimg_vec.data(),outputTensor_dev);
+    assert(ret == BM_SUCCESS);
+
+    // create bmimage
+    bm_image image_resize;
+    bm_image_create(m_tpu_mask_bmContext->handle(), paras.height,paras.width,FORMAT_GRAY,DATA_TYPE_EXT_1N_BYTE,&image_resize);
+    
+    // resize config
+    bmcv_rect_t rects{paras.r_x, paras.r_y, paras.r_w, paras.r_h};
+    int crop_num = 1;
+    bmcv_resize_t resize_img_attr{paras.r_x, paras.r_y,paras.r_w, paras.r_h,paras.width, paras.height};
+
+    for (int i=0; i < bmimg_vec.size(); i++){
+        // resize
+        auto ret =  bmcv_image_vpp_convert(m_tpu_mask_bmContext->handle(), 1, bmimg_vec[i], &image_resize, &rects);
+        assert(ret == BM_SUCCESS);
+
+        // toMAT
         cv::Mat mask;
-        resize(masks_feature, mask, cv::Size(paras.width, paras.height));
+        ret = cv::bmcv::toMAT(&image_resize,mask,true);
+        assert(ret == BM_SUCCESS);
 
-        cv::Rect bound=cv::Rect{yolobox_vec[i].x1, yolobox_vec[i].y1, yolobox_vec[i].x2 - yolobox_vec[i].x1,
-                                  yolobox_vec[i].y2 - yolobox_vec[i].y1};
-        yolobox_vec[i].mask_img=mask(bound) > m_confThreshold;
+        // crop + mask
+        cv::Rect bound=cv::Rect{yolobox_vec[i].x1, yolobox_vec[i].y1, yolobox_vec[i].x2 - yolobox_vec[i].x1,yolobox_vec[i].y2 - yolobox_vec[i].y1};
+        yolobox_vec[i].mask_img=mask(bound) > m_confThreshold * 255.0;
         yolobox_vec_tmp.push_back(yolobox_vec[i]);
+
     }
+    
+    bm_image_destroy(image_resize);
+    // detach
+    ret = bm_image_dettach_contiguous_mem(num,bmimg_vec.data());
+    assert(ret == BM_SUCCESS);
+    bm_image_destroy_batch(bmimg_vec.data(),num);
+    
 }
 
 
@@ -465,7 +486,7 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
             }
 
             struct Paras paras={r_x,r_y,r_w,r_h,para.raw_size.width,para.raw_size.height};
-            getmask_tpu(mask_bmrt,yolobox_vec,outputTensors[1],paras,yolobox_vec_tmp);
+            getmask_tpu(yolobox_vec,outputTensors[1],paras,yolobox_vec_tmp);
          }else{
                 for (int i = 0; i < yolobox_vec.size(); i++) {
                 // std::cout<<yolobox_vec[i].mask[0]<<std::endl;
@@ -484,6 +505,7 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
 
     return 0;
 }
+
 void YoloV8::get_mask(const cv::Mat& mask_info,
                       const cv::Mat& mask_data,
                       const ImageInfo& para,

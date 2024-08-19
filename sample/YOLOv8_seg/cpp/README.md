@@ -88,7 +88,7 @@ Usage: yolov8_bmcv.pcie [params]
 ```
 如果需要使用tpu加速后处理，可以使用如下命令：
 ```bash
-./yolov8_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/yolov8s_fp32_1b.bmodel --tpu_post=True --mask_bmodel=../../models/BM1684X/yolov8s_getmask_32_fp32.bmodel  --dev_id=0 --conf_thresh=0.25 --nms_thresh=0.7 --classnames=../../datasets/coco.names 
+./yolov8_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/yolov8s_fp32_1b.bmodel --tpu_post=True --mask_bmodel=../../models/BM1684X/yolov8s_getmask_32_int8.bmodel  --dev_id=0 --conf_thresh=0.25 --nms_thresh=0.7 --classnames=../../datasets/coco.names 
 ```
 测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov8s_fp32_1b.bmodel_test_bmcv_cpp_result.json`下，同时会打印预测结果、推理时间等信息。
 

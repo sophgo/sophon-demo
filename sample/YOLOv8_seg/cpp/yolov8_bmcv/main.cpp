@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
         "{conf_thresh | 0.25 | confidence threshold for filter boxes}"
         "{nms_thresh | 0.7 | iou threshold for nms}"
         "{tpu_post | false | use tpu post process}"
-        "{mask_bmodel | ../../model/BM1684X/yolov8s_getmask_32_fp32.bmodel | bmodel file path}"
+        "{mask_bmodel | ../../model/BM1684X/yolov8s_getmask_32_int8.bmodel | bmodel file path}"
         "{help | 0 | print help information.}"
         "{input | ../../datasets/test | input path, images direction or video "
         "file path}"
@@ -144,18 +144,18 @@ int main(int argc, char* argv[]) {
     // load bmodel
     shared_ptr<BMNNContext> bm_ctx = make_shared<BMNNContext>(handle, bmodel_file.c_str());
 
-    // initialize net
+    // initialize yolov8 net
     YoloV8 yolov8(bm_ctx);
     CV_Assert(0 == yolov8.Init(parser.get<float>("conf_thresh"), parser.get<float>("nms_thresh"), coco_names));
-    yolov8.tpu_post=tpu_post;
 
-    if (tpu_post) {
+    // init tpu post model
+    if(tpu_post){
         string mask_bmodel = parser.get<string>("mask_bmodel");
-        yolov8.mask_bmodel=mask_bmodel;
-        yolov8.tpumask_Init();
+        shared_ptr<BMNNContext> bm_ctx_tpu_post = make_shared<BMNNContext>(handle, mask_bmodel.c_str());
+        yolov8.tpumask_Init(bm_ctx_tpu_post);
         cout << "use tpu post process" << endl;
-    } else {
-        cout << "use cpu post process" << endl;
+    }else{
+         cout << "use cpu post process" << endl;
     }
     // profiling
     TimeStamp yolov8_ts;
