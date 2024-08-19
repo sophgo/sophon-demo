@@ -6,7 +6,9 @@ pushd $model_dir
 models=
 mode="fp16"
 num_device=1
+num_core=1
 quantize_args="--quantize F16"
+addr_args=""
 quantio_args=""
 quant_io=1
 device_args=""
@@ -27,9 +29,17 @@ while [[ $# -gt 0 ]]; do
             num_device="$2"
             shift 2
             ;;
+        --num_core)
+            num_core="$2"
+            shift 2
+            ;;
         --target)
             target=${2,,}
             target_dir=${target^^}
+            shift 2
+            ;;
+        --addr_mode)
+            addr_mode="$2"
             shift 2
             ;;
         --no_quant_io)
@@ -46,6 +56,11 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [ $num_core != 1 ] && [ x$target != x"bm1688" ]; then
+    echo "Failed: only bm1688 support 2core bmodels."
+    exit 1
+fi
 
 out_model_name="${out_model_name}_${mode}"
 
@@ -70,7 +85,13 @@ if [ x$num_device != x1 ]; then
     out_model_name="${out_model_name}_${num_device}dev"
 fi
 
-out_model="${out_model_name}.bmodel"
+out_model="${out_model_name}_${num_core}core.bmodel"
+
+if [ x$addr_mode == x"io_alone" ]; then
+    addr_args="--addr_mode io_alone"
+    out_model="${out_model_name}_${num_core}core_io_alone.bmodel"
+fi
+
 
 outdir=tmp/embedding
 mkdir -p $outdir
@@ -85,8 +106,9 @@ model_transform.py \
 model_deploy.py \
     --mlir embedding.mlir \
     --quantize F16 \
-    --chip bm1684x \
+    --chip $target \
     $quantio_args \
+    --num_core $num_core \
     --model embedding.bmodel
 
 model_transform.py \
@@ -99,8 +121,9 @@ model_transform.py \
 model_deploy.py \
     --mlir embedding_cache.mlir \
     --quantize F16 \
-    --chip bm1684x \
+    --chip $target \
     $quantio_args \
+    --num_core $num_core \
     --model embedding_cache.bmodel
 
 rm *.npz
@@ -123,9 +146,10 @@ model_transform.py \
 model_deploy.py \
     --mlir lm_head.mlir \
     --quantize F16 \
-    --chip bm1684x \
+    --chip $target \
     $device_args \
     $quantio_args \
+    --num_core $num_core \
     --model lm_head.bmodel
 
 models=${models}${outdir}'/lm_head.bmodel '
@@ -149,8 +173,9 @@ for ((i=0; i<=$num_layers; i++)); do
     model_deploy.py \
         --mlir block_$i.mlir \
         $quantize_args \
-        --chip bm1684x \
+        --chip $target \
         $device_args \
+        --num_core $num_core \
         --model block_$i.bmodel
 
     model_transform.py \
@@ -161,8 +186,10 @@ for ((i=0; i<=$num_layers; i++)); do
     model_deploy.py \
         --mlir block_cache_$i.mlir \
         $quantize_args \
-        --chip bm1684x \
+        --chip $target \
         $device_args \
+        --num_core $num_core \
+         $addr_args \
         --model block_cache_$i.bmodel
         
     rm *.npz
@@ -178,5 +205,6 @@ if [ ! -d $outdir ]; then
     mkdir -p $outdir
 fi
 model_tool --combine $models -o $outdir/$out_model
+chmod 777 $outdir/$out_model
 
 popd #model_dir

@@ -14,7 +14,7 @@ ChatGLM3-6B 是开源中英双语对话模型 ChatGLM-6B 的第三代版本，�
 该例程支持在V23.07.01(libsophon_0.4.9)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)
+* 支持BM1684X(x86 PCIe、SoC)、BM1688(SoC)
 * 支持FP16、INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持多轮对话
@@ -36,8 +36,23 @@ cd memory_edit
 sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/emmcboot.itb /boot/emmcboot.itb && sync
 sudo reboot
 ```
+
+对于BM1688系列设备（如SE9-16/SM9-16，需要是16GB内存版本），参考如下命令修改设备内存：
+```bash
+cd /data/
+mkdir memedit && cd memedit
+wget -nd https://sophon-file.sophon.cn/sophon-prod-s3/drive/23/09/11/13/DeviceMemoryModificationKit.tgz
+tar xvf DeviceMemoryModificationKit.tgz
+cd DeviceMemoryModificationKit
+tar xvf memory_edit_{vx.x}.tar.xz #vx.x是版本号
+cd memory_edit
+./memory_edit.sh -p #这个命令会打印当前的内存布局信息
+./memory_edit.sh -c -npu 8192 -vpu 0 -vpp 1024
+sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/boot.itb /boot/boot.itb && sync
+sudo reboot
+```
 > **注意：**
-> 1. tpu总内存为npu/vpu/vpp三者之和，fp16模型应满足tpu内存 >= 12800 MB，int8应满足tpu内存 >= 7168MB，int4应满足tpu内存 >= 4608MB。
+> 1. tpu总内存为npu/vpu/vpp三者之和，对BM1684X来说，fp16模型应满足tpu内存 >= 12800 MB，int8应满足tpu内存 >= 7168MB，int4应满足tpu内存 >= 4608MB。对BM1688来说，int4应满足tpu内存>=7000MB。
 > 2. 更多教程请参考[SoC内存修改工具](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/SophonSDK_doc/zh/html/appendix/2_mem_edit_tools.html)
 
 ## 4. 准备模型
@@ -61,10 +76,12 @@ chmod -R +x scripts/
 ├── docs
 │   └── ChatGLM3_Export_Guide.md    #ChatGLM3 onnx导出和bmodel编译指南
 ├── models
-│   └── BM1684X                     #download.sh下载的bmodel
-│       ├── chatglm3-6b_fp16.bmodel
-│       ├── chatglm3-6b_int4.bmodel
-│       └── chatglm3-6b_int8.bmodel
+│   ├── BM1684X                     #download.sh下载的bmodel
+│   |   ├── chatglm3-6b_fp16.bmodel
+│   |   ├── chatglm3-6b_int4.bmodel
+│   |   └── chatglm3-6b_int8.bmodel
+|   └── BM1688
+|       └── chatglm3-6b_int8_2core.bmodel
 ├── python
 │   ├── chatglm3.py                 #ChatGLM3 python推理脚本
 │   ├── README.md                   #python例程执行指南
@@ -101,8 +118,8 @@ chmod -R +x scripts/
 | SE7-32       | chatglm3.py      | chatglm3-6b_f16.bmodel          |    1.408              |    4.067          | 
 | SE7-32       | chatglm3.py      | chatglm3-6b_int8.bmodel         |    1.116              |    8.184          | 
 | SE7-32       | chatglm3.py      | chatglm3-6b_int4.bmodel         |    1.121              |    12.822         | 
+| SE9-16       | chatglm3.py      | chatglm3-6b_int4_2core.bmodel   |    5.157              |    5.113          | 
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
-> 3. 这里使用的SDK版本是V23.07.01；
+> 2. 这里SE7-32使用的SDK版本是V23.07.01，SE9-16的SDK版本是V1.6；
