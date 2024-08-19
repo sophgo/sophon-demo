@@ -60,6 +60,9 @@ class YoloV8 {
     std::shared_ptr<BMNNContext> m_bmContext;
     std::shared_ptr<BMNNNetwork> m_bmNetwork;
 
+    std::shared_ptr<BMNNContext> m_tpu_mask_bmContext;
+    std::shared_ptr<BMNNNetwork> m_tpu_mask_bmNetwork;
+
     std::vector<bm_image> m_resized_imgs;
     std::vector<bm_image> m_converto_imgs;
     
@@ -67,11 +70,8 @@ class YoloV8 {
     float m_confThreshold = 0.25;
     float m_nmsThreshold = 0.7;
     
-
-
     std::vector<std::string> m_class_names;
     int m_class_num = 80;  // default is coco names
-    int mask_num = 32;
     int m_net_h, m_net_w;
     int max_batch;
     int output_num;
@@ -79,6 +79,11 @@ class YoloV8 {
     int max_det = 300;
     int max_wh = 7680;  // (pixels) maximum box width and height
     bmcv_convert_to_attr converto_attr;
+    
+    // tpumask model
+    int mask_num = 32;
+    int m_tpumask_net_h, m_tpumask_net_w;
+    int tpumask_max_batch;
 
     TimeStamp* m_ts;
 
@@ -95,26 +100,20 @@ class YoloV8 {
                   const ImageInfo& para,
                   cv::Rect bound,
                   cv::Mat& mast_out);
-    
-    void *mask_bmrt=nullptr;
-    bm_net_info_t *mask_net_info;
-    bm_tensor_t input_tensors[2];
-    bm_tensor_t output_tensors[1];
-    
+      
    public:
     YoloV8(std::shared_ptr<BMNNContext> context);
     virtual ~YoloV8();
     int Init(float confThresh = 0.5, float nmsThresh = 0.5, const std::string& coco_names_file = "");
+    void tpumask_Init(std::shared_ptr<BMNNContext> tpu_mask_context);
+
     void enableProfile(TimeStamp* ts);
     int batch_size();
     int Detect(const std::vector<bm_image>& images, std::vector<YoloV8BoxVec>& boxes);
     void draw_bmcv(bm_handle_t& handle, bm_image& frame, YoloV8BoxVec& result, bool put_text_flag);
     void draw_result(cv::Mat& img, YoloV8BoxVec& result);
-    void getmask_tpu(void *mask_bmrt, YoloV8BoxVec &yolobox_vec, std::shared_ptr<BMNNTensor> &out_tensor1,Paras& paras,YoloV8BoxVec &yolobox_vec_tmp);
-    
-    void tpumask_Init();
+    void getmask_tpu(YoloV8BoxVec &yolobox_vec, std::shared_ptr<BMNNTensor> &out_tensor1,Paras& paras,YoloV8BoxVec &yolobox_vec_tmp);
     bool tpu_post = false;
-    std::string mask_bmodel;
 };
 
 #endif  //! YOLOV8_H
