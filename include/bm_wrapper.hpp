@@ -25,6 +25,10 @@
 #endif
 /*for multi version compatible*/
 #if BMCV_VERSION_MAJOR > 1
+
+#ifdef BMCV_VERSION_MINOR
+#include "bmcv_api.h"
+#else
 typedef bmcv_padding_attr_t bmcv_padding_atrr_t;
 /**
  * @name    bm_image_destroy
@@ -38,6 +42,10 @@ typedef bmcv_padding_attr_t bmcv_padding_atrr_t;
 static inline bm_status_t bm_image_destroy(bm_image& image){
   return bm_image_destroy(&image);
 }
+static inline bm_status_t bm_image_dettach_contiguous_mem(int image_num, bm_image *images){
+  return bm_image_detach_contiguous_mem(image_num, images);
+}
+#endif
 #endif
 
 /* Define this macro in advance to enable following APIs */
