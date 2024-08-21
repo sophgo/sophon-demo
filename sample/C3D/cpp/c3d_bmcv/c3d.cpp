@@ -99,11 +99,11 @@ void C3D::Init(){
     // 5.Set vpp converto params.
     float input_scale = m_input_tensor->get_scale();
     m_converto_attr.alpha_0 = input_scale;
-    m_converto_attr.beta_0 = -104.0; //ImageNet channel B mean
+    m_converto_attr.beta_0 = -104.0 * input_scale; //ImageNet channel B mean
     m_converto_attr.alpha_1 = input_scale;
-    m_converto_attr.beta_1 = -117.0; //ImageNet channel G mean
+    m_converto_attr.beta_1 = -117.0 * input_scale; //ImageNet channel G mean
     m_converto_attr.alpha_2 = input_scale;
-    m_converto_attr.beta_2 = -123.0; //ImageNet channel R mean
+    m_converto_attr.beta_2 = -123.0 * input_scale; //ImageNet channel R mean
 }
 
 int C3D::batch_size(){
