@@ -18,29 +18,36 @@ function gen_mlir()
         --model_def ../models/onnx/yolov8_getmask_32.onnx \
         --input_shapes [[1,32,32],[1,32,160,160]] \
         --mlir yolov8s_getmask_32.mlir \
-        --dynamic_inputs mask_info
+        --dynamic_shape_input_names mask_info
 }
 
-function gen_fp32bmodel()
+function gen_int8bmodel()
 {
-    model_deploy.py \
-        --mlir yolov8s_getmask_32.mlir \
-        --quantize F32 \
-        --chip $target \
-        --model yolov8s_getmask_32_fp32.bmodel \
+    model_deploy.py     \
+        --mlir yolov8s_getmask_32.mlir  \
+        --quantize INT8     \
+        --chip $target    \
+        --calibration_table ../models/onnx/yolov8s_getmask_32_cali_table     \
+        --quantize_table ../models/onnx/yolov8s_getmask_qtable     \
+        --model yolov8s_getmask_32_int8.bmodel     \
+        --quant_output     \
         --dynamic
-    mv yolov8s_getmask_32_fp32.bmodel $outdir/
-     if test $target = "bm1688";then
-        model_deploy.py \
-            --mlir yolov8s_getmask_32.mlir \
-            --quantize F32 \
-            --chip $target \
-            --model yolov8s_getmask_32_fp32_2core.bmodel \
-            --dynamic \
-            --num_core 2 
-           
 
-        mv yolov8s_getmask_32_fp32_2core.bmodel $outdir/
+    mv yolov8s_getmask_32_int8.bmodel  $outdir/
+
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir yolov8s_getmask_32.mlir  \
+            --quantize INT8     \
+            --chip $target    \
+            --calibration_table ../models/onnx/yolov8s_getmask_32_cali_table     \
+            --quantize_table ../models/onnx/yolov8s_getmask_qtable     \
+            --model yolov8s_getmask_32_int8_2core.bmodel     \
+            --quant_output   \
+            --num_core 2 \
+            --dynamic
+
+        mv yolov8s_getmask_32_int8_2core.bmodel $outdir/
     fi
 }
 
@@ -50,6 +57,6 @@ if [ ! -d $outdir ]; then
 fi
 
 gen_mlir 
-gen_fp32bmodel 
+gen_int8bmodel
 
 popd
