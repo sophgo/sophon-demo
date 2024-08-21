@@ -335,8 +335,8 @@ then
 elif test $MODE = "pcie_test"
 then
   download
-  pip3 install -r python/requirements.txt
-  pip3 install motmetrics
+  pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+  pip3 install motmetrics -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
     if test $CASE_MODE = "fully"
@@ -411,8 +411,8 @@ then
 elif test $MODE = "soc_test"
 then
   download
-  pip3 install -r python/requirements.txt --upgrade
-  pip3 install opencv-python-headless motmetrics
+  pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+  pip3 install motmetrics -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
     if test $CASE_MODE = "fully"
@@ -533,12 +533,12 @@ then
       eval_python opencv extractor_fp16_4b.bmodel 0.441
       eval_python opencv extractor_int8_1b.bmodel 0.440
       eval_python opencv extractor_int8_4b.bmodel 0.440
-      eval_cpp soc bmcv extractor_fp32_1b.bmodel  0.430
-      eval_cpp soc bmcv extractor_fp32_4b.bmodel  0.430
-      eval_cpp soc bmcv extractor_fp16_1b.bmodel  0.430
-      eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.430
-      eval_cpp soc bmcv extractor_int8_1b.bmodel  0.429
-      eval_cpp soc bmcv extractor_int8_4b.bmodel  0.429
+      eval_cpp soc bmcv extractor_fp32_1b.bmodel  0.435
+      eval_cpp soc bmcv extractor_fp32_4b.bmodel  0.435
+      eval_cpp soc bmcv extractor_fp16_1b.bmodel  0.435
+      eval_cpp soc bmcv extractor_fp16_4b.bmodel  0.435
+      eval_cpp soc bmcv extractor_int8_1b.bmodel  0.436
+      eval_cpp soc bmcv extractor_int8_4b.bmodel  0.436
       if test "$PLATFORM" = "SE9-16"; then 
         eval_python opencv extractor_fp32_1b_2core.bmodel 0.441
         eval_python opencv extractor_fp32_4b_2core.bmodel 0.441
@@ -546,12 +546,12 @@ then
         eval_python opencv extractor_fp16_4b_2core.bmodel 0.441
         eval_python opencv extractor_int8_1b_2core.bmodel 0.440
         eval_python opencv extractor_int8_4b_2core.bmodel 0.440
-        eval_cpp soc bmcv extractor_fp32_1b_2core.bmodel  0.430
-        eval_cpp soc bmcv extractor_fp32_4b_2core.bmodel  0.430
-        eval_cpp soc bmcv extractor_fp16_1b_2core.bmodel  0.430
-        eval_cpp soc bmcv extractor_fp16_4b_2core.bmodel  0.430
-        eval_cpp soc bmcv extractor_int8_1b_2core.bmodel  0.429
-        eval_cpp soc bmcv extractor_int8_4b_2core.bmodel  0.429
+        eval_cpp soc bmcv extractor_fp32_1b_2core.bmodel  0.435
+        eval_cpp soc bmcv extractor_fp32_4b_2core.bmodel  0.435
+        eval_cpp soc bmcv extractor_fp16_1b_2core.bmodel  0.435
+        eval_cpp soc bmcv extractor_fp16_4b_2core.bmodel  0.435
+        eval_cpp soc bmcv extractor_int8_1b_2core.bmodel  0.436
+        eval_cpp soc bmcv extractor_int8_4b_2core.bmodel  0.436
       fi
     elif test $CASE_MODE = "partly"
     then
@@ -559,10 +559,10 @@ then
       test_cpp soc bmcv extractor_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
       eval_python opencv extractor_int8_4b.bmodel 0.440
-      eval_cpp soc bmcv extractor_int8_4b.bmodel  0.429
+      eval_cpp soc bmcv extractor_int8_4b.bmodel  0.436
       if test "$PLATFORM" = "SE9-16"; then 
         eval_python opencv extractor_int8_4b_2core.bmodel 0.440
-        eval_cpp soc bmcv extractor_int8_4b_2core.bmodel  0.429
+        eval_cpp soc bmcv extractor_int8_4b_2core.bmodel  0.436
       fi
     else
       echo "unknown CASE_MODE: $CASE_MODE"
