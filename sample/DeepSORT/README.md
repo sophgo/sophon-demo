@@ -178,15 +178,15 @@ acc         525  0.524889  0.544908  0.506289  0.687163  0.739579  5009  10  12 
 |    SE9-16    | deepsort_opencv.py | extractor_fp32_1b.bmodel | 0.441 |
 |    SE9-16    | deepsort_opencv.py | extractor_fp16_1b.bmodel | 0.441 |
 |    SE9-16    | deepsort_opencv.py | extractor_int8_1b.bmodel | 0.440 |
-|    SE9-16    | deepsort_bmcv.soc  | extractor_fp32_1b.bmodel | 0.430 |
-|    SE9-16    | deepsort_bmcv.soc  | extractor_fp16_1b.bmodel | 0.430 |
-|    SE9-16    | deepsort_bmcv.soc  | extractor_int8_1b.bmodel | 0.429 |
+|    SE9-16    | deepsort_bmcv.soc  | extractor_fp32_1b.bmodel | 0.435 |
+|    SE9-16    | deepsort_bmcv.soc  | extractor_fp16_1b.bmodel | 0.435 |
+|    SE9-16    | deepsort_bmcv.soc  | extractor_int8_1b.bmodel | 0.436 |
 |    SE9-8     | deepsort_opencv.py | extractor_fp32_1b.bmodel | 0.441 |
 |    SE9-8     | deepsort_opencv.py | extractor_fp16_1b.bmodel | 0.441 |
 |    SE9-8     | deepsort_opencv.py | extractor_int8_1b.bmodel | 0.440 |
-|    SE9-8     | deepsort_bmcv.soc  | extractor_fp32_1b.bmodel | 0.429 |
-|    SE9-8     | deepsort_bmcv.soc  | extractor_fp16_1b.bmodel | 0.430 |
-|    SE9-8     | deepsort_bmcv.soc  | extractor_int8_1b.bmodel | 0.429 |
+|    SE9-8     | deepsort_bmcv.soc  | extractor_fp32_1b.bmodel | 0.435 |
+|    SE9-8     | deepsort_bmcv.soc  | extractor_fp16_1b.bmodel | 0.435 |
+|    SE9-8     | deepsort_bmcv.soc  | extractor_int8_1b.bmodel | 0.436 |
 
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
@@ -216,18 +216,18 @@ bmrt_test --bmodel models/BM1684X/extractor_fp32_1b.bmodel
 | BM1684X/extractor_fp16_4b.bmodel      |   0.24        |
 | BM1684X/extractor_int8_1b.bmodel      |   0.33        |
 | BM1684X/extractor_int8_4b.bmodel      |   0.14        |
-| BM1688/extractor_fp32_1b.bmodel       |   13.29       |
-| BM1688/extractor_fp32_4b.bmodel       |   11.27       |
-| BM1688/extractor_fp16_1b.bmodel       |   3.14        |
-| BM1688/extractor_fp16_4b.bmodel       |   1.84        |
-| BM1688/extractor_int8_1b.bmodel       |   1.93        |
-| BM1688/extractor_int8_4b.bmodel       |   0.75        |
-| BM1688/extractor_fp32_1b_2core.bmodel |   13.34       |
-| BM1688/extractor_fp32_4b_2core.bmodel |   6.36        |
-| BM1688/extractor_fp16_1b_2core.bmodel |   3.49        |
-| BM1688/extractor_fp16_4b_2core.bmodel |   1.32        |
-| BM1688/extractor_int8_1b_2core.bmodel |   1.87        |
-| BM1688/extractor_int8_4b_2core.bmodel |   0.75        |
+| BM1688/extractor_fp32_1b.bmodel    |          12.38  |
+| BM1688/extractor_fp32_4b.bmodel    |          10.99  |
+| BM1688/extractor_fp16_1b.bmodel    |           2.21  |
+| BM1688/extractor_fp16_4b.bmodel    |           1.57  |
+| BM1688/extractor_int8_1b.bmodel    |           0.93  |
+| BM1688/extractor_int8_4b.bmodel    |           0.58  |
+| BM1688/extractor_fp32_1b_2core.bmodel|          12.38  |
+| BM1688/extractor_fp32_4b_2core.bmodel|           6.11  |
+| BM1688/extractor_fp16_1b_2core.bmodel|           2.22  |
+| BM1688/extractor_fp16_4b_2core.bmodel|           1.04  |
+| BM1688/extractor_int8_1b_2core.bmodel|           0.93  |
+| BM1688/extractor_int8_4b_2core.bmodel|           0.51  |
 | CV186X/extractor_fp32_1b.bmodel       |   11.13       |
 | CV186X/extractor_fp32_4b.bmodel       |   10.78       |
 | CV186X/extractor_fp16_1b.bmodel       |    2.57       |
@@ -258,30 +258,42 @@ bmrt_test --bmodel models/BM1684X/extractor_fp32_1b.bmodel
 |   SE7-32    | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      0.35       |      0.93       |      5.48       |
 |   SE7-32    | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.13       |      0.28       |      5.82       |
 |   SE7-32    | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      0.35       |      0.54       |      5.74       |
-|   SE9-16    |deepsort_opencv.py |     extractor_fp32_1b.bmodel      |      3.05       |      13.57      |      79.64      |
-|   SE9-16    |deepsort_opencv.py |     extractor_fp32_4b.bmodel      |      3.01       |      13.54      |      75.79      |
-|   SE9-16    |deepsort_opencv.py |     extractor_fp16_1b.bmodel      |      3.03       |      3.36       |      74.38      |
-|   SE9-16    |deepsort_opencv.py |     extractor_fp16_4b.bmodel      |      3.01       |      2.44       |      76.62      |
-|   SE9-16    |deepsort_opencv.py |     extractor_int8_1b.bmodel      |      3.04       |      2.08       |      82.18      |
-|   SE9-16    |deepsort_opencv.py |     extractor_int8_4b.bmodel      |      3.00       |      1.20       |      74.43      |
-|   SE9-16    | deepsort_bmcv.soc |     extractor_fp32_1b.bmodel      |      0.47       |      12.26      |      6.70       |
-|   SE9-16    | deepsort_bmcv.soc |     extractor_fp32_4b.bmodel      |      1.44       |      43.84      |      6.59       |
-|   SE9-16    | deepsort_bmcv.soc |     extractor_fp16_1b.bmodel      |      0.43       |      2.08       |      6.57       |
-|   SE9-16    | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      1.42       |      6.17       |      6.60       |
-|   SE9-16    | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.44       |      0.81       |      6.68       |
-|   SE9-16    | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      1.43       |      1.95       |      6.40       |
-|    SE9-8    |deepsort_opencv.py |     extractor_fp32_1b.bmodel      |      3.05       |      12.25      |      55.49      |
-|    SE9-8    |deepsort_opencv.py |     extractor_fp32_4b.bmodel      |      3.01       |      13.28      |      56.58      |
-|    SE9-8    |deepsort_opencv.py |     extractor_fp16_1b.bmodel      |      3.03       |      3.68       |      47.59      |
-|    SE9-8    |deepsort_opencv.py |     extractor_fp16_4b.bmodel      |      2.99       |      2.32       |      51.97      |
-|    SE9-8    |deepsort_opencv.py |     extractor_int8_1b.bmodel      |      3.03       |      2.33       |      48.70      |
-|    SE9-8    |deepsort_opencv.py |     extractor_int8_4b.bmodel      |      2.98       |      1.23       |      51.26      |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_fp32_1b.bmodel      |      0.44       |      10.97      |      6.76       |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_fp32_4b.bmodel      |      1.42       |      42.98      |      6.79       |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_fp16_1b.bmodel      |      0.43       |      2.42       |      6.64       |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      1.41       |      5.80       |      6.79       |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.42       |      1.06       |      6.59       |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      1.39       |      2.06       |      6.57       |
+|   SE9-16    |deepsort_opencv.py |     extractor_fp32_1b.bmodel      |      3.02       |      13.54      |      54.66      |
+|   SE9-16    |deepsort_opencv.py |     extractor_fp32_4b.bmodel      |      2.96       |      13.52      |      60.08      |
+|   SE9-16    |deepsort_opencv.py |     extractor_fp16_1b.bmodel      |      3.02       |      3.34       |      61.51      |
+|   SE9-16    |deepsort_opencv.py |     extractor_fp16_4b.bmodel      |      2.98       |      2.43       |      57.30      |
+|   SE9-16    |deepsort_opencv.py |     extractor_int8_1b.bmodel      |      3.01       |      2.07       |      68.20      |
+|   SE9-16    |deepsort_opencv.py |     extractor_int8_4b.bmodel      |      2.96       |      1.19       |      56.78      |
+|   SE9-16    | deepsort_bmcv.soc |     extractor_fp32_1b.bmodel      |      0.24       |      12.25      |      6.97       |
+|   SE9-16    | deepsort_bmcv.soc |     extractor_fp32_4b.bmodel      |      0.78       |      43.83      |      7.02       |
+|   SE9-16    | deepsort_bmcv.soc |     extractor_fp16_1b.bmodel      |      0.23       |      2.08       |      6.95       |
+|   SE9-16    | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      0.80       |      6.17       |      6.91       |
+|   SE9-16    | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.23       |      0.81       |      6.97       |
+|   SE9-16    | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      0.75       |      1.94       |      7.24       |
+|   SE9-16    |deepsort_opencv.py |  extractor_fp32_1b_2core.bmodel   |      3.01       |      13.52      |      62.80      |
+|   SE9-16    |deepsort_opencv.py |  extractor_fp32_4b_2core.bmodel   |      2.97       |      7.79       |      57.01      |
+|   SE9-16    |deepsort_opencv.py |  extractor_fp16_1b_2core.bmodel   |      3.04       |      3.33       |      62.86      |
+|   SE9-16    |deepsort_opencv.py |  extractor_fp16_4b_2core.bmodel   |      3.01       |      1.81       |      59.16      |
+|   SE9-16    |deepsort_opencv.py |  extractor_int8_1b_2core.bmodel   |      3.01       |      2.05       |      62.97      |
+|   SE9-16    |deepsort_opencv.py |  extractor_int8_4b_2core.bmodel   |      2.97       |      1.18       |      59.85      |
+|   SE9-16    | deepsort_bmcv.soc |  extractor_fp32_1b_2core.bmodel   |      0.23       |      12.26      |      7.24       |
+|   SE9-16    | deepsort_bmcv.soc |  extractor_fp32_4b_2core.bmodel   |      0.78       |      24.32      |      7.44       |
+|   SE9-16    | deepsort_bmcv.soc |  extractor_fp16_1b_2core.bmodel   |      0.23       |      2.08       |      7.38       |
+|   SE9-16    | deepsort_bmcv.soc |  extractor_fp16_4b_2core.bmodel   |      0.76       |      4.04       |      7.34       |
+|   SE9-16    | deepsort_bmcv.soc |  extractor_int8_1b_2core.bmodel   |      0.24       |      0.81       |      6.97       |
+|   SE9-16    | deepsort_bmcv.soc |  extractor_int8_4b_2core.bmodel   |      0.77       |      1.92       |      7.00       |
+|    SE9-8    |deepsort_opencv.py |     extractor_fp32_1b.bmodel      |      3.04       |      12.31      |      66.21      |
+|    SE9-8    |deepsort_opencv.py |     extractor_fp32_4b.bmodel      |      3.00       |      13.30      |      54.83      |
+|    SE9-8    |deepsort_opencv.py |     extractor_fp16_1b.bmodel      |      3.03       |      3.74       |      49.22      |
+|    SE9-8    |deepsort_opencv.py |     extractor_fp16_4b.bmodel      |      3.01       |      2.34       |      48.79      |
+|    SE9-8    |deepsort_opencv.py |     extractor_int8_1b.bmodel      |      3.10       |      2.39       |      47.86      |
+|    SE9-8    |deepsort_opencv.py |     extractor_int8_4b.bmodel      |      3.00       |      1.25       |      49.77      |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_fp32_1b.bmodel      |      0.24       |      10.96      |      7.28       |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_fp32_4b.bmodel      |      0.78       |      42.97      |      7.23       |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_fp16_1b.bmodel      |      0.23       |      2.41       |      7.14       |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      0.78       |      5.79       |      7.00       |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.23       |      1.06       |      7.02       |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      0.78       |      2.06       |      6.97       |
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，preprocess_time、inference_time是特征提取模型平均每个crop的处理时间，postprocess_time是deepsort算法平均每帧的后处理时间；
