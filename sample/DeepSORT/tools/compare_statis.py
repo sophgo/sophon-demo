@@ -28,18 +28,6 @@ baseline = """
 |   SE7-32    | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      0.35       |      0.93       |      5.48       |
 |   SE7-32    | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.13       |      0.28       |      5.82       |
 |   SE7-32    | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      0.35       |      0.54       |      5.74       |
-|    SE9-8    |deepsort_opencv.py |     extractor_fp32_1b.bmodel      |      3.05       |      12.25      |      55.49      |
-|    SE9-8    |deepsort_opencv.py |     extractor_fp32_4b.bmodel      |      3.01       |      13.28      |      56.58      |
-|    SE9-8    |deepsort_opencv.py |     extractor_fp16_1b.bmodel      |      3.03       |      3.68       |      47.59      |
-|    SE9-8    |deepsort_opencv.py |     extractor_fp16_4b.bmodel      |      2.99       |      2.32       |      51.97      |
-|    SE9-8    |deepsort_opencv.py |     extractor_int8_1b.bmodel      |      3.03       |      2.33       |      48.70      |
-|    SE9-8    |deepsort_opencv.py |     extractor_int8_4b.bmodel      |      2.98       |      1.23       |      51.26      |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_fp32_1b.bmodel      |      0.44       |      10.97      |      6.76       |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_fp32_4b.bmodel      |      1.42       |      42.98      |      6.79       |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_fp16_1b.bmodel      |      0.43       |      2.42       |      6.64       |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      1.41       |      5.80       |      6.79       |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.42       |      1.06       |      6.59       |
-|    SE9-8    | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      1.39       |      2.06       |      6.57       |
 |   SE9-16    |deepsort_opencv.py |     extractor_fp32_1b.bmodel      |      3.05       |      13.57      |      79.64      |
 |   SE9-16    |deepsort_opencv.py |     extractor_fp32_4b.bmodel      |      3.01       |      13.54      |      75.79      |
 |   SE9-16    |deepsort_opencv.py |     extractor_fp16_1b.bmodel      |      3.03       |      3.36       |      74.38      |
@@ -52,6 +40,18 @@ baseline = """
 |   SE9-16    | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      1.42       |      6.17       |      6.60       |
 |   SE9-16    | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.44       |      0.81       |      6.68       |
 |   SE9-16    | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      1.43       |      1.95       |      6.40       |
+|    SE9-8    |deepsort_opencv.py |     extractor_fp32_1b.bmodel      |      3.04       |      12.31      |      66.21      |
+|    SE9-8    |deepsort_opencv.py |     extractor_fp32_4b.bmodel      |      3.00       |      13.30      |      54.83      |
+|    SE9-8    |deepsort_opencv.py |     extractor_fp16_1b.bmodel      |      3.03       |      3.74       |      49.22      |
+|    SE9-8    |deepsort_opencv.py |     extractor_fp16_4b.bmodel      |      3.01       |      2.34       |      48.79      |
+|    SE9-8    |deepsort_opencv.py |     extractor_int8_1b.bmodel      |      3.10       |      2.39       |      47.86      |
+|    SE9-8    |deepsort_opencv.py |     extractor_int8_4b.bmodel      |      3.00       |      1.25       |      49.77      |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_fp32_1b.bmodel      |      0.24       |      10.96      |      7.28       |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_fp32_4b.bmodel      |      0.78       |      42.97      |      7.23       |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_fp16_1b.bmodel      |      0.23       |      2.41       |      7.14       |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      0.78       |      5.79       |      7.00       |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.23       |      1.06       |      7.02       |
+|    SE9-8    | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      0.78       |      2.06       |      6.97       |
 """
 table_data = {
     "platform": [],
