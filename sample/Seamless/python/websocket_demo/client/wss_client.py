@@ -99,6 +99,11 @@ parser.add_argument("--mode",
                     type=str,
                     default="parallel2pass",
                     help="offline, online, parallel2pass")
+parser.add_argument("--verbose",
+					action='store_true',
+					default=False,
+                    help="print speaker id etc.")
+
 
 args = parser.parse_args()
 assert len(args.hosts) == len(args.ports)
@@ -526,6 +531,8 @@ async def message(id, websocket, web_id):
                             text_print_parallel2pass_online_frame_id.popleft()
                             text_print_parallel2pass_online.popleft()
                         text_print_parallel2pass_offline += "{}".format(text)
+                        if "sp_id" in meg and args.verbose:
+                            text_print_parallel2pass_offline += "</speaker id: {}>".format(meg["sp_id"])
                     text_print = text_print_parallel2pass_offline + "".join(text_print_parallel2pass_online)
                     if len(text_print) > args.words_max_print:
                         if len(text_print) - args.words_max_print <= len(text_print_parallel2pass_offline):
@@ -547,6 +554,8 @@ async def message(id, websocket, web_id):
                     os.system('CLS')
                 print("\rpid" + str(id) + ": " + text_print)
             elif meg["mode"] == "offline":
+                if "sp_id" in meg and args.verbose:
+                    text += "</speaker id: {}>".format(meg["sp_id"])
                 if timestamp !="":
                     text_print += "{} timestamp: {}".format(text, timestamp)
                 else:
