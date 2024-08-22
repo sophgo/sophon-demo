@@ -139,4 +139,4 @@ def argsparser():
 if __name__ == '__main__':
     args = argsparser()
     clip_server_instance = Call_Clip_server() # bmodel加载、queue初始化
-    app.run(host=args.host, port=args.port, debug=True) 
+    app.run(host=args.host, port=args.port, debug=True,use_reloader=False) 
