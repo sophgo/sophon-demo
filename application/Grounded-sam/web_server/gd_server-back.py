@@ -86,4 +86,4 @@ def argsparser():
 if __name__ == '__main__':
     args = argsparser()
     gdsam_server_instance = Call_gdsam_server()
-    app.run(host=args.host, port=args.port, debug=True) 
+    app.run(host=args.host, port=args.port, debug=True, use_reloader=False) 
