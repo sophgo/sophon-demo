@@ -13,6 +13,7 @@ from io import BytesIO
 import numpy as np
 import torch
 import os
+import gc
 
 def show_mask(mask, ax, random_color=False):
     if random_color:
@@ -33,11 +34,11 @@ def draw_output_image(image, masks, boxes_filt, pred_phrases, save_image=False):
     plt.figure(figsize=(10, 10))
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     plt.imshow(image)
-    # for mask in masks:
-    #     show_mask(mask.cpu().numpy(), plt.gca(), random_color=True)
+    
     for mask in masks:
         mask_np = mask.cpu().numpy() if isinstance(mask, torch.Tensor) else np.array(mask)
         show_mask(mask_np, plt.gca(), random_color=True)
+    
     for box, label in zip(boxes_filt, pred_phrases):
         show_box(box, plt.gca(), label)
 
@@ -48,18 +49,22 @@ def draw_output_image(image, masks, boxes_filt, pred_phrases, save_image=False):
             os.path.join("../results", "grounded_sam_output.jpg"),
             bbox_inches="tight", dpi=300, pad_inches=0.0
         )
-    plt.show()
-    
-    if not save_image:
+        plt.close()
+        return None
+    else:
         buffer = BytesIO()
         plt.savefig(buffer, format='png')
         buffer.seek(0)
         img_base64 = base64.b64encode(buffer.read())
         img_base64_str = img_base64.decode('utf-8')
+        plt.close()
+        
+        del buffer, img_base64
+        gc.collect()
         return img_base64_str
 
 def get_grounding_output(image, boxes, labels):
-    # image shape 高度、宽度和通道数
+    # image shape H, W, C
     img_h, img_w, _ = image.shape
     scale_fct = np.array([img_w, img_h, img_w, img_h])
     assert len(boxes) == len(labels), "boxes and labels must have same length"
