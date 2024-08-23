@@ -52,8 +52,6 @@ class gdsamServer:
         self.sam_encoder = custom_model.create_SamEncoder(config_default["SAM_encoder"], 
                                                           config_default["SAM"], 
                                                           config_default["dev_id"])
-        # self.SAM_b_engine = sam(bmodel_path=config['SAM'], dev_id=config['dev_id'])
-        # self.SamEncoder = SamEncoder(args)
         """
         input_image_queue内部是多个dict, 用id确保每个数据项在队列中都有唯一的标识符
         {
@@ -85,7 +83,6 @@ class gdsamServer:
         self.predict_thread = threading.Thread(target=self.predict, args=())
         self.predict_thread.daemon = True # 设置为守护线程，主线程结束时，子线程也结束
         self.predict_thread.start()
-
 
     # 这个函数不需要放入线程中，因为已经推理是异步的了
     def push_image(self, data: dict):
