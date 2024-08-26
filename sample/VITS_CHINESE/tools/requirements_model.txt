@@ -1,0 +1,10 @@
+torch>=1.13.0
+transformers
+WeTextProcessing
+numpy
+pypinyin
+soundfile
+scipy
+onnx
+onnxruntime
+onnx-simplifier
