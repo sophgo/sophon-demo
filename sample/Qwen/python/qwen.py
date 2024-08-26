@@ -16,28 +16,40 @@ import argparse
 
 class Qwen:
     def __init__(self, bmodel_path, dev_ids, tokenizer_path) -> None:
+
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, trust_remote_code=True)
         self.EOS = self.tokenizer.eos_token_id
         self.dev_ids = [int(x) for x in str(dev_ids).split(',')]
         self.handles = {dev: sail.Handle(dev) for dev in self.dev_ids}
+        self.target = sail.Handle(self.dev_ids[0]).get_target()
+
         self.model = sail.EngineLLM(bmodel_path, self.dev_ids)
         self.tensors = {}
         self.graph_names = self.model.get_graph_names()
         self.io_alone = 0
 
-
-        for net in self.graph_names:
-            self.tensors[net] = {}
-            self.tensors[net]["addr_mode"] = self.model.get_addr_mode(net)
-            if self.tensors[net]["addr_mode"] == 0:
-                self.tensors[net]['input'] = self.model.get_input_tensors_addrmode0(net)
-                self.tensors[net]['output'] = self.model.get_output_tensors_addrmode0(net)
-            elif self.tensors[net]["addr_mode"] == 1:
-                self.io_alone = 1
-                self.tensors[net]['input'] = self.model.get_input_tensors(net)
-                self.tensors[net]['output'] = self.model.get_output_tensors(net)
-
-
+        if self.target in ["BM1688", "CV186AH"]:
+            for net in self.graph_names:
+                self.tensors[net] = {}
+                self.tensors[net]["addr_mode"] = self.model.get_addr_mode(net)
+                if self.tensors[net]["addr_mode"] == 0:
+                    self.tensors[net]['input'] = self.model.create_max_input_tensors(net)
+                    self.tensors[net]['output'] = self.model.create_max_output_tensors(net)
+                elif self.tensors[net]["addr_mode"] == 1:
+                    self.io_alone = 1
+                    self.tensors[net]['input'] = self.model.get_input_tensors(net)
+                    self.tensors[net]['output'] = self.model.get_output_tensors(net)
+        else:
+            for net in self.graph_names:
+                self.tensors[net] = {}
+                self.tensors[net]["addr_mode"] = self.model.get_addr_mode(net)
+                if self.tensors[net]["addr_mode"] == 0:
+                    self.tensors[net]['input'] = self.model.get_input_tensors_addrmode0(net)
+                    self.tensors[net]['output'] = self.model.get_output_tensors_addrmode0(net)
+                elif self.tensors[net]["addr_mode"] == 1:
+                    self.io_alone = 1
+                    self.tensors[net]['input'] = self.model.get_input_tensors(net)
+                    self.tensors[net]['output'] = self.model.get_output_tensors(net)
 
         # initialize params
         self.is_dynamic = self.model.get_is_dynamic("block_0")

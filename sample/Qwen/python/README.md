@@ -73,7 +73,7 @@ qwen.py使用config/qwen.yaml配置文件进行参数配置。
 
 qwen.yaml内容如下
 ```yaml
-bmodel_path: ../models/BM1684X/qwen1.5-7b_int4_seq512_1dev.bmodel   ## 用于推理的bmodel路径；
+bmodel_path: ../models/BM1684X/qwen1.5-7b_int4_seq512_1dev.bmodel   ## 用于推理的bmodel路径
 token_path: ./token_config    ## tokenizer目录路径；
 dev_ids: 0   ## 用于推理的tpu设备id；
 ```

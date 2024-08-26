@@ -1,8 +1,11 @@
 #!/bin/bash
 set -ex
+
 models=
+models_2core=
 mode="int8"
 folder="./models"
+target_dir="BM1684X"
 num_device=1
 mode_args=""
 device_args=""
@@ -12,10 +15,13 @@ dyn_args=""
 name=""
 num_layers=
 out_model=$name.bmodel
+out_model_2core=$name_2core.bmodel
 seq_length=
 hidden_size=
 dynamic=0
 batch=1
+target=bm1684x
+chip_args="bm1684x"
 
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -23,6 +29,10 @@ while [[ $# -gt 0 ]]; do
     case $key in
     --mode)
         mode="$2"
+        shift 2
+        ;;
+    --target)
+        target="$2"
         shift 2
         ;;
     --num_device)
@@ -111,10 +121,18 @@ if [ x$mode == x"int8" ]; then
     quantize_args="--quantize W8BF16"
 elif [ x$mode == x"bf16" ]; then
     quantize_args="--quantize BF16"
+elif [ x$mode == x"f16" ]; then
+    quantize_args="--quantize F16"
 elif [ x$mode == x"int4" ]; then
     quantize_args="--quantize W4BF16 --q_group_size 64"
 else
     echo "Error, unknown quantize mode"
+    exit 1
+fi
+
+if [ "$target" != "bm1684x" ] && [ "$target" != "bm1688" ] && [ "$target" != "cv186x" ];
+then
+    >&2 echo -e "Error: Invalid target $target, the input target must be \033[31mbm1684x|bm1688|cv186x\033[0m"
     exit 1
 fi
 
@@ -125,11 +143,29 @@ else
     out_model=${name}_${mode}_seq${seq_length}_1dev.bmodel
 fi
 
+if [ "$target" == "cv186x" ];
+then
+    target_dir="CV186X"
+    chip_args="cv186x"
+    out_model=${name}_${mode}_seq${seq_length}_cv186x_1dev.bmodel
+fi
+if [ "$target" == "bm1688" ];
+then
+    chip_args="bm1688"
+    target_dir="BM1688"
+    out_model=${name}_${mode}_seq${seq_length}_bm1688_1dev.bmodel
+    out_model_2core=${name}_${mode}_seq${seq_length}_bm1688_1dev_2core.bmodel
+fi
+
 if [ x$addr_mode == x"io_alone" ]; then
     addr_args="--addr_mode io_alone"
 fi
 
 if [ x$dynamic == x1 ]; then
+    if [ "$target" != "bm1684x" ]; then
+        echo "dynamic is not supported on $target"
+        exit
+    fi
     dyn_args="--dynamic"
     out_model=${name}_${mode}_seq${seq_length}_${num_device}dev_dyn.bmodel
 fi
@@ -146,7 +182,7 @@ process_block() {
         ${quantize_args} \
         --quant_input \
         --quant_output \
-        --chip bm1684x \
+        --chip $chip_args \
         $device_args \
         $dyn_args \
         $qwen2_arg \
@@ -162,11 +198,37 @@ process_block() {
         ${quantize_args} \
         --quant_input \
         --quant_output \
-        --chip bm1684x \
+        --chip $chip_args \
         $device_args \
         $dyn_args \
         $addr_args \
         --model block_cache_$i.bmodel
+
+    if [ "$target" == "bm1688" ];
+    then
+    model_deploy.py \
+        --mlir block_$i.mlir \
+        ${quantize_args} \
+        --quant_input \
+        --quant_output \
+        --chip $chip_args --num_core 2 \
+        $device_args \
+        $dyn_args \
+        $qwen2_arg \
+        --model block_${i}_2core.bmodel
+
+    model_deploy.py \
+        --mlir block_cache_$i.mlir \
+        ${quantize_args} \
+        --quant_input \
+        --quant_output \
+        --chip $chip_args --num_core 2 \
+        $device_args \
+        $dyn_args \
+        $addr_args \
+        --model block_cache_${i}_2core.bmodel
+
+    fi
 }
 
 outdir=${folder}/$mode"_"$num_device"dev"/embedding
@@ -185,7 +247,7 @@ model_deploy.py \
     --quantize BF16 \
     --quant_input \
     --quant_output \
-    --chip bm1684x \
+    --chip $chip_args \
     $device_args \
     $dyn_args \
     --model embedding.bmodel
@@ -202,11 +264,35 @@ model_deploy.py \
     --quantize BF16 \
     --quant_input \
     --quant_output \
-    --chip bm1684x \
+    --chip $chip_args \
     $device_args \
     --model embedding_cache.bmodel
 
 models=$models' '$outdir'/embedding.bmodel '$outdir'/embedding_cache.bmodel '
+
+if [ "$target" == "bm1688" ];
+then
+model_deploy.py \
+    --mlir embedding.mlir \
+    --quantize BF16 \
+    --quant_input \
+    --quant_output \
+    --chip $chip_args --num_core 2 \
+    $device_args \
+    $dyn_args \
+    --model embedding_2core.bmodel
+
+model_deploy.py \
+    --mlir embedding_cache.mlir \
+    --quantize BF16 \
+    --quant_input \
+    --quant_output \
+    --chip $chip_args --num_core 2 \
+    $device_args \
+    --model embedding_cache_2core.bmodel
+
+models_2core=$models_2core' '$outdir'/embedding_2core.bmodel '$outdir'/embedding_cache_2core.bmodel '
+fi
 
 rm -f *.npz
 popd
@@ -244,7 +330,7 @@ else
         --mlir lm_head.mlir \
         $quantize_args \
         --quant_input \
-        --chip bm1684x \
+        --chip $chip_args \
         $device_args \
         --model lm_head.bmodel
     
@@ -256,7 +342,7 @@ else
     
     model_deploy.py \
         --mlir greedy_head.mlir \
-        --chip bm1684x \
+        --chip $chip_args \
         --model greedy_head.bmodel
     
     
@@ -267,11 +353,26 @@ else
     
     model_deploy.py \
         --mlir penalty_sample_head.mlir \
-        --chip bm1684x \
+        --chip $chip_args \
         --model penalty_sample_head.bmodel
-    
-    
-    models=${models}${outdir}'/lm_head.bmodel '$outdir'/greedy_head.bmodel '$outdir'/penalty_sample_head.bmodel '
+
+    if [ "$target" == "bm1688" ];
+    then
+    model_deploy.py \
+        --mlir lm_head.mlir \
+        $quantize_args \
+        --quant_input \
+        --chip $chip_args --num_core 2 \
+        $device_args \
+        --model lm_head_2core.bmodel
+    models_2core=${models_2core}' '${outdir}'/lm_head_2core.bmodel '
+    fi
+
+    if [ "$target" == "bm1688" ] || [ "$target" == "cv186x" ]; then
+        models=${models}' '${outdir}'/lm_head.bmodel '
+    else
+        models=${models}${outdir}'/lm_head.bmodel '$outdir'/greedy_head.bmodel '$outdir'/penalty_sample_head.bmodel '
+    fi
 fi
 
 rm -f *.npz
@@ -284,6 +385,9 @@ pushd $outdir
 for ((i=0; i<$num_layers; i++)); do
     process_block $i
     models=${models}${outdir}'/block_'$i'.bmodel '$outdir'/block_cache_'$i'.bmodel '
+    if [ "$target" == "bm1688" ]; then
+        models_2core=${models_2core}${outdir}'/block_'$i'_2core.bmodel '$outdir'/block_cache_'$i'_2core.bmodel '
+    fi
 done
 
 wait
@@ -291,9 +395,12 @@ rm -f *.npz
 popd
 echo $models
 
-outdir=./models/BM1684X/
+outdir=$folder/$target_dir/
 if [ ! -d $outdir ]; then
     mkdir -p $outdir
 fi
 
 model_tool --combine $models -o ${outdir}${out_model}
+if [ "$target" == "bm1688" ]; then
+    model_tool --combine $models_2core -o ${outdir}${out_model_2core}
+fi
