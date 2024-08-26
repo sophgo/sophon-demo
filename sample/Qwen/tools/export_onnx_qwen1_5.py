@@ -20,6 +20,7 @@ parser.add_argument('-m', '--model_path', type=str, help='path to the torch mode
 parser.add_argument('-s', '--seq_length', type=int, default=2048, help="sequence length")
 parser.add_argument('-d', '--device', type=str, choices=["cpu", "cuda"], default="cpu")
 parser.add_argument('-n', '--num_threads', type=int, default=1, help='The number of threads used for torch if device is cpu')
+parser.add_argument('--lite', type=bool, default=False, help='Use bm1688 or not')
 parser.add_argument('--lmhead_with_topk', type=int, default=0, help="only trace the LmHeadWithTopK")
 
 args = parser.parse_args()
@@ -27,6 +28,7 @@ args = parser.parse_args()
 model_path = args.model_path
 folder = f"./models/onnx"
 
+isLite = args.lite
 device = torch.device(args.device)
 if device == 'cpu':
     torch.set_num_threads(args.num_threads)
@@ -118,6 +120,9 @@ class LmHead(torch.nn.Module):
     def forward(self, hidden_states):
         hidden_states = transformer.norm(hidden_states)
         m_logits = origin_model.lm_head(hidden_states)
+        if isLite == True:
+            token = torch.argmax(m_logits, dim=-1)
+            return token
         return m_logits
 
 
@@ -336,7 +341,12 @@ print(f'Convert embedding')
 convert_embedding()
 
 print(f'Convert lm_head')
-if args.lmhead_with_topk != 0:
+
+
+
+if isLite:
+    convert_lm_head()
+elif args.lmhead_with_topk != 0:
     convert_lm_head_with_topk()
 else:
     convert_lm_head()
