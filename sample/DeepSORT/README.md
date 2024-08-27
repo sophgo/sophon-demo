@@ -2,18 +2,20 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-* [5. 例程测试](#5-例程测试)
-* [6. 精度测试](#6-精度测试)
-  * [6.1 测试方法](#61-测试方法)
-  * [6.2 测试结果](#62-测试结果)
-* [7. 性能测试](#7-性能测试)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 程序运行性能](#72-程序运行性能)
-* [8. FAQ](#8-faq)
+- [DeepSORT](#deepsort)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
   
 ## 1. 简介
 ​本例程使用[YOLOv5](../YOLOv5/README.md)中的目标检测模型，并对[Deep Sort with PyTorch](https://github.com/ZQPei/deep_sort_pytorch)的特征提取模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688上进行推理测试。
@@ -27,7 +29,7 @@
 * 支持MOT格式数据集(即图片文件夹)和单视频测试
  
 ## 3. 准备模型与数据
-本例程需要准备**目标检测模型**和**特征提取模型**，目标检测模型请参考[YOLOv5](../YOLOv5/README.md#3-准备模型与数据)，下面主要介绍特征提取模型。
+本例程需要准备**目标检测模型**和**特征提取模型**，目标检测模型请参考[YOLOv5](../YOLOv5/README.md#3-数据准备与模型编译)，下面主要介绍特征提取模型。
 
 建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型。`tools/extractor_transform.py`是针对[Deep Sort with PyTorch](https://github.com/ZQPei/deep_sort_pytorch)中模型的转换脚本，可以一次性导出torchscript和onnx模型。**请您根据需要修改代码**。
 
@@ -241,7 +243,7 @@ bmrt_test --bmodel models/BM1684X/extractor_fp32_1b.bmodel
 3. SoC和PCIe的测试结果基本一致。
 
 ### 7.2 程序运行性能
-参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。这里**只统计特征提取模型的时间**，解码、目标检测模型的时间请参考[YOLOV5](../YOLOv5/README.md#72-程序运行性能)。
+参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。这里**只统计特征提取模型的时间**，解码、目标检测模型的时间请参考[YOLOV5](../YOLOv5/README.md#62-程序运行性能)。
 
 这里使用目标检测模型`yolov5s_v6.1_3output_int8_1b.bmodel`，在不同的测试平台上，使用不同的例程、模型测试`datasets/mot15_trainset/ADL-Rundle-6/img1`，性能测试结果如下：
 |  测试平台   |      测试程序      |              测试模型             | preprocess_time | inference_time  |postprocess_time |

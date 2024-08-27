@@ -1,17 +1,22 @@
 [简体中文](./README.md) | [English](./README_EN.md)
 
 # C++ Demo
-* [C++ Demo](#c-demo)
-    * [1. Environments Preparation](#1-environments-preparation)
-        * [1.1 x86/arm/riscv PCIe Platform](#11-x86armriscv-pcie-platform)
-        * [1.2 SoC Platform](#12-soc-platform)
-    * [2. Program Compilation](#2-program-compilation)
-        * [2.1 x86/arm/riscv PCIe Platform](#21-x86armriscv-pcie-platform)
-        * [2.2 SoC Platform](#22-soc-platform)
-    * [3. Inference Test](#3-inference-test)
-        * [3.1 Parameter Description](#31-parameter-description)
-        * [3.2 Image Test Demo](#32-image-test-demo)
-        * [3.3 Video Test Demo](#33-video-test-demo)
+- [C++ Demo](#c-demo)
+  - [1. Environments Preparation](#1-environments-preparation)
+    - [1.1 x86/arm/riscv PCIe Platform](#11-x86armriscv-pcie-platform)
+    - [1.2 SoC Platform](#12-soc-platform)
+  - [2. Program Compilation](#2-program-compilation)
+    - [2.1 x86/arm/riscv PCIe Platform](#21-x86armriscv-pcie-platform)
+      - [2.1.1 bmcv](#211-bmcv)
+      - [2.1.2 sail](#212-sail)
+    - [2.2 SoC Platform](#22-soc-platform)
+      - [2.2.1 bmcv](#221-bmcv)
+      - [2.2.2 sail](#222-sail)
+  - [3. Inference Test](#3-inference-test)
+    - [3.1 Parameter Description](#31-parameter-description)
+    - [3.2 Image Test Demo](#32-image-test-demo)
+    - [3.3 Video Test Demo](#33-video-test-demo)
+    - [4. Flowchart](#4-flowchart)
 
 C++ demo is provided in the cpp directory for reference, the details are as follows:
 | No.  | C++ demo      | Description                                 |
@@ -132,3 +137,9 @@ Please do this:
 ```bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 ```
+
+### 4. Flowchart
+
+The processes in `yolov5_bmcv` and `yolov5_sail` follow the following flowchart:
+
+![flowchart](../pics/Flowchart.png)

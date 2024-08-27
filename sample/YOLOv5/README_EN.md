@@ -4,30 +4,56 @@
 
 ## Catalogue
 
-* [1. Introduction](#1-introduction)
-* [2. Characteristics](#2-characteristics)
-  * [2.1 SDK Characteristics](#21-sdk-characteristics)
-  * [2.2 Algorithm Characteristics](#22-algorithm-characteristics)
-* [3. Prepare Models and Data](#3-prepare-models-and-data)
-* [4. Model Compilation](#4-model-compilation)
-* [5. Example Test](#5-example-test)
-* [6. Precision Test](#6-precision-test)
-  * [6.1 Testing Method](#61-testing-method)
-  * [6.2 Test Result](#62-test-result)
-* [7. Performance Testing](#7-performance-testing)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 Program Performance](#72-program-performance)
-* [8. YOLOv5 cpu opt](#8-yolov5-cpu-opt)
-  * [8.1 NMS Optimization Item](#81-nms-optimization-item)
-  * [8.2 Precision Test](#82-precision-test)
-  * [8.3 Performance Test](#83-performance-test)
-* [9. FAQ](#9-faq)
+- [YOLOv5](#yolov5)
+  - [Catalogue](#catalogue)
+  - [1. Introduction](#1-introduction)
+  - [2. Characteristics](#2-characteristics)
+    - [2.1 Directory Instructions](#21-directory-instructions)
+    - [2.2 SDK Characteristics](#22-sdk-characteristics)
+    - [2.3 Algorithm Characteristics](#23-algorithm-characteristics)
+  - [3. Data preparation and model compilation](#3-data-preparation-and-model-compilation)
+    - [3.1 Data prepration](#31-data-prepration)
+    - [3.2 Model Compilation](#32-model-compilation)
+  - [4. Example Test](#4-example-test)
+  - [5. Precision Test](#5-precision-test)
+    - [5.1 Testing Method](#51-testing-method)
+    - [5.2 Test Result](#52-test-result)
+  - [6. Performance Testing](#6-performance-testing)
+    - [6.1 bmrt\_test](#61-bmrt_test)
+    - [6.2 Program Performance](#62-program-performance)
+  - [7. YOLOv5 cpu opt](#7-yolov5-cpu-opt)
+    - [7.1. NMS Optimization Item](#71-nms-optimization-item)
+    - [7.2. Precision Test](#72-precision-test)
+    - [7.3. Performance Test](#73-performance-test)
+  - [8. FAQ](#8-faq)
   
 ## 1. Introduction
 YOLOv5 is a very classical One Stage target detection algorithm based on anchor. Because of its excellent accuracy and speed performance, it has been widely used in engineering practice. This example [​YOLOv5 official open source repository](https://github.com/ultralytics/yolov5) transplants the v6.1 version of the model and algorithm so that it can be inference tested on SOPHON BM1684/BM1684X/BM1688/CV186X.
 
 ## 2. Characteristics
-### 2.1 SDK Characteristics
+
+### 2.1 Directory Instructions
+```bash
+├── cpp                   # Store C++ example and its README.
+|   ├──README_EN.md  
+|   ├──README.md
+|   ├──yolov5_bmcv        # C++ example which decoding with FFmpeg, preprocessing with BMCV, inference with BMRT.
+|   └──yolov5_sail        # C++ example which decoding with SAIL, preprocessing with SAIL, inference with SAIL.
+├── docs                  # Store documents for this sample, such as ONNX export and common problems.
+├── pics                  # Store pictures for this sample's documents.
+├── python                # Store Python example and its README.
+|   ├──README_EN.md
+|   ├──README.md
+|   ├──yolov5_bmcv.py     # Python example which decoding with SAIL, preprocessing with SAIL.BMCV, inference with SAIL.
+|   ├──yolov5_opencv.py   # Python example which decoding with SAIL, preprocessing with BMCV, Inference with SAIL.
+|   └──...                # Common functions for python examples.
+├── README_EN.md          # English guide for this sample.
+├── README.md             # Chinese guide for this sample.
+├── scripts               # Store shell scripts such as bmodel compilation, data downloads, auto test.
+└── tools                 # Store python scripts such as evalutation, statis comparison.
+```
+
+### 2.2 SDK Characteristics
 * Support for BM1688/CV186X(SoC), BM1684X(x86 PCIe、SoC、riscv PCIe), BM1684(x86 PCIe、SoC、arm PCIe)
 * Support for FP32, FP16 (BM1684X/BM1688/CV186X), INT8 model compilation and inference
 * Support C++ inference based on BMCV preprocessing
@@ -37,7 +63,7 @@ YOLOv5 is a very classical One Stage target detection algorithm based on anchor.
 * Support for picture and video testing
 * Support NMS postprocessing acceleration
 
-### 2.2 Algorithm Characteristics
+### 2.3 Algorithm Characteristics
 PYTHON CODE
 1. `sophon-demo/sample/YOLOv5/python`: Source code is available in this repository, implementing simple demos based on both bmcv and opencv interfaces. These are used for testing model accuracy and are **not recommended for performance evaluation**.
 2. `sophon-demo/sample/YOLOv5_opt/python`: Source code is available in this repository, supporting only in `1684x`. It implements YOLOv5 decoding layers and NMS operations using TPU to enhance end-to-end performance.
@@ -57,16 +83,13 @@ C++ CODE
 > **note**  
 > This code supports both triple-output and single-output models. The single-output model demonstrates higher performance, but you should set sensitive layers for quantization. On the other hand, the triple-output model simplifies quantization. **When used for model accuracy validation, it is recommended to opt for the triple-output model.**
  
-## 3. Prepare Models and Data
-It is recommended to use TPU-MLIR to compile BModel, Pytorch model to export to onnx model before compilation, if the tpu-mlir version you are using is >= v1.3.0 (i.e. official website v23.07.01), you can use the torchscript model directly. For more information, please see [YOLOv5 Model Export](./docs/YOLOv5_Export_Guide_EN.md).
+## 3. Data preparation and model compilation
 
-At the same time, you need to prepare a dataset for testing and, if you quantify the model, a dataset for quantification.
+### 3.1 Data prepration
 
-This example provides a download script `download.sh` for related models and data in the `scripts` directory. You can also prepare your own models and data sets, and refer to [4. Model Compilation](#4-model compilation) for model transformation.
-
+​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，**如果您希望自己准备模型和数据集，可以跳过本小节，参考[3.2 模型编译](#32-模型编译)进行模型转换。**
+This sample provides `scripts/download.sh` that can download datasets and models for its test. **If you wish preparing models and datasets by yourself, you can skip this section and refer to [3.2 model compilation](#32-model-compilation) to do model compiling.**
 ```bash
-# Install unzip, skip if it is already installed
-sudo apt install unzip
 chmod -R +x scripts/
 ./scripts/download.sh
 ```
@@ -114,10 +137,13 @@ The downloaded data include:
     └── instances_val2017_1000.json           # coco val2017_1000Dataset label file, used to calculate accuracy evaluation indicators 
 ```
 
-## 4. Model Compilation
-The exported model needs to be compiled into BModel to run on SOPHON TPU. If you use the downloaded BModel, you can skip this section. It is recommended that you use TPU-MLIR to compile BModel.
+### 3.2 Model Compilation
 
-You need to install TPU-MLIR before compiling the model. For more information, please see [TPU-MLIR Environment Building](../../docs/Environment_Install_Guide_EN.md#1-tpu-mlir-environmental-installation). After installation, you need to enter the example directory in the TPU-MLIR environment. Use TPU-MLIR to compile the onnx model to BModel. For specific methods, please refer to "chapter 3.5" of the TPU-MLIR Quick start Manual. Compile the ONNX model (please obtain it from the corresponding version of SDK of [Sophgo official website](https://developer.sophgo.com/site/index.html?categoryActive=material)).
+**If you do not have to compile models, and you are using the datasets and models from [3.1 data prepration](#31-data-prepration), you can skip this section.**
+
+Source model needs to be compiled into BModel to run on SOPHON TPU. Before compilation, it should be exported to onnx model, if your tpu-mlir's version >= v1.3.0(from v23.07.01 SDK on our official site), you can also use torchscript model. Please check out [YOLOv5_Export_Guide](./docs/YOLOv5_Export_Guide_EN.md). In the meantime, prepare datasets for inference and quantization if you need to.
+
+Use TPU-MLIR to compile BModel, refer to [TPU-MLIR Installation](../../docs/Environment_Install_Guide_EN.md#1-tpu-mlir-environmental-installation) to install TPU-MLIR before compilation. After installation, you need to enter this sample's root directory in the TPU-MLIR environment, and use the scripts this sample provides to compile onnx model into BModel. For specific details of commands in these scripts, you can look out in `TPU-MLIR_Technical_Reference_Manual.pdf`(please obtain it from the corresponding version of SDK of [Sophgo official website](https://developer.sophgo.com/site/index.html?categoryActive=material)).
 
 - Generate FP32 BModel
 
@@ -149,12 +175,12 @@ This example provides a script for quantifying INT8 BModel in the `scripts` dire
 
 The above script will generate files such as `yolov5s_v6.1_3output_int8_1b.bmodel` under a folder like `models/BM1684`, that is, the converted INT8 BModel.
 
-## 5. Example Test
+## 4. Example Test
 - [C++ Example](./cpp/README_EN.md)
 - [Python Example](./python/README_EN.md)
 
-## 6. Precision Test
-### 6.1 Testing Method
+## 5. Precision Test
+### 5.1 Testing Method
 
 First of all, refer to [C++ example](cpp/README_EN.md#32-image-test-demo) or [Python example](python/README_EN.md#22-image-test-demo) to deduce the dataset to be tested, generate the predicted json file, and pay attention to modifying the dataset (datasets/coco/val2017_1000) and related parameters (conf_thresh=0.001, nms_thresh=0.6).
 Then, use the `test generated .py` script under the `tools` directory to compare the json file generated by the test with the test set tag json file, and calculate the evaluation metrics for target detection. The command is as follows:
@@ -164,7 +190,7 @@ pip3 install pycocotools
 # Please modify the program path and json file path according to the actual situation
 python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/yolov5s_v6.1_3output_fp32_1b.bmodel_val2017_1000_opencv_python_result.json
 ```
-### 6.2 Test Result
+### 5.2 Test Result
 CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. On the coco2017val_1000 dataset, the accuracy test results are as follows:
 | Test Platform |  Test Program    |            Test model               |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------  | ---------------- | ----------------------------------- | ------------- | -------- |
@@ -250,8 +276,8 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. On 
 > 3. AP@IoU=0.5:0.95 is the corresponding indicator of area=all.
 > 4. On a PCIe or SoC platform equipped with the same TPU and SOPHONSDK, the mAP of the same program is the same, SE5 series corresponds to BM1684, SE7 series corresponds to BM1684X. In SE9 series, SE9-16 corresponds to BM1688, SE9-8 corresponds to CV186X;
 
-## 7. Performance Testing
-### 7.1 bmrt_test
+## 6. Performance Testing
+### 6.1 bmrt_test
 Use bmrt_test to test the theoretical performance of the model:
 ```bash
 # Please modify the bmodel path and devid parameters to be tested according to the actual situation
@@ -287,7 +313,7 @@ The theoretical inference time of each model is tested, and the results are as f
 > 2. The `calculate time` has been converted to the average inference time per picture.
 > 3. The test results of SoC and PCIe are basically the same.
 
-### 7.2 Program Performance
+### 6.2 Program Performance
 Refer to [C++ example](cpp/README_EN.md) or [Python example](python/README_EN.md) to run the program, and check the statistical decoding time, preprocessing time, inference time, post-processing time. The time info which C++/Python example prints have already been converted into processing time per image.
 
 CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. Use different examples and models to test `datasets/coco/val2017_1000` with `conf_thresh=0.5,nms_thresh=0.5` on different test platforms. The performance test results are shown as follows:
@@ -376,11 +402,11 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. Use
 > 3. SE5-16/SE7-32's processors are all 8-cores ARM CA53@2.3GHz, SE9-16's processor is 8-cores ARM CA53@1.6GHz and SE9-8 use 6-cores ARM CA53@1.6GHz, performance on PCIe may vary greatly due to different processors.
 > 4. The image resolution has a great influence on the decoding time, the reasoning result has a great influence on the post-processing time, different test pictures may be different, and different thresholds have a great influence on the post-processing time.
 
-## 8. YOLOv5 cpu opt
+## 7. YOLOv5 cpu opt
 
 Based on the YOLOv5 mentioned above, this section optimizes the YOLOv5 postprocessing algorithm NMS. The following mainly explains the content and performance accuracy results of NMS optimization.
 
-### 8.1. NMS Optimization Item
+### 7.1. NMS Optimization Item
 * Place the operation that filters the noise anchors before all other operations. Subsequent operations only need to process candidate boxes with significantly reduced numbers
 * Remove a large number of sigmoid calculations during anchor filtering by setting a new threshold
 * Optimize storage space to reduce traversal of data, and only retain coordinates, confidence, highest category score, and corresponding index of candidate boxes when decoding outputs
@@ -389,7 +415,7 @@ Based on the YOLOv5 mentioned above, this section optimizes the YOLOv5 postproce
 
 The time bottleneck of the optimized NMS algorithm lies in the size of the output map. Attempting to reduce the height or width or number of channels of the output map can further reduce the NMS computation time.
 
-### 8.2. Precision Test
+### 7.2. Precision Test
 On SE5-16, use different examples and models, use dataset `datasets/coco/val2017_1000`, use threshold `conf_thresh=0.001，nms_thresh=0.6`, set `--use_cpu_opt=true` in cpp example or set `--use_cpu_opt` in python example, here is mAP test results:
 | Test Platform |  Test Program    |            Test model               |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ---------------- | ----------------------------------- | ------------- | -------- |
@@ -402,7 +428,7 @@ On SE5-16, use different examples and models, use dataset `datasets/coco/val2017
 > 1. The test notes in Section 6.2 apply here;
 > 2. Postprocess acceleration does not involve hardware acceleration, and only the test data of the SE5-16 platform and fp32 model are provided here.
 
-### 8.3. Performance Test
+### 7.3. Performance Test
 On SE5-16, use different examples and models, use dataset `datasets/coco/val2017_1000`, use threshold `conf_thresh=0.5，nms_thresh=0.5`, set `--use_cpu_opt=true` in cpp example or set `--use_cpu_opt` in python example, here is performance test results:
 |Test Platform|  Test Program    |            Test model               |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
@@ -416,5 +442,5 @@ On SE5-16, use different examples and models, use dataset `datasets/coco/val2017
 > 2. Postprocess acceleration does not involve hardware acceleration, and only the test data of the SE5-16 platform and fp32 model are provided here.
 > 3. Increasing `conf_thresh`, or using single class NMS (that is, set `#define USE_MULTICLASS_NMS 0` in yolov5s.cpp for cpp examples, or set the class variable `self.multi_label=False`) to accelerate postprocess to higher level.
 
-## 9. FAQ
+## 8. FAQ
 Please refer to [YOLOv5 Common Problems](./docs/YOLOv5_Common_Problems_EN.md) to see some problems of YOLOv5 inference.For other questions ,please refer to [FAQ](../../docs/FAQ_EN.md) to see some common questions and answers.
