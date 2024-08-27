@@ -4,30 +4,56 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-  * [2.1 SDK特性](#21-sdk特性)
-  * [2.2 算法特性](#22-算法特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-* [5. 例程测试](#5-例程测试)
-* [6. 精度测试](#6-精度测试)
-  * [6.1 测试方法](#61-测试方法)
-  * [6.2 测试结果](#62-测试结果)
-* [7. 性能测试](#7-性能测试)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 程序运行性能](#72-程序运行性能)
-* [8. YOLOv5 cpu opt](#8-yolov5-cpu-opt)
-  * [8.1 NMS优化项](#81-nms优化项)
-  * [8.2 精度测试](#82-精度测试)
-  * [8.3 性能测试](#83-性能测试)
-* [9. FAQ](#9-faq)
+- [YOLOv5](#yolov5)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+    - [2.1 目录结构说明](#21-目录结构说明)
+    - [2.2 SDK特性](#22-sdk特性)
+    - [2.3 算法特性](#23-算法特性)
+  - [3. 数据准备与模型编译](#3-数据准备与模型编译)
+    - [3.1 数据准备](#31-数据准备)
+    - [3.2 模型编译](#32-模型编译)
+  - [4. 例程测试](#4-例程测试)
+  - [5. 精度测试](#5-精度测试)
+    - [5.1 测试方法](#51-测试方法)
+    - [5.2 测试结果](#52-测试结果)
+  - [6. 性能测试](#6-性能测试)
+    - [6.1 bmrt\_test](#61-bmrt_test)
+    - [6.2 程序运行性能](#62-程序运行性能)
+  - [7. YOLOv5 cpu opt](#7-yolov5-cpu-opt)
+    - [7.1 NMS优化项](#71-nms优化项)
+    - [7.2 精度测试](#72-精度测试)
+    - [7.3 性能测试](#73-性能测试)
+  - [8. FAQ](#8-faq)
   
 ## 1. 简介
 ​YOLOv5是非常经典的基于anchor的One Stage目标检测算法，因其优秀的精度和速度表现，在工程实践应用中获得了非常广泛的应用。本例程对[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)v6.1版本的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
-### 2.1 SDK特性
+
+### 2.1 目录结构说明
+```bash
+├── cpp                   # 存放C++例程及其README
+|   ├──README_EN.md     
+|   ├──README.md      
+|   ├──yolov5_bmcv        # 使用FFmpeg解码、BMCV前处理、BMRT推理的C++例程
+|   └──yolov5_sail        # 使用SAIL解码、SAIL.BMCV前处理、SAIL推理的C++例程
+├── docs                  # 存放本例程专用文档，如ONNX导出、移植常见问题等
+├── pics                  # 存放README等说明文档中用到的图片
+├── python                # 存放Python例程及其README
+|   ├──README_EN.md 
+|   ├──README.md 
+|   ├──yolov5_bmcv.py     # 使用SAIL解码、SAIL.BMCV前处理、SAIL推理的Python例程
+|   ├──yolov5_opencv.py   # 使用OpenCV解码、OpenCV前处理、SAIL推理的Python例程
+|   └──...                # Python例程共用功能的封装。
+├── README_EN.md          # 本例程的英文指南
+├── README.md             # 本例程的中文指南
+├── scripts               # 存放模型编译、数据下载、自动测试等shell脚本
+└── tools                 # 存放精度测试、性能比对等python脚本
+```
+
+### 2.2 SDK特性
 * 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
@@ -37,7 +63,7 @@
 * 支持图片和视频测试
 * 支持NMS后处理算法软件加速
 
-### 2.2 算法特性
+### 2.3 算法特性
 考虑到YOLOv5的泛用性，针对算法的性能我们提出了许多优化的版本可供您选择：
 
 python 版本
@@ -59,16 +85,13 @@ c++版本
 > **注意：**  
 > 本例程支持三输出以及单输出模型，其中单输出模型性能更高，但是量化需要设置敏感层；三输出模型量化简单，在**用于验证模型准确性时，推荐使用三输出模型**
 
-## 3. 准备模型与数据
-建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型，如果您使用的tpu-mlir版本>=v1.3.0（即官网v23.07.01），可以直接使用torchscript模型。具体可参考[YOLOv5模型导出](./docs/YOLOv5_Export_Guide.md)。
+## 3. 数据准备与模型编译
 
-​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
+### 3.1 数据准备
 
-​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
+​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，**如果您希望自己准备模型和数据集，可以跳过本小节，参考[3.2 模型编译](#32-模型编译)进行模型转换。**
 
 ```bash
-# 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
-sudo apt install unzip
 chmod -R +x scripts/
 ./scripts/download.sh
 ```
@@ -121,10 +144,13 @@ chmod -R +x scripts/
     └── instances_val2017_1000.json           # coco val2017_1000数据集标签文件，用于计算精度评价指标  
 ```
 
-## 4. 模型编译
-导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
+### 3.2 模型编译
 
-模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
+**如果您不编译模型，只想直接使用下载的数据集和模型，可以跳过本小节。**
+
+源模型需要编译成BModel才能在SOPHON TPU上运行，源模型在编译前要导出成onnx模型，如果您使用的TPU-MLIR版本>=v1.3.0（即官网v23.07.01），也可以直接使用torchscript模型。具体可参考[YOLOv5模型导出](./docs/YOLOv5_Export_Guide.md)。​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
+
+建议使用TPU-MLIR编译BModel，模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录，并使用本例程提供的脚本将onnx模型编译为BModel。脚本中命令的详细说明可参考《TPU-MLIR开发手册》(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
 
 - 生成FP32 BModel
 
@@ -157,12 +183,12 @@ chmod -R +x scripts/
 ​上述脚本会在`models/BM1684`等文件夹下生成`yolov5s_v6.1_3output_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 
-## 5. 例程测试
+## 4. 例程测试
 - [C++例程](./cpp/README.md)
 - [Python例程](./python/README.md)
 
-## 6. 精度测试
-### 6.1 测试方法
+## 5. 精度测试
+### 5.1 测试方法
 
 首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(conf_thresh=0.001、nms_thresh=0.6)。  
 然后，使用`tools`目录下的`eval_coco.py`脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
@@ -172,7 +198,7 @@ pip3 install pycocotools
 # 请根据实际情况修改程序路径和json文件路径
 python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/yolov5s_v6.1_3output_fp32_1b.bmodel_val2017_1000_opencv_python_result.json
 ```
-### 6.2 测试结果
+### 5.2 测试结果
 CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，在`datasets/coco/val2017_1000`数据集上，精度测试结果如下：
 |   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ---------------- | ----------------------------------- | ------------- | -------- |
@@ -258,8 +284,8 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 > 2. AP@IoU=0.5:0.95为area=all对应的指标；
 > 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
 
-## 7. 性能测试
-### 7.1 bmrt_test
+## 6. 性能测试
+### 6.1 bmrt_test
 使用bmrt_test测试模型的理论性能：
 ```bash
 # 请根据实际情况修改要测试的bmodel路径和devid参数
@@ -295,7 +321,7 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 > 2. `calculate time`已折算为平均每张图片的推理时间；
 > 3. SoC和PCIe的测试结果基本一致。
 
-### 7.2 程序运行性能
+### 6.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
 
 CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
@@ -385,10 +411,10 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 
-## 8. YOLOv5 cpu opt
+## 7. YOLOv5 cpu opt
 本部分基于上述YOLOv5，优化了YOLOv5后处理NMS算法。下面主要说明NMS后处理算法优化的内容和优化后性能精度结果。
 
-### 8.1. NMS优化项
+### 7.1 NMS优化项
 * 提前噪声anchor的过滤，放在其他所有操作前，后续操作只需要处理数量显著减少的候选框
 * 通过设置新阈值来优化掉anchor过滤中大量的sigmoid计算
 * 优化存储减少数据遍历，在解码输出时仅仅保留候选框坐标、置信度、最高类别分数和对应索引
@@ -397,7 +423,7 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 
 优化后NMS算法的时间瓶颈点在于模型输出的map大小，若尝试降低输出的map的高宽或通道数能够进一步降低NMS时间。
  
-### 8.2. 精度测试
+### 7.2 精度测试
 在SE5-16上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，阈值使用`conf_thresh=0.001，nms_thresh=0.6`，cpp设置`--use_cpu_opt=true`或python设置`--use_cpu_opt`，精度测试结果如下：
 |   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ---------------- | ----------------------------------- | ------------- | -------- |
@@ -410,7 +436,7 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 > 1. 此处适用6.2章节的测试说明；
 > 2. 后处理加速不涉及硬件加速，此处只提供SE5-16平台、fp32模型的测试数据；
 
-### 8.3. 性能测试
+### 7.3 性能测试
 在SE5-16上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，阈值使用`conf_thresh=0.5，nms_thresh=0.5`，cpp设置`--use_cpu_opt=true`或python设置`--use_cpu_opt`，精度测试结果如下：
 |    测试平台  |     测试程序      |             测试模型                |decode_time    |preprocess_time  |inference_time   |postprocess_time| 
 | ----------- | ---------------- | ----------------------------------- | --------      | ---------       | ---------        | ---------      |
@@ -424,5 +450,5 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 > 2. 后处理加速不涉及硬件加速，此处只提供SE5-16平台、fp32模型的测试数据；
 > 3. 可以通过提高`conf_thresh`参数值，或者使用单类NMS（即cpp例程设置`yolov5.cpp`文件中的宏`USE_MULTICLASS_NMS 0`或python例程设置文件`yolov5_opencv.py`、`yolov5_bmcv.py`中的YOLOv5类成员变量`self.multi_label=False`）来进一步提升后处理性能。
 
-## 9. FAQ
+## 8. FAQ
 YOLOv5移植相关问题可参考[YOLOv5常见问题](./docs/YOLOv5_Common_Problems.md)，其他问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

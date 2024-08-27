@@ -1,21 +1,22 @@
 [简体中文](./README.md) | [English](./README_EN.md)
 
 # Python Demo
-* [Python Demo](#python-demo)
-    * [1. Environments Preparation](#1-environments-preparation)
-        * [1.1 x86/arm/riscv PCIe Platform](#11-x86armriscv-pcie-platform)
-        * [1.2 SoC Platform](#12-soc-platform)
-    * [2. Inference Test](#2-inference-test)
-        * [2.1 Parameter Description](#21-parameter-description)
-        * [2.2 Image Test Demo](#22-image-test-demo)
-        * [2.3 Video Test Demo](#23-video-test-demo)
+- [Python Demo](#python-demo)
+  - [1. Environments Preparation](#1-environments-preparation)
+    - [1.1 x86/arm/riscv PCIe Platform](#11-x86armriscv-pcie-platform)
+    - [1.2 SoC Platform](#12-soc-platform)
+  - [2. Inference Test](#2-inference-test)
+    - [2.1 Parameter Description](#21-parameter-description)
+    - [2.2 Image Test Demo](#22-image-test-demo)
+    - [2.3 Video Test Demo](#23-video-test-demo)
+    - [3. Flowchart](#3-flowchart)
 
 A series of Python demos are provided under the python directory, the details are as follows:
 
 | No. |  Python Demo      | Description                     |
 | ---- | ---------------- | -----------------------------------  |
 | 1    | yolov5_opencv.py | Decoding and preprocessing with OpenCV, Inference with SAIL |
-| 2    | yolov5_bmcv.py   | Decoding with SAIL, preprocessing with BMCV, Inference with SAIL |
+| 2    | yolov5_bmcv.py   | Decoding with SAIL, preprocessing with SAIL.BMCV, Inference with SAIL |
 
 ## 1. Environments Preparation
 ### 1.1 x86/arm/riscv PCIe Platform
@@ -84,3 +85,9 @@ python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmo
 ```
 After the test, the predicted results will be drawn in `results/test_car_person_1080P.avi`, and information such as predicted results and inference time will be printed at the same time.
 `yolov5_bmcv.py` do not save results as video, it will save results as images in `results/images` instead. 
+
+### 3. Flowchart
+
+The processes in `yolov5_bmcv.py` and `yolov5_opencv.py` follow the following flowchart:
+
+![flowchart](../pics/Flowchart.png)

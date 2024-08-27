@@ -31,7 +31,7 @@ ByteTrack是一个简单、快速、强大的多目标跟踪器，且不依赖�
 * 支持MOT格式数据集(即图片文件夹)和单视频测试
 
 ## 3. 准备模型与数据
-本例程使用YOLOv5的目标检测模型，详情请参考[YOLOv5](../YOLOv5/README.md#3-准备模型与数据)。
+本例程使用YOLOv5的目标检测模型，详情请参考[YOLOv5](../YOLOv5/README.md#3-数据准备与模型编译)。
 
 ​在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`。
 
@@ -150,10 +150,10 @@ acc         525  0.602846  0.733543  0.511679  0.614893  0.881511  5009  10  12 
 ## 7. 性能测试
 ### 7.1 bmrt_test
 
-本例程使用YOLOv5的目标检测模型，详情请参考[YOLOv5](../YOLOv5/README.md#71-bmrt_test)。
+本例程使用YOLOv5的目标检测模型，详情请参考[YOLOv5](../YOLOv5/README.md#61-bmrt_test)。
 
 ### 7.2 程序运行性能
-参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理、tracker更新时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。这里**只统计平均每帧的track_time**，解码、目标检测模型的时间请参考[YOLOV5](../YOLOv5/README.md#72-程序运行性能)
+参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理、tracker更新时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。这里**只统计平均每帧的track_time**，解码、目标检测模型的时间请参考[YOLOV5](../YOLOv5/README.md#62-程序运行性能)
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/mot15_trainset/ADL-Rundle-6/img1`，性能测试结果如下：
 | 测试平台     | 测试程序              | 测试模型                            | track_time |

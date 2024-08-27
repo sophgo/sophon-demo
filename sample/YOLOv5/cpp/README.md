@@ -4,16 +4,23 @@
 
 ## 目录
 
-* [1. 环境准备](#1-环境准备)
-    * [1.1 x86/arm/riscv PCIe平台](#11-x86armriscv-pcie平台)
-    * [1.2 SoC平台](#12-soc平台)
-* [2. 程序编译](#2-程序编译)
-    * [2.1 x86/arm/riscv PCIe平台](#21-x86armriscv-pcie平台)
-    * [2.2 SoC平台](#22-soc平台)
-* [3. 推理测试](#3-推理测试)
-    * [3.1 参数说明](#31-参数说明)
-    * [3.2 测试图片](#32-测试图片)
-    * [3.3 测试视频](#33-测试视频)
+- [C++例程](#c例程)
+  - [目录](#目录)
+  - [1. 环境准备](#1-环境准备)
+    - [1.1 x86/arm/riscv PCIe平台](#11-x86armriscv-pcie平台)
+    - [1.2 SoC平台](#12-soc平台)
+  - [2. 程序编译](#2-程序编译)
+    - [2.1 x86/arm/riscv PCIe平台](#21-x86armriscv-pcie平台)
+      - [2.1.1 bmcv](#211-bmcv)
+      - [2.1.2 sail](#212-sail)
+    - [2.2 SoC平台](#22-soc平台)
+      - [2.2.1 bmcv](#221-bmcv)
+      - [2.2.2 sail](#222-sail)
+  - [3. 推理测试](#3-推理测试)
+    - [3.1 参数说明](#31-参数说明)
+    - [3.2 测试图片](#32-测试图片)
+    - [3.3 测试视频](#33-测试视频)
+    - [4. 流程图](#4-流程图)
 
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
@@ -136,3 +143,9 @@ Usage: yolov5_bmcv.pcie [params]
 ```bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 ```
+
+### 4. 流程图
+
+`yolov5_bmcv`和`yolov5_sail`中的处理流程，都遵循以下流程图：
+
+![flowchart](../pics/Flowchart.png)
