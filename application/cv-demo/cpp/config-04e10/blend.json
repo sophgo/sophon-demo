@@ -1,0 +1,13 @@
+{
+  "configure": {
+    "wgt1": "../data/wgt/alpha_4096x2048.bin",
+    "wgt2": "../data/wgt/beta_4096x2048.bin",
+    "src_h": 2048,
+    "ovlp_lx": 0,
+    "ovlp_rx": 4095,
+    "bd_lx0": 0,
+    "bd_rx0": 0,
+    "bd_lx1": 0,
+    "bd_rx1": 0
+  }
+}
