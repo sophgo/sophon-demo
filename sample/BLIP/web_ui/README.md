@@ -88,18 +88,18 @@ export PYTHONPATH=/opt/sophon/sophon-opencv_<x.x.x>/opencv-python:$PYTHONPATH
 2. 按照上述默认参数，前端启动后打开浏览器，输入http://127.0.0.1:5000，您将看到前端网页：
 
 3. 图像字幕
-   3.1. 前端程序为serfer-front_cap.py，后端册灰姑娘徐为server-backend_cap.py，参考以上示例运行；
+   3.1. 前端程序为serfer-front_cap.py，后端程序为server-backend_cap.py，参考以上示例运行；
    3.2. 选择本地图片上传，不输入文本，点击“UPLOAD”按钮，您将看到预测结果；
    3.3. 若您不选择本地图片，默认为本例程../datasets/test/demo.jpg 的图片，字幕生成如下
   ![预测结果](../pics/server-front_cap.png)
 4. 图文匹配
-   4.1. 前端程序为serfer-front_itm.py，后端册灰姑娘徐为server-backend_itm.py，参考以上示例运行；
+   4.1. 前端程序为serfer-front_itm.py，后端程序为server-backend_itm.py，参考以上示例运行；
    4.2. 选择本地图片上传，并输入文本（可输入多个），点击“UPLOAD”按钮，您将看到预测结果；
    4.3  若您不选择本地图片，默认为本例程../datasets/test/demo.jpg 的图片，输入两段文字，
         "a woman sitting on the beach with a dog", "a woman sitting on the beach with a cat"，匹配度结果如下
   ![预测结果](../pics/server-front_itm.png)
 5. 图文问答
-   5.1. 前端程序为serfer-front_vqa.py，后端册灰姑娘徐为server-backend_vqa.py，参考以上示例运行；
+   5.1. 前端程序为serfer-front_vqa.py，后端程序为server-backend_vqa.py，参考以上示例运行；
    5.2. 选择本地图片上传，并输入文本（可输入多个），点击“UPLOAD”按钮，您将看到预测结果；
    5.3. 若您不选择本地图片，默认为本例程../datasets/test/demo.jpg 的图片，输入两个问题，
         "where is the woman", "what are they doing"，回答结果如下
