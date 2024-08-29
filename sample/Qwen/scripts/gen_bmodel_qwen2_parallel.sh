@@ -2,7 +2,7 @@
 set -ex
 models=
 mode="int8"
-folder="./models"
+folder="models"
 num_device=1
 mode_args=""
 device_args=""
@@ -15,7 +15,6 @@ out_model=$name.bmodel
 seq_length=
 hidden_size=
 dynamic=0
-batch=1
 
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -61,47 +60,18 @@ if [[ -z "$seq_length" ]]; then
     exit 1
 fi
 
-
-if [ "$name" = "qwen1.5-7b" ]; then
-  num_layers=32
-  hidden_size=4096
-  echo "Compile Qwen1.5-7B"
-elif [ "$name" = "qwen1.5-4b" ]; then
-  num_layers=40
-  hidden_size=2560
-  echo "Compile Qwen1.5-4B"
-elif [ "$name" = "qwen1.5-1.8b" ]; then 
-  num_layers=24
-  hidden_size=2048
-  echo "Compile Qwen1.5-1.8B"
-elif [ "$name" = "qwen1.5-0.5b" ]; then 
-  num_layers=24
-  hidden_size=1024
-  echo "Compile Qwen1.5-0.5B"
-elif [ "$name" = "qwen1.5-32b" ]; then
-  num_layers=64
-  hidden_size=5120
-  echo "Compile Qwen1.5-32B"
-elif [ "$name" = "qwen1.5-14b" ]; then
-  num_layers=40
-  hidden_size=5120
-  echo "Compile Qwen1.5-32B"
-elif [ "$name" = "qwen-7b" ]; then
-  num_layers=32
-  hidden_size=4096
-  echo "Compile Qwen-7B"
-elif [ "$name" = "qwen-14b" ]; then
-  num_layers=40
-  hidden_size=5120
-  echo "Compile Qwen-14B"
-elif [ "$name" = "qwen-72b" ]; then
-  num_layers=80
-  hidden_size=8192
-  echo "Compile Qwen-72B"
-elif [ "$name" = "qwen2-7b" ]; then
+if [ "$name" = "qwen2-7b" ]; then
   num_layers=28
   hidden_size=3584
-  qwen2_arg="--disable_layer_group" 
+  num_kv_head=4
+  head_dim=128
+  echo "Compile Qwen2-7B"
+elif [ "$name" = "qwen2-72b" ]; then
+  num_layers=80
+  hidden_size=8192
+  num_kv_head=8
+  head_dim=128
+  echo "Compile Qwen2-72B"
 else
   >&2 echo -e "Error: Invalid name $name, the input name must be \033[31mqwen1.5-0.5b|qwen1.5-1.8b|qwen1.5-4b|qwen1.5-7b|qwen1.5-32b\033[0m"
   exit 1
@@ -130,16 +100,25 @@ if [ x$addr_mode == x"io_alone" ]; then
 fi
 
 if [ x$dynamic == x1 ]; then
-    dyn_args="--dynamic"
+    dynamic_args="--dynamic"
     out_model=${name}_${mode}_seq${seq_length}_${num_device}dev_dyn.bmodel
 fi
 
-process_block() {
-    i=$1
+outdir=${folder}/$mode"_"$num_device"dev"/block
+mkdir -p $outdir
+pushd $outdir
+
+batch=1
+prefill_shape=[[${batch},${seq_length},${hidden_size}],[${batch},${seq_length}],[${batch},1,${seq_length},${seq_length}]]
+cache_shape=[[${batch},1,${hidden_size}],[${batch},1],[${batch},1,1,$((seq_length+1))],[${batch},${seq_length},${num_kv_head},${head_dim}],[${batch},${seq_length},${num_kv_head},${head_dim}]]
+
+for ((i=0; i<$num_layers; i++)); do
+
     model_transform.py \
-    --model_name block_$i \
-    --model_def ../../onnx/block_$i.onnx \
-    --mlir block_$i.mlir
+        --model_name block_$i \
+        --input_shapes $prefill_shape \
+        --model_def ../../onnx/block_$i/block_$i.onnx \
+        --mlir block_$i.mlir
 
     model_deploy.py \
         --mlir block_$i.mlir \
@@ -149,12 +128,12 @@ process_block() {
         --chip bm1684x \
         $device_args \
         $dyn_args \
-        $qwen2_arg \
         --model block_$i.bmodel
 
     model_transform.py \
         --model_name block_cache_$i \
-        --model_def ../../onnx/block_cache_$i.onnx \
+        --input_shapes $cache_shape \
+        --model_def ../../onnx/block_cache_$i/block_cache_$i.onnx \
         --mlir block_cache_$i.mlir
 
     model_deploy.py \
@@ -164,10 +143,16 @@ process_block() {
         --quant_output \
         --chip bm1684x \
         $device_args \
-        $dyn_args \
         $addr_args \
         --model block_cache_$i.bmodel
-}
+
+    rm -f *.npz
+
+    models=${models}${outdir}'/block_'$i'.bmodel '$outdir'/block_cache_'$i'.bmodel '
+
+done
+popd
+echo $models
 
 outdir=${folder}/$mode"_"$num_device"dev"/embedding
 mkdir -p $outdir
@@ -274,19 +259,6 @@ else
     models=${models}${outdir}'/lm_head.bmodel '$outdir'/greedy_head.bmodel '$outdir'/penalty_sample_head.bmodel '
 fi
 
-rm -f *.npz
-popd
-echo $models
-
-outdir=${folder}/$mode"_"$num_device"dev"/block
-mkdir -p $outdir
-pushd $outdir
-for ((i=0; i<$num_layers; i++)); do
-    process_block $i
-    models=${models}${outdir}'/block_'$i'.bmodel '$outdir'/block_cache_'$i'.bmodel '
-done
-
-wait
 rm -f *.npz
 popd
 echo $models

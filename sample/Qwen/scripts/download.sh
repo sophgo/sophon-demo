@@ -9,31 +9,26 @@ pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 scripts_dir=$(dirname $(readlink -f "$0"))
 
 pushd $scripts_dir
-# datasets
 
-# models
-if [ ! -d "../models" ]; 
-then
-    mkdir -p ../models/
-    mkdir -p ../models/BM1684X
+function download {
+    if [ ! -d "../models/BM1684X" ]; then
+        mkdir -p ../models/BM1684X
+    fi
     pushd ../models/BM1684X
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen-7b_int4_1dev.bmodel
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen-7b_int8_1dev.bmodel
-    popd
-    echo "models download!"
-else
-    echo "Models folder exist! Remove it if you need to update."
-fi
 
-if [ ! -d "../python/token_config" ];
-then
-    pushd ../python
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/token_config.zip
-    unzip token_config.zip
-    rm token_config.zip
+    if [ x"$1" == x"qwen" ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen/qwen-7b_int4_seq512_1dev.bmodel
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen/qwen-7b_int4_seq2048_1dev.bmodel 
+    elif [ x"$1" == x"qwen1.5" ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen1.5/qwen1.5-7b_int4_seq512_1dev.bmodel
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen1.5/qwen1.5-7b_int4_seq2048_1dev.bmodel
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen1.5/qwen1.5-7b_int4_seq4096_2dev.bmodel 
+    elif [ x"$1" == x"qwen2" ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen2/qwen2-7b_int4_seq512_1dev.bmodel
+    else
+        echo "invalie model name"
+    fi
     popd
-else
-    echo "token_config exists! Remove it if you need to update."
-fi
+}
 
-popd
+download $1
