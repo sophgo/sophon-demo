@@ -47,6 +47,7 @@ def update_selected_id():
 
 tab1, tab2 = st.tabs(["当前上传", "历史记录"])
 with tab1:
+    num_texts = st.sidebar.number_input("输入文本框数量", min_value=1, max_value=10, value=2)
     with st.sidebar.form("my-form", clear_on_submit=True):
         # 上传多个图片文件
         uploaded_files = st.file_uploader("选择图片", type=["png", "jpg", "jpeg"], accept_multiple_files=True, help="支持多张图片上传，如果不上传将使用demo默认图片进行推理")
@@ -57,7 +58,6 @@ with tab1:
             use_default_image = True
 
         # 动态文本输入框数量
-        num_texts = st.number_input("输入文本框数量", min_value=1, max_value=10, value=2)
         texts = [st.text_input(f"输入文本 {i+1}") for i in range(num_texts)]
         submitted = st.form_submit_button("UPLOAD!")
 
