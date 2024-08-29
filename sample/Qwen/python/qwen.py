@@ -6,321 +6,372 @@
 # third-party components.
 #
 #===----------------------------------------------------------------------===#
+
 import sophon.sail as sail
-import argparse
-import time
-from tokenization_util import make_context
 from transformers import AutoTokenizer
 import numpy as np
-
-#convert sail_dtype to numpy dtype
-def type_convert(sail_dtype):
-    if sail_dtype == sail.Dtype.BM_FLOAT32:
-        return np.float32
-    if sail_dtype == sail.Dtype.BM_FLOAT16:
-        return np.float16
-    if sail_dtype == sail.Dtype.BM_INT32:
-        return np.int32
-    if sail_dtype == sail.Dtype.BM_BFLOAT16: # 后续需要修改bf16的接口,现在先用fp16的代替
-        return np.float16
-    
-    raise TypeError("only support float32 and int32 right now")
-
-def fp16_cast(arr:np.ndarray): #这个接口的作用在于把np.float16假冒成np.uint16传进Tensor，sail update_data如果能接收传输二进制，那就不需要这个了。(后续需要改成bf16的接口)
-    """
-    reinterpret an array with int16 instead of float16, because pybind11 do not support float16.
-    """
-    if arr.dtype == np.float16:
-        return arr.view(np.uint16)
-    else:
-        return arr
+import yaml
+import time
+import argparse
 
 class Qwen:
-    def __init__(self, handle, engine, tokenizer):
-        self.handle = handle
-        self.sp = tokenizer
-        
-        # warm up
-        self.sp.decode([0]) 
-        self.EOS = self.sp.im_end_id
+    def __init__(self, bmodel_path, dev_ids, tokenizer_path) -> None:
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, trust_remote_code=True)
+        self.EOS = self.tokenizer.eos_token_id
+        self.dev_ids = [int(x) for x in str(dev_ids).split(',')]
+        self.handles = {dev: sail.Handle(dev) for dev in self.dev_ids}
+        self.model = sail.EngineLLM(bmodel_path, self.dev_ids)
+        self.tensors = {}
+        self.graph_names = self.model.get_graph_names()
+        self.io_alone = 0
 
-        # load bmodel
-        # 这里devio，后面都没有创建系统内存的tensor
-        self.net = engine
-        self.graph_names = self.net.get_graph_names()
 
-        # initialize qwen parameters
-        self.NUM_LAYERS = (len(self.graph_names) - 2) // 2
-        self.first_hidden_input_shape = self.net.get_input_shape("block_0", self.net.get_input_names("block_0")[0])
-        _, self.SEQLEN, self.HIDDEN_SIZE = self.first_hidden_input_shape
+        for net in self.graph_names:
+            self.tensors[net] = {}
+            self.tensors[net]["addr_mode"] = self.model.get_addr_mode(net)
+            if self.tensors[net]["addr_mode"] == 0:
+                self.tensors[net]['input'] = self.model.get_input_tensors_addrmode0(net)
+                self.tensors[net]['output'] = self.model.get_output_tensors_addrmode0(net)
+            elif self.tensors[net]["addr_mode"] == 1:
+                self.io_alone = 1
+                self.tensors[net]['input'] = self.model.get_input_tensors(net)
+                self.tensors[net]['output'] = self.model.get_output_tensors(net)
+
+
+
+        # initialize params
+        self.is_dynamic = self.model.get_is_dynamic("block_0")
+        # self.is_dynamic = False
+        print("dynamic: ", self.is_dynamic)
+        self.token_length = 0
+        _, self.SEQLEN, self.HIDDEN_SIZE = self.tensors["block_0"]["input"][0].shape()
+        _, _, self.ATTEN_HEAD, self.ATTEN_DIM = self.tensors["block_cache_0"]["input"][3].shape()
+
+        self.ATTENTION_MASK = -10000.0
+        if self.tensors["block_0"]["input"][2].dtype() == sail.Dtype.BM_BFLOAT16:
+            self.ATTENTION_MASK = 50716
+
+        self.is_sample = False
+        if ("greedy_head" in self.graph_names):
+            self.is_sample = True
+        self.NUM_LAYERS = (len(self.graph_names) - 3) // 2
+        if self.is_sample:
+            self.NUM_LAYERS = (len(self.graph_names) - 5) // 2
+        self.token_length = 0
+
 
         # initialize net name
         self.name_embed = "embedding"
         self.name_embed_cache = "embedding_cache"
-        self.name_lm = "lm_head"
         self.name_blocks = ["block_"+str(i) for i in range(self.NUM_LAYERS)]
         self.name_blocks_cache = ["block_cache_"+str(i) for i in range(self.NUM_LAYERS)]
+        self.name_lm = "lm_head"
+        self.greedy = "greedy_head"
+        self.penalty = "penalty_sample_head"
 
-        # initialize tensors (inputs & outputs)
-        # forward_first: embedding_tensor
-        self.first_embed_input = self.init_sail_tensor(self.name_embed, 0, [1, self.SEQLEN])
-        self.first_embed_output = self.init_sail_tensor(self.name_embed, 0, [1, self.SEQLEN, self.HIDDEN_SIZE], False)
 
-        # forward_next: embedding_tensor
-        self.next_embed_input = self.init_sail_tensor(self.name_embed_cache, 0, [1, 1])
-        self.next_embed_output = self.init_sail_tensor(self.name_embed_cache, 0, [1,  self.HIDDEN_SIZE], False)
-
-        # forward_first: hidden_state
-        self.first_hidden_input = self.init_sail_tensor(self.name_blocks[0], 0)
-        self.first_hidden_output = self.init_sail_tensor(self.name_blocks[0], 0, None, False)
-
-        # forward_next: hidden_state
-        self.next_hidden_input = self.init_sail_tensor(self.name_blocks_cache[0], 0)
-        self.next_hidden_output = self.init_sail_tensor(self.name_blocks_cache[0], 0, None, False)
-
-        # forward_first: position_id_tensor and attention_mask_tensor
-        self.first_pid = self.init_sail_tensor(self.name_blocks[0], 1)
-        self.first_attention = self.init_sail_tensor(self.name_blocks[0], 2)
-       
-        # forward_next: position_id_tensor and attention_mask_tensor
-        self.next_pid = self.init_sail_tensor(self.name_blocks_cache[0], 1)
-        self.next_attention = self.init_sail_tensor(self.name_blocks_cache[0], 2)
-
-        # forward_next: present_key / present_value (for update kv_cache)
-        self.present_key = self.init_sail_tensor(self.name_blocks_cache[0], 1, None, False)
-        self.present_value = self.init_sail_tensor(self.name_blocks_cache[0], 2, None, False)
-
-        # forward_first: key_tensor and value_tensor
-        self.past_key_output = []
-        self.past_value_output = []
-
-        # forward_next: kv cache block 
-        self.cache_key_input = []
-        self.cache_key_output = []
-        self.cache_value_input = []
-        self.cache_value_output = []
-
-        for _ in range(self.NUM_LAYERS): 
-            self.past_key_output.append(self.init_sail_tensor(self.name_blocks[0], 1, None, False))
-            self.past_value_output.append(self.init_sail_tensor(self.name_blocks[0], 2, None, False))
-
-            self.cache_key_input.append(self.init_sail_tensor(self.name_blocks_cache[0], 3))
-            self.cache_key_output.append(self.init_sail_tensor(self.name_blocks_cache[0], 1, None, False))
-
-            self.cache_value_input.append(self.init_sail_tensor(self.name_blocks_cache[0], 4))
-            self.cache_value_output.append(self.init_sail_tensor(self.name_blocks_cache[0], 2, None, False))
-
-        # lm_head tensor
-        self.lm_input = self.init_sail_tensor(self.name_lm, 0)
-        self.lm_output = self.init_sail_tensor(self.name_lm, 0, None, False)
-
-        self.token_length = 0
-
-    def init_sail_tensor(self, name, tensor_idx, shape=None, is_input=True):
-        """
-        init a sail tensor of sail.engine.
-        parameters:
-        input:
-            name: str, graph_name/net_name
-            tensor_idx: int, input/output tensor id
-            shape: list[int], shape of tensor
-            is_input: bool, is input tensor or not
-        return:
-            dict
-        """
-        tensor = {}
-        if is_input:
-            tensor["name"] = self.net.get_input_names(name)[tensor_idx]
-            tensor["shape"] = self.net.get_input_shape(name, tensor["name"]) if shape is None else shape
-            tensor["dtype"] = self.net.get_input_dtype(name, tensor["name"])
-            tensor["data"] = sail.Tensor(self.handle, tensor["shape"], tensor["dtype"], False, True)
+        self.past_k = {}
+        self.past_v = {}
+        # not io_alone 
+        if self.io_alone == 0 or self.is_dynamic:
+            print("no io_alone")
+            for j in range(self.NUM_LAYERS):
+                self.past_k[j] = {}
+                self.past_v[j] = {}
+                for i in range(len(self.dev_ids)):
+                    self.past_k[j][i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[j]]["input"][5 * i + 3])
+                    self.past_v[j][i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[j]]["input"][5 * i + 4])
         else:
-            tensor["name"] = self.net.get_output_names(name)[tensor_idx]
-            tensor["shape"] = self.net.get_output_shape(name, tensor["name"]) if shape is None else shape
-            tensor["dtype"] = self.net.get_output_dtype(name, tensor["name"])
-            tensor["data"] = sail.Tensor(self.handle, tensor["shape"], tensor["dtype"], False, True) 
-        return tensor
+            for j in range(self.NUM_LAYERS):
+                self.past_k[j] = {}
+                self.past_v[j] = {}
+                for i in range(len(self.dev_ids)):
+                    self.past_k[j][i] = self.tensors[self.name_blocks_cache[j]]["input"][5 * i + 3]
+                    self.past_v[j][i] = self.tensors[self.name_blocks_cache[j]]["input"][5 * i + 4]
+    
 
-    # inference for the first token
-    def forward_first(self, token):
-        input_ids = np.zeros(self.SEQLEN, type_convert(self.first_embed_input["dtype"]))
-        input_ids[:min(self.SEQLEN, len(token))] = token
-        input_ids = input_ids.reshape(1, -1)
-        self.token_length = len(token)
-        position_id = np.zeros(self.SEQLEN, type_convert(self.first_pid["dtype"])) 
+        self.first_embed_input = self.model.create_max_input_tensors(self.name_embed)
+        self.first_hidden_state = self.model.create_max_output_tensors(self.name_embed)
+        self.next_embed_input = self.model.create_max_input_tensors(self.name_embed_cache)
+        self.next_hidden_state = self.model.create_max_output_tensors(self.name_embed_cache)
+        self.first_pid = {}
+        self.next_pid = {}
+        self.first_attention_mask = {}
+        self.next_attention_mask = {}
+        self.lm_input = self.model.create_max_input_tensors(self.name_lm)
+        self.lm_output = self.model.create_max_output_tensors(self.name_lm)
+        for i in range(len(self.dev_ids)):
+            self.first_pid[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks[0]]["input"][1])
+            self.first_attention_mask[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks[0]]["input"][2])
+            self.next_pid[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][1])
+            self.next_attention_mask[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][2])
+
+
+    def init_input_tensor(self, dev_id, net, index):
+        shape = self.model.get_input_shape(net, index)
+        type = self.model.get_input_dtype(net, index)
+        return sail.Tensor(self.handles[dev_id], shape, type, False, True) 
+    
+    def init_output_tensor(self, dev_id, net, index):
+        shape = self.model.get_output_shape(net, index)
+        type = self.model.get_output_dtype(net, index)
+        return sail.Tensor(self.handles[dev_id], shape, type, False, True)
+    
+    def init_tensor(self, dev_id, shape, type):
+        return sail.Tensor(self.handles[dev_id], shape, type, False, True) 
+    
+    def init_tensor(self, dev_id, tensor):
+        return sail.Tensor(self.handles[dev_id], tensor.shape(), tensor.dtype(), False, True) 
+    
+    def type_convert(self, sail_dtype):
+        if sail_dtype == sail.Dtype.BM_FLOAT32:
+            return np.float32
+        if sail_dtype == sail.Dtype.BM_FLOAT16:
+            return np.float16
+        if sail_dtype == sail.Dtype.BM_INT32:
+            return np.int32
+        if sail_dtype == sail.Dtype.BM_BFLOAT16: 
+            return np.uint16
+    
+    def get_first_input(self, length, token):
+        input_ids = np.zeros(length, self.type_convert(self.tensors[self.name_embed]["input"][0].dtype()))
+        input_ids[:len(token)] = token
+
+        position_id = np.zeros(length, self.type_convert(self.tensors[self.name_blocks[0]]["input"][1].dtype()))
         for i in range(self.token_length):
             position_id[i] = i
 
-        attention_mask = np.ones(self.SEQLEN*self.SEQLEN, type_convert(self.first_attention["dtype"])) * (-10000.0)
-        for i in range(self.token_length):
-            for j in range(self.SEQLEN):
+        attention_mask = np.ones(length*length, self.type_convert(self.tensors[self.name_blocks[0]]["input"][2].dtype())) * self.ATTENTION_MASK
+        for i in range(len(token)):
+            for j in range(length):
                 if (j <= i):
-                    attention_mask[i*self.SEQLEN + j] = 0
+                    attention_mask[i*length + j] = 0
+
+        return input_ids, position_id, attention_mask
         
-        # embedding
-        self.first_embed_input["data"].update_data(input_ids)
-        input_embed_tensors = {self.first_embed_input["name"]: self.first_embed_input["data"]}
-        output_embed_tensors = {self.first_embed_output["name"]: self.first_embed_output["data"]}
+    def forward_first(self, token):
+        self.token_length = len(token)
 
-        # Embedding Layer Inference
-        self.net.process(self.name_embed, input_embed_tensors, output_embed_tensors)
+        length = self.token_length + 1 if self.is_dynamic else self.SEQLEN
+        # length = self.SEQLEN
+        input_ids, position_id, attention_mask = self.get_first_input(length, token)
 
+        for i in range(len(self.dev_ids)):
+            # breakpoint()
+            self.tensors[self.name_embed]["input"][i] = sail.Tensor(self.first_embed_input[i], [1, length], 0)
+            self.tensors[self.name_embed]["output"][i] = sail.Tensor(self.first_hidden_state[i], [1, length, self.HIDDEN_SIZE], 0)
+            self.tensors[self.name_embed]["input"][i].update_data(input_ids.reshape(self.tensors[self.name_embed]["input"][i].shape()))
+        self.model.process(self.name_embed, self.tensors[self.name_embed]["input"], self.tensors[self.name_embed]["output"])
+
+ 
         # blocks
-        self.first_hidden_tensor = self.first_embed_output["data"]
-        self.first_hidden_tensor.reshape(self.first_hidden_input["shape"])
-        self.first_pid["data"].update_data(position_id.reshape(self.first_pid["shape"]))
-        self.first_attention["data"].update_data(fp16_cast(attention_mask.reshape(self.first_attention["shape"]))) # set bf16 in the future.
-
-        input_blocks_tensors = {self.first_hidden_input["name"]: self.first_hidden_tensor, 
-                                self.first_pid["name"]: self.first_pid["data"], 
-                                self.first_attention["name"]: self.first_attention["data"]}
-
-        # Transformer Block Inference
-        for i in range(self.NUM_LAYERS):        
-            output_blocks_tensors = {self.first_hidden_output["name"]: self.first_hidden_tensor,
-                                    self.past_key_output[i]["name"]: self.past_key_output[i]["data"],
-                                    self.past_value_output[i]["name"]: self.past_value_output[i]["data"]}
-            
-            self.net.process(self.name_blocks[i], input_blocks_tensors, output_blocks_tensors)
-        
-        # get the last token info as Lm head input
-        copy_len = self.first_hidden_tensor.shape()[-1]
-        self.lm_input["data"].sync_d2d(self.first_hidden_tensor,
-                                      (self.token_length-1)* copy_len,  
-                                      0, 
-                                      copy_len)
-        
-        input_lm_tensors = {self.lm_input["name"]: self.lm_input["data"]}
-        output_lm_tensors = {self.lm_output["name"]: self.lm_output["data"]}
-        
-        # Lm_head Inference
-        self.net.process(self.name_lm, input_lm_tensors, output_lm_tensors)
-        return int(self.lm_output["data"].asnumpy())
-
-    # The following tokens prediction
-    def forward_next(self, ):
-        attention_mask = np.zeros(self.SEQLEN+1, type_convert(self.next_attention["dtype"]))
-        for i in range(self.token_length-1, self.SEQLEN):
-            attention_mask[i] = -10000.0
-        position_id = np.array(self.token_length - 1, type_convert(self.next_pid["dtype"]))
-
-        # embedding
-        self.next_embed_input["data"] = self.lm_output["data"]
-        self.next_embed_input["data"].reshape(self.next_embed_input["shape"])
-
-        input_embed_tensors = {self.next_embed_input["name"]: self.next_embed_input["data"]}
-        output_embed_tensors = {self.next_embed_output["name"]: self.next_embed_output["data"]}
-        # Embedding Layer Inference
-        self.net.process(self.name_embed_cache, input_embed_tensors, output_embed_tensors)
-
-        # blocks
-        self.next_pid["data"].update_data(position_id.reshape(self.next_pid["shape"]))
-        self.next_attention["data"].update_data(fp16_cast(attention_mask.reshape(self.next_attention["shape"])))
-
-        self.next_hidden_tensor = self.next_embed_output["data"]
-        self.next_hidden_tensor.reshape(self.next_hidden_input["shape"])
-
-        # Transformer Block Inference
+        for i in range(len(self.dev_ids)):
+            self.tensors[self.name_blocks[0]]["input"][3 * i + 1] = sail.Tensor(self.first_pid[i], [1, length], 0)
+            self.tensors[self.name_blocks[0]]["input"][3 * i + 2] = sail.Tensor(self.first_attention_mask[i], [1, 1, length, length], 0)
+            self.tensors[self.name_blocks[0]]["input"][3 * i + 1].update_data(position_id.reshape(self.tensors[self.name_blocks[0]]["input"][3 * i + 1].shape()))
+            self.tensors[self.name_blocks[0]]["input"][3 * i + 2].update_data(attention_mask.reshape(self.tensors[self.name_blocks[0]]["input"][3 * i + 2].shape()).view(np.uint16))
         for i in range(self.NUM_LAYERS):
-            inputs_block_cache_tensors = {self.next_hidden_input["name"]: self.next_hidden_tensor, 
-                                        self.next_pid["name"]: self.next_pid["data"], 
-                                        self.next_attention["name"]: self.next_attention["data"], 
-                                        self.cache_key_input[i]["name"]: self.past_key_output[i]["data"], 
-                                        self.cache_value_input[i]["name"]: self.past_value_output[i]["data"]}
-            outputs_block_cache_tensors = {self.next_hidden_output["name"]: self.next_hidden_tensor,
-                                        self.cache_key_output[i]["name"]: self.present_key["data"],
-                                        self.cache_value_output[i]["name"]: self.present_value["data"]}
-            self.net.process(self.name_blocks_cache[i], inputs_block_cache_tensors, outputs_block_cache_tensors)
+            for j in range(len(self.dev_ids)):
+                self.tensors[self.name_blocks[i]]["input"][3 * j] = sail.Tensor(self.first_hidden_state[j], [1, length, self.HIDDEN_SIZE], 0)
+                self.tensors[self.name_blocks[i]]["output"][3 * j] = sail.Tensor(self.first_hidden_state[j], [1, length, self.HIDDEN_SIZE], 0)
+                self.tensors[self.name_blocks[i]]["output"][3 * j + 1] = sail.Tensor(self.past_k[i][j], [1, length, self.ATTEN_HEAD, self.ATTEN_DIM], 0)
+                self.tensors[self.name_blocks[i]]["output"][3 * j + 2] = sail.Tensor(self.past_v[i][j], [1, length, self.ATTEN_HEAD, self.ATTEN_DIM], 0)
+            if i > 0:
+                for j in range(len(self.dev_ids)):
+                    self.tensors[self.name_blocks[i]]["input"][3 * j + 1] = self.tensors[self.name_blocks[0]]["input"][3 * j + 1]
+                    self.tensors[self.name_blocks[i]]["input"][3 * j + 2] = self.tensors[self.name_blocks[0]]["input"][3 * j + 2]
+            # breakpoint()
+            self.model.process(self.name_blocks[i], self.tensors[self.name_blocks[i]]["input"], self.tensors[self.name_blocks[i]]["output"])
 
-            # update kv_cache()
-            unit_size = self.present_key["shape"][-1]*self.present_key["shape"][-2]
-            self.past_key_output[i]["data"].sync_d2d(self.present_key["data"], 0, (self.token_length-1)*unit_size, unit_size)
-            self.past_value_output[i]["data"].sync_d2d(self.present_value["data"], 0, (self.token_length-1)*unit_size, unit_size)
-
-        self.lm_input_tensor = self.next_hidden_tensor
-        self.lm_input_tensor.reshape(self.lm_input["shape"])
+        # breakpoint()
+        # lm_head
+        self.tensors[self.name_lm]["input"][0] = sail.Tensor(self.first_hidden_state[0], [1, 1, self.HIDDEN_SIZE], (self.token_length - 1) * self.HIDDEN_SIZE)
+        self.tensors[self.name_lm]["output"][0] = self.lm_output[0]
         
-        input_lm_tensors = {self.lm_input["name"]: self.lm_input_tensor}
-        output_lm_tensors = {self.lm_output["name"]: self.lm_output["data"]}
+        self.model.process(self.name_lm, self.tensors[self.name_lm]["input"], self.tensors[self.name_lm]["output"])
+        if not self.is_sample:
+            return int(self.tensors[self.name_lm]["output"][0].asnumpy())
+
+        # sample
+        self.tensors[self.greedy]["input"][0] = self.tensors[self.name_lm]["output"][0]
+        self.model.process(self.greedy, self.tensors[self.greedy]["input"], self.tensors[self.greedy]["output"])
+
+        return int(self.tensors[self.greedy]["output"][0].asnumpy())
+    
+    def forward_next(self):
+        self.token_length += 1
+        position_id = np.array(self.token_length - 1, self.type_convert(self.tensors[self.name_blocks_cache[0]]["input"][1].dtype()))
+        attention_mask = np.zeros(self.SEQLEN+1, self.type_convert(self.tensors[self.name_blocks_cache[0]]["input"][2].dtype()))
+        for i in range(self.token_length - 1, self.SEQLEN):
+            attention_mask[i] = self.ATTENTION_MASK
+
+        # embedding_cache
+        if len(self.dev_ids) > 1:
+            # breakpoint()
+            input_ids = np.array(int(self.tensors[self.name_lm]["output"][0].asnumpy()), self.type_convert(self.tensors[self.name_embed_cache]["input"][0].dtype()))
+            for i in range(len(self.dev_ids)):
+                self.next_embed_input[i].update_data(input_ids.reshape(self.tensors[self.name_embed_cache]["input"][i].shape()))
+                self.tensors[self.name_embed_cache]["input"][i] = self.next_embed_input[i]
+        else:
+            self.tensors[self.name_embed_cache]["input"][0] = self.tensors[self.name_lm]["output"][0]
+            if self.is_sample:
+                self.tensors[self.name_embed_cache]["input"][0] = self.tensors[self.greedy]["output"][0]
+        for i in range(len(self.dev_ids)):
+            self.tensors[self.name_embed_cache]["output"][i] = self.next_hidden_state[i] 
+
+        self.model.process(self.name_embed_cache, self.tensors[self.name_embed_cache]["input"], self.tensors[self.name_embed_cache]["output"])
+
+        # block_cache
+        for i in range(len(self.dev_ids)):
+            self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1] = self.next_pid[i]
+            self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2] = self.next_attention_mask[i]
+            self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1].update_data(position_id.reshape(self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1].shape()))
+            self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2].update_data(attention_mask.reshape(self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2].shape()).view(np.uint16))
+
+
+        for i in range(self.NUM_LAYERS):
+            for j in range(len(self.dev_ids)):
+                # breakpoint()
+                self.tensors[self.name_blocks_cache[i]]["input"][5 * j] = self.next_hidden_state[j]
+                self.tensors[self.name_blocks_cache[i]]["output"][3 * j] = self.next_hidden_state[j]
+                # self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 3] = sail.Tensor(self.past_k[i][j], [1, self.HIDDEN_SIZE, shape[-2], shape[-1]], 0)
+                # self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 4] = sail.Tensor(self.past_v[i][j], [1, self.HIDDEN_SIZE, shape[-2], shape[-1]], 0)
+                self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 3] = self.past_k[i][j]
+                self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 4] = self.past_v[i][j]
+                self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 1] = sail.Tensor(self.past_k[i][j], [1, 1, self.ATTEN_HEAD, self.ATTEN_DIM], (self.token_length-1) * (self.ATTEN_HEAD * self.ATTEN_DIM))
+                self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 2] = sail.Tensor(self.past_v[i][j], [1, 1, self.ATTEN_HEAD, self.ATTEN_DIM], (self.token_length-1) * (self.ATTEN_HEAD * self.ATTEN_DIM))
+            if i > 0:
+                for j in range(len(self.dev_ids)):
+                    self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 1] = self.tensors[self.name_blocks_cache[0]]["input"][5 * j + 1]
+                    self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 2] = self.tensors[self.name_blocks_cache[0]]["input"][5 * j + 2]
+            # breakpoint()
+            self.model.process(self.name_blocks_cache[i], self.tensors[self.name_blocks_cache[i]]["input"], self.tensors[self.name_blocks_cache[i]]["output"])
+            
+            # shape = self.tensors[self.name_blocks_cache[i]]["output"][1].shape()
+            # unit_size = shape[-1] * shape[-2]
+            # for j in range(len(self.dev_ids)):
+            #     self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 3].sync_d2d(
+            #         self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 1],
+            #         0,
+            #         (self.token_length-1) * unit_size,
+            #         unit_size
+            #     )
+            #     self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 4].sync_d2d(
+            #         self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 2],
+            #         0,
+            #         (self.token_length-1) * unit_size,
+            #         unit_size
+            #     )
+
         
-        # Lm_head Inference
-        self.net.process(self.name_lm, input_lm_tensors, output_lm_tensors)
-        return int(self.lm_output["data"].asnumpy())
+        #lm_head
+        self.tensors[self.name_lm]["input"][0] = self.next_hidden_state[0]
+        # breakpoint()
+        self.tensors[self.name_lm]["output"][0] = self.lm_output[0]
+        self.model.process(self.name_lm, self.tensors[self.name_lm]["input"], self.tensors[self.name_lm]["output"])
+        if not self.is_sample:
+            return int(self.tensors[self.name_lm]["output"][0].asnumpy())
 
-    def chat_stream(self, input, history, system=''):
-        input_tokens = make_context(self.sp, query=input, max_window_size=self.SEQLEN)
-        if (len(input_tokens) > self.SEQLEN / 3):
-            yield '##INPUT_TOO_LONG'
-            return
+        # sample
+        self.tensors[self.greedy]["input"][0] = self.tensors[self.name_lm]["output"][0]
+        self.model.process(self.greedy, self.tensors[self.greedy]["input"], self.tensors[self.greedy]["output"])
 
-        tok_num = 0
-        tokens = make_context(self.sp, query=input, 
-                        history=history,
-                        system=system,
-                        max_window_size=self.SEQLEN,
-                        chat_format="chatml")
-        while (len(tokens) > self.SEQLEN / 2):
-            if (len(history) > 0):
-                history = history[1:]
-            else:
-                system = ''
-            tokens = make_context(self.sp, query=input, 
-                            history=history,
-                            system=system,
-                            max_window_size=self.SEQLEN,
-                            chat_format="chatml")
+        return int(self.tensors[self.greedy]["output"][0].asnumpy())
+    
+    def chat_stream(self, messages):
+        text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        tokens = self.tokenizer(text).input_ids
+        if (len(tokens) > self.SEQLEN - 5):
+            yield f"##reach max length, max token length is {self.SEQLEN}"
         first_start = time.time()
         token = self.forward_first(tokens)
         first_end = time.time()
-        while token != self.EOS and self.token_length < self.SEQLEN:
-            diff = self.sp.decode([token])
-            yield diff
-            if self.token_length < self.SEQLEN:
-                self.token_length += 1
-            tok_num += 1
+        full_word_tokens = []
+        tok_num = 0
+        while(token != self.EOS and self.token_length < self.SEQLEN):
+            full_word_tokens.append(token)
+            word = self.tokenizer.decode(full_word_tokens)
+            if "�" in word:
+                token = self.forward_next()
+                tok_num += 1
+                continue
+            yield word
+            full_word_tokens = []
             token = self.forward_next()
-        
-        if self.token_length >= self.SEQLEN:
-            yield '##TOKEN_LENGTH_MAX'
-            return
-        
+            tok_num += 1
         next_end = time.time()
-        first_duration = first_end-first_start
-        next_duration = next_end-first_end
-        tps = tok_num / next_duration
         print('\n\n')
-        print(f"FTL: {first_duration:.3f} s")
-        print(f"TPS: {tps:.3f} token/s")
+        print(f"FTL: {(first_end - first_start):.3f} s")
+        print(f"TPS: {(tok_num / (next_end - first_end)):.3f} token/s")
 
-def app(client):
-    history = []
+    def chat_stream_for_api(self, params):
+        messages = [param.dict() for param in params]
+        text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        tokens = self.tokenizer(text).input_ids
+        if (len(tokens) > self.SEQLEN - 5):
+            res_dict = {}
+            res_dict["finish_reason"] = "length"
+            res_dict["text"] = ""
+            yield res_dict
+            return
+        token = self.forward_first(tokens)
+        full_word_tokens = []
+        while(token != self.EOS and self.token_length < self.SEQLEN):
+            full_word_tokens.append(token)
+            text = self.tokenizer.decode(full_word_tokens)
+            if "�" in text:
+                token = self.forward_next()
+                continue
+            res_dict = {}
+            res_dict["finish_reason"] = None
+            res_dict["text"] = text
+            yield res_dict
+            full_word_tokens = []
+            token = self.forward_next()
+
+    def chat_for_api(self, params):
+        messages = [param.dict() for param in params]
+        input_text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        input_tokens = self.tokenizer(input_text).input_ids
+        if (len(input_tokens) > self.SEQLEN - 5):
+            res_dict = {}
+            res_dict["finish_reason"] = "length"
+            res_dict["text"] = ""
+            return res_dict
+        all_token = []
+        token = self.forward_first(input_tokens)
+        while token != self.EOS and self.token_length < self.SEQLEN:
+            all_token.append(token)
+            token = self.forward_next()
+        text = self.tokenizer.decode(all_token)
+        res_dict = {}
+        res_dict["finish_reason"] = "stop"
+        res_dict["text"] = text
+        return res_dict
+def argsparser():
+
+    parser = argparse.ArgumentParser(prog=__file__)
+    parser.add_argument('--config', type=str, default='./config/qwen.yaml', help='path of config file')
+    args = parser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    args = argsparser()
+    with open(args.config, 'r') as f:
+        config = yaml.safe_load(f)
+    qwen = Qwen(config["bmodel_path"], config["dev_ids"], config["token_path"])
+    messages = []
     while True:
         input_str = input("\nQuestion: ")
         if input_str == "exit":
             break
-        print("\nAnswer: ")
+        print("\nAnswer: ", end = '')
         assistant_msg = ''
-        for response in client.chat_stream(input_str, history):
-            assistant_msg = response
+        messages.append({"role": "user", "content": input_str})
+        for response in qwen.chat_stream(messages):
+            assistant_msg += response
             print(response, flush=True, end='')
-        history.append([input_str, assistant_msg])
-
-def main(args):
-    handle = sail.Handle(args.dev_id)
-    tokenizer = AutoTokenizer.from_pretrained(args.token, trust_remote_code=True)
-    engine = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.DEVIO)
-    client = Qwen(handle, engine, tokenizer)
-    app(client)
-
-def argsparser():
-    parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--bmodel', type=str, default='./models/BM1684X/qwen-7b_int4_1dev.bmodel', help='path of bmodel')
-    parser.add_argument('--token', type=str, default='./python/token_config/', help='path of tokenizer')
-    parser.add_argument('--dev_id', type=int, default=0, help='dev id')
-    args = parser.parse_args()
-    return args
-
-if __name__ == "__main__":
-    args = argsparser()
-    main(args)
-    print('all done')
+        messages.append({"role": "assistant", "content": assistant_msg})
+        if ("##reach max length" in assistant_msg):
+            messages = []
