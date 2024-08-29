@@ -23,7 +23,7 @@ script_dir = os.path.dirname(script_path)
 config_default = {
     "bmodel_path":os.path.join(script_dir,"../models/BM1684X/blip_cap_bm1684x_f32_1b.bmodel"),
     "tokenizer_path":  os.path.join(script_dir,"../models/bert-base-uncased"),
-    "dev_id":3,
+    "dev_id":0,
     "input_image_queue_size": 20,
     "result_queue_size": 20
 }

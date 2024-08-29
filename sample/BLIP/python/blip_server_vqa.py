@@ -25,7 +25,7 @@ config_default = {
     "tenc_bmodel_path":os.path.join(script_dir,"../models/BM1684X/blip_vqa_tenc_bm1684x_f32_1b.bmodel"),
     "tdec_bmodel_path":os.path.join(script_dir,"../models/BM1684X/blip_vqa_tdec_bm1684x_f32_1b.bmodel"),
     "tokenizer_path":  os.path.join(script_dir,"../models/bert-base-uncased"),
-    "dev_id":3,
+    "dev_id":0,
     "input_image_queue_size": 20,
     "result_queue_size": 20
 }

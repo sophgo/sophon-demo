@@ -11,18 +11,18 @@ pip3 install -r requirements.txt
 
 ## 导出blip captioning部分
 
-将scripts/export_cap.py复制到仓库运行，导出onnx模型，这里我们使用了model_base_14M.pth，
+将tools/export_cap.py复制到仓库运行，导出onnx模型，这里我们使用了model_base_14M.pth，
 请从https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_14M.pth下载并放置在checkpoints文件夹内（如果不存在此文件夹，请主动创建或者修改脚本内模型文件路径）。
-注意这个onnx模型由于大小超过2GB，因此会生成大量_Constant开头的文件，为正常现象。
+注意这个onnx模型由于大小超过2GB，因此会生成大量`_Constant`开头的文件，为正常现象。
 
 ## 导出lip image-text matching部分
 
-将scripts/export_itm.py复制到仓库运行，导出onnx模型，这里我们使用了model_base_retrieval_coco.pth，
+将tools/export_itm.py复制到仓库运行，导出onnx模型，这里我们使用了model_base_retrieval_coco.pth，
 请从https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth下载并放置在checkpoints文件夹内。
 
 ## 导出lip visual question answering部分
 
-将scripts/export_vqa.py复制到仓库运行，导出onnx模型，这里我们使用了model_vqa.pth，
+将tools/export_vqa.py复制到仓库运行，导出onnx模型，这里我们使用了model_vqa.pth，
 请从https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_vqa.pth下载并放置在checkpoints文件夹内。
 
 ## 转换好的onnx
