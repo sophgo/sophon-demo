@@ -56,9 +56,6 @@ with tab1:
             uploaded_files = [default_image_path]
             use_default_image = True
 
-        # 动态文本输入框数量
-        num_texts = st.number_input("输入文本框数量", min_value=1, max_value=10, value=1)
-        texts = [st.text_input(f"输入文本 {i+1}") for i in range(num_texts)]
         submitted = st.form_submit_button("UPLOAD!")
 
     if submitted and uploaded_files is not None:
