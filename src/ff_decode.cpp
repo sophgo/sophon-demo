@@ -411,6 +411,7 @@ int VideoDecFFM::openDec(bm_handle_t* dec_handle, const char* input) {
 }
 
 void VideoDecFFM::closeDec() {
+    quit_flag = true;
     if (video_dec_ctx) {
         avcodec_free_context(&video_dec_ctx);
         video_dec_ctx = NULL;
@@ -571,12 +572,15 @@ AVFrame* VideoDecFFM::flushDecoder()
 }
 
 void* VideoDecFFM::vidPushImage() {
+        AVFrame* avframe = grabFrame();
     while (1) {
         while (queue.size() == QUEUE_MAX_SIZE) {
             if (is_rtsp) {
                 std::lock_guard<std::mutex> my_lock_guard(lock);
                 bm_image* img = queue.front();
                 bm_image_destroy(*img);
+                delete img;
+                img = nullptr;
                 queue.pop();
             } else {
                 usleep(2000);
@@ -584,9 +588,12 @@ void* VideoDecFFM::vidPushImage() {
         }
 
         bm_image* img = new bm_image;
-        AVFrame* avframe = grabFrame();
         if (quit_flag)
+        {
+            delete img;
+            img = nullptr;
             break;
+        }
         coded_width  = video_dec_ctx->coded_width;
         coded_height = video_dec_ctx->coded_height;
         avframe_to_bm_image(*(this->handle), avframe, img, false, this->data_on_device_mem,

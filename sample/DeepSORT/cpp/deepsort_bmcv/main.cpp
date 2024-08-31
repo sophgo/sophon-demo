@@ -248,6 +248,8 @@ int main(int argc, char* argv[]) {
                 end_flag = true;
             } else {
                 batch_imgs.push_back(*img);
+                delete img;
+                img = nullptr;
             }
         }
         ind++;
