@@ -251,6 +251,8 @@ int main(int argc, char *argv[]){
             if (!img)
                 break;
             batch_imgs.push_back(*img);
+            delete img;
+            img = nullptr;
             if ((int)batch_imgs.size() == batch_size){
                 // predict
                 CV_Assert(0 == yolov8.Detect(batch_imgs, boxes));

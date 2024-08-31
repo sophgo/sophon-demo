@@ -262,6 +262,8 @@ int main(int argc, char *argv[])
         endFlag = true;
       } else {
         batch_imgs.push_back(*img);
+        delete img;
+        img = nullptr;
       }
       if (batch_imgs.size() == batch_size || (endFlag && batch_imgs.size())) {
 

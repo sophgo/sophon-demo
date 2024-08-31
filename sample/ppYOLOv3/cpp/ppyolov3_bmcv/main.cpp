@@ -196,6 +196,8 @@ int main(int argc, char *argv[]){
         end_flag=true;
       }else {
         batch_imgs.push_back(*img);
+        delete img;
+        img = nullptr;
       }
       if ((batch_imgs.size() == batch_size || end_flag) && !batch_imgs.empty()) {
         CV_Assert(0 == ppyolov3.Detect(batch_imgs, boxes));

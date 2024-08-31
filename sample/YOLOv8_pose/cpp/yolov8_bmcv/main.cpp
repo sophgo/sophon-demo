@@ -199,6 +199,8 @@ int main(int argc, char *argv[]){
             if (!img)
                 break;
             batch_imgs.push_back(*img);
+            delete img;
+            img = nullptr;
             if ((int)batch_imgs.size() == batch_size){
                 DetectAndDump(yolov8, h, batch_imgs, batch_names, false, results_json, id);
             }
