@@ -572,7 +572,6 @@ AVFrame* VideoDecFFM::flushDecoder()
 }
 
 void* VideoDecFFM::vidPushImage() {
-        AVFrame* avframe = grabFrame();
     while (1) {
         while (queue.size() == QUEUE_MAX_SIZE) {
             if (is_rtsp) {
@@ -588,6 +587,7 @@ void* VideoDecFFM::vidPushImage() {
         }
 
         bm_image* img = new bm_image;
+        AVFrame* avframe = grabFrame();
         if (quit_flag)
         {
             delete img;
