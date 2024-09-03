@@ -30,16 +30,21 @@ fi
 
 function download_target()
 {
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/BLIP/$1.zip
-    unzip $1.zip -d ../models
-    rm $1.zip
+    name=("cap" "itm" "vqa_venc" "vqa_tenc" "vqa_tdec")
+    for str in "${name[@]}"; do
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/BLIP/blip_${str}_${1,,}_f32_1b.bmodel
+    done
+    mkdir -p ../models/${1^^}
+    mv blip_*_${1,,}_*.bmodel ../models/${1^^}
     echo "$1 models download!"
 }
 
 if [ ! -e "../models" ];
 then
     mkdir -p ../models
-    download_target bert-base-uncased
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/BLIP/bert-base-uncased.zip
+    unzip bert-base-uncased.zip -d ../models
+    rm bert-base-uncased.zip
     if [ "$target" = "all" ];
     then 
         for target in BM1684 BM1684X BM1688

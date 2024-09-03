@@ -53,7 +53,7 @@ chmod -R +x scripts/
 
 后端程序启动时会自动检查安装依赖库，您也可以使用以下命令安装依赖库：
 ```bash
-pip3 install transformers
+pip3 install transformers streamlit
 ```
 
 若您使用sophon-opencv，需要设置环境变量
@@ -82,6 +82,7 @@ export PYTHONPATH=/opt/sophon/sophon-opencv_<x.x.x>/opencv-python:$PYTHONPATH
   streamlit run server-front_vqa.py "http://localhost:8080" --server.address 0.0.0.0 --server.port 5000 
   ```
 
+注：若8080端口被占用，可以修改端口号，前后端保持一致即可。
 
 ## 5.运行示例
 1. 分别启动前后端程序；启动参数可以替换成您启动脚本所在服务器的IP地址；
