@@ -57,3 +57,4 @@ class Decoder {
   int numThreadsTotal = 2;
   std::vector<std::thread> threads;
 };
+#endif
