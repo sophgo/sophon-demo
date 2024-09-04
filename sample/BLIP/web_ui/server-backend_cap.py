@@ -31,7 +31,7 @@ class Call_Blip_server:
 
     def install_dependencies(self):
         try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "ftfy","regex","torch","torchvision","numpy"]) # 检查依赖库
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "ftfy","regex","numpy"]) # 检查依赖库
         except subprocess.CalledProcessError as e:
             print(f"Error installing dependencies: {e}")
 
