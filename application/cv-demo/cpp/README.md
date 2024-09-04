@@ -34,7 +34,7 @@ insmod /mnt/system/ko/v4l2_os04e10.ko
 广角拼接使用04a10镜头，安装对应驱动
 ```bash
 sudo -s
-insmod /mnt/system/ko/v4l2_os04a10.ko
+insmod /mnt/system/ko/v4l2_os04a10_sync.ko
 ```
 （2）isp参数文件配置,cvi_sdr_bin在准备数据章节下载的data路径中
 
@@ -44,7 +44,7 @@ mkdir -p /mnt/cfg/param
 cp data/param/cvi_sdr_bin /mnt/cfg/param
 ```
 
-
+注意:每重启一次，应重新加载相应的驱动
 ## 2. 程序编译
 
 ### 2.1 SoC平台
@@ -53,22 +53,28 @@ cp data/param/cvi_sdr_bin /mnt/cfg/param
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件：
 #### 2.1.1 bmcv
 ```bash
-cd cpp/cv_demo
+cd cv-demo/cpp
 mkdir build && cd build
 #请根据实际情况修改-DSDK的路径，需使用绝对路径。
 cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk ..  
 make
 ```
-编译完成后，会在cv_demo目录下生成cv_demo.soc。
+编译完成后，会在cv-demo/cpp目录下生成cvdemo.soc。
 
 ## 3. 程序运行
 
 ### 3.1 Json配置说明
 
-cv_demo demo中各部分参数位于 [config](./config/) 目录，结构如下所示：
+cv_demo demo中各部分参数位于 [config](./config-04e10/) 与 [config](./config-04a10/)目录，结构如下所示：
 
 ```bash
-./config/
+./config-04e10/
+├── camera_cv_demo.json          # demo按sensor输入的配置文件
+├── cv_demo.json            # demo按图片输入的配置文件
+├── dwa_L.json                  # 左侧输入的鱼眼展开配置文件
+├── dwa_R.json                  # 右侧输入的鱼眼展开配置文件
+└── blend.json                  # 拼接配置文件
+./config-04a10/
 ├── camera_cv_demo.json          # demo按sensor输入的配置文件
 ├── cv_demo.json            # demo按图片输入的配置文件
 ├── dwa_L.json                  # 左侧输入的鱼眼展开配置文件
@@ -76,10 +82,12 @@ cv_demo demo中各部分参数位于 [config](./config/) 目录，结构如下�
 └── blend.json                  # 拼接配置文件
 ```
 
-其中，[camera_cv_demo.json](./config/camera_cv_demo.json)是例程的整体配置文件，管理输入码流等信息。在一张图上可以支持多路数据的输入，channels参数配置输入的路数，channel中包含码流url等信息。
+其中，[camera_cv_demo.json](./config-04e10/camera_cv_demo.json)是例程的整体配置文件，管理输入码流等信息。在一张图上可以支持多路数据的输入，channels参数配置输入的路数，channel中包含码流url等信息。
 
-
-
+已提供默认的config文件，运行时只需要将config-04e10或config-04a10改名为config即可，如
+```bash
+mv config-04e10/ config
+```
 ### 3.2 运行
 
 对于SoC平台，需将交叉编译生成的动态链接库、可执行文件、所需的模型和测试数据拷贝到SoC平台中测试。
@@ -89,12 +97,12 @@ SoC平台上，动态库、可执行文件、配置文件、模型、视频数�
 
 1. 运行可执行文件
 ```bash
-./cv_demo.soc
+./cvdemo.soc
 ```
 
 
 ## 4. 可视化
-运行程序后修改cv_demo.html中的对应ip，并在可以与soc网络相通的机器浏览器上打开，注意前端没有帧率控制，网络不好的情况下可能会卡顿
+运行程序后修改cv_demo.html中 connectWebSocket 的对应ip与端口，默认端口为9002，可在代码对应main函数修改，并在可以与soc网络相通的机器客户端浏览器上打开cv_demo.html，注意前端没有帧率控制，网络不好的情况下可能会卡顿
 
 
 ## 5. 常用debug命令
