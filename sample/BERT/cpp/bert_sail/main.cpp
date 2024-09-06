@@ -11,13 +11,13 @@
 #define USE_OPENCV 1
 #define USE_BMCV 1
 #include "bert_sail.hpp"
+#include "utils.hpp"
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 #include <time.h>
-#include <utils.hpp>
 #include <memory>
 #include "opencv2/opencv.hpp"
 #define LOG_TS_B(p_ts, tag, b) \
