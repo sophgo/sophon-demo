@@ -8,7 +8,7 @@
 # ===----------------------------------------------------------------------===#
 
 import sys
-sys.path.append("../../YOLOv5/python")
+sys.path.append("detector/yolov5/")
 import numpy as np
 import time
 import logging

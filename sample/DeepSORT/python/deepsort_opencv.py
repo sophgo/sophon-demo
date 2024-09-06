@@ -8,7 +8,7 @@
 #===----------------------------------------------------------------------===#
 
 import sys
-sys.path.append("../../YOLOv5/python")
+sys.path.append("detector/yolov5/")
 from yolov5_opencv import YOLOv5
 from deep_sort.deep_sort import DeepSort
 from deep_sort.utils.parser import get_config

@@ -1,10 +1,29 @@
 cmake_minimum_required(VERSION 3.10)
 project(centernet_sail)
-include(${CMAKE_SOURCE_DIR}/../../../../cmake/common.cmake)
  
 # set(CMAKE_CXX_FLAGS "-O3")
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
- 
+
+#Usage: check_and_replace_path(SDK)
+#Input src path, output absolute path.
+function(check_and_replace_path ARG_NAME) 
+    if(IS_ABSOLUTE ${${ARG_NAME}})
+        return()
+    endif()
+    set(PATH_TO_CHECK ${CMAKE_CURRENT_BINARY_DIR}/${${ARG_NAME}})
+    if(EXISTS ${PATH_TO_CHECK})
+        message("Path ${PATH_TO_CHECK} exists")
+        get_filename_component(ABSOLUTE_PATH ${PATH_TO_CHECK} ABSOLUTE)
+        if(EXISTS ${ABSOLUTE_PATH})
+            set(${ARG_NAME} ${ABSOLUTE_PATH} PARENT_SCOPE)
+        else()
+            message(FATAL_ERROR "Invalid path!")
+        endif()
+    else()
+        message(FATAL_ERROR "Path ${PATH_TO_CHECK} does not exist")
+    endif()
+endfunction()
+
 if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH pcie)
 endif()
@@ -26,7 +45,7 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     include_directories(${LIBSOPHON_INCLUDE_DIRS})
     link_directories(${LIBSOPHON_LIB_DIRS})
 
-    include_directories("../../../../include/")
+    include_directories("../dependencies/include/")
 
     set(SAIL_PATH   /opt/sophon/sophon-sail)
     set(SAIL_LIBS  ${SAIL_PATH}/lib/libsail.so)
@@ -56,7 +75,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     include_directories("${SDK}/include/")
     include_directories("${SDK}/include/opencv4")
     link_directories("${SDK}/lib/")
-    include_directories("../../../../include/")
+    include_directories("../dependencies/include/")
     # use sail headers
     include_directories(${SAIL_PATH}/include/sail)
     # use sail
