@@ -1,4 +1,5 @@
 numpy
+transformers
 WeTextProcessing
 pypinyin
 soundfile

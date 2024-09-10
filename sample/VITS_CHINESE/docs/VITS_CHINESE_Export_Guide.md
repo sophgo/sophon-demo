@@ -30,7 +30,7 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/VITS_CHINESE/models/vits_bert_
 export PYTHONPATH=$PWD/python:$PYTHONPATH
 # 对齐环境，如果过程中提示缺少某些组件，直接**pip3 install**组件即可
 pip3 install -r tools/requirements_model.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-# 转ONNX
+# 转ONNX，--model 的目录请按照您实际情况填写
 python3 tools/model_onnx.py --config tools/configs/bert_vits.json --model vits_bert_model.pth
 ```
 
