@@ -54,7 +54,7 @@ fi
 if [ -f "scripts/acc.txt" ]; then
   rm scripts/acc.txt
 fi
-echo "|   测试平台    |            测试程序            |    测试模型        | mIoU |" >> scripts/acc.txt
+echo "|   测试平台    |            测试程序            |          encoder_bmodel         |           decoder_bmodel            | mIoU |" >> scripts/acc.txt
 PLATFORM=$TARGET
 if test $MODE = "soc_test"; then
   if test $TARGET = "BM1684X"; then
@@ -191,8 +191,8 @@ function eval_python()
   echo -e "$res"
   miou_value=$(echo "$res" | grep "mIoU" | awk -F'=' '{print $2}')
   compare_res $miou_value $8
-  judge_ret $? "$2_$5_$1_python_result: Precision compare!" python/log/$1_$2_eval.log
-  printf "| %-12s | %-18s | %-30s | %8.3f|\n" "$PLATFORM" "sam2_$1.py" "$2.bmodel" "$(printf "%.3f" $miou_value)" >> scripts/acc.txt
+  judge_ret $? "$2_$5_$1_python_result: Precision compare!" python/log/sam2_$1_$2_eval.log
+  printf "| %-12s | %-18s | %-30s | %-30s| %8.3f|\n" "$PLATFORM" "sam2_$1.py" "$2.bmodel" "$3.bmodel" "$(printf "%.3f" $miou_value)" >> scripts/acc.txt
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
@@ -246,7 +246,7 @@ then
     test_python opencv sam2_encoder_f16_1b_1core sam2_decoder_f16_1b_1core img
     test_python opencv sam2_encoder_f16_1b_2core sam2_decoder_f16_1b_2core img
 
-    #performence test
+    performence test
     eval_python opencv sam2_encoder_f32_1b_1core sam2_decoder_f32_1b_1core dataset COCODataset datasets/instances_val2017.json 200 0.4
     eval_python opencv sam2_encoder_f32_1b_2core sam2_decoder_f32_1b_2core dataset COCODataset datasets/instances_val2017.json 200 0.4
     eval_python opencv sam2_encoder_f16_1b_1core sam2_decoder_f16_1b_1core dataset COCODataset datasets/instances_val2017.json 200 0.4

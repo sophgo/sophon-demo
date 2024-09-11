@@ -253,9 +253,7 @@ class SAM2Image:
         self.image_embeddings = self.sam2_encoder(self.img)
         self.sam2_decoder = SAM2ImageDecoder(
             self.decoder_path,
-            self.sam2_encoder.input_shape[2:],
-            (1024, 1024),
-            self.select_best,
+            self.sam2_encoder.input_shape[2:]
         )
         self.encoder_time += self.sam2_encoder.encoder_time
         self.preprocess_time += self.sam2_encoder.preprocess_time
@@ -352,8 +350,8 @@ def pred_dataset(args):
         centers_info = data_info["centers_info"]
         image_id = data_info["image_id"]
         h, w, _ = img.shape
-        scale_x = 1024 / h
-        scale_y = 1024 / w
+        scale_x = 1024 / w
+        scale_y = 1024 / h
         sam2.set_image(img)
 
         bbox_list = []
@@ -362,10 +360,11 @@ def pred_dataset(args):
             label = center_info["label"]
             bbox_list.append(center_info["bbox"])
             # 对中心点坐标和segmentation的坐标进行相应的缩放
-            point = [point[0] * scale_y, point[1] * scale_x]
+            point = [point[0] * scale_x, point[1] * scale_y]
             sam2.add_point(point, label)
 
         res = sam2.predict()
+        sam2.save_img(os.path.join(args.output_dir, "images", str(image_id)))
         segmentations = []
         for key in res.keys():
             _res = res[key]
@@ -426,7 +425,7 @@ def pred(args):
             sam2.add_box(point, args.label)
 
     sam2.predict()
-    sam2.save_img(os.path.join(args.output_dir, "image", "res"))
+    sam2.save_img(os.path.join(args.output_dir, "images", "res"))
 
     preprocess_time, encoder_time, decoder_time, postprocess_time = (
         sam2.get_times_info()

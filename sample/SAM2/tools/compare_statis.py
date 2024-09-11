@@ -26,7 +26,8 @@ baseline = """
 table_data = {
     "platform": [],
     "program": [],
-    "bmodel": [],
+    "encoder_bmodel": [],
+    "decoder_bmodel": [],
     "preprocess_time": [],
     "encoder_time": [],
     "decoder_time": [],
@@ -35,7 +36,7 @@ table_data = {
 
 
 patterns_python = {
-    "preprocess_time": re.compile(r"Image preprocess time\(ms\): ([\d.]+)"),
+    "preprocess_time": re.compile(r"Preprocess time\(ms\): ([\d.]+)"),
     "encoder_time": re.compile(r"Encoder time\(ms\): ([\d.]+)"),
     "decoder_time": re.compile(r"Decoder time\(ms\): ([\d.]+)"),
     "postprocess_time": re.compile(r"Postprocess time\(ms\): ([\d.]+)"),
@@ -74,7 +75,7 @@ def argsparser():
     parser.add_argument("--program", type=str, default="sam2_opencv.py")
     parser.add_argument("--language", type=str, default="python")
     parser.add_argument(
-        "--input", type=str, default="../log/sam2_decoder_f16_1b_2core_python_test.log"
+        "--input", type=str, default="../log/sam2_opencv_decoder_f16_1b_2core_python_test.log"
     )
     parser.add_argument(
         "--use_cpu_opt",
@@ -154,7 +155,6 @@ if __name__ == "__main__":
         if (
             platform == table_data["platform"][i]
             and args.program == table_data["program"][i]
-            and args.bmodel == table_data["bmodel"][i]
         ):
             match_index = i
             break

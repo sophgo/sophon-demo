@@ -15,9 +15,9 @@
 
 python目录下提供了Python例程，具体情况如下：
 
-| 序号 | Python例程    | 说明                                                                 |
-| ---- | ------------- | -------------------------------------------------------------------- |
-| 1    | sam_opencv.py | 使用OpenCV解码、SAIL 图像压缩(embedding)、SAIL图像推理(mask_decoder) |
+| 序号 | Python例程     | 说明                                                                |
+| ---- | ------------- | ------------------------------------------------------------------ |
+| 1    | sam2_opencv.py | 使用OpenCV解码、SAIL 图像编码(encoder)、SAIL图像解码(decoder) |
 
 ## 1. 环境准备
 
@@ -25,18 +25,16 @@ python目录下提供了Python例程，具体情况如下：
 
 算能的SoC平台（如SE、SM系列边缘设备）在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。但除此之外您还需要交叉编译安装sophon-sail，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
 
-设置环境变量，指定opencv为sophon-opencv，这将带来更快的解码速度：
+在运行之前您需要先安装一些Python依赖， 可以通过pip直接安装
 ```bash
-export PYTHONPATH=$PYTHONPATH:/opt/sophon/libsophon-current/lib:/opt/sophon/sophon-opencv-latest/opencv-python/
+pip3 install opencv-python pympler tqdm
 ```
-
-如果您需要测试精度，您可能还需要安装pycocotools：
+如果您需要测试精度，您还需要安装pycocotools：
 ```bash
 pip3 install pycocotools
 ```
 
 ## 2. 推理测试
-python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
 ### 2.1 参数说明
 sam_opencv.py的参数说明如下：
 ```bash
@@ -53,7 +51,7 @@ optional arguments:
   --dataset_type              数据集类型。目前支持的选项包括 'COCODataset'
   --gt_path                   真值文件的路径
   --detect_num                在数据集模式下，用于分割的图像数量
-  --output_dir                用于保存模型输出结果的目录。
+  --output_dir                用于保存模型输出结果的目录
   --encoder_bmodel            编码器模型文件的路径
   --decoder_bmodel            解码器模型文件的路径
   --select_best               是否选择最佳掩模进行分割
@@ -61,7 +59,7 @@ optional arguments:
 ### 2.2 测试图片
 
 #### 2.2.1 单点测试 
-运行sam2_opencv.py进行历程测试，此处以`datasets/truck.jpg`为例进行测试，输入一个point坐标，并指定其标签
+运行sam2_opencv.py进行例程测试，此处以`datasets/truck.jpg`为例进行测试，输入一个point坐标，并指定其标签
 
 原始图像：
 
@@ -89,9 +87,10 @@ python3 python/sam2_opencv.py --img_path datasets/truck.jpg --points '[[500, 375
 </div>
 
 #### 2.2.3 边框测试 
+
 输入一个框，并指定其标签
 ```bash
-python3 python/sam2_opencv.py --img_path datasets/truck.jpg --points '[[500, 375, 200, 200]]' --label 1 --encoder_bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel --decoder_bmodel models/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
+python3 python/sam2_opencv.py --img_path datasets/truck.jpg --points '[[900, 300, 350, 350]]' --label 1 --encoder_bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel --decoder_bmodel models/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
 ```
 
 输出结果为：
