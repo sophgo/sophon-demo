@@ -30,14 +30,13 @@ HRNet（High-Resolution Net）是针对2D人体姿态估计（Human Pose Estimat
 
 ### 2.1 目录结构说明
 ```bash
-├── cpp                             # 存放C++例程及其README
-|   ├──README_EN.md     
-|   ├──README.md      
+├── cpp                             # 存放C++例程及其README    
+|   ├──README.md
+|   ├──dependencies                 # hrnet_pose_bmcv的依赖文件     
 |   ├──hrnet_pose_bmcv              # 使用FFmpeg解码、BMCV前处理、BMRT推理的C++例程
 ├── docs                            # 存放本例程专用文档，如ONNX导出、移植常见问题等
 ├── pics                            # 存放README等说明文档中用到的图片
 ├── python                          # 存放Python例程及其README
-|   ├──README_EN.md 
 |   ├──README.md 
 |   ├── hrnet_pose 
 |       ├──__init__.py  
@@ -45,9 +44,8 @@ HRNet（High-Resolution Net）是针对2D人体姿态估计（Human Pose Estimat
 |       ├──preprocess_hrnet.py      # hrnet前处理
 |       ├──postprocess_hrnet.py     # hrnet后处理
 |       ├──utils_hrnet.py           # hrnet所用到的相关常量
-|   ├── yolov5                      # yolov5 相关代码，详见 ../YOLOv5
+|   ├── detector                    # 前置检测模型yolov5
 |   ├──hrnet_pose.py                # 使用yolov5做前置检测模型，然后使用hrnet进行人体关键点检测的Python例程
-├── README_EN.md                    # 本例程的英文指南
 ├── README.md                       # 本例程的中文指南
 ├── scripts                         # 存放模型编译、数据下载、自动测试等shell脚本
 └── tools                           # 存放精度测试python脚本

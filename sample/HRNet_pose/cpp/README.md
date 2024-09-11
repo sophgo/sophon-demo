@@ -73,7 +73,7 @@ cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk ..
 make
 ```
 
-编译完成后，会在hrnet_pose_bmcv目录下生成hrnet_pose_bmcv.soc。
+编译完成后，会在hrnet_pose_bmcv目录下生成hrnet_pose_bmcv.soc。如果在SOC模式下执行hrnet_pose_bmcv.soc显示权限不够，可以使用chmod +x ./hrnet_pose_bmcv.soc，给 hrnet_pose_bmcv.soc 文件添加可执行权限。
 
 ## 3. 推理测试
 
@@ -121,7 +121,7 @@ optional arguments:
 视频测试实例如下，支持对视频流进行测试。
 
 ```bash
-./hrnet_pose_bmcv.pcie --input=../../datasets/test_pose_estimation.mp4 --pose_bmodel=./model/hrnet_W32_256_192_1684x_int8.bmodel --person_thresh=0.5 --detection_bmodel=./model/yolov5s_v6.1_3output_int8_4b.bmodel --conf_thresh=0.01 --nms_thresh=0.6 --classnames=../../datasets/coco.names
+./hrnet_pose_bmcv.pcie --input=../../datasets/test_pose_estimation.mp4 --pose_bmodel=../../models/BM1684X/hrnet_w32_256x192_int8.bmodel --person_thresh=0.5 --detection_bmodel=../../models/BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel --conf_thresh=0.01 --nms_thresh=0.6 --classnames=../../datasets/coco.names
 ```
 
 测试结束后，会将预测结果画在图片上并保存在`results/video`中，同时会打印预测结果、推理时间等信息。
