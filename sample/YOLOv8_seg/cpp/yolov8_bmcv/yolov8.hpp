@@ -84,7 +84,8 @@ class YoloV8 {
     int mask_num = 32;
     int m_tpumask_net_h, m_tpumask_net_w;
     int tpumask_max_batch;
-
+    bm_device_mem_t m_mask_info_dev;
+    
     TimeStamp* m_ts;
 
    private:
