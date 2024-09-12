@@ -30,7 +30,7 @@
 * 支持图片和视频测试
 
 ## 3. 准备模型与数据
-建议使用TPU-MLIR编译BModel，在使用TPU-MLIR编译前需要导出ONNX模型。具体可参考[YOLOv8模型导出](./docs/YOLOv8_Export_Guide.md)。如需导出TPU加速模型，可参考[MaskBmodel模型导出](./docs/MaskBmodel_Export_Guide.md)。
+建议使用TPU-MLIR编译BModel，在使用TPU-MLIR编译前需要导出ONNX模型。具体可参考[YOLOv8模型导出](./docs/YOLOv8_Export_Guide.md)。如需导出后处理TPU加速模型，可参考[MaskBmodel模型导出](./docs/MaskBmodel_Export_Guide.md)。
 
 ​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
@@ -49,29 +49,33 @@ chmod -R +x scripts/
 下载的模型包括：
 ./models
 ├── BM1684
-│   ├── yolov8s_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1
-│   ├── yolov8s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=1
-│   └── yolov8s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=4
+|   ├── yolov8s_getmask_32_fp32.bmodel # 使用TPU-MLIR编译，用于BM1684的后处理TPU加速模型
+│   ├── yolov8s_fp32_1b.bmodel         # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1
+│   ├── yolov8s_int8_1b.bmodel         # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=1
+│   └── yolov8s_int8_4b.bmodel         # 使用TPU-MLIR编译，用于BM1684的INT8 BModel，batch_size=4
 ├── BM1684X
-│   ├── yolov8s_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
-│   ├── yolov8s_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
-│   ├── yolov8s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
-│   └── yolov8s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+|   ├── yolov8s_getmask_32_fp32.bmodel # 使用TPU-MLIR编译，用于BM1684X的后处理TPU加速模型
+│   ├── yolov8s_fp32_1b.bmodel         # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
+│   ├── yolov8s_fp16_1b.bmodel         # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── yolov8s_int8_1b.bmodel         # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
+│   └── yolov8s_int8_4b.bmodel         # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
 ├── BM1688
-│   ├── yolov8s_fp32_1b.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=1
-│   ├── yolov8s_fp16_1b.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=1
-│   ├── yolov8s_int8_1b.bmodel        # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=1
-│   ├── yolov8s_int8_4b.bmodel        # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=1
-│   ├── yolov8s_fp32_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=2
-│   ├── yolov8s_fp16_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=2
-│   ├── yolov8s_int8_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
-│   └── yolov8s_int8_4b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=2
+|   ├── yolov8s_getmask_32_fp32.bmodel # 使用TPU-MLIR编译，用于BM1688的后处理TPU加速模型
+│   ├── yolov8s_fp32_1b.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=1
+│   ├── yolov8s_fp16_1b.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=1
+│   ├── yolov8s_int8_1b.bmodel         # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=1
+│   ├── yolov8s_int8_4b.bmodel         # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=1
+│   ├── yolov8s_fp32_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=2
+│   ├── yolov8s_fp16_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=2
+│   ├── yolov8s_int8_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
+│   └── yolov8s_int8_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=2
 ├── onnx
-│   ├── yolov8s-seg-1b.onnx           # 导出的静态onnx模型，batch_size=1
-│   ├── yolov8s-seg-4b.onnx           # 导出的静态onnx模型，batch_size=4
-│   ├── yolov8s_seg_bm1684_qtable     # TPU-MLIR编译时，用于BM1684的INT8 BModel混合精度量化
-│   ├── yolov8s_seg_bm1684x_qtable    # TPU-MLIR编译时，用于BM1684X的INT8 BModel混合精度量化
-│   └── yolov8s_seg_bm1688_qtable     # TPU-MLIR编译时，用于BM1688的INT8 BModel混合精度量化
+│   ├── yolov8s_getmask_32_fp32.onnx   # 用于编译后处理TPU加速模型的onnx
+│   ├── yolov8s-seg-1b.onnx            # 导出的静态onnx模型，batch_size=1
+│   ├── yolov8s-seg-4b.onnx            # 导出的静态onnx模型，batch_size=4
+│   ├── yolov8s_seg_bm1684_qtable      # TPU-MLIR编译时，用于BM1684的INT8 BModel混合精度量化
+│   ├── yolov8s_seg_bm1684x_qtable     # TPU-MLIR编译时，用于BM1684X的INT8 BModel混合精度量化
+│   └── yolov8s_seg_bm1688_qtable      # TPU-MLIR编译时，用于BM1688的INT8 BModel混合精度量化
 │── torch
     └── yolov8s-seg.pt   # trace后的torchscript模型
     
