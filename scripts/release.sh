@@ -12,8 +12,7 @@ times=`date +%Y%m%d`
 
 VERSION_PATH=$project_dir/git_version
 echo $VERSION_PATH
-exec < $VERSION_PATH
-read -r line
+line=$(cat $VERSION_PATH)
 SOPHON_DEMO_VERSION=$line
 
 dst_file_name="${project_name}_v${SOPHON_DEMO_VERSION}_${commit_id}_${times}"
