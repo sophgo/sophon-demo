@@ -95,7 +95,7 @@ bmrt_test --bmodel models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel
 
 | 测试clip_image_vitb32模型                           | calculate time(ms) |
 | --------------------------------------------------- | ------------------ |
-| BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel     | 19.16              |
+| BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel     | 6.70               |
 | BM1688/clip_image_vitb32_bm1688_f16_1b.bmodel       | 13.67              |
 | BM1688/clip_image_vitb32_bm1688_f16_1b_2core.bmodel | 18.82              |
 | CV186X/clip_image_vitb32_cv186x_f16_1b.bmodel       | 25.79              |
