@@ -15,8 +15,6 @@
 
 BLIP (Bootstrapping Language-Image Pre-training) 是一种用于多模态学习的模型，旨在处理图像和语言的结合任务，如图像字幕生成和视觉问答。BLIP 的核心思想是通过结合语言和图像的特征表示来进行预训练，从而提高模型在多模态任务中的表现。本例程对[BLIP官方开源仓库](https://github.com/salesforce/BLIP)中的算法进行移植，使之能在SOPHON BM1684,BM1684X,BM1688上进行推理。
 
-[[Blog]](https://openai.com/blog/blip/) [[Paper]](https://arxiv.org/abs/2103.00020)
-
 ## 2. 特性
 
 * 支持BM1688(SoC)、BM1684/BM1684X(x86 PCIe、SoC)
