@@ -6,7 +6,7 @@ import numpy as np
 
 
 class TTSProsody(object):
-    def __init__(self, bert_model = "./bmodel/bert_1684x_f32.bmodel", dev_id = 0):
+    def __init__(self, bert_model = "./bmodel/bert_1684x_f32.bmodel", dev_id = 0, bert_dir="./bert"):
         # use dynamic bert
         self.net = sail.Engine(bert_model, dev_id, sail.IOMode.SYSIO)
         logging.info("load {} success!".format(bert_model))
@@ -16,8 +16,8 @@ class TTSProsody(object):
         self.input_shape = self.net.get_input_shape(self.graph_name, self.input_names[0])
         self.max_length = self.input_shape[1]
 
-        self.tokenizer = BertTokenizer.from_pretrained("./bert")
-        self.bert_config = BertConfig.from_pretrained("./bert")
+        self.tokenizer = BertTokenizer.from_pretrained(bert_dir)
+        self.bert_config = BertConfig.from_pretrained(bert_dir)
 
     def text2Token(self, text):
         token = self.tokenizer.tokenize(text)

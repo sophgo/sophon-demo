@@ -10,17 +10,31 @@ scripts_dir=$(dirname $(readlink -f "$0"))
 
 pushd $scripts_dir
 
+if [ ! -d "../models" ]; 
+then
+    mkdir ../models/
+fi
 
 # models
-if [ ! -d "../BM1688" ]; 
+if [ ! -d "../models/BM1688" ]; 
 then
-    mkdir ../BM1688
+    mkdir ../models/BM1688
     python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper_minicpm_vits_BM1688.zip
-    unzip whisper_minicpm_vits_BM1688.zip -d ../
+    unzip whisper_minicpm_vits_BM1688.zip -d ../models/
     rm whisper_minicpm_vits_BM1688.zip
     echo "models download!"
 else
-    echo "BM1688 folder exist! Remove it if you need to update."
+    echo "models/BM1688 folder exist! Remove it if you need to update."
+fi
+
+if [ ! -d "../models/BM1684X" ]; 
+then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper_llama3_8b_vits_BM1684X.zip
+    unzip whisper_llama3_8b_vits_BM1684X.zip -d ../models
+    rm whisper_llama3_8b_vits_BM1684X.zip
+    echo "models download!"
+else
+    echo "models/BM1684X folder exist! Remove it if you need to update."
 fi
 
 # datasets
@@ -34,18 +48,4 @@ else
     echo "datasets folder exist! Remove it if you need to update."
 fi
 
-# lib
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/llama3/support.zip
-unzip support.zip -d ../python/Llama3
-rm -f support.zip
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/minicpm/support.zip
-unzip support.zip -d ../python/MiniCPM
-rm -f support.zip
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper-TPU_py/third_party.zip
-unzip third_party.zip -d ../python/whisper-TPU_py/bmwhisper
-rm -f third_party.zip
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper-TPU_py/assets.zip
-unzip assets.zip -d ../python/whisper-TPU_py/bmwhisper
-rm -f assets.zip
-echo "llama3 minicpm whisper lib update."
 popd
