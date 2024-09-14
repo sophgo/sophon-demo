@@ -72,6 +72,7 @@ class YoloV8 {
     
     std::vector<std::string> m_class_names;
     int m_class_num = 80;  // default is coco names
+    int mask_len = 32;
     int m_net_h, m_net_w;
     int max_batch;
     int output_num;
@@ -81,7 +82,7 @@ class YoloV8 {
     bmcv_convert_to_attr converto_attr;
     
     // tpumask model
-    int mask_num = 32;
+    int tpu_mask_num = 32;
     int m_tpumask_net_h, m_tpumask_net_w;
     int tpumask_max_batch;
     bm_device_mem_t m_mask_info_dev;
@@ -113,7 +114,7 @@ class YoloV8 {
     int Detect(const std::vector<bm_image>& images, std::vector<YoloV8BoxVec>& boxes);
     void draw_bmcv(bm_handle_t& handle, bm_image& frame, YoloV8BoxVec& result, bool put_text_flag);
     void draw_result(cv::Mat& img, YoloV8BoxVec& result);
-    void getmask_tpu(YoloV8BoxVec &yolobox_vec, std::shared_ptr<BMNNTensor> &out_tensor1,Paras& paras,YoloV8BoxVec &yolobox_vec_tmp);
+    void getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, std::shared_ptr<BMNNTensor> &out_tensor1,Paras& paras,YoloV8BoxVec &yolobox_vec_tmp);
     bool tpu_post = false;
 };
 

@@ -36,7 +36,6 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_seg/models/torch.tar.gz
     tar xvf torch.tar.gz
     rm *.tar.gz
-
     popd
     echo "models download!"
 else

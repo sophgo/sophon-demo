@@ -203,6 +203,10 @@ class BMNNTensor{
     return m_tensor->shape.dims[0];
   }
 
+  unsigned int get_tensor_bytesize(){
+    return bmrt_tensor_bytesize(m_tensor);
+  }
+
 };
 
 /*
