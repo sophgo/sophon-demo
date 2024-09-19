@@ -1,0 +1,35 @@
+{
+  "dev_id": 0,
+  "bmodel_path": "../models/CV186X/yolov5s_v6.1_fuse_int8_4b.bmodel",
+  "channels": [
+    {
+      "url": "../datasets/test_car_person_1080P.mp4",
+      "is_video": true,
+      "skip_frame": 0
+    },
+    {
+      "url": "../datasets/test_car_person_1080P.mp4",
+      "is_video": true,
+      "skip_frame": 0
+    },
+    {
+      "url": "../datasets/test_car_person_1080P.mp4",
+      "is_video": true,
+      "skip_frame": 0
+    },
+    {
+      "url": "../datasets/test_car_person_1080P.mp4",
+      "is_video": true,
+      "skip_frame": 0
+    }
+  ],
+  "queue_size": 10,
+  "num_pre": 1,
+  "num_post": 1,
+  "class_names": "../datasets/coco.names",
+  "conf_thresh": 0.5,
+  "nms_thresh": 0.5,
+
+  "display_rows": 2,
+  "display_cols": 2
+}
