@@ -6,8 +6,7 @@ pushd $scripts_dir
 # datasets
 if [ ! -d "../datasets" ]; 
 then
-    mkdir ../datasets
-    pushd ../datasets
+    pushd ../
     python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/datasets.tar.gz
     tar xvf datasets.tar.gz && rm datasets.tar.gz
     popd
