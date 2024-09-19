@@ -16,7 +16,7 @@ from ultralytics import YOLO
 # Load a model
 model = YOLO("yolov8s-seg.pt")  # 载入预训练模型
 # Export the model
-success = model.export(format="onnx", batch=1,opset=13)  # 导出静态ONNX模型，需设置batch参数注意opset为12/13
+success = model.export(format="onnx", batch=1,opset=13,dynamic=True)  # 导出静态ONNX模型，需设置batch参数注意opset为12/13
 ```
 
 上述脚本会在原始pt模型所在目录下生成导出的onnx模型，导出后可以修改模型名称以区分不同参数和输出类型，如`yolov8s_1b.onnx`表示单输出且输入batch大小为1的onnx模型。

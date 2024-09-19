@@ -207,6 +207,9 @@ class BMNNTensor{
     return bmrt_tensor_bytesize(m_tensor);
   }
 
+  bm_tensor_t get_tensor(){
+    return *m_tensor; 
+  }
 };
 
 /*
