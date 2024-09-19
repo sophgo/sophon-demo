@@ -303,10 +303,10 @@ def parse_opt():
     parser.add_argument('--dev_id', type=int, default=0, help='tpu card id')
     parser.add_argument("--batch_size", type=int, default=4, help='img num for a ppocr system process launch.')
     # params for text detector
-    parser.add_argument('--bmodel_det', type=str, default='../models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel', help='detector bmodel path')
+    parser.add_argument('--bmodel_det', type=str, default='../models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel', help='detector bmodel path')
     parser.add_argument('--det_limit_side_len', type=int, default=[640])
     # params for text recognizer
-    parser.add_argument('--bmodel_rec', type=str, default='../models/BM1684X/ch_PP-OCRv3_rec_fp32.bmodel', help='recognizer bmodel path')
+    parser.add_argument('--bmodel_rec', type=str, default='../models/BM1684X/ch_PP-OCRv4_rec_fp32.bmodel', help='recognizer bmodel path')
     parser.add_argument('--img_size', type=img_size_type, default=[[320, 48],[640, 48]], help='You should set inference size [width,height] manually if using multi-stage bmodel.')
     parser.add_argument("--char_dict_path", type=str, default="../datasets/ppocr_keys_v1.txt")
     parser.add_argument("--use_space_char", type=bool, default=True)

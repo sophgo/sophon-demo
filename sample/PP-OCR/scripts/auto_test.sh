@@ -97,36 +97,27 @@ function bmrt_test_benchmark(){
     printf "| %-35s| % 7s | % 15s |\n" "测试模型" "stage" "calculate time(ms)"
    
     if test $TARGET = "BM1684"; then
-      bmrt_test_case BM1684/ch_PP-OCRv3_det_fp32.bmodel
-      bmrt_test_case BM1684/ch_PP-OCRv3_rec_fp32.bmodel
-      bmrt_test_case BM1684/ch_PP-OCRv3_cls_fp32.bmodel
+      bmrt_test_case BM1684/ch_PP-OCRv4_det_fp32.bmodel
+      bmrt_test_case BM1684/ch_PP-OCRv4_rec_fp32.bmodel
     elif test $TARGET = "BM1684X"; then
-      bmrt_test_case BM1684X/ch_PP-OCRv3_det_fp32.bmodel
-      bmrt_test_case BM1684X/ch_PP-OCRv3_rec_fp32.bmodel
-      bmrt_test_case BM1684X/ch_PP-OCRv3_cls_fp32.bmodel
-      bmrt_test_case BM1684X/ch_PP-OCRv3_det_fp16.bmodel
-      bmrt_test_case BM1684X/ch_PP-OCRv3_rec_fp16.bmodel
-      bmrt_test_case BM1684X/ch_PP-OCRv3_cls_fp16.bmodel
+      bmrt_test_case BM1684X/ch_PP-OCRv4_det_fp32.bmodel
+      bmrt_test_case BM1684X/ch_PP-OCRv4_rec_fp32.bmodel
+      bmrt_test_case BM1684X/ch_PP-OCRv4_det_fp16.bmodel
+      bmrt_test_case BM1684X/ch_PP-OCRv4_rec_fp16.bmodel
     elif test $TARGET = "BM1688"; then
-      bmrt_test_case BM1688/ch_PP-OCRv3_det_fp32.bmodel
-      bmrt_test_case BM1688/ch_PP-OCRv3_rec_fp32.bmodel
-      bmrt_test_case BM1688/ch_PP-OCRv3_cls_fp32.bmodel
-      bmrt_test_case BM1688/ch_PP-OCRv3_det_fp16.bmodel
-      bmrt_test_case BM1688/ch_PP-OCRv3_rec_fp16.bmodel
-      bmrt_test_case BM1688/ch_PP-OCRv3_cls_fp16.bmodel
-      bmrt_test_case BM1688/ch_PP-OCRv3_det_fp32_2core.bmodel
-      bmrt_test_case BM1688/ch_PP-OCRv3_rec_fp32_2core.bmodel
-      bmrt_test_case BM1688/ch_PP-OCRv3_cls_fp32_2core.bmodel
-      bmrt_test_case BM1688/ch_PP-OCRv3_det_fp16_2core.bmodel
-      bmrt_test_case BM1688/ch_PP-OCRv3_rec_fp16_2core.bmodel
-      bmrt_test_case BM1688/ch_PP-OCRv3_cls_fp16_2core.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv4_det_fp32.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv4_rec_fp32.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv4_det_fp16.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv4_rec_fp16.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv4_det_fp32_2core.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv4_rec_fp32_2core.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv4_det_fp16_2core.bmodel
+      bmrt_test_case BM1688/ch_PP-OCRv4_rec_fp16_2core.bmodel
     elif test $TARGET = "CV186X"; then
-      bmrt_test_case CV186X/ch_PP-OCRv3_det_fp32.bmodel
-      bmrt_test_case CV186X/ch_PP-OCRv3_rec_fp32.bmodel
-      bmrt_test_case CV186X/ch_PP-OCRv3_cls_fp32.bmodel
-      bmrt_test_case CV186X/ch_PP-OCRv3_det_fp16.bmodel
-      bmrt_test_case CV186X/ch_PP-OCRv3_rec_fp16.bmodel
-      bmrt_test_case CV186X/ch_PP-OCRv3_cls_fp16.bmodel
+      bmrt_test_case CV186X/ch_PP-OCRv4_det_fp32.bmodel
+      bmrt_test_case CV186X/ch_PP-OCRv4_rec_fp32.bmodel
+      bmrt_test_case CV186X/ch_PP-OCRv4_det_fp16.bmodel
+      bmrt_test_case CV186X/ch_PP-OCRv4_rec_fp16.bmodel
     fi
     popd
 }
@@ -242,17 +233,16 @@ function eval_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./ppocr_$2.$1 --input=../../datasets/train_full_images_0 --batch_size=4 --bmodel_det=../../models/$TARGET/ch_PP-OCRv3_det_$3.bmodel \
-                                                                --bmodel_cls=../../models/$TARGET/ch_PP-OCRv3_cls_$3.bmodel \
-                                                                --bmodel_rec=../../models/$TARGET/ch_PP-OCRv3_rec_$3.bmodel \
+  ./ppocr_$2.$1 --input=../../datasets/train_full_images_0 --batch_size=4 --bmodel_det=../../models/$TARGET/ch_PP-OCRv4_det_$3.bmodel \
+                                                                --bmodel_rec=../../models/$TARGET/ch_PP-OCRv4_rec_$3.bmodel \
                                                                 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
   judge_ret $? "$1 $2 $3 cpp debug" log/$1_$2_$3_debug.log
   tail -n 15 log/$1_$2_$3_debug.log
 
   echo "==================="
   echo "Comparing statis..."
-  python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel_det=ch_PP-OCRv3_det_$3.bmodel --bmodel_rec=ch_PP-OCRv3_rec_$3.bmodel
-  judge_ret $? "../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel_det=ch_PP-OCRv3_det_$3.bmodel --bmodel_rec=ch_PP-OCRv3_rec_$3.bmodel"
+  python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel_det=ch_PP-OCRv4_det_$3.bmodel --bmodel_rec=ch_PP-OCRv4_rec_$3.bmodel
+  judge_ret $? "../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel_det=ch_PP-OCRv4_det_$3.bmodel --bmodel_rec=ch_PP-OCRv4_rec_$3.bmodel"
   echo "==================="
 
   echo "Evaluating..."
@@ -275,17 +265,16 @@ function eval_python()
   if [ ! -d log ];then
     mkdir log
   fi
-  python3 ppocr_system_$1.py --input=../datasets/train_full_images_0 --batch_size=4 --bmodel_det=../models/$TARGET/ch_PP-OCRv3_det_$2.bmodel \
-                                                                --bmodel_cls=../models/$TARGET/ch_PP-OCRv3_cls_$2.bmodel \
-                                                                --bmodel_rec=../models/$TARGET/ch_PP-OCRv3_rec_$2.bmodel \
+  python3 ppocr_system_$1.py --input=../datasets/train_full_images_0 --batch_size=4 --bmodel_det=../models/$TARGET/ch_PP-OCRv4_det_$2.bmodel \
+                                                                --bmodel_rec=../models/$TARGET/ch_PP-OCRv4_rec_$2.bmodel \
                                                                 --dev_id=$TPUID > log/$1_$2_debug.log 2>&1
   judge_ret $? "$1 $2 python debug" log/$1_$2_debug.log
   tail -n 30 log/$1_$2_debug.log
 
   echo "==================="
   echo "Comparing statis..."
-  python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_system_$1.py --language=python --input=log/$1_$2_debug.log --bmodel_det=ch_PP-OCRv3_det_$2.bmodel --bmodel_rec=ch_PP-OCRv3_rec_$2.bmodel
-  judge_ret $? "python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_system_$1.py --language=python --input=log/$1_$2_debug.log --bmodel_det=ch_PP-OCRv3_det_$2.bmodel --bmodel_rec=ch_PP-OCRv3_rec_$2.bmodel"
+  python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_system_$1.py --language=python --input=log/$1_$2_debug.log --bmodel_det=ch_PP-OCRv4_det_$2.bmodel --bmodel_rec=ch_PP-OCRv4_rec_$2.bmodel
+  judge_ret $? "python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ppocr_system_$1.py --language=python --input=log/$1_$2_debug.log --bmodel_det=ch_PP-OCRv4_det_$2.bmodel --bmodel_rec=ch_PP-OCRv4_rec_$2.bmodel"
   echo "==================="
 
   echo "Evaluating..."
@@ -319,14 +308,14 @@ then
   download
   if test $TARGET = "BM1684"
   then
-    eval_python opencv fp32 0.57461
-    eval_cpp pcie bmcv fp32 0.57303
+    eval_python opencv fp32 0.608
+    eval_cpp pcie bmcv fp32 0.608
   elif test $TARGET = "BM1684X"
   then
-    eval_python opencv fp32 0.57422
-    eval_python opencv fp16 0.56541
-    eval_cpp pcie bmcv fp32 0.57194
-    eval_cpp pcie bmcv fp16 0.55771
+    eval_python opencv fp32 0.608
+    eval_python opencv fp16 0.608
+    eval_cpp pcie bmcv fp32 0.604
+    eval_cpp pcie bmcv fp16 0.604
   fi
 elif test $MODE = "soc_build"
 then
@@ -337,26 +326,26 @@ then
   download
   if test $TARGET = "BM1684"
   then
-    eval_python opencv fp32 0.57461
-    eval_cpp soc bmcv fp32 0.57303
+    eval_python opencv fp32 0.608
+    eval_cpp soc bmcv fp32 0.608
   elif test $TARGET = "BM1684X"
   then
-    eval_python opencv fp32 0.57422
-    eval_python opencv fp16 0.56541
-    eval_cpp soc bmcv fp32 0.57194
-    eval_cpp soc bmcv fp16 0.55771
+    eval_python opencv fp32 0.608
+    eval_python opencv fp16 0.608
+    eval_cpp soc bmcv fp32 0.604
+    eval_cpp soc bmcv fp16 0.604
   elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
-    eval_python opencv fp32 0.575
-    eval_python opencv fp16 0.575
-    eval_cpp soc bmcv fp32  0.571
-    eval_cpp soc bmcv fp16  0.571
+    eval_python opencv fp32 0.608
+    eval_python opencv fp16 0.608
+    eval_cpp soc bmcv fp32  0.604
+    eval_cpp soc bmcv fp16  0.604
 
     if test "$PLATFORM" = "SE9-16"; then 
-      eval_python opencv fp32_2core 0.575
-      eval_python opencv fp16_2core 0.575
-      eval_cpp soc bmcv fp32_2core  0.571
-      eval_cpp soc bmcv fp16_2core  0.571
+      eval_python opencv fp32_2core 0.608
+      eval_python opencv fp16_2core 0.608
+      eval_cpp soc bmcv fp32_2core  0.604
+      eval_cpp soc bmcv fp16_2core  0.604
     fi
   fi
 fi
