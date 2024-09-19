@@ -189,8 +189,8 @@ int main(int argc, char* argv[]) {
     // get params
     const char* keys =
         "{input | ../../datasets/cali_set_det | input path, images directory}"
-        "{bmodel_det | ../../models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel | det bmodel file path}"
-        "{bmodel_rec | ../../models/BM1684X/ch_PP-OCRv3_rec_fp32.bmodel | rec bmodel file path}"
+        "{bmodel_det | ../../models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel | det bmodel file path}"
+        "{bmodel_rec | ../../models/BM1684X/ch_PP-OCRv4_rec_fp32.bmodel | rec bmodel file path}"
         "{bmodel_cls | ../../models/BM1684X/ch_PP-OCRv3_cls_fp32.bmodel | cls bmodel file path, unsupport now.}"
         "{batch_size | 4 | ppocr system batchsize}"
         "{rec_thresh | 0.5 | recognize threshold}"

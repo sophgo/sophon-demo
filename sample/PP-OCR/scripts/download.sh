@@ -1,10 +1,4 @@
 #!/bin/bash
-res=$(which unzip)
-if [ $? != 0 ];
-then
-    echo "Please install unzip on your system!"
-    exit
-fi
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 scripts_dir=$(dirname $(readlink -f "$0"))
 
@@ -12,10 +6,11 @@ pushd $scripts_dir
 # datasets
 if [ ! -d "../datasets" ]; 
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/datasets_0918/datasets.zip
-    unzip datasets.zip -d ../
-    rm datasets.zip
-
+    mkdir ../datasets
+    pushd ../datasets
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/datasets.tar.gz
+    tar xvf datasets.tar.gz && rm datasets.tar.gz
+    popd
     echo "datasets download!"
 else
     echo "Datasets folder exist! Remove it if you need to update."
@@ -24,17 +19,20 @@ fi
 # models
 if [ ! -d "../models" ]; 
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_0918/models.zip
-    unzip models.zip -d ../
-    rm models.zip
-    rm ../models/BM1684/ch_PP-OCRv3_*_int8.bmodel ../models/BM1684X/ch_PP-OCRv3_*_int8.bmodel #int8 has bad performance, if you want to test it, you can comment this line
-    pushd ../models/
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_231220/BM1688.zip
-    unzip BM1688.zip
-    rm -r BM1688.zip
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_240412/CV186X.zip
-    unzip CV186X.zip
-    rm -r CV186X.zip
+    mkdir ../models
+    pushd ../models
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_v4/BM1684.tar.gz
+    tar xvf BM1684.tar.gz && rm BM1684.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_v4/BM1684X.tar.gz
+    tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_v4/BM1688.tar.gz
+    tar xvf BM1688.tar.gz && rm BM1688.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_v4/CV186X.tar.gz
+    tar xvf CV186X.tar.gz && rm CV186X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_v4/onnx.tar.gz
+    tar xvf onnx.tar.gz && rm onnx.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_v4/paddle.tar.gz
+    tar xvf paddle.tar.gz && rm paddle.tar.gz
     popd
     echo "models download!"
 else

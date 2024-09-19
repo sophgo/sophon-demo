@@ -2,14 +2,15 @@
 
 ## 目录
 
-* [1. 环境准备](#1-环境准备)
-    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
-    * [1.2 SoC平台](#12-soc平台)
-* [2. 推理测试](#2-推理测试)
-    * [2.1 文本检测推理测试](#21-文本检测推理测试)
-    * [2.2 文本方向分类推理测试](#22-文本方向分类推理测试)
-    * [2.3 文本识别分类推理测试](#23-文本识别分类推理测试)
-    * [2.4 全流程推理测试](#24-全流程推理测试)
+- [Python例程](#python例程)
+  - [目录](#目录)
+  - [1. 环境准备](#1-环境准备)
+    - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    - [1.2 SoC平台](#12-soc平台)
+  - [2. 推理测试](#2-推理测试)
+  - [2.1 文本检测推理测试：](#21-文本检测推理测试)
+  - [2.2 文本识别推理测试：](#22-文本识别推理测试)
+  - [2.3 全流程推理测试：](#23-全流程推理测试)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -80,33 +81,11 @@ optional arguments:
 文本检测测试实例如下：
 ```bash
 # 程序会自动根据文件夹中的图片数量来选择1batch或者4batch，优先选择4batch推理。
-python3 ppocr_det_opencv.py --input ../datasets/cali_set_det --bmodel_det ../models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel --dev_id 0
+python3 ppocr_det_opencv.py --input ../datasets/cali_set_det --bmodel_det ../models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel --dev_id 0
 ```
 执行完成后，会将预测图片保存在`results/det_results`文件夹下。
 
-## 2.2 文本方向分类推理测试：
-ppocr_cls_opencv.py参数说明如下：
-```bash
-usage: ppocr_cls_opencv.py [-h] [--dev_id DEV_ID] [--input INPUT] [--bmodel_cls BMODEL_CLS]
-                           [--cls_thresh CLS_THRESH] [--label_list LABEL_LIST]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --dev_id DEV_ID       tpu card id
-  --input INPUT         input image directory path
-  --bmodel_cls BMODEL_CLS
-                        classifier bmodel path
-  --cls_thresh CLS_THRESH
-  --label_list LABEL_LIST
-```
-
-文本方向分类测试实例如下：
-```bash
-# 程序会自动根据文件夹中的图片数量来选择1batch或者4batch，优先选择4batch推理。
-python3 ppocr_cls_opencv.py --input ../datasets/cali_set_rec --bmodel_cls ../models/BM1684X/ch_PP-OCRv3_cls_fp32.bmodel --dev_id 0 --cls_thresh 0.9 --label_list 0,180
-```
-
-## 2.3 文本识别分类推理测试：
+## 2.2 文本识别推理测试：
 ppocr_rec_opencv.py参数说明如下：
 ```bash
 usage: ppocr_rec_opencv.py [-h] [--dev_id DEV_ID] [--input INPUT] [--bmodel_rec BMODEL_REC] [--img_size IMG_SIZE] [--char_dict_path CHAR_DICT_PATH] [--use_space_char USE_SPACE_CHAR] [--use_beam_search]
@@ -128,10 +107,10 @@ optional arguments:
 文本识别测试实例如下：
 ```bash
 # 程序会自动根据文件夹中的图片数量来选择1batch或者4batch，优先选择4batch推理。
-python3 ppocr_rec_opencv.py --input ../datasets/cali_set_rec --bmodel_rec ../models/BM1684X/ch_PP-OCRv3_rec_fp32.bmodel --dev_id 0 --img_size [[640,48],[320,48]] --char_dict_path ../datasets/ppocr_keys_v1.txt
+python3 ppocr_rec_opencv.py --input ../datasets/cali_set_rec --bmodel_rec ../models/BM1684X/ch_PP-OCRv4_rec_fp32.bmodel --dev_id 0 --img_size [[640,48],[320,48]] --char_dict_path ../datasets/ppocr_keys_v1.txt
 ```
 
-## 2.4 全流程推理测试：
+## 2.3 全流程推理测试：
 ppocr_system_opencv.py参数说明如下：
 ```bash
 usage: ppocr_system_opencv.py [-h] [--input INPUT] [--dev_id DEV_ID] [--batch_size BATCH_SIZE] [--bmodel_det BMODEL_DET] [--det_limit_side_len DET_LIMIT_SIDE_LEN] [--bmodel_rec BMODEL_REC] [--img_size IMG_SIZE]
@@ -167,13 +146,11 @@ optional arguments:
 ```bash
 python3 ppocr_system_opencv.py --input=../datasets/train_full_images_0 \
                            --batch_size=4 \
-                           --bmodel_det=../models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel \
-                           --bmodel_cls=../models/BM1684X/ch_PP-OCRv3_cls_fp32.bmodel \
-                           --bmodel_rec=../models/BM1684X/ch_PP-OCRv3_rec_fp32.bmodel \
+                           --bmodel_det=../models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel \
+                           --bmodel_rec=../models/BM1684X/ch_PP-OCRv4_rec_fp32.bmodel \
                            --dev_id=0 \
                            --img_size [[640,48],[320,48]] \
-                           --char_dict_path ../datasets/ppocr_keys_v1.txt \
-                           --use_angle_cls
+                           --char_dict_path ../datasets/ppocr_keys_v1.txt
 ```
 
 执行完成后，会打印预测的字段，同时会将预测的可视化结果保存在`results/inference_results`文件夹下，推理结果会保存在`results/ppocr_system_results_b4.json`下。

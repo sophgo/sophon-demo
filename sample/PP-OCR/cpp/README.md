@@ -2,15 +2,17 @@
 
 ## 目录
 
-* [1. 环境准备](#1-环境准备)
-    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
-    * [1.2 SoC平台](#12-soc平台)
-* [2. 程序编译](#2-程序编译)
-    * [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
-    * [2.2 SoC平台](#22-soc平台)
-* [3. 推理测试](#3-推理测试)
-    * [3.1 参数说明](#31-参数说明)
-    * [3.2 测试图片](#32-测试图片)
+- [C++例程](#c例程)
+  - [目录](#目录)
+  - [1. 环境准备](#1-环境准备)
+    - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    - [1.2 SoC平台](#12-soc平台)
+  - [2. 程序编译](#2-程序编译)
+    - [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
+    - [2.2 SoC平台](#22-soc平台)
+  - [3. 推理测试](#3-推理测试)
+    - [3.1 参数说明](#31-参数说明)
+    - [3.2 测试图片](#32-测试图片)
 
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
@@ -65,9 +67,9 @@ Usage: ppocr_bmcv.pcie [params]
                 beam size, default 3, available 1-40, only valid when using beam search
         --bmodel_cls (value:../../models/BM1684X/ch_PP-OCRv3_cls_fp32.bmodel)
                 cls bmodel file path, unsupport now.
-        --bmodel_det (value:../../models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel)
+        --bmodel_det (value:../../models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel)
                 det bmodel file path
-        --bmodel_rec (value:../../models/BM1684X/ch_PP-OCRv3_rec_fp32.bmodel)
+        --bmodel_rec (value:../../models/BM1684X/ch_PP-OCRv4_rec_fp32.bmodel)
                 rec bmodel file path
         --dev_id (value:0)
                 TPU device id
@@ -89,8 +91,8 @@ Usage: ppocr_bmcv.pcie [params]
 ```bash
 ./ppocr_bmcv.pcie --input=../../datasets/train_full_images_0 \
                   --batch_size=4 \
-                  --bmodel_det=../../models/BM1684X/ch_PP-OCRv3_det_fp32.bmodel \
-                  --bmodel_rec=../../models/BM1684X/ch_PP-OCRv3_rec_fp32.bmodel \
+                  --bmodel_det=../../models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel \
+                  --bmodel_rec=../../models/BM1684X/ch_PP-OCRv4_rec_fp32.bmodel \
                   --labelnames=../../datasets/ppocr_keys_v1.txt
 ```
 测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/ `下，同时会打印预测结果、推理时间等信息。
