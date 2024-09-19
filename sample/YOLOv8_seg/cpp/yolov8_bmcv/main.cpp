@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
         "{conf_thresh | 0.25 | confidence threshold for filter boxes}"
         "{nms_thresh | 0.7 | iou threshold for nms}"
         "{tpu_post | false | use tpu post process}"
-        "{mask_bmodel | ../../model/BM1684X/yolov8s_getmask_32_int8.bmodel | bmodel file path}"
+        "{mask_bmodel | ../../model/BM1684X/yolov8s_getmask_32_fp32.bmodel | bmodel file path}"
         "{help | 0 | print help information.}"
         "{input | ../../datasets/test | input path, images direction or video "
         "file path}"
