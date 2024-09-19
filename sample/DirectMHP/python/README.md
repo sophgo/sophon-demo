@@ -23,7 +23,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 此外您可能还需要安装其他第三方库：
 ```bash
-pip3 install terminaltables opencv-python-headless
+pip3 install opencv-python-headless
 ```
 
 ### 1.2 SoC平台
@@ -32,7 +32,7 @@ pip3 install terminaltables opencv-python-headless
 
 此外您可能还需要安装其他第三方库：
 ```bash
-pip3 install terminaltables opencv-python-headless
+pip3 install opencv-python-headless
 ```
 
 > **注:**

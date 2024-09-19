@@ -434,7 +434,7 @@ def argsparser():
     parser.add_argument('--dev_id', type=int, default=0, help='tpu id')
     parser.add_argument('--conf_thresh', type=float, default=0.45, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.7, help='NMS IoU threshold')
-    parser.add_argument('--scales', type=float, nargs='+', default=[1])
+   
     
 
     args = parser.parse_args()

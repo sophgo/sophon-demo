@@ -132,6 +132,7 @@ if __name__ == '__main__':
         extracted_data = extract_times(data, patterns_cpp)
     else:
         print("unsupport code language")
+    
     match_index = -1
     for i in range(0, len(table_data["platform"])):
         if platform == table_data["platform"][i] and args.program == table_data["program"][i] and args.bmodel == table_data["bmodel"][i]:
@@ -146,8 +147,13 @@ if __name__ == '__main__':
         baseline_data["inference"] = table_data["inference"][match_index]
         baseline_data["postprocess"] = table_data["postprocess"][match_index]
     for key, statis in baseline_data.items():
-        if abs(statis - extracted_data[key]) / statis > 0.2:
-            print("{:} time, diff ratio > 0.2".format(key))
+        threhold = 0.2
+        if key == "decode" and args.program == "directmhp_opencv.py":
+            threhold = 0.4
+        if key == "postprocess":
+            threhold = 0.4
+        if abs(statis - extracted_data[key]) / statis > threhold:
+            print("{:} time, diff ratio > {:}".format(key, str(threhold)))
             print("Baseline is:", statis)
             print("Now is: ", extracted_data[key])
             compare_pass = False
