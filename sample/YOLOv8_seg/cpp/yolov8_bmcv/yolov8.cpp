@@ -35,30 +35,53 @@ YoloV8::~YoloV8() {
         bm_image_destroy(m_resized_imgs[i]);
     }
     if(tpu_post){
-        bm_free_device(m_tpu_mask_bmContext->handle(), m_mask_info_dev);
+        if (bmrt != nullptr) {
+            bmrt_destroy(bmrt);
+            bmrt = nullptr;
+        }
+        bm_dev_free(tpu_mask_handle);
     }
 }
 
-void YoloV8::tpumask_Init(std::shared_ptr<BMNNContext> tpu_mask_context) {
+void YoloV8::tpumask_Init(std::string bmodel_file, int dev_id){
     tpu_post = true;
-    m_tpu_mask_bmContext = tpu_mask_context;
+    // 1. get handle
+    assert(BM_SUCCESS == bm_dev_request(&tpu_mask_handle, dev_id));
 
-    // get tpu_mask network
-    m_tpu_mask_bmNetwork = m_tpu_mask_bmContext -> network(0);
+    // 2. create bmrt and load bmodel
+    bmrt = bmrt_create(tpu_mask_handle);
+    if (!bmrt_load_bmodel(bmrt, bmodel_file.c_str())) {
+        std::cout << "load bmodel(" << bmodel_file << ") failed" << std::endl;
+    }
 
-    // get input
-    auto mask_info  = m_tpu_mask_bmNetwork->inputTensor(0);
-    auto output1 = m_tpu_mask_bmNetwork->inputTensor(1);
-    m_tpumask_net_h = output1->get_shape()->dims[2];
-    m_tpumask_net_w = output1->get_shape()->dims[3];
-    m_mask_info_dev = *mask_info->get_device_mem();
-    CV_Assert(BM_SUCCESS == bm_malloc_device_byte(m_tpu_mask_bmContext->handle(), &m_mask_info_dev, 4*bmrt_shape_count(mask_info->get_shape())));
+    // 3. get network names from bmodel
+    const char **names = nullptr;
+    int num = bmrt_get_network_number(bmrt);  // 获得bmruntime中存在的网络的数量
+    if (num > 1) {
+        std::cout << "This bmodel have " << num << " networks, and this program will only take network 0." << std::endl; 
+    }
 
-    assert(output1->get_shape()->dims[1] == mask_info->get_shape()->dims[2]);
-    tpu_mask_num = mask_info->get_shape()->dims[1]; //32
-    mask_len = output1->get_shape()->dims[1];
-    tpumask_max_batch =  output1->get_shape()->dims[0];
+    bmrt_get_network_names(bmrt, &names);
+    for(int i = 0; i < num; ++i) {
+        network_names.emplace_back(names[i]);  // [0]: yolov8s
+    }
+    free(names);
+
+    // 4. get netinfo by netname
+    netinfo = bmrt_get_network_info(bmrt, network_names[0].c_str());
+    if (netinfo->stage_num > 1){  // stage_num = 1
+        std::cout << "This bmodel have " << netinfo->stage_num << " stages, and this program will only take stage 0." << std::endl;
+    }
+
+    // 5. initialize parameters.
+    m_tpumask_net_h = netinfo->stages[0].input_shapes[1].dims[2];  // 160
+    m_tpumask_net_w = netinfo->stages[0].input_shapes[1].dims[3];  // 160
+
+    assert(netinfo->stages[0].input_shapes[1].dims[1] == netinfo->stages[0].input_shapes[0].dims[2]);
+    tpu_mask_num = netinfo->stages[0].input_shapes[0].dims[1]; // 32
+    mask_len = netinfo->stages[0].input_shapes[1].dims[1]; // 32
 }
+
 
 int YoloV8::Init(float confThresh, float nmsThresh, const std::string& coco_names_file) {
     m_confThreshold = confThresh;
@@ -72,7 +95,8 @@ int YoloV8::Init(float confThresh, float nmsThresh, const std::string& coco_name
             m_class_names.push_back(line);
         }
     }
-    // 1. get network
+
+    // 1. get network  
     m_bmNetwork = m_bmContext->network(0);
 
     // 2. get input
@@ -84,7 +108,7 @@ int YoloV8::Init(float confThresh, float nmsThresh, const std::string& coco_name
     // 3. get output
     output_num = m_bmNetwork->outputTensorNum();
     assert(output_num > 0);
-    min_dim = m_bmNetwork->outputTensor(0)->get_shape()->num_dims;
+    min_dim = m_bmNetwork->outputTensor(0)->get_shape()->num_dims;  
 
     // 4. initialize bmimages
     m_resized_imgs.resize(max_batch);
@@ -93,21 +117,25 @@ int YoloV8::Init(float confThresh, float nmsThresh, const std::string& coco_name
     // some API only accept bm_image whose stride is aligned to 64
     int aligned_net_w = FFALIGN(m_net_w, 64);
     int strides[3] = {aligned_net_w, aligned_net_w, aligned_net_w};
+    
     for (int i = 0; i < max_batch; i++) {
         auto ret = bm_image_create(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE,
                                    &m_resized_imgs[i], strides);
         assert(BM_SUCCESS == ret);
     }
+
     bm_image_alloc_contiguous_mem(max_batch, m_resized_imgs.data());
-    bm_image_data_format_ext img_dtype = DATA_TYPE_EXT_FLOAT32;
+    bm_image_data_format_ext img_dtype = DATA_TYPE_EXT_FLOAT32;  //float 32bit
+    
     if (tensor->get_dtype() == BM_INT8) {
-        img_dtype = DATA_TYPE_EXT_1N_BYTE_SIGNED;
+        img_dtype = DATA_TYPE_EXT_1N_BYTE_SIGNED;  // int 8bit
     }
+
     auto ret = bm_image_create_batch(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, img_dtype,
                                      m_converto_imgs.data(), max_batch);
     assert(BM_SUCCESS == ret);
 
-    // 5.converto
+    // 5.converto 归一化
     float input_scale = tensor->get_scale();
     input_scale = input_scale * 1.0 / 255.f;
     converto_attr.alpha_0 = input_scale;
@@ -151,8 +179,8 @@ int YoloV8::Detect(const std::vector<bm_image>& input_images, std::vector<YoloV8
 }
 
 int YoloV8::pre_process(const std::vector<bm_image>& images) {
-    std::shared_ptr<BMNNTensor> input_tensor = m_bmNetwork->inputTensor(0);
-    int image_n = images.size();
+    std::shared_ptr<BMNNTensor> input_tensor = m_bmNetwork->inputTensor(0);  
+    int image_n = images.size(); 
 
     // 1. resize image letterbox
     int ret = 0;
@@ -162,26 +190,31 @@ int YoloV8::pre_process(const std::vector<bm_image>& images) {
         bool need_copy = image1.width & (64 - 1);
         if (need_copy) {
             int stride1[3], stride2[3];
+            
             bm_image_get_stride(image1, stride1);
             stride2[0] = FFALIGN(stride1[0], 64);
             stride2[1] = FFALIGN(stride1[1], 64);
             stride2[2] = FFALIGN(stride1[2], 64);
+            
             bm_image_create(m_bmContext->handle(), image1.height, image1.width, image1.image_format, image1.data_type,
                             &image_aligned, stride2);
 
-            bm_image_alloc_dev_mem(image_aligned, BMCV_IMAGE_FOR_IN);
+            bm_image_alloc_dev_mem(image_aligned, BMCV_IMAGE_FOR_IN); 
+            
             bmcv_copy_to_atrr_t copyToAttr;
             memset(&copyToAttr, 0, sizeof(copyToAttr));
             copyToAttr.start_x = 0;
             copyToAttr.start_y = 0;
             copyToAttr.if_padding = 1;
-            bmcv_image_copy_to(m_bmContext->handle(), copyToAttr, image1, image_aligned);
+            bmcv_image_copy_to(m_bmContext->handle(), copyToAttr, image1, image_aligned); 
         } else {
             image_aligned = image1;
         }
-#if USE_ASPECT_RATIO
+#if USE_ASPECT_RATIO    
         bool isAlignWidth = false;
-        float ratio = get_aspect_scaled_ratio(images[i].width, images[i].height, m_net_w, m_net_h, &isAlignWidth);
+        
+        float ratio = get_aspect_scaled_ratio(images[i].width, images[i].height, m_net_w, m_net_h, &isAlignWidth); 
+        
         bmcv_padding_atrr_t padding_attr;
         memset(&padding_attr, 0, sizeof(padding_attr));
         padding_attr.dst_crop_sty = 0;
@@ -190,13 +223,14 @@ int YoloV8::pre_process(const std::vector<bm_image>& images) {
         padding_attr.padding_g = 114;
         padding_attr.padding_r = 114;
         padding_attr.if_memset = 1;
+        
         if (isAlignWidth) {
-            padding_attr.dst_crop_h = images[i].height * ratio;
-            padding_attr.dst_crop_w = m_net_w;
+            padding_attr.dst_crop_h = images[i].height * ratio;  // 480
+            padding_attr.dst_crop_w = m_net_w;  // 640
 
-            int ty1 = (int)((m_net_h - padding_attr.dst_crop_h) / 2);  // padding 大小
-            padding_attr.dst_crop_sty = ty1;
-            padding_attr.dst_crop_stx = 0;
+            int ty1 = (int)((m_net_h - padding_attr.dst_crop_h) / 2);  // padding 大小 80
+            padding_attr.dst_crop_sty = ty1;  // 80
+            padding_attr.dst_crop_stx = 0;    // 0
         } else {
             padding_attr.dst_crop_h = m_net_h;
             padding_attr.dst_crop_w = images[i].width * ratio;
@@ -206,11 +240,13 @@ int YoloV8::pre_process(const std::vector<bm_image>& images) {
             padding_attr.dst_crop_stx = tx1;
         }
 
-        bmcv_rect_t crop_rect{0, 0, image1.width, image1.height};
+        bmcv_rect_t crop_rect{0, 0, image1.width, image1.height}; 
         auto ret = bmcv_image_vpp_convert_padding(m_bmContext->handle(), 1, image_aligned, &m_resized_imgs[i],
                                                   &padding_attr, &crop_rect);
+
+
 #else
-        auto ret = bmcv_image_vpp_convert(m_bmContext->handle(), 1, images[i], &m_resized_imgs[i]);
+        auto ret = bmcv_image_vpp_convert(m_bmContext->handle(), 1, images[i], &m_resized_imgs[i]);  // 不使用缩放比例时直接进行图像处理
 #endif
         assert(BM_SUCCESS == ret);
         if (need_copy)
@@ -222,11 +258,13 @@ int YoloV8::pre_process(const std::vector<bm_image>& images) {
                                 m_converto_imgs.data());
     CV_Assert(ret == 0);
 
-    // 3. attach to tensor
+    //3. attach to tensor 
     if (image_n != max_batch)
-        image_n = m_bmNetwork->get_nearest_batch(image_n);
+        image_n = m_bmNetwork->get_nearest_batch(image_n);  
+    
     bm_device_mem_t input_dev_mem;
-    bm_image_get_contiguous_device_mem(image_n, m_converto_imgs.data(), &input_dev_mem);
+    bm_image_get_contiguous_device_mem(image_n, m_converto_imgs.data(), &input_dev_mem);  
+    
     input_tensor->set_device_mem(&input_dev_mem);
     input_tensor->set_shape_by_dim(0, image_n);  // set real batch number
 
@@ -255,14 +293,14 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
 
     std::vector<std::shared_ptr<BMNNTensor>> outputTensors(output_num);
 
-    for (int i = 0; i < output_num; i++) {
+    for (int i = 0; i < output_num; i++) {  // output_num = 2  [0]:mask_info   [1]:output1
         outputTensors[i] = m_bmNetwork->outputTensor(i);
     }
 
     for (int batch_idx = 0; batch_idx < images.size(); ++batch_idx) {
         LOG_TS(m_ts, "post 0: init");
         yolobox_vec.clear();
-        auto& frame = images[batch_idx];
+        auto& frame = images[batch_idx]; 
         int frame_width = frame.width;
         int frame_height = frame.height;
 
@@ -272,14 +310,17 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
         // Single output
         auto out_tensor = outputTensors[min_idx];
         auto out_tensor1 = outputTensors[1];
+        
         float* out1 = out_tensor1->get_cpu_data();
         const bm_shape_t* shape1 = out_tensor1->get_shape();
+        
         int dims = 4;
         int sizes[] = {shape1->dims[0], shape1->dims[1], shape1->dims[2], shape1->dims[3]};
-        cv::Mat output1(dims, sizes, CV_32F, out1 + batch_idx * shape1->dims[2] * shape1->dims[1] * shape1->dims[3]);
+        cv::Mat output1(dims, sizes, CV_32F, out1 + batch_idx * shape1->dims[2] * shape1->dims[1] * shape1->dims[3]); 
+
 #if USE_ASPECT_RATIO
 
-        bool isAlignWidth = false;
+        bool isAlignWidth = false;  
         float ratio = get_aspect_scaled_ratio(frame_width, frame_height, m_net_w, m_net_h, &isAlignWidth);
         int tx1 = 0, ty1 = 0;
         if (isAlignWidth) {
@@ -287,7 +328,7 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
         } else {
             tx1 = (int)((m_net_w - frame_width * ratio) / 2);
         }
-        ImageInfo para = {cv::Size(frame_width, frame_height), {ratio, ratio, tx1, ty1}};
+        ImageInfo para = {cv::Size(frame_width, frame_height), {ratio, ratio, tx1, ty1}};  
 #else
         float ratio = 1;
         int tx1 = 0, ty1 = 0;
@@ -298,19 +339,19 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
         int feat_num = out_tensor->get_shape()->dims[2];
         int nout = m_class_num + mask_len + 4;
         float* output_data = nullptr;
-        std::vector<float> decoded_data;
         LOG_TS(m_ts, "post 0: init");
 
         LOG_TS(m_ts, "post 1: get output");
-        assert(box_num == 0 || box_num == out_tensor->get_shape()->dims[1]);
+        assert(box_num == 0 || box_num == out_tensor->get_shape()->dims[1]); 
         box_num = out_tensor->get_shape()->dims[1];
-        output_data = (float*)out_tensor->get_cpu_data() + batch_idx * feat_num * nout;
+        output_data = (float*)out_tensor->get_cpu_data() + batch_idx * feat_num * nout; 
         LOG_TS(m_ts, "post 1: get output");
 
         // Candidates
         LOG_TS(m_ts, "post 2: get detections matrix nx6 (xyxy, conf, cls, mask)");
-        float* cls_conf = output_data + 4 * feat_num;
-        for (int i = 0; i < feat_num; i++) {
+        float* cls_conf = output_data + 4 * feat_num;  
+        
+        for (int i = 0; i < feat_num; i++) { 
 #if USE_MULTICLASS_NMS
             // multilabel
             for (int j = 0; j < m_class_num; j++) {
@@ -335,7 +376,6 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
                 }
             }
 #else
-            // best class
             float max_value = 0.0;
             int max_index = 0;
             for (int j = 0; j < m_class_num; j++) {
@@ -346,11 +386,11 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
                 }
             }
 
-            if (max_value >= m_confThreshold) {
+            if (max_value >= m_confThreshold) { 
                 YoloV8Box box;
                 box.score = max_value;
                 box.class_id = max_index;
-                int c = box.class_id * max_wh;
+                int c = box.class_id * max_wh; 
                 float centerX = output_data[i + 0 * feat_num];
                 float centerY = output_data[i + 1 * feat_num];
                 float width = output_data[i + 2 * feat_num];
@@ -363,8 +403,6 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
                 for (int k = 0; k < mask_len; k++) {
                     box.mask.push_back(output_data[i + (nout - mask_len + k) * feat_num]);
                 }
-                // box.mask=std::vector<float>(output_data+(nout-mask_len)*feat_num
-                // + 4 + m_class_num, output_data + nout);
                 yolobox_vec.push_back(box);
             }
 #endif
@@ -372,7 +410,7 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
         LOG_TS(m_ts, "post 2: get detections matrix nx6 (xyxy, conf, cls, mask)");
 
         LOG_TS(m_ts, "post 3: nms");
-        NMS(yolobox_vec, m_nmsThreshold);
+        NMS(yolobox_vec, m_nmsThreshold); 
 
         if (yolobox_vec.size() > max_det) {
             yolobox_vec.erase(yolobox_vec.begin(), yolobox_vec.begin() + (yolobox_vec.size() - max_det));
@@ -386,20 +424,12 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
             yolobox_vec[i].y2 = yolobox_vec[i].y2 - c;
         }
 
-        // float tx1 = 0, ty1 = 0;
-        // bool isAlignWidth = false;
-        // float ratio = get_aspect_scaled_ratio(frame.width, frame.height,
-        // m_net_w, m_net_h, &isAlignWidth); if (isAlignWidth) {
-        //     ty1 = (m_net_h - (float)(frame_height * ratio)) / 2;
-        // } else {
-        //     tx1 = (m_net_w - (float)(frame_width * ratio)) / 2;
-        // }
         YoloV8BoxVec yolobox_vec_tmp;
         for (int i = 0; i < yolobox_vec.size(); i++) {
             float centerx = ((yolobox_vec[i].x2 + yolobox_vec[i].x1) / 2 - tx1) / ratio;
             float centery = ((yolobox_vec[i].y2 + yolobox_vec[i].y1) / 2 - ty1) / ratio;
             float width = (yolobox_vec[i].x2 - yolobox_vec[i].x1) / ratio;
-            float height = (yolobox_vec[i].y2 - yolobox_vec[i].y1) / ratio;
+            float height = (yolobox_vec[i].y2 - yolobox_vec[i].y1) / ratio; 
             yolobox_vec[i].x1 = centerx - width / 2;
             yolobox_vec[i].y1 = centery - height / 2;
             yolobox_vec[i].x2 = centerx + width / 2;
@@ -412,27 +442,27 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
         LOG_TS(m_ts, "post 4: get mask");
         if(tpu_post){
             cv::Vec4f trans = para.trans;
-            int r_x = floor(trans[2] / 640 * 160);
-            int r_y = floor(trans[3] / 640 * 160);
-            int r_w = 160 - 2 * r_x;
-            int r_h = 160 - 2 * r_y;
+            int r_x = floor(trans[2] / m_net_w * shape1->dims[3]);
+            int r_y = floor(trans[3] / m_net_h * shape1->dims[2]); 
+            int r_w = shape1->dims[3] - 2 * r_x;
+            int r_h = shape1->dims[2] - 2 * r_y;
             r_w = MAX(r_w, 1);
             r_h = MAX(r_h, 1);
-            struct Paras paras={r_x,r_y,r_w,r_h,para.raw_size.width,para.raw_size.height};
+            struct Paras paras={r_x, r_y, r_w, r_h, para.raw_size.width, para.raw_size.height};
             YoloV8BoxVec yolobox_valid_vec;
             for(int i = 0; i < yolobox_vec.size(); i++){
                 if (yolobox_vec[i].x2 > yolobox_vec[i].x1 + 1 && yolobox_vec[i].y2 > yolobox_vec[i].y1 + 1){
                     yolobox_valid_vec.push_back(yolobox_vec[i]);
                 }
-            }
+            }  
             if(yolobox_valid_vec.size() > 0){
                 int mask_times = (yolobox_valid_vec.size() + tpu_mask_num - 1) / tpu_mask_num;
                 for(int i = 0; i < mask_times; i++){
                     int start = i * tpu_mask_num;
-                    getmask_tpu(yolobox_valid_vec, start, outputTensors[1],paras,yolobox_vec_tmp);
-                    
+                    auto input_tensor1 = out_tensor1->get_tensor();
+                    getmask_tpu(yolobox_valid_vec, start, input_tensor1, paras, yolobox_vec_tmp);
                 }
-            }
+            } 
          }else{
                 for (int i = 0; i < yolobox_vec.size(); i++) {
                     if (yolobox_vec[i].x2 > yolobox_vec[i].x1 + 1 && yolobox_vec[i].y2 > yolobox_vec[i].y1 + 1) {
@@ -451,51 +481,61 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
     return 0;
 }
 
-void YoloV8::getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, std::shared_ptr<BMNNTensor> &out_tensor1,Paras& paras,YoloV8BoxVec &yolobox_vec_tmp) {
-    int mask_height = m_bmNetwork->m_netinfo->stages[0].output_shapes[1].dims[2];
-    int mask_width = m_bmNetwork->m_netinfo->stages[0].output_shapes[1].dims[3];
+void YoloV8::getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, const bm_tensor_t& input_tensor1, Paras& paras, YoloV8BoxVec &yolobox_vec_tmp) {
+    int mask_height = m_tpumask_net_h;
+    int mask_width = m_tpumask_net_w;
     int actual_mask_num = MIN(tpu_mask_num, yolobox_vec.size() - start);
-    //dynamic shape
-    std::shared_ptr<BMNNTensor> mask_info = m_tpu_mask_bmNetwork->inputTensor(0);
-    std::shared_ptr<BMNNTensor> output1 = m_tpu_mask_bmNetwork->inputTensor(1);
-    
-    const int mask_info_shape[3] = {1,actual_mask_num,mask_len};
-    mask_info->set_shape(mask_info_shape,3);
 
+    netinfo->stages[0].input_shapes[0].dims[0] = 1;
+    netinfo->stages[0].input_shapes[0].dims[1] = actual_mask_num;
+    netinfo->stages[0].input_shapes[0].dims[2] = mask_len;
+
+    //1. prepare bmodel inputs
     LOG_TS(m_ts, "get_mask_tpu: prepare");
-    //prepare bmodel inputs
+    bm_tensor_t input_tensor0;
+    assert(true == bmrt_tensor(&input_tensor0, bmrt, netinfo->input_dtypes[0], netinfo->stages[0].input_shapes[0]));
     for (size_t i = start; i < start + actual_mask_num; i++)
     {
-        CV_Assert(BM_SUCCESS == bm_memcpy_s2d_partial_offset(m_tpu_mask_bmContext->handle(), m_mask_info_dev, reinterpret_cast<void*>(yolobox_vec[i].mask.data()), 32*4, 32*4*(i-start)));
+        CV_Assert(BM_SUCCESS == bm_memcpy_s2d_partial_offset(tpu_mask_handle, input_tensor0.device_mem, reinterpret_cast<void*>(yolobox_vec[i].mask.data()), 32*4, 32*4*(i-start)));
     }
-    mask_info->set_device_mem(const_cast<bm_device_mem_t*>(&m_mask_info_dev));
-    output1->set_device_mem(const_cast<bm_device_mem_t*>(out_tensor1->get_device_mem()));
+
+    std::vector<bm_tensor_t> input_tensors = {input_tensor0, input_tensor1};
+    // bm_tensor_t input_tensors[2] = {input_tensor0, input_tensor1};
+    std::vector<bm_tensor_t> output_tensors;
     LOG_TS(m_ts, "get_mask_tpu: prepare");
 
-    // run bmodel
+    //2. run bmodel
+    LOG_TS(m_ts, "get_mask_tpu: forward");
+
+    output_tensors.resize(netinfo->output_num);  // 1
+    bool ok = bmrt_launch_tensor(bmrt, netinfo->name, input_tensors.data(), netinfo->input_num, output_tensors.data(), netinfo->output_num);
     
+
+    assert(true == ok);
+    assert(BM_SUCCESS == bm_thread_sync(tpu_mask_handle)); 
+    bm_free_device(tpu_mask_handle, input_tensors[0].device_mem);
     LOG_TS(m_ts, "get_mask_tpu: forward");
-    auto ret = m_tpu_mask_bmNetwork->forward();
-    CV_Assert(ret == 0);
-    LOG_TS(m_ts, "get_mask_tpu: forward");
 
-    //get outputs
-    auto outputTensor = m_tpu_mask_bmNetwork->outputTensor(0);
-    bm_device_mem_t outputTensor_dev= *outputTensor->get_device_mem();
-
+    // 3. get outputs
     LOG_TS(m_ts, "get_mask_tpu: get_output");
-    float output0[1*actual_mask_num*mask_height*mask_width];
-    bm_memcpy_d2s_partial(m_bmContext->handle(), output0, outputTensor_dev,
-                            outputTensor->get_tensor_bytesize());
-    LOG_TS(m_ts, "get_mask_tpu: get_output");
+    bm_tensor_t output_tensor = output_tensors[0];
+    float output0[1 * actual_mask_num * mask_height * mask_width];
+    int ret = bm_memcpy_d2s_partial(tpu_mask_handle, output0, output_tensor.device_mem, bmrt_tensor_bytesize(&output_tensor));
+    size_t size = bmrt_tensor_bytesize(&output_tensor);
 
+    for (int i = 0; i < output_tensors.size(); i++) {
+        bm_free_device(tpu_mask_handle, output_tensors[i].device_mem);  
+    }
+    LOG_TS(m_ts, "get_mask_tpu: get_output");
+    
+    // 4. crop + mask
     LOG_TS(m_ts, "get_mask_tpu: crop+mask");
     for (int i=0; i < actual_mask_num; i++){
         int yi = start + i;
-        cv::Mat temp_mask(mask_height, mask_width, CV_32FC1, output0+i*mask_height*mask_width);
-        cv::Mat masks_feature = temp_mask(cv::Rect(paras.r_x, paras.r_y, paras.r_w, paras.r_h));
+        cv::Mat temp_mask(mask_height, mask_width, CV_32FC1, output0 + i * mask_height * mask_width);
+        cv::Mat masks_feature = temp_mask(cv::Rect(paras.r_x, paras.r_y, paras.r_w, paras.r_h)); 
         cv::Mat mask;
-        cv::resize(masks_feature, mask, cv::Size(paras.width, paras.height));
+        cv::resize(masks_feature, mask, cv::Size(paras.width, paras.height)); 
         // crop + mask
         cv::Rect bound=cv::Rect{yolobox_vec[yi].x1, yolobox_vec[yi].y1, yolobox_vec[yi].x2 - yolobox_vec[yi].x1,yolobox_vec[yi].y2 - yolobox_vec[yi].y1};
         yolobox_vec[yi].mask_img=mask(bound) > m_confThreshold;
@@ -505,16 +545,18 @@ void YoloV8::getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, std::shared_ptr<B
 
 }
 
+
+
 void YoloV8::get_mask(const cv::Mat& mask_info,
                       const cv::Mat& mask_data,
                       const ImageInfo& para,
                       cv::Rect bound,
                       cv::Mat& mast_out) {
     cv::Vec4f trans = para.trans;
-    int r_x = floor(trans[2] / 640 * 160);
-    int r_y = floor(trans[3] / 640 * 160);
-    int r_w = 160 - 2 * r_x;
-    int r_h = 160 - 2 * r_y;
+    int r_x = floor(trans[2] / m_net_w * (m_net_w / 4));
+    int r_y = floor(trans[3] / m_net_h * (m_net_h / 4)); 
+    int r_w = (m_net_w / 4) - 2 * r_x;
+    int r_h = (m_net_h / 4) - 2 * r_y;
     r_w = MAX(r_w, 1);
     r_h = MAX(r_h, 1);
 
@@ -524,9 +566,6 @@ void YoloV8::get_mask(const cv::Mat& mask_info,
     cv::Mat protos = temp_mask.reshape(0, {32, r_w * r_h});
     cv::Mat matmul_res = (mask_info * protos);
     cv::Mat masks_feature = matmul_res.reshape(1, {r_h, r_w});
-    // cv::Mat dest;
-    // exp(-masks_feature, dest);//sigmoid
-    // dest = 1.0 / (1.0 + dest);
     int left = bound.x;         
     int top = bound.y;          
     int width = bound.width;    
