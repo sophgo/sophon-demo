@@ -16,6 +16,8 @@
 #include "opencv2/opencv.hpp"
 #include "utils.hpp"
 #include "bmnn_utils.h"
+
+
 // Define USE_OPENCV for enabling OPENCV related funtions in bm_wrapper.hpp
 #define USE_OPENCV 1
 #define DEBUG 0
@@ -32,14 +34,16 @@ typedef struct {
 void rleInit(RLE* R, siz h, siz w, siz m, uint* cnts);
 
 void rleEncode(RLE* R, const byte* mask, siz h, siz w, siz n);
+
 struct YoloV8Box {
     float x1, y1, x2, y2;
     // int x, y, width, height;
     float score;
     int class_id;
     std::vector<float> mask;
-    cv::Mat mask_img;
+    cv::Mat mask_img;  // 预测出来不仅有框，还有mask
 };
+
 struct ImageInfo {
     cv::Size raw_size;
     cv::Vec4d trans;
@@ -60,9 +64,6 @@ class YoloV8 {
     std::shared_ptr<BMNNContext> m_bmContext;
     std::shared_ptr<BMNNNetwork> m_bmNetwork;
 
-    std::shared_ptr<BMNNContext> m_tpu_mask_bmContext;
-    std::shared_ptr<BMNNNetwork> m_tpu_mask_bmNetwork;
-
     std::vector<bm_image> m_resized_imgs;
     std::vector<bm_image> m_converto_imgs;
     
@@ -80,12 +81,7 @@ class YoloV8 {
     int max_det = 300;
     int max_wh = 7680;  // (pixels) maximum box width and height
     bmcv_convert_to_attr converto_attr;
-    
-    // tpumask model
-    int tpu_mask_num = 32;
-    int m_tpumask_net_h, m_tpumask_net_w;
-    int tpumask_max_batch;
-    bm_device_mem_t m_mask_info_dev;
+
     
     TimeStamp* m_ts;
 
@@ -107,15 +103,26 @@ class YoloV8 {
     YoloV8(std::shared_ptr<BMNNContext> context);
     virtual ~YoloV8();
     int Init(float confThresh = 0.5, float nmsThresh = 0.5, const std::string& coco_names_file = "");
-    void tpumask_Init(std::shared_ptr<BMNNContext> tpu_mask_context);
-
     void enableProfile(TimeStamp* ts);
     int batch_size();
     int Detect(const std::vector<bm_image>& images, std::vector<YoloV8BoxVec>& boxes);
     void draw_bmcv(bm_handle_t& handle, bm_image& frame, YoloV8BoxVec& result, bool put_text_flag);
     void draw_result(cv::Mat& img, YoloV8BoxVec& result);
-    void getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, std::shared_ptr<BMNNTensor> &out_tensor1,Paras& paras,YoloV8BoxVec &yolobox_vec_tmp);
+
+    // tpumask model bmrt
+   private:
+    bm_handle_t tpu_mask_handle;
+    void *bmrt = nullptr;                    
+    const bm_net_info_t *netinfo;            
+    std::vector<std::string> network_names;
     bool tpu_post = false;
+    int tpu_mask_num = 32;
+    int m_tpumask_net_h, m_tpumask_net_w;
+
+    public:
+    void tpumask_Init(std::string bmodel_file, int dev_id = 0);
+    void getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, const bm_tensor_t& input_tensor1, Paras& paras, YoloV8BoxVec &yolobox_vec_tmp);
+
 };
 
 #endif  //! YOLOV8_H

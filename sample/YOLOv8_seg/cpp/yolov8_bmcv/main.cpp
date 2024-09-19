@@ -151,8 +151,7 @@ int main(int argc, char* argv[]) {
     // init tpu post model
     if(tpu_post){
         string mask_bmodel = parser.get<string>("mask_bmodel");
-        shared_ptr<BMNNContext> bm_ctx_tpu_post = make_shared<BMNNContext>(handle, mask_bmodel.c_str());
-        yolov8.tpumask_Init(bm_ctx_tpu_post);
+        yolov8.tpumask_Init(mask_bmodel, dev_id);
         cout << "use tpu post process" << endl;
     }else{
          cout << "use cpu post process" << endl;
