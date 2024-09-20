@@ -1,3 +1,8 @@
+try:
+    from Llama3 import chat
+except:
+    import logging
+    logging.warning("Llama3 not support! If need, please refer to python/README.md.")
 import argparse
 import time
 from rich.console import Console
@@ -17,12 +22,10 @@ import multiprocessing
 
 # vits
 import math
-import sophon.sail as sail
 from text import cleaned_text_to_sequence, pinyin_dict
 import logging
 from pypinyin import lazy_pinyin, Style
 from pypinyin.core import load_phrases_dict
-from bert import TTSProsody
 logging.basicConfig(level=logging.INFO)
 from datetime import datetime
 
@@ -41,6 +44,21 @@ voiced_frames = []
 vad = webrtcvad.Vad(2)
 
 device = "cpu"
+
+
+def isEmoji(content):
+    if not content:
+        return False
+    if u"\U0001F600" <= content and content <= u"\U0001F64F":
+        return True
+    elif u"\U0001F300" <= content and content <= u"\U0001F5FF":
+        return True
+    elif u"\U0001F680" <= content and content <= u"\U0001F6FF":
+        return True
+    elif u"\U0001F1E0" <= content and content <= u"\U0001F1FF":
+        return True
+    else:
+        return False
 
 def get_wav_duration(filename):
     with wave.open(filename, 'r') as wav:
@@ -90,7 +108,7 @@ class Llama3Model:
         self.tokenizer.decode([0])
 
         # preprocess parameters, such as prompt & tokenizer
-        self.system_prompt = 'You are an AI assistant giving concise responses within 20 words.'
+        self.system_prompt = '你是一个有用的人工智能助手。'
         self.EOS = [self.tokenizer.eos_token_id, self.tokenizer.convert_tokens_to_ids("<|eot_id|>")]
         self.system = {"role":"system","content":self.system_prompt}
         self.history = [self.system]
@@ -100,7 +118,6 @@ class Llama3Model:
 
     def _load_model(self):
         if self.args.decode_mode == "basic":
-            from Llama3 import chat
             self.model = chat.Llama3()
             self.model.init(self.args.devices, self.args.model_path)
             self.model.temperature = self.args.temperature
@@ -145,6 +162,8 @@ class Llama3Model:
 
         full_word_tokens = []
         answer = ""
+        full_text_answer = ""
+        sentence = []
         # Following tokens
         while token not in self.EOS and self.model.token_length < self.SEQLEN:
             full_word_tokens.append(token)
@@ -157,15 +176,23 @@ class Llama3Model:
             self.answer_token += [token]
             print(word, flush=True, end="")
             if args_global.streaming_output:
-                queue.put(word)
+                if not isEmoji(word):
+                    sentence.append(word.strip())
+                    if "。" in word or "." in word or "?" in word or "？" in word or "!" in word or "！" in word or ":" in word or "：" in word:
+                        queue.put("".join(sentence))
+                        sentence = []
             answer += word
+            if not isEmoji(word):
+                full_text_answer += word.strip()
 
             token = self.model.forward_next()
             tok_num += 1
             full_word_tokens = []
         
         if not args_global.streaming_output:
-            queue.put(answer)
+            queue.put(full_text_answer)
+        elif len(sentence) > 0:
+            queue.put("".join(sentence))
         return answer
 
 
@@ -226,6 +253,7 @@ class VITS:
         self,
         args,
     ):
+        import sophon.sail as sail
         self.net = sail.Engine(args.vits_model, args.devid, sail.IOMode.SYSIO)
         logging.info("load {} success!".format(args.vits_model))
         self.graph_name = self.net.get_graph_names()[0]
@@ -411,6 +439,7 @@ def load_pinyin_dict():
 class VITS_PinYin:
     def __init__(self, bert_model, dev_id, hasBert=True):
         load_pinyin_dict()
+        from bert import TTSProsody
         self.hasBert = hasBert
         if self.hasBert:
             self.prosody = TTSProsody(bert_model, dev_id)
@@ -530,6 +559,8 @@ class Pipeline():
         self.use_fsmn_vad = True
         self.speech_start = False
         self.audio_fs = 16000
+        self.question_prefix = "，请用中文回答。"
+        self.latency_start_time = None
     
     def run_asr(self, audio_path:str):
         return self.asr_model.transcribe(audio_path) 
@@ -557,73 +588,93 @@ class Pipeline():
 
     def inference(self, clip_audio, params, queue):
         # sf.write("whisper_input.wav", clip_audio, fs)
-        with wave.open('whisper_input.wav','wb') as wavWrite:
-            wavWrite.setparams(params) 
-            wavWrite.writeframes(clip_audio) 
+        try:
+            st = time.time()
+            with wave.open('whisper_input.wav','wb') as wavWrite:
+                wavWrite.setparams(params) 
+                wavWrite.writeframes(clip_audio) 
+            et = time.time()
+            print("write audio cost: ", et-st)
 
-        with timer:
-            asr_prompt = self.run_asr("whisper_input.wav")
-        asr_time = timer.run_time
+            with timer:
+                st = time.time()
+                asr_prompt = self.run_asr("whisper_input.wav")
+                et = time.time()
+            asr_time = timer.run_time
+            print("\nasr cost: ", et-st)
 
+            if len(asr_prompt["text"].strip()) == 0:
+                print("asr rec empty!")
+                return
 
-        # console.print(f"[green]ASR took {timer.run_time:.3f} seconds to process a {get_wav_duration(input_audio_path)} seconds audio!")
-        # console.print(f"[blue]Input is:"+asr_prompt["text"])
-        
-        with timer:
-            llm_response = self.run_llm(asr_prompt["text"], queue)
-        # print('Answer:'+llm_response)
-        # console.print(f"\n[green]LLM took {timer.run_time:.4f} seconds to answer this question on BM1688!")
-        llm_time = timer.run_time
+            # console.print(f"[green]ASR took {timer.run_time:.3f} seconds to process a {get_wav_duration(input_audio_path)} seconds audio!")
+            # console.print(f"[blue]Input is:"+asr_prompt["text"])
+            
+            with timer:
+                question = asr_prompt["text"] + self.question_prefix
+                print("Question:"+question)
+                llm_response = self.run_llm(question, queue)
+            # print('Answer:'+llm_response)
+            # console.print(f"\n[green]LLM took {timer.run_time:.4f} seconds to answer this question on BM1688!")
+            llm_time = timer.run_time
+            print("\nllm cost: ", et-st, flush=True)
 
-        if args_global.profile:
-            console.print(f"\nwhisper took {asr_time:.2f} seconds, and LLM took {llm_time:.2f} seconds.") 
+            if args_global.profile:
+                console.print(f"\nwhisper took {asr_time:.2f} seconds, and LLM took {llm_time:.2f} seconds.") 
+        except Exception as e:
+            print(e)
 
     def run_tts(self, queue, play_queue):
         output_text = ''
-        min_output_text_len = 15
+        min_output_text_len = args_global.min_tts_input_len
         while True:
-            llm_response = queue.get()
-            with timer:
-                whole_resp_text = ''
-                if llm_response is not None:
-                    if len(llm_response.strip()) == 0:
+            try:
+                llm_response = queue.get()
+                with timer:
+                    whole_resp_text = ''
+                    if llm_response is not None:
+                        if len(llm_response.strip()) == 0:
+                            continue
+                        elif 'Answer:' in llm_response:
+                            whole_resp_text = llm_response[9:].strip()
+                        else:
+                            whole_resp_text = llm_response.strip()
+                    output_text += whole_resp_text
+                    if (len(output_text) < min_output_text_len and llm_response is not None) or len(output_text) == 0:
+                        if llm_response is None:
+                            play_queue.put(None)
                         continue
-                    elif 'Answer:' in llm_response:
-                        whole_resp_text = llm_response[9:].strip()
-                    else:
-                        whole_resp_text = llm_response.strip()
-                output_text += whole_resp_text
-                if (len(output_text) < min_output_text_len and llm_response is not None) or len(output_text) == 0:
                     if llm_response is None:
+                        is_final = True
+                    else:
+                        is_final = False
+                    whole_resp_text = output_text
+                    print('\n------audio out content: ', whole_resp_text)
+                    split_items = self.tts_model.split_text_near_punctuation(whole_resp_text, int(self.tts_model.max_length / 2 - 5))
+                    full_out_audio_data = []
+                    for split_item in split_items:
+                        print('\n------audio seg: ', split_item)
+                        if len(split_item) == 0:
+                            continue
+                        phonemes, char_embeds = self.tts_model.tts_front.chinese_to_phonemes(split_item)
+                        input_ids = cleaned_text_to_sequence(phonemes)
+                        char_embeds = np.expand_dims(char_embeds, 0)
+                        x = np.array(input_ids, dtype=np.int32)
+                        if args_global.streaming_output:
+                            play_queue.put(self.tts_model(x, char_embeds))
+                        else:
+                            full_out_audio_data.append(self.tts_model(x, char_embeds))
+
+                    if not args_global.streaming_output:
+                        play_queue.put(np.concatenate(full_out_audio_data, axis=-1))
+                    output_text = ''
+                    if is_final:
                         play_queue.put(None)
-                    continue
-                if llm_response is None:
-                    is_final = True
-                else:
-                    is_final = False
-                whole_resp_text = output_text
-                print('audio out content: ', whole_resp_text)
-                split_items = self.tts_model.split_text_near_punctuation(whole_resp_text, int(self.tts_model.max_length / 2 - 5))
-                for split_item in split_items:
-                    print('audio seg: ', split_item)
-                    if len(split_item) == 0:
-                        continue
-                    phonemes, char_embeds = self.tts_model.tts_front.chinese_to_phonemes(split_item)
-                    input_ids = cleaned_text_to_sequence(phonemes)
-                    char_embeds = np.expand_dims(char_embeds, 0)
-                    x = np.array(input_ids, dtype=np.int32)
-                    play_queue.put(self.tts_model(x, char_embeds))
-
-                output_text = ''
-                if is_final:
-                    play_queue.put(None)
-            tts_time = timer.run_time
-            if args_global.profile:
-                console.print(f"\ntts took {tts_time:.2f} seconds.") 
-
-        if out_stream is not None:
-            out_stream.stop_stream()
-            out_stream.close()
+                tts_time = timer.run_time
+                if args_global.profile:
+                    console.print(f"\ntts took {tts_time:.2f} seconds.") 
+            except Exception as e:
+                print(e)
 
     def play(self, queue, fs):
         if not args_global.output_file:
@@ -631,30 +682,42 @@ class Pipeline():
             out_stream = p.open(format=pyaudio.paInt16,
                 channels=1,
                 rate=fs,
-                output=True) 
+                output=True,
+                output_device_index=args_global.audio_devid) 
         else:
             out_stream = None
 
         while True:
-            audio_data = queue.get()
-            if audio_data is None:
-                continue
-            if args_global.output_file:
-                now_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace(' ', '_').replace('/', '_').replace(':', '_')
-                audio_path = f"{now_time}.wav"
-                sf.write(
-                    audio_path, audio_data, self.tts_model.sample_rate)
-                print("save audio to {}".format(audio_path))
-            else:
-                data_int16 = audio_data * 32767
-                data_int16 = data_int16.astype('int16')
-                data_bytes = data_int16.tobytes()
-                out_stream.write(data_bytes)
+            try:
+                audio_data = queue.get()
+                if audio_data is None:
+                    continue
+                if self.latency_start_time.value != -1:
+                    latency = time.time() - self.latency_start_time.value
+                    print('latency time(s): ', latency)
+                    self.latency_start_time.value = -1
+                if args_global.output_file:
+                    now_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace(' ', '_').replace('/', '_').replace(':', '_')
+                    audio_path = f"{now_time}.wav"
+                    sf.write(
+                        audio_path, audio_data, self.tts_model.sample_rate)
+                    print("save audio to {}".format(audio_path))
+                else:
+                    data_int16 = audio_data * 32767
+                    data_int16 = data_int16.astype('int16')
+                    data_bytes = data_int16.tobytes()
+                    out_stream.write(data_bytes)
+            except Exception as e:
+                print(e)
+        if out_stream is not None:
+            out_stream.stop_stream()
+            out_stream.close()
     
     def forward(self, microphone_devid:int=None, output_audio_path:str=None, speaker_wav:str=None):
         global voiced_frames
         timer = Timer()
 
+        self.latency_start_time = multiprocessing.Value('d', -1)
         audio_seq_queue = multiprocessing.Queue()
         play_process = multiprocessing.Process(target=self.play, args=(audio_seq_queue, self.audio_fs))
         play_process.daemon = True
@@ -714,25 +777,34 @@ class Pipeline():
                             self.speech_start = True
                             voiced_frames.append(message)
                         elif seg[0] != -1 and seg[1] != -1:
+                            self.latency_start_time.value = time.time()
                             self.inference(message, params, queue)
+                            self.cache = {}
                             num_questions += 1
                         elif seg[0] == -1 and seg[1] != -1:
                             self.speech_start = False
                             voiced_frames.append(message)
                             clip_audio = b''.join(voiced_frames)
+                            self.latency_start_time.value = time.time()
                             self.inference(clip_audio, params, queue)
+                            self.cache = {}
                             num_questions += 1
                             voiced_frames = []
                 elif self.speech_start:
                     voiced_frames.append(message)
+                else:
+                    self.cache = {}
             else:
                 sub_messages = list(frame_generator(VAD_FRAME_DURATION_MS, message, fs))
                 for sub_message in sub_messages:
                     clip_audio = vad_collector(fs, sub_message)
                     if clip_audio is not None:
+                        self.latency_start_time.value = time.time()
                         self.inference(clip_audio, params, queue)
                         num_questions += 1
             if num_questions > 0:
+                if args_global.audio_in is None and not args_global.output_file:
+                    queue.put("我还有什么可以帮您，您可以继续提问！")
                 queue.put(None) # end
             while queue.qsize():
                 time.sleep(1)
@@ -748,7 +820,9 @@ class Pipeline():
                 clip_audio = b''.join(voiced_frames)
             else:
                 clip_audio = b''.join([f.bytes for f in voiced_frames])
+            self.latency_start_time.value = time.time()
             self.inference(clip_audio, params, queue)
+            self.cache = {}
             queue.put(None) # end
             while queue.qsize():
                 time.sleep(1)
@@ -807,6 +881,8 @@ parser_global.add_argument("--output_file", action='store_true', default=False, 
 parser_global.add_argument("--streaming_output", action='store_true', default=False, help="whether to streaming output for file or audio")
 parser_global.add_argument("--llm_type", type=str, default="minicpm-2b", help="llm model type, support minicpm-2b, llama3-8b")
 parser_global.add_argument("--microphone_devid", type=int, default=0, help="microphone device id, valid when --audio_in=None")
+parser_global.add_argument("--audio_devid", type=int, default=None, help="play audio device id, valid when --output_file=False, default: use default device")
+parser_global.add_argument("--min_tts_input_len", type=int, default=30, help="minimum TTS input text length")
 args_global, _ = parser_global.parse_known_args()
 
 
@@ -823,9 +899,6 @@ if __name__ =="__main__":
     args_minicpm, _ = parser_minicpm.parse_known_args()
     args_tts, _ = parser_tts.parse_known_args()
 
-    assert os.path.exists(args_minicpm.minicpm_model_path)
-    assert os.path.exists(args_minicpm.minicpm_tokenizer_model_path)
-
     console, timer = Console(), Timer()
     
     # ------ init 
@@ -833,6 +906,8 @@ if __name__ =="__main__":
     with timer:
         
         if args_global.llm_type == "minicpm-2b":
+            assert os.path.exists(args_minicpm.minicpm_model_path)
+            assert os.path.exists(args_minicpm.minicpm_tokenizer_model_path)
             llm_model = MinicpmModel(**args_minicpm.__dict__)
             # hot start~
             output = llm_model.gen_response_line("hello!")

@@ -337,11 +337,11 @@ def transcribe(
                         seek = previous_seek + seek_shift
 
             if verbose:
-                print("Question:",end="")
+                # print("Question:",end="")
                 for segment in current_segments:
                     start, end, text = segment["start"], segment["end"], segment["text"]
                     line = f"{text}"
-                    print(make_safe(line), end="")
+                    # print(make_safe(line), end="")
 
             # if a segment is instantaneous or does not contain text, clear it
             for i, segment in enumerate(current_segments):

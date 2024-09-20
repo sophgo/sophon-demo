@@ -1,0 +1,7 @@
+websockets==11.0
+webrtcvad
+pyaudio
+funasr==1.1.4
+modelscope
+numpy
+soundfile
