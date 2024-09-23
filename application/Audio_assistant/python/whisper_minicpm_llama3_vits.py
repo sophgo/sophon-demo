@@ -30,6 +30,9 @@ logging.basicConfig(level=logging.INFO)
 from datetime import datetime
 
 import whisperWrapper
+import sys
+sys.path.append("./XTTS")
+from XTTS.api import TTS
 
 # vad
 VAD_FRAME_DURATION_MS = 30
@@ -217,6 +220,7 @@ class MinicpmModel:
             
     def gen_response(self, input:str, queue):
         # TODO: +prompt tokens
+        st = time.time()
         self.process.stdin.write(input + '\n')
         self.process.stdin.flush()
 
@@ -239,6 +243,7 @@ class MinicpmModel:
                 lines.append(line)
                 print(line)
                 if args_global.streaming_output:
+                    print("llm output sentence cost time(s): ", time.time() - st)
                     queue.put(line)
 
 class Frame(object):
@@ -547,11 +552,82 @@ def vad_collector(sample_rate, frame):
 	return None
 
 
+def run_tts(queue, play_queue, tts_model_config):
+    output_text = ''
+    min_output_text_len = args_global.min_tts_input_len
+    if args_global.tts_type == "xtts":
+        tts_model = TTS(model_path=tts_model_config["other_models_dir"], 
+                    config_path=tts_model_config["config_pth"],
+                    tpu_inference_config=tts_model_config).to("cpu")
+    elif args_global.tts_type == "vits":
+        tts_model = VITS(tts_model_config)
+        tts_model.init()
+    print("start T2S model ...")
+    full_out_audio_data = []
+
+    while True:
+        try:
+            llm_response = queue.get()
+            with timer:
+                whole_resp_text = ''
+                if llm_response is not None:
+                    if len(llm_response.strip()) == 0:
+                        continue
+                    elif 'Answer:' in llm_response:
+                        whole_resp_text = llm_response[9:].strip()
+                    else:
+                        whole_resp_text = llm_response.strip()
+                output_text += whole_resp_text
+                if (len(output_text) < min_output_text_len and llm_response is not None) or len(output_text) == 0:
+                    if llm_response is None:
+                        if not args_global.streaming_output and len(full_out_audio_data) > 0:
+                            play_queue.put(np.concatenate(full_out_audio_data, axis=-1))
+                            full_out_audio_data = []
+                        play_queue.put(None)
+                    continue
+                if llm_response is None:
+                    is_final = True
+                else:
+                    is_final = False
+                whole_resp_text = output_text
+                print('\n------audio out content: ', whole_resp_text)
+                if args_global.tts_type == "vits":
+                    split_items = tts_model.split_text_near_punctuation(whole_resp_text, int(tts_model.max_length / 2 - 5))
+                    for split_item in split_items:
+                        print('\n------audio seg: ', split_item)
+                        if len(split_item) == 0:
+                            continue
+                        phonemes, char_embeds = tts_model.tts_front.chinese_to_phonemes(split_item)
+                        input_ids = cleaned_text_to_sequence(phonemes)
+                        char_embeds = np.expand_dims(char_embeds, 0)
+                        x = np.array(input_ids, dtype=np.int32)
+                        if args_global.streaming_output:
+                            play_queue.put(tts_model(x, char_embeds))
+                        else:
+                            full_out_audio_data.append(tts_model(x, char_embeds))
+                elif args_global.tts_type == "xtts":
+                    wav = tts_model.tts(text=whole_resp_text, speaker=args_global.tts_speaker, language=args_global.tts_out_language)
+                    if args_global.streaming_output:
+                        play_queue.put(wav)
+                    else:
+                        full_out_audio_data.append(np.stack(wav))
+
+                output_text = ''
+                if is_final:
+                    if not args_global.streaming_output and len(full_out_audio_data) > 0:
+                        play_queue.put(np.concatenate(full_out_audio_data, axis=-1))
+                        full_out_audio_data = []
+                    play_queue.put(None)
+            tts_time = timer.run_time
+            if args_global.profile:
+                console.print(f"\ntts took {tts_time:.2f} seconds.") 
+        except Exception as e:
+            print(e)
+
 class Pipeline():
     "pipeline for asr-->llm-->tts. "
-    def __init__(self, asr_model=None, tts_model=None, llm_model=None):
+    def __init__(self, asr_model=None, llm_model=None):
         self.asr_model = asr_model
-        self.tts_model = tts_model
         self.llm_model = llm_model
         self.chunk_ms = 200 # 1000 # ms
         self.model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", device='cpu', disable_pbar=True, log=False)
@@ -597,11 +673,9 @@ class Pipeline():
             print("write audio cost: ", et-st)
 
             with timer:
-                st = time.time()
                 asr_prompt = self.run_asr("whisper_input.wav")
-                et = time.time()
             asr_time = timer.run_time
-            print("\nasr cost: ", et-st)
+            print("\nasr cost: ", asr_time)
 
             if len(asr_prompt["text"].strip()) == 0:
                 print("asr rec empty!")
@@ -617,64 +691,12 @@ class Pipeline():
             # print('Answer:'+llm_response)
             # console.print(f"\n[green]LLM took {timer.run_time:.4f} seconds to answer this question on BM1688!")
             llm_time = timer.run_time
-            print("\nllm cost: ", et-st, flush=True)
+            print("\nllm cost: ", llm_time, flush=True)
 
             if args_global.profile:
                 console.print(f"\nwhisper took {asr_time:.2f} seconds, and LLM took {llm_time:.2f} seconds.") 
         except Exception as e:
             print(e)
-
-    def run_tts(self, queue, play_queue):
-        output_text = ''
-        min_output_text_len = args_global.min_tts_input_len
-        while True:
-            try:
-                llm_response = queue.get()
-                with timer:
-                    whole_resp_text = ''
-                    if llm_response is not None:
-                        if len(llm_response.strip()) == 0:
-                            continue
-                        elif 'Answer:' in llm_response:
-                            whole_resp_text = llm_response[9:].strip()
-                        else:
-                            whole_resp_text = llm_response.strip()
-                    output_text += whole_resp_text
-                    if (len(output_text) < min_output_text_len and llm_response is not None) or len(output_text) == 0:
-                        if llm_response is None:
-                            play_queue.put(None)
-                        continue
-                    if llm_response is None:
-                        is_final = True
-                    else:
-                        is_final = False
-                    whole_resp_text = output_text
-                    print('\n------audio out content: ', whole_resp_text)
-                    split_items = self.tts_model.split_text_near_punctuation(whole_resp_text, int(self.tts_model.max_length / 2 - 5))
-                    full_out_audio_data = []
-                    for split_item in split_items:
-                        print('\n------audio seg: ', split_item)
-                        if len(split_item) == 0:
-                            continue
-                        phonemes, char_embeds = self.tts_model.tts_front.chinese_to_phonemes(split_item)
-                        input_ids = cleaned_text_to_sequence(phonemes)
-                        char_embeds = np.expand_dims(char_embeds, 0)
-                        x = np.array(input_ids, dtype=np.int32)
-                        if args_global.streaming_output:
-                            play_queue.put(self.tts_model(x, char_embeds))
-                        else:
-                            full_out_audio_data.append(self.tts_model(x, char_embeds))
-
-                    if not args_global.streaming_output:
-                        play_queue.put(np.concatenate(full_out_audio_data, axis=-1))
-                    output_text = ''
-                    if is_final:
-                        play_queue.put(None)
-                tts_time = timer.run_time
-                if args_global.profile:
-                    console.print(f"\ntts took {tts_time:.2f} seconds.") 
-            except Exception as e:
-                print(e)
 
     def play(self, queue, fs):
         if not args_global.output_file:
@@ -700,7 +722,7 @@ class Pipeline():
                     now_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace(' ', '_').replace('/', '_').replace(':', '_')
                     audio_path = f"{now_time}.wav"
                     sf.write(
-                        audio_path, audio_data, self.tts_model.sample_rate)
+                        audio_path, audio_data, fs)
                     print("save audio to {}".format(audio_path))
                 else:
                     data_int16 = audio_data * 32767
@@ -713,20 +735,14 @@ class Pipeline():
             out_stream.stop_stream()
             out_stream.close()
     
-    def forward(self, microphone_devid:int=None, output_audio_path:str=None, speaker_wav:str=None):
+    def forward(self, queue, audio_seq_queue, microphone_devid:int=None, output_audio_path:str=None, speaker_wav:str=None):
         global voiced_frames
         timer = Timer()
 
         self.latency_start_time = multiprocessing.Value('d', -1)
-        audio_seq_queue = multiprocessing.Queue()
         play_process = multiprocessing.Process(target=self.play, args=(audio_seq_queue, self.audio_fs))
         play_process.daemon = True
         play_process.start()
-
-        queue = multiprocessing.Queue()
-        process = multiprocessing.Process(target=self.run_tts, args=(queue, audio_seq_queue))
-        process.daemon = True
-        process.start()
 
         if args_global.audio_in is not None:
             with wave.open(args_global.audio_in, "rb") as wav_file:
@@ -851,11 +867,23 @@ def set_argparser(name:str):
         parser.add_argument('-d', '--devid', type=str, default='0', help='device ID to use')
         return parser
 
-    def tts_parser():
+    def vits_parser():
         parser = argparse.ArgumentParser(
             description='Inference code for bert vits models')
         parser.add_argument('--vits_model', type=str, default='../BM1688/vits/vits_chinese_128_bm1688_f16_1core.bmodel', help='path of bmodel')
         parser.add_argument('--bert_model', type=str, default='../BM1688/vits/bert_1688_f32_1core.bmodel', help='path of bert config')
+        parser.add_argument('-d', '--devid', type=int, default=0, help='device id')
+        return parser
+
+    def xtts_parser():
+        parser = argparse.ArgumentParser(
+            description='Inference code for xtts models')
+        parser.add_argument('--gpt_first_inference_path', type=str, default='../BM1684X/xtts/gpt_inference_first_bm1684x_f16.bmodel', help='path of gpt first step bmodel')
+        parser.add_argument('--gpt_loop_inference_path', type=str, default='../BM1684X/xtts/gpt_inference_loop_bm1684x_f16.bmodel', help='path of gpt remain step bmodel')
+        parser.add_argument('--gpt_inner_path', type=str, default='../BM1684X/xtts/gpt_inner_256_bm1684x_f16.bmodel', help='path of gpt inner bmodel')
+        parser.add_argument('--waveform_decoder_path', type=str, default='../BM1684X/xtts/waveform_decoder_deconv2d_bm1684x_f16.bmodel', help='path of wavefrom decoder bmodel')
+        parser.add_argument('--other_models_dir', type=str, default='../BM1684X/xtts', help='path of other models')
+        parser.add_argument('--config_pth', type=str, default='../BM1684X/xtts/config.json', help='path of config')
         parser.add_argument('-d', '--devid', type=int, default=0, help='device id')
         return parser
     
@@ -863,7 +891,8 @@ def set_argparser(name:str):
         'llama3': llama3_parser,
         'minicpm': minicpm_parser,
         'whisper': whisper_parser,
-        'tts': tts_parser
+        'vits': vits_parser,
+        'xtts': xtts_parser
     }
 
     parser_factory = parser_dict.get(name.lower())
@@ -880,6 +909,9 @@ parser_global.add_argument("--audio_in", type=str, default=None, help="input aud
 parser_global.add_argument("--output_file", action='store_true', default=False, help="whether to output file, otherwise audio")
 parser_global.add_argument("--streaming_output", action='store_true', default=False, help="whether to streaming output for file or audio")
 parser_global.add_argument("--llm_type", type=str, default="minicpm-2b", help="llm model type, support minicpm-2b, llama3-8b")
+parser_global.add_argument("--tts_type", type=str, default="vits", help="tts model type, support vits, xtts")
+parser_global.add_argument("--tts_out_language", type=str, default="zh-cn", help="tts output language, only valid for xtts")
+parser_global.add_argument("--tts_speaker", type=str, default="Daisy Studious", help="tts speaker id or speaker wav path, only valid for xtts")
 parser_global.add_argument("--microphone_devid", type=int, default=0, help="microphone device id, valid when --audio_in=None")
 parser_global.add_argument("--audio_devid", type=int, default=None, help="play audio device id, valid when --output_file=False, default: use default device")
 parser_global.add_argument("--min_tts_input_len", type=int, default=30, help="minimum TTS input text length")
@@ -891,19 +923,39 @@ if __name__ =="__main__":
         args_global.microphone_devid
     ]
 
-    parser_whisper, parser_llama3, parser_minicpm, parser_tts = set_argparser('whisper'), set_argparser('llama3'), set_argparser('minicpm'), set_argparser('tts')
+    parser_whisper, parser_llama3, parser_minicpm, parser_vits, parser_xtts = set_argparser('whisper'), set_argparser('llama3'), set_argparser('minicpm'), set_argparser('vits'), set_argparser('xtts')
 
     
     args_whisper, _ = parser_whisper.parse_known_args()
     args_llama3, _ = parser_llama3.parse_known_args()
     args_minicpm, _ = parser_minicpm.parse_known_args()
-    args_tts, _ = parser_tts.parse_known_args()
+    args_vits, _ = parser_vits.parse_known_args()
+    args_xtts, _ = parser_xtts.parse_known_args()
 
     console, timer = Console(), Timer()
-    
+
     # ------ init 
     timer = Timer()
     with timer:
+        if args_global.tts_type == "xtts":
+            tts_model_config = {
+                "other_models_dir": args_xtts.other_models_dir,
+                "config_pth": args_xtts.config_pth,
+                "gpt_first_inference_path": args_xtts.gpt_first_inference_path,
+                "gpt_loop_inference_path": args_xtts.gpt_loop_inference_path,
+                "gpt_inner_path": args_xtts.gpt_inner_path,
+                "waveform_decoder_path": args_xtts.waveform_decoder_path,
+                "devid": args_xtts.devid
+            }
+        elif args_global.tts_type == "vits":
+            tts_model_config = args_vits
+        else:
+            raise ValueError(args_global.tts_type + " not implement!")
+        queue = multiprocessing.Queue()
+        audio_seq_queue = multiprocessing.Queue()
+        process = multiprocessing.Process(target=run_tts, args=(queue, audio_seq_queue, tts_model_config))
+        process.daemon = True
+        process.start()
         
         if args_global.llm_type == "minicpm-2b":
             assert os.path.exists(args_minicpm.minicpm_model_path)
@@ -920,10 +972,7 @@ if __name__ =="__main__":
         whisper_model = whisperWrapper.WhisperWrapper(args_whisper)
         print("start S2T model ...")
         # whisper_model = None
-        vits = VITS(args_tts)
-        vits.init()
-        print("start T2S model ...")
-        pipeline = Pipeline(asr_model=whisper_model, tts_model=vits, llm_model=llm_model)
+        pipeline = Pipeline(asr_model=whisper_model, llm_model=llm_model)
     console.print(f"[blue]Initialization took {timer.run_time:.3f} seconds!")
     subprocess.run('clear', shell=True)
     # ----- process
@@ -933,7 +982,7 @@ if __name__ =="__main__":
         count += 1
         out_audio = "out_" + str(count) + ".wav"
 
-        pipeline.forward(in_audio, out_audio, None)
+        pipeline.forward(queue, audio_seq_queue, in_audio, out_audio, None)
 
         if not input_audios:
             # TODO：allow user input 
