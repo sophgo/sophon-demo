@@ -11,13 +11,13 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=/opt/sophon/sophon-sail/lib:$LD_LIBRARY_PATH
-
+CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
 }
 
-while getopts ":m:t:s:a:d:p:" opt
+while getopts ":m:t:s:a:d:p:c:" opt
 do
   case $opt in 
     m)
@@ -38,6 +38,9 @@ do
     p)
       PYTEST=${OPTARG}
       echo "generate logs for $PYTEST";;
+    c)
+      CASE_MODE=${OPTARG}
+      echo "case mode is $CASE_MODE";;
     ?)
       usage
       exit 1;;
@@ -63,10 +66,6 @@ if test $MODE = "soc_test"; then
   else
     echo "Unknown TARGET type: $TARGET"
   fi
-fi
-if test $PYTEST = "pytest"
-then
-  >${top_dir}auto_test_result.txt
 fi
 
 function bmrt_test_case(){
@@ -115,6 +114,11 @@ function bmrt_test_benchmark(){
     popd
 }
 
+
+if test $PYTEST = "pytest"
+then
+  >${top_dir}auto_test_result.txt
+fi
 function judge_ret()
 {
   if [[ $1 == 0 ]]; then
@@ -252,7 +256,7 @@ function eval_cpp()
   array=(${res//=/ })
   acc=${array[1]}
   f1=${array[7]}
-  compare_res $f1 $3
+  compare_res $f1 $4
   printf "| %-12s | %-14s | %-22s | %8.4f | %8.4f |\n" "$PLATFORM" "bert_$2.$1" "$3" "$(printf "%.4f" $f1)" "$(printf "%.4f" $acc)" >> ../../scripts/acc.txt
 
   echo -e "########################\nCase End: eval cpp\n########################\n"
@@ -327,35 +331,59 @@ elif test $MODE = "compile_mlir"
 then
   download
   compile_mlir
-elif test $MODE = "pcie_test"
+elif test $MODE = "pcie_build"
 then
   build_pcie sail
+elif test $MODE = "pcie_test"
+then
+  pip3 install bert4torch==0.3.0 packaging==23.2 seqeval==1.2.2
   download
   if test $TARGET = "BM1684"
   then
-
-    test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
-    test_cpp pcie sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
-    eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
-    eval_cpp pcie sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
-    eval_cpp pcie sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
-   
+    if test $CASE_MODE = "fully"
+    then
+      test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp pcie sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
+      eval_cpp pcie sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
+      eval_cpp pcie sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
+    elif test $CASE_MODE = "partly"
+    then 
+      test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp pcie sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
+      eval_cpp pcie sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
 
   elif test $TARGET = "BM1684X"
   then
-    test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
-    test_cpp pcie sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
-    test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
-    test_cpp pcie sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
-    eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
-    eval_python sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
-    eval_cpp pcie sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
-    eval_cpp pcie sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
-    eval_cpp pcie sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
-    eval_cpp pcie sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    if test $CASE_MODE = "fully"
+    then
+      test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp pcie sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp pcie sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
+      eval_python sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+      eval_cpp pcie sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
+      eval_cpp pcie sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
+      eval_cpp pcie sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
+      eval_cpp pcie sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    elif test $CASE_MODE = "partly"
+    then
+      test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp pcie sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+      eval_cpp pcie sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
+
   fi
 elif test $MODE = "soc_build"
 then
@@ -363,64 +391,111 @@ then
 elif test $MODE = "soc_test"
 then
   download
+  pip3 install bert4torch==0.3.0 packaging==23.2 seqeval==1.2.2
   if test $TARGET = "BM1684"
   then
-    test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
-    test_cpp soc sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
-    eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
-    eval_cpp soc sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
-    eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
+    if test $CASE_MODE = "fully"
+    then
+      test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
+      eval_cpp soc sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
+      eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
+    elif test $CASE_MODE = "partly"
+    then
+      test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
+      eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   elif test $TARGET = "BM1684X"
   then
-    test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
-    test_cpp soc sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
-    test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
-    test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
-    eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
-    eval_python sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
-    eval_cpp soc sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
-    eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
-    eval_cpp soc sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
-    eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    if test $CASE_MODE = "fully"
+    then
+      test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
+      eval_python sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+      eval_cpp soc sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
+      eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
+      eval_cpp soc sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
+      eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    elif test $CASE_MODE = "partly"
+    then
+      test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+      eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   elif test $TARGET = "BM1688"
   then
-    test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
-    test_cpp soc sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
-    test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
-    test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
-    eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
-    eval_python sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
-    eval_cpp soc sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
-    eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
-    eval_cpp soc sail bert4torch_output_fp16_1b.bmodel 0.8931268398822476
-    eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
-    eval_python sail bert4torch_output_fp32_1b_2core.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp32_8b_2core.bmodel 0.9201187249967738
-    eval_python sail bert4torch_output_fp16_1b_2core.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp16_8b_2core.bmodel 0.9201187249967738
-    eval_cpp soc sail bert4torch_output_fp32_1b_2core.bmodel 0.912984583628975
-    eval_cpp soc sail bert4torch_output_fp32_8b_2core.bmodel 0.912984583628975
-    eval_cpp soc sail bert4torch_output_fp16_1b_2core.bmodel 0.8220128904313336
-    eval_cpp soc sail bert4torch_output_fp16_8b_2core.bmodel 0.9201187249967738
+    if test $CASE_MODE = "fully"
+    then
+      test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
+      eval_python sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+      eval_cpp soc sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
+      eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
+      eval_cpp soc sail bert4torch_output_fp16_1b.bmodel 0.8931268398822476
+      eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+      eval_python sail bert4torch_output_fp32_1b_2core.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp32_8b_2core.bmodel 0.9201187249967738
+      eval_python sail bert4torch_output_fp16_1b_2core.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp16_8b_2core.bmodel 0.9201187249967738
+      eval_cpp soc sail bert4torch_output_fp32_1b_2core.bmodel 0.912984583628975
+      eval_cpp soc sail bert4torch_output_fp32_8b_2core.bmodel 0.912984583628975
+      eval_cpp soc sail bert4torch_output_fp16_1b_2core.bmodel 0.8220128904313336
+      eval_cpp soc sail bert4torch_output_fp16_8b_2core.bmodel 0.9201187249967738
+    elif test $CASE_MODE = "partly"
+    then
+      test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+      eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+      eval_python sail bert4torch_output_fp16_8b_2core.bmodel 0.9201187249967738
+      eval_cpp soc sail bert4torch_output_fp16_8b_2core.bmodel 0.9201187249967738
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   elif test $TARGET = "CV186X"
   then
-    test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
-    test_cpp soc sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
-    test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
-    test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
-    eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
-    eval_python sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
-    eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
-    eval_cpp soc sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
-    eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
-    eval_cpp soc sail bert4torch_output_fp16_1b.bmodel 0.8931268398822476
-    eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    if test $CASE_MODE = "fully"
+    then
+      test_python sail bert4torch_output_fp32_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp32_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp32_1b.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp32_8b.bmodel 0.9201187249967738
+      eval_python sail bert4torch_output_fp16_1b.bmodel 0.9183410613086039
+      eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+      eval_cpp soc sail bert4torch_output_fp32_1b.bmodel 0.912984583628975
+      eval_cpp soc sail bert4torch_output_fp32_8b.bmodel 0.912984583628975
+      eval_cpp soc sail bert4torch_output_fp16_1b.bmodel 0.8931268398822476
+      eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    elif test $CASE_MODE = "partly"
+    then
+      test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+      eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   fi
 fi
 if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
