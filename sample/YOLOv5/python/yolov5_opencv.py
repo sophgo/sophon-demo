@@ -23,15 +23,15 @@ logging.basicConfig(level=logging.INFO)
 class YOLOv5:
     def __init__(self, args):
         # load bmodel
-        self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
+        self.net = sail.nn.Engine(args.bmodel, args.dev_id)
         logging.info("load {} success!".format(args.bmodel))
-        self.graph_name = self.net.get_graph_names()[0]
-        self.input_name = self.net.get_input_names(self.graph_name)[0]
-        self.output_names = self.net.get_output_names(self.graph_name)
-        self.input_shape = self.net.get_input_shape(self.graph_name, self.input_name)
+        self.net_name = self.net.get_net_names()[0]
+        self.input_name = self.net.get_input_names(self.net_name)[0]
+        self.output_names = self.net.get_output_names(self.net_name)
+        self.input_shape = self.net.get_input_shapes(self.net_name, 0)[0]
         if len(self.output_names) not in [1, 3]:
             raise ValueError('only suport 1 or 3 outputs, but got {} outputs bmodel'.format(len(self.output_names)))
-
+        
         self.batch_size = self.input_shape[0]
         self.net_h = self.input_shape[2]
         self.net_w = self.input_shape[3]
@@ -47,11 +47,10 @@ class YOLOv5:
         self.max_det = 1000
         
         if self.use_cpu_opt:
-            self.handle = sail.Handle(args.dev_id)
-            self.output_shapes = []
-            for output_name in self.output_names:
-                output_shape = self.net.get_output_shape(self.graph_name, output_name)
-                self.output_shapes.append(output_shape)
+            self.output_shapes = self.net.get_output_shapes(self.net_name, 0)
+            # for idx in range(len(self.output_names)):
+            #     output_shape = self.net.get_output_shapes(self.net_name, 0)[idx]
+            #     self.output_shapes.append(output_shape)
         else:
             self.postprocess = PostProcess(
                 conf_thresh=self.conf_thresh,
@@ -128,8 +127,16 @@ class YOLOv5:
         return im, ratio, (dw, dh)
     
     def predict(self, input_img, img_num):
-        input_data = {self.input_name: input_img}
-        outputs = self.net.process(self.graph_name, input_data)
+        input_data = {0: input_img}
+
+        shape_out0 = (self.batch_size, 3, 80, 80, 85)
+        shape_out1 = (self.batch_size, 3, 40, 40, 85)
+        shape_out2 = (self.batch_size, 3, 20, 20, 85)
+        array_out0 = np.ndarray(shape=shape_out0, dtype=np.float32)
+        array_out1 = np.ndarray(shape=shape_out1, dtype=np.float32)
+        array_out2 = np.ndarray(shape=shape_out2, dtype=np.float32)
+        outputs = {0:array_out0, 1:array_out1, 2:array_out2}
+        ret = self.net.process(input_data, outputs, self.net_name)
         
         if self.use_cpu_opt:
             out = {}
@@ -140,12 +147,15 @@ class YOLOv5:
             # resort
             out_keys = list(outputs.keys())
             ord = []
-            for n in self.output_names:
-                for i, k in enumerate(out_keys):
-                    if n == k:
-                        ord.append(i)
-                        break
+            for i, k in enumerate(out_keys):
+                ord.append(k)
             out = [outputs[out_keys[i]][:img_num] for i in ord]
+            # for n in range(len(self.output_names)):
+            #     for i, k in enumerate(out_keys):
+            #         if n == k:
+            #             ord.append(i)
+            #             break
+            # out = [outputs[out_keys[i]][:img_num] for i in ord]
         return out
     
     def __call__(self, img_list):

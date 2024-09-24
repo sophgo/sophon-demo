@@ -22,15 +22,15 @@ logging.basicConfig(level=logging.INFO)
 class Resnet(object):
     def __init__(self, args):
         # load bmodel
-        self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
-        self.graph_name = self.net.get_graph_names()[0]
-        self.input_names = self.net.get_input_names(self.graph_name)
-        self.input_shapes = [self.net.get_input_shape(self.graph_name, name) for name in self.input_names]
-        self.output_names = self.net.get_output_names(self.graph_name)
-        self.output_shapes = [self.net.get_output_shape(self.graph_name, name) for name in self.output_names]
-        logging.debug("load {} success!".format(args.bmodel))
-        logging.debug(str(("graph_name: {}, input_names & input_shapes: ".format(self.graph_name), self.input_names, self.input_shapes)))
-        logging.debug(str(("graph_name: {}, output_names & output_shapes: ".format(self.graph_name), self.output_names, self.output_shapes)))
+        self.net = sail.nn.Engine(args.bmodel, args.dev_id)
+        self.net_name = self.net.get_net_names()[0]
+        self.input_names = self.net.get_input_names(self.net_name)
+        self.input_shapes = self.net.get_input_shapes(self.net_name, 0)
+        self.output_names = self.net.get_output_names(self.net_name)
+        self.output_shapes = self.net.get_output_shapes(self.net_name, 0)
+        logging.info("load {} success!".format(args.bmodel))
+        logging.debug(str(("net_name: {}, input_names & input_shapes: ".format(self.net_name), self.input_names, self.input_shapes)))
+        logging.debug(str(("net_name: {}, output_names & output_shapes: ".format(self.net_name), self.output_names, self.output_shapes)))
         self.input_name = self.input_names[0]
         self.input_shape = self.input_shapes[0]
 
@@ -45,25 +45,29 @@ class Resnet(object):
         self.inference_time = 0.0
         self.postprocess_time = 0.0
 
-        self.handle = self.net.get_handle()
-        self.bmcv = sail.Bmcv(self.handle)
-        self.input_dtype = self.net.get_input_dtype(self.graph_name, self.input_name)
-        self.output_dtype = self.net.get_output_dtype(self.graph_name, self.output_names[0])
-        self.img_dtype = self.bmcv.get_bm_image_data_format(self.input_dtype)
+        # self.handle = self.net.get_handle()
+        # self.bmcv = sail.Bmcv(self.handle)
+        # self.input_dtype = self.net.get_input_dtype(self.net_name, self.input_name)
+        # self.output_dtype = self.net.get_output_dtype(self.net_name, self.output_names[0])
+        # self.img_dtype = self.bmcv.get_bm_image_data_format(self.input_dtype)
 
     def preprocess(self, img):
         h, w, _ = img.shape
         if h != self.net_h or w != self.net_w:
             img = cv2.resize(img, (self.net_w, self.net_h))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = img.astype('float32')
         img = (img/255-self.mean)/self.std
+        img = img.astype(np.float32)
         img = np.transpose(img, (2, 0, 1))
+        img = np.ascontiguousarray(img)
         return img
 
     def predict(self, input_img):
-        input_data = {self.input_name: input_img}
-        outputs = self.net.process(self.graph_name, input_data)
+        input_data = {0: input_img}
+        shape_out0 = (self.batch_size, 1000)
+        array_out0 = np.ndarray(shape=shape_out0, dtype=np.float32)
+        outputs = {0: array_out0}
+        ret = self.net.process(input_data, outputs, self.net_name)
         return list(outputs.values())[0]
 
     def postprocess(self, outputs):

@@ -2,16 +2,11 @@
 model_dir=$(dirname $(readlink -f "$0"))
 
 if [ ! $1 ]; then
-    target=bm1684x
-    target_dir=BM1684X
+    target=bm1690
+    target_dir=BM1690
 else
     target=${1,,}
     target_dir=${target^^}
-    if test $target = "bm1684"
-    then
-        echo "bm1684 do not support fp16"
-        exit
-    fi
 fi
 
 outdir=../models/$target_dir
@@ -40,7 +35,7 @@ function gen_fp16bmodel()
         # --test_reference resnet50_$1b_top_outputs.npz
 
     mv resnet50_fp16_$1b.bmodel $outdir/
-    if test $target = "bm1688";then
+    if test $target = "bm1690";then
         model_deploy.py \
             --mlir resnet50_$1b.mlir \
             --quantize F16 \

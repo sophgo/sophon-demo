@@ -1,4 +1,0 @@
-opencv-python-headless
-scipy
-matplotlib
-pycocotools 

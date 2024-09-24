@@ -1,4 +1,0 @@
-websockets==11.0
-webrtcvad
-pyaudio
-funasr==1.0.27

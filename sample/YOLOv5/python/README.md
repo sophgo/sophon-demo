@@ -20,7 +20,6 @@ python目录下提供了一系列Python例程，具体情况如下：
 | 序号 |  Python例程      | 说明                                |
 | ---- | ---------------- | -----------------------------------  |
 | 1    | yolov5_opencv.py | 使用OpenCV解码、OpenCV前处理、SAIL推理 |
-| 2    | yolov5_bmcv.py   | 使用SAIL解码、SAIL.BMCV前处理、SAIL推理 |
 
 ## 1. 环境准备
 ### 1.1 x86/arm/riscv PCIe平台
@@ -31,23 +30,6 @@ python目录下提供了一系列Python例程，具体情况如下：
 ```bash
 pip3 install opencv-python-headless
 ```
-
-### 1.2 SoC平台
-
-如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。您还需要交叉编译安装sophon-sail，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
-
-此外您还需要配置opencv等其他第三方库：
-```bash
-pip3 install opencv-python-headless
-```
-
-> **注:**
->
-> 上述命令安装的opencv是公版opencv，如果您希望使用sophon-opencv，可以设置如下环境变量：
-> ```bash
-> export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
-> ```
-> **若使用sophon-opencv需要保证python版本小于等于3.8。**
 
 ## 2. 推理测试
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
@@ -73,9 +55,9 @@ optional arguments:
 ### 2.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-python3 python/yolov5_opencv.py --input datasets/test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 #--use_cpu_opt
+python3 python/yolov5_opencv.py --input datasets/coco/val2017_1000 --bmodel models/BM1690/yolov5s_v6.1_3output_int8_1b.bmodel --dev_id 0 --conf_thresh 0.001 --nms_thresh 0.6 #--use_cpu_opt
 ```
-测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov5s_v6.1_3output_fp32_1b.bmodel_test_opencv_python_result.json`下，同时会打印预测结果、推理时间等信息。
+测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov5s_v6.1_3output_int8_1b.bmodel_val2017_1000_opencv_python_result.json`下，同时会打印预测结果、推理时间等信息。
 
 ![res](../pics/zidane_python_opencv.jpg)
 
@@ -85,7 +67,7 @@ python3 python/yolov5_opencv.py --input datasets/test --bmodel models/BM1684/yol
 ### 2.3 测试视频
 视频测试实例如下，支持对视频流进行测试。
 ```bash
-python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 #--use_cpu_opt
+python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/yolov5s_v6.1_3output_int8_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5 #--use_cpu_opt
 ```
 测试结束后，会将预测的结果画在`results/test_car_person_1080P.avi`中，同时会打印预测结果、推理时间等信息。  
 `yolov5_bmcv.py`不会保存视频，而是会将预测结果画在图片上并保存在`results/images`中。

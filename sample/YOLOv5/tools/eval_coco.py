@@ -76,6 +76,7 @@ def convert_to_coco_bbox(json_file, cocoGt):
     with open(json_file, 'r') as f:
         res_json = json.load(f)
     for res in res_json:
+        image_id = 0
         image_name = res["image_name"]
         bboxes = res["bboxes"]
         if len(bboxes) == 0:

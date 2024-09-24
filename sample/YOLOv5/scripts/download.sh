@@ -27,22 +27,8 @@ if [ ! -d "../models" ];
 then
     mkdir ../models
     pushd ../models
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models/BM1684.tar.gz
-    tar xvf BM1684.tar.gz && rm BM1684.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models/BM1684_ext.tar.gz
-    tar xvf BM1684_ext.tar.gz && rm BM1684_ext.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models/BM1684X.tar.gz
-    tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models/BM1684X_ext.tar.gz
-    tar xvf BM1684X_ext.tar.gz && rm BM1684X_ext.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models/BM1688.tar.gz
-    tar xvf BM1688.tar.gz && rm BM1688.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models/CV186X.tar.gz
-    tar xvf CV186X.tar.gz && rm CV186X.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models/onnx.tar.gz
-    tar xvf onnx.tar.gz && rm onnx.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models/torch.tar.gz
-    tar xvf torch.tar.gz && rm torch.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models_240924/BM1690.tar.gz
+    tar xvf BM1690.tar.gz && rm BM1690.tar.gz
     popd
     echo "models download!"
 else

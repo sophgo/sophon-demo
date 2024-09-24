@@ -2,8 +2,8 @@
 model_dir=$(dirname $(readlink -f "$0"))
 
 if [ ! $1 ]; then
-    target=bm1684x
-    target_dir=BM1684X
+    target=bm1690
+    target_dir=BM1690
 else
     target=${1,,}
     target_dir=${target^^}
@@ -35,7 +35,7 @@ function gen_fp32bmodel()
         --test_reference resnet50_$1b_top_outputs.npz
 
     mv resnet50_fp32_$1b.bmodel $outdir/
-    if test $target = "bm1688";then
+    if test $target = "bm1690";then
         model_deploy.py \
             --mlir resnet50_$1b.mlir \
             --quantize F32 \

@@ -4,7 +4,7 @@ top_dir=$scripts_dir/../
 pushd $top_dir
 
 #default config
-TARGET="BM1684X"
+TARGET="BM1690"
 MODE="pcie_test"
 TPUID=0
 ALL_PASS=1
@@ -12,9 +12,10 @@ PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 CASE_MODE="fully"
+PLATFORM="BM1690 PCIe"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -66,27 +67,8 @@ if [ -f "scripts/acc_cpu_opt.txt" ]; then
 fi
 echo "|   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|" >> scripts/acc_cpu_opt.txt
 
-PLATFORM=$TARGET
-if test $MODE = "soc_test"; then
-  if test $TARGET = "BM1684X"; then
-    PLATFORM="SE7-32"
-  elif test $TARGET = "BM1684"; then
-    PLATFORM="SE5-16"
-  elif test $TARGET = "BM1688"; then
-    PLATFORM="SE9-16"
-    cpu_core_num=$(nproc)
-    if [ "$cpu_core_num" -eq 6 ]; then
-      PLATFORM="SE9-8"
-    fi
-  elif test $TARGET = "CV186X"; then
-    PLATFORM="SE9-8"
-  else
-    echo "Unknown TARGET type: $TARGET"
-  fi
-fi
-
-function bmrt_test_case(){
-   calculate_time_log=$(bmrt_test --bmodel $1 --devid $TPUID | grep "calculate" 2>&1)
+function tpurt_test_case(){
+   calculate_time_log=$(tpu-model-rt --bmodel $1 --devid $TPUID | grep "calculate" 2>&1)
    is_4b=$(echo $1 |grep "4b")
 
    if [ "$is_4b" != "" ]; then
@@ -99,36 +81,15 @@ function bmrt_test_case(){
      printf "| %-35s| % 15s |\n" "$1" "$time"
    done
 }
-function bmrt_test_benchmark(){
+function tpurt_test_benchmark(){
     pushd models
     printf "| %-35s| % 15s |\n" "测试模型" "calculate time(ms)"
     printf "| %-35s| % 15s |\n" "-------------------" "--------------"
    
-    if test $TARGET = "BM1684"; then
-      bmrt_test_case BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
-      bmrt_test_case BM1684/yolov5s_v6.1_3output_int8_1b.bmodel
-      bmrt_test_case BM1684/yolov5s_v6.1_3output_int8_4b.bmodel
-    elif test $TARGET = "BM1684X"; then
-      bmrt_test_case BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel
-      bmrt_test_case BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel
-      bmrt_test_case BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel
-      bmrt_test_case BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel
-    elif test $TARGET = "BM1688"; then
-      bmrt_test_case BM1688/yolov5s_v6.1_3output_fp32_1b.bmodel
-      bmrt_test_case BM1688/yolov5s_v6.1_3output_fp16_1b.bmodel
-      bmrt_test_case BM1688/yolov5s_v6.1_3output_int8_1b.bmodel
-      bmrt_test_case BM1688/yolov5s_v6.1_3output_int8_4b.bmodel
-      if test "$PLATFORM" = "SE9-16"; then 
-        bmrt_test_case BM1688/yolov5s_v6.1_3output_fp32_1b_2core.bmodel
-        bmrt_test_case BM1688/yolov5s_v6.1_3output_fp16_1b_2core.bmodel
-        bmrt_test_case BM1688/yolov5s_v6.1_3output_int8_1b_2core.bmodel
-        bmrt_test_case BM1688/yolov5s_v6.1_3output_int8_4b_2core.bmodel
-      fi
-    elif test $TARGET = "CV186X"; then
-      bmrt_test_case CV186X/yolov5s_v6.1_3output_fp32_1b.bmodel
-      bmrt_test_case CV186X/yolov5s_v6.1_3output_fp16_1b.bmodel
-      bmrt_test_case CV186X/yolov5s_v6.1_3output_int8_1b.bmodel
-      bmrt_test_case CV186X/yolov5s_v6.1_3output_int8_4b.bmodel
+    if test $TARGET = "BM1690"; then
+      tpurt_test_case BM1690/yolov5s_v6.1_3output_fp32_1b.bmodel
+      tpurt_test_case BM1690/yolov5s_v6.1_3output_int8_1b.bmodel
+      tpurt_test_case BM1690/yolov5s_v6.1_3output_int8_4b.bmodel
     fi
   
     popd
@@ -437,193 +398,43 @@ elif test $MODE = "pcie_test"
 then
   download
   pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
-  if test $TARGET = "BM1684"
+  if test $TARGET = "BM1690"
   then
     if test $CASE_MODE = "fully"
     then
       test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
       test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp pcie sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
       #performence test
       test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
       test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel datasets/coco/val2017_1000
       test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie sail yolov5s_v6.1_3output_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
-      eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3773764563626435
-      eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3439189258831839
-      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3439189258831839
-      eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.37339458560905775
-      eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3374472807208807
-      eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3374472807208807
-      eval_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.37452599746844967
-      eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.33768713965382613
-      eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.33768713965382613
-      eval_cpp pcie sail yolov5s_v6.1_3output_fp32_1b.bmodel 0.37452599746844967
-      eval_cpp pcie sail yolov5s_v6.1_3output_int8_1b.bmodel 0.33768713965382613
-      eval_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel 0.33768713965382613
+      eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.377
+      eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.355
+      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.355
 
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+      # test_python_cpu_opt opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
       
       #int8 4b does not neet to record on readme, only for test.
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
+      # test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
       
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.373
-      eval_python_cpu_opt bmcv yolov5s_v6.1_3output_fp32_1b.bmodel   0.370
-      eval_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.375
-      eval_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_fp32_1b.bmodel 0.375
+      # eval_python_cpu_opt opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.373
 
       #int8 4b does not neet to record on readme, only for test.
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.341
-      eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.336
-      eval_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.339
-      eval_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_int8_4b.bmodel 0.339
+      # eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.341
     elif test $CASE_MODE = "partly"
     then
       test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
       #performence test
       test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
-      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3439189258831839
-      eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3374472807208807
-      eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.33768713965382613
-      eval_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel 0.33768713965382613
+      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.355
 
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
+      # test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
       
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.341
-      eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.336
-      eval_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.339
-      eval_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_int8_4b.bmodel 0.339
-    else
-      echo "unknown CASE_MODE: $CASE_MODE"
-    fi
-  elif test $TARGET = "BM1684X"
-  then
-    if test $CASE_MODE = "fully"
-    then
-      test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp pcie sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      
-      #performence test
-      test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov5s_v6.1_3output_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie sail yolov5s_v6.1_3output_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie sail yolov5s_v6.1_3output_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.37737636274439434
-      eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.37724278449899024
-      eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3614493667191138
-      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3614493667191138
-      eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel   0.37327171731250564
-      eval_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel   0.3730857350522708 
-      eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel   0.35605990207057003
-      eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel   0.35605990207057003
-      eval_cpp pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3741308749290834
-      eval_cpp pcie bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.3739585696522529
-      eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.35651764911660505
-      eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35651764911660505
-      eval_cpp pcie sail yolov5s_v6.1_3output_fp32_1b.bmodel 0.3741308749290834
-      eval_cpp pcie sail yolov5s_v6.1_3output_fp16_1b.bmodel 0.3739585696522529
-      eval_cpp pcie sail yolov5s_v6.1_3output_int8_1b.bmodel 0.35651764911660505 
-      eval_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel 0.35651764911660505 
-
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      
-      #int8 4b does not neet to record on readme, only for test.
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.373
-      eval_python_cpu_opt bmcv yolov5s_v6.1_3output_fp32_1b.bmodel   0.369
-      eval_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.375
-      eval_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_fp32_1b.bmodel 0.375
-
-      #int8 4b does not neet to record on readme, only for test.
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.359
-      eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.353
-      eval_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.358
-      eval_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_int8_4b.bmodel 0.358
-    elif test $CASE_MODE = "partly"
-    then
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      
-      #performence test
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3628645335983023
-      eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel   0.35605990207057003
-      eval_cpp pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35651764911660505
-      eval_cpp pcie sail yolov5s_v6.1_3output_int8_4b.bmodel 0.35651764911660505 
-
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.359
-      eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.353
-      eval_cpp_cpu_opt pcie bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.358
-      eval_cpp_cpu_opt pcie sail yolov5s_v6.1_3output_int8_4b.bmodel 0.358
+      # eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.341
     else
       echo "unknown CASE_MODE: $CASE_MODE"
     fi
@@ -636,7 +447,7 @@ elif test $MODE = "soc_test"
 then
   download
   pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
-  if test $TARGET = "BM1684"
+  if test $TARGET = "BM1690"
   then
     if test $CASE_MODE = "fully"
     then
@@ -729,252 +540,6 @@ then
     else
       echo "unknown CASE_MODE: $CASE_MODE"
     fi
-  elif test $TARGET = "BM1684X"
-  then
-    if test $CASE_MODE = "fully"
-    then
-      test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp soc sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      
-      #performence test
-      test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc sail yolov5s_v6.1_3output_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc sail yolov5s_v6.1_3output_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.37737636274439434
-      eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.37724278449899024
-      eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3614493667191138
-      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3614493667191138
-      eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.37327171731250564
-      eval_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.3730857350522708 
-      eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.35605990207057003
-      eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35605990207057003 
-      eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3741308749290834
-      eval_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.3739585696522529
-      eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.35651764911660505
-      eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35651764911660505
-      eval_cpp soc sail yolov5s_v6.1_3output_fp32_1b.bmodel 0.3741308749290834
-      eval_cpp soc sail yolov5s_v6.1_3output_fp16_1b.bmodel 0.3739585696522529
-      eval_cpp soc sail yolov5s_v6.1_3output_int8_1b.bmodel 0.35651764911660505 
-      eval_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel 0.35651764911660505
-
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-
-      #int8 4b does not neet to record on readme, only for test.
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.373
-      eval_python_cpu_opt bmcv yolov5s_v6.1_3output_fp32_1b.bmodel   0.369
-      eval_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.375
-      eval_cpp_cpu_opt soc sail yolov5s_v6.1_3output_fp32_1b.bmodel 0.375
-
-      #int8 4b does not neet to record on readme, only for test.
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.359
-      eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.353
-      eval_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.358
-      eval_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel 0.358
-    elif test $CASE_MODE = "partly"
-    then
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      
-      #performence test
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3628645335983023
-      eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35605990207057003 
-      eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35651764911660505
-      eval_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel 0.35651764911660505
-
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.359
-      eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.353
-      eval_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.358
-      eval_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel 0.358
-    else
-      echo "unknown CASE_MODE: $CASE_MODE"
-    fi
-  elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
-  then
-    if test $CASE_MODE = "fully"
-    then
-      test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp soc sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      
-      #performence test
-      test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc sail yolov5s_v6.1_3output_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc sail yolov5s_v6.1_3output_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      if test "$PLATFORM" = "SE9-16"; then 
-        test_python opencv yolov5s_v6.1_3output_fp32_1b_2core.bmodel datasets/coco/val2017_1000
-        test_python opencv yolov5s_v6.1_3output_fp16_1b_2core.bmodel datasets/coco/val2017_1000
-        test_python opencv yolov5s_v6.1_3output_int8_1b_2core.bmodel datasets/coco/val2017_1000
-        test_python opencv yolov5s_v6.1_3output_int8_4b_2core.bmodel datasets/coco/val2017_1000
-        test_python bmcv yolov5s_v6.1_3output_fp32_1b_2core.bmodel datasets/coco/val2017_1000
-        test_python bmcv yolov5s_v6.1_3output_fp16_1b_2core.bmodel datasets/coco/val2017_1000
-        test_python bmcv yolov5s_v6.1_3output_int8_1b_2core.bmodel datasets/coco/val2017_1000
-        test_python bmcv yolov5s_v6.1_3output_int8_4b_2core.bmodel datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov5s_v6.1_3output_int8_1b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc sail yolov5s_v6.1_3output_fp32_1b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc sail yolov5s_v6.1_3output_fp16_1b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc sail yolov5s_v6.1_3output_int8_1b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc sail yolov5s_v6.1_3output_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
-      fi
-      
-      eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3773764441244861
-      eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.37728528051990323
-      eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3582145334558921
-      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.35801236868004455
-      eval_python bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3737043885375672
-      eval_python bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.3737594723795068
-      eval_python bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3557891891260202
-      eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35567016002066365
-      eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.37440888396593497
-      eval_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.37428253177246856
-      eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.35346132862376395
-      eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35346132862376395
-      eval_cpp soc sail yolov5s_v6.1_3output_fp32_1b.bmodel 0.37440888396593497
-      eval_cpp soc sail yolov5s_v6.1_3output_fp16_1b.bmodel 0.37428253177246856
-      eval_cpp soc sail yolov5s_v6.1_3output_int8_1b.bmodel 0.35346132862376395
-      eval_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel 0.35346132862376395
-      if test "$PLATFORM" = "SE9-16"; then 
-        eval_python opencv yolov5s_v6.1_3output_fp32_1b_2core.bmodel 0.3773764441244861
-        eval_python opencv yolov5s_v6.1_3output_fp16_1b_2core.bmodel 0.3773578540398762
-        eval_python opencv yolov5s_v6.1_3output_int8_1b_2core.bmodel 0.35745306904368834
-        eval_python opencv yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.3574651731066506
-        eval_python bmcv yolov5s_v6.1_3output_fp32_1b_2core.bmodel 0.373704396923133
-        eval_python bmcv yolov5s_v6.1_3output_fp16_1b_2core.bmodel 0.3738337318696587
-        eval_python bmcv yolov5s_v6.1_3output_int8_1b_2core.bmodel 0.35612302060781365
-        eval_python bmcv yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.35536824796522914
-        eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b_2core.bmodel 0.37440888396593497
-        eval_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b_2core.bmodel 0.37428253177246856
-        eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b_2core.bmodel 0.35346132862376395
-        eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.35346132862376395
-        eval_cpp soc sail yolov5s_v6.1_3output_fp32_1b_2core.bmodel 0.37440888396593497
-        eval_cpp soc sail yolov5s_v6.1_3output_fp16_1b_2core.bmodel 0.37428253177246856
-        eval_cpp soc sail yolov5s_v6.1_3output_int8_1b_2core.bmodel 0.35346132862376395
-        eval_cpp soc sail yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.35346132862376395
-      fi
-      
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-
-      #int8 4b does not neet to record on readme, only for test.
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.373
-      eval_python_cpu_opt bmcv yolov5s_v6.1_3output_fp32_1b.bmodel   0.370
-      eval_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel  0.375
-      eval_cpp_cpu_opt soc sail yolov5s_v6.1_3output_fp32_1b.bmodel  0.375
-
-      #int8 4b does not neet to record on readme, only for test.
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.354
-      eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.350
-      eval_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel  0.355
-      eval_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel  0.355
-    elif test $CASE_MODE = "partly"
-    then
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      
-      #performence test
-      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      if test "$PLATFORM" = "SE9-16"; then 
-        test_python opencv yolov5s_v6.1_3output_int8_4b_2core.bmodel datasets/coco/val2017_1000
-        test_python bmcv yolov5s_v6.1_3output_int8_4b_2core.bmodel datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc sail yolov5s_v6.1_3output_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
-      fi
-      
-      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.35801236868004455
-      eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35567016002066365
-      eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35346132862376395
-      eval_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel 0.35346132862376395
-      if test "$PLATFORM" = "SE9-16"; then 
-        eval_python opencv yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.3574651731066506
-        eval_python bmcv yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.35536824796522914
-        eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.35346132862376395
-        eval_cpp soc sail yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.35346132862376395
-      fi
-      
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.354
-      eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.350
-      eval_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel  0.355
-      eval_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel  0.355
-    else
-      echo "unknown CASE_MODE: $CASE_MODE"
-    fi
   fi
 fi
 
@@ -983,8 +548,8 @@ if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
   cat scripts/acc.txt
   echo "--------yolov5 cpu_opt mAP----------"
   cat scripts/acc_cpu_opt.txt
-  echo "--------bmrt_test performance-----------"
-  bmrt_test_benchmark
+  echo "--------tpurt_test performance-----------"
+  tpurt_test_benchmark
   echo "--------yolov5 performance-----------"
   cat tools/benchmark.txt
   echo "--------yolov5 cpu_opt performance-----------"

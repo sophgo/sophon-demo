@@ -2,8 +2,8 @@
 model_dir=$(dirname $(readlink -f "$0"))
 
 if [ ! $1 ]; then
-    target=bm1684x
-    target_dir=BM1684X
+    target=bm1690
+    target_dir=BM1690
 else
     target=${1,,}
     target_dir=${target^^}
@@ -88,7 +88,7 @@ function gen_int8bmodel()
         #--debug
 
     mv resnet50_int8_$1b.bmodel $outdir/
-    if test $target = "bm1688";then
+    if test $target = "bm1690";then
         model_deploy.py \
             --mlir resnet50_$1b.mlir \
             --quantize INT8 \
