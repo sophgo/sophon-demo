@@ -251,14 +251,7 @@ void YOLOv5::worker_decode(int channel_id){
         auto time_count = std::chrono::high_resolution_clock::now();
         int sleep_time = int (m_decode_elements[channel_id]->time_interval - (time_count-time_counters[channel_id]).count()*1e-6);
 
-        if (sleep_time > 0) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
-        } else {
-          auto elapsed_time = (time_count - time_counters[channel_id]).count() * 1e-6; 
-          double time_interval = m_decode_elements[channel_id]->time_interval;
-          sleep_time = static_cast<int>(time_interval) - static_cast<int>(elapsed_time) % static_cast<int>(time_interval);
-          std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
-        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
         time_counters[channel_id] = time_count;
 
         // 跳帧
