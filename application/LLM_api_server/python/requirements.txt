@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+pydantic==2.7.4
+sse_starlette
+transformers
+openai
