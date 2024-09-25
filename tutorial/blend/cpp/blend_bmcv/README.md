@@ -35,7 +35,7 @@ mkdir build && cd build
 cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk ..  
 make
 ```
-编译完成后，会在blend_bmcv目录下生成blend_bmcv.soc。
+编译完成后，会在blend_bmcv目录下生成bmcv_blend.soc。
 
 
 ## 3. 测试
@@ -43,19 +43,18 @@ make
 ```bash
 python3 -m dfss --url=open@sophgo.com:sophon-demo/tutorial/bmcv_blend/data.tar.gz
 tar -xvf data.tar.gz
-mv data datasets
 ```
 
 ### 3.1 参数说明
-可执行程序默认有一套参数，请注意根据实际情况进行传参。`以blend_bmcv.pcie为例，具体参数说明如下：
+可执行程序默认有一套参数，请注意根据实际情况进行传参。`bmcv_blend.pcie为例，具体参数说明如下：
 ```bash
 Usage: 
-./blend_bmcv.pcie <left image_path> <right image_path> <left wgt> <right wgt>
+./bmcv_blend.pcie <left image_path> <right image_path> <left wgt> <right wgt>
 ```
 ### 3.2 测试图片
 图片测试实例如下。
 ```bash
-./blend_bmcv.soc ./data/left.jpg ./data/right.jpg ./data/c01_alpha12_444p_m2__0_288x2304.bin ./data/c01_beta12_444p_m2__0_288x2304.bin
+./bmcv_blend.soc ./data/left.jpg ./data/right.jpg ./data/c01_alpha12_444p_m2__0_288x2304.bin ./data/c01_beta12_444p_m2__0_288x2304.bin
 ```
 测试结束后，会将缩放后的图片保存为当前文件夹下blend_image.jpg。
 
