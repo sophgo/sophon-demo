@@ -52,6 +52,9 @@ signals:
 
 private:
     std::vector<QRect> rects;
+    bool first_emitted = false;
+    bool first_painted = false;
+
 };
 
 #endif 

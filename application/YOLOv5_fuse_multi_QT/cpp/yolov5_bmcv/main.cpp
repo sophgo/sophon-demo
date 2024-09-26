@@ -82,6 +82,8 @@ void worker_sink(YOLOv5& yolov5){
   
 }
 
+std::chrono::time_point<std::chrono::high_resolution_clock> before_cap_init;
+
 int main(int argc, char *argv[]){
 
   QApplication app(argc, argv);

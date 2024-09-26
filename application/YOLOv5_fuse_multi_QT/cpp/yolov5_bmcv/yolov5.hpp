@@ -48,6 +48,11 @@ struct DecEle{
   std::string dir_path;
   std::vector<std::string> image_name_list;
   std::vector<std::string>::iterator image_name_it;
+
+  // 测时延用
+  std::chrono::time_point<std::chrono::high_resolution_clock> before_cap_init;
+  std::chrono::time_point<std::chrono::high_resolution_clock> after_cap_init;
+  
 };
 
 // 解码队列数据

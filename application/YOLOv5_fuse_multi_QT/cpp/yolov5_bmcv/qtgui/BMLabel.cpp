@@ -8,9 +8,14 @@
 // ===----------------------------------------------------------------------===
 
 #include "BMLabel.h"
+extern std::chrono::time_point<std::chrono::high_resolution_clock> before_cap_init;
 
 void BMLabel::show_img(std::shared_ptr<cv::Mat> cvmat_ptr){
-
+    if(first_emitted == false){
+        auto time_now = std::chrono::high_resolution_clock::now();
+        auto duration = time_now - before_cap_init;
+        printf("<qt><duration> before_cap_init --- first_show_img_start: %.2f\n", duration.count()*1e-6);
+    }
     int label_width = this->width();
     int label_height = this->height();
     cv::Mat o_mat;
@@ -26,8 +31,14 @@ void BMLabel::show_img(std::shared_ptr<cv::Mat> cvmat_ptr){
         std::cerr << "Error: QImage creation failed." << std::endl;
         exit(-1);
     }
-
-    emit BMLabel::show_signals(QPixmap::fromImage(_image));//异步接口，注意线程安全
+    auto image_pixmap = QPixmap::fromImage(_image);
+    if(first_emitted == false){
+        auto time_now = std::chrono::high_resolution_clock::now();
+        auto duration = time_now - before_cap_init;
+        printf("<qt><duration> before_cap_init --- first_emit: %.2f\n", duration.count()*1e-6);
+    }
+    first_emitted = true;
+    emit BMLabel::show_signals(image_pixmap);//异步接口，注意线程安全
 }
 
 void BMLabel::paintEvent(QPaintEvent *event){
@@ -38,4 +49,10 @@ void BMLabel::paintEvent(QPaintEvent *event){
         painter.drawRects(rects.data(),rects.size());
     }
     painter.end();
+    if(first_emitted && first_painted == false){
+        first_painted = true;
+        auto time_now = std::chrono::high_resolution_clock::now();
+        auto duration = time_now - before_cap_init;
+        printf("<qt><duration> before_cap_init --- first_painted: %.2f\n", duration.count()*1e-6);
+    }
 }

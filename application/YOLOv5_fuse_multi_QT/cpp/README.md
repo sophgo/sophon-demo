@@ -4,12 +4,14 @@
 
 ## 目录
 
-* [1. 环境准备](#1-环境准备)
-* [2. 程序编译](#2-程序编译)
-* [3. 推理测试](#3-推理测试)
-    * [3.1 参数说明](#31-参数说明)
-    * [3.2 运行程序](#32-运行程序)
-    * [3.3 程序流程图](#33-程序流程图)
+- [C++例程](#c例程)
+  - [目录](#目录)
+  - [1. 环境准备](#1-环境准备)
+  - [2. 程序编译](#2-程序编译)
+  - [3. 推理测试](#3-推理测试)
+    - [3.1 参数说明](#31-参数说明)
+    - [3.2 运行程序](#32-运行程序)
+    - [3.3 程序流程图](#33-程序流程图)
 
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
@@ -81,6 +83,8 @@ make
   "conf_thresh": 0.5,
   "nms_thresh": 0.5,
   # 显示窗口的个数，应与视频流数量匹配。
+  # QT中的低延时优化说明：窗口分辨率<w_widget, h_widget>等于显示器分辨率<w_hdmi / display_cols, h_hdmi / display_rows>。
+  # 窗口的分辨率越小，qt的渲染速度越快。如果窗口的分辨率和输入流的分辨率相同，还可以节省掉一个resize的时间。用户可以根据实际情况做调整。
   "display_rows": 2,
   "display_cols": 2
 }
@@ -115,6 +119,17 @@ make
 ./yolov5_bmcv/yolov5_bmcv.soc --config=./yolov5_bmcv/config_se9-8.json
 ```
 
+为了测试时延，程序中加了一些时间打印，这里是相关打印的说明：
+```bash
+Channel: 0, cap_init_delay: 8.61 ms;                                 # 打开videocapture的时间
+Channel: 0, worker_decode: first_frame_delay: 282.37 ms;             # 初始化videocapture前---获取到第一帧的时间
+Channel: 0, worker_pre: first_preprocessed_frame_delay: 283.62 ms;   # 初始化videocapture前---第一帧前处理完的时间
+Channel: 0, worker_infer: first_inferenced_frame_delay: 290.85 ms;   # 初始化videocapture前---第一帧推理完的时间
+Channel: 0, worker_post: first_postprocessed_frame_delay: 290.97 ms; # 初始化videocapture前---第一帧后处理完的时间
+<qt><duration> before_cap_init --- first_show_img_start: 293.50      # 初始化videocapture前---第一帧送到qtgui队列的时间。
+<qt><duration> before_cap_init --- first_emit: 296.55                # 初始化videocapture前---qt第一次emit绘图事件的时间。
+<qt><duration> before_cap_init --- first_painted: 297.95             # 初始化videocapture前---qt第一帧绘图事件结束的时间。
+```
 
 ### 3.3 程序流程图
 
