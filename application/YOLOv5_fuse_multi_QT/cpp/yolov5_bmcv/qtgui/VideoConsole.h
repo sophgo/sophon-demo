@@ -28,6 +28,8 @@ public:
         qwidget_ptr = new QWidget;
         qwidget_ptr->setGeometry(0,0,QWIDGET_WIDTH,QWIDGET_HEIGHT);
         layout = new QGridLayout(qwidget_ptr);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(0);
         qwidget_ptr->setLayout(layout);
         for(int row=0;row<rows_;row++){
             for(int col=0;col<cols_;col++){

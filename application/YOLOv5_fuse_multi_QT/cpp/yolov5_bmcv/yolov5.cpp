@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "yolov5.hpp"
+#include <cstdio>
 #include <fstream>
 
 
@@ -15,6 +16,8 @@
 #define FPS 1                 // 是否计算fps
 #define PRESSURE 1            // 压测，循环解码
 #define INTERVAL 10         // 压测打印fps的时间间隔（秒）
+
+extern std::chrono::time_point<std::chrono::high_resolution_clock> before_cap_init;
 
 YOLOv5::YOLOv5(int dev_id, 
               std::string bmodel_path, 
@@ -102,7 +105,18 @@ YOLOv5::YOLOv5(int dev_id,
     auto decode_element = std::make_shared<DecEle>();
     if (is_videos[i]){
       decode_element->is_video = true;
-      decode_element->cap = cv::VideoCapture(input_paths[i], cv::CAP_FFMPEG, dev_id);
+      decode_element->before_cap_init = std::chrono::high_resolution_clock::now();
+      before_cap_init = decode_element->before_cap_init;//global variable
+      decode_element->cap = cv::VideoCapture(input_paths[i], cv::CAP_ANY, dev_id);
+      if(input_paths[i].find("/dev/video6") == 0 || input_paths[i].find("/dev/video7") == 0){
+        printf("Usb camera input, using format MJPG.\n");
+        decode_element->cap.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+      }
+      decode_element->after_cap_init = std::chrono::high_resolution_clock::now();
+      
+      auto cap_init_delay = decode_element->after_cap_init - decode_element->before_cap_init;
+      printf("Channel: %d, cap_init_delay: %.2f ms;\n", i, cap_init_delay.count() * 1e-6);
+      
       if (!decode_element->cap.isOpened()){
         std::cerr << "Error: open video src failed in channel " << i << std::endl;
         exit(1);
@@ -240,8 +254,12 @@ void YOLOv5::worker_decode(int channel_id){
   while (true){
     auto data = std::make_shared<DataDec>();
     decode(data, channel_id);
-        decode_frame_counts[channel_id] += 1;
-
+    if(m_decode_frame_ids[channel_id] == 0){
+      auto time_now = std::chrono::high_resolution_clock::now();
+      auto first_frame_delay = time_now - m_decode_elements[channel_id]->before_cap_init;
+      printf("Channel: %d, worker_decode: first_frame_delay: %.2f ms;\n", channel_id, first_frame_delay.count() * 1e-6);
+    }
+    decode_frame_counts[channel_id] += 1;
     // frame_id为-1时代表读到eof，不进行后续处理
     // 只有可以放入的图片才设置frame id，保证frame id是连续的
     if (data->frame_id != -1){
@@ -354,6 +372,14 @@ void YOLOv5::worker_pre(int pre_idx){
     }
 
     preprocess(dec_images, pre_data, pre_idx);
+    for(int i = 0; i < m_batch_size; i++){
+      if(pre_data->frame_ids[i] == 0){
+        auto time_now = std::chrono::high_resolution_clock::now();
+        auto first_frame_delay = time_now - m_decode_elements[i]->before_cap_init;
+        printf("Channel: %d, worker_pre: first_preprocessed_frame_delay: %.2f ms;\n", pre_data->channel_ids[i], first_frame_delay.count() * 1e-6);
+      }
+    }
+
     m_queue_pre.push_back(pre_data);
 
   }
@@ -375,6 +401,13 @@ void YOLOv5::worker_infer(){
     }
 
     inference(input_data, output_data);
+    for(int i = 0; i < m_batch_size; i++){
+      if(output_data->frame_ids[i] == 0){
+        auto time_now = std::chrono::high_resolution_clock::now();
+        auto first_frame_delay = time_now - m_decode_elements[i]->before_cap_init;
+        printf("Channel: %d, worker_infer: first_inferenced_frame_delay: %.2f ms;\n", output_data->channel_ids[i], first_frame_delay.count() * 1e-6);
+      }
+    }
     m_queue_infer.push_back(output_data);
 
   }
@@ -387,7 +420,6 @@ void YOLOv5::worker_post(){
     std::vector<std::shared_ptr<DataPost>> box_datas;
     
     auto ret = m_queue_infer.pop_front(output_data);
-
     {
       std::unique_lock<std::mutex> lock(m_mutex_stop_post);
       if (m_is_stop_infer && ret == -1){
@@ -399,10 +431,14 @@ void YOLOv5::worker_post(){
         return;
       }
     }
-
-
     postprocess(output_data, box_datas);
-
+    for(int i = 0; i < m_batch_size; i++){
+      if(output_data->frame_ids[i] == 0){
+        auto time_now = std::chrono::high_resolution_clock::now();
+        auto first_frame_delay = time_now - m_decode_elements[i]->before_cap_init;
+        printf("Channel: %d, worker_post: first_postprocessed_frame_delay: %.2f ms;\n", output_data->channel_ids[i], first_frame_delay.count() * 1e-6);
+      }
+    }
     for (int i = 0; i < box_datas.size(); i++){
       m_queue_post.push_back(box_datas[i]);
     }
@@ -421,7 +457,7 @@ void YOLOv5::decode(std::shared_ptr<DataDec> data, int channel_id){
 
   if (decode_ele->is_video){
     decode_ele->cap.read(image);
-
+    
     // eof返回frame_id -1;
     if (image.empty()){
       data->frame_id = -1;
