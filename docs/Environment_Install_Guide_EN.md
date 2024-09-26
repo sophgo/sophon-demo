@@ -2,25 +2,25 @@
 
 # sophon-demo Environmental Installation Guide
 ## Contents
-* [sophon-demo Environmental Installation Guide](#sophon-demo-environmental-installation-guide)
-  * [Contents](#contents)
-  * [1 TPU-MLIR Environmental Installation](#1-tpu-mlir-environmental-installation)
-  * [2 TPU-NNTC Environmental Installation](#2-tpu-nntc-environmental-installation)
-  * [3 x86 PCIe Platform Development and Runtime Environment Construction](#3-x86-pcie-platform-development-and-runtime-environment-construction)
-    * [3.1 Installation of libsophon](#31-installation-of-libsophon)
-    * [3.2 Installation of sophon-ffmpeg and sophon-opencv](#32-installation-of-sophon-ffmpeg-and-sophon-opencv)
-    * [3.3 Compilation and Installation of sophon-sail](#33-compilation-and-installation-of-sophon-sail)
-  * [4 SoC Platform Development and Runtime Environment Construction](#4-soc-platform-development-and-runtime-environment-construction)
-    * [4.1 Cross-compiling Environment Construction](#41-cross-compiling-environment-construction)
-    * [4.2 Cross-compiling and sophon-sail Installation](#42-cross-compiling-and-sophon-sail-installation)
-  * [5 arm PCIe Platform Development and Runtime Environment Construction](#5-arm-pcie-platform-development-and-runtime-environment-construction)
-    * [5.1 Installation of libsophon](#51-installation-of-libsophon)
-    * [5.2 Installation of sophon-ffmpeg and sophon-opencv](#52-installation-of-sophon-ffmpeg-and-sophon-opencv)
-    * [5.3 Compilation and Installation of sophon-sail](#53-compilation-and-installation-of-sophon-sail)
-  * [6 riscv PCIe Platform Development and Runtime Environment Construction](#6-riscv-pcie-platform-development-and-runtime-environment-construction)
-    * [6.1 Installation of libsophon](#61-installation-of-libsophon)
-    * [6.2 Installation of sophon-ffmpeg and sophon-opencv](#62-installation-of-sophon-ffmpeg-and-sophon-opencv)
-    * [6.3 Compilation and Installation of sophon-sail](#63-compilation-and-installation-of-sophon-sail)
+- [sophon-demo Environmental Installation Guide](#sophon-demo-environmental-installation-guide)
+  - [Contents](#contents)
+  - [1 TPU-MLIR Environmental Installation](#1-tpu-mlir-environmental-installation)
+  - [2 TPU-NNTC Environmental Installation](#2-tpu-nntc-environmental-installation)
+  - [3 x86 PCIe Platform Development and Runtime Environment Construction](#3-x86-pcie-platform-development-and-runtime-environment-construction)
+    - [3.1 Installation of libsophon](#31-installation-of-libsophon)
+    - [3.2 Installation of sophon-ffmpeg and sophon-opencv](#32-installation-of-sophon-ffmpeg-and-sophon-opencv)
+    - [3.3 Compilation and Installation of sophon-sail](#33-compilation-and-installation-of-sophon-sail)
+  - [4 SoC Platform Development and Runtime Environment Construction](#4-soc-platform-development-and-runtime-environment-construction)
+    - [4.1 Cross-compiling Environment Construction](#41-cross-compiling-environment-construction)
+    - [4.2 Cross-compiling and sophon-sail Installation](#42-cross-compiling-and-sophon-sail-installation)
+  - [5 arm PCIe Platform Development and Runtime Environment Construction](#5-arm-pcie-platform-development-and-runtime-environment-construction)
+    - [5.1 Installation of libsophon](#51-installation-of-libsophon)
+    - [5.2 Installation of sophon-ffmpeg and sophon-opencv](#52-installation-of-sophon-ffmpeg-and-sophon-opencv)
+    - [5.3 Compilation and Installation of sophon-sail](#53-compilation-and-installation-of-sophon-sail)
+  - [6 riscv PCIe Platform Development and Runtime Environment Construction](#6-riscv-pcie-platform-development-and-runtime-environment-construction)
+    - [6.1 Installation of libsophon](#61-installation-of-libsophon)
+    - [6.2 Installation of sophon-ffmpeg and sophon-opencv](#62-installation-of-sophon-ffmpeg-and-sophon-opencv)
+    - [6.3 Compilation and Installation of sophon-sail](#63-compilation-and-installation-of-sophon-sail)
 
 The environments Sophon Demo relies on include the TPU-NNTC and TPU-MLIR environments for compiling and quantifying the models, the development environment for compiling C++ programs, and the runtime environment for deploying the programs.
 
@@ -237,8 +237,29 @@ You need to build a cross-compilation environment on an x86 host using SOPHONSDK
     ```bash
     sudo apt remove cpp-*-aarch64-linux-gnu
     ```
+    
+    You should check if your environment contains libz:
+    ```bash
+    dpkg -L zlib1g:arm64 | grep libz.so.1
+    ```
+    The command above should print such as:
+    ```bash
+    /lib/aarch64-linux-gnu/libz.so.1.2.11
+    /lib/aarch64-linux-gnu/libz.so.1
+    ```
+    If there is nothing printed, you should install libz, add these lines in `/etc/apt/sources.list`:
+    ```bash
+    deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main restricted
+    deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main restricted
+    ```
+    Then use following commands:        
+    ```bash
+    sudo dpkg --add-architecture arm64
+    sudo apt-get update
+    sudo apt-get install zlib1g:arm64
+    ```
+
     If your environment doesn't qualify conditions above, we recommend you method (2).
-    如果您的环境不满足上述要求，建议使用第(2)种方法。
     
     (2)Using docker image：
     
