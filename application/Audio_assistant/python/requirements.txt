@@ -8,3 +8,10 @@ pypinyin
 rich
 tiktoken
 modelscope
+pysbd
+coqpit
+trainer
+einops
+hangul_romanize
+num2words
+spacy

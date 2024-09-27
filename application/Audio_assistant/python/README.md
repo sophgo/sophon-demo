@@ -23,7 +23,7 @@ python目录下提供了Python例程，具体情况如下：
 
 如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
 
-- Python >= 3.8.2环境。
+- Python >= 3.8.2环境，SDK >= v23.09。
 
 - 如果您使用Llama3作为LLM，则需要执行如下步骤进行编译
 ```bash
@@ -59,6 +59,8 @@ pip3 install -r requirements.txt
 ### 1.2 SoC平台
 
 如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
+
+- SDK >= v23.09
 
 - 如果您使用Llama3作为LLM，则需要在SOC平台执行如下步骤进行编译
 ```bash
@@ -294,6 +296,7 @@ python3 whisper_minicpm_llama3_vits.py --bmodel_dir ../BM1684X/whisper --vits_mo
 > 1. 性能Latency指标是指问题说完到开始输出回答音频的时间，单位为秒(s)。
 > 2. 不同PCIE平台有差异，以实际性能为准。
 > 3. 性能结果受LLM输出的第一段话长度、参数`--min_tts_input_len`的影响，两者长度越长延时越高，实际性能可以通过实际数据测试得到。
+> 4. 对于SE7，不同SDK版本性能可能存在较大差异，以实测为准。
 
 ## 5. 流程图
 
