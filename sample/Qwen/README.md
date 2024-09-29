@@ -92,9 +92,9 @@ sudo reboot
 │       ├── qwen-xxx.bmodel
 │       └── qwen1.5-xxx.bmodel
 │       └── qwen2-xxx.bmodel
-│   └── CV186X                    #download.sh下载的bm1688 bmodel
+│   └── CV186X                    #download.sh下载的cv186x bmodel
 │       └── qwen1.5-xxx.bmodel
-│   └── BM1688                    #download.sh下载的cv186x bmodel
+│   └── BM1688                    #download.sh下载的bm1688 bmodel
 │       └── qwen1.5-xxx.bmodel
 ├── python
 │   ├── qwen.py                     #Qwen python推理脚本
