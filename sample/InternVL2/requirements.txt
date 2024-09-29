@@ -1,0 +1,11 @@
+transformers==4.37.2
+torch==2.3.0
+torchvision
+Pillow
+requests==2.27
+tiktoken
+matplotlib
+transformers_stream_generator
+einops
+accelerate
+onnx

@@ -1,0 +1,5 @@
+transformers_stream_generator
+einops
+tiktoken
+accelerate
+transformers==4.37.2
