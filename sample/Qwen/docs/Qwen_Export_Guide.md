@@ -85,16 +85,16 @@ cp tools/Qwen-7B-Chat/modeling_qwen.py Qwen-7B-Chat/
 
 Qwen1.5
 ```bash
-cp tools/Qwen1.5-7B-Chat/modeling_qwen.py Qwen1.5-7B-Chat/
+cp tools/Qwen1.5-7B-Chat/config.json Qwen1.5-7B-Chat/
 cp tools/Qwen1.5-7B-Chat/modeling_qwen2.py /usr/local/lib/python3.10/dist-packages/transformers/models/qwen2/
 
-cp tools/Qwen1.5-1.8B-Chat/modeling_qwen.py Qwen1.5-1.8B-Chat/
+cp tools/Qwen1.5-1.8B-Chat/config.json Qwen1.5-1.8B-Chat/
 cp tools/Qwen1.5-1.8B-Chat/modeling_qwen2.py /usr/local/lib/python3.10/dist-packages/transformers/models/qwen2/
 ```
 
 Qwen2
 ```bash
-cp tools/Qwen2-7B-Instruct/modeling_qwen.py Qwen2-7B-Instruct/
+cp tools/Qwen2-7B-Instruct/config.json Qwen2-7B-Instruct/
 cp tools/Qwen2-7B-Instruct/modeling_qwen2.py /usr/local/lib/python3.10/dist-packages/transformers/models/qwen2/
 ```
 

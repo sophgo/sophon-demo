@@ -55,5 +55,5 @@ if [ "$1" == "bm1688" ]; then
 elif [ "$1" == "cv186x" ]; then
     download_cv186x
 else
-    download $1
+    download_bm1684x $1
 fi
