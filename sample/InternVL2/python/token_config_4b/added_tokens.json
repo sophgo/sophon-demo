@@ -1,0 +1,22 @@
+{
+  "</box>": 32019,
+  "</img>": 32012,
+  "</quad>": 32015,
+  "</ref>": 32017,
+  "<IMG_CONTEXT>": 32013,
+  "<box>": 32018,
+  "<img>": 32011,
+  "<quad>": 32014,
+  "<ref>": 32016,
+  "<|assistant|>": 32001,
+  "<|endoftext|>": 32000,
+  "<|end|>": 32007,
+  "<|placeholder1|>": 32002,
+  "<|placeholder2|>": 32003,
+  "<|placeholder3|>": 32004,
+  "<|placeholder4|>": 32005,
+  "<|placeholder5|>": 32008,
+  "<|placeholder6|>": 32009,
+  "<|system|>": 32006,
+  "<|user|>": 32010
+}
