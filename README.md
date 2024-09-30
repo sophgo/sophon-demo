@@ -34,12 +34,14 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [SCRFD](./sample/SCRFD/README.md)                             | 人脸检测          | C++/Python | FP32/FP16/INT8 |
 | [segformer](./sample/segformer/README.md)                     | 语义分割          | C++/Python | FP32/FP16      |
 | [SAM](./sample/SAM/README.md)                                 | 语义分割          | Python     | FP32/FP16      |
+| [SAM2](./sample/SAM2/README.md)                               | 语义分割          | Python     | FP32/FP16      |
 | [yolact](./sample/yolact/README.md)                           | 实例分割          | C++/Python | FP32/FP16/INT8 |
 | [YOLOv8_seg](./sample/YOLOv8_seg/README.md)                   | 实例分割          | C++/Python | FP32/FP16/INT8 |
 | [YOLOv9_seg](./sample/YOLOv9_seg/README.md)                   | 实例分割          | C++/Python | FP32/FP16/INT8 |
 | [PP-OCR](./sample/PP-OCR/README.md)                           | OCR              | C++/Python | FP32/FP16      | 
 | [OpenPose](./sample/OpenPose/README.md)                       | 人体关键点检测    | C++/Python | FP32/FP16/INT8 |
 | [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | 人体关键点检测    | C++/Python | FP32/FP16/INT8 |
+| [HRNet_pose](./sample/HRNet_pose/README.md)                   | 人体关键点检测    | C++/Python | FP32/FP16/INT8 |
 | [C3D](./sample/C3D/README.md)                                 | 视频动作识别      | C++/Python | FP32/FP16/INT8 |
 | [DeepSORT](./sample/DeepSORT/README.md)                       | 多目标跟踪        | C++/Python | FP32/FP16/INT8 |
 | [ByteTrack](./sample/ByteTrack/README.md)                     | 多目标跟踪        | C++/Python | FP32/FP16/INT8 |
@@ -71,21 +73,28 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | 图像生成          | Python     | FP32/FP16      |
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | 多模态目标检测     | Python     | FP16           |
 | [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | 大规模视觉语言模型 | Python     | FP16/INT8      |
+| [InternVL2](./sample/InternVL2/README.md)                     | 大规模视觉语言模型 | Python     | INT4      |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | 超分辨            | C++/Python | FP32/FP16/INT8 |
 | [P2PNet](./sample/P2PNet/README.md)                           | 人群计数          | C++/Python | FP32/FP16/INT8 |
 | [CLIP](./sample/CLIP/README.md)                               | 图文生成          | Python     | FP16           |
+| [BLIP](./sample/BLIP/README.md)                               | 多模态图文模型     | Python     | FP32           |
 | [SuperGlue](./sample/SuperGlue/README.md)                     | 特征匹配          | C++        | FP32/FP16      |
+| [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | 语音生成          | Python     | FP32/FP16      |
+| [DirectMHP](./sample/DirectMHP/README.md)                     | 头部姿势估计      | C++/Python | FP32/FP16      |
 
-| application                                                    | 应用场景                  | 编程语言    | 
-|---                                                             |---                       |---          | 
-| [VLPR](./application/VLPR/README.md)                           | 多路车牌检测+识别          | C++/Python  | 
-| [YOLOv5_multi](./application/YOLOv5_multi/README.md)           | 多路目标检测               | C++         | 
-| [YOLOv5_multi_QT](./application/YOLOv5_multi_QT/README.md)     | 多路目标检测+QT_HDMI显示   | C++         | 
-| [Grounded-sam](./application/Grounded-sam/README.md)           | 自动化图像检测和分割系统    | Python         | 
+| application                                                              | 应用场景                  | 编程语言    | 
+|---                                                                       |---                       |---          | 
+| [VLPR](./application/VLPR/README.md)                                     | 多路车牌检测+识别          | C++/Python  | 
+| [YOLOv5_multi](./application/YOLOv5_multi/README.md)                     | 多路目标检测               | C++         | 
+| [YOLOv5_multi_QT](./application/YOLOv5_multi_QT/README.md)               | 多路目标检测+QT_HDMI显示   | C++         | 
+| [Grounded-sam](./application/Grounded-sam/README.md)                     | 自动化图像检测和分割系统    | Python         | 
+| [cv-demo](./application/cv-demo/README.md)                               | 双目鱼眼、广角拼接应用      | C++         | 
+| [YOLOv5_fuse_multi_QT](./application/YOLOv5_fuse_multi_QT/README.md)     | 多路目标检测+QT_HDMI显示    | C++         | 
 
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.2.5  | 完善和修复文档、代码问题，去除所有sample的公共依赖。sample模块新增例程SAM2、HRNet_pose、InternVL2、BLIP、DirectMHP、VITS_CHINESE例程，application新增cv-demo、YOLOv5_fuse_multi_QT例程。 |
 | 0.2.4  | 完善和修复文档、代码问题，**修复VideoDecFFM系统内存泄漏问题**，sample模块新增例程YOLOv8_pose、Qwen-VL-Chat例程，application新增Grounded-sam例程。 |
 | 0.2.3  | 完善和修复文档、代码问题，sample模块新增例程StableDiffusionXL、ChatGLM4、Seamless、YOLOv10，tutorial模块新增mmap、video_encode例程。 |
 | 0.2.2  | 完善和修复文档、代码问题，部分例程补充CV186X支持，sample模块新增例程Whisper、Real-ESRGAN、SCRFD、P2PNet、MiniCPM、CLIP、SuperGlue、YOLOv5_fuse、YOLOv8_seg、YOLOv9_seg、Baichuan2等例程，tutorial模块新增avframe_ocv、ocv_avframe、bm1688_2core2task_yolov5例程。 |
@@ -107,6 +116,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 SOPHON-DEMO主要依赖TPU-MLIR、TPU-NNTC、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SOPHON-SAIL，对于BM1684/BM1684X SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
+| 0.2.5  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.4  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.3  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.2  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v23.10.01|
@@ -127,6 +137,7 @@ SOPHON-DEMO主要依赖TPU-MLIR、TPU-NNTC、LIBSOPHON、SOPHON-FFMPEG、SOPHON-
 对于BM1688/CV186AH SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.2.5  | >=1.9       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.4  | >=1.9       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.3  | >=1.8       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.2  | >=1.8       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.6.0  |

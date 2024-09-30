@@ -34,12 +34,14 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [SCRFD](./sample/SCRFD/README.md)                             | Face detection                     | C++/Python | FP32/FP16/INT8 |
 | [segformer](./sample/segformer/README.md)                     | Semantic segmentation              | C++/Python | FP32/FP16      |
 | [SAM](./sample/SAM/README.md)                                 | Semantic segmentation              | Python     | FP32/FP16      |
+| [SAM2](./sample/SAM2/README.md)                               | Semantic segmentation              | Python     | FP32/FP16      |
 | [yolact](./sample/yolact/README.md)                           | Instance segmentation              | C++/Python | FP32/FP16/INT8 |
 | [YOLOv8_seg](./sample/YOLOv8_seg/README.md)                   | Instance segmentation              | C++/Python | FP32/FP16/INT8 |
 | [YOLOv9_seg](./sample/YOLOv9_seg/README.md)                   | Instance segmentation              | C++/Python | FP32/FP16/INT8 |
 | [PP-OCR](./sample/PP-OCR/README.md)                           | OCR                                | C++/Python | FP32/FP16      |
 | [OpenPose](./sample/OpenPose/README.md)                       | Keypoint detection                 | C++/Python | FP32/FP16/INT8 |
 | [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | Keypoint detection                 | C++/Python | FP32/FP16/INT8 |
+| [HRNet_pose](./sample/HRNet_pose/README.md)                   | Keypoint detection                 | C++/Python | FP32/FP16/INT8 |
 | [C3D](./sample/C3D/README.md)                                 | Video recognition                  | C++/Python | FP32/FP16/INT8 |
 | [DeepSORT](./sample/DeepSORT/README.md)                       | Object tracking                    | C++/Python | FP32/FP16/INT8 |
 | [ByteTrack](./sample/ByteTrack/README.md)                     | Object tracking                    | C++/Python | FP32/FP16/INT8 |
@@ -71,23 +73,30 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | Image Generation                   | Python     | FP32/FP16      |
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | MultiModal Object Detection        | Python     | FP16           |
 | [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | Large Vision Language Model        | Python     | FP16/INT8      |
+| [InternVL2](./sample/InternVL2/README.md)                     | Large Vision Language Model        | Python     | INT4           |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 |
 | [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 |
 | [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | Python     | FP16           |
+| [BLIP](./sample/BLIP/README.md)                               | Large Image-Text Model             | Python     | FP32           |
 | [SuperGlue](./sample/SuperGlue/README.md)                     | Keypoint Matching                  | C++        | FP32/FP16      |
+| [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | Text To Speech                     | Python     | FP32/FP16      |
+| [DirectMHP](./sample/DirectMHP/README.md)                     | Head pose estimation               | C++/Python | FP32/FP16      |
 
-| application                                                    | scenarios                 | code    | 
-|---                                                             |---                       |---          | 
-| [VLPR](./application/VLPR/README.md)                           | Multi-streams Vehicle License Plate Recognition | C++/Python  | 
-| [YOLOv5_multi](./application/YOLOv5_multi/README.md)           | Multi-streams Object Detection       | C++         | 
-| [YOLOv5_multi_QT](./application/YOLOv5_multi_QT/README.md)     | Multi-streams Object Detection + QT_HDMI display    | C++         | 
-| [Grounded-sam](./application/Grounded-sam/README.md)           | Automatic image detection and segmentation system    | Python         | 
+| application                                                              | scenarios                 | code    | 
+|---                                                                       |---                       |---          | 
+| [VLPR](./application/VLPR/README.md)                                     | Multi-streams Vehicle License Plate Recognition | C++/Python  | 
+| [YOLOv5_multi](./application/YOLOv5_multi/README.md)                     | Multi-streams Object Detection       | C++         | 
+| [YOLOv5_multi_QT](./application/YOLOv5_multi_QT/README.md)               | Multi-streams Object Detection + QT_HDMI display    | C++         | 
+| [Grounded-sam](./application/Grounded-sam/README.md)                     | Automatic image detection and segmentation system    | Python         | 
+| [cv-demo](./application/cv-demo/README.md)                               | Bilingual Fisheye and Wide-angle Stitching      | C++         | 
+| [YOLOv5_fuse_multi_QT](./application/YOLOv5_fuse_multi_QT/README.md)     | Multi-streams Object Detection + QT_HDMI display    | C++         | 
 
 ## Release Notes
 | version | description | 
 |---|---|
-| 0.2.4  | Fix documentation and other issues, **Fix host memory leak in VideoDecFFM**，Release new samples including YOLOv8_pose/Qwen-VL-Chat, new application Grounded-sam. |
-| 0.2.3  | Fix documentation and other issues, Release new samples including StableDiffusionXL/ChatGLM4/Seamless/YOLOv10, new tutorials including mmap/video_encode. |
+| 0.2.5  | Fix documentation and other issues. Remove all samples' common dependencies. Release new samples including SAM2/HRNet_pose/InternVL2/BLIP/DirectMHP/VITS_CHINESE, new applications cv-demo,YOLOv5_fuse_multi_QT. |
+| 0.2.4  | Fix documentation and other issues. **Fix host memory leak in VideoDecFFM**. Release new samples including YOLOv8_pose/Qwen-VL-Chat, new application Grounded-sam. |
+| 0.2.3  | Fix documentation and other issues. Release new samples including StableDiffusionXL/ChatGLM4/Seamless/YOLOv10, new tutorials including mmap/video_encode. |
 | 0.2.2  | Fix documentation and other issues, some examples support CV186X. Release new samples including Whisper/Real-ESRGAN/SCRFD/P2PNet/MiniCPM/CLIP/SuperGlue/YOLOv5_fuse/YOLOv8_seg/YOLOv9_seg/Baichuan2, new tutorials including avframe_ocv/ocv_avframe/bm1688_2core2task_yolov5. |
 | 0.2.1  | Fix documentation and other issues, some examples support CV186X, sample/YOLOv5 support SG2042, release new samples GroundingDINO and Qwen1_5, StableDiffusionV1_5 newly support multilize resolution models, Qwen/Llama2/ChatGLM3 add web and multi-session support. tutorial module add blend and stitch examples. |
 | 0.2.0  |  Fix documentation and other issues, release application/tutorial modules, release new samples ChatGLM3 and Qwen, add a web ui in SAM, BERT/ByteTrack/C3D support BM1688, YOLOv8 is renamed to YOLOv8_det and add cpp postproces acceleration, optimize auto_test in commonly used samples, upgrade TPU-MLIR installation to pip |
@@ -107,6 +116,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
+| 0.2.5  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.4  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.3  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.2  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v23.10.01|
@@ -127,6 +137,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPH
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.2.5  | >=1.9       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.4  | >=1.9       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.3  | >=1.8       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.2  | >=1.8       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.6.0  |
