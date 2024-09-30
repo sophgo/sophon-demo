@@ -53,10 +53,14 @@ chmod -R +x scripts/
 │   ├── p2pnet_bm1684x_int8_1b.bmodel  # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── p2pnet_bm1684x_int8_4b.bmodel  # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
 ├── BM1688
-│   ├── p2pnet_bm1688_fp32_1b.bmodel  # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
-│   ├── p2pnet_bm1688_fp16_1b.bmodel  # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
-│   ├── p2pnet_bm1688_int8_1b.bmodel  # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
-│   └── p2pnet_bm1688_int8_4b.bmodel  # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4
+│   ├── p2pnet_bm1688_fp32_1b.bmodel  # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=1
+│   ├── p2pnet_bm1688_fp16_1b.bmodel  # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=1
+│   ├── p2pnet_bm1688_int8_1b.bmodel  # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=1
+│   ├── p2pnet_bm1688_int8_4b.bmodel  # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=1
+│   ├── p2pnet_fp32_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
+│   ├── p2pnet_fp16_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
+│   ├── p2pnet_int8_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
+│   └── p2pnet_int8_4b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
 ├── CV186X
 │   ├── p2pnet_cv186x_fp32_1b.bmodel  # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
 │   ├── p2pnet_cv186x_fp16_1b.bmodel  # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
@@ -166,6 +170,18 @@ python3 tools/eval_acc.py --gt_path datasets/test/ground-truth --result_path pyt
 | SE9-16 | p2pnet_bmcv.soc      | p2pnet_bm1688_fp16_1b.bmodel  |  18.15 | 28.72 |
 | SE9-16 | p2pnet_bmcv.soc      | p2pnet_bm1688_int8_1b.bmodel  |  18.10 | 28.53 |
 | SE9-16 | p2pnet_bmcv.soc      | p2pnet_bm1688_int8_4b.bmodel  |  18.10 | 28.53 |
+| SE9-16       | p2pnet_opencv.py   | p2pnet_fp32_1b_2core.bmodel |    18.35 | 29.12 |
+| SE9-16       | p2pnet_opencv.py   | p2pnet_fp16_1b_2core.bmodel |    18.33 | 29.11 |
+| SE9-16       | p2pnet_opencv.py   | p2pnet_int8_1b_2core.bmodel |    18.43 |  29.54 |
+| SE9-16       | p2pnet_opencv.py   | p2pnet_int8_4b_2core.bmodel |    18.43 | 29.54 |
+| SE9-16       | p2pnet_bmcv.py     | p2pnet_fp32_1b_2core.bmodel |    20.15 |  30.40 |
+| SE9-16       | p2pnet_bmcv.py     | p2pnet_fp16_1b_2core.bmodel |    20.17 |  30.43 |
+| SE9-16       | p2pnet_bmcv.py     | p2pnet_int8_1b_2core.bmodel |    20.31 |  30.66  |
+| SE9-16       | p2pnet_bmcv.py     | p2pnet_int8_4b_2core.bmodel |    20.36 |  30.72  |
+| SE9-16       | p2pnet_bmcv.soc    | p2pnet_fp32_1b_2core.bmodel |    18.07 |  28.89 |
+| SE9-16       | p2pnet_bmcv.soc    | p2pnet_fp16_1b_2core.bmodel |    18.43 |  28.67 |
+| SE9-16       | p2pnet_bmcv.soc    | p2pnet_int8_1b_2core.bmodel |    18.10 |  28.56  |
+| SE9-16       | p2pnet_bmcv.soc    | p2pnet_int8_4b_2core.bmodel |    18.12 |  28.53  |
 | SE9-8| p2pnet_opencv.py | p2pnet_cv186x_fp32_1b.bmodel | 18.35     | 29.12          |
 | SE9-8| p2pnet_opencv.py | p2pnet_cv186x_fp16_1b.bmodel | 18.33      | 29.11         |
 | SE9-8| p2pnet_opencv.py | p2pnet_cv186x_int8_1b.bmodel | 18.43      | 29.54          |
@@ -208,6 +224,10 @@ bmrt_test --bmodel models/BM1684/p2pnet_bm1684_fp32_1b.bmodel
 | BM1688/p2pnet_bm1688_fp16_1b.bmodel 	     | 			109.5     |
 | BM1688/p2pnet_bm1688_int8_1b.bmodel 	     | 			28.6      |
 | BM1688/p2pnet_bm1688_int8_4b.bmodel 	     | 			27.68     |
+| BM1688/p2pnet_fp32_1b_2core.bmodel         | 481.27             |
+| BM1688/p2pnet_fp16_1b_2core.bmodel         | 59.94              |
+| BM1688/p2pnet_int8_1b_2core.bmodel         | 22.46              |
+| BM1688/p2pnet_int8_4b_2core.bmodel         | 14.88              |
 | CV186X/p2pnet_cv186x_fp32_1b.bmodel  		 | 937.7              |
 | CV186X/p2pnet_cv186x_fp16_1b.bmodel  		 | 109.5              |
 | CV186X/p2pnet_cv186x_int8_1b.bmodel  		 | 28.6               |
@@ -257,6 +277,18 @@ bmrt_test --bmodel models/BM1684/p2pnet_bm1684_fp32_1b.bmodel
 | SE9-16 | p2pnet_bmcv.soc  | p2pnet_bm1688_fp16_1b.bmodel  | 6.357      | 1.966         | 109.443      | 1.936     |
 | SE9-16 | p2pnet_bmcv.soc  | p2pnet_bm1688_int8_1b.bmodel  | 6.456      | 1.965         | 28.535       | 1.934     |
 | SE9-16 | p2pnet_bmcv.soc  | p2pnet_bm1688_int8_4b.bmodel  | 6.268      | 1.887         | 110.907      | 1.97     |
+|   SE9-16    | p2pnet_opencv.py  |    p2pnet_fp32_1b_2core.bmodel    |      38.48      |      52.12      |     485.57      |      6.12       |
+|   SE9-16    | p2pnet_opencv.py  |    p2pnet_fp16_1b_2core.bmodel    |      38.54      |      51.63      |      64.05      |      6.10       |
+|   SE9-16    | p2pnet_opencv.py  |    p2pnet_int8_1b_2core.bmodel    |      38.46      |      52.02      |      26.72      |      6.12       |
+|   SE9-16    | p2pnet_opencv.py  |    p2pnet_int8_4b_2core.bmodel    |      38.72      |      57.92      |      17.95      |      5.84       |
+|   SE9-16    |  p2pnet_bmcv.py   |    p2pnet_fp32_1b_2core.bmodel    |      5.29       |      5.91       |     482.75      |      6.22       |
+|   SE9-16    |  p2pnet_bmcv.py   |    p2pnet_fp16_1b_2core.bmodel    |      5.29       |      5.91       |      61.18      |      6.22       |
+|   SE9-16    |  p2pnet_bmcv.py   |    p2pnet_int8_1b_2core.bmodel    |      5.31       |      5.92       |      23.65      |      6.23       |
+|   SE9-16    |  p2pnet_bmcv.py   |    p2pnet_int8_4b_2core.bmodel    |      5.03       |      6.31       |      15.43      |      5.94       |
+|   SE9-16    |  p2pnet_bmcv.soc  |    p2pnet_fp32_1b_2core.bmodel    |      6.32       |      1.97       |     481.23      |      1.97       |
+|   SE9-16    |  p2pnet_bmcv.soc  |    p2pnet_fp16_1b_2core.bmodel    |      6.45       |      1.96       |      59.87      |      1.93       |
+|   SE9-16    |  p2pnet_bmcv.soc  |    p2pnet_int8_1b_2core.bmodel    |      6.38       |      1.96       |      22.37      |      1.93       |
+|   SE9-16    |  p2pnet_bmcv.soc  |    p2pnet_int8_4b_2core.bmodel    |      6.49       |      1.89       |      14.93      |      1.90       |
 | SE9-8  | p2pnet_opencv.py | p2pnet_cv186x_fp32_1b.bmodel  | 39.86      | 53.21         | 942.04       | 6.12      |
 | SE9-8  | p2pnet_opencv.py | p2pnet_cv186x_fp16_1b.bmodel  | 38.53      | 52.53         | 113.74       | 6.12      |
 | SE9-8  | p2pnet_opencv.py | p2pnet_cv186x_int8_1b.bmodel  | 38.52      | 52.45         | 32.81        | 6.11      |

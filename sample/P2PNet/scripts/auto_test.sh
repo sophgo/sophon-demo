@@ -60,6 +60,10 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE5-16"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
+    cpu_core_num=$(nproc)
+    if [ "$cpu_core_num" -eq 6 ]; then
+      PLATFORM="SE9-8"
+    fi
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
   else
@@ -99,6 +103,12 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1688/p2pnet_bm1688_fp16_1b.bmodel
       bmrt_test_case BM1688/p2pnet_bm1688_int8_1b.bmodel
       bmrt_test_case BM1688/p2pnet_bm1688_int8_4b.bmodel
+	  if test "$PLATFORM" = "SE9-16"; then 
+        bmrt_test_case BM1688/p2pnet_fp32_1b_2core.bmodel
+        bmrt_test_case BM1688/p2pnet_fp16_1b_2core.bmodel
+        bmrt_test_case BM1688/p2pnet_int8_1b_2core.bmodel
+        bmrt_test_case BM1688/p2pnet_int8_4b_2core.bmodel
+      fi
     elif test $TARGET = "CV186X"; then
       bmrt_test_case CV186X/p2pnet_cv186x_fp32_1b.bmodel
       bmrt_test_case CV186X/p2pnet_cv186x_fp16_1b.bmodel
@@ -306,34 +316,6 @@ then
     eval_cpp pcie bmcv p2pnet_bm1684x_fp16_1b.bmodel 18.15
     eval_cpp pcie bmcv p2pnet_bm1684x_int8_1b.bmodel 18.01
     eval_cpp pcie bmcv p2pnet_bm1684x_int8_4b.bmodel 17.990506329113924
-	elif test $TARGET = "BM1688"
-  then
-    eval_python opencv p2pnet_bm1688_fp32_1b.bmodel 18.35126582278481
-    eval_python opencv p2pnet_bm1688_fp16_1b.bmodel 18.33
-    eval_python opencv p2pnet_bm1688_int8_1b.bmodel 18.42
-    eval_python opencv p2pnet_bm1688_int8_4b.bmodel 18.42
-    eval_python bmcv p2pnet_bm1688_fp32_1b.bmodel 20.21518987341772
-    eval_python bmcv p2pnet_bm1688_fp16_1b.bmodel 20.17
-    eval_python bmcv p2pnet_bm1688_int8_1b.bmodel 20.335443037974684
-    eval_python bmcv p2pnet_bm1688_int8_4b.bmodel 20.335443037974684
-    eval_cpp pcie bmcv p2pnet_bm1688_fp32_1b.bmodel 18.056962025316455
-    eval_cpp pcie bmcv p2pnet_bm1688_fp16_1b.bmodel 18.15
-    eval_cpp pcie bmcv p2pnet_bm1688_int8_1b.bmodel 18.10
-    eval_cpp pcie bmcv p2pnet_bm1688_int8_4b.bmodel 18.10
-  elif test $TARGET = "CV186X"
-  then
-    eval_python opencv p2pnet_cv186x_fp32_1b.bmodel 18.35126582278481
-    eval_python opencv p2pnet_cv186x_fp16_1b.bmodel 18.33
-    eval_python opencv p2pnet_cv186x_int8_1b.bmodel 18.43
-    eval_python opencv p2pnet_cv186x_int8_4b.bmodel 18.43
-    eval_python bmcv p2pnet_cv186x_fp32_1b.bmodel 20.15
-    eval_python bmcv p2pnet_cv186x_fp16_1b.bmodel 20.17
-    eval_python bmcv p2pnet_cv186x_int8_1b.bmodel 20.36
-    eval_python bmcv p2pnet_cv186x_int8_4b.bmodel 20.36
-    eval_cpp pcie bmcv p2pnet_cv186x_fp32_1b.bmodel 18.07
-    eval_cpp pcie bmcv p2pnet_cv186x_fp16_1b.bmodel 18.06
-    eval_cpp pcie bmcv p2pnet_cv186x_int8_1b.bmodel 18.10
-    eval_cpp pcie bmcv p2pnet_cv186x_int8_4b.bmodel 18.10
   fi
 elif test $MODE = "soc_build"
 then
@@ -380,6 +362,19 @@ then
     eval_cpp soc bmcv p2pnet_bm1688_fp16_1b.bmodel 18.15
     eval_cpp soc bmcv p2pnet_bm1688_int8_1b.bmodel 18.10
     eval_cpp soc bmcv p2pnet_bm1688_int8_4b.bmodel 18.10
+	
+	eval_python opencv p2pnet_fp32_1b_2core.bmodel 18.35
+    eval_python opencv p2pnet_fp16_1b_2core.bmodel 18.33
+    eval_python opencv p2pnet_int8_1b_2core.bmodel 18.43
+    eval_python opencv p2pnet_int8_4b_2core.bmodel 18.43
+    eval_python bmcv p2pnet_fp32_1b_2core.bmodel 20.15
+    eval_python bmcv p2pnet_fp16_1b_2core.bmodel 20.17
+    eval_python bmcv p2pnet_int8_1b_2core.bmodel 20.31
+    eval_python bmcv p2pnet_int8_4b_2core.bmodel 20.36
+    eval_cpp soc bmcv p2pnet_fp32_1b_2core.bmodel 18.35
+    eval_cpp soc bmcv p2pnet_fp16_1b_2core.bmodel 18.09
+    eval_cpp soc bmcv p2pnet_int8_1b_2core.bmodel 18.16
+    eval_cpp soc bmcv p2pnet_int8_4b_2core.bmodel 18.10
   elif test $TARGET = "CV186X"
   then
     eval_python opencv p2pnet_cv186x_fp32_1b.bmodel 18.35126582278481

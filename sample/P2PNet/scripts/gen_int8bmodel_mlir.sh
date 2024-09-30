@@ -21,6 +21,8 @@ gen_mlir()
         --scale 0.01712,0.01751,0.01743 \
         --keep_aspect_ratio \
         --pixel_format rgb \
+        --test_input ../datasets/calibration/IMG_1.jpg \
+        --test_result p2pnet_$1b_top_outputs.npz \
         --mlir p2pnet_$1b.mlir
 }
 gen_cali_table()
@@ -38,9 +40,23 @@ gen_int8bmodel()
         --quantize INT8 \
 		--calibration_table p2pnet_cali_table \
         --chip ${target} \
-        --model p2pnet_${target}_int8_$1b.bmodel
+        --model p2pnet_${target}_int8_$1b.bmodel \
+        --test_input ../datasets/calibration/IMG_1.jpg \
+        --test_reference p2pnet_$1b_top_outputs.npz
 
     mv p2pnet_${target}_int8_$1b.bmodel $outdir/
+    if test $target = "bm1688";then
+        model_deploy.py \
+            --mlir p2pnet_$1b.mlir \
+            --quantize INT8 \
+            --chip $target \
+            --model p2pnet_int8_$1b_2core.bmodel \
+            --calibration_table p2pnet_cali_table \
+            --test_input ../datasets/calibration/IMG_1.jpg \
+            --test_reference p2pnet_$1b_top_outputs.npz \
+            --num_core 2
+        mv p2pnet_int8_$1b_2core.bmodel $outdir/
+    fi
 }
 
 pushd $model_dir

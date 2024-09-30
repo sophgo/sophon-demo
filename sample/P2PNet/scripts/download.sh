@@ -27,7 +27,7 @@ fi
 # models
 if [ ! -d "../models" ];
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/P2PNet/models_0520/models.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/P2PNet/models_0605/models.tar.gz
     tar -xzvf models.tar.gz -C ..
     rm models.tar.gz
     echo "models download!"
