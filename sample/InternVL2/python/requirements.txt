@@ -3,3 +3,7 @@ einops
 tiktoken
 accelerate
 transformers==4.37.2
+pillow
+torch
+torchvision
+sentencepiece
