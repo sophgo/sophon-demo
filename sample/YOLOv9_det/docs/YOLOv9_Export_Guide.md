@@ -10,6 +10,3 @@ python3 export.py --weights yolov9-s-converted.pt --batch-size 1 --include onnx 
 ```
 
 上述脚本会在原始pt模型所在目录下生成导出的onnx模型`yolov9-s-converted.onnx`。
-
-## 4. 常见问题
-TODO

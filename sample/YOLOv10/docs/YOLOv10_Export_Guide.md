@@ -29,6 +29,3 @@ labels = mod_result
 index = floored_division
 
 ``
-
-## 4. 常见问题
-TODO
