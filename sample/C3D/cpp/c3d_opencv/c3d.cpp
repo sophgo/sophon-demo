@@ -127,17 +127,6 @@ void C3D::enableProfile(TimeStamp *ts){
 }
 
 void C3D::setMean(std::vector<float> &values) {
-    std::vector<cv::Mat> channels;
-    for(int i = 0; i < m_num_channels / m_clip_len; i++) {
-        /* Extract an individual channel. */
-        if(m_input_tensor->get_dtype() == BM_INT8){
-            cv::Mat channel(m_net_h, m_net_w, CV_8SC1,cv::Scalar(0), cv::SophonDevice(m_dev_id));
-            channels.push_back(channel);
-        }else{
-            cv::Mat channel(m_net_h, m_net_w, CV_32FC1,cv::Scalar(0), cv::SophonDevice(m_dev_id));
-            channels.push_back(channel); 
-        }
-    }
     //init mat mean_
     std::vector<cv::Mat> channels_;
     for (int i = 0; i < m_num_channels / m_clip_len; i++) {
