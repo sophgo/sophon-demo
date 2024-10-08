@@ -36,7 +36,3 @@ def _predict_once(self, x, profile=False, visualize=False, embed=None)函数得�
 return x.permute(0, 2, 1)
 ```
 修改以上源码之后执行以上脚本会在原始pt模型所在目录下生成导出的onnx模型即为opt版本得`yolov8s.onnx`
-
-
-## 4. 常见问题
-TODO
