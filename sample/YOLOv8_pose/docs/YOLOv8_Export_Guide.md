@@ -1,6 +1,6 @@
-# YOL0v8模型导出
+# YOLOv8模型导出
 ## 1. 准备工作
-可选择从[YOLOv8-pose官方主页](https://github.com/ultralytics/ultralytics/issues/1915)下载YOL0v8-pose.pt模型，或在[导出onnx模型](#2-导出onnx模型)中自动下载模型。
+可选择从[YOLOv8-pose官方主页](https://github.com/ultralytics/ultralytics/issues/1915)下载YOLOv8-pose.pt模型，或在[导出onnx模型](#2-导出onnx模型)中自动下载模型。
 安装如下依赖。
 
 ```bash
@@ -8,7 +8,7 @@ pip3 install ultralytics==8.1.27
 ```
 
 ## 2. 导出onnx模型
-如果使用tpu-mlir编译模型，则必须先将Pytorch模型导出为onnx模型。YOL0v8官方仓库提供了模型导出接口，可以直接使用它导出onnx模型：
+如果使用tpu-mlir编译模型，则必须先将Pytorch模型导出为onnx模型。YOLOv8官方仓库提供了模型导出接口，可以直接使用它导出onnx模型：
 
 ```python
 from ultralytics import YOLO
