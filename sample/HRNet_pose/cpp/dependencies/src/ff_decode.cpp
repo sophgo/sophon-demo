@@ -9,7 +9,7 @@
 /*
  * This is a wrapper header of BMruntime & BMCV, aiming to simplify user's program.
  */
-#include "../include/ff_decode.hpp"
+#include "ff_decode.hpp"
 #include <unistd.h>
 #include <iostream>
 #include <thread>
@@ -411,6 +411,7 @@ int VideoDecFFM::openDec(bm_handle_t* dec_handle, const char* input) {
 }
 
 void VideoDecFFM::closeDec() {
+    quit_flag = true;
     if (video_dec_ctx) {
         avcodec_free_context(&video_dec_ctx);
         video_dec_ctx = NULL;
@@ -577,6 +578,8 @@ void* VideoDecFFM::vidPushImage() {
                 std::lock_guard<std::mutex> my_lock_guard(lock);
                 bm_image* img = queue.front();
                 bm_image_destroy(*img);
+                delete img;
+                img = nullptr;
                 queue.pop();
             } else {
                 usleep(2000);
@@ -586,7 +589,11 @@ void* VideoDecFFM::vidPushImage() {
         bm_image* img = new bm_image;
         AVFrame* avframe = grabFrame();
         if (quit_flag)
+        {
+            delete img;
+            img = nullptr;
             break;
+        }
         coded_width  = video_dec_ctx->coded_width;
         coded_height = video_dec_ctx->coded_height;
         avframe_to_bm_image(*(this->handle), avframe, img, false, this->data_on_device_mem,
@@ -886,6 +893,7 @@ bm_status_t jpgDec(bm_handle_t& handle, uint8_t* bs_buffer, int numBytes, bm_ima
         }
 
         bm_image_create(handle, height, width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &img);
+        bm_image_alloc_dev_mem(img, BMCV_HEAP1_ID);
         void* buffers[1] = {bgr_buffer};
         bm_image_copy_host_to_device(img, buffers);
         goto Func_Exit;

@@ -893,6 +893,7 @@ bm_status_t jpgDec(bm_handle_t& handle, uint8_t* bs_buffer, int numBytes, bm_ima
         }
 
         bm_image_create(handle, height, width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &img);
+        bm_image_alloc_dev_mem(img, BMCV_HEAP1_ID);
         void* buffers[1] = {bgr_buffer};
         bm_image_copy_host_to_device(img, buffers);
         goto Func_Exit;
