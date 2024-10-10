@@ -73,6 +73,14 @@ class YOLOv8:
             iou_thres=self.nms_thresh
         )
         
+        # Related to TPU post-processing
+        if 'use_tpu_opt' in getattr(args, '__dict__', {}):
+            self.use_tpu_opt = args.use_tpu_opt
+        else:
+            self.use_tpu_opt = False
+        
+        self.tpu_opt_process = None
+        
         # init time
         self.preprocess_time = 0.0
         self.inference_time = 0.0
@@ -194,15 +202,43 @@ class YOLOv8:
             self.bmcv.bm_image_to_tensor(bmimgs, input_tensor)
             
         start_time = time.time()
-     
         outputs = self.predict(input_tensor, img_num)
-
         self.inference_time += time.time() - start_time
-        
-        start_time = time.time()
-        results = self.postprocess(outputs,ori_size_list,ratio_list,txy_list)
-
-        self.postprocess_time += time.time() - start_time
+    
+        # TPU post processing
+        if self.use_tpu_opt:
+            getmask_bmodel_path = args.getmask_bmodel
+            
+            if self.tpu_opt_process is None:
+                detection_shape = list(outputs[0].shape)  
+                segmentation_shape = list(outputs[1].shape)  
+                self.tpu_opt_process = sail.algo_yolov8_seg_post_tpu_opt(getmask_bmodel_path, args.dev_id, detection_shape, segmentation_shape, self.net_h, self.net_w)
+                
+            results = []
+            for i in range(img_num):
+                
+                detection_input = dict(detection_input = sail.Tensor(self.handle, outputs[0][i:i+1, :, :], True))
+                segmentation_input = dict(segmentation_input = sail.Tensor(self.handle, outputs[1][i:i+1, :, :, :], True))
+                
+                start_time = time.time()
+                results_sail = self.tpu_opt_process.process(detection_input, segmentation_input, ori_size_list[i][0], ori_size_list[i][1], self.conf_thresh, self.nms_thresh, True, False)
+                self.postprocess_time += time.time() - start_time
+                
+                boxes = []
+                contours = []
+                masks = []
+                for item in results_sail:
+                    boxes.append(list(item[:6]))
+                    contours.append([item[6]])
+                    masks.append(np.array(item[7]))
+                
+                result_tuple = (boxes, contours, masks)
+                results.append(result_tuple)
+            
+        else:
+            start_time = time.time()
+            results = self.postprocess(outputs, ori_size_list, ratio_list, txy_list)
+            self.postprocess_time += time.time() - start_time
 
         return results
         
@@ -214,6 +250,8 @@ def main(args):
         raise FileNotFoundError('{} is not existed.'.format(args.input))
     if not os.path.exists(args.bmodel):
         raise FileNotFoundError('{} is not existed.'.format(args.bmodel))
+    if not os.path.exists(args.getmask_bmodel):
+        raise FileNotFoundError('{} is not existed.'.format(args.getmask_bmodel))
     
     # creat save path
     output_dir = "./results"
@@ -283,8 +321,7 @@ def main(args):
                             rles = single_encode(masks[idx])
 
                             bbox_dict = dict()
-                            x1, y1, x2, y2,score, category_id=boxes[idx]
-                            segmentation= segments[idx]
+                            x1, y1, x2, y2, score, category_id = boxes[idx]
                             bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2 - x1,3)), float(round(y2 -y1, 3))]
                             bbox_dict['category_id'] = int(category_id)
                             bbox_dict['score'] = float(round(score,5))
@@ -359,6 +396,8 @@ def argsparser():
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--conf_thresh', type=float, default=0.25, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.7, help='nms threshold')
+    parser.add_argument('--use_tpu_opt', action="store_true", default=False, help='use TPU to accelerate postprocessing')
+    parser.add_argument('--getmask_bmodel', type=str, default='../models/yolov8s_getmask_32_fp32.bmodel', help='path of getmask bmodel')
     args = parser.parse_args()
     return args
 
