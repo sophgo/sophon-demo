@@ -237,27 +237,6 @@ source /etc/profile
     ```bash
     sudo apt remove cpp-*-aarch64-linux-gnu
     ```
-    
-    您还需要检查环境是否存在libz：
-    ```bash
-    dpkg -L zlib1g:arm64 | grep libz.so.1
-    ```
-    上述命令应输出如下字段：
-    ```bash
-    /lib/aarch64-linux-gnu/libz.so.1.2.11
-    /lib/aarch64-linux-gnu/libz.so.1
-    ```
-    如果没有输出，则需要额外安装libz，首先在apt源 `/etc/apt/sources.list` 最后添加以下代码：
-    ```bash
-    deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main restricted
-    deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main restricted
-    ```
-    然后运行以下指令：
-    ```bash
-    sudo dpkg --add-architecture arm64
-    sudo apt-get update
-    sudo apt-get install zlib1g:arm64
-    ```
 
     如果您的环境不满足上述要求，建议使用第(2)种方法。
 

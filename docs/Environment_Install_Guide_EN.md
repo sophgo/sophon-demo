@@ -237,27 +237,6 @@ You need to build a cross-compilation environment on an x86 host using SOPHONSDK
     ```bash
     sudo apt remove cpp-*-aarch64-linux-gnu
     ```
-    
-    You should check if your environment contains libz:
-    ```bash
-    dpkg -L zlib1g:arm64 | grep libz.so.1
-    ```
-    The command above should print such as:
-    ```bash
-    /lib/aarch64-linux-gnu/libz.so.1.2.11
-    /lib/aarch64-linux-gnu/libz.so.1
-    ```
-    If there is nothing printed, you should install libz, add these lines in `/etc/apt/sources.list`:
-    ```bash
-    deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main restricted
-    deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main restricted
-    ```
-    Then use following commands:        
-    ```bash
-    sudo dpkg --add-architecture arm64
-    sudo apt-get update
-    sudo apt-get install zlib1g:arm64
-    ```
 
     If your environment doesn't qualify conditions above, we recommend you method (2).
     
