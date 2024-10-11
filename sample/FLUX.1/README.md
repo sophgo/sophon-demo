@@ -2,12 +2,12 @@
 
 ## 目录
 
-  - [1. 简介](#1-简介)
-  - [2. 特性](#2-特性)
-  - [3. 运行环境准备](#3-运行环境准备)
-  - [4. 准备模型](#4-准备模型)
-  - [5. 例程测试](#5-例程测试)
-  - [6. 程序性能测试](#6-程序性能测试)
+	- [1. 简介](#1-简介)
+	- [2. 特性](#2-特性)
+	- [3. 运行环境准备](#3-运行环境准备)
+	- [4. 准备模型](#4-准备模型)
+	- [5. 例程测试](#5-例程测试)
+	- [6. 程序性能测试](#6-程序性能测试)
 
 ## 1. 简介
 
@@ -92,34 +92,34 @@ sudo reboot
 ```bash
 models
 ├── BM1684X
-│   ├── clip.bmodel										# 使用TPU-MLIR编译，用于BM1684X的BF16 clip编码器，最大编码长度为77
-│   ├── dev_bf16_transformer_on_device0.bmodel			# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时逻辑上的第一颗
-│   ├── dev_bf16_transformer_on_device1.bmodel			# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时逻辑上的第二颗
-│   ├── dev_bf16_transformer_on_device2.bmodel			# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时逻辑上的第三颗
-│   ├── dev_w4bf16_transformer.bmodel					# 使用TPU-MLIR编译，用于BM1684X的W4BF16 FLUX.1-dev，单芯运行时使用
-│   ├── schnell_bf16_transformer_on_device0.bmodel		# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时，逻辑上的第一颗
-│   ├── schnell_bf16_transformer_on_device1.bmodel		# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时，逻辑上的第二颗
-│   ├── schnell_bf16_transformer_on_device2.bmodel		# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时，逻辑上的第三颗
-│   ├── schnell_w4bf16_transformer.bmodel				# 使用TPU-MLIR编译，用于BM1684X的W4BF16 FLUX.1-schnell，单芯运行时使用
-│   ├── tiny_vae_decoder_bf16.bmodel					# 使用TPU-MLIR编译，用于BM1684X的BF16 tiny-vae，pcie/soc模式下使用
-│   ├── vae_decoder_bf16.bmodel							# 使用TPU-MLIR编译，用于BM1684X的BF16 vae，pcie模式下使用
-│   └── w4bf16_t5.bmodel								# 使用TPU-MLIR编译，用于BM1684X的W4BF16 t5编码器，最大编码长度为512
-├── ids_emb.pt											# 1024*1024图像的空间位置编码结果，常量值
-├── tokenizer											# clip的提词器文件
+│   ├── clip.bmodel					# 使用TPU-MLIR编译，用于BM1684X的BF16 clip编码器，最大编码长度为77
+│   ├── dev_bf16_transformer_on_device0.bmodel		# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时逻辑上的第一颗
+│   ├── dev_bf16_transformer_on_device1.bmodel		# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时逻辑上的第二颗
+│   ├── dev_bf16_transformer_on_device2.bmodel		# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时逻辑上的第三颗
+│   ├── dev_w4bf16_transformer.bmodel		        # 使用TPU-MLIR编译，用于BM1684X的W4BF16 FLUX.1-dev，单芯运行时使用
+│   ├── schnell_bf16_transformer_on_device0.bmodel	# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时，逻辑上的第一颗
+│   ├── schnell_bf16_transformer_on_device1.bmodel	# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时，逻辑上的第二颗
+│   ├── schnell_bf16_transformer_on_device2.bmodel	# 使用TPU-MLIR编译，用于BM1684X的BF16 FLUX.1-dev，加载到三芯时，逻辑上的第三颗
+│   ├── schnell_w4bf16_transformer.bmodel		# 使用TPU-MLIR编译，用于BM1684X的W4BF16 FLUX.1-schnell，单芯运行时使用
+│   ├── tiny_vae_decoder_bf16.bmodel		        # 使用TPU-MLIR编译，用于BM1684X的BF16 tiny-vae，pcie/soc模式下使用
+│   ├── vae_decoder_bf16.bmodel				# 使用TPU-MLIR编译，用于BM1684X的BF16 vae，pcie模式下使用
+│   └── w4bf16_t5.bmodel				# 使用TPU-MLIR编译，用于BM1684X的W4BF16 t5编码器，最大编码长度为512
+├── ids_emb.pt						# 1024*1024图像的空间位置编码结果，常量值
+├── tokenizer						# clip的提词器文件
 │   ├── merges.txt
 │   ├── special_tokens_map.json
 │   ├── tokenizer_config.json
 │   └── vocab.json
-└── tokenizer_2											# t5的提词器文件
-    ├── special_tokens_map.json
-    ├── spiece.model
-    ├── tokenizer_config.json
-    └── tokenizer.json
+└── tokenize_2						# t5的提词器文件
+		├── special_tokens_map.json
+		├── spiece.model
+		├── tokenizer_config.json
+		└── tokenizer.json
 ```
 
 ### 4.2 自行编译模型
 
-用户若自己下载和编译模型，请安装所需的第三方库（下载官方模型需要用户可以正常连接HuggingFace网站）：
+用户若自己下载和编译模型，请安装所需的第三方库以导出onnx模型（下载官方模型需要用户可以正常连接HuggingFace网站）：
 
 ```bash
 pip3 install -r requirements.txt
@@ -142,7 +142,7 @@ python3 export_models_from_HF.py
 
 若执行上述导出脚本时，出现无法连接Huggingface的情况，可参考[从镜像站下载模型](https://hf-mirror.com/)，建议使用hfd工具下载，然后将导出脚本中的`from_pretained`接口改为本地路径。
 
-模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)创建并进入docker环境，注意：请在docker中使用如下指令安装mlir:
+模型编译前需要安装TPU-MLIR(注意，若在docker环境导出onnx模型，安装TPU-MLIR时请另起一个新docker环境，避免依赖冲突)，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)创建并进入docker环境，注意：请在docker中使用如下指令安装mlir:
 
 ```bash
 pip3 install dfss --upgrade
@@ -150,7 +150,7 @@ python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/tpu_mlir-1.10b0-py3-no
 # 安装tpu-mlir
 pip3 install tpu_mlir-1.10b0-py3-none-any.whl
 # 升级pytorch>=2.1.0(docker内的2.0.1+cpu版本，在导出时会报错)
-pip3 install torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 --index-url https://download.pytorch.org/whl/cpu
+pip3 install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cpu
 ```
 
 安装好后需在TPU-MLIR环境中进入本例程所在目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/all/all.html)相应版本的SDK中获取)。
