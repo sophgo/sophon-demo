@@ -1,16 +1,17 @@
 # C3D
-- [1. 简介](#1-简介)
-- [2. 特性](#2-特性)
-- [3. 准备模型与数据](#3-准备模型与数据)
-- [4. 模型编译](#4-模型编译)
-- [5. 例程测试](#5-例程测试)
-- [6. 精度测试](#6-精度测试)
-  - [6.1 测试方法](#61-测试方法)
-  - [6.2 测试结果](#62-测试结果)
-- [7. 性能测试](#7-性能测试)
-  - [7.1 bmrt\_test](#71-bmrt_test)
-  - [7.2 程序运行性能](#72-程序运行性能)
-- [8. FAQ](#8-faq)
+- [C3D](#c3d)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
 
 
 
@@ -257,18 +258,18 @@ bmrt_test --bmodel models/BM1684/c3d_fp32_1b.bmodel
 | BM1684X/c3d_fp16_4b.bmodel         |           7.11  |
 | BM1684X/c3d_int8_1b.bmodel         |           5.57  |
 | BM1684X/c3d_int8_4b.bmodel         |           4.41  |
-| BM1688/c3d_fp32_1b.bmodel          |         414.33  |
-| BM1688/c3d_fp32_4b.bmodel          |         396.96  |
-| BM1688/c3d_fp16_1b.bmodel          |          74.94  |
-| BM1688/c3d_fp16_4b.bmodel          |          68.31  |
-| BM1688/c3d_int8_1b.bmodel          |          34.74  |
-| BM1688/c3d_int8_4b.bmodel          |          31.43  |
-| BM1688/c3d_fp32_1b_2core.bmodel    |         413.43  |
-| BM1688/c3d_fp32_4b_2core.bmodel    |         397.42  |
-| BM1688/c3d_fp16_1b_2core.bmodel    |          61.02  |
-| BM1688/c3d_fp16_4b_2core.bmodel    |          54.17  |
-| BM1688/c3d_int8_1b_2core.bmodel    |          31.54  |
-| BM1688/c3d_int8_4b_2core.bmodel    |          28.24  |
+| BM1688/c3d_fp32_1b.bmodel          |         405.18  |
+| BM1688/c3d_fp32_4b.bmodel          |         387.96  |
+| BM1688/c3d_fp16_1b.bmodel          |          69.44  |
+| BM1688/c3d_fp16_4b.bmodel          |          62.81  |
+| BM1688/c3d_int8_1b.bmodel          |          25.90  |
+| BM1688/c3d_int8_4b.bmodel          |          22.57  |
+| BM1688/c3d_fp32_1b_2core.bmodel    |         404.29  |
+| BM1688/c3d_fp32_4b_2core.bmodel    |         389.69  |
+| BM1688/c3d_fp16_1b_2core.bmodel    |          55.28  |
+| BM1688/c3d_fp16_4b_2core.bmodel    |          48.73  |
+| BM1688/c3d_int8_1b_2core.bmodel    |          22.47  |
+| BM1688/c3d_int8_4b_2core.bmodel    |          19.40  |
 | CV186X/c3d_fp32_1b.bmodel          |         417.85  |
 | CV186X/c3d_fp32_4b.bmodel          |         394.11  |
 | CV186X/c3d_fp16_1b.bmodel          |          76.09  |
@@ -317,42 +318,42 @@ bmrt_test --bmodel models/BM1684/c3d_fp32_1b.bmodel
 |   SE7-32    |   c3d_bmcv.soc    |   c3d_fp16_4b.bmodel    |      74.66      |      3.49       |      7.10       |      0.00       |
 |   SE7-32    |   c3d_bmcv.soc    |   c3d_int8_1b.bmodel    |      74.84      |      3.62       |      5.52       |      0.01       |
 |   SE7-32    |   c3d_bmcv.soc    |   c3d_int8_4b.bmodel    |      75.16      |      3.49       |      4.41       |      0.00       |
-|   SE9-16    |   c3d_opencv.py   |   c3d_fp32_1b.bmodel    |      91.91      |      42.36      |     414.42      |      0.13       |
-|   SE9-16    |   c3d_opencv.py   |   c3d_fp32_4b.bmodel    |      94.88      |      50.27      |     397.28      |      0.05       |
-|   SE9-16    |   c3d_opencv.py   |   c3d_fp16_1b.bmodel    |      90.77      |      42.20      |      78.45      |      0.13       |
-|   SE9-16    |   c3d_opencv.py   |   c3d_fp16_4b.bmodel    |      94.31      |      50.30      |      72.12      |      0.04       |
-|   SE9-16    |   c3d_opencv.py   |   c3d_int8_1b.bmodel    |      91.94      |      42.05      |      34.79      |      0.13       |
-|   SE9-16    |   c3d_opencv.py   |   c3d_int8_4b.bmodel    |      93.83      |      50.44      |      31.97      |      0.04       |
-|   SE9-16    |  c3d_opencv.soc   |   c3d_fp32_1b.bmodel    |     132.62      |     387.37      |     405.13      |      0.02       |
-|   SE9-16    |  c3d_opencv.soc   |   c3d_fp32_4b.bmodel    |     132.72      |     387.10      |     388.00      |      0.01       |
-|   SE9-16    |  c3d_opencv.soc   |   c3d_fp16_1b.bmodel    |     132.28      |     387.39      |      69.19      |      0.02       |
-|   SE9-16    |  c3d_opencv.soc   |   c3d_fp16_4b.bmodel    |     132.06      |     387.35      |      62.73      |      0.01       |
-|   SE9-16    |  c3d_opencv.soc   |   c3d_int8_1b.bmodel    |     131.51      |     387.38      |      25.53      |      0.02       |
-|   SE9-16    |  c3d_opencv.soc   |   c3d_int8_4b.bmodel    |     132.48      |     387.16      |      22.49      |      0.01       |
-|   SE9-16    |   c3d_bmcv.soc    |   c3d_fp32_1b.bmodel    |     142.28      |      11.06      |     405.10      |      0.02       |
-|   SE9-16    |   c3d_bmcv.soc    |   c3d_fp32_4b.bmodel    |     142.33      |      10.91      |     387.99      |      0.01       |
-|   SE9-16    |   c3d_bmcv.soc    |   c3d_fp16_1b.bmodel    |     143.40      |      11.16      |      69.17      |      0.02       |
-|   SE9-16    |   c3d_bmcv.soc    |   c3d_fp16_4b.bmodel    |     142.57      |      11.13      |      62.73      |      0.01       |
-|   SE9-16    |   c3d_bmcv.soc    |   c3d_int8_1b.bmodel    |     143.75      |      11.41      |      25.50      |      0.02       |
-|   SE9-16    |   c3d_bmcv.soc    |   c3d_int8_4b.bmodel    |     142.03      |      10.91      |      22.48      |      0.01       |
-|   SE9-16    |   c3d_opencv.py   |c3d_fp32_1b_2core.bmodel |      92.42      |      42.31      |     413.57      |      0.13       |
-|   SE9-16    |   c3d_opencv.py   |c3d_fp32_4b_2core.bmodel |      94.70      |      50.44      |     397.63      |      0.05       |
-|   SE9-16    |   c3d_opencv.py   |c3d_fp16_1b_2core.bmodel |      92.57      |      41.98      |      64.42      |      0.13       |
-|   SE9-16    |   c3d_opencv.py   |c3d_fp16_4b_2core.bmodel |      94.33      |      50.32      |      58.00      |      0.04       |
-|   SE9-16    |   c3d_opencv.py   |c3d_int8_1b_2core.bmodel |      92.22      |      42.16      |      31.64      |      0.13       |
-|   SE9-16    |   c3d_opencv.py   |c3d_int8_4b_2core.bmodel |      94.32      |      50.60      |      29.26      |      0.04       |
-|   SE9-16    |  c3d_opencv.soc   |c3d_fp32_1b_2core.bmodel |     132.71      |     387.49      |     404.24      |      0.02       |
-|   SE9-16    |  c3d_opencv.soc   |c3d_fp32_4b_2core.bmodel |     133.12      |     387.29      |     388.47      |      0.01       |
-|   SE9-16    |  c3d_opencv.soc   |c3d_fp16_1b_2core.bmodel |     132.91      |     387.52      |      55.13      |      0.02       |
-|   SE9-16    |  c3d_opencv.soc   |c3d_fp16_4b_2core.bmodel |     133.25      |     387.12      |      48.66      |      0.01       |
-|   SE9-16    |  c3d_opencv.soc   |c3d_int8_1b_2core.bmodel |     132.66      |     387.34      |      22.35      |      0.02       |
-|   SE9-16    |  c3d_opencv.soc   |c3d_int8_4b_2core.bmodel |     132.56      |     387.10      |      19.32      |      0.01       |
-|   SE9-16    |   c3d_bmcv.soc    |c3d_fp32_1b_2core.bmodel |     143.02      |      11.32      |     404.23      |      0.02       |
-|   SE9-16    |   c3d_bmcv.soc    |c3d_fp32_4b_2core.bmodel |     142.85      |      10.80      |     388.46      |      0.01       |
-|   SE9-16    |   c3d_bmcv.soc    |c3d_fp16_1b_2core.bmodel |     142.27      |      11.26      |      55.10      |      0.02       |
-|   SE9-16    |   c3d_bmcv.soc    |c3d_fp16_4b_2core.bmodel |     142.10      |      10.93      |      48.67      |      0.01       |
-|   SE9-16    |   c3d_bmcv.soc    |c3d_int8_1b_2core.bmodel |     142.53      |      11.21      |      22.31      |      0.02       |
-|   SE9-16    |   c3d_bmcv.soc    |c3d_int8_4b_2core.bmodel |     142.31      |      10.81      |      19.31      |      0.01       |
+|   SE9-16    |   c3d_opencv.py   |   c3d_fp32_1b.bmodel    |      96.75      |      42.28      |     414.48      |      0.15       |
+|   SE9-16    |   c3d_opencv.py   |   c3d_fp32_4b.bmodel    |      98.52      |      52.92      |     397.24      |      0.05       |
+|   SE9-16    |   c3d_opencv.py   |   c3d_fp16_1b.bmodel    |      92.39      |      42.43      |      78.57      |      0.13       |
+|   SE9-16    |   c3d_opencv.py   |   c3d_fp16_4b.bmodel    |      95.02      |      52.87      |      72.27      |      0.05       |
+|   SE9-16    |   c3d_opencv.py   |   c3d_int8_1b.bmodel    |      93.03      |      42.33      |      34.95      |      0.13       |
+|   SE9-16    |   c3d_opencv.py   |   c3d_int8_4b.bmodel    |      94.30      |      53.22      |      32.14      |      0.05       |
+|   SE9-16    |  c3d_opencv.soc   |   c3d_fp32_1b.bmodel    |     122.06      |      30.70      |     405.25      |      0.02       |
+|   SE9-16    |  c3d_opencv.soc   |   c3d_fp32_4b.bmodel    |     122.44      |      30.67      |     388.04      |      0.01       |
+|   SE9-16    |  c3d_opencv.soc   |   c3d_fp16_1b.bmodel    |     122.15      |      30.77      |      69.35      |      0.02       |
+|   SE9-16    |  c3d_opencv.soc   |   c3d_fp16_4b.bmodel    |     121.63      |      30.65      |      62.87      |      0.01       |
+|   SE9-16    |  c3d_opencv.soc   |   c3d_int8_1b.bmodel    |     122.96      |      30.66      |      25.71      |      0.02       |
+|   SE9-16    |  c3d_opencv.soc   |   c3d_int8_4b.bmodel    |     122.21      |      30.44      |      22.66      |      0.01       |
+|   SE9-16    |   c3d_bmcv.soc    |   c3d_fp32_1b.bmodel    |     128.66      |      7.74       |     405.21      |      0.02       |
+|   SE9-16    |   c3d_bmcv.soc    |   c3d_fp32_4b.bmodel    |     127.97      |      7.67       |     388.03      |      0.01       |
+|   SE9-16    |   c3d_bmcv.soc    |   c3d_fp16_1b.bmodel    |     128.49      |      7.75       |      69.32      |      0.02       |
+|   SE9-16    |   c3d_bmcv.soc    |   c3d_fp16_4b.bmodel    |     128.36      |      7.58       |      62.86      |      0.01       |
+|   SE9-16    |   c3d_bmcv.soc    |   c3d_int8_1b.bmodel    |     128.36      |      7.73       |      25.67      |      0.02       |
+|   SE9-16    |   c3d_bmcv.soc    |   c3d_int8_4b.bmodel    |     129.14      |      7.62       |      22.64      |      0.01       |
+|   SE9-16    |   c3d_opencv.py   |c3d_fp32_1b_2core.bmodel |      93.07      |      42.35      |     413.64      |      0.14       |
+|   SE9-16    |   c3d_opencv.py   |c3d_fp32_4b_2core.bmodel |      94.06      |      52.93      |     397.59      |      0.05       |
+|   SE9-16    |   c3d_opencv.py   |c3d_fp16_1b_2core.bmodel |      92.29      |      42.29      |      64.51      |      0.13       |
+|   SE9-16    |   c3d_opencv.py   |c3d_fp16_4b_2core.bmodel |      93.87      |      53.11      |      58.81      |      0.05       |
+|   SE9-16    |   c3d_opencv.py   |c3d_int8_1b_2core.bmodel |      92.49      |      42.50      |      31.77      |      0.13       |
+|   SE9-16    |   c3d_opencv.py   |c3d_int8_4b_2core.bmodel |      93.98      |      52.95      |      28.65      |      0.05       |
+|   SE9-16    |  c3d_opencv.soc   |c3d_fp32_1b_2core.bmodel |     122.02      |      30.92      |     404.39      |      0.02       |
+|   SE9-16    |  c3d_opencv.soc   |c3d_fp32_4b_2core.bmodel |     122.63      |      30.58      |     388.57      |      0.01       |
+|   SE9-16    |  c3d_opencv.soc   |c3d_fp16_1b_2core.bmodel |     122.53      |      30.66      |      55.30      |      0.02       |
+|   SE9-16    |  c3d_opencv.soc   |c3d_fp16_4b_2core.bmodel |     122.32      |      30.46      |      48.80      |      0.01       |
+|   SE9-16    |  c3d_opencv.soc   |c3d_int8_1b_2core.bmodel |     122.52      |      30.69      |      22.54      |      0.02       |
+|   SE9-16    |  c3d_opencv.soc   |c3d_int8_4b_2core.bmodel |     122.31      |      30.63      |      19.48      |      0.01       |
+|   SE9-16    |   c3d_bmcv.soc    |c3d_fp32_1b_2core.bmodel |     127.54      |      7.87       |     404.36      |      0.02       |
+|   SE9-16    |   c3d_bmcv.soc    |c3d_fp32_4b_2core.bmodel |     128.10      |      7.66       |     388.56      |      0.01       |
+|   SE9-16    |   c3d_bmcv.soc    |c3d_fp16_1b_2core.bmodel |     131.29      |      7.90       |      55.29      |      0.02       |
+|   SE9-16    |   c3d_bmcv.soc    |c3d_fp16_4b_2core.bmodel |     130.37      |      7.57       |      48.79      |      0.01       |
+|   SE9-16    |   c3d_bmcv.soc    |c3d_int8_1b_2core.bmodel |     128.57      |      7.83       |      22.49      |      0.02       |
+|   SE9-16    |   c3d_bmcv.soc    |c3d_int8_4b_2core.bmodel |     127.93      |      7.50       |      19.46      |      0.01       |
 |    SE9-8    |   c3d_opencv.py   |   c3d_fp32_1b.bmodel    |      91.67      |      41.95      |     427.43      |      0.13       |
 |    SE9-8    |   c3d_opencv.py   |   c3d_fp32_4b.bmodel    |      93.11      |      50.04      |     403.67      |      0.05       |
 |    SE9-8    |   c3d_opencv.py   |   c3d_fp16_1b.bmodel    |      91.76      |      42.03      |      85.14      |      0.13       |
