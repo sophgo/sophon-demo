@@ -6,7 +6,7 @@ nltk==3.9.1
 sentencepiece==0.1.99
 streamlit==1.25.0
 tiktoken==0.4.0
-torch==2.1.0+cpu
+torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu
 onnx==1.16.2
 tqdm==4.66.1
 transformers==4.43.3
@@ -17,6 +17,8 @@ PyMuPDF==1.23.16
 pdf2image
 tabulate
 openai
+opencv-python-headless
+python-docx==1.1.2
 langchain_core==0.1.23
 sentence_transformers
 llama_index==0.9.35
