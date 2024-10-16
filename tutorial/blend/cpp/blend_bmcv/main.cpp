@@ -20,6 +20,28 @@ static inline bm_status_t bm_image_destroy(bm_image& image){
 
 extern void bm_dem_read_bin(bm_handle_t handle, bm_device_mem_t* dmem, const char *input_name, unsigned int size) __attribute__((weak));
 
+void bm_dem_read_bin(bm_handle_t handle, bm_device_mem_t* dmem,
+                     const char* input_name, unsigned int size) {
+  char* input_ptr = (char*)malloc(size);
+  FILE* fp_src = fopen(input_name, "rb+");
+
+  if (fread((void*)input_ptr, 1, size, fp_src) < (unsigned int)size) {
+    printf("file size is less than %d required bytes\n", size);
+  };
+  fclose(fp_src);
+
+  if (BM_SUCCESS != bm_malloc_device_byte(handle, dmem, size)) {
+    printf("bm_malloc_device_byte failed\n");
+  }
+
+  if (BM_SUCCESS != bm_memcpy_s2d(handle, *dmem, input_ptr)) {
+    printf("bm_memcpy_s2d failed\n");
+  }
+
+  free(input_ptr);
+  return;
+}
+
 int main(int argc, char *argv[]){
 
     if (argc != 5) {
