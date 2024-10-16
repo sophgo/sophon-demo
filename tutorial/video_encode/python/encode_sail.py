@@ -35,7 +35,8 @@ def video_push_stream(handle:sail.Handle, decoder:sail.Decoder, encoder:sail.Enc
         decode_ret = decoder.read(handle, img)
         count += 1
         if(decode_ret!=0):
-            break
+            decoder.reconnect()
+            continue
         
         ## you can use bmcv to do something here
         time.sleep(0.01)
