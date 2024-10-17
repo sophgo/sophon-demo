@@ -116,6 +116,8 @@ class YOLOv5:
 
         for row in res:
             image_index = int(row[0])
+            if image_index >= img_num:
+                continue
             results[image_index].append(row.tolist())  
 
         for i in range(img_num):
