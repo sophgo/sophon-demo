@@ -301,8 +301,9 @@ def main(args):
                    
                     cn += 1
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
-                    res_frame = draw_numpy(frame_list[i], det[:,3:7], masks=None, classes_ids=det[:, 1], conf_scores=det[:, 2], draw_thresh=args.draw_thresh)
-                    out.write(res_frame)
+                    if det.shape[0] >= 1:
+                        res_frame = draw_numpy(frame_list[i], det[:,3:7], masks=None, classes_ids=det[:, 1], conf_scores=det[:, 2], draw_thresh=args.draw_thresh)
+                        out.write(res_frame)
                 frame_list.clear()
         cap.release()
         out.release()
