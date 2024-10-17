@@ -467,15 +467,16 @@ int YoloV5::post_process(std::vector<sail::BMImage>& images, std::vector<YoloV5B
 
         LOG_TS(m_ts, "post 3: nms");
         NMS(yolobox_vec, m_nmsThreshold);
-        if (!agnostic)
-            for (auto& box : yolobox_vec){
+        for (auto& box : yolobox_vec){
+            if (!agnostic){
                 box.x -= box.class_id * max_wh;
                 box.y -= box.class_id * max_wh;
-                box.x = (box.x - tx1) / ratiox;
-                box.y = (box.y - ty1) / ratioy;
-                box.width = (box.width) / ratiox;
-                box.height = (box.height) / ratioy;
             }
+            box.x = (box.x - tx1) / ratiox;
+            box.y = (box.y - ty1) / ratioy;
+            box.width = (box.width) / ratiox;
+            box.height = (box.height) / ratioy;
+        }
         LOG_TS(m_ts, "post 3: nms");
 
         detected_boxes.push_back(yolobox_vec);
