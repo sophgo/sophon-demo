@@ -362,7 +362,8 @@ def main(args):
                     cn += 1
                     logging.info("{}, det nums: {}".format(cn, det.shape[0]))
                     save_path = os.path.join(output_img_dir, video_name + '_' + str(cn) + '.jpg')
-                    draw_bmcv(bmcv, frame_list[i],  det[:,3:7], classes_ids=det[:, 1], conf_scores=det[:, 2], save_path=save_path, draw_thresh=args.draw_thresh)
+                    if det.shape[0] >= 1:
+                        draw_bmcv(bmcv, frame_list[i],  det[:,3:7], classes_ids=det[:, 1], conf_scores=det[:, 2], save_path=save_path, draw_thresh=args.draw_thresh)
                 frame_list.clear()
         decoder.release()
         logging.info("result saved in {}".format(output_img_dir))
