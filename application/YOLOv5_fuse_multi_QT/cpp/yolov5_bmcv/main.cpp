@@ -109,7 +109,12 @@ int main(int argc, char *argv[]){
   VideoConsole<cv::Mat> video_console(display_channel_rows,display_channel_cols,channel_num,channel_num);
 
 #if DRAW_ACC
+  struct stat info;
   auto coco_names_file = config.classnames;
+  if (stat(coco_names_file.c_str(), &info) != 0) {
+    std::cerr << "Cannot find classnames file." << std::endl;
+    exit(1);
+  }
   // coco names
   std::ifstream ifs(coco_names_file);
   if (ifs.is_open()) {
