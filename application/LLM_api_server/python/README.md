@@ -56,8 +56,8 @@ api_server.py使用config.yaml配置文件进行参数配置。
 config.yaml内容如下
 ```yaml
 models:  # 模型列表
-  - name: qwen2   # 模型名称
-    bmodel_path: ../models/BM1684X/qwen2-7b_int4_seq512_1dev.bmodel # 模型路径
+  - name: qwen   # 模型名称，可选qwen/chatglm3
+    bmodel_path: ../models/BM1684X/qwen2-7b_int4_seq512_1dev.bmodel # 模型路径，根据实际情况修改
     token_path: ./utils/qwen/token_config  # tokenizer 路径
     dev_id: 0  # tpu id
 
@@ -84,7 +84,7 @@ python3 request.py
 接口参数：
 ```json
 {
-    "model": "qwen2",
+    "model": "qwen",
     "messages": [
         {"role": "user", "content": "你好"}
     ],

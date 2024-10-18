@@ -4,10 +4,10 @@ models:
   #   token_path: ./utils/chatglm3/token_config
   #   dev_id: 0
   
-  - name: qwen2
+  - name: qwen
     bmodel_path: ../models/BM1684X/qwen2-7b_int4_seq512_1dev.bmodel
     token_path: ./utils/qwen/token_config
-    dev_id: 1
+    dev_id: 0
 
 
 port: 18080
