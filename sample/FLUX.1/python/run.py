@@ -48,10 +48,6 @@ if __name__ == "__main__":
     parser.add_argument("--chip_type", type=str, default="BM1684X", help="product type")
     # quant_type 
     parser.add_argument("--quant_type", type=str, default="bf16", help="bf16 or w4bf16, transformer module")
-    # tokenizer
-    parser.add_argument("--tokenizer", type=str, default="../models/tokenizer", help="tokenizer")
-    # tokenizer_2
-    parser.add_argument("--tokenizer_2", type=str, default="../models/tokenizer_2", help="tokenizer_2")
     # prompt
     parser.add_argument("--prompt", type=str, default="a powerful mysterious sorceress, casting lightning magic, detailed clothing, digital painting, hyperrealistic, fantasy, Surrealist, upper body, artstation, highly detailed, sharp focus, stunningly beautiful, dystopian", help="prompt for clip")
     # prompt_2
@@ -63,7 +59,7 @@ if __name__ == "__main__":
     # dev_id
     parser.add_argument("--dev_ids", type=int, nargs='+', default=[0,1,2], help="device ids, support one or three devices, such as 0 or 1 2 3")
     # use tiny vae
-    parser.add_argument("--tiny_vae", type=bool, default=False, help="use taef1 model if it is True, please set to be True in soc mode")
+    parser.add_argument("--tiny_vae", action="store_true", help="use taef1 model(distilled vae decoder) if it is True, please set to be True when using one device")
     # fix seed
     parser.add_argument("--seed", type=int, default=42, help="seed value, must be between 0 and 2**32 - 1")
     try:

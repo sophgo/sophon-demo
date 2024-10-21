@@ -7,4 +7,4 @@ gradio==4.44.0
 protobuf==5.28.2
 sentencepiece==0.2.0
 transformers==4.44.2
-torch==2.1.0+cpu
+torch==2.1.0 --index-url https://download.pytorch.org/whl/cpu

@@ -209,7 +209,7 @@ function get_vae()
     fi
     shape=[[1,16,128,128]]
     quant=BF16
-    model_transform.py --model_name $name --input_shape $shape --model_def $onnx_pt_path$name.onnx --mlir $name.mlir
+    model_transform.py --model_name vae_decoder --input_shape $shape --model_def $onnx_pt_path$name.onnx --mlir $name.mlir
     model_deploy.py --mlir $name.mlir --quantize $quant --chip $chip_type --model $name'_bf16.bmodel'
     mv $name'_bf16.bmodel' ../../models/$chip_type_upper/
     popd

@@ -255,6 +255,9 @@ class FluxPipeline:
         if not os.path.isfile(t5_path):
             raise FileNotFoundError(f"No '{os.path.basename(t5_path)}' file found at {bmodel_path}.")
 
+        if len(device_ids) == 1 and use_tiny_vae is False:
+            raise UnSupportedError("use_tiny_vae must be True when using one device, normal vae")
+
         vae_decoder_path = os.path.join(full_model_path, chip_type, "vae_decoder_bf16.bmodel" if use_tiny_vae is False else "tiny_vae_decoder_bf16.bmodel")
         if not os.path.isfile(vae_decoder_path):
             raise FileNotFoundError(f"No '{os.path.basename(vae_decoder_path)}' file found at {bmodel_path}.")
