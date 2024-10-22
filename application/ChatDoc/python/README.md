@@ -58,6 +58,22 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/sophon_arm-3.8.0-py3-none
 ```
 如果whl包无法使用，也可以参考上一小节，下载源码自己编译。
 
+对于soc系列设备（如SE7/SM7），需要参考如下命令修改设备内存，才能满足所提供的样例模型需要的显存:
+
+```bash
+cd /data/
+mkdir memedit && cd memedit
+wget -nd https://sophon-file.sophon.cn/sophon-prod-s3/drive/23/09/11/13/DeviceMemoryModificationKit.tgz
+tar xvf DeviceMemoryModificationKit.tgz
+cd DeviceMemoryModificationKit
+tar xvf memory_edit_{vx.x}.tar.xz #vx.x是版本号
+cd memory_edit
+./memory_edit.sh -p #这个命令会打印当前的内存布局信息
+./memory_edit.sh -c -npu 7615 -vpu 800 -vpp 800 #npu也可以访问vpu和vpp的内存
+sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/emmcboot.itb /boot/emmcboot.itb && sync
+sudo reboot
+```
+
 ## 2. 启动服务
 
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
