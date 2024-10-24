@@ -7,7 +7,7 @@ messages = [
 ]
 
 response = client.chat.completions.create(
-    model="qwen2",
+    model="qwen",
     messages=messages,
     stream=True
 )

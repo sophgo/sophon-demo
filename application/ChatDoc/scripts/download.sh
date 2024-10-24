@@ -13,8 +13,15 @@ fi
 scripts_dir=$(dirname $(readlink -f "$0"))
 pushd $scripts_dir
 
-embedding=bce_embedding
-reranker=bce_reranker
+chip="bm1684x"
+
+if [ "$1" == "bm1688" ]; then
+    chip="bm1688"
+    sed -i 's/BM1684X/BM1688/g' ../python/config.ini
+else
+    chip="bm1684x"
+    sed -i 's/BM1688/BM1684X/g' ../python/config.ini
+fi
 
 # nltk_data & embedding model & reranker model are required
 if [ ! -d "../nltk_data" ]; then
@@ -44,22 +51,34 @@ if [ ! -d "../models/qwen/token_config" ]; then
 fi
 
 # download embedding model
-if [[ "$embedding" == "bce_embedding" && ! -d "../models/BM1684X/bce_embedding" ]]; then
-    echo "../models/bce_embedding does not exist, download..."
+if [[ "$chip" == "bm1684x" && ! -d "../models/BM1684X/bce_embedding" ]]; then
+    echo "bce_embedding model does not exist, download..."
     python3 -m dfss --url=open@sophgo.com:ezoo/chatdoc/bce_embedding.zip
     unzip bce_embedding.zip -d ../models/BM1684X
     rm bce_embedding.zip
+    echo "bce_embedding download!"
+elif [[ "$chip" == "bm1688" && ! -d "../models/BM1688/bce_embedding" ]]; then
+    echo "bce_embedding model does not exist, download..."
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/application/ChatDoc/bce_embedding_bm1688.zip
+    unzip bce_embedding_bm1688.zip -d ../models/BM1688
+    rm bce_embedding_bm1688.zip
     echo "bce_embedding download!"
 else
     echo "embedding model already exist..."
 fi
 
 # download reranker model
-if [[ "$reranker" == "bce_reranker" && ! -d "../models/BM1684X/bce_reranker" ]]; then
-    echo "../models/bce_reranker does not exist, download..."
+if [[ "$chip" == "bm1684x" && ! -d "../models/BM1684X/bce_reranker" ]]; then
+    echo "bce_reranker model does not exist, download..."
     python3 -m dfss --url=open@sophgo.com:ezoo/chatdoc/bce_reranker.zip
     unzip bce_reranker.zip -d ../models/BM1684X
     rm bce_reranker.zip
+    echo "bce_reranker download!"
+elif [[ "$chip" == "bm1688" && ! -d "../models/BM1688/bce_reranker" ]]; then
+    echo "bce_reranker model does not exist, download..."
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/application/ChatDoc/bce_reranker_bm1688.zip
+    unzip bce_reranker_bm1688.zip -d ../models/BM1688
+    rm bce_reranker_bm1688.zip
     echo "bce_reranker download!"
 else
     echo "bce reranker model already exist..."

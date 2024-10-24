@@ -14,7 +14,7 @@ ChatDoc例程是一个基于BM1684X构建的用自然语言与文档进行交互
 
 ## 特性
 
-* 支持BM1684X(PCIE、SOC)
+* 支持BM1684X(PCIE、SOC)和BM1688(SOC)
 * 支持多种文档格式(PDF, DOCX, TXT)
 * 提供用户界面
 * 支持bce-reranker
@@ -23,20 +23,33 @@ ChatDoc例程是一个基于BM1684X构建的用自然语言与文档进行交互
 
 ```shell
 ├── models
-│   ├── BM1684X                                # BM1684X专用模型
-│   │   ├── bce_embedding                      # BM1684X上运行的bce_embedding
+│   ├── BM1684X                                 # BM1684X专用模型
+│   │   ├── bce_embedding                       # BM1684X上运行的bce_embedding
 │   │   │   ├── bce-embedding-base_v1.bmodel
 │   │   │   └── token_config
 │   │   │       ├── special_tokens_map.json
 │   │   │       ├── tokenizer_config.json
 │   │   │       └── tokenizer.json
-│   │   ├── bce_reranker                      # BM1684X上运行的bce_reranker
+│   │   ├── bce_reranker                        # BM1684X上运行的bce_reranker
 │   │   │   ├── bce-reranker-base_v1.bmodel
 │   │   │   └── token_config
 │   │   │       ├── special_tokens_map.json
 │   │   │       ├── tokenizer_config.json
 │   │   │       └── tokenizer.json
 │   │   └── qwen1.5-7b_int4_seq2048_1dev.bmodel # BM1684X上运行的qwen1.5-7b, int4量化, 上下文长度2k, 单芯模型
+│   ├── BM1688                                  # BM1688专用模型
+│   │   ├── bce_embedding                       # BM1688上运行的bce_embedding
+│   │   │   ├── bce-embedding-base_v1.bmodel
+│   │   │   └── token_config
+│   │   │       ├── special_tokens_map.json
+│   │   │       ├── tokenizer_config.json
+│   │   │       └── tokenizer.json
+│   │   └── bce_reranker                        # BM1688上运行的bce_reranker
+│   │       ├── bce-reranker-base_v1.bmodel
+│   │       └── token_config
+│   │           ├── special_tokens_map.json
+│   │           ├── tokenizer_config.json
+│   │           └── tokenizer.json
 │   └── qwen                                  # qwen系列模型的提词器
 │       └── token_config
 │           ├── tokenizer_config.json
@@ -79,7 +92,6 @@ ChatDoc例程是一个基于BM1684X构建的用自然语言与文档进行交互
 │   │   ├── __init__.py
 │   │   ├── npuengine.py
 │   │   └── sentence_model.py
-│   ├── knowledge_base
 │   ├── README.md                             # python例程的README
 │   ├── requirements.txt
 │   ├── reranker
@@ -98,8 +110,10 @@ ChatDoc例程是一个基于BM1684X构建的用自然语言与文档进行交互
 sudo apt install unzip
 chmod -R +x scripts/
 
-# 下载模型文件和nltk
+# 下载BM1684X的模型文件和nltk
 ./scripts/download.sh 
+# 下载BM1688的模型文件和nltk
+./scripts/download.sh bm1688
 ```
 
 ## 3. 例程
