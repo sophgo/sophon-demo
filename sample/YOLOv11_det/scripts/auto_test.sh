@@ -369,8 +369,8 @@ then
     eval_python opencv yolov11s_int8_1b.bmodel 0.4398160893310712
     eval_python opencv yolov11s_int8_4b.bmodel 0.4398160893310712
     eval_python bmcv yolov11s_fp32_1b.bmodel   0.47083941877851043
-    eval_python bmcv yolov11s_int8_1b.bmodel   0.4388062758140766
-    eval_python bmcv yolov11s_int8_4b.bmodel   0.4388062758140766
+    eval_python bmcv yolov11s_int8_1b.bmodel   0.4404092782019988
+    eval_python bmcv yolov11s_int8_4b.bmodel   0.4404092782019988
     eval_cpp pcie bmcv yolov11s_fp32_1b.bmodel  0.47171210292981663
     eval_cpp pcie bmcv yolov11s_int8_1b.bmodel  0.440754587820159
     eval_cpp pcie bmcv yolov11s_int8_4b.bmodel  0.440754587820159 
@@ -474,8 +474,8 @@ then
     eval_python opencv yolov11s_int8_1b.bmodel 0.4398160893310712
     eval_python opencv yolov11s_int8_4b.bmodel 0.4398160893310712
     eval_python bmcv yolov11s_fp32_1b.bmodel   0.47083941877851043
-    eval_python bmcv yolov11s_int8_1b.bmodel   0.4388062758140766
-    eval_python bmcv yolov11s_int8_4b.bmodel   0.4388062758140766
+    eval_python bmcv yolov11s_int8_1b.bmodel   0.4404092782019988
+    eval_python bmcv yolov11s_int8_4b.bmodel   0.4404092782019988
     eval_cpp soc bmcv yolov11s_fp32_1b.bmodel  0.47171210292981663
     eval_cpp soc bmcv yolov11s_int8_1b.bmodel  0.440754587820159
     eval_cpp soc bmcv yolov11s_int8_4b.bmodel  0.440754587820159
