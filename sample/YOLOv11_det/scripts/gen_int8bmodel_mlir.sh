@@ -41,6 +41,12 @@ function gen_int8bmodel()
     if test $target = "bm1684";then
         qtable_path=../models/onnx/yolov11s${opt}_qtable_fp32
     fi
+
+    if [ "$target" = "bm1684" ] && [ $1 != "1" ]; then
+        additional_options="--disable_layer_group"
+    else
+        additional_options=""
+    fi
     model_deploy.py \
         --mlir yolov11s${opt}_$1b.mlir \
         --quantize INT8 \
@@ -49,7 +55,8 @@ function gen_int8bmodel()
         --calibration_table yolov11s${opt}_cali_table \
         --test_input yolov11s${opt}_in_f32.npz \
         --test_reference yolov11s${opt}_top_outputs.npz \
-        --model yolov11s${opt}_int8_$1b.bmodel
+        --model yolov11s${opt}_int8_$1b.bmodel \
+        $additional_options
         # --tolerance 0.99,0.99 \ #手动搜敏感层可以把这两行注释取消掉，注意上一行最后要加一个 \，这样model_deploy就会打出哪些层比对不过。
         # --compare_all
 
