@@ -7,6 +7,7 @@
   - [2. 特性](#2-特性)
   - [3. 准备模型](#3-准备模型)
     - [3.1 使用提供的模型](#31-使用提供的模型)
+    - [3.2 自行编译模型](#32-自行编译模型)
   - [4. 例程测试](#4-例程测试)
   - [5. 程序性能测试](#5-程序性能测试)
 
@@ -35,6 +36,8 @@ chmod +x ./scripts/download.sh
 
 执行下载脚本后，当前目录下的文件如下：
 ```bash
+├── docs
+│   └── Qwen_Export_Guide.md             #Vila bmodel编译指南
 ├── datasets
 │   └── test_car_person_1080P.mp4        #测试视频
 ├── models
@@ -49,6 +52,8 @@ chmod +x ./scripts/download.sh
 ├── README.md                       #Vila例程指南
 ├── scripts                         
 │   ├── download.sh                 #下载模型和数据集脚本
+│   ├── download_onnx.sh            #下载onnx模型脚本
+│   ├── gen_bmodel.sh               #编译bmodel脚本
 ```
 
 
