@@ -374,7 +374,7 @@ int SuperPoint::postprocess(std::vector<bm_tensor_t>& output_tensors, torch::Ten
             assert(BM_SUCCESS == ret);
         }
         if(output_tensors_map["scores"].dtype != BM_FLOAT32){
-            delete [] desc;
+            delete [] prob;
         } else {
             int tensor_size = bm_mem_get_device_size(output_tensors_map["scores"].device_mem);
             bm_status_t ret = bm_mem_unmap_device_mem(handle, prob, tensor_size);
