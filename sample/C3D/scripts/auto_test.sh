@@ -6,17 +6,18 @@ pushd $top_dir
 #default config
 TARGET="BM1684X"
 MODE="pcie_test"
-SOCSDK="/home/lihengfang/work/sophonsdk/soc-sdk"
 TPUID=0
 ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
 }
 
-while getopts ":m:t:s:d:p:" opt
+while getopts ":m:t:s:a:d:p:c:" opt
 do
   case $opt in 
     m)
@@ -28,18 +29,23 @@ do
     s)
       SOCSDK=${OPTARG}
       echo "soc-sdk is $SOCSDK";;
+    a)
+      SAIL_PATH=${OPTARG}
+      echo "sail_path is $SAIL_PATH";;
     d)
       TPUID=${OPTARG}
       echo "using tpu $TPUID";;
     p)
       PYTEST=${OPTARG}
       echo "generate logs for $PYTEST";;
+    c)
+      CASE_MODE=${OPTARG}
+      echo "case mode is $CASE_MODE";;
     ?)
       usage
       exit 1;;
   esac
 done
-
 
 if [ -f "tools/benchmark.txt" ]; then
   rm tools/benchmark.txt
@@ -196,14 +202,20 @@ function build_pcie(){
 
 function build_soc()
 {
-    pushd cpp/c3d_$1
-    if [ -d build ]; then
-        rm -rf build
-    fi
+  pushd cpp/c3d_$1
+  if [ -d build ]; then
+      rm -rf build
+  fi
+  if test $1 = "sail"; then
+    mkdir build && cd build
+    cmake .. -DTARGET_ARCH=soc -DSDK=$SOCSDK -DSAIL_PATH=$SAIL_PATH && make
+    judge_ret $? "build soc c3d_$1" 0
+  else
     mkdir build && cd build
     cmake .. -DTARGET_ARCH=soc -DSDK=$SOCSDK && make
     judge_ret $? "build soc c3d_$1" 0
-    popd
+  fi
+  popd
 }
 
 function compare_res(){
@@ -223,24 +235,40 @@ function compare_res(){
         return 0
     fi
 }
-#e.g.: test_cpp opencv pcie c3d_int8_1b.bmodel 0.715
-function test_cpp(){
-    echo -e "\n########################\nCase Start: eval cpp\n########################"
+#test_cpp pcie bmcv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+function test_cpp()
+{
     pushd cpp/c3d_$2
     if [ ! -d log ];then
         mkdir log
     fi
     echo "testing cpp $2 $3:"
     chmod +x ./c3d_$2.$1
-    ./c3d_$2.$1 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$2_$3.log 2>&1
-    judge_ret $? "./c3d_$2.$1 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$2_$3.log 2>&1" log/$2_$3.log
-    tail -n 25 log/$2_$3.log
+    ./c3d_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log 2>&1
+    judge_ret $? "./c3d_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID" log/$1_$2_$3_cpp_test.log
+    tail -n 25 log/$1_$2_$3_cpp_test.log
+    
+    if test $4 = "../../datasets/UCF_test_01"; then
+        echo "==================="
+        echo "Comparing statis..."
+        python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$2.$1 --language=cpp --input=log/$1_$2_$3_cpp_test.log --bmodel=$3
+        judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$2.$1 --language=cpp --input=log/$1_$2_$3_cpp_test.log --bmodel=$3"
+        echo "==================="
+    fi
+    popd
+}
+#e.g.: eval_cpp soc bmcv c3d_int8_4b.bmodel   0.710
+function eval_cpp(){
+    echo -e "\n########################\nCase Start: eval cpp\n########################"
+    pushd cpp/c3d_$2
+    if [ ! -d log ];then
+        mkdir log
+    fi
 
-    echo "==================="
-    echo "Comparing statis..."
-    python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$2.$1 --language=cpp --input=log/$2_$3.log --bmodel=$3
-    judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$2.$1 --language=cpp --input=log/$2_$3.log --bmodel=$3"
-    echo "==================="
+    chmod +x ./c3d_$2.$1
+    ./c3d_$2.$1 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
+    judge_ret $? "./c3d_$2.$1 --input=../../datasets/UCF_test_01 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
+    tail -n 25 log/$1_$2_$3_debug.log
     
     echo "Evaluating..."
     res=$(python3 ../../tools/eval_ucf.py --result_json results/$3_$2_cpp.json --gt_path ../../datasets/ground_truth.json 2>&1 | tee log/$2_$1_$3_eval.log)
@@ -255,23 +283,39 @@ function test_cpp(){
     echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 
-#e.g.: test_python opencv c3d_int8_1b.bmodel 0.715
-function test_python(){
+#test_python opencv c3d_fp32_1b.bmodel ../datasets/UCF_test_01
+function test_python()
+{ 
+    pushd python
+    if [ ! -d log ];then
+        mkdir log
+    fi
+    echo "testing python $1 $2:"
+    python3 c3d_$1.py --input $3 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_python_test.log 2>&1
+    judge_ret $? "python3 c3d_$1.py --input $3 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/log/$1_$2_python_test.log 2>&1" log/$1_$2_python_test.log
+    tail -n 25 log/$1_$2_python_test.log 
+
+    if test $3 = "../datasets/UCF_test_01"; then
+        echo "==================="
+        echo "Comparing statis..."
+        python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$1.py --language=python --input=log/$1_$2_python_test.log --bmodel=$2
+        judge_ret $? "python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$1.py --language=python --input=log/$1_$2_python_test.log --bmodel=$2"
+        echo "==================="
+    fi
+    popd
+}
+
+#e.g.: eval_python opencv c3d_int8_1b.bmodel 0.715
+function eval_python(){
     echo -e "\n########################\nCase Start: eval python\n########################"
     pushd python
     if [ ! -d log ];then
         mkdir log
     fi
     echo "testing python $1 $2:"
-    python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2.log 2>&1
-    judge_ret $? "python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2.log 2>&1" log/$1_$2.log
-    tail -n 25 log/$1_$2.log 
-
-    echo "==================="
-    echo "Comparing statis..."
-    python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$1.py --language=python --input=log/$1_$2.log --bmodel=$2
-    judge_ret $? "python3 ../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=c3d_$1.py --language=python --input=log/$1_$2.log --bmodel=$2"
-    echo "==================="
+    python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_debug.log 2>&1
+    judge_ret $? "python3 c3d_$1.py --input ../datasets/UCF_test_01 --bmodel ../models/$TARGET/$2 --dev_id $TPUID > log/$1_$2_debug.log 2>&1" log/$1_$2_debug.log
+    tail -n 25 log/$1_$2_debug.log 
 
     echo "Evaluating..."
     res=$(python3 ../tools/eval_ucf.py --result_json results/$2_$1_python.json --gt_path ../datasets/ground_truth.json 2>&1 | tee log/$1_$2_eval.log)
@@ -293,46 +337,119 @@ elif test $MODE = "compile_mlir"
 then
   download
   compile_mlir
-elif test $MODE = "pcie_test"
+elif test $MODE = "pcie_build"
 then
   build_pcie bmcv
   build_pcie opencv
+elif test $MODE = "pcie_test"
+then
   download
   pip3 install opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
-    test_python opencv c3d_fp32_1b.bmodel   0.715
-    test_python opencv c3d_fp32_4b.bmodel   0.715
-    test_python opencv c3d_int8_1b.bmodel   0.712
-    test_python opencv c3d_int8_4b.bmodel   0.712
-    test_cpp pcie opencv c3d_fp32_1b.bmodel 0.715
-    test_cpp pcie opencv c3d_fp32_4b.bmodel 0.715
-    test_cpp pcie opencv c3d_int8_1b.bmodel 0.712
-    test_cpp pcie opencv c3d_int8_4b.bmodel 0.712
-    test_cpp pcie bmcv c3d_fp32_1b.bmodel   0.715
-    test_cpp pcie bmcv c3d_fp32_4b.bmodel   0.715
-    test_cpp pcie bmcv c3d_int8_1b.bmodel   0.710
-    test_cpp pcie bmcv c3d_int8_4b.bmodel   0.710
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv c3d_fp32_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_fp32_4b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_4b.bmodel ../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_fp32_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_fp32_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_fp32_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_fp32_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      
+      eval_python opencv c3d_fp32_1b.bmodel   0.715
+      eval_python opencv c3d_fp32_4b.bmodel   0.715
+      eval_python opencv c3d_int8_1b.bmodel   0.712
+      eval_python opencv c3d_int8_4b.bmodel   0.712
+      eval_cpp pcie opencv c3d_fp32_1b.bmodel 0.715
+      eval_cpp pcie opencv c3d_fp32_4b.bmodel 0.715
+      eval_cpp pcie opencv c3d_int8_1b.bmodel 0.712
+      eval_cpp pcie opencv c3d_int8_4b.bmodel 0.712
+      eval_cpp pcie bmcv c3d_fp32_1b.bmodel   0.715
+      eval_cpp pcie bmcv c3d_fp32_4b.bmodel   0.715
+      eval_cpp pcie bmcv c3d_int8_1b.bmodel   0.710
+      eval_cpp pcie bmcv c3d_int8_4b.bmodel   0.710
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv c3d_int8_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_4b.bmodel ../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      eval_python opencv c3d_int8_1b.bmodel   0.712
+      eval_python opencv c3d_int8_4b.bmodel   0.712
+      eval_cpp pcie opencv c3d_int8_1b.bmodel 0.712
+      eval_cpp pcie opencv c3d_int8_4b.bmodel 0.712
+      eval_cpp pcie bmcv c3d_int8_1b.bmodel   0.710
+      eval_cpp pcie bmcv c3d_int8_4b.bmodel   0.710
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv c3d_fp32_1b.bmodel   0.715
-    test_python opencv c3d_fp32_4b.bmodel   0.715
-    test_python opencv c3d_fp16_1b.bmodel   0.715
-    test_python opencv c3d_fp16_4b.bmodel   0.715
-    test_python opencv c3d_int8_1b.bmodel   0.715
-    test_python opencv c3d_int8_4b.bmodel   0.715
-    test_cpp pcie opencv c3d_fp32_1b.bmodel 0.715
-    test_cpp pcie opencv c3d_fp32_4b.bmodel 0.715
-    test_cpp pcie opencv c3d_fp16_1b.bmodel 0.715
-    test_cpp pcie opencv c3d_fp16_4b.bmodel 0.715
-    test_cpp pcie opencv c3d_int8_1b.bmodel 0.715
-    test_cpp pcie opencv c3d_int8_4b.bmodel 0.715
-    test_cpp pcie bmcv c3d_fp32_1b.bmodel   0.715
-    test_cpp pcie bmcv c3d_fp32_4b.bmodel   0.715
-    test_cpp pcie bmcv c3d_fp16_1b.bmodel   0.715
-    test_cpp pcie bmcv c3d_fp16_4b.bmodel   0.715
-    test_cpp pcie bmcv c3d_int8_1b.bmodel   0.712
-    test_cpp pcie bmcv c3d_int8_4b.bmodel   0.712
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv c3d_fp32_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_fp32_4b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_fp16_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_fp16_4b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_4b.bmodel ../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_fp32_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_fp32_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_fp16_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_fp16_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_fp32_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_fp32_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_fp16_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_fp16_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+
+      eval_python opencv c3d_fp32_1b.bmodel   0.715
+      eval_python opencv c3d_fp32_4b.bmodel   0.715
+      eval_python opencv c3d_fp16_1b.bmodel   0.715
+      eval_python opencv c3d_fp16_4b.bmodel   0.715
+      eval_python opencv c3d_int8_1b.bmodel   0.715
+      eval_python opencv c3d_int8_4b.bmodel   0.715
+      eval_cpp pcie opencv c3d_fp32_1b.bmodel 0.715
+      eval_cpp pcie opencv c3d_fp32_4b.bmodel 0.715
+      eval_cpp pcie opencv c3d_fp16_1b.bmodel 0.715
+      eval_cpp pcie opencv c3d_fp16_4b.bmodel 0.715
+      eval_cpp pcie opencv c3d_int8_1b.bmodel 0.715
+      eval_cpp pcie opencv c3d_int8_4b.bmodel 0.715
+      eval_cpp pcie bmcv c3d_fp32_1b.bmodel   0.715
+      eval_cpp pcie bmcv c3d_fp32_4b.bmodel   0.715
+      eval_cpp pcie bmcv c3d_fp16_1b.bmodel   0.715
+      eval_cpp pcie bmcv c3d_fp16_4b.bmodel   0.715
+      eval_cpp pcie bmcv c3d_int8_1b.bmodel   0.712
+      eval_cpp pcie bmcv c3d_int8_4b.bmodel   0.712
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv c3d_int8_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_4b.bmodel ../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie opencv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp pcie bmcv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+
+      eval_python opencv c3d_int8_1b.bmodel   0.715
+      eval_python opencv c3d_int8_4b.bmodel   0.715
+      eval_cpp pcie opencv c3d_int8_1b.bmodel 0.715
+      eval_cpp pcie opencv c3d_int8_4b.bmodel 0.715
+      eval_cpp pcie bmcv c3d_int8_1b.bmodel   0.712
+      eval_cpp pcie bmcv c3d_int8_4b.bmodel   0.712
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   fi
 elif test $MODE = "soc_build"
 then
@@ -344,79 +461,224 @@ then
   pip3 install opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
-    test_python opencv c3d_fp32_1b.bmodel  0.715
-    test_python opencv c3d_fp32_4b.bmodel  0.715
-    test_python opencv c3d_int8_1b.bmodel  0.712
-    test_python opencv c3d_int8_4b.bmodel  0.712
-    test_cpp soc opencv c3d_fp32_1b.bmodel 0.715
-    test_cpp soc opencv c3d_fp32_4b.bmodel 0.715
-    test_cpp soc opencv c3d_int8_1b.bmodel 0.712
-    test_cpp soc opencv c3d_int8_4b.bmodel 0.712
-    test_cpp soc bmcv c3d_fp32_1b.bmodel   0.715
-    test_cpp soc bmcv c3d_fp32_4b.bmodel   0.715
-    test_cpp soc bmcv c3d_int8_1b.bmodel   0.710
-    test_cpp soc bmcv c3d_int8_4b.bmodel   0.710
-    
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv c3d_fp32_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_fp32_4b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_4b.bmodel ../datasets/UCF_test_01
+      test_cpp soc opencv c3d_fp32_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_fp32_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_fp32_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_fp32_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+
+      eval_python opencv c3d_fp32_1b.bmodel  0.715
+      eval_python opencv c3d_fp32_4b.bmodel  0.715
+      eval_python opencv c3d_int8_1b.bmodel  0.712
+      eval_python opencv c3d_int8_4b.bmodel  0.712
+      eval_cpp soc opencv c3d_fp32_1b.bmodel 0.715
+      eval_cpp soc opencv c3d_fp32_4b.bmodel 0.715
+      eval_cpp soc opencv c3d_int8_1b.bmodel 0.712
+      eval_cpp soc opencv c3d_int8_4b.bmodel 0.712
+      eval_cpp soc bmcv c3d_fp32_1b.bmodel   0.715
+      eval_cpp soc bmcv c3d_fp32_4b.bmodel   0.715
+      eval_cpp soc bmcv c3d_int8_1b.bmodel   0.710
+      eval_cpp soc bmcv c3d_int8_4b.bmodel   0.710
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv c3d_int8_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_4b.bmodel ../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+
+      eval_python opencv c3d_int8_1b.bmodel  0.712
+      eval_python opencv c3d_int8_4b.bmodel  0.712
+      eval_cpp soc opencv c3d_int8_1b.bmodel 0.712
+      eval_cpp soc opencv c3d_int8_4b.bmodel 0.712
+      eval_cpp soc bmcv c3d_int8_1b.bmodel   0.710
+      eval_cpp soc bmcv c3d_int8_4b.bmodel   0.710
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi  
   elif test $TARGET = "BM1684X"
   then
-    test_python opencv c3d_fp32_1b.bmodel  0.715
-    test_python opencv c3d_fp32_4b.bmodel  0.715
-    test_python opencv c3d_fp16_1b.bmodel  0.715
-    test_python opencv c3d_fp16_4b.bmodel  0.715
-    test_python opencv c3d_int8_1b.bmodel  0.715
-    test_python opencv c3d_int8_4b.bmodel  0.715
-    test_cpp soc opencv c3d_fp32_1b.bmodel 0.715
-    test_cpp soc opencv c3d_fp32_4b.bmodel 0.715
-    test_cpp soc opencv c3d_fp16_1b.bmodel 0.715
-    test_cpp soc opencv c3d_fp16_4b.bmodel 0.715
-    test_cpp soc opencv c3d_int8_1b.bmodel 0.715
-    test_cpp soc opencv c3d_int8_4b.bmodel 0.715
-    test_cpp soc bmcv c3d_fp32_1b.bmodel   0.715
-    test_cpp soc bmcv c3d_fp32_4b.bmodel   0.715
-    test_cpp soc bmcv c3d_fp16_1b.bmodel   0.715
-    test_cpp soc bmcv c3d_fp16_4b.bmodel   0.715
-    test_cpp soc bmcv c3d_int8_1b.bmodel   0.712
-    test_cpp soc bmcv c3d_int8_4b.bmodel   0.712
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv c3d_fp32_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_fp32_4b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_fp16_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_fp16_4b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_4b.bmodel ../datasets/UCF_test_01
+      test_cpp soc opencv c3d_fp32_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_fp32_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_fp16_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_fp16_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_fp32_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_fp32_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_fp16_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_fp16_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+
+      eval_python opencv c3d_fp32_1b.bmodel  0.715
+      eval_python opencv c3d_fp32_4b.bmodel  0.715
+      eval_python opencv c3d_fp16_1b.bmodel  0.715
+      eval_python opencv c3d_fp16_4b.bmodel  0.715
+      eval_python opencv c3d_int8_1b.bmodel  0.715
+      eval_python opencv c3d_int8_4b.bmodel  0.715
+      eval_cpp soc opencv c3d_fp32_1b.bmodel 0.715
+      eval_cpp soc opencv c3d_fp32_4b.bmodel 0.715
+      eval_cpp soc opencv c3d_fp16_1b.bmodel 0.715
+      eval_cpp soc opencv c3d_fp16_4b.bmodel 0.715
+      eval_cpp soc opencv c3d_int8_1b.bmodel 0.715
+      eval_cpp soc opencv c3d_int8_4b.bmodel 0.715
+      eval_cpp soc bmcv c3d_fp32_1b.bmodel   0.715
+      eval_cpp soc bmcv c3d_fp32_4b.bmodel   0.715
+      eval_cpp soc bmcv c3d_fp16_1b.bmodel   0.715
+      eval_cpp soc bmcv c3d_fp16_4b.bmodel   0.715
+      eval_cpp soc bmcv c3d_int8_1b.bmodel   0.712
+      eval_cpp soc bmcv c3d_int8_4b.bmodel   0.712
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv c3d_int8_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_4b.bmodel ../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+
+      eval_python opencv c3d_int8_1b.bmodel  0.715
+      eval_python opencv c3d_int8_4b.bmodel  0.715
+      eval_cpp soc opencv c3d_int8_1b.bmodel 0.715
+      eval_cpp soc opencv c3d_int8_4b.bmodel 0.715
+      eval_cpp soc bmcv c3d_int8_1b.bmodel   0.712
+      eval_cpp soc bmcv c3d_int8_4b.bmodel   0.712
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
-    test_python opencv c3d_fp32_1b.bmodel  0.715
-    test_python opencv c3d_fp32_4b.bmodel  0.715
-    test_python opencv c3d_fp16_1b.bmodel  0.715
-    test_python opencv c3d_fp16_4b.bmodel  0.715
-    test_python opencv c3d_int8_1b.bmodel  0.711
-    test_python opencv c3d_int8_4b.bmodel  0.711
-    test_cpp soc opencv c3d_fp32_1b.bmodel 0.715
-    test_cpp soc opencv c3d_fp32_4b.bmodel 0.715
-    test_cpp soc opencv c3d_fp16_1b.bmodel 0.715
-    test_cpp soc opencv c3d_fp16_4b.bmodel 0.715
-    test_cpp soc opencv c3d_int8_1b.bmodel 0.711
-    test_cpp soc opencv c3d_int8_4b.bmodel 0.711
-    test_cpp soc bmcv c3d_fp32_1b.bmodel   0.715
-    test_cpp soc bmcv c3d_fp32_4b.bmodel   0.715
-    test_cpp soc bmcv c3d_fp16_1b.bmodel   0.715
-    test_cpp soc bmcv c3d_fp16_4b.bmodel   0.715
-    test_cpp soc bmcv c3d_int8_1b.bmodel   0.715
-    test_cpp soc bmcv c3d_int8_4b.bmodel   0.715
-    
-    if test "$PLATFORM" = "SE9-16"; then 
-      test_python opencv c3d_fp32_1b_2core.bmodel  0.715
-      test_python opencv c3d_fp32_4b_2core.bmodel  0.715
-      test_python opencv c3d_fp16_1b_2core.bmodel  0.715
-      test_python opencv c3d_fp16_4b_2core.bmodel  0.715
-      test_python opencv c3d_int8_1b_2core.bmodel  0.711
-      test_python opencv c3d_int8_4b_2core.bmodel  0.711
-      test_cpp soc opencv c3d_fp32_1b_2core.bmodel 0.715
-      test_cpp soc opencv c3d_fp32_4b_2core.bmodel 0.715
-      test_cpp soc opencv c3d_fp16_1b_2core.bmodel 0.715
-      test_cpp soc opencv c3d_fp16_4b_2core.bmodel 0.715
-      test_cpp soc opencv c3d_int8_1b_2core.bmodel 0.711
-      test_cpp soc opencv c3d_int8_4b_2core.bmodel 0.711
-      test_cpp soc bmcv c3d_fp32_1b_2core.bmodel   0.715
-      test_cpp soc bmcv c3d_fp32_4b_2core.bmodel   0.715
-      test_cpp soc bmcv c3d_fp16_1b_2core.bmodel   0.715
-      test_cpp soc bmcv c3d_fp16_4b_2core.bmodel   0.715
-      test_cpp soc bmcv c3d_int8_1b_2core.bmodel   0.715
-      test_cpp soc bmcv c3d_int8_4b_2core.bmodel   0.715
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv c3d_fp32_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_fp32_4b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_fp16_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_fp16_4b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_4b.bmodel ../datasets/UCF_test_01
+      test_cpp soc opencv c3d_fp32_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_fp32_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_fp16_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_fp16_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_fp32_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_fp32_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_fp16_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_fp16_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      if test "$PLATFORM" = "SE9-16"; then 
+        test_python opencv c3d_fp32_1b_2core.bmodel ../datasets/UCF_test_01
+        test_python opencv c3d_fp32_4b_2core.bmodel ../datasets/UCF_test_01
+        test_python opencv c3d_fp16_1b_2core.bmodel ../datasets/UCF_test_01
+        test_python opencv c3d_fp16_4b_2core.bmodel ../datasets/UCF_test_01
+        test_python opencv c3d_int8_1b_2core.bmodel ../datasets/UCF_test_01
+        test_python opencv c3d_int8_4b_2core.bmodel ../datasets/UCF_test_01
+        test_cpp soc opencv c3d_fp32_1b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc opencv c3d_fp32_4b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc opencv c3d_fp16_1b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc opencv c3d_fp16_4b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc opencv c3d_int8_1b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc opencv c3d_int8_4b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc bmcv c3d_fp32_1b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc bmcv c3d_fp32_4b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc bmcv c3d_fp16_1b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc bmcv c3d_fp16_4b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc bmcv c3d_int8_1b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc bmcv c3d_int8_4b_2core.bmodel ../../datasets/UCF_test_01
+      fi
+
+      eval_python opencv c3d_fp32_1b.bmodel  0.715
+      eval_python opencv c3d_fp32_4b.bmodel  0.715
+      eval_python opencv c3d_fp16_1b.bmodel  0.715
+      eval_python opencv c3d_fp16_4b.bmodel  0.715
+      eval_python opencv c3d_int8_1b.bmodel  0.711
+      eval_python opencv c3d_int8_4b.bmodel  0.711
+      eval_cpp soc opencv c3d_fp32_1b.bmodel 0.715
+      eval_cpp soc opencv c3d_fp32_4b.bmodel 0.715
+      eval_cpp soc opencv c3d_fp16_1b.bmodel 0.715
+      eval_cpp soc opencv c3d_fp16_4b.bmodel 0.715
+      eval_cpp soc opencv c3d_int8_1b.bmodel 0.711
+      eval_cpp soc opencv c3d_int8_4b.bmodel 0.711
+      eval_cpp soc bmcv c3d_fp32_1b.bmodel   0.715
+      eval_cpp soc bmcv c3d_fp32_4b.bmodel   0.715
+      eval_cpp soc bmcv c3d_fp16_1b.bmodel   0.715
+      eval_cpp soc bmcv c3d_fp16_4b.bmodel   0.715
+      eval_cpp soc bmcv c3d_int8_1b.bmodel   0.715
+      eval_cpp soc bmcv c3d_int8_4b.bmodel   0.715
+      if test "$PLATFORM" = "SE9-16"; then
+        eval_python opencv c3d_fp32_1b_2core.bmodel  0.715
+        eval_python opencv c3d_fp32_4b_2core.bmodel  0.715
+        eval_python opencv c3d_fp16_1b_2core.bmodel  0.715
+        eval_python opencv c3d_fp16_4b_2core.bmodel  0.715
+        eval_python opencv c3d_int8_1b_2core.bmodel  0.711
+        eval_python opencv c3d_int8_4b_2core.bmodel  0.711
+        eval_cpp soc opencv c3d_fp32_1b_2core.bmodel 0.715
+        eval_cpp soc opencv c3d_fp32_4b_2core.bmodel 0.715
+        eval_cpp soc opencv c3d_fp16_1b_2core.bmodel 0.715
+        eval_cpp soc opencv c3d_fp16_4b_2core.bmodel 0.715
+        eval_cpp soc opencv c3d_int8_1b_2core.bmodel 0.711
+        eval_cpp soc opencv c3d_int8_4b_2core.bmodel 0.711
+        eval_cpp soc bmcv c3d_fp32_1b_2core.bmodel   0.715
+        eval_cpp soc bmcv c3d_fp32_4b_2core.bmodel   0.715
+        eval_cpp soc bmcv c3d_fp16_1b_2core.bmodel   0.715
+        eval_cpp soc bmcv c3d_fp16_4b_2core.bmodel   0.715
+        eval_cpp soc bmcv c3d_int8_1b_2core.bmodel   0.715
+        eval_cpp soc bmcv c3d_int8_4b_2core.bmodel   0.715
+      fi
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv c3d_int8_1b.bmodel ../datasets/UCF_test_01
+      test_python opencv c3d_int8_4b.bmodel ../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc opencv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_1b.bmodel ../../datasets/UCF_test_01
+      test_cpp soc bmcv c3d_int8_4b.bmodel ../../datasets/UCF_test_01
+      if test "$PLATFORM" = "SE9-16"; then
+        test_python opencv c3d_int8_1b_2core.bmodel ../datasets/UCF_test_01
+        test_python opencv c3d_int8_4b_2core.bmodel ../datasets/UCF_test_01
+        test_cpp soc opencv c3d_int8_1b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc opencv c3d_int8_4b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc bmcv c3d_int8_1b_2core.bmodel ../../datasets/UCF_test_01
+        test_cpp soc bmcv c3d_int8_4b_2core.bmodel ../../datasets/UCF_test_01
+      fi
+
+      eval_python opencv c3d_int8_1b.bmodel  0.711
+      eval_python opencv c3d_int8_4b.bmodel  0.711
+      eval_cpp soc opencv c3d_int8_1b.bmodel 0.711
+      eval_cpp soc opencv c3d_int8_4b.bmodel 0.711
+      eval_cpp soc bmcv c3d_int8_1b.bmodel   0.715
+      eval_cpp soc bmcv c3d_int8_4b.bmodel   0.715
+      if test "$PLATFORM" = "SE9-16"; then
+        eval_python opencv c3d_int8_1b_2core.bmodel  0.711
+        eval_python opencv c3d_int8_4b_2core.bmodel  0.711
+        eval_cpp soc opencv c3d_int8_1b_2core.bmodel 0.711
+        eval_cpp soc opencv c3d_int8_4b_2core.bmodel 0.711
+        eval_cpp soc bmcv c3d_int8_1b_2core.bmodel   0.715
+        eval_cpp soc bmcv c3d_int8_4b_2core.bmodel   0.715
+      fi
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
     fi
   fi
 fi
