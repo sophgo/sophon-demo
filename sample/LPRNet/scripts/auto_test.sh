@@ -10,13 +10,14 @@ TPUID=0
 ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
-
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
 }
 
-while getopts ":m:t:s:d:p:" opt
+while getopts ":m:t:s:a:d:p:c:" opt
 do
   case $opt in 
     m)
@@ -28,18 +29,23 @@ do
     s)
       SOCSDK=${OPTARG}
       echo "soc-sdk is $SOCSDK";;
+    a)
+      SAIL_PATH=${OPTARG}
+      echo "sail_path is $SAIL_PATH";;
     d)
       TPUID=${OPTARG}
       echo "using tpu $TPUID";;
     p)
       PYTEST=${OPTARG}
       echo "generate logs for $PYTEST";;
+    c)
+      CASE_MODE=${OPTARG}
+      echo "case mode is $CASE_MODE";;
     ?)
       usage
       exit 1;;
   esac
 done
-
 
 if [ -f "tools/benchmark.txt" ]; then
   rm tools/benchmark.txt
@@ -197,9 +203,15 @@ function build_soc()
   if [ -d build ]; then
       rm -rf build
   fi
-  mkdir build && cd build
-  cmake .. -DTARGET_ARCH=soc -DSDK=$SOCSDK && make
-  judge_ret $? "build soc lprnet_$1" 0
+  if test $1 = "sail"; then
+    mkdir build && cd build
+    cmake .. -DTARGET_ARCH=soc -DSDK=$SOCSDK -DSAIL_PATH=$SAIL_PATH && make
+    judge_ret $? "build soc lprnet_$1" 0
+  else
+    mkdir build && cd build
+    cmake .. -DTARGET_ARCH=soc -DSDK=$SOCSDK && make
+    judge_ret $? "build soc lprnet_$1" 0
+  fi
   popd
 }
 
@@ -221,6 +233,26 @@ function compare_res(){
     fi
 }
 
+#test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test/
+function test_cpp()
+{
+  pushd cpp/lprnet_$2
+  if [ ! -d log ];then
+    mkdir log
+  fi
+  ./lprnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log 2>&1
+  judge_ret $? "./lprnet_$2.$1 --input=$4 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_cpp_test.log 2>&1" log/$1_$2_$3_cpp_test.log
+  tail -n 15 log/$1_$2_$3_cpp_test.log
+
+  if test $4 = "../../datasets/test/"; then
+    echo "==================="
+    echo "Comparing statis..."
+    python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$2.$1 --language=cpp --input=log/$1_$2_$3_cpp_test.log --bmodel=$3
+    judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$2.$1 --language=cpp --input=log/$1_$2_$3_cpp_test.log --bmodel=$3"
+    echo "==================="
+  fi
+  popd
+}
 function eval_cpp()
 {
   echo -e "\n########################\nCase Start: eval cpp\n########################"
@@ -231,12 +263,6 @@ function eval_cpp()
   ./lprnet_$2.$1 --input=../../datasets/test --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
   judge_ret $? "./lprnet_$2.$1 --input=../../datasets/test --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
   tail -n 15 log/$1_$2_$3_debug.log
-
-  echo "==================="
-  echo "Comparing statis..."
-  python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3
-  judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3"
-  echo "==================="
 
   echo "Evaluating..."
   res=$(python3 ../../tools/eval_ccpd.py --gt_path ../../datasets/test_label.json --result_json results/$3_test_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
@@ -253,6 +279,26 @@ function eval_cpp()
   echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 
+#test_python opencv lprnet_fp32_1b.bmodel datasets/test/
+function test_python()
+{
+  if [ ! -d python/log ];then
+    mkdir python/log
+  fi
+  python3 python/lprnet_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID > python/log/$1_$2_python_test.log 2>&1
+  judge_ret $? "python3 python/lprnet_$1.py --input $3 --bmodel models/$TARGET/$2 --dev_id $TPUID > python/log/$1_$2_python_test.log 2>&1"  python/log/$1_$2_python_test.log
+  tail -n 15 python/log/$1_$2_python_test.log
+
+  if test $3 = "datasets/test/"; then
+    echo "==================="
+    echo "Comparing statis..."
+    python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$1.py --language=python --input=python/log/$1_$2_python_test.log --bmodel=$2
+    judge_ret $? "python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$1.py --language=python --input=python/log/$1_$2_python_test.log --bmodel=$2"
+    echo "==================="
+  fi 
+}
+
+#eval_python opencv lprnet_fp32_1b.bmodel 0.894
 function eval_python()
 {  
   echo -e "\n########################\nCase Start: eval python\n########################"
@@ -262,12 +308,6 @@ function eval_python()
   python3 python/lprnet_$1.py --input datasets/test --bmodel models/$TARGET/$2 --dev_id $TPUID > python/log/$1_$2_debug.log 2>&1
   judge_ret $? "python3 python/lprnet_$1.py --input datasets/test --bmodel models/$TARGET/$2 --dev_id $TPUID > python/log/$1_$2_debug.log 2>&1"  python/log/$1_$2_debug.log
   tail -n 15 python/log/$1_$2_debug.log
-  
-  echo "==================="
-  echo "Comparing statis..."
-  python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$1.py --language=python --input=python/log/$1_$2_debug.log --bmodel=$2
-  judge_ret $? "python3 tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=lprnet_$1.py --language=python --input=python/log/$1_$2_debug.log --bmodel=$2"
-  echo "==================="
 
   echo "Evaluating..."
   res=$(python3 tools/eval_ccpd.py --gt_path datasets/test_label.json --result_json results/$2_test_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
@@ -289,44 +329,124 @@ elif test $MODE = "compile_mlir"
 then
   download
   compile_mlir
-elif test $MODE = "pcie_test"
+elif test $MODE = "pcie_build"
 then
   build_pcie bmcv
   build_pcie opencv
+elif test $MODE = "pcie_test"
+then
   download
   if test $TARGET = "BM1684"
   then
-    eval_python opencv lprnet_fp32_1b.bmodel 0.894
-    eval_python opencv lprnet_int8_1b.bmodel 0.858
-    eval_python opencv lprnet_int8_4b.bmodel 0.881
-    eval_python bmcv lprnet_fp32_1b.bmodel 0.88
-    eval_python bmcv lprnet_int8_1b.bmodel 0.857
-    eval_python bmcv lprnet_int8_4b.bmodel 0.865
-    eval_cpp pcie opencv lprnet_fp32_1b.bmodel 0.88 
-    eval_cpp pcie opencv lprnet_int8_1b.bmodel 0.857
-    eval_cpp pcie opencv lprnet_int8_4b.bmodel 0.869
-    eval_cpp pcie bmcv lprnet_fp32_1b.bmodel 0.88 
-    eval_cpp pcie bmcv lprnet_int8_1b.bmodel 0.857
-    eval_cpp pcie bmcv lprnet_int8_4b.bmodel 0.869
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv lprnet_fp32_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_4b.bmodel datasets/test/
+      test_python bmcv lprnet_fp32_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_4b.bmodel datasets/test/
+      test_cpp pcie opencv lprnet_fp32_1b.bmodel ../../datasets/test/
+      test_cpp pcie opencv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp pcie opencv lprnet_int8_4b.bmodel ../../datasets/test/
+      test_cpp pcie bmcv lprnet_fp32_1b.bmodel ../../datasets/test/
+      test_cpp pcie bmcv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp pcie bmcv lprnet_int8_4b.bmodel ../../datasets/test/
+
+      eval_python opencv lprnet_fp32_1b.bmodel 0.894
+      eval_python opencv lprnet_int8_1b.bmodel 0.858
+      eval_python opencv lprnet_int8_4b.bmodel 0.881
+      eval_python bmcv lprnet_fp32_1b.bmodel 0.88
+      eval_python bmcv lprnet_int8_1b.bmodel 0.857
+      eval_python bmcv lprnet_int8_4b.bmodel 0.865
+      eval_cpp pcie opencv lprnet_fp32_1b.bmodel 0.88 
+      eval_cpp pcie opencv lprnet_int8_1b.bmodel 0.857
+      eval_cpp pcie opencv lprnet_int8_4b.bmodel 0.869
+      eval_cpp pcie bmcv lprnet_fp32_1b.bmodel 0.88 
+      eval_cpp pcie bmcv lprnet_int8_1b.bmodel 0.857
+      eval_cpp pcie bmcv lprnet_int8_4b.bmodel 0.869
+    elif test $CASE_MODE = "partly"
+    then 
+      test_python opencv lprnet_int8_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_4b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_4b.bmodel datasets/test/
+      test_cpp pcie opencv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp pcie opencv lprnet_int8_4b.bmodel ../../datasets/test/
+      test_cpp pcie bmcv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp pcie bmcv lprnet_int8_4b.bmodel ../../datasets/test/
+
+      eval_python opencv lprnet_int8_1b.bmodel 0.858
+      eval_python opencv lprnet_int8_4b.bmodel 0.881
+      eval_python bmcv lprnet_int8_1b.bmodel 0.857
+      eval_python bmcv lprnet_int8_4b.bmodel 0.865
+      eval_cpp pcie opencv lprnet_int8_1b.bmodel 0.857
+      eval_cpp pcie opencv lprnet_int8_4b.bmodel 0.869
+      eval_cpp pcie bmcv lprnet_int8_1b.bmodel 0.857
+      eval_cpp pcie bmcv lprnet_int8_4b.bmodel 0.869
+    else
+        echo "unknown CASE_MODE: $CASE_MODE"
+    fi
 
   elif test $TARGET = "BM1684X"
   then
-    eval_python opencv lprnet_fp32_1b.bmodel 0.894
-    eval_python opencv lprnet_fp16_1b.bmodel 0.894
-    eval_python opencv lprnet_int8_1b.bmodel 0.867
-    eval_python opencv lprnet_int8_4b.bmodel 0.88
-    eval_python bmcv lprnet_fp32_1b.bmodel 0.882
-    eval_python bmcv lprnet_fp16_1b.bmodel 0.882
-    eval_python bmcv lprnet_int8_1b.bmodel 0.861
-    eval_python bmcv lprnet_int8_4b.bmodel 0.88
-    eval_cpp pcie opencv lprnet_fp32_1b.bmodel 0.882
-    eval_cpp pcie opencv lprnet_fp16_1b.bmodel 0.882
-    eval_cpp pcie opencv lprnet_int8_1b.bmodel 0.861
-    eval_cpp pcie opencv lprnet_int8_4b.bmodel 0.872
-    eval_cpp pcie bmcv lprnet_fp32_1b.bmodel 0.882
-    eval_cpp pcie bmcv lprnet_fp16_1b.bmodel 0.882
-    eval_cpp pcie bmcv lprnet_int8_1b.bmodel 0.861
-    eval_cpp pcie bmcv lprnet_int8_4b.bmodel 0.872
+    if test $CASE_MODE = "fully"
+      then
+      test_python opencv lprnet_fp32_1b.bmodel datasets/test/
+      test_python opencv lprnet_fp16_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_4b.bmodel datasets/test/
+      test_python bmcv lprnet_fp32_1b.bmodel datasets/test/
+      test_python bmcv lprnet_fp16_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_4b.bmodel datasets/test/
+      test_cpp pcie opencv lprnet_fp32_1b.bmodel ../../datasets/test/
+      test_cpp pcie opencv lprnet_fp16_1b.bmodel ../../datasets/test/
+      test_cpp pcie opencv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp pcie opencv lprnet_int8_4b.bmodel ../../datasets/test/
+      test_cpp pcie bmcv lprnet_fp32_1b.bmodel ../../datasets/test/
+      test_cpp pcie bmcv lprnet_fp16_1b.bmodel ../../datasets/test/
+      test_cpp pcie bmcv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp pcie bmcv lprnet_int8_4b.bmodel ../../datasets/test/
+
+      eval_python opencv lprnet_fp32_1b.bmodel 0.894
+      eval_python opencv lprnet_fp16_1b.bmodel 0.894
+      eval_python opencv lprnet_int8_1b.bmodel 0.867
+      eval_python opencv lprnet_int8_4b.bmodel 0.88
+      eval_python bmcv lprnet_fp32_1b.bmodel 0.882
+      eval_python bmcv lprnet_fp16_1b.bmodel 0.882
+      eval_python bmcv lprnet_int8_1b.bmodel 0.861
+      eval_python bmcv lprnet_int8_4b.bmodel 0.88
+      eval_cpp pcie opencv lprnet_fp32_1b.bmodel 0.882
+      eval_cpp pcie opencv lprnet_fp16_1b.bmodel 0.882
+      eval_cpp pcie opencv lprnet_int8_1b.bmodel 0.861
+      eval_cpp pcie opencv lprnet_int8_4b.bmodel 0.872
+      eval_cpp pcie bmcv lprnet_fp32_1b.bmodel 0.882
+      eval_cpp pcie bmcv lprnet_fp16_1b.bmodel 0.882
+      eval_cpp pcie bmcv lprnet_int8_1b.bmodel 0.861
+      eval_cpp pcie bmcv lprnet_int8_4b.bmodel 0.872
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv lprnet_int8_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_4b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_4b.bmodel datasets/test/
+      test_cpp pcie opencv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp pcie opencv lprnet_int8_4b.bmodel ../../datasets/test/
+      test_cpp pcie bmcv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp pcie bmcv lprnet_int8_4b.bmodel ../../datasets/test/
+
+      eval_python opencv lprnet_int8_1b.bmodel 0.867
+      eval_python opencv lprnet_int8_4b.bmodel 0.88
+      eval_python bmcv lprnet_int8_1b.bmodel 0.861
+      eval_python bmcv lprnet_int8_4b.bmodel 0.88
+      eval_cpp pcie opencv lprnet_int8_1b.bmodel 0.861
+      eval_cpp pcie opencv lprnet_int8_4b.bmodel 0.872
+      eval_cpp pcie bmcv lprnet_int8_1b.bmodel 0.861
+      eval_cpp pcie bmcv lprnet_int8_4b.bmodel 0.872
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
   fi
 elif test $MODE = "soc_build"
 then
@@ -337,72 +457,229 @@ then
   download
   if test $TARGET = "BM1684"
   then
-    eval_python opencv lprnet_fp32_1b.bmodel 0.894
-    eval_python opencv lprnet_int8_1b.bmodel 0.858
-    eval_python opencv lprnet_int8_4b.bmodel 0.881
-    eval_python bmcv lprnet_fp32_1b.bmodel 0.88
-    eval_python bmcv lprnet_int8_1b.bmodel 0.857
-    eval_python bmcv lprnet_int8_4b.bmodel 0.865
-    eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.88 
-    eval_cpp soc opencv lprnet_int8_1b.bmodel 0.857
-    eval_cpp soc opencv lprnet_int8_4b.bmodel 0.869
-    eval_cpp soc bmcv lprnet_fp32_1b.bmodel 0.88 
-    eval_cpp soc bmcv lprnet_int8_1b.bmodel 0.857
-    eval_cpp soc bmcv lprnet_int8_4b.bmodel 0.869
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv lprnet_fp32_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_4b.bmodel datasets/test/
+      test_python bmcv lprnet_fp32_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_4b.bmodel datasets/test/
+      test_cpp soc opencv lprnet_fp32_1b.bmodel ../../datasets/test/
+      test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_fp32_1b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test/
+
+      eval_python opencv lprnet_fp32_1b.bmodel 0.894
+      eval_python opencv lprnet_int8_1b.bmodel 0.858
+      eval_python opencv lprnet_int8_4b.bmodel 0.881
+      eval_python bmcv lprnet_fp32_1b.bmodel 0.88
+      eval_python bmcv lprnet_int8_1b.bmodel 0.857
+      eval_python bmcv lprnet_int8_4b.bmodel 0.865
+      eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.88 
+      eval_cpp soc opencv lprnet_int8_1b.bmodel 0.857
+      eval_cpp soc opencv lprnet_int8_4b.bmodel 0.869
+      eval_cpp soc bmcv lprnet_fp32_1b.bmodel 0.88 
+      eval_cpp soc bmcv lprnet_int8_1b.bmodel 0.857
+      eval_cpp soc bmcv lprnet_int8_4b.bmodel 0.869
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv lprnet_int8_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_4b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_4b.bmodel datasets/test/
+      test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test/
+
+      eval_python opencv lprnet_int8_1b.bmodel 0.858
+      eval_python opencv lprnet_int8_4b.bmodel 0.881
+      eval_python bmcv lprnet_int8_1b.bmodel 0.857
+      eval_python bmcv lprnet_int8_4b.bmodel 0.865
+      eval_cpp soc opencv lprnet_int8_1b.bmodel 0.857
+      eval_cpp soc opencv lprnet_int8_4b.bmodel 0.869
+      eval_cpp soc bmcv lprnet_int8_1b.bmodel 0.857
+      eval_cpp soc bmcv lprnet_int8_4b.bmodel 0.869
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
+
   elif test $TARGET = "BM1684X"
   then
-    eval_python opencv lprnet_fp32_1b.bmodel 0.894
-    eval_python opencv lprnet_fp16_1b.bmodel 0.894
-    eval_python opencv lprnet_int8_1b.bmodel 0.867
-    eval_python opencv lprnet_int8_4b.bmodel 0.88
-    eval_python bmcv lprnet_fp32_1b.bmodel 0.882
-    eval_python bmcv lprnet_fp16_1b.bmodel 0.882
-    eval_python bmcv lprnet_int8_1b.bmodel 0.861
-    eval_python bmcv lprnet_int8_4b.bmodel 0.88 
-    eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.882
-    eval_cpp soc opencv lprnet_fp16_1b.bmodel 0.882
-    eval_cpp soc opencv lprnet_int8_1b.bmodel 0.861
-    eval_cpp soc opencv lprnet_int8_4b.bmodel 0.872
-    eval_cpp soc bmcv lprnet_fp32_1b.bmodel 0.882
-    eval_cpp soc bmcv lprnet_fp16_1b.bmodel 0.882
-    eval_cpp soc bmcv lprnet_int8_1b.bmodel 0.861
-    eval_cpp soc bmcv lprnet_int8_4b.bmodel 0.872
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv lprnet_fp32_1b.bmodel datasets/test/
+      test_python opencv lprnet_fp16_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_4b.bmodel datasets/test/
+      test_python bmcv lprnet_fp32_1b.bmodel datasets/test/
+      test_python bmcv lprnet_fp16_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_4b.bmodel datasets/test/
+      test_cpp soc opencv lprnet_fp32_1b.bmodel ../../datasets/test/
+      test_cpp soc opencv lprnet_fp16_1b.bmodel ../../datasets/test/
+      test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_fp32_1b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_fp16_1b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test/
+      eval_python opencv lprnet_fp32_1b.bmodel 0.894
+      eval_python opencv lprnet_fp16_1b.bmodel 0.894
+      eval_python opencv lprnet_int8_1b.bmodel 0.867
+      eval_python opencv lprnet_int8_4b.bmodel 0.88
+      eval_python bmcv lprnet_fp32_1b.bmodel 0.882
+      eval_python bmcv lprnet_fp16_1b.bmodel 0.882
+      eval_python bmcv lprnet_int8_1b.bmodel 0.861
+      eval_python bmcv lprnet_int8_4b.bmodel 0.88 
+      eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.882
+      eval_cpp soc opencv lprnet_fp16_1b.bmodel 0.882
+      eval_cpp soc opencv lprnet_int8_1b.bmodel 0.861
+      eval_cpp soc opencv lprnet_int8_4b.bmodel 0.872
+      eval_cpp soc bmcv lprnet_fp32_1b.bmodel 0.882
+      eval_cpp soc bmcv lprnet_fp16_1b.bmodel 0.882
+      eval_cpp soc bmcv lprnet_int8_1b.bmodel 0.861
+      eval_cpp soc bmcv lprnet_int8_4b.bmodel 0.872
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv lprnet_int8_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_4b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_4b.bmodel datasets/test/
+      test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test/
+
+      eval_python opencv lprnet_int8_1b.bmodel 0.867
+      eval_python opencv lprnet_int8_4b.bmodel 0.88
+      eval_python bmcv lprnet_int8_1b.bmodel 0.861
+      eval_python bmcv lprnet_int8_4b.bmodel 0.88 
+      eval_cpp soc opencv lprnet_int8_1b.bmodel 0.861
+      eval_cpp soc opencv lprnet_int8_4b.bmodel 0.872
+      eval_cpp soc bmcv lprnet_int8_1b.bmodel 0.861
+      eval_cpp soc bmcv lprnet_int8_4b.bmodel 0.872
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
+
   elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
-    eval_python opencv lprnet_fp32_1b.bmodel  0.894
-    eval_python opencv lprnet_fp16_1b.bmodel  0.894
-    eval_python opencv lprnet_int8_1b.bmodel  0.886
-    eval_python opencv lprnet_int8_4b.bmodel  0.909
-    eval_python bmcv lprnet_fp32_1b.bmodel    0.882
-    eval_python bmcv lprnet_fp16_1b.bmodel    0.882
-    eval_python bmcv lprnet_int8_1b.bmodel    0.882
-    eval_python bmcv lprnet_int8_4b.bmodel    0.889 
-    eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.881
-    eval_cpp soc opencv lprnet_fp16_1b.bmodel 0.881
-    eval_cpp soc opencv lprnet_int8_1b.bmodel 0.883
-    eval_cpp soc opencv lprnet_int8_4b.bmodel 0.880
-    eval_cpp soc bmcv lprnet_fp32_1b.bmodel   0.882
-    eval_cpp soc bmcv lprnet_fp16_1b.bmodel   0.882
-    eval_cpp soc bmcv lprnet_int8_1b.bmodel   0.882
-    eval_cpp soc bmcv lprnet_int8_4b.bmodel   0.879
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv lprnet_fp32_1b.bmodel datasets/test/
+      test_python opencv lprnet_fp16_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_4b.bmodel datasets/test/
+      test_python bmcv lprnet_fp32_1b.bmodel datasets/test/
+      test_python bmcv lprnet_fp16_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_4b.bmodel datasets/test/
+      test_cpp soc opencv lprnet_fp32_1b.bmodel ../../datasets/test/
+      test_cpp soc opencv lprnet_fp16_1b.bmodel ../../datasets/test/
+      test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_fp32_1b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_fp16_1b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test/
+      if test "$PLATFORM" = "SE9-16"; then 
+        test_python opencv lprnet_fp32_1b_2core.bmodel  datasets/test/
+        test_python opencv lprnet_fp16_1b_2core.bmodel  datasets/test/
+        test_python opencv lprnet_int8_1b_2core.bmodel  datasets/test/
+        test_python opencv lprnet_int8_4b_2core.bmodel  datasets/test/
+        test_python bmcv lprnet_fp32_1b_2core.bmodel    datasets/test/
+        test_python bmcv lprnet_fp16_1b_2core.bmodel    datasets/test/
+        test_python bmcv lprnet_int8_1b_2core.bmodel    datasets/test/
+        test_python bmcv lprnet_int8_4b_2core.bmodel    datasets/test/ 
+        test_cpp soc opencv lprnet_fp32_1b_2core.bmodel ../../datasets/test/
+        test_cpp soc opencv lprnet_fp16_1b_2core.bmodel ../../datasets/test/
+        test_cpp soc opencv lprnet_int8_1b_2core.bmodel ../../datasets/test/
+        test_cpp soc opencv lprnet_int8_4b_2core.bmodel ../../datasets/test/
+        test_cpp soc bmcv lprnet_fp32_1b_2core.bmodel   ../../datasets/test/
+        test_cpp soc bmcv lprnet_fp16_1b_2core.bmodel   ../../datasets/test/
+        test_cpp soc bmcv lprnet_int8_1b_2core.bmodel   ../../datasets/test/
+        test_cpp soc bmcv lprnet_int8_4b_2core.bmodel   ../../datasets/test/
+      fi
 
-    if test "$PLATFORM" = "SE9-16"; then 
-      eval_python opencv lprnet_fp32_1b_2core.bmodel  0.894
-      eval_python opencv lprnet_fp16_1b_2core.bmodel  0.894
-      eval_python opencv lprnet_int8_1b_2core.bmodel  0.886
-      eval_python opencv lprnet_int8_4b_2core.bmodel  0.909
-      eval_python bmcv lprnet_fp32_1b_2core.bmodel    0.882
-      eval_python bmcv lprnet_fp16_1b_2core.bmodel    0.882
-      eval_python bmcv lprnet_int8_1b_2core.bmodel    0.882
-      eval_python bmcv lprnet_int8_4b_2core.bmodel    0.889 
-      eval_cpp soc opencv lprnet_fp32_1b_2core.bmodel 0.881
-      eval_cpp soc opencv lprnet_fp16_1b_2core.bmodel 0.881
-      eval_cpp soc opencv lprnet_int8_1b_2core.bmodel 0.883
-      eval_cpp soc opencv lprnet_int8_4b_2core.bmodel 0.880
-      eval_cpp soc bmcv lprnet_fp32_1b_2core.bmodel   0.882
-      eval_cpp soc bmcv lprnet_fp16_1b_2core.bmodel   0.882
-      eval_cpp soc bmcv lprnet_int8_1b_2core.bmodel   0.882
-      eval_cpp soc bmcv lprnet_int8_4b_2core.bmodel   0.879
+      eval_python opencv lprnet_fp32_1b.bmodel  0.894
+      eval_python opencv lprnet_fp16_1b.bmodel  0.894
+      eval_python opencv lprnet_int8_1b.bmodel  0.886
+      eval_python opencv lprnet_int8_4b.bmodel  0.909
+      eval_python bmcv lprnet_fp32_1b.bmodel    0.882
+      eval_python bmcv lprnet_fp16_1b.bmodel    0.882
+      eval_python bmcv lprnet_int8_1b.bmodel    0.882
+      eval_python bmcv lprnet_int8_4b.bmodel    0.889 
+      eval_cpp soc opencv lprnet_fp32_1b.bmodel 0.881
+      eval_cpp soc opencv lprnet_fp16_1b.bmodel 0.881
+      eval_cpp soc opencv lprnet_int8_1b.bmodel 0.883
+      eval_cpp soc opencv lprnet_int8_4b.bmodel 0.880
+      eval_cpp soc bmcv lprnet_fp32_1b.bmodel   0.882
+      eval_cpp soc bmcv lprnet_fp16_1b.bmodel   0.882
+      eval_cpp soc bmcv lprnet_int8_1b.bmodel   0.882
+      eval_cpp soc bmcv lprnet_int8_4b.bmodel   0.879
+      if test "$PLATFORM" = "SE9-16"; then 
+        eval_python opencv lprnet_fp32_1b_2core.bmodel  0.894
+        eval_python opencv lprnet_fp16_1b_2core.bmodel  0.894
+        eval_python opencv lprnet_int8_1b_2core.bmodel  0.886
+        eval_python opencv lprnet_int8_4b_2core.bmodel  0.909
+        eval_python bmcv lprnet_fp32_1b_2core.bmodel    0.882
+        eval_python bmcv lprnet_fp16_1b_2core.bmodel    0.882
+        eval_python bmcv lprnet_int8_1b_2core.bmodel    0.882
+        eval_python bmcv lprnet_int8_4b_2core.bmodel    0.889 
+        eval_cpp soc opencv lprnet_fp32_1b_2core.bmodel 0.881
+        eval_cpp soc opencv lprnet_fp16_1b_2core.bmodel 0.881
+        eval_cpp soc opencv lprnet_int8_1b_2core.bmodel 0.883
+        eval_cpp soc opencv lprnet_int8_4b_2core.bmodel 0.880
+        eval_cpp soc bmcv lprnet_fp32_1b_2core.bmodel   0.882
+        eval_cpp soc bmcv lprnet_fp16_1b_2core.bmodel   0.882
+        eval_cpp soc bmcv lprnet_int8_1b_2core.bmodel   0.882
+        eval_cpp soc bmcv lprnet_int8_4b_2core.bmodel   0.879
+      fi
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv lprnet_int8_1b.bmodel datasets/test/
+      test_python opencv lprnet_int8_4b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_1b.bmodel datasets/test/
+      test_python bmcv lprnet_int8_4b.bmodel datasets/test/
+      test_cpp soc opencv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc opencv lprnet_int8_4b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_1b.bmodel ../../datasets/test/
+      test_cpp soc bmcv lprnet_int8_4b.bmodel ../../datasets/test/
+      if test "$PLATFORM" = "SE9-16"; then 
+        test_python opencv lprnet_int8_1b_2core.bmodel  datasets/test/
+        test_python opencv lprnet_int8_4b_2core.bmodel  datasets/test/
+        test_python bmcv lprnet_int8_1b_2core.bmodel    datasets/test/
+        test_python bmcv lprnet_int8_4b_2core.bmodel    datasets/test/ 
+        test_cpp soc opencv lprnet_int8_1b_2core.bmodel ../../datasets/test/
+        test_cpp soc opencv lprnet_int8_4b_2core.bmodel ../../datasets/test/
+        test_cpp soc bmcv lprnet_int8_1b_2core.bmodel   ../../datasets/test/
+        test_cpp soc bmcv lprnet_int8_4b_2core.bmodel   ../../datasets/test/
+      fi
+
+      eval_python opencv lprnet_int8_1b.bmodel  0.886
+      eval_python opencv lprnet_int8_4b.bmodel  0.909
+      eval_python bmcv lprnet_int8_1b.bmodel    0.882
+      eval_python bmcv lprnet_int8_4b.bmodel    0.889 
+      eval_cpp soc opencv lprnet_int8_1b.bmodel 0.883
+      eval_cpp soc opencv lprnet_int8_4b.bmodel 0.880
+      eval_cpp soc bmcv lprnet_int8_1b.bmodel   0.882
+      eval_cpp soc bmcv lprnet_int8_4b.bmodel   0.879
+      if test "$PLATFORM" = "SE9-16"; then 
+        eval_python opencv lprnet_int8_1b_2core.bmodel  0.886
+        eval_python opencv lprnet_int8_4b_2core.bmodel  0.909
+        eval_python bmcv lprnet_int8_1b_2core.bmodel    0.882
+        eval_python bmcv lprnet_int8_4b_2core.bmodel    0.889 
+        eval_cpp soc opencv lprnet_int8_1b_2core.bmodel 0.883
+        eval_cpp soc opencv lprnet_int8_4b_2core.bmodel 0.880
+        eval_cpp soc bmcv lprnet_int8_1b_2core.bmodel   0.882
+        eval_cpp soc bmcv lprnet_int8_4b_2core.bmodel   0.879
+      fi
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
     fi
   fi
 fi
