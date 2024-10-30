@@ -22,6 +22,7 @@ GroundingDINO是一种多模态的目标检测模型。
 * 支持BM1684X(x86 PCIe、SoC)
 * 支持FP16模型编译和推理
 * 支持基于PIL的Python推理
+* 支持基于SOPHON-SAIL的C++推理
 * 支持单batch模型推理
 * 支持图片测试
  
@@ -68,6 +69,15 @@ chmod -R +x scripts/
 │   ├── groundingdino_pil.py               #GroundingDINO推理脚本
 │   ├── requirements.txt                   #python例程的依赖模块
 │   └── utils.py                           #辅助函数文件
+├── cpp
+│   ├── dependencies                       #依赖推理、预处理头文件与源文件
+│   ├── README.md                          #cpp例程执行指南
+│   └── groundingdino_sail
+│       ├── CMakeLists.txt                 #cpp编译文件
+│       ├── groundingdino.cpp              #groundingdino源文件
+│       ├── groundingdino.hpp              #groundingdino头文件
+│       ├── main.cpp                       #cpp例程入口源文件
+│       └── Tokenizer.hpp                  #Tokenizer程序文件
 ├── scripts                         
 │   ├── download.sh                        #下载脚本
 │   └── gen_fp16bmodel_mlir.sh             #模型编译脚本
@@ -97,6 +107,7 @@ chmod -R +x scripts/
 ## 5. 例程测试
 目前提供python版本的例程，请参考:
 - [Python例程](./python/README.md)
+- [C++例程](./cpp/README.md)
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
@@ -129,9 +140,12 @@ bmrt_test --bmodel models/BM1684X/groundingdino_bm1684x_fp16.bmodel
 | BM1684X SoC | groundingdino_pil.py | groundingdino_bm1684x_fp16.bmodel | 3.50        | 36.25           | 547.12          | 2.73                |
 | BM1688 SoC  | groundingdino_pil.py | groundingdino_bm1688_fp16.bmodel  | 46.94       | 274.95          | 1336.27         | 31.67             |
 | CV186X SoC  | groundingdino_pil.py | groundingdino_cv186x_fp16.bmodel  | 42.92       | 233.76          | 1719.74         | 35.34             |
+| BM1684X SoC | groundingdino_sail.soc | groundingdino_bm1684x_fp16.bmodel | 5.81      | 6.06            | 468.55          | 6.12              |
+| BM1688 SoC  | groundingdino_sail.soc | groundingdino_bm1688_fp16.bmodel  | 8.61      | 11.26           | 1295.12         | 8.61              |
+| CV186X SoC  | groundingdino_sail.soc | groundingdino_cv186x_fp16.bmodel  | 8.68      | 11.04           | 1364.86         | 8.61              |
 
 > **测试说明**：  
-> 1. 时间单位均为毫秒(s)；
+> 1. 时间单位均为毫秒(ms)；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
