@@ -30,22 +30,23 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 |---                                                            |---                                 |---          | ---           |
 | [LPRNet](./sample/LPRNet/README.md)                           | License Plate Recognition          | C++/Python | FP32/FP16/INT8 |
 | [ResNet](./sample/ResNet/README.md)                           | Image classification               | C++/Python | FP32/FP16/INT8 |
-| [RetinaFace](./sample/RetinaFace/README.md)                   | Face detection                     | C++/Python | FP32/FP16/INT8 |
-| [SCRFD](./sample/SCRFD/README.md)                             | Face detection                     | C++/Python | FP32/FP16/INT8 |
-| [segformer](./sample/segformer/README.md)                     | Semantic segmentation              | C++/Python | FP32/FP16      |
-| [SAM](./sample/SAM/README.md)                                 | Semantic segmentation              | Python     | FP32/FP16      |
-| [SAM2](./sample/SAM2/README.md)                               | Semantic segmentation              | Python     | FP32/FP16      |
-| [yolact](./sample/yolact/README.md)                           | Instance segmentation              | C++/Python | FP32/FP16/INT8 |
-| [YOLOv8_seg](./sample/YOLOv8_seg/README.md)                   | Instance segmentation              | C++/Python | FP32/FP16/INT8 |
-| [YOLOv9_seg](./sample/YOLOv9_seg/README.md)                   | Instance segmentation              | C++/Python | FP32/FP16/INT8 |
+| [RetinaFace](./sample/RetinaFace/README.md)                   | Face Detection                     | C++/Python | FP32/FP16/INT8 |
+| [SCRFD](./sample/SCRFD/README.md)                             | Face Detection                     | C++/Python | FP32/FP16/INT8 |
+| [segformer](./sample/segformer/README.md)                     | Semantic Segmentation              | C++/Python | FP32/FP16      |
+| [SAM](./sample/SAM/README.md)                                 | Semantic Segmentation              | Python     | FP32/FP16      |
+| [SAM2](./sample/SAM2/README.md)                               | Semantic Segmentation              | Python     | FP32/FP16      |
+| [yolact](./sample/yolact/README.md)                           | Instance Segmentation              | C++/Python | FP32/FP16/INT8 |
+| [YOLOv8_seg](./sample/YOLOv8_seg/README.md)                   | Instance Segmentation              | C++/Python | FP32/FP16/INT8 |
+| [YOLOv9_seg](./sample/YOLOv9_seg/README.md)                   | Instance Segmentation              | C++/Python | FP32/FP16/INT8 |
 | [PP-OCR](./sample/PP-OCR/README.md)                           | OCR                                | C++/Python | FP32/FP16      |
-| [OpenPose](./sample/OpenPose/README.md)                       | Keypoint detection                 | C++/Python | FP32/FP16/INT8 |
-| [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | Keypoint detection                 | C++/Python | FP32/FP16/INT8 |
-| [HRNet_pose](./sample/HRNet_pose/README.md)                   | Keypoint detection                 | C++/Python | FP32/FP16/INT8 |
-| [C3D](./sample/C3D/README.md)                                 | Video recognition                  | C++/Python | FP32/FP16/INT8 |
-| [DeepSORT](./sample/DeepSORT/README.md)                       | Object tracking                    | C++/Python | FP32/FP16/INT8 |
-| [ByteTrack](./sample/ByteTrack/README.md)                     | Object tracking                    | C++/Python | FP32/FP16/INT8 |
-| [CenterNet](./sample/CenterNet/README.md)                     | Object Detection + pose estimation | C++/Python | FP32/FP16/INT8 |
+| [OpenPose](./sample/OpenPose/README.md)                       | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 |
+| [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 |
+| [HRNet_pose](./sample/HRNet_pose/README.md)                   | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 |
+| [C3D](./sample/C3D/README.md)                                 | Video Recognition                  | C++/Python | FP32/FP16/INT8 |
+| [SlowFast](./sample/SlowFast/README.md)                       | Video Recognition                  | C++/Python | FP32/FP16/INT8 |
+| [DeepSORT](./sample/DeepSORT/README.md)                       | Object Tracking                    | C++/Python | FP32/FP16/INT8 |
+| [ByteTrack](./sample/ByteTrack/README.md)                     | Object Tracking                    | C++/Python | FP32/FP16/INT8 |
+| [CenterNet](./sample/CenterNet/README.md)                     | Object Detection + Pose Estimation | C++/Python | FP32/FP16/INT8 |
 | [YOLOv5](./sample/YOLOv5/README.md)                           | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [YOLOv34](./sample/YOLOv34/README.md)                         | Object Detection                   | C++/Python | FP32/INT8      |
 | [YOLOX](./sample/YOLOX/README.md)                             | Object Detection                   | C++/Python | FP32/INT8      |
@@ -56,8 +57,10 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [YOLOv5_fuse](./sample/YOLOv5_fuse/README.md)                 | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [YOLOv9_det](./sample/YOLOv9_det/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [YOLOv10](./sample/YOLOv10/README.md)                         | Object Detection                   | C++/Python | FP32/FP16/INT8 |
+| [YOLOv11_det](./sample/YOLOv11_det/README.md)                 | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | Object Detection                   | C++/Python | FP32/FP16/INT8 |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16      |
+| [YOLOv8_obb](./sample/YOLOv8_obb/README.md)                   | Oriented Object Detection          | C++/Python | FP32/FP16      |
 | [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16      |
 | [Whisper](./sample/Whisper/README.md)                         | Speech Recognition                 | Python     | FP16           | 
 | [Seamless](./sample/Seamless/README.md)                       | Speech Recognition                 | Python     | FP32/FP16      | 
@@ -71,12 +74,13 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [ChatGLM4](./sample/ChatGLM4/README.md)                       | Large Language Model               | Python     | FP16/INT8/INT4 | 
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | Image Generation                   | Python     | FP32/FP16      |
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | Image Generation                   | Python     | FP32/FP16      |
+| [FLUX.1](./sample/FLUX.1/README.md)                           | Image Generation                   | Python     | FP32/INT4      |
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | MultiModal Object Detection        | Python     | FP16           |
 | [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | Large Vision Language Model        | Python     | FP16/INT8      |
 | [InternVL2](./sample/InternVL2/README.md)                     | Large Vision Language Model        | Python     | INT4           |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 |
 | [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 |
-| [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | Python     | FP16           |
+| [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | C++/Python | FP16           |
 | [BLIP](./sample/BLIP/README.md)                               | Large Image-Text Model             | Python     | FP32           |
 | [SuperGlue](./sample/SuperGlue/README.md)                     | Keypoint Matching                  | C++        | FP32/FP16      |
 | [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | Text To Speech                     | Python     | FP32/FP16      |
@@ -94,6 +98,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.2.6  |Fix documentation and other issues. Release new samples including YOLOv11_det/FLUX.1/SlowFast/YOLOv8_obb. |
 | 0.2.5  | Fix documentation and other issues. Remove all samples' common dependencies. Release new samples including SAM2/HRNet_pose/InternVL2/BLIP/DirectMHP/VITS_CHINESE, new applications cv-demo,YOLOv5_fuse_multi_QT. |
 | 0.2.4  | Fix documentation and other issues. **Fix host memory leak in VideoDecFFM**. Release new samples including YOLOv8_pose/Qwen-VL-Chat, new application Grounded-sam. |
 | 0.2.3  | Fix documentation and other issues. Release new samples including StableDiffusionXL/ChatGLM4/Seamless/YOLOv10, new tutorials including mmap/video_encode. |
@@ -116,6 +121,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
+| 0.2.6  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.5  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.4  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.3  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
@@ -137,9 +143,10 @@ SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPH
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
-| 0.2.5  | >=1.9       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
-| 0.2.4  | >=1.9       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
-| 0.2.3  | >=1.8       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
+| 0.2.6  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
+| 0.2.5  | >=1.9       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
+| 0.2.4  | >=1.9       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
+| 0.2.3  | >=1.8       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.2  | >=1.8       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.6.0  |
 | 0.2.1  | >=1.7       | >=0.4.9 | >=1.5.0     | >=1.5.0     | >=3.8.0   | >=v1.5.0  |
 | 0.2.0  | >=1.6       | >=0.4.9 | >=1.5.0     | >=1.5.0     | >=3.7.0   | >=v1.5.0  |

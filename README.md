@@ -43,6 +43,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | 人体关键点检测    | C++/Python | FP32/FP16/INT8 |
 | [HRNet_pose](./sample/HRNet_pose/README.md)                   | 人体关键点检测    | C++/Python | FP32/FP16/INT8 |
 | [C3D](./sample/C3D/README.md)                                 | 视频动作识别      | C++/Python | FP32/FP16/INT8 |
+| [SlowFast](./sample/SlowFast/README.md)                       | 视频动作识别      | C++/Python | FP32/FP16/INT8 |
 | [DeepSORT](./sample/DeepSORT/README.md)                       | 多目标跟踪        | C++/Python | FP32/FP16/INT8 |
 | [ByteTrack](./sample/ByteTrack/README.md)                     | 多目标跟踪        | C++/Python | FP32/FP16/INT8 |
 | [CenterNet](./sample/CenterNet/README.md)                     | 目标检测、姿态识别 | C++/Python | FP32/FP16/INT8 |
@@ -56,8 +57,10 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [YOLOv5_fuse](./sample/YOLOv5_fuse/README.md)                 | 目标检测          | C++/Python | FP32/FP16/INT8 |
 | [YOLOv9_det](./sample/YOLOv9_det/README.md)                   | 目标检测          | C++/Python | FP32/FP16/INT8 |
 | [YOLOv10](./sample/YOLOv10/README.md)                         | 目标检测          | C++/Python | FP32/FP16/INT8 |
+| [YOLOv11_det](./sample/YOLOv11_det/README.md)                 | 目标检测          | C++/Python | FP32/FP16/INT8 |
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16      |
+| [YOLOv8_obb](./sample/YOLOv8_obb/README.md)                   | 旋转框目标检测     | C++/Python | FP32/FP16 |
 | [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16      | 
 | [Whisper](./sample/Whisper/README.md)                         | 语音识别          | Python     | FP16           | 
 | [Seamless](./sample/Seamless/README.md)                       | 语音识别          | Python     | FP32/FP16      | 
@@ -71,12 +74,13 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [ChatGLM4](./sample/ChatGLM4/README.md)                       | 大规模语言模型     | Python     | INT8/INT4      | 
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | 图像生成          | Python     | FP32/FP16      |
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | 图像生成          | Python     | FP32/FP16      |
+| [FLUX.1](./sample/FLUX.1/README.md)                           | 图像生成          | Python     | FP32/INT4      |
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | 多模态目标检测     | Python     | FP16           |
 | [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | 大规模视觉语言模型 | Python     | FP16/INT8      |
 | [InternVL2](./sample/InternVL2/README.md)                     | 大规模视觉语言模型 | Python     | INT4      |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | 超分辨            | C++/Python | FP32/FP16/INT8 |
 | [P2PNet](./sample/P2PNet/README.md)                           | 人群计数          | C++/Python | FP32/FP16/INT8 |
-| [CLIP](./sample/CLIP/README.md)                               | 图文生成          | Python     | FP16           |
+| [CLIP](./sample/CLIP/README.md)                               | 图文匹配          | C++/Python | FP16           |
 | [BLIP](./sample/BLIP/README.md)                               | 多模态图文模型     | Python     | FP32           |
 | [SuperGlue](./sample/SuperGlue/README.md)                     | 特征匹配          | C++        | FP32/FP16      |
 | [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | 语音生成          | Python     | FP32/FP16      |
@@ -94,10 +98,11 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
-| 0.2.5  | 完善和修复文档、代码问题，去除所有sample的公共依赖。sample模块新增例程SAM2、HRNet_pose、InternVL2、BLIP、DirectMHP、VITS_CHINESE例程，application新增cv-demo、YOLOv5_fuse_multi_QT例程。 |
-| 0.2.4  | 完善和修复文档、代码问题，**修复VideoDecFFM系统内存泄漏问题**，sample模块新增例程YOLOv8_pose、Qwen-VL-Chat例程，application新增Grounded-sam例程。 |
+| 0.2.6  | 完善和修复文档、代码问题，sample模块新增YOLOv11_det、FLUX.1、SlowFast、YOLOv8_obb例程。 |
+| 0.2.5  | 完善和修复文档、代码问题，去除所有sample的公共依赖。sample模块新增SAM2、HRNet_pose、InternVL2、BLIP、DirectMHP、VITS_CHINESE例程，application新增cv-demo、YOLOv5_fuse_multi_QT例程。 |
+| 0.2.4  | 完善和修复文档、代码问题，**修复VideoDecFFM系统内存泄漏问题**，sample模块新增YOLOv8_pose、Qwen-VL-Chat例程，application新增Grounded-sam例程。 |
 | 0.2.3  | 完善和修复文档、代码问题，sample模块新增例程StableDiffusionXL、ChatGLM4、Seamless、YOLOv10，tutorial模块新增mmap、video_encode例程。 |
-| 0.2.2  | 完善和修复文档、代码问题，部分例程补充CV186X支持，sample模块新增例程Whisper、Real-ESRGAN、SCRFD、P2PNet、MiniCPM、CLIP、SuperGlue、YOLOv5_fuse、YOLOv8_seg、YOLOv9_seg、Baichuan2等例程，tutorial模块新增avframe_ocv、ocv_avframe、bm1688_2core2task_yolov5例程。 |
+| 0.2.2  | 完善和修复文档、代码问题，部分例程补充CV186X支持，sample模块新增Whisper、Real-ESRGAN、SCRFD、P2PNet、MiniCPM、CLIP、SuperGlue、YOLOv5_fuse、YOLOv8_seg、YOLOv9_seg、Baichuan2等例程，tutorial模块新增avframe_ocv、ocv_avframe、bm1688_2core2task_yolov5例程。 |
 | 0.2.1  | 完善和修复文档、代码问题，部分例程补充CV186X支持，YOLOv5适配SG2042，sample模块新增例程GroundingDINO、Qwen1_5，StableDiffusionV1_5新支持多种分辨率，Qwen、Llama2、ChatGLM3添加web和多会话模式。tutorial模块新增blend和stitch例程 |
 | 0.2.0  | 完善和修复文档、代码问题，新增application和tutorial模块，新增例程ChatGLM3和Qwen，SAM添加web ui，BERT、ByteTrack、C3D适配BM1688，原YOLOv8更名为YOLOv8_det并且添加cpp后处理加速方法，优化常用例程的auto_test，更新TPU-MLIR安装方式为pip |
 | 0.1.10 | 修复文档、代码问题，新增ppYoloe、YOLOv8_seg、StableDiffusionV1.5、SAM，重构yolact，CenterNet、YOLOX、YOLOv8适配BM1688，YOLOv5、ResNet、PP-OCR、DeepSORT补充BM1688性能数据，WeNet提供C++交叉编译方法 |
@@ -137,9 +142,10 @@ SOPHON-DEMO主要依赖TPU-MLIR、TPU-NNTC、LIBSOPHON、SOPHON-FFMPEG、SOPHON-
 对于BM1688/CV186AH SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
-| 0.2.5  | >=1.9       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
-| 0.2.4  | >=1.9       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
-| 0.2.3  | >=1.8       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.7.0  |
+| 0.2.6  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
+| 0.2.5  | >=1.9       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
+| 0.2.4  | >=1.9       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
+| 0.2.3  | >=1.8       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.2  | >=1.8       | >=0.4.9 | >=1.6.0     | >=1.6.0     | >=3.8.0   | >=v1.6.0  |
 | 0.2.1  | >=1.7       | >=0.4.9 | >=1.5.0     | >=1.5.0     | >=3.8.0   | >=v1.5.0  |
 | 0.2.0  | >=1.6       | >=0.4.9 | >=1.5.0     | >=1.5.0     | >=3.7.0   | >=v1.5.0  |
