@@ -24,7 +24,7 @@
 
 ## 2. 编译程序
 
-PCIE环境下和SOC环境下都可以直接进行编译。
+PCIE环境下和SOC环境下都需要直接进行编译。
 
 进行编译之前，请先确认之前已经执行过`campplus/scripts/download.sh`
 
@@ -37,7 +37,7 @@ PCIE环境下和SOC环境下都可以直接进行编译。
 
 另外还需要安装第三方库，在Ubuntu系统或者Soc平台上请执行
 ```bash
-sudo apt install libfst-dev libopenblas-dev
+sudo apt install libfst-dev libatlas3-base
 ```
 
 下面以BM1684X PCIE环境下的编译为例：
@@ -64,11 +64,10 @@ usage: ./campplus [--model BMODEL] [--input INPUT_DIR] [--devid DEV_ID]
 ```
 
 ### 3.2 使用方式
-
-将../dependencies/lib加入路径后运行`campplus`，如运行BM1684X fp32模型`campplus_bm1684x_fp32_1b.bmodel`:
+以SOC平台为例，将`./dependencies/lib_soc`加入路径后运行`campplus`，如运行BM1684X fp32模型`campplus_bm1684x_fp32_1b.bmodel`:
 
 ```shell
-export LD_LIBRARY_PATH=../dependencies/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=./dependencies/lib_soc:$LD_LIBRARY_PATH
 ./campplus --bmodel=../models/BM1684X/campplus_bm1684x_fp32_1b.bmodel  --input=../datasets/test --dev_id=0
 ```
 
