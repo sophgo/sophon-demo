@@ -52,6 +52,8 @@ cd ../..
 
 - 此外您还需要安装其他python第三方库：
 ```bash
+sudo apt install portaudio19-dev
+sudo apt-get install libsndfile1
 pip3 install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cpu
 pip3 install -r requirements.txt
 ```
@@ -112,6 +114,7 @@ pip3 install sophon-3.8.0-py3-none-any.whl --force-reinstall
 rm -f sophon-3.8.0-py3-none-any.whl
 # 对于SE7、SE9平台
 sudo apt install portaudio19-dev
+sudo apt-get install libsndfile1
 pip3 install networkx==2.8.8
 pip3 install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cpu
 pip3 install requests==2.26.0

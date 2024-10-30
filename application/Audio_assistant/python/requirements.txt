@@ -1,6 +1,6 @@
 antlr4-python3-runtime
 funasr==1.1.4
-numpy
+numpy==1.24.4
 transformers
 pyaudio
 webrtcvad
@@ -14,4 +14,4 @@ trainer
 einops
 hangul_romanize
 num2words
-spacy
+spacy==3.7.5
