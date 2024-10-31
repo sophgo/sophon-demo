@@ -1,7 +1,7 @@
 # config for LLM_server_api
 models:
   - name: qwen
-    bmodel_path: ../../ChatDoc/models/BM1684X/qwen1.5-7b_int4_seq2048_1dev.bmodel
-    token_path: ../../ChatDoc/models/qwen/token_config
+    bmodel_path: ../../ChatDoc/models/BM1684X/qwen/qwen1.5-7b_int4_seq2048_1dev.bmodel
+    token_path: ../../ChatDoc/models/BM1684X/qwen/token_config
     dev_id: 0
 port: 18080

@@ -17,10 +17,12 @@ chip="bm1684x"
 
 if [ "$1" == "bm1688" ]; then
     chip="bm1688"
-    sed -i 's/BM1684X/BM1688/g' ../python/config.ini
+    # change the model path in config.ini and config.yaml
+    sed -i -e 's/BM1684X/BM1688/g' -e 's/1.5-7/2.5-1.5/g' -e 's/1dev/1688_2core/g' ../python/config.{ini,yaml}
 else
     chip="bm1684x"
-    sed -i 's/BM1688/BM1684X/g' ../python/config.ini
+    # change the model path in config.ini and config.yaml
+    sed -i -e 's/BM1688/BM1684X/g' -e 's/2.5-1.5/1.5-7/g' -e 's/1688_2core/1dev/g' ../python/config.{ini,yaml}
 fi
 
 # nltk_data & embedding model & reranker model are required
@@ -35,19 +37,27 @@ else
     echo "../nltk_data already exist..."
 fi
 
-# download qwen1.5-7b
-if [ ! -d "../models/BM1684X" ]; then
-    mkdir -p ../models/BM1684X
-    echo "download qwen1.5-7b as an example"
+# download qwen1.5-7b || qwen2.5-1.5b
+if [[ "$chip" == "bm1684x" && ! -d "../models/BM1684X/qwen" ]]; then
+    echo "download qwen1.5-7b as an example..."
+    mkdir -p ../models/BM1684X/qwen
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen1.5/qwen1.5-7b_int4_seq2048_1dev.bmodel
-    mv qwen1.5-7b_int4_seq2048_1dev.bmodel ../models/BM1684X
-fi
-
-# download qwen tokenizer
-if [ ! -d "../models/qwen/token_config" ]; then
+    mv qwen1.5-7b_int4_seq2048_1dev.bmodel ../models/BM1684X/qwen
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen1_5/token_config.zip
-    unzip token_config.zip -d ../models/qwen/
+    unzip token_config.zip -d ../models/BM1684X/qwen/
     rm token_config.zip
+    echo "qwen-1.5-7b download!"
+elif [[ "$chip" == "bm1688" && ! -d "../models/BM1688/qwen" ]]; then
+    echo "download qwen2.5-1.5b as an example..."
+    mkdir -p ../models/BM1688/qwen
+    python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/qwen2.5-1.5b_int4_seq2048_1688_2core.bmodel
+    mv qwen2.5-1.5b_int4_seq2048_1688_2core.bmodel ../models/BM1688/qwen
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen1_5/token_config.zip  # same as 84x
+    unzip token_config.zip -d ../models/BM1688/qwen/
+    rm token_config.zip
+    echo "qwen-2.5-1.5b download!"
+else
+    echo "qwen model already exist..."
 fi
 
 # download embedding model
