@@ -30,20 +30,9 @@ function gen_fp32bmodel()
         --quantize F32 \
         --chip $target \
         --dynamic \
-        --disable_layer_group
+        --disable_layer_group \
         --model ${name}_${target}_fp32_$1b.bmodel
     mv ${name}_${target}_fp32_$1b.bmodel $outdir
-    if test $target = "bm1688";then
-        model_deploy.py \
-            --mlir ${name}_$1b.mlir \
-            --quantize F32 \
-            --chip $target \
-	        --dynamic \
-            --disable_layer_group
-            --model ${name}_${target}_fp32_$1b_2core.bmodel \
-            --num_core 2
-        mv ${name}_${target}_fp32_$1b_2core.bmodel $outdir
-    fi
 }
 
 pushd $model_dir

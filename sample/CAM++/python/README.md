@@ -19,6 +19,7 @@ python目录下提供了campplus.py文件，其使用kaldi前处理、SAIL推理
 ```bash
 pip3 install torchaudio
 ```
+注：torchaudio和torch的版本需要相同，如果出现torchaudio的报错，请检查torch和torchaudio的版本。
 
 ### 1.2 SoC平台
 
@@ -37,6 +38,6 @@ usage: campplus.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 ### 2.2 测试说话人识别
 测试实例如下，对三段简短语音计算embedding并将结果存储在results文件夹中
 ```bash
-python python/campplus.py --dev_id 0 --bmodel models/BM1684X/campplus_bm1684x_fp32_1b.bmodel --input datasets/test
+python3 python/campplus.py --dev_id 0 --bmodel models/BM1684X/campplus_bm1684x_fp32_1b.bmodel --input datasets/test
 ```
 测试结束后，会打印推理时间等信息，并将计算结果保存在`./results`中。
