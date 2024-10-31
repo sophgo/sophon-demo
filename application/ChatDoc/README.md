@@ -23,84 +23,74 @@ ChatDoc例程是一个基于BM1684X构建的用自然语言与文档进行交互
 
 ```shell
 ├── models
-│   ├── BM1684X                                 # BM1684X专用模型
-│   │   ├── bce_embedding                       # BM1684X上运行的bce_embedding
-│   │   │   ├── bce-embedding-base_v1.bmodel
-│   │   │   └── token_config
-│   │   │       ├── special_tokens_map.json
-│   │   │       ├── tokenizer_config.json
-│   │   │       └── tokenizer.json
-│   │   ├── bce_reranker                        # BM1684X上运行的bce_reranker
-│   │   │   ├── bce-reranker-base_v1.bmodel
-│   │   │   └── token_config
-│   │   │       ├── special_tokens_map.json
-│   │   │       ├── tokenizer_config.json
-│   │   │       └── tokenizer.json
-│   │   └── qwen1.5-7b_int4_seq2048_1dev.bmodel # BM1684X上运行的qwen1.5-7b, int4量化, 上下文长度2k, 单芯模型
-│   ├── BM1688                                  # BM1688专用模型
-│   │   ├── bce_embedding                       # BM1688上运行的bce_embedding
-│   │   │   ├── bce-embedding-base_v1.bmodel
-│   │   │   └── token_config
-│   │   │       ├── special_tokens_map.json
-│   │   │       ├── tokenizer_config.json
-│   │   │       └── tokenizer.json
-│   │   └── bce_reranker                        # BM1688上运行的bce_reranker
-│   │       ├── bce-reranker-base_v1.bmodel
-│   │       └── token_config
-│   │           ├── special_tokens_map.json
-│   │           ├── tokenizer_config.json
-│   │           └── tokenizer.json
-│   └── qwen                                  # qwen系列模型的提词器
-│       └── token_config
-│           ├── tokenizer_config.json
-│           ├── tokenizer.json
-│           └── vocab.json
+│   ├── BM1684X                                       # BM1684X专用模型
+│   │   ├── bce_embedding                             # BM1684X上运行的bce_embedding
+│   │   │   ├── bce-embedding-base_v1.bmodel
+│   │   │   └── token_config
+│   │   │       ├── special_tokens_map.json
+│   │   │       ├── tokenizer_config.json
+│   │   │       └── tokenizer.json
+│   │   ├── bce_reranker                              # BM1684X上运行的bce_reranker
+│   │   │   ├── bce-reranker-base_v1.bmodel
+│   │   │   └── token_config
+│   │   │       ├── special_tokens_map.json
+│   │   │       ├── tokenizer_config.json
+│   │   │       └── tokenizer.json
+│   │   └── qwen                                      # BM1684X上运行的qwen1.5-7b, int4量化, 上下文长度2k, 单芯模型
+│   │       ├── qwen1.5-7b_int4_seq2048_1dev.bmodel
+│   │       └── token_config
+│   │           ├── tokenizer_config.json
+│   │           ├── tokenizer.json
+│   │           └── vocab.json
+│   └── BM1688                                        # BM1688专用模型
+│       ├── bce_embedding                             # BM1688上运行的bce_embedding
+│       │   ├── bce-embedding-base_v1.bmodel
+│       │   └── token_config
+│       │       ├── special_tokens_map.json
+│       │       ├── tokenizer_config.json
+│       │       └── tokenizer.json
+│       ├── bce_reranker                              # BM1688上运行的bce_reranker
+│       │   ├── bce-reranker-base_v1.bmodel
+│       │   └── token_config
+│       │       ├── special_tokens_map.json
+│       │       ├── tokenizer_config.json
+│       │       └── tokenizer.json
+│       └── qwen                                      # BM1688上运行的qwen2.5-1.5b, int4量化, 上下文长度2k, 双核模型
+│           ├── qwen2.5-1.5b_int4_seq2048_1688_2core.bmodel
+│           └── token_config
+│               ├── tokenizer_config.json
+│               ├── tokenizer.json
+│               └── vocab.json
 ├── nltk_data
-├── pics                                      # 文档用图
-│   ├── embedding.png
-│   ├── img1.png
-│   └── img2.png
-├── python
-│   ├── chat                                  # 聊天机器人
-│   │   ├── chatbot.py
-│   │   ├── __init__.py
-│   │   └── utils.py
-│   ├── config.ini                            # 本项目的配置方法
-│   ├── config.yaml                           # LLM_server_api服务的配置，LLM模型部分
-│   ├── data                                  # 存储文档和保存知识库
-│   │   ├── db_tpu
-│   │   └── uploaded
-│   ├── doc_processor                         # 文档处理模块
-│   │   ├── document_loaders
-│   │   │   ├── FilteredCSVloader.py
-│   │   │   ├── __init__.py
-│   │   │   ├── mydocloader.py
-│   │   │   ├── myimgloader.py
-│   │   │   ├── mypdfloader.py
-│   │   │   ├── mypptloader.py
-│   │   │   └── ocr.py
-│   │   ├── __init__.py
-│   │   ├── knowledge_file.py
-│   │   └── text_splitter
-│   │       ├── ali_text_splitter.py
-│   │       ├── chinese_recursive_text_splitter.py
-│   │       ├── chinese_text_splitter.py
-│   │       ├── __init__.py
-│   │       └── zh_title_enhance.py
-│   ├── embedding                            # embedding推理
-│   │   ├── embedding.py
-│   │   ├── __init__.py
-│   │   ├── npuengine.py
-│   │   └── sentence_model.py
-│   ├── README.md                             # python例程的README
-│   ├── requirements.txt
-│   ├── reranker
-│   │   ├── __init__.py
-│   │   └── reranker_tpu.py
-│   └── web_demo_st.py
-├── README.md                                   # 项目总文档
-└── scripts                                     # 下载脚本
-    └── download.sh
+├── pics                            # 文档用图
+│   ├── embedding.png
+│   ├── img1.png
+│   └── img2.png
+├── python                          # python例程
+│   ├── chat                        # 聊天机器人
+│   │   ├── chatbot.py
+│   │   ├── __init__.py
+│   │   └── utils.py
+│   ├── config.ini                  # 本项目的配置方法
+│   ├── config.yaml                 # LLM_server_api服务的配置，LLM模型部分
+│   ├── data                        # 存储文档和保存知识库
+│   │   ├── db_tpu
+│   │   └── uploaded
+│   ├── doc_processor               # 文档处理模块
+│   ├── embedding                   # embedding推理
+│   │   ├── embedding.py
+│   │   ├── __init__.py
+│   │   ├── npuengine.py
+│   │   └── sentence_model.py
+│   ├── README.md                   # python例程的README
+│   ├── requirements.txt            # 需要安装的第三方库
+│   ├── reranker                    # reranker模块
+│   │   ├── __init__.py
+│   │   └── reranker_tpu.py
+│   └── web_demo_st.py              # python例程启动文件
+├── README.md                       # 项目总文档
+└── scripts
+    └── download.sh                 # 下载脚本
 ```
 
 ## 2. 准备模型与数据

@@ -22,7 +22,7 @@ python目录下提供了Python例程，具体情况如下：
 ```shell
 # 进入LLM_api_server可执行脚本例程
 cd LLM_api_server/python
-# 启动LLM_api_server的OpenAI库调用方式
+# 启动LLM_api_server的OpenAI库调用方式，请确认config.yaml中的模型路径是否正确
 python3 api_server.py --config ../../ChatDoc/python/config.yaml
 ```
 
