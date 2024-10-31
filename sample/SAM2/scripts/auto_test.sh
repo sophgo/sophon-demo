@@ -91,15 +91,20 @@ function bmrt_test_benchmark(){
     printf "| %-60s| % 15s |\n" "测试模型" "calculate time(ms)"
     printf "| %-60s| % 15s |\n" "------------------------------------------------------------" "--------------"
    
-    bmrt_test_case BM1688/image_encoder/sam2_encoder_f16_1b_1core.bmodel
-    bmrt_test_case BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel
-    bmrt_test_case BM1688/image_encoder/sam2_encoder_f32_1b_1core.bmodel
-    bmrt_test_case BM1688/image_encoder/sam2_encoder_f32_1b_2core.bmodel
+    bmrt_test_case bmodel/image/BM1688/image_encoder/sam2_encoder_f16_1b_1core.bmodel
+    bmrt_test_case bmodel/image/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel
+    bmrt_test_case bmodel/image/BM1688/image_encoder/sam2_encoder_f32_1b_1core.bmodel
+    bmrt_test_case bmodel/image/BM1688/image_encoder/sam2_encoder_f32_1b_2core.bmodel
 
-    bmrt_test_case BM1688/image_decoder/sam2_decoder_f16_1b_1core.bmodel
-    bmrt_test_case BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
-    bmrt_test_case BM1688/image_decoder/sam2_decoder_f32_1b_1core.bmodel
-    bmrt_test_case BM1688/image_decoder/sam2_decoder_f32_1b_2core.bmodel
+    bmrt_test_case bmodel/image/BM1688/image_decoder/sam2_decoder_f16_1b_1core.bmodel
+    bmrt_test_case bmodel/image/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
+    bmrt_test_case bmodel/image/BM1688/image_decoder/sam2_decoder_f32_1b_1core.bmodel
+    bmrt_test_case bmodel/image/BM1688/image_decoder/sam2_decoder_f32_1b_2core.bmodel
+
+    bmrt_test_case bmodel/video/BM1688/sam2_image_encoder_no_pos.bmodel 
+    bmrt_test_case bmodel/video/BM1688/sam2_image_decoder.bmodel
+    bmrt_test_case bmodel/video/BM1688/sam2_memory_attention_nomatmul.bmodel
+    bmrt_test_case bmodel/video/BM1688/sam2_memory_encoder.bmodel  
 
     popd
 }
@@ -150,19 +155,19 @@ function test_python() {
 	if [[ ! -d log ]]; then
 		mkdir log
 	fi
-	python3 python/sam2_"$1".py --img_path datasets/truck.jpg \
+	python3 python/sam2_image_"$1".py --img_path datasets/images/truck.jpg \
 		--points '[[500, 375]]' --label 1 \
-		--encoder_bmodel models/"${TARGET}"/image_encoder/"$2".bmodel \
-		--decoder_bmodel models/"${TARGET}"/image_decoder/"$3".bmodel \
+		--encoder_bmodel models/bmodel/image/"${TARGET}"/image_encoder/"$2".bmodel \
+		--decoder_bmodel models/bmodel/image/"${TARGET}"/image_decoder/"$3".bmodel \
 		>log/"$1"_"$2"_python_test.log 2>&1
-	judge_ret $? "python3 python/sam2_$1.py --input_image datasets/truck.jpg --input_point '[[500, 375]]' --input_label 1 \
-                            --encoder_bmodel models/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/${TARGET}/image_decoder/$3.bmodel " log/"$1"_"$2"_python_test.log
+	judge_ret $? "python3 python/sam2_image_$1.py --img_path datasets/images/truck.jpg --input_point '[[500, 375]]' --input_label 1 \
+                            --encoder_bmodel models/bmodel/image/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/bmodel/image/${TARGET}/image_decoder/$3.bmodel " log/"$1"_"$2"_python_test.log
 	tail -n 20 log/"$1"_"$2"_python_test.log
 	if test "$4" = "img"; then
 		echo "==================="
 		echo "Comparing statis..."
-		python3 tools/compare_statis.py --target="${TARGET}" --platform="${MODE%_*}" --program=sam2_"$1".py --language=python --input=log/"$1"_"$2"_python_test.log --encoder_bmodel models/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/${TARGET}/image_decoder/$3.bmodel
-		judge_ret $? "python3 tools/compare_statis.py --target=${TARGET} --platform=${MODE%_*} --program=sam2_$1.py --language=python --input=log/$1_$2_python_test.log --encoder_bmodel models/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/${TARGET}/image_decoder/$3.bmodel"
+		python3 tools/compare_statis.py --target="${TARGET}" --platform="${MODE%_*}" --program=sam2_"$1".py --language=python --input=log/"$1"_"$2"_python_test.log --encoder_bmodel models/bmodel/image/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/bmodel/image/${TARGET}/image_decoder/$3.bmodel
+		judge_ret $? "python3 tools/compare_statis.py --target=${TARGET} --platform=${MODE%_*} --program=sam2_$1.py --language=python --input=log/$1_$2_python_test.log --encoder_bmodel models/bmodel/image/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/bmodel/image/${TARGET}/image_decoder/$3.bmodel"
 		echo "==================="
 	fi
 }
@@ -173,26 +178,26 @@ function eval_python()
   if [ ! -d python/log ];then
     mkdir python/log
   fi
-  python3 python/sam2_$1.py --img_path datasets/val2017 \
-                            --encoder_bmodel models/$TARGET/image_encoder/$2.bmodel  \
-                            --decoder_bmodel models/$TARGET/image_decoder/$3.bmodel  \
+  python3 python/sam2_image_$1.py --img_path datasets/images/val2017 \
+                            --encoder_bmodel models/bmodel/image/$TARGET/image_encoder/$2.bmodel  \
+                            --decoder_bmodel models/bmodel/image/$TARGET/image_decoder/$3.bmodel  \
                             --gt_path $6  --mode $4 --dataset_type $5 \
                             --detect_num $7 > python/log/$1_$2_debug.log 2>&1
 
-  judge_ret $? "python3 python/sam2_$1.py --img_path datasets/val2017  \
-                                          --encoder_bmodel models/$TARGET/image_encoder/$2.bmodel  \
-                                          --decoder_bmodel models/$TARGET/image_decoder/$3.bmodel  \
+  judge_ret $? "python3 python/sam2_image_$1.py --img_path datasets/images/val2017  \
+                                          --encoder_bmodel models/bmodel/image/$TARGET/image_encoder/$2.bmodel  \
+                                          --decoder_bmodel models/bmodel/image/$TARGET/image_decoder/$3.bmodel  \
                                           --gt_path $6 --mode $4 --dataset_type $5 \
                                           --detect_num $7 > python/log/$1_$2_debug.log 2>&1" python/log/$1_$2_debug.log
   tail -n 20 python/log/$1_$2_debug.log
 
   echo "Evaluating..."
-  res=$(python3 tools/eval.py --gt_path datasets/instances_val2017.json --res_path results/$2_$5_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
+  res=$(python3 tools/eval.py --gt_path datasets/images/instances_val2017.json --res_path results/$2_$5_$1_python_result.json 2>&1 | tee python/log/$1_$2_eval.log)
   echo -e "$res"
   miou_value=$(echo "$res" | grep "mIoU" | awk -F'=' '{print $2}')
   compare_res $miou_value $8
   judge_ret $? "$2_$5_$1_python_result: Precision compare!" python/log/sam2_$1_$2_eval.log
-  printf "| %-12s | %-18s | %-30s | %-30s| %8.3f|\n" "$PLATFORM" "sam2_$1.py" "$2.bmodel" "$3.bmodel" "$(printf "%.3f" $miou_value)" >> scripts/acc.txt
+  printf "| %-12s | %-18s | %-30s | %-30s| %8.3f|\n" "$PLATFORM" "sam2_image_$1.py" "$2.bmodel" "$3.bmodel" "$(printf "%.3f" $miou_value)" >> scripts/acc.txt
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
@@ -201,6 +206,8 @@ function compile_mlir()
   ./scripts/gen_fp32bmodel_mlir.sh $TARGET
   judge_ret $? "generate $TARGET fp32bmodel" 0
   ./scripts/gen_fp16bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET fp16bmodel" 0
+  ./scripts/gen_fp16bmodel_mlir_video.sh $TARGET
   judge_ret $? "generate $TARGET fp16bmodel" 0
 }
 
@@ -246,11 +253,10 @@ then
     test_python opencv sam2_encoder_f16_1b_1core sam2_decoder_f16_1b_1core img
     test_python opencv sam2_encoder_f16_1b_2core sam2_decoder_f16_1b_2core img
 
-    performence test
-    eval_python opencv sam2_encoder_f32_1b_1core sam2_decoder_f32_1b_1core dataset COCODataset datasets/instances_val2017.json 200 0.4
-    eval_python opencv sam2_encoder_f32_1b_2core sam2_decoder_f32_1b_2core dataset COCODataset datasets/instances_val2017.json 200 0.4
-    eval_python opencv sam2_encoder_f16_1b_1core sam2_decoder_f16_1b_1core dataset COCODataset datasets/instances_val2017.json 200 0.4
-    eval_python opencv sam2_encoder_f16_1b_2core sam2_decoder_f16_1b_2core dataset COCODataset datasets/instances_val2017.json 200 0.4
+    eval_python opencv sam2_encoder_f32_1b_1core sam2_decoder_f32_1b_1core dataset COCODataset datasets/images/instances_val2017.json 200 0.5
+    eval_python opencv sam2_encoder_f32_1b_2core sam2_decoder_f32_1b_2core dataset COCODataset datasets/images/instances_val2017.json 200 0.5
+    eval_python opencv sam2_encoder_f16_1b_1core sam2_decoder_f16_1b_1core dataset COCODataset datasets/images/instances_val2017.json 200 0.5
+    eval_python opencv sam2_encoder_f16_1b_2core sam2_decoder_f16_1b_2core dataset COCODataset datasets/images/instances_val2017.json 200 0.5
   fi
 fi
 

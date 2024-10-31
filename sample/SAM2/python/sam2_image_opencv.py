@@ -18,7 +18,6 @@ import cv2
 import datasets
 import numpy as np
 import sophon.sail as sail
-from pympler import asizeof
 from tqdm import tqdm
 from utils import (bytes_to_megabytes, draw_masks, logger,
                    mask_to_coco_segmentation)
@@ -67,7 +66,7 @@ class SAM2ImageEncoder:
         # 使用 OpenCV 的加权求和函数加速归一化
         normalized_img = cv2.subtract(input_img, self.mean)
         normalized_img = cv2.divide(normalized_img, self.std)
-        input_img = input_img.transpose(2, 0, 1)
+        input_img = normalized_img.transpose(2, 0, 1)
         input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
 
         self.preprocess_time = time.perf_counter() - start
@@ -384,10 +383,7 @@ def pred_dataset(args):
             }
         )
 
-        memory_used = round(bytes_to_megabytes(asizeof.asizeof(seg_res)), 4)
         sam2.reset_points()
-        if memory_used > 800:
-            break
 
     base_filename = os.path.splitext(os.path.basename(args.encoder_bmodel))[0]
     json_name = "{}_{}_opencv_python_result.json".format(
@@ -450,7 +446,7 @@ def argsparser():
     parser.add_argument(
         "--img_path",
         type=str,
-        default="datasets/truck.jpg",
+        default="datasets/image/truck.jpg",
         help="Path of input image or dateset",
     )
     parser.add_argument(
@@ -469,7 +465,7 @@ def argsparser():
     parser.add_argument(
         "--gt_path",
         type=str,
-        default="datasets/instances_val2017.json",
+        default="datasets/image/instances_val2017.json",
         help="Ground truth file path",
     )
     parser.add_argument(
@@ -487,13 +483,13 @@ def argsparser():
     parser.add_argument(
         "--encoder_bmodel",
         type=str,
-        default="models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel",
+        default="models/bmodel/image/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel",
         help="Path of encoder bmodel",
     )
     parser.add_argument(
         "--decoder_bmodel",
         type=str,
-        default="models/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel",
+        default="models/bmodel/image/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel",
         help="Path of decoder bmodel",
     )
     parser.add_argument(
@@ -508,7 +504,7 @@ def argsparser():
 if __name__ == "__main__":
     args = argsparser()
     if not os.path.exists(args.img_path):
-        raise FileNotFoundError(f"{args.input_image} is not existed.")
+        raise FileNotFoundError(f"{args.img_path} is not existed.")
     if not os.path.exists(args.encoder_bmodel):
         raise FileNotFoundError(f"{args.encoder_bmodel} is not existed.")
     if not os.path.exists(args.decoder_bmodel):
@@ -516,6 +512,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
+    if not os.path.exists(os.path.join(args.output_dir, "images")):
         os.makedirs(os.path.join(args.output_dir, "images"))
 
     if args.mode == "img":

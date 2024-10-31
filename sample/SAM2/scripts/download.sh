@@ -26,9 +26,9 @@ if [ ! -d "../models" ];
 then
     mkdir ../models
 
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/BM1688.zip
-    unzip BM1688.zip -d ../models
-    rm BM1688.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/bmodel.zip
+    unzip bmodel.zip -d ../models
+    rm bmodel.zip
 
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/onnx.zip
     unzip onnx.zip -d ../models
