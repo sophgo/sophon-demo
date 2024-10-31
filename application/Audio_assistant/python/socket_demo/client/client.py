@@ -48,10 +48,14 @@ parser.add_argument("--audio_fs",
                     type=int,
                     default=16000,
                     help="audio_fs")
-parser.add_argument("--microphone_dev_id",
+parser.add_argument("--microphone_devid",
                     type=int,
                     default=0,
                     help="microphone device id")
+parser.add_argument("--audio_devid", 
+                    type=int, 
+                    default=None, 
+                    help="play audio device id, valid when --output_file=False, default: use default device")
 parser.add_argument("--output_file",
                     action='store_true', 
                     default=False, 
@@ -216,7 +220,7 @@ def record_microphone(client_socket, single_infer_done, latency_start_time, outp
                     rate=args.audio_fs,
                     input=True,
                     frames_per_buffer=CHUNK,
-                    input_device_index=args.microphone_dev_id)
+                    input_device_index=args.microphone_devid)
 
     # loop for reading data
     print("microphone running ...")
@@ -284,16 +288,15 @@ def record_from_wav(client_socket, wav_path, recv_dara_close, single_infer_done,
 
 def play(output_audio_queue, recv_dara_close, single_infer_done, latency_start_time):
     # out stream
-    """
     if not args.output_file:
         p = pyaudio.PyAudio()
         out_stream = p.open(format=pyaudio.paInt16,
             channels=1,
             rate=args.audio_fs,
-            output=True) 
+            output=True,
+            output_device_index=args.audio_devid) 
     else:
         out_stream = None
-    """
     indx = 0
     while True:
         while output_audio_queue.empty():

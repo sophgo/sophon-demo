@@ -7,9 +7,9 @@
   - [简介](#简介)
   - [特性](#特性)
   - [1. 工程目录](#1-工程目录)
-  - [2. 准备模型与数据](#2-准备模型与数据)
-  - [3. 运行环境准备](#3-运行环境准备)
-  - [4. 例程](#4-例程)
+  - [2. 运行环境准备](#2-运行环境准备)
+  - [3. 例程](#3-例程)
+  - [4. FAQ](#4-FAQ)
 
 
 ## 简介
@@ -77,3 +77,50 @@ sudo reboot
 ## 3. 例程
 - [Python例程](./python/README.md)
 - [socket_demo例程](./python/socket_demo/README.md)
+
+## 4. FAQ
+- 若使用麦克风不能进行录音，则需要检查和修改参数`--microphone_devid`。排查流程如下：
+  - 首先若使用的USB麦克风，不是则跳到下一步骤，需要添加当前用户到`audio`用户组，执行:
+    ```bash
+    sudo usermod -a -G audio $(whoami)
+    ```
+
+  - 然后需要使用如下命令查看所有音频输入设备，获得所有音频输入设备的`{card id}`和`{device id}`两个id
+    ```bash
+    # 安装必要的音频库
+    sudo apt-get install alsa-utils
+    arecord -l
+    ```
+
+  - 使用如下命令尝试录音，其中`-d 5`参数是指录5s音频，`-D hw:{card id},{device id}`参数用于指定设备，来自上一步骤命令输出，`{fs}`是指输入音频的采样率，部分麦克风仅仅支持`44100`或`16000`，需要测试获得
+    ```bash
+    arecord -D hw:{card id},{device id} -c 1 -f S16_LE -r {fs} -d 5 test.wav
+    ```
+
+  - 通过上述步骤即可获得能够录音的设备名称和采样率，接着执行如下命令即可将设备名称和程序里面音频输入设备id`microphone_devid`对应，即命令输出的输入设备里面的`index`字段
+    ```bash
+    python3 tools/get_audio_device.py
+    ```
+
+- 若使用喇叭不能进行播放，则需要检查和修改参数`--audio_devid`。排查流程如下：
+  - 首先若使用的USB喇叭，不是则跳到下一步骤，需要添加当前用户到`audio`用户组，执行:
+    ```bash
+    sudo usermod -a -G audio $(whoami)
+    ```
+
+  - 然后需要使用如下命令查看所有音频输出设备，获得所有音频输出设备的`{card id}`和`{device id}`两个id
+    ```bash
+    # 安装必要的音频库
+    sudo apt-get install alsa-utils
+    aplay -l
+    ```
+
+  - 使用如下命令尝试播放，其中`-D plughw:{card id},{device id}`参数用于指定设备，来自上一步骤命令输出，`{fs}`是指输出音频的采样率，部分喇叭仅仅支持`44100`或`16000`，需要测试获得
+    ```bash
+    aplay -D plughw:{card id},{device id} -f S16_LE -r {fs} /path/to/audio/file
+    ```
+
+  - 通过上述步骤即可获得能够播放的设备名称和采样率，接着执行如下命令即可将设备名称和程序里面音频输出设备id`audio_devid`对应，即命令输出的输出设备里面的`index`字段
+    ```bash
+    python3 tools/get_audio_device.py
+    ```

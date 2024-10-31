@@ -282,7 +282,8 @@ usage: client.py [-h] [--host HOST] [--port PORT] [--chunk_duration_ms CHUNK_DUR
 --vad_type: VAD模型的类型，支持webrtcvad、fsmn-vad
 --audio_in: 输入音频文件，如果未给出则使用麦克风输入
 --audio_fs: 程序使用的音频sample rate，包括输出音频，默认16000
---microphone_dev_id: 麦克风设备id
+--microphone_devid: 麦克风设备id
+--audio_devid: 喇叭设备id
 --output_file: 是否输出音频文件，如果未给出则输出到喇叭
 ```
 
@@ -317,7 +318,7 @@ python3 client/client.py --host 127.0.0.1 --port 10095 --audio_in ../../datasets
 
 若使用麦克风、喇叭作为输入输出，使用如下命令，需根据实际情况修改麦克风设备id，`--host`参数修改为服务器IP地址，`--port`参数修改为服务器端口
 ```bash
-python3 client/client.py --host 127.0.0.1 --port 10095 --microphone_dev_id 0
+python3 client/client.py --host 127.0.0.1 --port 10095 --microphone_devid 0
 ```
 
 若使用文件作为输入、喇叭作为输出，使用如下命令，根据实际情况修改`--host`参数为服务器IP地址，`--port`参数修改为服务器端口

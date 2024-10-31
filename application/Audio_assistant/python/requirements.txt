@@ -1,4 +1,4 @@
-antlr4-python3-runtime
+antlr4-python3-runtime==4.9.3
 funasr==1.1.4
 numpy==1.24.4
 transformers
