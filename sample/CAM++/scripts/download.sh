@@ -34,37 +34,4 @@ else
     echo "datasets folder exist! Remove it if you need to update."
 fi
 
-
-# kaldi headers
-if [ ! -d "../cpp/dependencies/include/base" ];
-then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/campplus/headers_1023/kaldi_headers.zip
-    unzip kaldi_headers.zip -d ../cpp/dependencies/include
-    rm kaldi_headers.zip
-    echo "headers download!"
-else
-    echo "header folder exist! Remove it if you need to update."
-fi
-
-# kaldi pcie libs
-if [ ! -d "../cpp/dependencies/lib_pcie_amd64" ];
-then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/campplus/libs_1029/lib_pcie_amd64.zip
-    unzip lib_pcie_amd64.zip -d ../cpp/dependencies
-    rm lib_pcie_amd64.zip
-    echo "lib_pcie_amd64 download!"
-else
-    echo "lib_pcie_amd64 folder exist! Remove it if you need to update."
-fi
-
-# kaldi soc libs
-if [ ! -d "../cpp/dependencies/lib_soc" ];
-then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/campplus/libs_1029/lib_soc.zip
-    unzip lib_soc.zip -d ../cpp/dependencies
-    rm lib_soc.zip
-    echo "lib_soc download!"
-else
-    echo "lib_soc folder exist! Remove it if you need to update."
-fi
 popd

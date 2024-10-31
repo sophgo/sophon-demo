@@ -1,6 +1,6 @@
-<font size=5>Python例程</font>
+# Python例程
 
-<font size=4> 目录</font>
+## 目录
 - [1. 环境准备](#1-环境准备)
   - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
   - [1.2 SoC平台](#12-soc平台)

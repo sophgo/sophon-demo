@@ -24,30 +24,14 @@
 
 ## 2. 编译程序
 
-PCIE环境下和SOC环境下都需要直接进行编译。
-
-进行编译之前，请先确认之前已经执行过`campplus/scripts/download.sh`
-
-在开发板上或者X86主机执行如下编译：
-您需要根据您使用的开发板及芯片种类进行选择
-
-- 如果您是 `SoC平台` 请将参数设置为 `-DTARGET_ARCH=soc`；
-- 如果您是 `x86 pcie BM1684X芯片` 请将参数设置为 `-DTARGET_ARCH=pcie`；
-- 如果您是 `arm pcie BM1684X芯片`，由于arm平台之间差异较大，请参考[`kaldi编译`](#4-kaidi编译)部分
-
-另外还需要安装第三方库，在Ubuntu系统或者Soc平台上请执行
-```bash
-sudo apt install libfst-dev libatlas3-base
-```
-
-下面以BM1684X PCIE环境下的编译为例：
+PCIE环境下和SOC环境下都需要直接执行如下编译：
 
 当前路径 `{campplus}/cpp`
 
 ```shell
 mkdir build
 cd build
-cmake .. -DTARGET_ARCH=pcie
+cmake ..
 make -j4
 ```
 

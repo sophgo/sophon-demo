@@ -53,7 +53,7 @@ chmod -R +x scripts/
 │   ├── CMakeLists.txt
 │   ├── main.cpp                                    #主程序
 │   ├── campplus.hpp                                #主要函数头文件
-│   ├── dependencies                                #1684x编译所需头文件和库（需要下载）
+│   ├── dependencies                                #编译所需头文件目录
 │   └── README.md                                   #C++例程说明
 ├── python
 │   ├── campplus.py                                 #主程序
@@ -111,11 +111,11 @@ bmrt_test --bmodel models/BM1684X/campplus_bm1684x_fp32_1b.bmodel
 |   测试平台  |    测试程序   |            测试模型           |decode_time|preprocess_time|inference_time|postprocess_time|
 | ----------- | ------------- | ----------------------------- | --------- | ------------- | ------------ | -------------- |
 |   SE7-32    |campplus.py    |campplus_bm1684x_fp32_1b.bmodel|   27.49   |      13.60    |      56.59   |      0.00      |
-|   SE7-32    |campplus       |campplus_bm1684x_fp32_1b.bmodel|    4.25   |      79.68    |      55.28   |      0.02      |
+|   SE7-32    |campplus       |campplus_bm1684x_fp32_1b.bmodel|    0.18   |      78.68    |      55.28   |      0.02      |
 |   SE9-16    |campplus.py    |campplus_bm1684x_fp32_1b.bmodel|   40.06   |      17.88    |      99.79   |      0.00      |
-|   SE9-16    |campplus       |campplus_bm1684x_fp32_1b.bmodel|    5.94   |     108.53    |      97.55   |      0.02      |
+|   SE9-16    |campplus       |campplus_bm1684x_fp32_1b.bmodel|    0.26   |     109.53    |      99.55   |      0.02      |
 |   SE9-8     |campplus.py    |campplus_bm1684x_fp32_1b.bmodel|   40.08   |      22.56    |      99.79   |      0.00      |
-|   SE9-8     |campplus       |campplus_bm1684x_fp32_1b.bmodel|    6.28   |     109.64    |      99.35   |      0.02      |
+|   SE9-8     |campplus       |campplus_bm1684x_fp32_1b.bmodel|    0.28   |     109.64    |      99.35   |      0.02      |
 
 > **测试说明**：
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每个音频文件处理的时间；

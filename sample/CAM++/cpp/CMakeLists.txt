@@ -11,14 +11,10 @@ find_package(libsophon REQUIRED)
 include_directories(${LIBSOPHON_INCLUDE_DIRS})
 link_directories(${LIBSOPHON_LIB_DIRS})
 
-# use kaldi
 include_directories("./dependencies/include/")
-if (${TARGET_ARCH} STREQUAL "pcie")
-    link_directories("./dependencies/lib_pcie_amd64")
-elseif (${TARGET_ARCH} STREQUAL "soc")
-    link_directories("./dependencies/lib_soc")
-endif()
 
 aux_source_directory(. SRC_FILES)
+aux_source_directory("./dependencies/include/feature" SRC_FILES)
+aux_source_directory("./dependencies/include/utils" SRC_FILES)
 add_executable(campplus ${SRC_FILES})
-target_link_libraries(campplus ${the_libbmlib.so} ${the_libbmrt.so} -lpthread -lstdc++ -lkaldi-feat -lkaldi-matrix -lkaldi-util -lkaldi-base -lm)
+target_link_libraries(campplus ${the_libbmlib.so} ${the_libbmrt.so} -lpthread -lstdc++ -lm)

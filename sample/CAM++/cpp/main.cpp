@@ -14,7 +14,7 @@
 #include "npy.hpp"
 
 int main(int argc, char *argv[]) {
-    cxxopts::Options options("yolov5", "a test ai of sophgo");
+    cxxopts::Options options("campplus", "a demo of CAM++ on SOPHON devices");
     options.add_options()
     ("bmodel", "bmodel file path", cxxopts::value<std::string>()->default_value("../models/BM1684X/campplus_bm1684x_fp32_1b.bmodel"))
     ("dev_id", "TPU device id", cxxopts::value<int>()->default_value("0"))
@@ -94,7 +94,12 @@ int main(int argc, char *argv[]) {
     std::sort(files_vector.begin(), files_vector.end());
 
     // initialize feature_extractor with n_mels = 80 and sampling rate=16000 Hz
-    FBank feature_extractor(80, 16000.0);
+    speakerlab::FbankOptions fbank_opts;
+    fbank_opts.mel_opts.num_bins = 80;
+    fbank_opts.frame_opts.sample_freq = 16000.0;
+    fbank_opts.frame_opts.dither = 0.0f;
+
+    auto fbank_computer = std::make_shared<speakerlab::FbankComputer>(fbank_opts);
 
     // calculate embedding for each file and stored data in emb variable and npy file
     int id = 0;
@@ -106,7 +111,7 @@ int main(int argc, char *argv[]) {
     float emb[cn][output_shape1 * output_shape2];
     for (std::vector<std::string>::iterator iter = files_vector.begin(); iter != files_vector.end(); iter++){
         // calculating embedding for wav_file
-        compute_embedding(input + "/" + *iter, feature_extractor, p_bmrt, emb[id], &campplus_ts);
+        compute_embedding(input + "/" + *iter, fbank_computer, p_bmrt, emb[id], &campplus_ts);
         //for (int i=0;i<10;i++)
             //std::cout << emb[id][i] << std::endl;
 
