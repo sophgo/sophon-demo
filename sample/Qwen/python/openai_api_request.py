@@ -8,7 +8,7 @@ messages = [
 
 print(client.models.list())
 response = client.chat.completions.create(
-    model="qwen1.5",
+    model="qwen2.5",
     messages=messages,
     stream=False
 )
