@@ -76,7 +76,6 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-as-needed")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--allow-shlib-undefined")
 
-    include_directories("../dependencies/include/")
     include_directories("${SDK}/include/")
     include_directories("${SDK}/include/opencv4")
     link_directories("${SDK}/lib/")
@@ -88,6 +87,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
 
     add_executable(clip_opencv.soc ${SRC_FILES})
     target_link_libraries(clip_opencv.soc ${BM_LIBS} ${OPENCV_LIBS} -lavcodec -lavformat -lavutil)
+
 else ()
     message( FATAL_ERROR  "not support mode, eg: soc/pcie, cur: ${TARGET_ARCH}")
 endif ()

@@ -20,7 +20,7 @@ CLIP（Contrastive Language-Image Pre-Training）是一个在多种（图像，�
 
 * 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
 * 支持FP16(BM1684X/BM1688/CV186X)模型编译和推理
-* 支持Python例程
+* 支持Python、C++例程
 * 支持单batch和多batch模型推理
 * 支持图片测试
 
@@ -79,6 +79,7 @@ chmod -R +x scripts/
 ## 5. 例程测试
 
 - [Python例程](./python/README.md)
+- [C++例程](./cpp/README.md)
 - [WebUI例程](./web_ui/README.md)
 
 ## 6. 性能测试
