@@ -25,6 +25,9 @@ function download_bm1684x {
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen1.5/qwen1.5-7b_int4_seq4096_2dev.bmodel 
     elif [ x"$1" == x"qwen2" ]; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen2/qwen2-7b_int4_seq512_1dev.bmodel
+    elif [ x"$1" == x"qwen2.5" ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen2.5/qwen2.5-7b_int4_seq512_1dev.bmodel
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen2.5/qwen2.5-7b_int4_seq2048_1dev.bmodel
     else
         echo "invalie model name"
     fi
@@ -37,7 +40,7 @@ function download_bm1688 {
     fi
     pushd ../models/BM1688
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen1.5/qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen1.5/qwen1.5-1.8b_int4_seq512_bm1688_1dev.bmodel
+    python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/qwen2.5-1.5b_int4_seq2048_1688_2core.bmodel
     popd
 }
 

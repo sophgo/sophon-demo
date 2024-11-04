@@ -1,6 +1,6 @@
 models:
-  - name: qwen1.5
-    bmodel_path: ../models/BM1684X/qwen1.5-7b_int4_seq512_1dev.bmodel
+  - name: qwen2.5
+    bmodel_path: ../models/BM1684X/qwen2.5-7b_int4_seq512_1dev.bmodel
     token_path: ./token_config
     dev_id: 0
 

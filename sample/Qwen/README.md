@@ -13,7 +13,7 @@
   - [6. 程序性能测试](#6-程序性能测试)
 
 ## 1. 简介
-Qwen / Qwen1.5/ Qwen2是开源中英双语对话模型，关于它的特性，请前往源repo查看：https://huggingface.co/Qwen。 本例程对Qwen / Qwen1.5/ Qwen2进行移植，使之能在SOPHON BM1684X、BM1688/CV186X（仅限Qwen1.5 1.8b）上进行推理测试。
+Qwen / Qwen1.5/ Qwen2/ Qwen2.5是开源中英双语对话模型，关于它的特性，请前往源repo查看：https://huggingface.co/Qwen。 本例程对Qwen / Qwen1.5/ Qwen2/ Qwen2.5进行移植，使之能在SOPHON BM1684X、BM1688/CV186X（仅限Qwen1.5 1.8b、Qwen2.5 1.5b）上进行推理测试。
 
 对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
@@ -22,6 +22,7 @@ Qwen / Qwen1.5/ Qwen2是开源中英双语对话模型，关于它的特性，�
 ## 2. 特性
 * 支持BM1684X(x86 PCIe、SoC)
 * Qwen1.5 1.8b支持BM1688/CV186X(SoC)
+* Qwen2.5 1.5b支持BM1688/CV186X(SoC)
 * 支持INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持多轮对话
@@ -75,6 +76,9 @@ sudo reboot
 # qwen2 1684x
 ./scripts/download.sh qwen2
 
+# qwen2.5 1684x
+./scripts/download.sh qwen2.5
+
 # bm1688
 ./scripts/download.sh bm1688
 
@@ -125,9 +129,11 @@ sudo reboot
     ├── Qwen2-xx-Instruct           #修改过的Qwen2源码
     │   ├── config.json
     │   └── modeling_qwen.py
+    ├── Qwen2.5-xx-Instruct              #修改过的Qwen2.5源码
     └── export_onnx_qwen.py              #Qwen导出onnx脚本。
     └── export_onnx_qwen1_5.py           #Qwen1.5导出onnx脚本。
     └── export_onnx_qwen2.py             #Qwen2导出onnx脚本。
+    └── export_onnx_qwen2_5.py           #Qwen2.5导出onnx脚本。
     └── export_onnx_qwen2_parallel.py    #Qwen2导出多芯onnx脚本。
 ```
 
@@ -149,9 +155,12 @@ sudo reboot
 | SE7-32      | qwen.py           | qwen1.5-7b_int4_seq512_1dev.bmodel                |    0.728              |    9.504                 | 
 | SE7-32      | qwen.py           | qwen1.5-7b_int4_seq2048_1dev.bmodel               |    3.234              |    7.083                 | 
 | SE7-32      | qwen.py           | qwen2-7b_int4_seq512_1dev.bmodel                  |    0.728              |    9.504                 | 
+| SE7-32      | qwen.py           | qwen2.5-7b_int4_seq512_1dev.bmodel                |    0.652              |    10.26                 | 
+| SE7-32      | qwen.py           | qwen2.5-7b_int4_seq2048_1dev.bmodel               |    2.704              |    9.753                 | 
 | SC7-HP75    | qwen.py           | qwen1.5-7b_int4_seq4096_2dev_dyn.bmodel           |    >=1.56             |    9.748                 |
 | SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev.bmodel       |    1.094              |    12.995                | 
-| SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel |    0.701              |    14.858                | 
+| SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel |    0.701              |    14.858                |
+| SE9-16      | qwen.py           | qwen2.5-1.5b_int4_seq2048_bm1688_1dev_2core.bmodel|    3.016              |    14.613                | 
 | SE9-8       | qwen.py           | qwen1.5-1.8b_int4_seq512_cv186x_1dev.bmodel       |    1.007              |    13.226                | 
 
 

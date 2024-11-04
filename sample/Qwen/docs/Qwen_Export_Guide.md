@@ -8,7 +8,6 @@ Qwen模型导出需要依赖[Qwen官方仓库](https://huggingface.co/Qwen)。on
 
 - 编译模型需要在x86主机完成。
 - Qwen-7B官方库50G左右，转模型需要保证运行内存至少40G以上，导出onnx模型需要存储空间100G以上，请确保有足够的硬件空间完成对应的操作。
-- Qwen1.5-1.8B官方库50G左右，转模型需要保证运行内存至少32G以上，请确保有足够的硬件空间完成对应的操作。
 
 
 ## 2. 主要步骤
@@ -132,6 +131,13 @@ python3 tools/export_onnx_qwen2.py --model_path /workspace/Qwen2-7B-Instruct --s
 # bm1684x 多芯
 python3 tools/export_onnx_qwen2_parallel.py --model_path /workspace/Qwen2-7B-Instruct --seq_length 512 --lm_head_with_topk 1
 ```
+
+Qwen2.5
+```bash
+# bm1684x 单芯
+python3 tools/export_onnx_qwen2_5.py --model_path /workspace/Qwen2.5-7B-Instruct --seq_length 512 
+
+```
 此时有大量onnx模型被导出到本例程中`Qwen/models/onnx`的目录。
 
 ### 2.2 bmodel编译
@@ -172,5 +178,11 @@ Qwen2
 
 # bm1684x 多芯
 ./scripts/gen_bmodel_qwen2_parallel.sh --mode int4 --name qwen2-7b --seq_length 512 --addr_mode io_alone --num_device 2 --dynamic 1
+```
+
+Qwen2.5
+```bash
+# bm1684x 单芯
+./scripts/gen_bmodel.sh --target bm1684x --mode int4 --name qwen2.5-7b --seq_length 512 --addr_mode io_alone
 ```
 其中，mode可以指定bf16/int8/int4，编译成功之后，BM1684X模型将会存放在`models/BM1684X`目录下，BM1688模型将会存放在`models/BM1688`目录下，CV186X模型将会存放在`models/CV186X`目录下。
