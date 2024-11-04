@@ -1,0 +1,12 @@
+numpy==1.23.5
+tokenizers==0.10.1
+torch==1.13.1
+torchaudio==0.13.1
+torchvision==0.14.1
+librosa==0.9.2
+tqdm==4.66.1
+huggingface-hub==0.0.8
+regex==2023.12.25
+sacremoses==0.1.1
+transformers==4.6.1
+
