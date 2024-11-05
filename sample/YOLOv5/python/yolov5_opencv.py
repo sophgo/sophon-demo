@@ -29,6 +29,7 @@ class YOLOv5:
         self.input_name = self.net.get_input_names(self.net_name)[0]
         self.output_names = self.net.get_output_names(self.net_name)
         self.input_shape = self.net.get_input_shapes(self.net_name, 0)[0]
+        self.output_shapes = self.net.get_output_shapes(self.net_name)
         if len(self.output_names) not in [1, 3]:
             raise ValueError('only suport 1 or 3 outputs, but got {} outputs bmodel'.format(len(self.output_names)))
         
@@ -128,14 +129,8 @@ class YOLOv5:
     
     def predict(self, input_img, img_num):
         input_data = {0: input_img}
-
-        shape_out0 = (self.batch_size, 3, 80, 80, 85)
-        shape_out1 = (self.batch_size, 3, 40, 40, 85)
-        shape_out2 = (self.batch_size, 3, 20, 20, 85)
-        array_out0 = np.ndarray(shape=shape_out0, dtype=np.float32)
-        array_out1 = np.ndarray(shape=shape_out1, dtype=np.float32)
-        array_out2 = np.ndarray(shape=shape_out2, dtype=np.float32)
-        outputs = {0:array_out0, 1:array_out1, 2:array_out2}
+        output_arrays = [np.ndarray(shape=(self.output_shapes[i]), dtype=np.float32) for i in range(len(self.output_shapes))]
+        outputs = {i:array for i, array in enumerate(output_arrays)}
         ret = self.net.process(input_data, outputs, self.net_name)
         
         if self.use_cpu_opt:
@@ -150,6 +145,7 @@ class YOLOv5:
             for i, k in enumerate(out_keys):
                 ord.append(k)
             out = [outputs[out_keys[i]][:img_num] for i in ord]
+            np.savez('results/out_numpy.npz', *out)
             # for n in range(len(self.output_names)):
             #     for i, k in enumerate(out_keys):
             #         if n == k:
@@ -375,7 +371,7 @@ def main(args):
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--input', type=str, default='../datasets/test', help='path of input')
-    parser.add_argument('--bmodel', type=str, default='../models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--bmodel', type=str, default='../models/BM1690/yolov5s_v6.1_3output_fp32_1b.bmodel', help='path of bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--conf_thresh', type=float, default=0.001, help='confidence threshold')
     parser.add_argument('--nms_thresh', type=float, default=0.6, help='nms threshold')

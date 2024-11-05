@@ -64,7 +64,7 @@ class Resnet(object):
 
     def predict(self, input_img):
         input_data = {0: input_img}
-        shape_out0 = (self.batch_size, 1000)
+        shape_out0 = self.output_shapes[0]
         array_out0 = np.ndarray(shape=shape_out0, dtype=np.float32)
         outputs = {0: array_out0}
         ret = self.net.process(input_data, outputs, self.net_name)

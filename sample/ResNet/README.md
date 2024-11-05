@@ -77,7 +77,7 @@ chmod +x ./scripts/*
 然后，使用`tools`目录下的`eval_imagenet.py`脚本，将预测结果文件与测试集标签文件进行对比，计算出分类准确率。具体的测试命令如下：
 ```bash
 # 请根据实际情况修改文件路径
-python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --result_json cpp/resnet_opencv/results/resnet50_fp32_1b.bmodel_img_opencv_cpp_result.json
+python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --result_json results/resnet50_int8_1b.bmodel_img_opencv_python_result.json
 ```
 ### 5.2 测试结果
 在imagenet_val_1k数据集上，精度测试结果如下：
