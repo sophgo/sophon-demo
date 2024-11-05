@@ -397,7 +397,8 @@ class StableDiffusionPipeline():
         shape = [batch_size, num_channels_latents, height // self.vae_scale_factor, width // self.vae_scale_factor]
 
         if init_image is None:
-            latents = np.random.randn(*shape).astype(prompt_dtype)
+            latents = torch.randn(shape, dtype=torch.float32)
+            latents = latents * self.scheduler.init_noise_sigma            
             timesteps = self.scheduler.timesteps + offset
         else:
             init_image = cv2.imread(init_image)
@@ -448,7 +449,7 @@ class StableDiffusionPipeline():
             for i, t in enumerate(timesteps):
                 # expand the latents if we are doing classifier free guidance
                 latent_model_input = np.concatenate([latents] * 2) if do_classifier_free_guidance else latents
-                # latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
+                latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
                 # predict the noise residual
                 newt = np.array([t])
 
@@ -487,7 +488,10 @@ class StableDiffusionPipeline():
                 # compute the previous noisy sample x_t -> x_t-1
                 # (4,64,64) () (1, 4, 64, 64)
                 temp_noise_pred = torch.from_numpy(noise_pred)
-                temp_latents = torch.from_numpy(latents)
+                if(type(latents)==np.ndarray):
+                    temp_latents = torch.from_numpy(latents)
+                else:
+                    temp_latents = latents
                 latents = self.scheduler.step(temp_noise_pred, t, temp_latents, return_dict=False)[0]
                 latents = latents.numpy()
 

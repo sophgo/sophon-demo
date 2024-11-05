@@ -63,6 +63,7 @@ usage: run.py [--model_path BMODELS_PATH] [--stage SINGLIZE/MULTILIZE] [--contro
 --neg_prompt 用于图像生成的负面提示词，不希望图像中出现的内容;
 --num_inference_steps Stable Diffusion的迭代次数;
 --dev_id: 用于推理的tpu设备id;
+--sd_turbo: 用于使用sd_turbo模型
 ```
 
 ### 2.2 提示词参考
@@ -96,6 +97,8 @@ python3 run.py --model_path ../models/BM1684X --stage singlize --img_size 512,51
 python3 run.py --model_path ../models/BM1684X --stage singlize --img_size 512,512 --prompt "a powerful mysterious sorceress, casting lightning magic, detailed clothing, digital painting, hyperrealistic, fantasy, Surrealist, upper body, artstation, highly detailed, sharp focus, stunningly beautiful, dystopian" --neg_prompt "worst quality" --num_inference_steps 50 --dev_id 0
 
 python3 run.py --model_path ../models/BM1684X --stage singlize --img_size 512,512 --prompt "best quality, photography, vivid color, young boy, wearing jacket, short hair, sitting on the roof, the background are several tall buildings" --neg_prompt "worst quality" --num_inference_steps 50 --dev_id 0
+
+python3 run.py --model_path ../models/BM1684X --stage singlize --img_size 512,512 --prompt "a cat"  --num_inference_steps 1 --strength 1 --dev_id 0 --neg_prompt None --sd_turbo 1 --guidance_scale 0 #For sd-turbo,must keep num_inference_steps * strength = 1, neg_prompt = None, guidance_scale = 0 and sd_turbo = 1
 ```
 
 每条run.py运行结束后，生成的的图像保存为`result.png`。

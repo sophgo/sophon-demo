@@ -2,7 +2,7 @@ import argparse
 import os
 import numpy as np
 from stable_diffusion import StableDiffusionPipeline
-from diffusers import PNDMScheduler
+from diffusers import PNDMScheduler,EulerDiscreteScheduler
 
 provided_img_size = [(128, 384), (128, 448), (128, 512), (192, 384), (192, 448), (192, 512), (256, 384), 
             (256, 448), (256, 512), (320, 384), (320, 448), (320, 512), (384, 384), (384, 448), 
@@ -41,6 +41,20 @@ def load_pipeline(args):
         beta_schedule="scaled_linear",
         skip_prk_steps = True,
     )
+    if(args.sd_turbo):
+        scheduler = EulerDiscreteScheduler(#sd-turbo
+            beta_end=0.012,
+            beta_start=0.00085,
+            num_train_timesteps=1000,
+            beta_schedule="scaled_linear",
+            final_sigmas_type="zero",
+            interpolation_type="linear",
+            prediction_type="epsilon",
+            rescale_betas_zero_snr=False,
+            steps_offset=1,
+            timestep_spacing="trailing",
+            timestep_type="discrete"
+        )
     pipeline = StableDiffusionPipeline(
         scheduler = scheduler,
         model_path = args.model_path,
@@ -89,6 +103,8 @@ if __name__ == "__main__":
     parser.add_argument("--guidance_scale", type=float, default=7.5, help="guidance for each step")
     # dev_id
     parser.add_argument("--dev_id", type=int, default=0, help="device id")
+    parser.add_argument("--sd_turbo", type=int, default=0, help="sd turbo")
+
     try:
         args = parser.parse_args()
     except SystemExit as e:

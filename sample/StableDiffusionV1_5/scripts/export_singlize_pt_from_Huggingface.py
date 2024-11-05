@@ -3,6 +3,7 @@ import numpy as np
 import os
 import torch
 from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+import sys
 
 text_encoder_save_path = "../models/onnx_pt"
 if not os.path.exists(text_encoder_save_path):
@@ -12,7 +13,9 @@ model_save_path = "../models/onnx_pt/singlize"
 if not os.path.exists(model_save_path):
     os.makedirs(model_save_path)
 
-model_id = "runwayml/stable-diffusion-v1-5"
+model_id = "runwayml/stable-diffusion-v1-5" #model_id = "stabilityai/sd-turbo"
+if len(sys.argv) > 1:
+    model_id = "stabilityai/sd-turbo"
 
 pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float32)
 pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
@@ -21,6 +24,12 @@ def build_unet_input():
     latent= np.random.rand(2, 4, 64, 64)
     t     = np.array([99])
     prompt_embeds=np.random.rand(2, 77, 768)
+    return latent,t,prompt_embeds
+
+def build_sd_unet_input():
+    latent= np.random.rand(1, 4, 64, 64)
+    t     = np.array([999])
+    prompt_embeds=np.random.rand(1, 77, 1024)
     return latent,t,prompt_embeds
 
 def convert_into_torch(args):
@@ -35,7 +44,10 @@ def export_unet():
     unet = unet.eval()
     for para in unet.parameters():
         para.requires_grad = False
-    latent,t,prompt_embeds = convert_into_torch(build_unet_input())
+    unet_input=build_unet_input()
+    if len(sys.argv) > 1:
+        unet_input=build_sd_unet_input()
+    latent,t,prompt_embeds = convert_into_torch(unet_input)
 
     def build_unet(latent,t,prompt_embeds):
         with torch.no_grad():

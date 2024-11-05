@@ -5,13 +5,19 @@ outdir=../models/BM1684X/singlize/
 if [ ! -d $outdir ]; then
     mkdir -p $outdir
 fi
-
+size=768
+b=2
+if [ $1 == 'sd_turbo' ]; then
+    size=1024
+    b=1
+fi
+echo $b
 function gen_unet_mlir()
 {
     model_transform.py \
         --model_name unet \
         --model_def ../models/onnx_pt/singlize/unet_fp32.pt \
-        --input_shapes [[2,4,64,64],[1],[2,77,768]] \
+        --input_shapes [[$b,4,64,64],[1],[$b,77,$size]] \
         --mlir unet.mlir
 }
 
@@ -33,5 +39,4 @@ fi
 
 gen_unet_mlir
 gen_unet_fp16bmodel
-
 popd

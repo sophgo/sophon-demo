@@ -49,7 +49,8 @@ pip3 install onnx==1.15.0
 
 ```bash
 cd scripts
-python3 export_singlize_pt_from_Huggingface.py
+python3 export_singlize_pt_from_Huggingface.py 
+python3 export_singlize_pt_from_Huggingface.py sd_turbo #use sd_turbo
 ```
 
 注意：若执行上述导出脚本时，出现无法连接Huggingface的情况，可使用如下指令从镜像站下载模型（仅在当前终端生效）：
@@ -75,7 +76,8 @@ python3 -m dfss --url=open@sophgo.com:/aigc/tpu_mlir-1.6.404-py3-none-any.whl
 ./get_text_encoder_bmodel.sh
 ./get_vae_encoder_bmodel.sh
 ./get_vae_decoder_bmodel.sh
-./get_unet_bmodel.sh
+./get_unet_bmodel.sh 
+./get_unet_bmodel.sh sd_turbo #use sd_turbo
 ```
 
 用户若需要multilize模型，在scripts路径下，运行export_multilize_pt_from_Huggingface.py即可将Huggingface上pipeline中的multilize模型以pt/onnx的格式保存在models/onnx_pt/multilize/文件夹下:
