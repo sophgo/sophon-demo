@@ -312,7 +312,6 @@ int YoloV8_obb::post_process(const std::vector<bm_image>& input_images,
         int box_num = output_tensor.shape.dims[1];
         int nout = output_tensor.shape.dims[2];
         float* output_data = NULL;
-        std::vector<float> decoded_data;
 
         output_data = tensor_data + batch_idx * box_num * nout; //output_tensor: [bs, box_num, class_num + 5]
 
