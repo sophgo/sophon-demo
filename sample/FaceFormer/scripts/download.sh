@@ -10,14 +10,14 @@ scripts_dir=$(dirname $(readlink -f "$0"))
 
 pushd $scripts_dir
 # datasets
-if [ ! -d "../Data" ]; 
+if [ ! -d "../datasets" ]; 
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/FaceFormer/Data.zip
-    unzip Data.zip -d ../
-    rm Data.zip
-    echo "Data download!"
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/FaceFormer/datasets.zip
+    unzip datasets.zip -d ../
+    rm datasets.zip
+    echo "datasets download!"
 else
-    echo "Data folder exist! Remove it if you need to update."
+    echo "datasets folder exist! Remove it if you need to update."
 fi
 
 # models

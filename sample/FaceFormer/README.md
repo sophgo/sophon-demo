@@ -44,7 +44,7 @@ chmod -R +x scripts/
 
 ```bash
 .
-├── Data
+├── datasets
 │   └── wav                           # 测试音频文件
 ├── docs
 │   └── Faceformer_Export_Guide.md    #FaceFormer onnx导出和bmodel编译指南
@@ -65,7 +65,10 @@ chmod -R +x scripts/
     ├── faceformer.py               #FaceFormer的pytorch模型文件
     ├── gen_npz.py                  #FaceFormer的模型编译所需的测试数据生成脚本
     ├── vocaset                     #pytorch模型的权重文件等
-    ├── wav2vec2-base-960h          #download.sh下载的wav2vec2模型
+    ├── wav2vec2-base-960h          #download.sh下载的wav2vec2模型，
+    │                               #是"facebook/wav2vec2-base-960h"的
+    │                               #模型库文件，会在代码内预加载，预下载
+    │                               #可以更好节约时间
     └── wav2vec.py
 ```
 

@@ -9,4 +9,5 @@ huggingface-hub==0.0.8
 regex==2023.12.25
 sacremoses==0.1.1
 transformers==4.6.1
+numba==0.58.0
 

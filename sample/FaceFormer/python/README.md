@@ -66,7 +66,7 @@ usage: python3 faceformer.py [--bmodel BMODEL] [--wav_path wav] [--dataset datas
 
 ```bash
 cd python
-python3 faceformer.py --bmodel ../models/BM1684X/faceformer_f32.bmodel --model_name vocaset --wav_path ../Data/wav/test1.wav --dataset vocaset --dev_id 0 
+python3 faceformer.py --bmodel ../models/BM1684X/faceformer_f32.bmodel --model_name vocaset --wav_path ../datasets/wav/test1.wav --dataset vocaset --dev_id 0 
 ```
 
 在程序执行完成后，会输出运行时间、结果以及结果的维度： “result.shape:  (XXX, 15069)”。
