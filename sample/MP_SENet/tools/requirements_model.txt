@@ -1,0 +1,4 @@
+torch==1.8.1
+numpy==1.24.4
+librosa==0.10.2.post1
+tensorboard==2.11.2
