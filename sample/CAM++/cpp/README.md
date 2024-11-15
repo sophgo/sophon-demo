@@ -1,4 +1,4 @@
-# CAM++ C++例程
+# C++例程
 
 ## 目录
 - [CAM++ C++例程](#CAM++-C++例程)
@@ -10,7 +10,6 @@
   - [3. 例程测试](#3-例程测试)
     - [3.1 参数说明](#31-参数说明)
     - [3.2 使用方式](#32-使用方式)
-  - [4. kaldi编译](#3-kaldi编译)
 
 ## 1. 环境准备
 ### 1.1 x86/arm PCIe平台
@@ -53,35 +52,4 @@ usage: ./campplus [--model BMODEL] [--input INPUT_DIR] [--devid DEV_ID]
 ```shell
 export LD_LIBRARY_PATH=./dependencies/lib_soc:$LD_LIBRARY_PATH
 ./campplus --bmodel=../models/BM1684X/campplus_bm1684x_fp32_1b.bmodel  --input=../datasets/test --dev_id=0
-```
-
-## 4. kaldi编译
-如果在编译时遇到`kaldi`相关库的问题，可以自行从源码编译所需要的`kaldi`库，以pcie平台为例，具体步骤如下：
-
-```bash
-git clone https://github.com/kaldi-asr/kaldi
-cd kaldi
-mkdir build
-cd build
-cmake ..
-cd src/feat
-make -j
-```
-
-编译完成后，按照`campplus/cpp/dependencies/include`里所需要的头文件复制仓库中的头文件到对应目录，也可全部复制
-
-```bash
-cp -r kaldi/src/* campplus/cpp/dependencies/include/*
-```
-
-再根据`campplus/cpp/dependencies/lib_pcie_amd64`里所需要的库文件从`kaldi/build/src`对应目录复制到`campplus/cpp/dependencies/lib_pcie_amd64`中，所需要的库文件如下
-
-```shell
-kaldi/build/src/base/libkaldi-base.so
-kaldi/build/src/feat/libkaldi-feat.so
-kaldi/build/src/gmm/libkaldi-gmm.so
-kaldi/build/src/matrix/libkaldi-matrix.so
-kaldi/build/src/transform/libkaldi-transform.so
-kaldi/build/src/tree/libkaldi-tree.so
-kaldi/build/src/util/libkaldi-util.so
 ```
