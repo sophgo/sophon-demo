@@ -11,89 +11,89 @@ SOPHONSDK is a custom deep learning SDK of SOPHGO based on its self-developed AI
 The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`, `sample`, and `application`, the `tutorial` module stores some examples of basic interfaces, the `sample` module stores some serial examples of classic algorithms on SOPHONSDK, and the `application` module stores some typical applications in typical scenarios.
 
 
-| tutorial                                                                 | introduction                                                              |
-| ----------------------------------------------------                     | ------------------------------------------------------------              |
-| [resize](./tutorial/resize/README.md)                                    | resize api usage, rescale image data.                                          |
-| [crop](./tutorial/crop/README.md)                                        | crop api usage, crop the target area from input image.                         |
-| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)  | crop target area from input image, and resize the crop, and padding in another image, fill the padding with a pix which can be customly set. |
-| [ocv_jpgbasic](./tutorial/ocv_jpubasic/README.md)                        | decoding and encoding jpgs using sophon-opencv which is hardware accelerated.                                 |
-| [ocv_vidbasic](./tutorial/ocv_vidbasic/README.md)                        | decoding video using sophon-opencv which is hardware accelerated, recording frames as jpgs or pngs.             |
-| [blend](./tutorial/blend/README.md)                                      | blend two pictures.                                                  |
-| [stitch](./tutorial/stitch/README.md)                                    | stitch two pictures.                                                  |
-| [avframe_ocv](./tutorial/avframe_ocv/README.md)                          | from avframe to cv::Mat.                                                  |
-| [ocv_avframe](./tutorial/ocv_avframe/README.md)                          | from bgr cv::mat to yuv420p avframe.                                      |
-| [bm1688_2core2task_yolov5](./tutorial/bm1688_2core2task_yolov5/README.md)| yolov5 deployment using the 2core-2task feature of bm1688.                |
-| [mmap](./tutorial/mmap/README.md)                                        | mmap api, map TPU memory to CPU.                                          |
-| [video_encode](./tutorial/video_encode/README.md)                        | video encode and stream push.                                             |
+| tutorial                                                                 | introduction                                                                   | supported hardware                                                            |
+| ----------------------------------------------------                     | ------------------------------------------------------------                   | ----------------                                                              |
+| [resize](./tutorial/resize/README.md)                                    | resize api usage, rescale image data.                                          | BM1684/BM1684X/BM1688/CV186H                                                  |
+| [crop](./tutorial/crop/README.md)                                        | crop api usage, crop the target area from input image.                         |BM1684/BM1684X/BM1688/CV186H                                                   |
+| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)  | crop target area from input image, and resize the crop, and padding in another image, fill the padding with a pix which can be customly set. | BM1684/BM1684X/BM1688/CV186H |
+| [ocv_jpgbasic](./tutorial/ocv_jpubasic/README.md)                        | decoding and encoding jpgs using sophon-opencv which is hardware accelerated.                                 | BM1684/BM1684X/BM1688/CV186H                   |
+| [ocv_vidbasic](./tutorial/ocv_vidbasic/README.md)                        | decoding video using sophon-opencv which is hardware accelerated, recording frames as jpgs or pngs.             | BM1684/BM1684X/BM1688/CV186H                 |
+| [blend](./tutorial/blend/README.md)                                      | blend two pictures.                                                  | BM1688/CV186X                                                                           |
+| [stitch](./tutorial/stitch/README.md)                                    | stitch two pictures.                                                  | BM1684X/BM1688/CV186H                                                                  |
+| [avframe_ocv](./tutorial/avframe_ocv/README.md)                          | from avframe to cv::Mat.                                                  | BM1684/BM1684X                                                                     |
+| [ocv_avframe](./tutorial/ocv_avframe/README.md)                          | from bgr cv::mat to yuv420p avframe.                                      | BM1684/BM1684X/BM1688/CV186H                                                       |
+| [bm1688_2core2task_yolov5](./tutorial/bm1688_2core2task_yolov5/README.md)| yolov5 deployment using the 2core-2task feature of bm1688.                | BM1688                                                                             |
+| [mmap](./tutorial/mmap/README.md)                                        | mmap api, map TPU memory to CPU.                                          | BM1684X/BM1688/CV186H                                                              |
+| [video_encode](./tutorial/video_encode/README.md)                        | video encode and stream push.                                             | BM1684/BM1684X/BM1688/CV186H                                                       |
 
-| contents                                                      | category                           | code       |  BModel       |
-|---                                                            |---                                 |---          | ---           |
-| [LPRNet](./sample/LPRNet/README.md)                           | License Plate Recognition          | C++/Python | FP32/FP16/INT8 |
-| [ResNet](./sample/ResNet/README.md)                           | Image classification               | C++/Python | FP32/FP16/INT8 |
-| [RetinaFace](./sample/RetinaFace/README.md)                   | Face Detection                     | C++/Python | FP32/FP16/INT8 |
-| [SCRFD](./sample/SCRFD/README.md)                             | Face Detection                     | C++/Python | FP32/FP16/INT8 |
-| [segformer](./sample/segformer/README.md)                     | Semantic Segmentation              | C++/Python | FP32/FP16      |
-| [SAM](./sample/SAM/README.md)                                 | Semantic Segmentation              | Python     | FP32/FP16      |
-| [SAM2](./sample/SAM2/README.md)                               | Semantic Segmentation              | Python     | FP32/FP16      |
-| [yolact](./sample/yolact/README.md)                           | Instance Segmentation              | C++/Python | FP32/FP16/INT8 |
-| [YOLOv8_seg](./sample/YOLOv8_seg/README.md)                   | Instance Segmentation              | C++/Python | FP32/FP16/INT8 |
-| [YOLOv9_seg](./sample/YOLOv9_seg/README.md)                   | Instance Segmentation              | C++/Python | FP32/FP16/INT8 |
-| [PP-OCR](./sample/PP-OCR/README.md)                           | OCR                                | C++/Python | FP32/FP16      |
-| [OpenPose](./sample/OpenPose/README.md)                       | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 |
-| [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 |
-| [HRNet_pose](./sample/HRNet_pose/README.md)                   | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 |
-| [C3D](./sample/C3D/README.md)                                 | Video Recognition                  | C++/Python | FP32/FP16/INT8 |
-| [SlowFast](./sample/SlowFast/README.md)                       | Video Recognition                  | C++/Python | FP32/FP16/INT8 |
-| [DeepSORT](./sample/DeepSORT/README.md)                       | Object Tracking                    | C++/Python | FP32/FP16/INT8 |
-| [ByteTrack](./sample/ByteTrack/README.md)                     | Object Tracking                    | C++/Python | FP32/FP16/INT8 |
-| [CenterNet](./sample/CenterNet/README.md)                     | Object Detection + Pose Estimation | C++/Python | FP32/FP16/INT8 |
-| [YOLOv5](./sample/YOLOv5/README.md)                           | Object Detection                   | C++/Python | FP32/FP16/INT8 |
-| [YOLOv34](./sample/YOLOv34/README.md)                         | Object Detection                   | C++/Python | FP32/INT8      |
-| [YOLOX](./sample/YOLOX/README.md)                             | Object Detection                   | C++/Python | FP32/INT8      |
-| [SSD](./sample/SSD/README.md)                                 | Object Detection                   | C++/Python | FP32/INT8      |
-| [YOLOv7](./sample/YOLOv7/README.md)                           | Object Detection                   | C++/Python | FP32/FP16/INT8 |
-| [YOLOv8_det](./sample/YOLOv8_det/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 |
-| [YOLOv5_opt](./sample/YOLOv5_opt/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 |
-| [YOLOv5_fuse](./sample/YOLOv5_fuse/README.md)                 | Object Detection                   | C++/Python | FP32/FP16/INT8 |
-| [YOLOv9_det](./sample/YOLOv9_det/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 |
-| [YOLOv10](./sample/YOLOv10/README.md)                         | Object Detection                   | C++/Python | FP32/FP16/INT8 |
-| [YOLOv11_det](./sample/YOLOv11_det/README.md)                 | Object Detection                   | C++/Python | FP32/FP16/INT8 |
-| [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | Object Detection                   | C++/Python | FP32/FP16/INT8 |
-| [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16      |
-| [YOLOv8_obb](./sample/YOLOv8_obb/README.md)                   | Oriented Object Detection          | C++/Python | FP32/FP16      |
-| [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16      |
-| [Whisper](./sample/Whisper/README.md)                         | Speech Recognition                 | Python     | FP16           | 
-| [Seamless](./sample/Seamless/README.md)                       | Speech Recognition                 | Python     | FP32/FP16      | 
-| [BERT](./sample/BERT/README.md)                               | Language                           | C++/Python | FP32/FP16      |
-| [ChatGLM2](./sample/ChatGLM2/README.md)                       | Large Language Model               | C++/Python | FP16/INT8/INT4 |
-| [Llama2](./sample/Llama2/README.md)                           | Large Language Model               | C++        | FP16/INT8/INT4 |
-| [ChatGLM3](./sample/ChatGLM3/README.md)                       | Large Language Model               | Python     | FP16/INT8/INT4 | 
-| [Qwen](./sample/Qwen/README.md)                               | Large Language Model               | Python     | FP16/INT8/INT4 | 
-| [MiniCPM](./sample/MiniCPM/README.md)                         | Large Language Model               | C++        | INT8/INT4      | 
-| [Baichuan2](./sample/Baichuan2/README.md)                     | Large Language Model               | Python     | INT8/INT4      | 
-| [ChatGLM4](./sample/ChatGLM4/README.md)                       | Large Language Model               | Python     | FP16/INT8/INT4 | 
-| [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | Image Generation                   | Python     | FP32/FP16      |
-| [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | Image Generation                   | Python     | FP32/FP16      |
-| [FLUX.1](./sample/FLUX.1/README.md)                           | Image Generation                   | Python     | FP32/INT4      |
-| [GroundingDINO](./sample/GroundingDINO/README.md)             | MultiModal Object Detection        | Python     | FP16           |
-| [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | Large Vision Language Model        | Python     | FP16/INT8      |
-| [InternVL2](./sample/InternVL2/README.md)                     | Large Vision Language Model        | Python     | INT4           |
-| [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 |
-| [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 |
-| [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | C++/Python | FP16           |
-| [BLIP](./sample/BLIP/README.md)                               | Large Image-Text Model             | Python     | FP32           |
-| [SuperGlue](./sample/SuperGlue/README.md)                     | Keypoint Matching                  | C++        | FP32/FP16      |
-| [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | Text To Speech                     | Python     | FP32/FP16      |
-| [DirectMHP](./sample/DirectMHP/README.md)                     | Head pose estimation               | C++/Python | FP32/FP16      |
+| contents                                                      | category                           | code       |  BModel        | supported hardware           |
+|---                                                            |---                                 |---         | ---            | ---                          |
+| [LPRNet](./sample/LPRNet/README.md)                           | License Plate Recognition          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [ResNet](./sample/ResNet/README.md)                           | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [RetinaFace](./sample/RetinaFace/README.md)                   | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
+| [SCRFD](./sample/SCRFD/README.md)                             | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [segformer](./sample/segformer/README.md)                     | Semantic Segmentation              | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [SAM](./sample/SAM/README.md)                                 | Semantic Segmentation              | Python     | FP32/FP16      | BM1684X                      |
+| [SAM2](./sample/SAM2/README.md)                               | Semantic Segmentation              | Python     | FP32/FP16      | BM1688                       |
+| [yolact](./sample/yolact/README.md)                           | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
+| [YOLOv8_seg](./sample/YOLOv8_seg/README.md)                   | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
+| [YOLOv9_seg](./sample/YOLOv9_seg/README.md)                   | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
+| [PP-OCR](./sample/PP-OCR/README.md)                           | OCR                                | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [OpenPose](./sample/OpenPose/README.md)                       | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
+| [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [HRNet_pose](./sample/HRNet_pose/README.md)                   | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [C3D](./sample/C3D/README.md)                                 | Video Recognition                  | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [SlowFast](./sample/SlowFast/README.md)                       | Video Recognition                  | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
+| [DeepSORT](./sample/DeepSORT/README.md)                       | Object Tracking                    | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [ByteTrack](./sample/ByteTrack/README.md)                     | Object Tracking                    | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [CenterNet](./sample/CenterNet/README.md)                     | Object Detection + Pose Estimation | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
+| [YOLOv5](./sample/YOLOv5/README.md)                           | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [YOLOv34](./sample/YOLOv34/README.md)                         | Object Detection                   | C++/Python | FP32/INT8      | BM1684/BM1684X/BM1688        |
+| [YOLOX](./sample/YOLOX/README.md)                             | Object Detection                   | C++/Python | FP32/INT8      | BM1684/BM1684X/BM1688/CV186X |
+| [SSD](./sample/SSD/README.md)                                 | Object Detection                   | C++/Python | FP32/INT8      | BM1684/BM1684X               |
+| [YOLOv7](./sample/YOLOv7/README.md)                           | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [YOLOv8_det](./sample/YOLOv8_det/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [YOLOv5_opt](./sample/YOLOv5_opt/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X                      |
+| [YOLOv5_fuse](./sample/YOLOv5_fuse/README.md)                 | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [YOLOv9_det](./sample/YOLOv9_det/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [YOLOv10](./sample/YOLOv10/README.md)                         | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [YOLOv11_det](./sample/YOLOv11_det/README.md)                 | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [YOLOv8_obb](./sample/YOLOv8_obb/README.md)                   | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [Whisper](./sample/Whisper/README.md)                         | Speech Recognition                 | Python     | FP16           | BM1684X                      |
+| [Seamless](./sample/Seamless/README.md)                       | Speech Recognition                 | Python     | FP32/FP16      | BM1684X/BM1688               |
+| [BERT](./sample/BERT/README.md)                               | Language                           | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [ChatGLM2](./sample/ChatGLM2/README.md)                       | Large Language Model               | C++/Python | FP16/INT8/INT4 | BM1684X                      |
+| [Llama2](./sample/Llama2/README.md)                           | Large Language Model               | C++        | FP16/INT8/INT4 | BM1684X                      |
+| [ChatGLM3](./sample/ChatGLM3/README.md)                       | Large Language Model               | Python     | FP16/INT8/INT4 | BM1684X/BM1688               |
+| [Qwen](./sample/Qwen/README.md)                               | Large Language Model               | Python     | FP16/INT8/INT4 | BM1684X/BM1688/CV186X        |
+| [MiniCPM](./sample/MiniCPM/README.md)                         | Large Language Model               | C++        | INT8/INT4      | BM1684X/BM1688/CV186X        | 
+| [Baichuan2](./sample/Baichuan2/README.md)                     | Large Language Model               | Python     | INT8/INT4      | BM1684X                      | 
+| [ChatGLM4](./sample/ChatGLM4/README.md)                       | Large Language Model               | Python     | FP16/INT8/INT4 | BM1684X                      | 
+| [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | Image Generation                   | Python     | FP32/FP16      | BM1684X                      |
+| [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | Image Generation                   | Python     | FP32/FP16      | BM1684X                      |
+| [FLUX.1](./sample/FLUX.1/README.md)                           | Image Generation                   | Python     | FP32/INT4      | BM1684X                      |
+| [GroundingDINO](./sample/GroundingDINO/README.md)             | MultiModal Object Detection        | Python     | FP16           | BM1684X/BM1688/CV186X        |
+| [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | Large Vision Language Model        | Python     | FP16/INT8      | BM1684X                      |
+| [InternVL2](./sample/InternVL2/README.md)                     | Large Vision Language Model        | Python     | INT4           | BM1684X/BM1688               |
+| [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | C++/Python | FP16           | BM1684X/BM1688/CV186X        |
+| [BLIP](./sample/BLIP/README.md)                               | Large Image-Text Model             | Python     | FP32           | BM1684/BM1684X/BM1688        |
+| [SuperGlue](./sample/SuperGlue/README.md)                     | Keypoint Matching                  | C++        | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | Text To Speech                     | Python     | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [DirectMHP](./sample/DirectMHP/README.md)                     | Head pose estimation               | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 
-| application                                                              | scenarios                 | code    | 
-|---                                                                       |---                       |---          | 
-| [VLPR](./application/VLPR/README.md)                                     | Multi-streams Vehicle License Plate Recognition | C++/Python  | 
-| [YOLOv5_multi](./application/YOLOv5_multi/README.md)                     | Multi-streams Object Detection       | C++         | 
-| [YOLOv5_multi_QT](./application/YOLOv5_multi_QT/README.md)               | Multi-streams Object Detection + QT_HDMI display    | C++         | 
-| [Grounded-sam](./application/Grounded-sam/README.md)                     | Automatic image detection and segmentation system    | Python         | 
-| [cv-demo](./application/cv-demo/README.md)                               | Bilingual Fisheye and Wide-angle Stitching      | C++         | 
-| [YOLOv5_fuse_multi_QT](./application/YOLOv5_fuse_multi_QT/README.md)     | Multi-streams Object Detection + QT_HDMI display    | C++         | 
+| application                                                              | scenarios                                         | code        | supported hardware           |
+|---                                                                       |---                                                |---          | ---                          | 
+| [VLPR](./application/VLPR/README.md)                                     | Multi-streams Vehicle License Plate Recognition   | C++/Python  | BM1684/BM1684X/BM1688/CV186X | 
+| [YOLOv5_multi](./application/YOLOv5_multi/README.md)                     | Multi-streams Object Detection                    | C++         | BM1684/BM1684X/BM1688        | 
+| [YOLOv5_multi_QT](./application/YOLOv5_multi_QT/README.md)               | Multi-streams Object Detection + QT_HDMI display  | C++         | BM1684X                      | 
+| [Grounded-sam](./application/Grounded-sam/README.md)                     | Automatic image detection and segmentation system | Python      | BM1684X                      | 
+| [cv-demo](./application/cv-demo/README.md)                               | Bilingual Fisheye and Wide-angle Stitching        | C++         | BM1688                       | 
+| [YOLOv5_fuse_multi_QT](./application/YOLOv5_fuse_multi_QT/README.md)     | Multi-streams Object Detection + QT_HDMI display  | C++         | BM1688/CV186X                | 
 
 ## Release Notes
 | version | description | 
