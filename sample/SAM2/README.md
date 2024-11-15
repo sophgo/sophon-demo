@@ -32,8 +32,8 @@
 ├── pics
 ├── python                                             # 存放Python例程及其README
 │   ├── sam2_image_opencv.py                           # 基于sail和OpenCV实现的SAM2图像分割推理Python例程
-│   ├── sam2_video_opencv.py                           # 基于sail和OpenCV实现的SAM2图像分割推理Python例程
-│   ├── sam2_video_base.py                             # 基于sail和OpenCV实现的SAM2图像分割推理Python例程
+│   ├── sam2_video_opencv.py                           # 基于sail和OpenCV实现的SAM2视频分割推理Python例程
+│   ├── sam2_video_base.py                             # SAM2视频分割基类
 │   ├── datasets.py                                    # 支持进行分割测试的数据集类
 │   ├── utils.py                                       # SAM2图像分割推理流程中所用的工具类函数
 │   ├── video_utils.py                                 # SAM2视频分割推理流程中所用的工具类函数
@@ -44,7 +44,7 @@
 │   ├── download.sh                                    # 模型和数据集下载脚本
 │   ├── gen_fp16bmodel_mlir.sh                         # 图像分割F16 bmodel编译脚本
 │   ├── gen_fp32bmodel_mlir.sh                         # 图像分割F32 bmodel编译脚本
-│   └── gen_fp16bmodel_mlir_video.sh                         # 视频分割F16 bmodel编译脚本
+│   └── gen_fp16bmodel_mlir_video.sh                   # 视频分割F16 bmodel编译脚本
 └── tools
     └──eval.py                                         # 精度测试例程，目前只支持coco数据集
     └──compare_statis.py                               # 性能对比例程
@@ -84,7 +84,7 @@ chmod -R +x scripts/
 ├── bmodel
 │   ├── image
 |   │   └── BM1688
-|   │       ├──image_encoder
+|   │       ├──image_decoder
 |   │       |    ├── sam2_decoder_f16_1b_1core.bmodel           # decoder部分fp16 1core bmodel
 |   │       |    ├── sam2_decoder_f16_1b_2core.bmodel           # decoder部分fp16 2core bmodel
 |   │       |    ├── sam2_decoder_f32_1b_1core.bmodel           # decoder部分fp32 1core bmodel
@@ -97,9 +97,11 @@ chmod -R +x scripts/
 │   └── video
 |       └── BM1688
 │           |── sam2_image_encoder_no_pos.bmodel           # encoder部分fp16 1core bmodel
-│           ├── sam2_image_decoder.bmodel                  # encoder部分fp16 2core bmodel
-│           ├── sam2_memory_attention_nomatmul.bmodel      # encoder部分fp32 1core bmodel
-|           └── sam2_memory_encoder.bmodel                 # encoder部分fp32 2core bmodel
+│           ├── sam2_image_decoder.bmodel                  # decoder部分fp16 1core bmodel
+│           ├── sam2_memory_attention_nomatmul.bmodel      # encoder部分fp16 1core bmodel
+│           ├── sam2_memory_encoder.bmodel                 # encoder部分fp16 1core bmodel
+│           ├── pos.npz                                    # image encoder中的position encoding参数
+|           └── maskmem_pos_enc.npz                        # memory encoder中的position encoding参数
 ├── onnx
 |   ├── image
 │   |   ├── sam2_hiera_tiny_decoder.onnx                   # 由原模型导出的，decoder部分onnx模型，输出置信度前三的mask 
@@ -166,22 +168,21 @@ chmod -R +x scripts/
 ## 5. 精度测试
 
 ### 5.1 测试方法
-参考Python例程，选择推理要测试的数据集（目前仅支持COCO数据集），生成预测的json文件，json文件会自动保存在results目录下
-然后，使用tools目录下的eval.py脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
+参考Python例程，选择推理要测试的数据集（目前仅支持COCO数据集），生成预测的json文件，json文件会自动保存在results目录下。然后，使用tools目录下的eval.py脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
 
 ```bash
-python3 python/sam2_image_opencv.py --mode dataset --img_path datasets/val2017  --detect_num 200 --encoder_bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel --decoder_bmodel models/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
-python3 tools/eval.py --gt_path datasets/instances_val2017.json --res_path results/sam2_encoder_f16_1b_2core_COCODataset_opencv_python_result.json
+python3 python/sam2_image_opencv.py --mode dataset --img_path datasets/image/val2017  --detect_num 200 --encoder_bmodel models/bmodel/image/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel --decoder_bmodel models/bmodel/image/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
+python3 tools/eval.py --gt_path datasets/image/instances_val2017.json --res_path results/sam2_encoder_f16_1b_2core_COCODataset_opencv_python_result.json
 ```
 ### 5.2 测试结果
 本实例的测试方式为将COCO数据集内目标的bbox中心点作为SAM2输入的points prompt。在COCO数据集中测试选择的图像越多，mIoU的指标越高，下图中测试图像为200张。
 
 |   测试平台    |       测试程序      |          encoder_bmodel         |           decoder_bmodel        |   mIoU   |
 |  ----------- |------------------- |--------------------------------- |-------------------------------- |-------- |
-| SE9-16       | sam2_opencv.py     | sam2_encoder_f32_1b_1core.bmodel | sam2_decoder_f32_1b_1core.bmodel|    0.472|
-| SE9-16       | sam2_opencv.py     | sam2_encoder_f32_1b_2core.bmodel | sam2_decoder_f32_1b_2core.bmodel|    0.472|
-| SE9-16       | sam2_opencv.py     | sam2_encoder_f16_1b_1core.bmodel | sam2_decoder_f16_1b_1core.bmodel|    0.468|
-| SE9-16       | sam2_opencv.py     | sam2_encoder_f16_1b_2core.bmodel | sam2_decoder_f16_1b_2core.bmodel|    0.468|
+| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f32_1b_1core.bmodel | sam2_decoder_f32_1b_1core.bmodel|    0.48|
+| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f32_1b_2core.bmodel | sam2_decoder_f32_1b_2core.bmodel|    0.48|
+| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f16_1b_1core.bmodel | sam2_decoder_f16_1b_1core.bmodel|    0.48|
+| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f16_1b_2core.bmodel | sam2_decoder_f16_1b_2core.bmodel|    0.48|
 
 ## 6. 性能测试
 **以下性能测试仅针对图像分割进行测试**
@@ -189,7 +190,7 @@ python3 tools/eval.py --gt_path datasets/instances_val2017.json --res_path resul
 使用bmrt_test测试模型的理论性能：
 ```bash
 # 请根据实际情况修改要测试的bmodel路径
-bmrt_test --bmodel models/BM1688/image_decoder/sam2_decoder_f16_1b_1core.bmodel
+bmrt_test --bmodel models/bmodel/image/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel
 ```
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 
@@ -205,6 +206,10 @@ bmrt_test --bmodel models/BM1688/image_decoder/sam2_decoder_f16_1b_1core.bmodel
 | image/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel       |           8.73  |
 | image/BM1688/image_decoder/sam2_decoder_f32_1b_1core.bmodel       |          47.90  |
 | image/BM1688/image_decoder/sam2_decoder_f32_1b_2core.bmodel       |          31.55  |
+| bmodel/video/BM1688/sam2_image_encoder_no_pos.bmodel              |         383.29  |
+| bmodel/video/BM1688/sam2_image_decoder.bmodel                     |          16.59  |
+| bmodel/video/BM1688/sam2_memory_attention_nomatmul.bmodel         |        2468.28  |
+| bmodel/video/BM1688/sam2_memory_encoder.bmodel                    |          26.29  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -217,10 +222,10 @@ bmrt_test --bmodel models/BM1688/image_decoder/sam2_decoder_f16_1b_1core.bmodel
 
 |  测试平台   |      测试程序       |          encoder_bmodel           |          decoder_bmodel           | preprocess_time |  encoder_time   |  decoder_time  | postprocess_time |
 |----------|----------|----------|----------|----------|----------|----------|----------|
-|   SE9-16    |  sam2_opencv.py   | sam2_encoder_f32_1b_1core.bmodel  | sam2_decoder_f32_1b_1core.bmodel  |      95.91      |     2394.54     |      74.43      |      1.07       |
-|   SE9-16    |  sam2_opencv.py   | sam2_encoder_f32_1b_2core.bmodel  | sam2_decoder_f32_1b_2core.bmodel  |      99.32      |     1472.30     |      58.43      |      1.14       |
-|   SE9-16    |  sam2_opencv.py   | sam2_encoder_f16_1b_1core.bmodel  | sam2_decoder_f16_1b_1core.bmodel  |      96.10      |     457.77      |      37.05      |      2.77       |
-|   SE9-16    |  sam2_opencv.py   | sam2_encoder_f16_1b_2core.bmodel  | sam2_decoder_f16_1b_2core.bmodel  |     100.79      |     311.52      |      34.60      |      1.11       |
+|   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f32_1b_1core.bmodel  | sam2_decoder_f32_1b_1core.bmodel  |      95.91      |     2394.54     |      74.43      |      1.07       |
+|   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f32_1b_2core.bmodel  | sam2_decoder_f32_1b_2core.bmodel  |      99.32      |     1472.30     |      58.43      |      1.14       |
+|   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f16_1b_1core.bmodel  | sam2_decoder_f16_1b_1core.bmodel  |      96.10      |     457.77      |      37.05      |      2.77       |
+|   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f16_1b_2core.bmodel  | sam2_decoder_f16_1b_2core.bmodel  |     100.79      |     311.52      |      34.60      |      1.11       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

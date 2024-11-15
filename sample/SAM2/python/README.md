@@ -17,8 +17,8 @@ python目录下提供了Python例程，具体情况如下：
 
 | 序号 | Python例程     | 说明                                                                |
 | ---- | ------------- | ------------------------------------------------------------------ |
-| 1    | sam2_image_opencv.py | 图像分割入口程序，使用OpenCV解码、SAIL 图像编码(encoder)、SAIL图像解码(decoder) |
-| 2    | sam2_video_opencv.py | 视频分割入口程序，使用OpenCV解码、SAIL 模型推的视频分割入口程序 |
+| 1    | sam2_image_opencv.py | 图像分割入口程序，使用OpenCV解码、SAIL推理  |
+| 2    | sam2_video_opencv.py | 视频分割入口程序，使用OpenCV解码、SAIL推理  |
 | 3    | sam2_video_base.py | 视频分割基类，供sam2_video_opencv.py调用 |
 
 ## 1. 环境准备
@@ -77,6 +77,8 @@ sam2_video_open.py的参数说明如下：
                         sam2 memory attention bmodel的路径
   --memory_encoder_path MEMORY_ENCODER_PATH
                         sam2 memory encoder bmodel的路径
+  --skip_num            SKIP_NUM
+                        每隔几帧抽一帧
   --constant_path CONSTANT_PATH
                         常量npz文件的路径
   --dev_id DEV_ID       TPU设备ID
@@ -86,7 +88,7 @@ sam2_video_open.py的参数说明如下：
 ### 2.2 测试图片
 
 #### 2.2.1 单点测试 
-运行sam2_opencv.py进行例程测试，此处以`datasets/truck.jpg`为例进行测试，输入一个point坐标，并指定其标签
+运行sam2_image_opencv.py进行例程测试，此处以`datasets/truck.jpg`为例进行测试，输入一个point坐标，并指定其标签
 
 原始图像：
 
