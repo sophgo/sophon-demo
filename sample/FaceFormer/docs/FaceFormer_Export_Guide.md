@@ -36,9 +36,9 @@ FaceFormer模型导出需要依赖[FaceFormer官方仓库](https://github.com/Ev
     从sftp上获取TPU-MLIR压缩包
     ```bash
     pip3 install dfss --upgrade
-    python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/tpu-mlir.tar.gz
-    tar zxvf tpu-mlir.tar.gz
-    cd tpu-mlir
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/FaceFormer/tpu-mlir_latest.tar.gz
+    tar zxvf tpu-mlir_latest.tar.gz
+    cd tpu-mlir_vx.y.z-<hash>-<date>
     source ./envsetup.sh
     ```
 
@@ -83,7 +83,7 @@ pip3 install -r python/requirements.txt
 
 ```bash
 cd tools
-python3 export_onnx.py --model_name vocaset --wav_path "../Data/wav/test2.mp3" --dataset vocaset
+python3 export_onnx.py --model_name vocaset --wav_path "../datasets/wav/test2.mp3" --dataset vocaset
 ```
 此时有大量onnx模型被导出到本例程中`FaceFormer/models/onnx`的目录。
 
@@ -99,7 +99,7 @@ python3 ./gen_npz.py
 
 准备好所有的数据之后，您可以使用下面的命令生成bmodel：
 ```bash
-./scripts/gen_bmodel_mlir.sh models
+./scripts/gen_bmodel_mlir.sh bm1684x
 ```
 
 编译成功之后，`faceformer_f32.bmodel`模型将会存放在`models/BM1684X/`目录下。

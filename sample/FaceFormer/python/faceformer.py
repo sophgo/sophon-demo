@@ -135,7 +135,7 @@ def argsparser():
     parser.add_argument("--train_subjects", type=str, default="FaceTalk_170728_03272_TA FaceTalk_170904_00128_TA FaceTalk_170725_00137_TA FaceTalk_170915_00223_TA FaceTalk_170811_03274_TA FaceTalk_170913_03279_TA FaceTalk_170904_03276_TA FaceTalk_170912_03278_TA")
     parser.add_argument("--condition", type=str, default="FaceTalk_170913_03279_TA", help='select a conditioning subject from train_subjects')
     parser.add_argument("--subject", type=str, default="FaceTalk_170809_00138_TA", help='FaceTalk_170809_00138_TA select a subject from test_subjects or train_subjects')
-    parser.add_argument("--wav_path", type=str, default="../Data/wav/test2.mp3", help='path of the input audio signal')
+    parser.add_argument("--wav_path", type=str, default="../datasets/wav/test2.mp3", help='path of the input audio signal')
     parser.add_argument("--template_path", type=str, default="templates.pkl", help='path of the personalized templates')
     parser.add_argument('--bmodel', type=str, default='../models/BM1684X/faceformer_f32.bmodel', help='path of encoder and ppe bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
