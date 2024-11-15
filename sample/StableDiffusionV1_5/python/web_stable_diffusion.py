@@ -11,7 +11,7 @@ import time
 import numpy as np
 from tqdm import tqdm
 from sd_engine import EngineOV
-import cv2
+# import cv2
 from transformers import CLIPTokenizer
 from diffusers.utils import logging, load_image
 import PIL
@@ -56,12 +56,18 @@ class StableDiffusionPipeline():
     def __init__(
         self,
         model_path,
+        vae_decoder_path,
+        vae_encoder_path,
+        unet_path,
+        text_encoder_path,
         scheduler,
         dev_id = 0,
         stage = "singlize",
         controlnet_name = None,
         processor_name = None,
         tokenizer = None,
+        seed = -1
+    
     ):
         super().__init__()
 
@@ -91,20 +97,20 @@ class StableDiffusionPipeline():
         # prepare model path
         model_path = os.path.join(model_path, stage)
 
-        if stage == "multilize":
-            vae_encoder_path = os.path.join(model_path, "vae_encoder_multize.bmodel")
-            vae_decoder_path = os.path.join(model_path, "vae_decoder_multize.bmodel")
-            unet_path = os.path.join(model_path, "unet_multize.bmodel")
-        else:
-            vae_encoder_path = os.path.join(model_path, "vae_encoder_1684x_f16.bmodel")
-            vae_decoder_path = os.path.join(model_path, "vae_decoder_1684x_f16.bmodel")
-            unet_path = os.path.join(model_path, "unet_1684x_f16.bmodel")
+        # if stage == "multilize":
+        #     vae_encoder_path = os.path.join(model_path, "vae_encoder_multize.bmodel")
+        #     vae_decoder_path = os.path.join(model_path, vae_bmodel_path)
+        #     unet_path = os.path.join(model_path, unet_bmodel_path)
+        # else:
+        #     vae_encoder_path = os.path.join(model_path, "vae_encoder_1684x_f16.bmodel")
+        #     vae_decoder_path = os.path.join(model_path, vae_bmodel_path)
+        #     unet_path = os.path.join(model_path, "unet_1688_core_1_f16.bmodel")
 
-        text_encoder_path = os.path.join(model_path, "text_encoder_1684x_f32.bmodel")
+        # text_encoder_path = os.path.join(model_path, "text_encoder_1688_bf16.bmodel")
 
         # load model
         self.tokenizer = CLIPTokenizer.from_pretrained(tokenizer)
-        self.vae_encoder = EngineOV(vae_encoder_path, device_id = dev_id)
+        # self.vae_encoder = EngineOV(vae_encoder_path, device_id = dev_id)
         self.vae_decoder = EngineOV(vae_decoder_path, device_id = dev_id)
         self.text_encoder = EngineOV(text_encoder_path, device_id = dev_id)
         self.unet = EngineOV(unet_path, device_id = dev_id)
@@ -116,7 +122,7 @@ class StableDiffusionPipeline():
         self.unet_config_sample_size = 64
         self.vae_scale_factor = 8
         self.progress_bar = None
-
+        self.seed=seed
         # use control net
         if unet_path.split('_')[-1].startswith("multize"):
             self.controlnet_flag = True

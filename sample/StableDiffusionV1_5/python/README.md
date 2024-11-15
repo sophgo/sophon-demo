@@ -112,3 +112,30 @@ python3 run.py --model_path ../models/BM1684X --stage multilize --img_size 512,5
 ```
 
 运行结束后，生成的的图片保存为`results.png`。controlnet更多说明可参考[controlnet](../docs/Export_Controlnet.md)
+
+### web
+
+首先安装第三方库
+
+```
+pip3 install gradio
+```
+
+然后通过python3运行web.py即可运行一个web服务
+
+```
+python3 web.py
+```
+
+命令行输出以下信息则表示启动成功
+
+INFO:httpx:HTTP Request: GET https://checkip.amazonaws.com/ "HTTP/1.1 200 "
+Running on local URL:  http://0.0.0.0:7860
+INFO:httpx:HTTP Request: GET http://localhost:7860/startup-events "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD http://localhost:7860/ "HTTP/1.1 200 OK"
+
+在浏览器中打开输出的地址即可使用，在底部对话框中输入问题。
+
+注意：
+1.在docker中启动服务要提前做端口映射，这样才能通过浏览器访问。
+2.web目前不支持插件

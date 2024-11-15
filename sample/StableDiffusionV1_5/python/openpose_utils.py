@@ -1,3 +1,11 @@
+#===----------------------------------------------------------------------===#
+#
+# Copyright (C) 2024 Sophgo Technologies Inc.  All rights reserved.
+#
+# SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
+# third-party components.
+#
+#===----------------------------------------------------------------------===#
 import cv2
 import numpy as np
 import math
