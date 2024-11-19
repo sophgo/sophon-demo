@@ -437,7 +437,7 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 > 2. 后处理加速不涉及硬件加速，此处只提供SE5-16平台、fp32模型的测试数据；
 
 ### 7.3 性能测试
-在SE5-16上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，阈值使用`conf_thresh=0.5，nms_thresh=0.5`，cpp设置`--use_cpu_opt=true`或python设置`--use_cpu_opt`，精度测试结果如下：
+在SE5-16上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，阈值使用`conf_thresh=0.5，nms_thresh=0.5`，cpp设置`--use_cpu_opt=true`或python设置`--use_cpu_opt`，性能测试结果如下：
 |    测试平台  |     测试程序      |             测试模型                |decode_time    |preprocess_time  |inference_time   |postprocess_time| 
 | ----------- | ---------------- | ----------------------------------- | --------      | ---------       | ---------        | ---------      |
 |   SE5-16    | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      14.99      |      21.52      |      43.84      |      16.83      |
