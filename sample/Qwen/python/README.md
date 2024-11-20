@@ -133,7 +133,7 @@ python3 -m streamlit run web_demo.py -- --config=./config/web.yaml
 ### 4.1 参数说明
 openai_api_server.py使用config/api.yaml配置文件进行参数配置。
 
-web.yaml内容如下
+api.yaml内容如下
 ```yaml
 models:                 ## 模型列表
   - name: qwen1.5      ## 模型名称，用于匹配模型
@@ -151,7 +151,7 @@ pip3 install -r python/requirements.txt
 运行服务
 ```bash
 cd python
-python3 openai_api_server.py --config ./config/qwen.yaml
+python3 openai_api_server.py --config ./config/api.yaml
 ```
 
 这样我们成功启动了openai api接口服务，可以使用openai的python库进行调用
