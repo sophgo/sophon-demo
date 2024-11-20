@@ -67,13 +67,12 @@ chmod +x ./scripts/*
 ```
 
 ## 4. 例程测试
-* [C++例程](cpp/README.md)
 * [Python例程](python/README.md)
 
 ## 5. 精度测试
 ### 5.1 测试方法
 
-首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改相关参数。  
+首先，参考[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改相关参数。  
 然后，使用`tools`目录下的`eval_imagenet.py`脚本，将预测结果文件与测试集标签文件进行对比，计算出分类准确率。具体的测试命令如下：
 ```bash
 # 请根据实际情况修改文件路径
@@ -111,7 +110,7 @@ tpu-model-rt --bmodel models/BM1690/resnet50_fp32_1b.bmodel
 > 2. `calculate time`已折算为平均每张图片的推理时间；
 
 ### 6.2 程序运行性能
-参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
+参考[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/imagenet_val_1k`，性能测试结果如下：
 |    测试平台  |     测试程序        |        测试模型       |decode_time|preprocess_time|inference_time|postprocess_time| 
@@ -126,6 +125,3 @@ tpu-model-rt --bmodel models/BM1690/resnet50_fp32_1b.bmodel
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. 后处理只有argmax，可以忽略；
-
-## 7. FAQ
-请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
