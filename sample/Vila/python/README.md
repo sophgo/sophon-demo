@@ -45,11 +45,19 @@ tar xvf sophon-sail.tar.gz
 ```bash
 pip3 install -r python/requirements.txt
 ```
-由于本例程需要的sophon-sail版本较新，这里提供一个可用的sophon-sail whl包，SoC环境可以通过下面的命令下载：
+由于本例程需要的sophon-sail版本较新，这里提供一个可用的sophon-sail whl包，SoC环境可以通过下面的命令下载
+
+对于BM1684X:
 ```bash
 pip3 install dfss --upgrade
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/sophon_arm-3.8.0-py3-none-any.whl  #arm soc, py38
 ```
+对于BM1688：
+```bash
+pip3 install dfss --upgrade
+python3 -m dfss --url=open@sophgo.com:sophon-demo/vila/sophon_arm-3.9.0-py3-none-any.whl
+```
+
 如果whl包无法使用，也可以参考上一小节，下载源码自己编译。
 
 > **注:**

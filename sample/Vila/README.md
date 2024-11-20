@@ -16,9 +16,11 @@ VILA是一种视觉语言模型（Visual Language Model，简称VLM），它通�
 
 对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86/arm主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。
 
+对于BM1688，支持在1.7.0及以上的SDK运行。
+
 
 ## 2. 特性
-* 支持BM1684X(x86/arm PCIe、SoC)
+* 支持BM1684X(x86/arm PCIe、SoC)， BM1688
 * 支持INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 

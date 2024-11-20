@@ -15,12 +15,17 @@ else
     echo "Datasets folder exist! Remove it if you need to update."
 fi
 # models
-if [ ! -d "../models/BM1684X" ]; 
+if [ ! -d "../models" ]; 
 then
     mkdir -p ../models/BM1684X
     pushd ../models/BM1684X
     python3 -m dfss --url=open@sophgo.com:sophon-demo/vila/vision_embedding_6batch.bmodel
     python3 -m dfss --url=open@sophgo.com:sophon-demo/vila/llama_int4_seq2560.bmodel
+    popd
+    pushd ../models
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/vila/BM1688.tgz
+    tar zxvf BM1688.tgz
+    rm -rf BM1688.tgz
     popd
     echo "models download!"
 else

@@ -99,3 +99,10 @@ source envsetup.sh
 ./scripts/gen_bmodel.sh
 ```
 编译成功之后，BM1684X模型将会存放在`models/BM1684X`目录下.
+
+对于BM1688模型，请执行
+
+```bash
+./scripts/gen_bmodel_bm1688.sh
+```
+编译成功后，BM1688模型会存放在`models/BM1688`目录下
