@@ -167,21 +167,9 @@ class SAM2ImageDecoder:
         )
 
     def prepare_points(self, point_coords, point_labels):
-        if isinstance(point_coords, np.ndarray):
-            input_point_coords = point_coords[np.newaxis, ...]
-            input_point_labels = point_labels[np.newaxis, ...]
-        else:
-            max_num_points = max([coords.shape[0] for coords in point_coords])
-            input_point_coords = np.zeros(
-                (len(point_coords), max_num_points, 2), dtype=np.float32
-            )
-            input_point_labels = (
-                np.ones((len(point_coords), max_num_points), dtype=np.float32) * -1
-            )
 
-            for i, (coords, labels) in enumerate(zip(point_coords, point_labels)):
-                input_point_coords[i, : coords.shape[0], :] = coords
-                input_point_labels[i, : labels.shape[0]] = labels
+        input_point_coords = point_coords[np.newaxis, ...]
+        input_point_labels = point_labels[np.newaxis, ...]
 
         input_point_coords[..., 0] = (
             input_point_coords[..., 0]
@@ -246,13 +234,12 @@ class SAM2Image:
 
     def set_image(self, img):
         self.h, self.w, _ = img.shape
-        # print(img.shape)
-        # self.img = cv2.resize(img, (1024, 1024), interpolation=cv2.INTER_LINEAR)
         self.img = copy.deepcopy(img)
         self.image_embeddings = self.sam2_encoder(self.img)
         self.sam2_decoder = SAM2ImageDecoder(
             self.decoder_path,
-            self.sam2_encoder.input_shape[2:]
+            self.sam2_encoder.input_shape[2:],
+            orig_im_size=[self.h, self.w]
         )
         self.encoder_time += self.sam2_encoder.encoder_time
         self.preprocess_time += self.sam2_encoder.preprocess_time
@@ -307,7 +294,6 @@ class SAM2Image:
                 if self.select_best
                 else draw_masks(self.img, masks)
             )
-        # print("Image Shape in save_img", self.h, self.w)
         res_img = cv2.resize(self.img, (self.w, self.h))
         cv2.imwrite("{}.jpg".format(image_id), res_img)
 
@@ -341,16 +327,11 @@ def pred_dataset(args):
     sam2 = SAM2Image(args.encoder_bmodel, args.decoder_bmodel, args.select_best)
     seg_res = []
 
-    memory_used = 0
     pbar = tqdm(dataset, total=args.detect_num)
     for data_info in pbar:
-        pbar.set_description(f"Segmentation Info Memeroy Used: {memory_used} MB")
         img = data_info["img"]
         centers_info = data_info["centers_info"]
         image_id = data_info["image_id"]
-        h, w, _ = img.shape
-        scale_x = 1024 / w
-        scale_y = 1024 / h
         sam2.set_image(img)
 
         bbox_list = []
@@ -358,8 +339,7 @@ def pred_dataset(args):
             point = center_info["center"]
             label = center_info["label"]
             bbox_list.append(center_info["bbox"])
-            # 对中心点坐标和segmentation的坐标进行相应的缩放
-            point = [point[0] * scale_x, point[1] * scale_y]
+
             sam2.add_point(point, label)
 
         res = sam2.predict()
@@ -446,13 +426,13 @@ def argsparser():
     parser.add_argument(
         "--img_path",
         type=str,
-        default="datasets/image/truck.jpg",
+        default="datasets/images/truck.jpg",
         help="Path of input image or dateset",
     )
     parser.add_argument(
         "--points",
         type=str,
-        default="[[500, 375], [345, 300]]",
+        default="[[500, 375]]",
         help='The coordinates of the input_point(point or box), point format "[[x,y]]", box format "[[x1,y1,w,h]]", like coco bbox',
     )
     parser.add_argument("--label", type=int, default=1, help="Label of input points")
@@ -465,7 +445,7 @@ def argsparser():
     parser.add_argument(
         "--gt_path",
         type=str,
-        default="datasets/image/instances_val2017.json",
+        default="datasets/images/instances_val2017.json",
         help="Ground truth file path",
     )
     parser.add_argument(

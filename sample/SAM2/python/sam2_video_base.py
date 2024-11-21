@@ -1,8 +1,6 @@
-import time
 import warnings
 from collections import OrderedDict
 
-import cv2
 import numpy as np
 import sophon.sail as sail
 from video_utils import (
@@ -153,13 +151,14 @@ class SAM2VideoBase:
     def append_image(self, inference_state, image):
         inference_state["video_height"] = self.video_height
         inference_state["video_width"] = self.video_width
-        if inference_state["images"] is None:
-            inference_state["images"] = [image]
-        else:
-            inference_state["images"].append(image)
-        inference_state["num_frames"] = len(inference_state["images"])
+        inference_state["images"] = image
+        # if inference_state["images"] is None:
+        #     inference_state["images"] = [image]
+        # else:
+        #     inference_state["images"].append(image)
+        inference_state["num_frames"] += 0 
         if len(inference_state["images"]) == 1:
-            self._get_image_feature(inference_state, frame_idx=0, batch_size=1)
+            self._get_image_feature(inference_state, frame_idx=0)
 
     def _obj_id_to_idx(self, inference_state, obj_id):
         """Map client-side object id to model-side object index."""
@@ -282,6 +281,7 @@ class SAM2VideoBase:
             reverse = False
         else:
             reverse = inference_state["frames_already_tracked"][frame_idx]["reverse"]
+        
         obj_output_dict = inference_state["output_dict_per_obj"][obj_idx]
         obj_temp_output_dict = inference_state["temp_output_dict_per_obj"][obj_idx]
         # Add a frame to conditioning output if it's an initial conditioning frame or
@@ -473,42 +473,6 @@ class SAM2VideoBase:
 
         return consolidated_out
 
-    def _get_empty_mask_ptr(self, inference_state, frame_idx):
-        """Get a dummy object pointer based on an empty mask on the current frame."""
-        # A dummy (empty) mask with a single object
-        batch_size = 1
-        mask_inputs = np.zeros(
-            (batch_size, 1, self.image_size, self.image_size), dtype=np.float32
-        )
-
-        # Retrieve correct image features
-        (
-            _,
-            _,
-            current_vision_feats,
-            current_vision_pos_embeds,
-            feat_sizes,
-        ) = self._get_image_feature(
-            inference_state, frame_idx, batch_size, image_encoder
-        )
-
-        # Feed the empty mask and image feature above to get a dummy object pointer
-        current_out = self.track_step(
-            frame_idx=frame_idx,
-            is_init_cond_frame=True,
-            current_vision_feats=current_vision_feats,
-            current_vision_pos_embeds=current_vision_pos_embeds,
-            feat_sizes=feat_sizes,
-            point_inputs=None,
-            mask_inputs=mask_inputs,
-            output_dict={},
-            num_frames=inference_state["num_frames"],
-            track_in_reverse=False,
-            run_mem_encoder=False,
-            prev_sam_mask_logits=None,
-        )
-        return current_out["obj_ptr"]
-
     def propagate_in_video_preflight(self, inference_state):
         """Prepare inference_state and consolidate temporary outputs before tracking."""
         # Tracking has started and we don't allow adding new objects until session is reset.
@@ -635,6 +599,10 @@ class SAM2VideoBase:
                     run_mem_encoder=True,
                 )
                 output_dict[storage_key][frame_idx] = current_out
+
+            if len(output_dict[storage_key]) > 15:
+                del_idx = min(output_dict[storage_key].keys())
+                del output_dict[storage_key][del_idx]
             # Create slices of per-object outputs for subsequent interaction with each
             # individual object after tracking.
             self._add_output_per_object(
@@ -677,6 +645,12 @@ class SAM2VideoBase:
                 obj_out["maskmem_pos_enc"] = [x[obj_slice] for x in maskmem_pos_enc]
             obj_output_dict[storage_key][frame_idx] = obj_out
 
+            # 维护一个固定长度的数据窗口
+            if len(obj_output_dict[storage_key]) > 15:
+                # 找到并删除最旧的数据帧
+                oldest_frame = min(obj_output_dict[storage_key].keys())
+                del obj_output_dict[storage_key][oldest_frame]
+
     def reset_state(self, inference_state):
         """Remove all input points or mask in all frames throughout the video."""
         self._reset_tracking_results(inference_state)
@@ -708,33 +682,31 @@ class SAM2VideoBase:
         inference_state["tracking_has_started"] = False
         inference_state["frames_already_tracked"].clear()
 
-    def _get_image_feature(self, inference_state, frame_idx, batch_size):
+    def _get_image_feature(self, inference_state, frame_idx, batch_size=1):
         """Compute the image features on a given frame."""
         # Look up in the cache first
-        image, backbone_out = inference_state["cached_features"].get(
-            frame_idx, (None, None)
-        )
-        if backbone_out is None:
+        image = inference_state['images']
+        # if backbone_out is None:
             # Cache miss -- we will run inference on a single image
-            image = np.expand_dims(inference_state["images"][frame_idx], axis=0).astype(
-                np.float32
-            )
+        image = np.expand_dims(image, axis=0).astype(
+            np.float32
+        )
 
-            outputs = self.image_encoder.process(
-                self.image_encoder_graph_name, {"image": image}
-            )
+        outputs = self.image_encoder.process(
+            self.image_encoder_graph_name, {"image": image}
+        )
 
-            backbone_fpn = [output for output in outputs.values()]
+        backbone_fpn = [output for output in outputs.values()]
 
-            vision_pos_enc = [pos for pos in self.position_encoding.values()]
+        vision_pos_enc = [pos for pos in self.position_encoding.values()]
 
-            backbone_out = {
-                "vision_features": backbone_fpn[0],
-                "vision_pos_enc": vision_pos_enc,
-                "backbone_fpn": backbone_fpn,
-            }
+        backbone_out = {
+            "vision_features": backbone_fpn[0],
+            "vision_pos_enc": vision_pos_enc,
+            "backbone_fpn": backbone_fpn,
+        }
 
-            inference_state["cached_features"] = {frame_idx: (image, backbone_out)}
+        inference_state["cached_features"] = {frame_idx: (image, backbone_out)}
 
         # expand the features to have the same dimension as the number of objects
         expanded_image = np.repeat(image[np.newaxis, ...], batch_size, axis=0)
@@ -777,13 +749,15 @@ class SAM2VideoBase:
     ):
         """Run tracking on a single frame based on current inputs and previous memory."""
         # Retrieve correct image features
+
         (
             _,
             _,
             current_vision_feats,
             current_vision_pos_embeds,
             feat_sizes,
-        ) = self._get_image_feature(inference_state, frame_idx, batch_size)
+        ) = self._get_image_feature(inference_state, frame_idx)
+
         # point and mask should not appear as input simultaneously on the same frame
         assert point_inputs is None or mask_inputs is None
         frame_size = np.array(
@@ -837,7 +811,7 @@ class SAM2VideoBase:
         memory also need to be computed again with the memory encoder.
         """
         # Retrieve correct image features
-        features = self._get_image_feature(inference_state, frame_idx, batch_size)
+        features = self._get_image_feature(inference_state, frame_idx)
 
         pix_feat = inference_state["cached_features"][frame_idx][1]["backbone_fpn"][-1]
 
