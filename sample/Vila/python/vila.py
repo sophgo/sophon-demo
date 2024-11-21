@@ -260,8 +260,8 @@ class Vila:
 def argsparser():
 
     parser = argparse.ArgumentParser(prog=__file__)
-    parser.add_argument('--llm', type=str, default='./models/llama_int4_seq512.bmodel', help='path of llm model')
-    parser.add_argument('--vision', type=str, default='./models/vision_embedding_1batch.bmodel', help='path of vision_embedding model')
+    parser.add_argument('--llm', type=str, default='./models/BM1684X/llama_int4_seq512.bmodel', help='path of llm model')
+    parser.add_argument('--vision', type=str, default='./models/BM1684X/vision_embedding_1batch.bmodel', help='path of vision_embedding model')
     parser.add_argument('--video', type=str, default='./demo.mp4', help='path of video')
     parser.add_argument('--dev_id', type=int, default=0, help='tpu id')
     args = parser.parse_args()

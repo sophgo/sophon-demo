@@ -91,7 +91,7 @@ lm_head() {
 vision_embedding() {
     model_transform.py \
         --model_name vision_embedding \
-        --model_def ../vision_embedding_1.onnx \
+        --model_def $onnx_folder/vision_embedding_1.onnx \
         --mlir vision_embedding.mlir
 
 
@@ -109,7 +109,7 @@ pushd "models"
 mkdir tmp
 pushd "tmp"
 vision_embedding
-mv visoin_embedding.bmodel ../BM1684X
+mv vision_embedding.bmodel ../BM1684X
 embedding
 embedding_cache
 lm_head
