@@ -107,7 +107,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 |   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ---------------- | ----------------------------------- | ------------- | -------- |
 |     BM1690 PCIe     | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
-|     BM1690 PCIe     | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.355 |    0.567 |
+|     BM1690 PCIe     | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.355 |    0.571 |
 |     BM1690 PCIe     | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.355 |    0.571 |
 
 > **测试说明**：  
@@ -140,9 +140,9 @@ tpu-model-rt --bmodel models/BM1690/yolov5s_v6.1_3output_fp32_1b.bmodel
 CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
 |    测试平台  |     测试程序      |             测试模型                |decode_time    |preprocess_time  |inference_time   |postprocess_time| 
 | ----------- | ---------------- | ----------------------------------- | --------      | ---------       | ---------        | --------- |
-|   BM1690 PCIe   | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      4.06      |      10.63      |      31.40      |     15.71      |
-|   BM1690 PCIe   | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      2.87      |      7.97      |      33.02      |     12.89      |
-|   BM1690 PCIe   | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      2.48      |      5.13      |      27.53      |     9.66      |
+| BM1690 PCIe | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      1.28       |      2.93       |      32.15      |      4.41       |
+| BM1690 PCIe | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      1.28       |      2.95       |      17.42      |      4.46       |
+| BM1690 PCIe | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      1.23       |      2.36       |      14.30      |      5.81       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
