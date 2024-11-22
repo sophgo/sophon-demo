@@ -12,7 +12,7 @@
 
 ## 1. 简介
 
-CLIP（Contrastive Language-Image Pre-Training）是一个在多种（图像，文本）配对上训练的神经网络。它可以用自然语言进行指导，以预测给定图像最相关的文本片段，而无需直接针对该任务进行优化，这与GPT-2和3的零样本（zero-shot）能力类似。本例程对[CLIP官方开源仓库](https://github.com/openai/CLIP)中的算法进行移植，使之能在SOPHON BM1684X,BM1688,CV186X上进行推理。
+CLIP（Contrastive Language-Image Pre-Training）是一个在多种（图像，文本）配对上训练的神经网络。它可以用自然语言进行指导，以预测给定图像最相关的文本片段，而无需直接针对该任务进行优化，这与GPT-2和3的零样本（zero-shot）能力类似。本例程对[CLIP官方开源仓库](https://github.com/openai/CLIP)中的算法进行移植，其中CLIP的中文版本模型是对CN-CLIPViT-B/16的移植，使之能在SOPHON BM1684X,BM1688,CV186X上进行推理。
 
 [[Blog]](https://openai.com/blog/clip/) [[Paper]](https://arxiv.org/abs/2103.00020)
 
@@ -37,6 +37,8 @@ sudo apt install p7zip p7zip-full
 chmod -R +x scripts/
 # 下载模型，target可选输入BM1684X, BM1688, CV186X；不输入默认下载全部模型
 ./scripts/download.sh [target] 
+# 中文版CLIP，下载模型，target可选输入BM1684X, BM1688；不输入默认下载全部模型
+./scripts/download_chinese_bmodel.sh [target] 
 ```
 
 下载的模型包括：
@@ -72,6 +74,9 @@ chmod -R +x scripts/
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+
+# 中文版CLIP
+./scripts/gen_chinese_fp16bmodel_mlir.sh bm1684x #bm1688
 ```
 
 执行上述命令会在`models/BM1684X/`下生成`CLIP_fp16_1b.bmodel`文件，即转换好的FP16 BModel。

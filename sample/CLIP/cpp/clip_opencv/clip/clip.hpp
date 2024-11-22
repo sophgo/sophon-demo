@@ -25,8 +25,7 @@ public:
     void deinit();
     std::vector<float> preprocess(const cv::Mat& image);
     std::vector<float> encode_image(const std::vector<float>& image);
-    std::vector<float> encode_text(const std::vector<int64_t>& text);
-    std::pair<std::vector<float>, std::vector<int>> predict(const std::vector<cv::Mat>& images, const std::vector<int64_t>& text);
+    std::vector<float> encode_text(const std::vector<int>& text);
     std::vector<float> calculate_similarity(const std::vector<float>& image_features,
                                         const std::vector<std::vector<float>>& text_features);
     std::pair<std::vector<float>, std::vector<int>> topk(const std::vector<float>& x, int k);

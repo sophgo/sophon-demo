@@ -18,6 +18,7 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
 | ---- | ------------- | -----------------------------------  |
 | 1    | clip_opencv   | 使用SOPHON-OpenCV解码、SOPHON-OpenCV前处理、BMRT推理   |
+| 2    | chinese_clip_opencv   | CLIP模型的中文版本，使用SOPHON-OpenCV解码、SOPHON-OpenCV前处理、BMRT推理   |
 
 ## 1. 环境准备
 ### 1.1 x86/arm PCIe平台
@@ -64,7 +65,6 @@ make
 ```bash
 usage: clip_opencv.pcie  [params]
 
-
         --image_path (value:../../datasets)
                 sampled test case
         --text (value:"a diagram, a dog, a car")
@@ -88,21 +88,82 @@ usage: clip_opencv.pcie  [params]
 程序运行结束后，会在命令行中打印信息，输出图片和文本的匹配度。
 
 ```
+Total Similarity per Image:
 Filename: ../../datasets/Clothes-and-hats-misidentified-as-safety-helmet.jpg
-Open /dev/bm-sophon0 successfully, device index = 0, jpu fd = 17, vpp fd = 17
-Text: a dog, Similarity: 0.731916
-Text: a diagram, Similarity: 0.268084
+Open /dev/bm-sophon0 successfully, device index = 0, jpu fd = 15, vpp fd = 15
+Text: a dog, Similarity: 0.617956
+Text: a car, Similarity: 0.318094
+Text: a diagram, Similarity: 0.0639502
 Filename: ../../datasets/CLIP.png
-Text: a diagram, Similarity: 0.999045
-Text: a dog, Similarity: 0.000955088
+Text: a diagram, Similarity: 0.993848
+Text: a car, Similarity: 0.00474531
+Text: a dog, Similarity: 0.0014063
 Filename: ../../datasets/Car-headlights-misidentified-as-flames.jpg
-Text: a dog, Similarity: 0.535708
-Text: a diagram, Similarity: 0.464292
+Text: a car, Similarity: 0.992424
+Text: a dog, Similarity: 0.00561061
+Text: a diagram, Similarity: 0.00196498
+
+Total Similarity per Text:
+Text: a diagram
+Image: ../../datasets/CLIP.png, Similarity: 0.998904
+Image: ../../datasets/Car-headlights-misidentified-as-flames.jpg, Similarity: 0.00108089
+Image: ../../datasets/Clothes-and-hats-misidentified-as-safety-helmet.jpg, Similarity: 1.52948e-05
+Text: a dog
+Image: ../../datasets/Car-headlights-misidentified-as-flames.jpg, Similarity: 0.664068
+Image: ../../datasets/CLIP.png, Similarity: 0.304132
+Image: ../../datasets/Clothes-and-hats-misidentified-as-safety-helmet.jpg, Similarity: 0.0318009
+Text: a car
+Image: ../../datasets/Car-headlights-misidentified-as-flames.jpg, Similarity: 0.991202
+Image: ../../datasets/CLIP.png, Similarity: 0.00865985
+Image: ../../datasets/Clothes-and-hats-misidentified-as-safety-helmet.jpg, Similarity: 0.000138133
 -------------------Image num 3, Preprocess average time ------------------------
-preprocess(ms): 3.03887
+preprocess(ms): 2.80289
 ------------------ Image num 3, Image Encoding average time ----------------------
-image_encode(ms): 6.70762
+image_encode(ms): 6.79703
 ------------------ Image num 3, Text Encoding average time ----------------------
-text_encode(ms): 9.12603
+text_encode(ms): 9.12867
+```
+
+中文版CLIP图片测试实例如下，支持对整个图片文件夹进行测试。
+```bash
+./clip_opencv.pcie --image_path=../../datasets --text="流程图,狗,车" --dev_id=0 --image_model="../../models/BM1684X/cn_clip_image_vitb16_bm1684x_f16_1b.bmodel" --text_model="../../models/BM1684X/cn_clip_text_vitb16_bm1684x_f16_1b.bmodel"
+```
+程序运行结束后，会在命令行中打印信息，输出图片和文本的匹配度。
+
+```
+Total Similarity per Image:
+Filename: ../../datasets/Clothes-and-hats-misidentified-as-safety-helmet.jpg
+Open /dev/bm-sophon0 successfully, device index = 0, jpu fd = 15, vpp fd = 15
+Text: 车, Similarity: 0.650535
+Text: 流程图, Similarity: 0.185463
+Text: 狗, Similarity: 0.164001
+Filename: ../../datasets/CLIP.png
+Text: 流程图, Similarity: 0.958328
+Text: 车, Similarity: 0.026968
+Text: 狗, Similarity: 0.014704
+Filename: ../../datasets/Car-headlights-misidentified-as-flames.jpg
+Text: 车, Similarity: 0.998814
+Text: 狗, Similarity: 0.00118144
+Text: 流程图, Similarity: 4.89722e-06
+
+Total Similarity per Text:
+Text: 流程图
+Image: ../../datasets/CLIP.png, Similarity: 0.999516
+Image: ../../datasets/Clothes-and-hats-misidentified-as-safety-helmet.jpg, Similarity: 0.000300758
+Image: ../../datasets/Car-headlights-misidentified-as-flames.jpg, Similarity: 0.000183196
+Text: 狗
+Image: ../../datasets/Car-headlights-misidentified-as-flames.jpg, Similarity: 0.739087
+Image: ../../datasets/CLIP.png, Similarity: 0.256466
+Image: ../../datasets/Clothes-and-hats-misidentified-as-safety-helmet.jpg, Similarity: 0.00444761
+Text: 车
+Image: ../../datasets/Car-headlights-misidentified-as-flames.jpg, Similarity: 0.99922
+Image: ../../datasets/CLIP.png, Similarity: 0.000752204
+Image: ../../datasets/Clothes-and-hats-misidentified-as-safety-helmet.jpg, Similarity: 2.82125e-05
+-------------------Image num 3, Preprocess average time ------------------------
+preprocess(ms): 3.51843
+------------------ Image num 3, Image Encoding average time ----------------------
+image_encode(ms): 14.7889
+------------------ Image num 3, Text Encoding average time ----------------------
+text_encode(ms): 3.8995
 ```
 

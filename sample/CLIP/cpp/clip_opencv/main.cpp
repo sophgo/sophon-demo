@@ -6,9 +6,6 @@
 // third-party components.
 //
 //===----------------------------------------------------------------------===//
-
-
-#include "SimpleTokenizer.hpp"
 #include "clip.hpp"
 #include <filesystem>
 #include <iostream>
@@ -19,16 +16,24 @@
 #include <sys/stat.h>
 using namespace std;
 
-void process_images(const std::vector<std::string>& image_paths, const std::vector<std::string>& text_inputs, CLIP& model, SimpleTokenizer& tokenizer) {
+#include "tokenizer/tokenizer.hpp"
+
+void get_text_features(CLIPTokenizer& tokenizer, std::string label, std::vector<int>& ids) {
+    size_t max_token_id = 77;
+    ids = tokenizer.tokenize(label, nullptr, max_token_id, true);
+}
+
+void process_images(const std::vector<std::string>& image_paths, const std::vector<std::vector<int>> tokenlized_text, 
+                    const std::vector<std::string>& text_inputs, CLIP& model) {
     // calculate text features
     std::vector<std::vector<float>> text_features;
-    for (const auto& text : text_inputs){
-        std::wstring wstr = std::wstring(text.begin(), text.end());
-        std::vector<int64_t> tokenlized_text = tokenizer.tokenlize(wstr);
-        std::vector<float> text_feature = model.encode_text(tokenlized_text);
+    for (const auto& text : tokenlized_text){
+        std::vector<float> text_feature = model.encode_text(text);
         text_features.push_back(text_feature);
     }
 
+    std::cout << "\nTotal Similarity per Image:" << std::endl;
+    std::vector<std::vector<float>> image_features;
     for (const auto& filename : image_paths) {
         std::cout << "Filename: " << filename << std::endl;
         cv::Mat image = cv::imread(filename);
@@ -38,13 +43,27 @@ void process_images(const std::vector<std::string>& image_paths, const std::vect
         }
         std::vector<float> image_input = model.preprocess(image);
         std::vector<float> image_feature = model.encode_image(image_input);
-        // calculate similarity
+        image_features.push_back(image_feature);
+        // calculate similarity per image
         std::vector<float> similarity(text_inputs.size());
         similarity = model.calculate_similarity(image_feature, text_features);
-
-        auto [values, indices] = model.topk(similarity, std::min(text_inputs.size(), static_cast<size_t>(model.top_k)));
-        for (size_t i = 0; i < text_inputs.size(); ++i) {
+        int output_size = std::min(text_inputs.size(), static_cast<size_t>(model.top_k));
+        auto [values, indices] = model.topk(similarity, output_size);
+        for (size_t i = 0; i < output_size; ++i) {
             std::cout << "Text: " << text_inputs[indices[i]] << ", Similarity: " << values[i] << std::endl;
+        }
+    }
+    std::cout << "\nTotal Similarity per Text:" << std::endl;
+    for (size_t i = 0; i < text_features.size(); ++i) {
+        const auto& text_feature = text_features[i];
+        std::cout << "Text: " << text_inputs[i] << std::endl;
+        std::vector<float> similarity(image_features.size());
+        // calculate similarity per text
+        similarity = model.calculate_similarity(text_feature, image_features);
+        int output_size = std::min(image_features.size(), static_cast<size_t>(model.top_k));
+        auto [values, indices] = model.topk(similarity, output_size);
+        for (size_t i = 0; i < output_size; ++i) {
+            std::cout << "Image: " << image_paths[indices[i]] << ", Similarity: " << values[i] << std::endl;
         }
     }
 }
@@ -92,7 +111,7 @@ int main(int argc, char *argv[]){
     // get params
     const char *keys =
         "{image_path | ../../datasets | path to the image directory}"
-        "{text | \"a diagram,a dog\" | text inputs for prediction (multiple texts can be separated by spaces and must be quoted)}"
+        "{text | \"a diagram,a dog,a car\" | text inputs for prediction (multiple texts can be separated by spaces and must be quoted)}"
         "{image_model | ../../models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel | path to the image model file}"
         "{text_model | ../../models/BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel | path to the text model file}"
         "{dev_id | 0 | TPU device ids (comma-separated list)}"
@@ -135,11 +154,17 @@ int main(int argc, char *argv[]){
     printf("Init Environment ...\n");
     clip.init(image_model, text_model, dev_id);
     printf("==========================\n");
-    SimpleTokenizer tokenizer;
-
+    // tokenizer;
+    CLIPTokenizer tokenizer;
+    std::vector<std::vector<int>> features_vector;
+    for (const auto& label : text_vector) {
+        std::vector<int> text_vec_out; // 存储当前字符串的特征向量
+        get_text_features(tokenizer, label, text_vec_out);
+        features_vector.push_back(text_vec_out); // 将特征向量添加到结果向量中
+    }
     // predict
     auto image_paths = get_image_paths(image_path);
-    process_images(image_paths, text_vector, clip, tokenizer);
+    process_images(image_paths, features_vector, text_vector, clip);
 
     // Logging average times
     size_t image_num = image_paths.size();

@@ -22,6 +22,7 @@
 #include <getopt.h>
 #include <fstream>
 #include <string>
+#include <filesystem>
 
 void CLIP::init(const std::string& image_model, const std::string& text_model, const int &dev_id) {
     bm_status_t status = bm_dev_request(&bm_handle, dev_id);
@@ -108,21 +109,6 @@ void CLIP::deinit() {
     encode_image_time = 0.0;
     encode_text_time = 0.0;
     preprocess_time = 0.0;
-}
-
-
-std::vector<float> CLIP::softmax(const std::vector<float>& x) {
-    std::vector<float> e_x(x.size());
-    float max_val = *std::max_element(x.begin(), x.end());
-    float sum = 0.0;
-    for (size_t i = 0; i < x.size(); ++i) {
-        e_x[i] = std::exp(x[i] - max_val);
-        sum += e_x[i];
-    }
-    for (size_t i = 0; i < e_x.size(); ++i) {
-        e_x[i] /= sum;
-    }
-    return e_x;
 }
 
 std::pair<std::vector<float>, std::vector<int>> CLIP::topk(const std::vector<float>& x, int k) {
@@ -251,19 +237,14 @@ std::vector<float> CLIP::encode_image(const std::vector<float>& image) {
     return output_data;
 }
 
-std::vector<float> CLIP::encode_text(const std::vector<int64_t>& text) {
+std::vector<float> CLIP::encode_text(const std::vector<int>& text) {
     auto start_time = std::chrono::high_resolution_clock::now();
     auto &in0_mem = text_net->stages[0].input_mems[0];
     auto &out_mem = text_net->stages[0].output_mems[0];
     uint64_t in_shape = bmrt_shape_count(text_net_input_shape);   
     uint64_t out_shape = bmrt_shape_count(text_net_output_shape);   
 
-    std::vector<int32_t> int32_text;
-    for (int64_t value : text) {
-        int32_text.push_back(static_cast<int32_t>(value));
-    }
-
-    auto ret = bm_memcpy_s2d_partial(bm_handle, in0_mem, (void*)int32_text.data(), int32_text.size() * sizeof(int32_t));
+    auto ret = bm_memcpy_s2d_partial(bm_handle, in0_mem, (void*)text.data(), text.size() * sizeof(int));
     assert(BM_SUCCESS == ret);
     net_launch(text_net, p_bmrt_text);
     std::vector<float> output_data(out_shape, 0);
@@ -304,6 +285,20 @@ std::vector<float> CLIP::calculate_similarity(const std::vector<float>& image_fe
     }
 
     return softmax(similarity);
+}
+
+std::vector<float> CLIP::softmax(const std::vector<float>& x) {
+    std::vector<float> e_x(x.size());
+    float max_val = *std::max_element(x.begin(), x.end());
+    float sum = 0.0;
+    for (size_t i = 0; i < x.size(); ++i) {
+        e_x[i] = std::exp(x[i] - max_val);
+        sum += e_x[i];
+    }
+    for (size_t i = 0; i < e_x.size(); ++i) {
+        e_x[i] /= sum;
+    }
+    return e_x;
 }
 
 void CLIP::net_launch(const bm_net_info_t *net, void *p_bmrt) {
