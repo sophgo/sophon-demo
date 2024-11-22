@@ -46,9 +46,9 @@ pip3 install dfss --upgrade
 python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/whls/se7/sophon_arm-3.9.0-py3-none-any.whl
 
 #如果是在bm1688环境上，下载这个：
-python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/whls/se9/sophon_arm-3.8.0-py3-none-any.whl
+python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/whls/se9/sophon_arm-3.9.0-py3-none-any.whl
 
-pip3 install sophon_arm-3.8.0-py3-none-any.whl --force-reinstall
+pip3 install sophon_arm-3.9.0-py3-none-any.whl --force-reinstall
 ```
 
 此外您可能还需要安装其他第三方库：
