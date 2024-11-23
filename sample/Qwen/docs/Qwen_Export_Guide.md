@@ -84,6 +84,7 @@ cp tools/Qwen-7B-Chat/modeling_qwen.py Qwen-7B-Chat/
 
 Qwen1.5
 ```bash
+pip install transformers_stream_generator einops tiktoken accelerate transformers==4.37.0
 cp tools/Qwen1.5-7B-Chat/config.json Qwen1.5-7B-Chat/
 cp tools/Qwen1.5-7B-Chat/modeling_qwen2.py /usr/local/lib/python3.10/dist-packages/transformers/models/qwen2/
 
@@ -93,10 +94,19 @@ cp tools/Qwen1.5-1.8B-Chat/modeling_qwen2.py /usr/local/lib/python3.10/dist-pack
 
 Qwen2
 ```bash
+pip install transformers_stream_generator einops tiktoken accelerate torch==2.0.1+cpu torchvision==0.15.2 transformers==4.41.2
+cp tools/Qwen2-1.5B-Instruct/config.json Qwen2-1.5B-Instruct/
+cp tools/Qwen2-1.5B-Instruct/modeling_qwen2.py /usr/local/lib/python3.10/dist-packages/transformers/models/qwen2/
+
 cp tools/Qwen2-7B-Instruct/config.json Qwen2-7B-Instruct/
 cp tools/Qwen2-7B-Instruct/modeling_qwen2.py /usr/local/lib/python3.10/dist-packages/transformers/models/qwen2/
 ```
 
+Qwen2.5
+```bash
+pip install transformers_stream_generator einops tiktoken accelerate torch==2.0.1+cpu torchvision==0.15.2 transformers==4.45.2
+cp tools/Qwen2.5-7B-Instruct/modeling_qwen2.py /usr/local/lib/python3.10/dist-packages/transformers/models/qwen2/
+```
 
 ### 2.1.3 导出onnx
 

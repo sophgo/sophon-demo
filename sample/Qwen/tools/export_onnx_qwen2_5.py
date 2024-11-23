@@ -104,8 +104,8 @@ class BlockCache(torch.nn.Module):
         self.layer_id = layer_id
         self.layer = layers[layer_id]
         self.rotary_emb = self.layer.self_attn.rotary_emb
-        value_states = torch.randn((1, 1, NUM_KEY_VALUE_HEADS, HEAD_DIM)).to(dtype).to(device)
-        position_ids = torch.tensor([range(1)],dtype=torch.long).to(device)
+        value_states = torch.randn((1, SEQ_LENGTH, NUM_KEY_VALUE_HEADS, HEAD_DIM)).to(dtype).to(device)
+        position_ids = torch.tensor([range(SEQ_LENGTH)],dtype=torch.long).to(device)
         self.cos, self.sin = self.rotary_emb(value_states, position_ids)
 
     def forward(self,
