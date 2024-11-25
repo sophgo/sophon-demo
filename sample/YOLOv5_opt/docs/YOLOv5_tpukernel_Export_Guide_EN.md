@@ -40,6 +40,14 @@ The yolo post-processing interface in the tpu_kernel used in this example receiv
         ....
 ```
 
+find function `def run` in `export.py`, comment these two lines:
+
+```python
+    # shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
+    metadata = {"stride": int(max(model.stride)), "names": model.names}  # model metadata
+    # LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with output shape {shape} ({file_size(file):.1f} MB)")
+```
+
 ### 2.2 Export Torchscript models
 The Pytorch model must go through `torch.jit.trace` before compiling, and the traced model can be compiled to BModel. The official YOLOv5 repository provides the model export script `export.py`, which can be used directly to export torchscript models:
 
