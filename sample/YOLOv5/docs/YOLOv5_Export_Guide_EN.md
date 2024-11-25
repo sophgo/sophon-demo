@@ -35,9 +35,17 @@ The output of the YOLOv5 model will be different for different versions of the Y
                 z.append(y.view(bs, -1, self.no))
                 
         # return x if self.training else (torch.cat(z, 1), x)  # 4 outputs
-        return x if self.training else x                       # 3 outputs
+        return x                                               # 3 outputs
         # return x if self.training else (torch.cat(z, 1))     # 1 output
         ....
+```
+
+find function `def run` in `export.py`, comment these two lines:
+
+```python
+    # shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
+    metadata = {"stride": int(max(model.stride)), "names": model.names}  # model metadata
+    # LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with output shape {shape} ({file_size(file):.1f} MB)")
 ```
 
 ### 2.2 Derive the onnx Model

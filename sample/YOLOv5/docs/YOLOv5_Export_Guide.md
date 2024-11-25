@@ -35,9 +35,17 @@ YOLOv5不同版本的代码导出的YOLOv5模型的输出会有所不同，根�
                 z.append(y.view(bs, -1, self.no))
                 
         # return x if self.training else (torch.cat(z, 1), x)  # 4个输出
-        return x if self.training else x                       # 3个输出
+        return x                                               # 3个输出
         # return x if self.training else (torch.cat(z, 1))     # 1个输出
         ....
+```
+
+在`export.py`中找到`def run`函数，注释掉这两行：
+
+```python
+    # shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
+    metadata = {"stride": int(max(model.stride)), "names": model.names}  # model metadata
+    # LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with output shape {shape} ({file_size(file):.1f} MB)")
 ```
 
 ### 2.2 导出onnx模型
