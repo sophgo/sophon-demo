@@ -108,7 +108,7 @@ def retrieve_timesteps(
     return timesteps, num_inference_steps
 
 class FluxPipeline:
-    # type config. 
+    # type config
     FLUX_TYPE = ('dev', 'schnell', )
     QUANT_DTYPE = ("w4bf16", "bf16", )
     CHIP_TYPE = ('BM1684X', 'BM1688')
@@ -244,7 +244,11 @@ class FluxPipeline:
             raise FileNotFoundError(f"No '{os.path.basename(tokenizer_2_path)}' directory found at {full_model_path}.")
 
         #### check rotary embedding model
-        rotary_emb_path = os.path.join(full_model_path, "ids_emb_512.pt")
+        if chip_type == "BM1684X":
+            ids_emb_name = "ids_emb_1024.pt"
+        elif chip_type == "BM1688":
+            ids_emb_name = "ids_emb_512.pt"
+        rotary_emb_path = os.path.join(full_model_path, ids_emb_name)
         if not os.path.isfile(rotary_emb_path):
             raise FileNotFoundError(f"No '{os.path.basename(rotary_emb_path)}' file found at {full_model_path}.")
 

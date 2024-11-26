@@ -177,7 +177,7 @@ python3 export_models_from_HF.py
 # export_models_from_HF.py参数如下:
 # --flux_type dev/schnell		flux的版本
 # --img_size 512/1024			生成图像的形状，用于BM1684X请用1024，用于BM1688请用512 
-# --use_taef1					是否使用精简版vae_decoder，如果是单芯使用请加上该参数
+# --use_taef1				是否使用精简版vae_decoder，如果是单芯使用请加上该参数
 ```
 
 若执行上述导出脚本时，出现无法连接Huggingface的情况，可参考[从镜像站下载模型](https://hf-mirror.com/)，建议使用hfd工具下载，然后将导出脚本中的`from_pretained`接口改为本地路径。
@@ -206,6 +206,7 @@ pip3 install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url http
 ```bash
 ./gen_bmodels.sh
 # 参数可选如下，分别对应：transformer主体结构的量化方式，flux的版本，是否使用tiny-vae(若在soc模式运行必选W4BF16和tiny-vae)
+# --chip_type bm1684x/bm1688
 # --quantize BF16/W4BF16 
 # --flux_type dev/schnell
 # --use_taef1 1/0
