@@ -43,23 +43,23 @@ if __name__ == "__main__":
     # flux_type
     parser.add_argument("--flux_type", type=str, default="dev", help="dev or schnell")
     # model_path
-    parser.add_argument("--model_path", type=str, default="../models", help="bmodels path")
+    parser.add_argument("--model_path", type=str, default="../models", help="bmodels total path")
     # chip_type 
-    parser.add_argument("--chip_type", type=str, default="BM1684X", help="product type")
+    parser.add_argument("--chip_type", type=str, default="bm1684x", help="product type, bm1684x or bm1688")
     # quant_type 
-    parser.add_argument("--quant_type", type=str, default="bf16", help="bf16 or w4bf16, transformer module")
+    parser.add_argument("--quant_type", type=str, default="w4bf16", help="bf16 or w4bf16, transformer module, please use w4bf16 when using one device")
     # prompt
     parser.add_argument("--prompt", type=str, default="a powerful mysterious sorceress, casting lightning magic, detailed clothing, digital painting, hyperrealistic, fantasy, Surrealist, upper body, artstation, highly detailed, sharp focus, stunningly beautiful, dystopian", help="prompt for clip")
     # prompt_2
     parser.add_argument("--prompt_2", type=str, default="", help="prompt_2 for t5, would be the same with prompt if not set")
     # num_inference_steps
-    parser.add_argument("--num_inference_steps", type=int, default=10, help="total denoising steps")
+    parser.add_argument("--num_inference_steps", type=int, default=10, help="total denoising steps, flux-schnell is less step")
     # guidance_scale
-    parser.add_argument("--guidance_scale", type=float, default=3.5, help="guidance for each step")
+    parser.add_argument("--guidance_scale", type=float, default=3.5, help="guidance for each step, unused when using flux-schnell")
     # dev_id
-    parser.add_argument("--dev_ids", type=int, nargs='+', default=[0,1,2], help="device ids, support one or three devices, such as 0 or 1 2 3")
+    parser.add_argument("--dev_ids", type=int, nargs='+', default=0, help="device ids, support one or three devices, such as 0 or 1 2 3")
     # use tiny vae
-    parser.add_argument("--tiny_vae", action="store_true", help="use taef1 model(distilled vae decoder) if it is True, please set to be True when using one device")
+    parser.add_argument("--tiny_vae", action="store_true", help="use taef1 model(distilled vae decoder) when add '--tiny_vae', please add '--tiny_vae' when using one device")
     # fix seed
     parser.add_argument("--seed", type=int, default=42, help="seed value, must be between 0 and 2**32 - 1")
     try:

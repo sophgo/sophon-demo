@@ -1,4 +1,5 @@
-# FLUX.1 [dev] Non-Commercial License
+# FLUX.1 [dev] Non-Commercial License: https://github.com/black-forest-labs/flux/blob/main/model_licenses/LICENSE-FLUX1-dev
+# FLUX.1 [schnell] Non-Commercial License: https://github.com/black-forest-labs/flux/blob/main/model_licenses/LICENSE-FLUX1-schnell
 #===----------------------------------------------------------------------===#
 #
 # Copyright (C) 2024 Sophgo Technologies Inc.  All rights reserved.
@@ -110,7 +111,7 @@ class FluxPipeline:
     # type config. 
     FLUX_TYPE = ('dev', 'schnell', )
     QUANT_DTYPE = ("w4bf16", "bf16", )
-    CHIP_TYPE = ('BM1684X', )
+    CHIP_TYPE = ('BM1684X', 'BM1688')
     #### clip and vae are loaded on device0, t5 is loaded on device2
     MULTI_DEVICE_ALLOCATION = {'clip': 0, 'vae': 0,'t5': 2, }
     CLIP_LAYER_NUM = 12
@@ -143,7 +144,6 @@ class FluxPipeline:
     }
     EXECUTION_DEVICE = torch.device("cpu")
     MULTI_DEVICES_NUM = 3
-    IMAGE_ROTARY_EMB_SHAPE = [1, 4608, 1, 64, 2, 2]
 
     def __init__(
         self,
@@ -159,14 +159,11 @@ class FluxPipeline:
         self.default_sample_size = 64
         self.vae_scale_factor = 16
         #### process before vae has been integrated into vae_decoder.bmodel, so the two parameters below are not used
-        self.vae_config_scaling_factor = 0.3611
-        self.vae_config_shift_factor = 0.1159
+        # self.vae_config_scaling_factor = 0.3611
+        # self.vae_config_shift_factor = 0.1159
 
         self.transformer_config_in_channels = 64
         self.transformer_config_guidance_embeds = True
-
-        self.tokenizer_max_length = 77
-        self.tokenizer_2_max_length = 512
 
         self.default_sample_size = 64
 
@@ -214,6 +211,15 @@ class FluxPipeline:
         if chip_type not in self.CHIP_TYPE:
             raise UnSupportedError(chip_type)
 
+        if chip_type == "BM1684X":
+            self.tokenizer_max_length = 77
+            self.tokenizer_2_max_length = 512
+            self.image_rotary_emb_shape = [1, 4608, 1, 64, 2, 2] 
+        elif chip_type == "BM1688":
+            self.tokenizer_max_length = 77
+            self.tokenizer_2_max_length = 256
+            self.image_rotary_emb_shape = [1, 1280, 1, 64, 2, 2] 
+
         device_ids = device_ids if isinstance(device_ids, list) else [device_ids]
 
         quant_dtype = quant_dtype.lower()
@@ -238,7 +244,7 @@ class FluxPipeline:
             raise FileNotFoundError(f"No '{os.path.basename(tokenizer_2_path)}' directory found at {full_model_path}.")
 
         #### check rotary embedding model
-        rotary_emb_path = os.path.join(full_model_path, "ids_emb.pt")
+        rotary_emb_path = os.path.join(full_model_path, "ids_emb_512.pt")
         if not os.path.isfile(rotary_emb_path):
             raise FileNotFoundError(f"No '{os.path.basename(rotary_emb_path)}' file found at {full_model_path}.")
 
@@ -256,7 +262,7 @@ class FluxPipeline:
             raise FileNotFoundError(f"No '{os.path.basename(t5_path)}' file found at {bmodel_path}.")
 
         if len(device_ids) == 1 and use_tiny_vae is False:
-            raise UnSupportedError("use_tiny_vae must be True when using one device, normal vae")
+            raise UnSupportedError("--tiny_vae must be set when using one device, normal vae")
 
         vae_decoder_path = os.path.join(full_model_path, chip_type, "vae_decoder_bf16.bmodel" if use_tiny_vae is False else "tiny_vae_decoder_bf16.bmodel")
         if not os.path.isfile(vae_decoder_path):
@@ -280,7 +286,7 @@ class FluxPipeline:
         # 4. load normal models
         self.tokenizer = CLIPTokenizer.from_pretrained(tokenizer_path)
         self.tokenizer_2 = T5TokenizerFast.from_pretrained(tokenizer_2_path)
-        #### image_rotary_emd is image_rotary_emb torch.Tensor, shape [1, 4608, 1, 64, 2, 2]
+        #### image_rotary_emd is image_rotary_emb torch.Tensor
         self.image_rotary_emb = torch.load(rotary_emb_path, map_location = self.EXECUTION_DEVICE)
         self.scheduler = FlowMatchEulerDiscreteScheduler(**self.SCHEDULE_CONFIG[flux_type]) 
 
@@ -298,33 +304,39 @@ class FluxPipeline:
             self.transformer_on_device2 = sail.EngineLLM(transformer_paths[2], [self.device_ids[2]])
 
         # 7. allocate inputs/outputs device memory, and build input_tensors and output_tensors, the final outputs of clip, t5, vae own sys mem for check precision
+        if chip_type == "BM1684X":
+            clip_head_inputs_map = self.text_encoder.get_input_tensors_addrmode0("clip_head")
+            clip_block_inputs_map = self.text_encoder.get_input_tensors_addrmode0("clip_block_0")
+            clip_tail_outputs_map = self.text_encoder.get_output_tensors_addrmode0("clip_tail")
+            t5_head_inputs_map = self.text_encoder_2.get_input_tensors_addrmode0("t5_head")
+            t5_block_inputs_map = self.text_encoder_2.get_input_tensors_addrmode0("t5_block_0")
+            vae_inputs_map = self.vae_decoder.get_input_tensors_addrmode0("vae_decoder")
+            vae_outputs_map = self.vae_decoder.get_output_tensors_addrmode0("vae_decoder")
+        elif chip_type == "BM1688":
+            clip_head_inputs_map = self.text_encoder.create_max_input_tensors("clip_head")
+            clip_block_inputs_map = self.text_encoder.create_max_input_tensors("clip_block_0")
+            clip_tail_outputs_map = self.text_encoder.create_max_output_tensors("clip_tail")
+            t5_head_inputs_map = self.text_encoder_2.create_max_input_tensors("t5_head")
+            t5_block_inputs_map = self.text_encoder_2.create_max_input_tensors("t5_block_0")
+            vae_inputs_map = self.vae_decoder.create_max_input_tensors("vae_decoder")
+            vae_outputs_map = self.vae_decoder.create_max_output_tensors("vae_decoder")
+
         ## 7.1 allocate input/output device mem for clip, output of clip_head, input0 of clip_tail and inputs/outputs of block_${id} are the same, so allocate only once.
-
         #### token_ids, shape [1, 77]
-        clip_head_inputs_map = self.text_encoder.get_input_tensors_addrmode0("clip_head")
         clip_token_ids = sail.Tensor(self.handles[self.device_ids[0 if quant_dtype == "w4bf16" else self.MULTI_DEVICE_ALLOCATION['clip']]], clip_head_inputs_map[0].shape(), clip_head_inputs_map[0].dtype(), False, True)
-        
         #### hidden_states, shape [1, 77, 768]
-        clip_block_inputs_map = self.text_encoder.get_input_tensors_addrmode0("clip_block_0")
         clip_hidden_states = sail.Tensor(self.handles[self.device_ids[0 if quant_dtype == "w4bf16" else self.MULTI_DEVICE_ALLOCATION['clip']]], clip_block_inputs_map[0].shape(), clip_block_inputs_map[0].dtype(), False, True)
-
         #### pooling output, shape [1, 768]
-        clip_tail_outputs_map = self.text_encoder.get_output_tensors_addrmode0("clip_tail")
         clip_pooling_result = sail.Tensor(self.handles[self.device_ids[0 if quant_dtype == "w4bf16" else self.MULTI_DEVICE_ALLOCATION['clip']]], clip_tail_outputs_map[0].shape(), clip_tail_outputs_map[0].dtype(), True, True)
 
         ## 7.2 allocate input/output device memory for t5, shape of `inputs/outputs of block_${id}`, `output of t5_head` and `input/output of t5_tail` are the same, so allocate only once.
-
-        #### token_ids, shape [1, 512]
-        t5_head_inputs_map = self.text_encoder_2.get_input_tensors_addrmode0("t5_head")
+        #### token_ids
         t5_token_ids = sail.Tensor(self.handles[self.device_ids[0 if quant_dtype == "w4bf16" else self.MULTI_DEVICE_ALLOCATION['t5']]], t5_head_inputs_map[0].shape(), t5_head_inputs_map[0].dtype(), False, True)
 
-        #### hidden_states, shape [1, 512, 4096], same shape with the final output
-        t5_block_inputs_map = self.text_encoder_2.get_input_tensors_addrmode0("t5_block_0")
+        #### hidden_states, same shape with the final output
         t5_hidden_states = sail.Tensor(self.handles[self.device_ids[0 if quant_dtype == "w4bf16" else self.MULTI_DEVICE_ALLOCATION['t5']]], t5_block_inputs_map[0].shape(), t5_block_inputs_map[0].dtype(), True, True)
 
         ## 7.3 allocate input/output device memory for vae
-        vae_inputs_map = self.vae_decoder.get_input_tensors_addrmode0("vae_decoder")
-        vae_outputs_map = self.vae_decoder.get_output_tensors_addrmode0("vae_decoder")
         latents = sail.Tensor(self.handles[self.device_ids[0 if quant_dtype == "w4bf16" else self.MULTI_DEVICE_ALLOCATION['vae']]], vae_inputs_map[0].shape(), vae_inputs_map[0].dtype(), False, True)
         image = sail.Tensor(self.handles[self.device_ids[0 if quant_dtype == "w4bf16" else self.MULTI_DEVICE_ALLOCATION['vae']]], vae_outputs_map[0].shape(), vae_outputs_map[0].dtype(), True, True)
 
@@ -348,45 +360,45 @@ class FluxPipeline:
 
         ## 7.5 allocate input/output device memory for MM-DiT and single-DiT, allocate input/output device memory for DiT block only once.
         if quant_dtype == "w4bf16":
-            ### transformer head
-            head_inputs_map = self.transformer_on_device0.get_input_tensors_addrmode0(f"{flux_type}_head")
-            #### init latents, shape [1, 4096, 64]
+            ### transformer head, MM-DiT, single-DiT, transformer tail
+            if chip_type == "BM1684X":
+                head_inputs_map = self.transformer_on_device0.get_input_tensors_addrmode0(f"{flux_type}_head")
+                trans_block_on_dev0_inputs_map = self.transformer_on_device0.get_input_tensors_addrmode0(f"{flux_type}_trans_block_0")
+                single_trans_block_on_dev0_outputs_map = self.transformer_on_device0.get_output_tensors_addrmode0(f"{flux_type}_single_trans_block_0") 
+                tail_outputs_map = self.transformer_on_device0.get_output_tensors_addrmode0(f"{flux_type}_tail")
+            elif chip_type == "BM1688":
+                head_inputs_map = self.transformer_on_device0.create_max_input_tensors(f"{flux_type}_head")
+                trans_block_on_dev0_inputs_map = self.transformer_on_device0.create_max_input_tensors(f"{flux_type}_trans_block_0")
+                single_trans_block_on_dev0_outputs_map = self.transformer_on_device0.create_max_output_tensors(f"{flux_type}_single_trans_block_0") 
+                tail_outputs_map = self.transformer_on_device0.create_max_output_tensors(f"{flux_type}_tail")
+
+            #### init latents
             init_hidden_states = sail.Tensor(self.handles[self.device_ids[0]], head_inputs_map[0].shape(), head_inputs_map[0].dtype(), False, True)
             #### timestep, shape [1]
             timestep = sail.Tensor(self.handles[self.device_ids[0]], head_inputs_map[1].shape(), head_inputs_map[1].dtype(), False, True)
+
             if flux_type == "dev":
                 # guidance scale, shape [1]
                 guidance = sail.Tensor(self.handles[self.device_ids[0]], head_inputs_map[2].shape(), head_inputs_map[2].dtype(), False, True)
                 #### the pooling output of clip, shape [1, 768]
                 pooled_projections = sail.Tensor(self.handles[self.device_ids[0]], head_inputs_map[3].shape(), head_inputs_map[3].dtype(), False, True)
-                #### the output of t5, shape [1, 512, 4096]
+                #### the output of t5
                 init_encoder_hidden_states = sail.Tensor(self.handles[self.device_ids[0]], head_inputs_map[4].shape(), head_inputs_map[4].dtype(), False, True)
             elif flux_type == "schnell":
                 #### the pooling output of clip, shape [1, 768]
                 pooled_projections = sail.Tensor(self.handles[self.device_ids[0]], head_inputs_map[2].shape(), head_inputs_map[2].dtype(), False, True)
-                #### the output of t5, shape [1, 512, 4096]
+                #### the output of t5
                 init_encoder_hidden_states = sail.Tensor(self.handles[self.device_ids[0]], head_inputs_map[3].shape(), head_inputs_map[3].dtype(), False, True)
 
-            ### image rotary embbeding ,fixed data, read from ids_emb.pt file. shape IMAGE_ROTARY_EMB_SHAPE
-            image_rotary_emb = sail.Tensor(self.handles[self.device_ids[0]], self.IMAGE_ROTARY_EMB_SHAPE, sail.Dtype.BM_FLOAT32, False, True)
+            ### image rotary embbeding ,fixed data, read from ids_emb_${shape}.pt file.
+            image_rotary_emb = sail.Tensor(self.handles[self.device_ids[0]], self.image_rotary_emb_shape, sail.Dtype.BM_FLOAT32, False, True)
 
-            ### MM-DiT
-            trans_block_on_dev0_inputs_map = self.transformer_on_device0.get_input_tensors_addrmode0(f"{flux_type}_trans_block_0")
-            #### hidden_states, shape [1, 4096, 3072]
             hidden_states = sail.Tensor(self.handles[self.device_ids[0]], trans_block_on_dev0_inputs_map[0].shape(), trans_block_on_dev0_inputs_map[0].dtype(), False, True)
-            #### encoder_hidden_states, shape [1, 512, 3072]
             encoder_hidden_states = sail.Tensor(self.handles[self.device_ids[0]], trans_block_on_dev0_inputs_map[1].shape(), trans_block_on_dev0_inputs_map[1].dtype(), False, True)
-            #### temb shape [1, 3072] 
             temb = sail.Tensor(self.handles[self.device_ids[0]], trans_block_on_dev0_inputs_map[2].shape(), trans_block_on_dev0_inputs_map[2].dtype(), False, True)
 
-            ### single-DiT
-            single_trans_block_on_dev0_outputs_map = self.transformer_on_device0.get_output_tensors_addrmode0(f"{flux_type}_single_trans_block_0") 
-            #### single-DiT hidden_states, shape [1, 4608, 3072]
             single_DiT_hidden_states = sail.Tensor(self.handles[self.device_ids[0]], single_trans_block_on_dev0_outputs_map[0].shape(), single_trans_block_on_dev0_outputs_map[0].dtype(), False, True)
 
-            ### transformer tail
-            tail_outputs_map = self.transformer_on_device0.get_output_tensors_addrmode0(f"{flux_type}_tail")
-            #### predict noise in this step, shape [1, 4096, 64]
             predicted_noise = sail.Tensor(self.handles[self.device_ids[0]], tail_outputs_map[0].shape(), tail_outputs_map[0].dtype(), True, True)
 
             #### build input/output tensors maps
@@ -422,10 +434,10 @@ class FluxPipeline:
                 #### the output of t5, shape [1, 512, 4096]
                 init_encoder_hidden_states = sail.Tensor(self.handles[self.device_ids[0]], head_inputs_map[3].shape(), head_inputs_map[3].dtype(), False, True)
 
-            ### image rotary embbeding ,fixed data, read from ids_emb.pt file. shape IMAGE_ROTARY_EMB_SHAPE, allocate on all devices
+            ### image rotary embbeding ,fixed data, read from ids_emb.pt file. allocate on all devices
             image_rotary_embbedings_dict = {}
             for idx in range(self.MULTI_DEVICES_NUM):
-                image_rotary_embbedings_dict[idx] = sail.Tensor(self.handles[self.device_ids[idx]], self.IMAGE_ROTARY_EMB_SHAPE, sail.Dtype.BM_FLOAT32, False, True)
+                image_rotary_embbedings_dict[idx] = sail.Tensor(self.handles[self.device_ids[idx]], self.image_rotary_emb_shape, sail.Dtype.BM_FLOAT32, False, True)
 
             ### MM-DiT, on device 0 and 1
             trans_block_on_dev0_inputs_map = self.transformer_on_device0.get_input_tensors_addrmode0(f"{flux_type}_trans_block_0")
@@ -546,12 +558,12 @@ class FluxPipeline:
         Args:
             prompt: description of the wanted image, only support str(one prompt) now.
             num_images_per_prompt: only support one now.
-            max_sequence_length: max token length.
+            max_sequence_length: max token length, depends on bmodel, not in effect.
             device: which device(where t5 is loaded) would receive the output of tokenizer, currently not in effect.
             dtype: set data type of result ,currently using float32.
 
         Returns:
-            torch.Tensor: output of t5, shape is [1, 512, 4096].
+            torch.Tensor: output of t5.
         """
         # device = device or self.EXECUTION_DEVICE
         dtype = dtype or torch.float32
@@ -563,7 +575,7 @@ class FluxPipeline:
         text_inputs = self.tokenizer_2(
             prompt,
             padding="max_length",
-            max_length=max_sequence_length,
+            max_length=self.tokenizer_2_max_length,
             truncation=True,
             return_length=False,
             return_overflowing_tokens=False,
@@ -574,10 +586,10 @@ class FluxPipeline:
         untruncated_ids = self.tokenizer_2(prompt, padding="longest", return_tensors="pt").input_ids
 
         if untruncated_ids.shape[-1] >= text_input_ids.shape[-1] and not torch.equal(text_input_ids, untruncated_ids):
-            removed_text = self.tokenizer_2.batch_decode(untruncated_ids[:, self.tokenizer_max_length - 1 : -1])
+            removed_text = self.tokenizer_2.batch_decode(untruncated_ids[:, self.tokenizer_2_max_length - 1 : -1])
             logger.warning(
                 "The following part of your input was truncated because `max_sequence_length` is set to "
-                f" {max_sequence_length} tokens: {removed_text}"
+                f" {self.tokenizer_2_max_length} tokens: {removed_text}"
             )
 
         # 2. process of t5
@@ -675,8 +687,9 @@ class FluxPipeline:
         max_sequence_length=None,
     ):
         # Check all inputs.
-        if height != 1024 or width != 1024:
-            raise ValueError(f"`height` and `width` have to be 1024 currently.")
+        support_shapes = [(512, 512), (1024, 1024)]
+        if (height, width) not in support_shapes:
+            raise ValueError(f"(height, width) only supports {support_shapes}.")
 
         if prompt is not None and prompt_embeds is not None:
             raise ValueError(

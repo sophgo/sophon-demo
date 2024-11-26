@@ -4,6 +4,8 @@ onnx==1.16.2
 # used for running demo
 diffusers==0.30.0
 gradio==4.44.0
+huggingface-hub==0.24.0
+numpy==1.24.0
 protobuf==5.28.2
 sentencepiece==0.2.0
 transformers==4.44.2

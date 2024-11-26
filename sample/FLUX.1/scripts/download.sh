@@ -49,24 +49,37 @@ done
 if [ ! -d "../models/${chip_type}/" ];
 then
     mkdir -p ../models/${chip_type}/
-    python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/clip.bmodel
-    mv clip.bmodel ../model/${chip_type}
-    python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/w4bf16_t5.bmodel
-    mv w4bf16_t5.bmodel../model/${chip_type}
+    if [ "$chip_type" == "BM1684X" ]; then
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/clip.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/w4bf16_t5.bmodel
+    else
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/${chip_type}/clip.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/${chip_type}/w4bf16_t5.bmodel
+    fi
+    mv clip.bmodel ../models/${chip_type}
+    mv w4bf16_t5.bmodel ../models/${chip_type}
     echo "clip/t5 bmodels download!"
 else
     echo "models exists!"
 fi
 
 if [ "$flux_type" == "schnell" ] && [ "$quantize" == "W4BF16" ]; then
-    python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/schnell_w4bf16_transformer.bmodel
+    if [ "$chip_type" == "BM1684X" ]; then
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/schnell_w4bf16_transformer.bmodel
+    else
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/${chip_type}/schnell_w4bf16_transformer.bmodel
+    fi
     mv schnell_w4bf16_transformer.bmodel "../models/${chip_type}/"
 elif [ "$flux_type" == "schnell" ] && [ "$quantize" == "BF16" ]; then
     python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/schnell_bf16.7z
     7z x schnell_bf16.7z -o ../models/${chip_type}
     rm schnell_bf16.7z
 elif [ "$flux_type" == "dev" ] && [ "$quantize" == "W4BF16" ]; then
-    python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/dev_w4bf16_transformer.bmodel
+    if [ "$chip_type" == "BM1684X" ]; then
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/dev_w4bf16_transformer.bmodel
+    else
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/${chip_type}/dev_w4bf16_transformer.bmodel
+    fi
     mv dev_w4bf16_transformer.bmodel "../models/${chip_type}/"
 elif [ "$flux_type" == "dev" ] && [ "$quantize" == "BF16" ]; then
     python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/dev_bf16.7z
@@ -75,11 +88,17 @@ elif [ "$flux_type" == "dev" ] && [ "$quantize" == "BF16" ]; then
 fi
 
 if [ "$use_taef1" == 1 ]; then
-    python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/tiny_vae_decoder_bf16.bmodel
-    mv tiny_vae_decoder_bf16.bmodel ../model/${chip_type}
+    if [ "$chip_type" == "BM1684X" ]; then
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/tiny_vae_decoder_bf16.bmodel
+    else
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/${chip_type}/tiny_vae_decoder_bf16.bmodel
+    fi
+    mv tiny_vae_decoder_bf16.bmodel ../models/${chip_type}
 else
-    python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/vae_decoder_bf16.bmodel
-    mv vae_decoder_bf16.bmodel ../model/${chip_type}
+    if [ "$chip_type" == "BM1684X" ]; then
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/vae_decoder_bf16.bmodel
+    fi
+    mv vae_decoder_bf16.bmodel ../models/${chip_type}
 fi
 echo "flux/vae bmodels download!"
 
@@ -103,7 +122,10 @@ else
 fi
 
 # ids_emb.pt
-python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/ids_emb.pt
-mv ids_emb.pt ../models
-
+if [ "$chip_type" == "BM1684X" ]; then
+    python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/ids_emb_1024.pt
+    mv ids_emb_1024.pt ../models
+elif [ "$chip_type" == "BM1688" ]; then 
+    python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/${chip_type}/ids_emb_512.pt
+    mv ids_emb_512.pt ../models
 popd
