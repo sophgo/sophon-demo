@@ -169,11 +169,9 @@ if __name__ == "__main__":
         dev_id = int(model["dev_id"])
         name = model["name"]
         if name == "chatglm3":
-            engine = sail.Engine(model["bmodel_path"], dev_id, sail.IOMode.DEVIO)
             client = ChatGLM3(model["bmodel_path"], dev_id, model["token_path"])
             clients[name] = client
         elif "qwen" in name:
-            engine = sail.EngineLLM(model["bmodel_path"], [dev_id])
             client = Qwen(model["bmodel_path"], model["dev_id"], model["token_path"])
             clients[name] = client
         else:
