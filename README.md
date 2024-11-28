@@ -78,13 +78,18 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | 多模态目标检测     | Python     | FP16           | BM1684X/BM1688/CV186X       |
 | [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | 大规模视觉语言模型 | Python     | FP16/INT8      | BM1684X                     |
 | [InternVL2](./sample/InternVL2/README.md)                     | 大规模视觉语言模型 | Python     | INT4           | BM1684X/BM1688              |
+| [Vila](./sample/Vila/README.md)                               | 大规模视觉语言模型 | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | 超分辨            | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [P2PNet](./sample/P2PNet/README.md)                           | 人群计数          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [CLIP](./sample/CLIP/README.md)                               | 图文匹配          | C++/Python | FP16           | BM1684X/BM1688/CV186X        |
 | [BLIP](./sample/BLIP/README.md)                               | 多模态图文模型     | Python     | FP32           | BM1684/BM1684X/BM1688       |
 | [SuperGlue](./sample/SuperGlue/README.md)                     | 特征匹配          | C++        | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | 语音生成          | Python     | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [ChatTTS](./sample/ChatTTS/README.md)                         | 语音生成          | Python     | BF16/INT8/INT4 | BM1684X/BM1688        |
 | [DirectMHP](./sample/DirectMHP/README.md)                     | 头部姿势估计      | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [CAM++](./sample/CAM++/README.md)                             | 说话人识别        | C++/Python | FP32           | BM1684X/BM1688/CV186X        |
+| [FaceFormer](./sample/FaceFormer/README.md)                   | 音频驱动口型      | Python     | FP32           | BM1684X        |
+| [MP_SENet](./sample/MP_SENet/README.md)                       | 语音降噪          | Python     | FP32/BF16      | BM1684X        |
 
 | application                                                              | 应用场景                  | 编程语言    | 支持硬件                     |
 |---                                                                       |---                       |---          | ---                         |
@@ -94,10 +99,14 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [Grounded-sam](./application/Grounded-sam/README.md)                     | 自动化图像检测和分割系统    | Python      | BM1684X                    |
 | [cv-demo](./application/cv-demo/README.md)                               | 双目鱼眼、广角拼接应用      | C++         | BM1688                      |
 | [YOLOv5_fuse_multi_QT](./application/YOLOv5_fuse_multi_QT/README.md)     | 多路目标检测+QT_HDMI显示    | C++         | BM1688/CV186X               |
+| [ChatDoc](./application/ChatDoc/README.md)                               | 快速提取文档内容并用于问答   | Python      | BM1684X/BM1688              |
+| [LLM_api_server](./application/LLM_api_server/README.md)                 | 类Openai_api的LLM服务      | Python      | BM1684X/BM1688              |
+| [Audio_assistant](./application/Audio_assistant/README.md)               | 语音助手                   | C++/Python  | BM1684X/BM1688              |
 
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.2.7  | 完善和修复文档、代码问题，sample模块新增CAM++、ChatTTS、FaceFormer、MP_SENet、Vila例程。application模块新增ChatDoc、LLM_api_server、Audio_assistant例程。|
 | 0.2.6  | 完善和修复文档、代码问题，sample模块新增YOLOv11_det、FLUX.1、SlowFast、YOLOv8_obb例程。 |
 | 0.2.5  | 完善和修复文档、代码问题，去除所有sample的公共依赖。sample模块新增SAM2、HRNet_pose、InternVL2、BLIP、DirectMHP、VITS_CHINESE例程，application新增cv-demo、YOLOv5_fuse_multi_QT例程。 |
 | 0.2.4  | 完善和修复文档、代码问题，**修复VideoDecFFM系统内存泄漏问题**，sample模块新增YOLOv8_pose、Qwen-VL-Chat例程，application新增Grounded-sam例程。 |
@@ -121,6 +130,8 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 SOPHON-DEMO主要依赖TPU-MLIR、TPU-NNTC、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SOPHON-SAIL，对于BM1684/BM1684X SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
+| 0.2.7  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
+| 0.2.6  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.5  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.4  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.3  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
@@ -142,6 +153,7 @@ SOPHON-DEMO主要依赖TPU-MLIR、TPU-NNTC、LIBSOPHON、SOPHON-FFMPEG、SOPHON-
 对于BM1688/CV186AH SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.2.7  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.6  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.5  | >=1.9       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.4  | >=1.9       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |

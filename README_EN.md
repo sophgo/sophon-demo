@@ -78,13 +78,18 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | MultiModal Object Detection        | Python     | FP16           | BM1684X/BM1688/CV186X        |
 | [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | Large Vision Language Model        | Python     | FP16/INT8      | BM1684X                      |
 | [InternVL2](./sample/InternVL2/README.md)                     | Large Vision Language Model        | Python     | INT4           | BM1684X/BM1688               |
+| [Vila](./sample/Vila/README.md)                               | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | C++/Python | FP16           | BM1684X/BM1688/CV186X        |
 | [BLIP](./sample/BLIP/README.md)                               | Large Image-Text Model             | Python     | FP32           | BM1684/BM1684X/BM1688        |
 | [SuperGlue](./sample/SuperGlue/README.md)                     | Keypoint Matching                  | C++        | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | Text To Speech                     | Python     | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [ChatTTS](./sample/ChatTTS/README.md)                         | Text To Speech                     | Python     | BF16/INT8/INT4 | BM1684X/BM1688        |
 | [DirectMHP](./sample/DirectMHP/README.md)                     | Head pose estimation               | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [CAM++](./sample/CAM++/README.md)                             | Speaker Recogition                 | C++/Python | FP32           | BM1684X/BM1688/CV186X        |
+| [FaceFormer](./sample/FaceFormer/README.md)                   | Speech-Driven 3D Facial Animation  | Python     | FP32           | BM1684X        |
+| [MP_SENet](./sample/MP_SENet/README.md)                       | Speech Enhancement                 | Python     | FP32/BF16      | BM1684X        |
 
 | application                                                              | scenarios                                         | code        | supported hardware           |
 |---                                                                       |---                                                |---          | ---                          | 
@@ -94,10 +99,14 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [Grounded-sam](./application/Grounded-sam/README.md)                     | Automatic image detection and segmentation system | Python      | BM1684X                      | 
 | [cv-demo](./application/cv-demo/README.md)                               | Bilingual Fisheye and Wide-angle Stitching        | C++         | BM1688                       | 
 | [YOLOv5_fuse_multi_QT](./application/YOLOv5_fuse_multi_QT/README.md)     | Multi-streams Object Detection + QT_HDMI display  | C++         | BM1688/CV186X                | 
+| [ChatDoc](./application/ChatDoc/README.md)                               | Extract contents from documents for Q&A           | Python      | BM1684X/BM1688              |
+| [LLM_api_server](./application/LLM_api_server/README.md)                 | Openai_api-like LLM Service                       | Python      | BM1684X/BM1688              |
+| [Audio_assistant](./application/Audio_assistant/README.md)               | Audio assistant                                   | C++/Python  | BM1684X/BM1688              |
 
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.2.7  | Fix documentation and other issues. Release new samples including CAM++/ChatTTS/FaceFormer/MP_SENet/Vila, new applications ChatDoc/LLM_api_server/Audio_assistant.|
 | 0.2.6  |Fix documentation and other issues. Release new samples including YOLOv11_det/FLUX.1/SlowFast/YOLOv8_obb. |
 | 0.2.5  | Fix documentation and other issues. Remove all samples' common dependencies. Release new samples including SAM2/HRNet_pose/InternVL2/BLIP/DirectMHP/VITS_CHINESE, new applications cv-demo,YOLOv5_fuse_multi_QT. |
 | 0.2.4  | Fix documentation and other issues. **Fix host memory leak in VideoDecFFM**. Release new samples including YOLOv8_pose/Qwen-VL-Chat, new application Grounded-sam. |
@@ -121,6 +130,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
+| 0.2.7  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.6  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.5  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.4  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
@@ -143,6 +153,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPH
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.2.7  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.6  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.5  | >=1.9       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.4  | >=1.9       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
