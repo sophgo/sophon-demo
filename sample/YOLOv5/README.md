@@ -12,6 +12,7 @@
     - [2.2 SDK特性](#22-sdk特性)
   - [3. 数据准备与模型编译](#3-数据准备与模型编译)
     - [3.1 数据准备](#31-数据准备)
+    - [3.2 模型编译](#32-模型编译)
   - [4. 例程测试](#4-例程测试)
   - [5. 精度测试](#5-精度测试)
     - [5.1 测试方法](#51-测试方法)
@@ -31,11 +32,9 @@
 ├── docs                  # 存放本例程专用文档，如ONNX导出、移植常见问题等
 ├── pics                  # 存放README等说明文档中用到的图片
 ├── python                # 存放Python例程及其README
-|   ├──README_EN.md 
 |   ├──README.md 
 |   ├──yolov5_opencv.py   # 使用OpenCV解码、OpenCV前处理、SAIL推理的Python例程
 |   └──...                # Python例程共用功能的封装。
-├── README_EN.md          # 本例程的英文指南
 ├── README.md             # 本例程的中文指南
 ├── scripts               # 存放模型编译、数据下载、自动测试等shell脚本
 └── tools                 # 存放精度测试、性能比对等python脚本
@@ -88,13 +87,32 @@ chmod -R +x scripts/
     └── instances_val2017_1000.json           # coco val2017_1000数据集标签文件，用于计算精度评价指标  
 ```
 
+### 3.2 模型编译
+
+建议使用TPU-MLIR编译BModel，模型编译前需要安装TPU-MLIR，具体可参考官网TPU-MLIR相关文档搭建环境。安装好后需在TPU-MLIR环境中进入例程目录，并使用本例程提供的脚本将onnx模型编译为BModel。脚本中命令的详细说明可参考《TPU-MLIR开发手册》(请从算能官网相应版本的SDK中获取)。
+
+这里以FP32模型为例说明脚本使用方法:
+
+- 生成FP32 BModel
+
+本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台，如：
+
+```bash
+./scripts/gen_fp32bmodel_mlir.sh bm1690
+```
+
+执行上述命令会在models/BM1690文件夹下生成yolov5s_v6.1_3output_fp32_1b.bmodel文件，即转换好的FP32 BModel
+
+此外，本例程也提供了编译FP16模型和编译INT8模型的脚本文件，可以按照相同方法使用。
+
+
 ## 4. 例程测试
 - [Python例程](./python/README.md)
 
 ## 5. 精度测试
 ### 5.1 测试方法
 
-首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(conf_thresh=0.001、nms_thresh=0.6)。  
+首先，参考[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(conf_thresh=0.001、nms_thresh=0.6)。  
 然后，使用`tools`目录下的`eval_coco.py`脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
 ```bash
 # 安装pycocotools，若已安装请跳过
