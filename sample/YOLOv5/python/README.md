@@ -23,7 +23,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 ## 1. 环境准备
 ### 1.1 x86 PCIe平台
 
-目前仅支持在x86 PCIe平台测试本例程。除了安装tpuv7-driver和tpuv7-runtime之外，您还需要配置opencv等其他第三方库：
+目前仅支持在x86 PCIe平台测试本例程。除了安装tpuv7-driver、tpuv7-runtime和sophon-sail之外，您还需要配置opencv等其他第三方库：
 
 ```bash
 pip3 install opencv-python-headless
@@ -32,7 +32,7 @@ pip3 install opencv-python-headless
 ## 2. 推理测试
 python例程不需要编译，可以直接运行。
 ### 2.1 参数说明
-yolov5_opencv.py和yolov5_bmcv.py的参数一致，以yolov5_opencv.py为例：
+yolov5_opencv.py的运行方法：
 ```bash
 usage: yolov5_opencv.py [-h] [--input INPUT] [--bmodel BMODEL] [--dev_id DEV_ID] [--conf_thresh CONF_THRESH] [--nms_thresh NMS_THRESH]
 
@@ -60,7 +60,7 @@ python3 python/yolov5_opencv.py --input datasets/coco/val2017_1000 --bmodel mode
 ### 2.3 测试视频
 视频测试实例如下，支持对视频流进行测试。
 ```bash
-python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/yolov5s_v6.1_3output_int8_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5
+python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1690/yolov5s_v6.1_3output_int8_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5
 ```
 测试结束后，会将预测的结果画在`results/test_car_person_1080P.avi`中，同时会打印预测结果、推理时间等信息。  
 `yolov5_bmcv.py`不会保存视频，而是会将预测结果画在图片上并保存在`results/images`中。

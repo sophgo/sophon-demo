@@ -139,10 +139,10 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 # 请根据实际情况修改要测试的bmodel路径和devid参数
 tpu-model-rt --bmodel models/BM1690/yolov5s_v6.1_3output_fp32_1b.bmodel
 ```
-测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
+测试结果中的`Launch time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                         | calculate time(ms) |
+|                  测试模型                         | Launch time(ms) |
 | -------------------------------------------       | ----------------- |
 | BM1690/yolov5s_v6.1_3output_fp32_1b.bmodel |          17.88  |
 | BM1690/yolov5s_v6.1_3output_int8_1b.bmodel |          2.56  |
@@ -150,7 +150,7 @@ tpu-model-rt --bmodel models/BM1690/yolov5s_v6.1_3output_fp32_1b.bmodel
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
-> 2. `calculate time`已折算为平均每张图片的推理时间；
+> 2. `Launch time`已折算为平均每张图片的推理时间；
 
 ### 6.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。

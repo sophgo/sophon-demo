@@ -17,7 +17,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 ## 1. 环境准备
 ### 1.1 x86 PCIe平台
 
-目前仅支持在x86 PCIe平台测试本例程。除了安装tpuv7-driver和tpuv7-runtime之外，此外您可能还需要安装其他第三方库：
+目前仅支持在x86 PCIe平台测试本例程。除了安装tpuv7-driver、tpuv7-runtime和sophon-sail之外，此外您可能还需要安装其他第三方库：
 ```bash
 pip3 install opencv-python-headless
 ```
