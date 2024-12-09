@@ -47,9 +47,8 @@ usage: ./campplus [--model BMODEL] [--input INPUT_DIR] [--devid DEV_ID]
 ```
 
 ### 3.2 使用方式
-以SOC平台为例，将`./dependencies/lib_soc`加入路径后运行`campplus`，如运行BM1684X fp32模型`campplus_bm1684x_fp32_1b.bmodel`:
+以SOC平台为例，如运行BM1684X fp32模型`campplus_bm1684x_fp32_1b.bmodel`:
 
 ```shell
-export LD_LIBRARY_PATH=./dependencies/lib_soc:$LD_LIBRARY_PATH
 ./campplus --bmodel=../models/BM1684X/campplus_bm1684x_fp32_1b.bmodel  --input=../datasets/test --dev_id=0
 ```

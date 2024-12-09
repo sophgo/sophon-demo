@@ -15,7 +15,7 @@ SAM官方仓库提供了模型导出脚本'scripts/export.onnx_model.py'和'note
     onnx_model_path = "decode_model_multi_mask.onnx"
     onnx_model = SamOnnxModel(sam, return_single_mask=False)  # return_single_mask=Flase时，将输出置信度前三的mask。return_single_mask=True时，将输出置信度最高的mask。
 
-    # onnx_model_path = "decode_model_signle_mask.onnx"
+    # onnx_model_path = "decode_model_single_mask.onnx"
     # onnx_model = SamOnnxModel(sam, return_single_mask=True) 
 
     dynamic_axes = {
