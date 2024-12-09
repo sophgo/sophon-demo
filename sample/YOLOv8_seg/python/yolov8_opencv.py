@@ -207,8 +207,9 @@ def main(args):
         raise FileNotFoundError('{} is not existed.'.format(args.input))
     if not os.path.exists(args.bmodel):
         raise FileNotFoundError('{} is not existed.'.format(args.bmodel))
-    if not os.path.exists(args.getmask_bmodel):
-        raise FileNotFoundError('{} is not existed.'.format(args.getmask_bmodel))
+    if args.use_tpu_opt:
+        if not os.path.exists(args.getmask_bmodel):
+            raise FileNotFoundError('{} is not existed.'.format(args.getmask_bmodel))
     
     # creat save path
     output_dir = "./results"
