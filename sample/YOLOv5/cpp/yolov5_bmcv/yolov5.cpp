@@ -245,14 +245,18 @@ int YoloV5::post_process(const std::vector<bm_image> &images, std::vector<YoloV5
     int frame_height = frame.height;
 
     int tx1 = 0, ty1 = 0;
+    float ratiox = (float)m_net_w / frame.width, ratioy = (float)m_net_h / frame.height;
 #if USE_ASPECT_RATIO
     bool isAlignWidth = false;
     float ratio = get_aspect_scaled_ratio(frame.width, frame.height, m_net_w, m_net_h, &isAlignWidth);
+    ratiox = ratioy = ratio;
     if (isAlignWidth) {
       ty1 = (int)((m_net_h - (int)(frame_height*ratio)) / 2);
     }else{
       tx1 = (int)((m_net_w - (int)(frame_width*ratio)) / 2);
     }
+#else
+    float ratio = 1;
 #endif
 
     int min_idx = 0;
@@ -416,14 +420,14 @@ int YoloV5::post_process(const std::vector<bm_image> &images, std::vector<YoloV5
         box.x -= box.class_id * max_wh;
         box.y -= box.class_id * max_wh;
       }
-      box.x = (box.x - tx1) / ratio;
-      box.y = (box.y - ty1) / ratio;
-      box.width = (box.width) / ratio;
-      box.height = (box.height) / ratio;
+      box.x = (box.x - tx1) / ratiox;
+      box.y = (box.y - ty1) / ratioy;
+      box.width = (box.width) / ratiox;
+      box.height = (box.height) / ratioy;
     }
     LOG_TS(m_ts, "post 3: nms");
 
-        detected_boxes.push_back(yolobox_vec);
+    detected_boxes.push_back(yolobox_vec);
   }
 
   return 0;
@@ -446,9 +450,11 @@ int YoloV5::post_process_cpu_opt(const std::vector<bm_image> &images, std::vecto
     int frame_height = frame.height;
 
     int tx1 = 0, ty1 = 0;
+    float ratiox = (float)m_net_w / frame.width, ratioy = (float)m_net_h / frame.height;
 #if USE_ASPECT_RATIO
     bool is_align_width = false;
     float ratio = get_aspect_scaled_ratio(frame.width, frame.height, m_net_w, m_net_h, &is_align_width);
+    ratiox = ratioy = ratio;
     if (is_align_width) {
       ty1 = (int)((m_net_h - (int)(frame_height*ratio)) / 2);
     }else{
@@ -640,34 +646,16 @@ int YoloV5::post_process_cpu_opt(const std::vector<bm_image> &images, std::vecto
 
     LOG_TS(m_ts, "post 3: nms");
     NMS(yolobox_vec, m_nmsThreshold);
-    if (!agnostic)
-      for (auto& box : yolobox_vec){
-          box.x -= box.class_id * max_wh;
-          box.y -= box.class_id * max_wh;
-          box.x = (box.x - tx1) / ratio;
-          if (box.x < 0) box.x = 0;
-          box.y = (box.y - ty1) / ratio;
-          if (box.y < 0) box.y = 0;
-          box.width = (box.width) / ratio;
-          if (box.x + box.width >= frame_width)
-              box.width = frame_width - box.x;
-          box.height = (box.height) / ratio;
-          if (box.y + box.height >= frame_height)
-              box.height = frame_height - box.y;
-      }
-    else
-      for (auto& box : yolobox_vec){
-          box.x = (box.x - tx1) / ratio;
-          if (box.x < 0) box.x = 0;
-          box.y = (box.y - ty1) / ratio;
-          if (box.y < 0) box.y = 0;
-          box.width = (box.width) / ratio;
-          if (box.x + box.width >= frame_width)
-              box.width = frame_width - box.x;
-          box.height = (box.height) / ratio;
-          if (box.y + box.height >= frame_height)
-              box.height = frame_height - box.y;
-      }
+    for (auto& box : yolobox_vec){
+        if (!agnostic){
+            box.x -= box.class_id * max_wh;
+            box.y -= box.class_id * max_wh;
+        }
+        box.x = (box.x - tx1) / ratiox;
+        box.y = (box.y - ty1) / ratioy;
+        box.width = (box.width) / ratiox;
+        box.height = (box.height) / ratioy;
+    }
     LOG_TS(m_ts, "post 3: nms");
 
     detected_boxes.push_back(yolobox_vec);

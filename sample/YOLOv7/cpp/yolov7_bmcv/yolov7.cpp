@@ -243,9 +243,11 @@ int YoloV7::post_process(const std::vector<bm_image> &images, std::vector<YoloV7
     int frame_height = frame.height;
 
     int tx1 = 0, ty1 = 0;
+    float ratiox = (float)m_net_w / frame.width, ratioy = (float)m_net_h / frame.height;
 #if USE_ASPECT_RATIO
     bool isAlignWidth = false;
     float ratio = get_aspect_scaled_ratio(frame.width, frame.height, m_net_w, m_net_h, &isAlignWidth);
+    ratiox = ratioy = ratio;
     if (isAlignWidth) {
       ty1 = (int)((m_net_h - (int)(frame_height*ratio)) / 2);
     }else{
@@ -347,10 +349,10 @@ int YoloV7::post_process(const std::vector<bm_image> &images, std::vector<YoloV7
       float confidence = ptr[class_id + 5];
       if (confidence * score > m_confThreshold)
       {
-          float centerX = (ptr[0]+1 - tx1)/ratio - 1;
-          float centerY = (ptr[1]+1 - ty1)/ratio - 1;
-          float width = (ptr[2]+0.5) / ratio;
-          float height = (ptr[3]+0.5) / ratio;
+          float centerX = (ptr[0]+1 - tx1)/ratiox - 1;
+          float centerY = (ptr[1]+1 - ty1)/ratioy - 1;
+          float width = (ptr[2]+0.5) / ratiox;
+          float height = (ptr[3]+0.5) / ratioy;
 
           YoloV7Box box;
           box.x = int(centerX - width / 2);
