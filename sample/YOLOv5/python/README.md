@@ -68,6 +68,6 @@ python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmo
 
 ### 3. 流程图
 
-`yolov5_bmcv.py`和`yolov5_opencv.py`中的处理流程，都遵循以下流程图：
+`yolov5_opencv.py`中的处理流程遵循下图：
 
 ![flowchart](../pics/Flowchart.png)
