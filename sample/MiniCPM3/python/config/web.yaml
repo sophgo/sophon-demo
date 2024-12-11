@@ -1,0 +1,4 @@
+title: minicpm3-4b
+bmodel_path: ../models/BM1684X/minicpm3-4b_int4_seq512_1dev.bmodel
+token_path: ./token_config
+dev_ids: 0

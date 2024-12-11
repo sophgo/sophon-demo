@@ -287,7 +287,53 @@ class MiniCPM:
         print('\n\n')
         print(f"FTL: {(first_end - first_start):.3f} s")
         print(f"TPS: {(tok_num / (next_end - first_end)):.3f} token/s")
+        
+    def chat_stream_for_api(self, params):
+        messages = [param.dict() for param in params]
+        text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        tokens = self.tokenizer(text).input_ids
+        if (len(tokens) > self.SEQLEN - 5):
+            res_dict = {}
+            res_dict["finish_reason"] = "length"
+            res_dict["text"] = ""
+            yield res_dict
+            return
+        token = self.forward_first(tokens)
+        full_word_tokens = []
+        while(token != self.EOS and self.token_length < self.SEQLEN):
+            full_word_tokens.append(token)
+            pre_word = self.tokenizer.decode([token], skip_special_tokens=True)
+            text = self.tokenizer.decode([token, token], skip_special_tokens=True)[len(pre_word):]
+            if "�" in text:
+                token = self.forward_next()
+                continue
+            res_dict = {}
+            res_dict["finish_reason"] = None
+            res_dict["text"] = text
+            yield res_dict
+            full_word_tokens = []
+            token = self.forward_next()
 
+    def chat_for_api(self, params):
+        messages = [param.dict() for param in params]
+        input_text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        input_tokens = self.tokenizer(input_text).input_ids
+        if (len(input_tokens) > self.SEQLEN - 5):
+            res_dict = {}
+            res_dict["finish_reason"] = "length"
+            res_dict["text"] = ""
+            return res_dict
+        all_token = []
+        token = self.forward_first(input_tokens)
+        while token != self.EOS and self.token_length < self.SEQLEN:
+            all_token.append(token)
+            token = self.forward_next()
+        pre_word = self.tokenizer.decode([token], skip_special_tokens=True)
+        text = self.tokenizer.decode([token, token], skip_special_tokens=True)[len(pre_word):]
+        res_dict = {}
+        res_dict["finish_reason"] = "stop"
+        res_dict["text"] = text
+        return res_dict
 
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)

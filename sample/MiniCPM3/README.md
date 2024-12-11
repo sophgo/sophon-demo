@@ -64,12 +64,21 @@ sudo reboot
 ├── models
 │   └── BM1684X                     #download.sh下载的bmodel
 │       └── minicpm3-xxx.bmodel
+├── pics
+│   ├── chat_stream.png
+│   ├── multi_session.png
+│   └── web_demo.png
 ├── python
 │   ├── minicpm3.py                     #MiniCPM3 python推理脚本
+│   ├── openai_api_request.py
+│   ├── openai_api_server.py
+│   ├── web_demo.py
 │   ├── README.md                   #python例程执行指南
 │   ├── requirements.txt            #python例程的依赖模块
-│   └── config                      #配置文件
-│       └── minicpm3.yaml               #python demo的配置文件
+│   ├── config                      #配置文件
+│   │   ├── api.yaml                #openai api server的配置文件
+│   │   ├── web.yaml                #web demo的配置文件
+│   │   └── minicpm3.yaml           #python demo的配置文件
 │   └── token_config                #tokenizer
 │       ├── added_tokens.json
 │       ├── special_tokens_map.json
