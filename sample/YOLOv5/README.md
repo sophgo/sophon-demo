@@ -433,7 +433,7 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 | SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel |    0.375      |    0.573 |
 
 > **测试说明**：  
-> 1. 此处适用6.2章节的测试说明；
+> 1. 此处适用5.2章节的测试说明；
 > 2. 后处理加速不涉及硬件加速，此处只提供SE5-16平台、fp32模型的测试数据；
 
 ### 7.3 性能测试
@@ -446,7 +446,7 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 |   SE5-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      3.23       |      3.03       |      23.31      |      4.49       |
 
 > **测试说明**：  
-> 1. 此处适用7.2章节的测试说明；
+> 1. 此处适用6.2章节的测试说明；
 > 2. 后处理加速不涉及硬件加速，此处只提供SE5-16平台、fp32模型的测试数据；
 > 3. 可以通过提高`conf_thresh`参数值，或者使用单类NMS（即cpp例程设置`yolov5.cpp`文件中的宏`USE_MULTICLASS_NMS 0`或python例程设置文件`yolov5_opencv.py`、`yolov5_bmcv.py`中的YOLOv5类成员变量`self.multi_label=False`）来进一步提升后处理性能。
 
