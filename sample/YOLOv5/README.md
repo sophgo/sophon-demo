@@ -434,7 +434,8 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 
 > **测试说明**：  
 > 1. 此处适用5.2章节的测试说明；
-> 2. 后处理加速不涉及硬件加速，此处只提供SE5-16平台、fp32模型的测试数据；
+> 2. 因为后处理加速不涉及硬件加速，use_cpu_opt在不同的平台上对后处理的影响是相同的，所以此处只提供SE5-16平台、fp32模型的测试数据；
+> 3. 使用cpu后处理加速，会使得mAP有略微下降，在实际业务中设置的conf_thresh通常比0.001高，该方法一般不会影响检测效果。
 
 ### 7.3 性能测试
 在SE5-16上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，阈值使用`conf_thresh=0.5，nms_thresh=0.5`，cpp设置`--use_cpu_opt=true`或python设置`--use_cpu_opt`，性能测试结果如下：
@@ -447,7 +448,7 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 
 > **测试说明**：  
 > 1. 此处适用6.2章节的测试说明；
-> 2. 后处理加速不涉及硬件加速，此处只提供SE5-16平台、fp32模型的测试数据；
+> 2. 因为后处理加速不涉及硬件加速，use_cpu_opt在不同的平台上对后处理的影响是相同的，此处只提供SE5-16平台、fp32模型的测试数据；
 > 3. 可以通过提高`conf_thresh`参数值，或者使用单类NMS（即cpp例程设置`yolov5.cpp`文件中的宏`USE_MULTICLASS_NMS 0`或python例程设置文件`yolov5_opencv.py`、`yolov5_bmcv.py`中的YOLOv5类成员变量`self.multi_label=False`）来进一步提升后处理性能。
 
 ## 8. FAQ
