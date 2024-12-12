@@ -426,7 +426,8 @@ On SE5-16, use different examples and models, use dataset `datasets/coco/val2017
 
 > **Note**：  
 > 1. The test notes in Section 5.2 apply here;
-> 2. Postprocess acceleration does not involve hardware acceleration, and only the test data of the SE5-16 platform and fp32 model are provided here.
+> 2. Because this postprocess acceleration does not involve hardware acceleration, it does the same effect on different platforms, so only the test data of the SE5-16 platform and fp32 model are provided here.
+> 3. Use this postprocess acceleration will slightly decrease the mAP evaluation. But in real-world detection, the conf_thresh is usually larger than 0.001, this acceleration generally does not affect detection results. 
 
 ### 7.3. Performance Test
 On SE5-16, use different examples and models, use dataset `datasets/coco/val2017_1000`, use threshold `conf_thresh=0.5，nms_thresh=0.5`, set `--use_cpu_opt=true` in cpp example or set `--use_cpu_opt` in python example, here is performance test results:
@@ -439,7 +440,7 @@ On SE5-16, use different examples and models, use dataset `datasets/coco/val2017
 
 > **Note**：  
 > 1. The test notes in Section 6.2 apply here;
-> 2. Postprocess acceleration does not involve hardware acceleration, and only the test data of the SE5-16 platform and fp32 model are provided here.
+> 2. Because postprocess acceleration does not involve hardware acceleration, it does the same effect on different platforms, so only the test data of the SE5-16 platform and fp32 model are provided here.
 > 3. Increasing `conf_thresh`, or using single class NMS (that is, set `#define USE_MULTICLASS_NMS 0` in yolov5s.cpp for cpp examples, or set the class variable `self.multi_label=False`) to accelerate postprocess to higher level.
 
 ## 8. FAQ
