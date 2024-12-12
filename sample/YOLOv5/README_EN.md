@@ -425,7 +425,7 @@ On SE5-16, use different examples and models, use dataset `datasets/coco/val2017
 | SE5-16       | yolov5_sail.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel |    0.375      |    0.573 |
 
 > **Note**：  
-> 1. The test notes in Section 6.2 apply here;
+> 1. The test notes in Section 5.2 apply here;
 > 2. Postprocess acceleration does not involve hardware acceleration, and only the test data of the SE5-16 platform and fp32 model are provided here.
 
 ### 7.3. Performance Test
@@ -438,7 +438,7 @@ On SE5-16, use different examples and models, use dataset `datasets/coco/val2017
 |   SE5-16    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      3.23       |      3.03       |      23.31      |      4.49       |
 
 > **Note**：  
-> 1. The test notes in Section 7.2 apply here;
+> 1. The test notes in Section 6.2 apply here;
 > 2. Postprocess acceleration does not involve hardware acceleration, and only the test data of the SE5-16 platform and fp32 model are provided here.
 > 3. Increasing `conf_thresh`, or using single class NMS (that is, set `#define USE_MULTICLASS_NMS 0` in yolov5s.cpp for cpp examples, or set the class variable `self.multi_label=False`) to accelerate postprocess to higher level.
 
