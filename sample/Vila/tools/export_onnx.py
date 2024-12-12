@@ -27,10 +27,11 @@ device = torch.device("cuda")
 oringin_model.eval().to(device)
 llama = oringin_model.llm.model
 NUM_FRAMES=1
-LAYERS=32
-HIDDEN_SIZE = 2560
+# Extracting parameters from the model's configuration
+LAYERS = llama.config.num_hidden_layers
+HIDDEN_SIZE = llama.config.hidden_size
 SEQ_LENGTH = args.seq_length
-NUM_KEY_VALUE_HEADS = 20
+NUM_KEY_VALUE_HEADS = llama.config.num_attention_heads
 HEAD_DIM = HIDDEN_SIZE // NUM_KEY_VALUE_HEADS
 folder='models/onnx'
 

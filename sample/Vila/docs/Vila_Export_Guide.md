@@ -31,15 +31,15 @@ cd VILA
 ### 2.2.3 修改transformers源码文件
 ```bash
 site_pkg_path=$(python -c 'import site; print(site.getsitepackages()[0])')
-mv tools/modeling_llama.py $site_pkg_path/transformers/models/llama
-mv tools/cache_utils.py $site_pkg_path/transformers/
+mv tools/vila1.5-3b/modeling_llama.py $site_pkg_path/transformers/models/llama
+mv tools/vila1.5-3b/cache_utils.py $site_pkg_path/transformers/
 ```
 
 ### 2.2.4 导出onnx
 ```bash
-## 下载导出脚本
-./scripts/download_export_onnx.sh
-
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+python3 -m dfss --url=open@sophgo.com:sophon-demo/vila/llava.tar.gz
+tar xvf llava.tar.gz && mv llava/ tools/ && rm llava.tar.gz
 ## 导出onnx
 python3 tools/export_onnx.py --model_path your_model_path --seq_length your_seq_length
 ```

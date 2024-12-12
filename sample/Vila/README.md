@@ -1,7 +1,7 @@
 # Vila
 
 ## 目录
-- [Vila](#Vila)
+- [Vila](#vila)
   - [目录](#目录)
   - [1. 简介](#1-简介)
   - [2. 特性](#2-特性)
@@ -44,9 +44,10 @@ chmod +x ./scripts/download.sh
 ├── datasets
 │   └── test_car_person_1080P.mp4        #测试视频
 ├── models
-│   └── BM1684X                     #download.sh下载的bmodel
-│       ├── vision_embedding_6batch.bmodel   
-│       └── llama_int4_seq2560.bmodel
+│   ├── BM1684X                     #download.sh下载的BM1684X bmodel
+│   |   ├── vision_embedding_6batch.bmodel   
+│   |   └── llama_int4_seq2560.bmodel
+│   └── BM1688                      #download.sh下载的BM1688 bmodel
 ├── python
 │   ├── vila.py                     #Vila python推理脚本
 │   ├── README.md                   #python例程执行指南
@@ -63,8 +64,12 @@ chmod +x ./scripts/download.sh
 ├── README.md                       #Vila例程指南
 ├── scripts                         
 │   ├── download.sh                 #下载模型和数据集脚本
-│   ├── download_onnx.sh            #下载onnx模型脚本
 │   ├── gen_bmodel.sh               #编译bmodel脚本
+│   ├── gen_bmodel_bm1688.sh        #编译1688 bmodel脚本
+├── tools
+|   ├── builder.py                  #导出onnx脚本的函数封装
+|   ├── export_onnx.py              #导出onnx的脚本
+|   ├── llava                       #导出onnx依赖的llava模块
 ```
 
 
