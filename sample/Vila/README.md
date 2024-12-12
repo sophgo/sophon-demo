@@ -23,6 +23,7 @@ VILA是一种视觉语言模型（Visual Language Model，简称VLM），它通�
 * 支持BM1684X(x86/arm PCIe、SoC)， BM1688
 * 支持INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
+* 支持基于SAIL推理的CPP例程
 
 
 ## 3. 准备模型
@@ -51,6 +52,14 @@ chmod +x ./scripts/download.sh
 │   ├── README.md                   #python例程执行指南
 │   ├── requirements.txt            #python例程的依赖模块
 │   └── config                      #配置文件
+├── cpp
+│   ├── README.md                   #cpp例程执行指南
+│   ├── third_party                 #cpp例程第三方依赖库
+│   └── vila_sail                   #sail cpp例程目录
+│       ├── CMakeLists.txt          #sail cpp例程编译文件   
+│       ├── main.cpp                #sail cpp例程主函数源码文件 
+│       ├── vila.cpp                #sail cpp例程Vila源码文件 
+│       └── vila.hpp                #sail cpp例程Vila头文件 
 ├── README.md                       #Vila例程指南
 ├── scripts                         
 │   ├── download.sh                 #下载模型和数据集脚本
@@ -65,6 +74,7 @@ chmod +x ./scripts/download.sh
 ## 4. 例程测试
 
 - [Python例程](./python/README.md)
+- [CPP例程](./cpp/README.md)
 
 ## 5. 程序性能测试
 图片embedding性能
@@ -82,6 +92,7 @@ LLM性能
 | SE7-32      | vila.py           | llama_int4_seq512.bmodel      |    0.377              |    24.2                | 
 | SE7-32      | vila.py           | llama_int4_seq2560.bmodel     |    1.8                |    17.79               | 
 | SE7-32      | vila.py           | llama_int4_seq4096.bmodel     |    3.4                |    14.98               | 
+| SE7-32      | vila_sail.soc     | llama_int4_seq2560.bmodel     |    1.7                |    19.9               | 
 
 
 > **测试说明**：  

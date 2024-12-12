@@ -1,0 +1,109 @@
+[简体中文](./README.md)
+
+# C++例程
+
+## 目录
+
+- [C++例程](#c例程)
+  - [目录](#目录)
+  - [1. 环境准备](#1-环境准备)
+    - [1.1 x86/arm/riscv PCIe平台](#11-x86armriscv-pcie平台)
+    - [1.2 SoC平台](#12-soc平台)
+  - [2. 程序编译](#2-程序编译)
+    - [2.1 x86/arm/riscv PCIe平台](#21-x86armriscv-pcie平台)
+      - [2.1.1 sail](#211-sail)
+    - [2.2 SoC平台](#22-soc平台)
+      - [2.2.1 sail](#221-sail)
+  - [3. 推理测试](#3-推理测试)
+    - [3.1 参数说明](#31-参数说明)
+    - [3.2 测试视频](#32-测试视频)
+  - [4. 流程图](#4-流程图)
+
+cpp目录下提供了C++例程以供参考使用，具体情况如下：
+| 序号  | C++例程      | 说明                                 |
+| ---- | ------------- | -----------------------------------  |
+| 1    | vila_sail     |         使用SAIL推理                 |
+
+## 1. 环境准备
+### 1.1 x86/arm/riscv PCIe平台
+如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
+
+### 1.2 SoC平台
+如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
+
+
+## 2. 程序编译
+C++程序运行前需要编译可执行文件。
+### 2.1 x86/arm/riscv PCIe平台
+可以直接在PCIe平台上编译程序：
+#### 2.1.1 sail
+如果您使用sophon-sail接口，需要[编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#33-编译安装sophon-sail)，然后进行如下步骤。
+```bash
+cd cpp
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+python3 -m dfss --url=open@sophgo.com:sophon-demo/vila/cpp/third_party.zip
+unzip third_party.zip
+rm -f third_party.zip
+cd vila_sail
+mkdir build && cd build
+cmake ..
+make
+cd ..
+```
+编译完成后，会在vila_sail目录下生成vila_sail.pcie。
+
+### 2.2 SoC平台
+通常在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
+
+交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件：
+
+#### 2.2.1 sail
+如果您使用sophon-sail接口，需要参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)，给soc环境配置sophon-sail，然后进行如下步骤。
+```bash
+cd cpp
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+python3 -m dfss --url=open@sophgo.com:sophon-demo/vila/cpp/third_party.zip
+unzip third_party.zip
+rm -f third_party.zip
+cd vila_sail
+mkdir build && cd build
+#请根据实际情况修改-DSDK和-DSAIL_PATH的路径，需使用绝对路径。
+cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk -DSAIL_PATH=/path_to_sail/sophon-sail/build_soc/sophon-sail ..
+make
+cd ..
+```
+编译完成后，会在vila_sail目录下生成vila_sail.soc。
+
+## 3. 推理测试
+对于PCIe平台，可以直接在PCIe平台上推理测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据拷贝到SoC平台中测试。测试的参数及运行方式是一致的，下面主要以PCIe模式进行介绍。
+
+### 3.1 参数说明
+可执行程序默认有一套参数，请注意根据实际情况进行传参，以vila_sail.pcie为例，具体参数说明如下：
+```bash
+Usage: vila_sail.pcie [params] 
+
+        --dev_id (value:0)
+                TPU device id
+        --help (value:1)
+                print help information.
+        --llm (value:../../models/BM1684X/llama_int4_seq2560.bmodel)
+                path of llm model
+        --tokenizer_path (value:../../python/config/llm_token/tokenizer.model)
+                path of tokenizer config
+        --video (value:../../datasets/test_car_person_1080P.mp4)
+                path of video
+        --vision (value:../../models/BM1684X/vision_embedding_6batch.bmodel)
+                path of vision_embedding model
+```
+> **注意：** cpp例程传参与python不同，需要用等于号，例如`./vila_sail.pcie --llm=xxx`。
+
+### 3.2 测试视频
+需要在`cpp/vila_sail`目录下执行程序，视频测试实例如下。
+```bash
+./vila_sail.pcie --video=../../datasets/test_car_person_1080P.mp4
+```
+在Question for this video: 处进行提问，例如：Please describe this video，接着程序会将预测结果输出，同时会打印FTL、推理速度等信息。
+
+### 4. 流程图
+vila1.5模型有vision_embedding和LLM模块，其中vision_embedding模块负责将图片转化为向量再和LLM生成的词向量combine起来，最终由LLM模块输出回答。
+![diagram](../pics/vila.jpg)
