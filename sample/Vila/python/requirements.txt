@@ -2,3 +2,4 @@ transformers==4.37.2
 Pillow
 opencv-python-headless
 sentencepiece
+protobuf
