@@ -19,6 +19,7 @@ if [ ! -d "../models" ];
 then
     mkdir -p ../models/BM1684X
     pushd ../models/BM1684X
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/vila/vision_embedding_1batch.bmodel
     python3 -m dfss --url=open@sophgo.com:sophon-demo/vila/vision_embedding_6batch.bmodel
     python3 -m dfss --url=open@sophgo.com:sophon-demo/vila/llama_int4_seq2560.bmodel
     popd
