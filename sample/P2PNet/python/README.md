@@ -5,7 +5,7 @@
 - [Python例程](#python例程)
   - [目录](#目录)
   - [1. 环境准备](#1-环境准备)
-    - [1.1 x86/arm PCIE模式](#11-x86arm-pcie模式)
+    - [1.1 x86/arm/riscv PCIE模式](#11-x86armriscv-pcie模式)
     - [1.2 SOC模式](#12-soc模式)
   - [2.  推理测试](#2--推理测试)
     - [2.1 参数说明](#21-参数说明)
@@ -20,9 +20,9 @@ python目录下提供了一系列Python例程，具体情况如下：
 | 2    |   p2pnet_bmcv.py    |  使用SAIL解码、BMCV前处理、SAIL推理        |
 
 ## 1. 环境准备
-### 1.1 x86/arm PCIE模式
+### 1.1 x86/arm/riscv PCIE模式
 
-如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
 
 此外您可能还需要安装其他第三方库：
 ```bash
