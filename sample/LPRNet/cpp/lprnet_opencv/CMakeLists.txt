@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 project(lprnet_opencv C CXX)
-include(${CMAKE_SOURCE_DIR}/../../../../cmake/common.cmake)
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 message("cur dir: ${PROJECT_SOURCE_DIR}")
