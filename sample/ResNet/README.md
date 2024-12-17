@@ -25,7 +25,7 @@
 在此非常感谢Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun等人的贡献。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1688/BM1684X/CV186X)、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -216,6 +216,22 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 | SE9-8        | resnet_bmcv.soc    | resnet50_fp16_1b.bmodel  | 80.00  |
 | SE9-8        | resnet_bmcv.soc    | resnet50_int8_1b.bmodel  | 80.50  |
 | SE9-8        | resnet_bmcv.soc    | resnet50_int8_4b.bmodel  | 80.50  |
+| SG2042       | resnet_opencv.py   | resnet50_fp32_1b.bmodel  |  80.10 |
+| SG2042       | resnet_opencv.py   | resnet50_fp16_1b.bmodel  |  80.10 |
+| SG2042       | resnet_opencv.py   | resnet50_int8_1b.bmodel  |  79.10 |
+| SG2042       | resnet_opencv.py   | resnet50_int8_4b.bmodel  |  79.10 |
+| SG2042       | resnet_bmcv.py     | resnet50_fp32_1b.bmodel  |  80.00 |
+| SG2042       | resnet_bmcv.py     | resnet50_fp16_1b.bmodel  |  80.00 |
+| SG2042       | resnet_bmcv.py     | resnet50_int8_1b.bmodel  |  79.40 |
+| SG2042       | resnet_bmcv.py     | resnet50_int8_4b.bmodel  |  79.40 |
+| SG2042       | resnet_opencv.pcie | resnet50_fp32_1b.bmodel  |  80.00 |
+| SG2042       | resnet_opencv.pcie | resnet50_fp16_1b.bmodel  |  80.00 |
+| SG2042       | resnet_opencv.pcie | resnet50_int8_1b.bmodel  |  79.20 |
+| SG2042       | resnet_opencv.pcie | resnet50_int8_4b.bmodel  |  79.20 |
+| SG2042       | resnet_bmcv.pcie   | resnet50_fp32_1b.bmodel  |  80.00 |
+| SG2042       | resnet_bmcv.pcie   | resnet50_fp16_1b.bmodel  |  80.00 |
+| SG2042       | resnet_bmcv.pcie   | resnet50_int8_1b.bmodel  |  79.40 |
+| SG2042       | resnet_bmcv.pcie   | resnet50_int8_4b.bmodel  |  79.40 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
@@ -340,7 +356,22 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 |    SE9-8    |  resnet_bmcv.soc  |      resnet50_fp16_1b.bmodel      |      3.68       |      1.25       |      6.71       |      0.16       |
 |    SE9-8    |  resnet_bmcv.soc  |      resnet50_int8_1b.bmodel      |      3.68       |      1.26       |      2.26       |      0.16       |
 |    SE9-8    |  resnet_bmcv.soc  |      resnet50_int8_4b.bmodel      |      3.61       |      1.17       |      1.76       |      0.14       |
-
+|    SG2042   | resnet_opencv.py  |      resnet50_fp32_1b.bmodel      |      7.45       |      9.30       |      14.50      |      0.25       |
+|    SG2042   | resnet_opencv.py  |      resnet50_fp16_1b.bmodel      |      7.42       |      9.26       |      5.61       |      0.25       |
+|    SG2042   | resnet_opencv.py  |      resnet50_int8_1b.bmodel      |      7.41       |      9.29       |      4.99       |      0.25       |
+|    SG2042   | resnet_opencv.py  |      resnet50_int8_4b.bmodel      |      7.54       |      9.42       |      3.45       |      0.11       |
+|    SG2042   |  resnet_bmcv.py   |      resnet50_fp32_1b.bmodel      |      5.84       |      1.41       |      11.75      |      0.24       |
+|    SG2042   |  resnet_bmcv.py   |      resnet50_fp16_1b.bmodel      |      5.91       |      1.41       |      2.85       |      0.26       |
+|    SG2042   |  resnet_bmcv.py   |      resnet50_int8_1b.bmodel      |      5.83       |      1.38       |      2.19       |      0.24       |
+|    SG2042   |  resnet_bmcv.py   |      resnet50_int8_4b.bmodel      |      9.14       |      1.80       |      1.33       |      0.15       |
+|    SG2042   |resnet_opencv.pcie |      resnet50_fp32_1b.bmodel      |      3.92       |      5.68       |      10.89      |      0.37       |
+|    SG2042   |resnet_opencv.pcie |      resnet50_fp16_1b.bmodel      |      4.84       |      7.02       |      2.03       |      0.41       |
+|    SG2042   |resnet_opencv.pcie |      resnet50_int8_1b.bmodel      |      4.41       |      6.34       |      1.39       |      0.39       |
+|    SG2042   |resnet_opencv.pcie |      resnet50_int8_4b.bmodel      |      4.15       |      5.32       |      0.96       |      0.15       |
+|    SG2042   | resnet_bmcv.pcie  |      resnet50_fp32_1b.bmodel      |      4.10       |      0.86       |      10.89      |      0.40       |
+|    SG2042   | resnet_bmcv.pcie  |      resnet50_fp16_1b.bmodel      |      4.07       |      0.86       |      1.99       |      0.40       |
+|    SG2042   | resnet_bmcv.pcie  |      resnet50_int8_1b.bmodel      |      5.56       |      0.98       |      1.40       |      0.45       |
+|    SG2042   | resnet_bmcv.pcie  |      resnet50_int8_4b.bmodel      |      4.06       |      0.70       |      0.95       |      0.18       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
