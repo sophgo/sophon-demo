@@ -40,52 +40,6 @@ void string_split(std::vector<std::string>& res, const std::string& str, const s
 	}
 }
 
-void VILA::opencv_extract_frames(std::vector<cv::Mat>& images, std::string video_file, int num_frames) {
-  // open video
-  auto vidcap = cv::VideoCapture(video_file, cv::CAP_FFMPEG, devids[0]);
-  if (!vidcap.isOpened()){
-    std::cerr << "Error: open video src failed in channel " << std::endl;
-    exit(1);
-  }
-
-  // get frames
-  int fps = vidcap.get(cv::CAP_PROP_FPS);
-  int frame_count = (int)vidcap.get(cv::CAP_PROP_FRAME_COUNT);
-  std::vector<int> frame_indices;
-  frame_indices.push_back(0);
-  for (int i = 1; i < num_frames - 1; i++) {
-    frame_indices.push_back((int)((float)(frame_count - 1.0) / (num_frames - 1.0) * i));
-  }
-  frame_indices.push_back(frame_count-1);
-
-  int count = 0;
-  while (true) {
-    cv::Mat image;
-    if (frame_count >= num_frames) {
-      vidcap.read(image);
-      auto it = std::find(frame_indices.begin(), frame_indices.end(), count);
-      if (it != frame_indices.end()) {
-        cv::Mat rgb_image;
-        cv::cvtColor(image, rgb_image, cv::COLOR_BGR2RGB);
-        images.push_back(rgb_image);
-        if (images.size() >= num_frames)
-          break;
-      }
-      count += 1;
-    }
-    else {
-      vidcap.read(image);
-      if (image.empty()) {
-        break;
-      }
-      cv::Mat rgb_image;
-      cv::cvtColor(image, rgb_image, cv::COLOR_BGR2RGB);
-      images.push_back(rgb_image);
-      count += 1;
-    }
-  }
-}
-
 void VILA::process_images(std::vector<std::vector<float>>& processed_images, std::vector<cv::Mat>& images) {
   for (auto& image : images) {
     // preprocess
@@ -123,8 +77,8 @@ void VILA::load_sentencepiece(std::string tokenizer_path) {
   printf("Done!\n");
 }
 
-VILA::VILA(std::string video_path, const std::vector<int> devids, std::string llm_model_path, std::string vision_model_path, std::string tokenizer_path) {
-  // image process
+VILA::VILA(const std::vector<int> devids, std::string llm_model_path, std::string vision_model_path, std::string tokenizer_path) {
+  // image process params
   crop_size.push_back(384); // height
   crop_size.push_back(384); // width
   mean.push_back(0.5);
@@ -158,32 +112,19 @@ VILA::VILA(std::string video_path, const std::vector<int> devids, std::string ll
   }
 
   // init vision's input and output
-  input_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_vision_embed, vision_model->create_max_input_tensors(name_vision_embed)));
-  output_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_vision_embed, vision_model->create_max_output_tensors(name_vision_embed)));
+  auto input_vision_embed_with_ptr = vision_model->create_max_input_tensors(name_vision_embed);
+  auto output_vision_embed_with_ptr = vision_model->create_max_output_tensors(name_vision_embed);
+  for (auto iter = input_vision_embed_with_ptr.begin(); iter != input_vision_embed_with_ptr.end(); iter++)
+    input_vision_embed.emplace(std::pair<int, std::shared_ptr<sail::Tensor>>(iter->first, std::shared_ptr<sail::Tensor>(iter->second)));
+  for (auto iter = output_vision_embed_with_ptr.begin(); iter != output_vision_embed_with_ptr.end(); iter++)
+    output_vision_embed.emplace(std::pair<int, std::shared_ptr<sail::Tensor>>(iter->first, std::shared_ptr<sail::Tensor>(iter->second)));
+  input_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_vision_embed, input_vision_embed_with_ptr));
+  output_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_vision_embed, output_vision_embed_with_ptr));
 
   // init other vision val
   auto output_vision_embed_shape = output_tensors.at(name_vision_embed).at(0)->shape();
   num_frames = output_vision_embed_shape[0];
   vision_token_length = output_vision_embed_shape[1];
-
-  // video preprocess
-  std::vector<cv::Mat> images;
-  opencv_extract_frames(images, video_path, num_frames);
-  std::vector<std::vector<float>> processed_images;
-  process_images(processed_images, images);
-
-  // prepare vision input and process
-  auto vision_embed_input_mem = input_tensors.at(name_vision_embed).at(0)->dev_data();
-  int vision_embed_input_mem_offset = 0;
-  for (auto& processed_image : processed_images) {
-    std::vector<uint16_t> processed_image_fp16;
-    for (int i = 0; i < processed_image.size(); i++) {
-      processed_image_fp16.push_back(fp32_to_fp16_bits(processed_image[i]));
-    }
-    bm_memcpy_s2d_partial_offset(handles[vision_model->get_input_tensor_devid(name_vision_embed, 0)].data(), vision_embed_input_mem, (void*)processed_image_fp16.data(), sizeof(uint16_t)*processed_image_fp16.size(), vision_embed_input_mem_offset);
-    vision_embed_input_mem_offset += sizeof(uint16_t)*processed_image_fp16.size();
-  }
-  vision_model->process(name_vision_embed, input_tensors.at(name_vision_embed), output_tensors.at(name_vision_embed));
 
   // init other llm val
   auto input_block_shape = llm_model->get_input_shape(name_block[0], 0);
@@ -195,9 +136,17 @@ VILA::VILA(std::string video_path, const std::vector<int> devids, std::string ll
   token_length = 0;
 
   // init llm's input and output
-  input_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_llm_embed, llm_model->create_max_input_tensors(name_llm_embed)));
-  output_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_llm_embed, llm_model->create_max_output_tensors(name_llm_embed)));
+  auto input_llm_embed_with_ptr = llm_model->create_max_input_tensors(name_llm_embed);
+  auto output_llm_embed_with_ptr = llm_model->create_max_output_tensors(name_llm_embed);
+  for (auto iter = input_llm_embed_with_ptr.begin(); iter != input_llm_embed_with_ptr.end(); iter++)
+    input_llm_embed.emplace(std::pair<int, std::shared_ptr<sail::Tensor>>(iter->first, std::shared_ptr<sail::Tensor>(iter->second)));
+  for (auto iter = output_llm_embed_with_ptr.begin(); iter != output_llm_embed_with_ptr.end(); iter++)
+    output_llm_embed.emplace(std::pair<int, std::shared_ptr<sail::Tensor>>(iter->first, std::shared_ptr<sail::Tensor>(iter->second)));
+  input_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_llm_embed, input_llm_embed_with_ptr));
+  output_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_llm_embed, output_llm_embed_with_ptr));
   auto block_input_tensors = llm_model->create_max_input_tensors(name_block[0]);
+  for (auto iter = block_input_tensors.begin(); iter != block_input_tensors.end(); iter++)
+    input_block.emplace(std::pair<int, std::shared_ptr<sail::Tensor>>(iter->first, std::shared_ptr<sail::Tensor>(iter->second)));
   for (int i = 0; i < num_layers; i++) {
     input_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_block[i], std::map<int, sail::Tensor*>()));
     output_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_block[i], std::map<int, sail::Tensor*>()));
@@ -221,11 +170,21 @@ VILA::VILA(std::string video_path, const std::vector<int> devids, std::string ll
     output_tensors.at(name_block[i]).emplace(std::pair<int, sail::Tensor*>(2, first_v.get()));
 #endif
   }
-  input_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_lm, llm_model->create_max_input_tensors(name_lm)));
-  output_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_lm, llm_model->create_max_output_tensors(name_lm)));
+
+  auto input_llm_with_ptr = llm_model->create_max_input_tensors(name_lm);
+  auto output_llm_with_ptr = llm_model->create_max_output_tensors(name_lm);
+  for (auto iter = input_llm_with_ptr.begin(); iter != input_llm_with_ptr.end(); iter++)
+    input_lm.emplace(std::pair<int, std::shared_ptr<sail::Tensor>>(iter->first, std::shared_ptr<sail::Tensor>(iter->second)));
+  for (auto iter = output_llm_with_ptr.begin(); iter != output_llm_with_ptr.end(); iter++)
+    output_lm.emplace(std::pair<int, std::shared_ptr<sail::Tensor>>(iter->first, std::shared_ptr<sail::Tensor>(iter->second)));
+  input_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_lm, input_llm_with_ptr));
+  output_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_lm, output_llm_with_ptr));
   input_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_llm_embed_cache, output_tensors.at(name_lm)));
 
-  output_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_llm_embed_cache, llm_model->create_max_output_tensors(name_llm_embed_cache)));
+  auto output_llm_embed_cache_with_ptr = llm_model->create_max_output_tensors(name_llm_embed_cache);
+  for (auto iter = output_llm_embed_cache_with_ptr.begin(); iter != output_llm_embed_cache_with_ptr.end(); iter++)
+    output_llm_embed_cache.emplace(std::pair<int, std::shared_ptr<sail::Tensor>>(iter->first, std::shared_ptr<sail::Tensor>(iter->second)));
+  output_tensors.emplace(std::pair<std::string, std::map<int, sail::Tensor*>>(name_llm_embed_cache, output_llm_embed_cache_with_ptr));
   position_ids_next = std::make_shared<sail::Tensor>(
           handles.at(llm_model->get_input_tensor_devid(name_block_cache[num_layers-1], 1)), 
           llm_model->get_input_shape(name_block_cache[num_layers-1], 1), 
@@ -261,8 +220,37 @@ VILA::~VILA() {
   std::cout << "VILA dtor ..." << std::endl;
 }
 
-int VILA::forward_first(std::vector<int> &tokens) {
+void VILA::vision_process(std::vector<std::map<int, std::shared_ptr<sail::Tensor>>>& res, std::vector<cv::Mat>& images) {
+  // image preprocess
+  std::vector<std::vector<float>> processed_images;
+  process_images(processed_images, images);
+
+  // prepare vision input and process
+  auto vision_embed_input_mem = input_tensors.at(name_vision_embed).at(0)->dev_data();
+  for (auto& processed_image : processed_images) {
+    std::vector<uint16_t> processed_image_fp16;
+    for (int i = 0; i < processed_image.size(); i++) {
+      processed_image_fp16.push_back(fp32_to_fp16_bits(processed_image[i]));
+    }
+    bm_memcpy_s2d_partial_offset(handles[vision_model->get_input_tensor_devid(name_vision_embed, 0)].data(), vision_embed_input_mem, (void*)processed_image_fp16.data(), sizeof(uint16_t)*processed_image_fp16.size(), 0);
+    vision_model->process(name_vision_embed, input_tensors.at(name_vision_embed), output_tensors.at(name_vision_embed));
+    
+    // copy
+    std::map<int, std::shared_ptr<sail::Tensor>> single_image_res;
+    for (auto iter = output_vision_embed.begin(); iter != output_vision_embed.end(); iter++)
+      single_image_res.emplace(std::pair<int, std::shared_ptr<sail::Tensor>>(iter->first, iter->second));
+    res.push_back(single_image_res);
+
+    // create new output tensor, for process multi-images
+    output_tensors.at(name_vision_embed) = vision_model->create_max_output_tensors(name_vision_embed);
+    for (auto iter = output_tensors.at(name_vision_embed).begin(); iter != output_tensors.at(name_vision_embed).end(); iter++)
+      output_vision_embed.at(iter->first) = std::shared_ptr<sail::Tensor>(iter->second);
+  }
+}
+
+int VILA::forward_first(std::vector<int> &tokens, std::vector<std::map<int, std::shared_ptr<sail::Tensor>>>& vision_feat) {
   // init val
+  int num_frames = vision_feat.size();
   token_length = tokens.size() + (vision_token_length - 1) * num_frames;
   std::vector<int> input_ids(seqlen, 0);
   std::vector<int> image_index;
@@ -294,8 +282,8 @@ int VILA::forward_first(std::vector<int> &tokens) {
     offset += (image_index[i + 1] - image_index[i] - 1) * hidden_size;
     if (i < num_frames) {
       input_tensors.at(name_block[0]).at(0)->sync_d2d(
-          *output_tensors.at(name_vision_embed).at(0), 
-          i * vision_token_length * hidden_size,
+          *vision_feat[i].at(0).get(), 
+          0,
           offset,
           vision_token_length * hidden_size);
       offset += vision_token_length * hidden_size;

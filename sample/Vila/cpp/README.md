@@ -88,6 +88,8 @@ Usage: vila_sail.pcie [params]
                 print help information.
         --llm (value:../../models/BM1684X/llama_int4_seq2560.bmodel)
                 path of llm model
+        --num_input_frames (value:6)
+                the number of sampled frames to infer
         --tokenizer_path (value:../../python/config/llm_token/tokenizer.model)
                 path of tokenizer config
         --video (value:../../datasets/test_car_person_1080P.mp4)

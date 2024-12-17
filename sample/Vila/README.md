@@ -46,6 +46,7 @@ chmod +x ./scripts/download.sh
 ├── models
 │   ├── BM1684X                     #download.sh下载的BM1684X bmodel
 │   |   ├── vision_embedding_6batch.bmodel   
+│   |   ├── vision_embedding_1batch.bmodel   
 │   |   └── llama_int4_seq2560.bmodel
 │   └── BM1688                      #download.sh下载的BM1688 bmodel
 ├── python

@@ -34,27 +34,28 @@
 
 class VILA {
 public:
-  VILA(std::string video_path, const std::vector<int> devids, std::string llm_model_path, std::string vision_model_path, std::string tokenizer_path);
+  VILA(const std::vector<int> devids, std::string llm_model_path, std::string vision_model_path, std::string tokenizer_path);
   ~VILA();
-  int forward_first(std::vector<int> &tokens);
+  int forward_first(std::vector<int> &tokens, std::vector<std::map<int, std::shared_ptr<sail::Tensor>>>& vision_feat);
   int forward_next();
-  int get_num_frames(){return num_frames;};
   void decode(std::string& word, std::vector<int>& tokens);
   int get_eos_id();
   void tokenizer_image_token(std::vector<int>& input_ids, std::string& prompt, int image_token_index=-200, bool lstrip=false);
+  void vision_process(std::vector<std::map<int, std::shared_ptr<sail::Tensor>>>& res, std::vector<cv::Mat>& images);
   
 private:
   void load_sentencepiece(std::string tokenizer_path);
-  void opencv_extract_frames(std::vector<cv::Mat>& images, std::string video_file, int num_frames);
   void process_images(std::vector<std::vector<float>>& processed_images, std::vector<cv::Mat>& images);
 
 private:
   sentencepiece::SentencePieceProcessor sentencepiece;
+
   std::vector<int> devids;
   std::shared_ptr<sail::EngineLLM> llm_model;
   std::shared_ptr<sail::EngineLLM> vision_model;
   std::vector<std::string> llm_graph_names;
   int num_layers; // read from bmodel
+
   std::vector<std::shared_ptr<sail::Tensor>> past_k;
   std::vector<std::shared_ptr<sail::Tensor>> past_v;
   std::shared_ptr<sail::Tensor> first_k;
@@ -62,14 +63,24 @@ private:
   std::map<int, sail::Handle> handles;
   std::shared_ptr<sail::Tensor> position_ids_next;
   std::shared_ptr<sail::Tensor> attention_mask_next;
+  std::map<int, std::shared_ptr<sail::Tensor>> input_vision_embed;
+  std::map<int, std::shared_ptr<sail::Tensor>> output_vision_embed;
+  std::map<int, std::shared_ptr<sail::Tensor>> input_llm_embed;
+  std::map<int, std::shared_ptr<sail::Tensor>> output_llm_embed;
+  std::map<int, std::shared_ptr<sail::Tensor>> input_block;
+  std::map<int, std::shared_ptr<sail::Tensor>> input_lm;
+  std::map<int, std::shared_ptr<sail::Tensor>> output_lm;
+  std::map<int, std::shared_ptr<sail::Tensor>> output_llm_embed_cache;
   std::map<std::string, std::map<int, sail::Tensor*>> input_tensors;
   std::map<std::string, std::map<int, sail::Tensor*>> output_tensors;
+
   std::string name_vision_embed = "vision_embedding";
   std::string name_llm_embed = "embedding";
   std::string name_llm_embed_cache = "embedding_cache";
   std::string name_lm = "lm_head";
   std::vector<std::string> name_block;
   std::vector<std::string> name_block_cache;
+
   int num_frames;
   int vision_token_length;
   int seqlen;     // read from bmodel
