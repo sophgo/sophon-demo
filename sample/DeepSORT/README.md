@@ -21,7 +21,7 @@
 ​本例程使用[YOLOv5](../YOLOv5/README.md)中的目标检测模型，并对[Deep Sort with PyTorch](https://github.com/ZQPei/deep_sort_pytorch)的特征提取模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688(SoC)/CV186X(SoC)/BM1684X(x86 PCIe、SoC)/BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688(SoC)/CV186X(SoC)/BM1684X(x86 PCIe、SoC、riscv PCIe)/BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1688/BM1684X/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV预处理的Python推理
@@ -189,6 +189,18 @@ acc         525  0.524889  0.544908  0.506289  0.687163  0.739579  5009  10  12 
 |    SE9-8     | deepsort_bmcv.soc  | extractor_fp32_1b.bmodel | 0.435 |
 |    SE9-8     | deepsort_bmcv.soc  | extractor_fp16_1b.bmodel | 0.435 |
 |    SE9-8     | deepsort_bmcv.soc  | extractor_int8_1b.bmodel | 0.436 |
+|    SRM1-20   | deepsort_opencv.py | extractor_fp32_1b.bmodel | 0.438 |
+|    SRM1-20   | deepsort_opencv.py | extractor_fp32_4b.bmodel | 0.438 |
+|    SRM1-20   | deepsort_opencv.py | extractor_fp16_1b.bmodel | 0.438 |
+|    SRM1-20   | deepsort_opencv.py | extractor_fp16_4b.bmodel | 0.438 |
+|    SRM1-20   | deepsort_opencv.py | extractor_int8_1b.bmodel | 0.432 |
+|    SRM1-20   | deepsort_opencv.py | extractor_int8_4b.bmodel | 0.432 |
+|    SRM1-20   | deepsort_bmcv.pcie | extractor_fp32_1b.bmodel | 0.443 |
+|    SRM1-20   | deepsort_bmcv.pcie | extractor_fp32_4b.bmodel | 0.443 |
+|    SRM1-20   | deepsort_bmcv.pcie | extractor_fp16_1b.bmodel | 0.443 |
+|    SRM1-20   | deepsort_bmcv.pcie | extractor_fp16_4b.bmodel | 0.443 |
+|    SRM1-20   | deepsort_bmcv.pcie | extractor_int8_1b.bmodel | 0.437 |
+|    SRM1-20   | deepsort_bmcv.pcie | extractor_int8_4b.bmodel | 0.437 |
 
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
@@ -296,6 +308,18 @@ bmrt_test --bmodel models/BM1684X/extractor_fp32_1b.bmodel
 |    SE9-8    | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      0.78       |      5.79       |      7.00       |
 |    SE9-8    | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.23       |      1.06       |      7.02       |
 |    SE9-8    | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      0.78       |      2.06       |      6.97       |
+|   SRM1-20   |deepsort_opencv.py |     extractor_fp32_1b.bmodel      |      3.24       |      4.52       |      32.86      |
+|   SRM1-20   |deepsort_opencv.py |     extractor_fp32_4b.bmodel      |      4.19       |      4.43       |      51.63      |
+|   SRM1-20   |deepsort_opencv.py |     extractor_fp16_1b.bmodel      |      3.22       |      2.40       |      30.45      |
+|   SRM1-20   |deepsort_opencv.py |     extractor_fp16_4b.bmodel      |      4.07       |      2.17       |      46.48      |
+|   SRM1-20   |deepsort_opencv.py |     extractor_int8_1b.bmodel      |      4.37       |      4.90       |      53.13      |
+|   SRM1-20   |deepsort_opencv.py |     extractor_int8_4b.bmodel      |      4.03       |      2.05       |      47.48      |
+|   SRM1-20   |deepsort_bmcv.pcie |     extractor_fp32_1b.bmodel      |      0.39       |      2.60       |      3.88       |
+|   SRM1-20   |deepsort_bmcv.pcie |     extractor_fp32_4b.bmodel      |      0.64       |      8.74       |      3.84       |
+|   SRM1-20   |deepsort_bmcv.pcie |     extractor_fp16_1b.bmodel      |      0.40       |      0.69       |      4.00       |
+|   SRM1-20   |deepsort_bmcv.pcie |     extractor_fp16_4b.bmodel      |      0.64       |      1.18       |      3.88       |
+|   SRM1-20   |deepsort_bmcv.pcie |     extractor_int8_1b.bmodel      |      0.39       |      0.43       |      4.17       |
+|   SRM1-20   |deepsort_bmcv.pcie |     extractor_int8_4b.bmodel      |      0.64       |      0.72       |      4.18       |
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，preprocess_time、inference_time是特征提取模型平均每个crop的处理时间，postprocess_time是deepsort算法平均每帧的后处理时间；

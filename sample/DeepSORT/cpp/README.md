@@ -3,10 +3,10 @@
 ## 目录
 
 * [1. 环境准备](#1-环境准备)
-    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    * [1.1 x86/arm/riscv PCIe平台](#11-x86armriscv-pcie平台)
     * [1.2 SoC平台](#12-soc平台)
 * [2. 程序编译](#2-程序编译)
-    * [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
+    * [2.1 x86/arm/riscv PCIe平台](#21-x86armriscv-pcie平台)
     * [2.2 SoC平台](#22-soc平台)
 * [3. 推理测试](#3-推理测试)
     * [3.1 参数说明](#31-参数说明)
@@ -20,8 +20,8 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 
 ## 1. 环境准备
 
-### 1.1 x86/arm PCIe平台
-如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+### 1.1 x86/arm/riscv PCIe平台
+如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
 
 本C++例程依赖Eigen，您需要在编译c++程序的机器上运行如下命令安装：
 ```bash
@@ -39,7 +39,7 @@ sudo apt install libeigen3-dev
 
 ## 2. 程序编译
 C++程序运行前需要编译可执行文件。
-### 2.1 x86/arm PCIe平台
+### 2.1 x86/arm/riscv PCIe平台
 可以直接在PCIe平台上编译程序：
 
 ```bash
