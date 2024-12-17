@@ -60,6 +60,28 @@ int main(int argc, char *argv[]) {
     bmrt_print_network_info(net_info);
     std::cout << std::endl;
 
+    // input
+    int cn = 0;
+    std::vector<std::string> files_vector;
+    if (stat(input.c_str(), &info) != 0) {
+        std::cout << "[INFO]: Input directory or file does not exist: " << input << std::endl;
+    } else if (info.st_mode & S_IFDIR) {
+        DIR *pDir;
+        struct dirent* ptr;
+        pDir = opendir(input.c_str());
+        while((ptr = readdir(pDir))!=0) {
+            if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
+                files_vector.push_back(input + "/" + ptr->d_name);
+                ++cn;
+            }
+        }
+        closedir(pDir);
+    } else {
+        files_vector.push_back(input);
+        ++cn;
+    }
+    std::sort(files_vector.begin(), files_vector.end());
+
     // output directory
     std::string output_dir = "./results";
     if (stat(output_dir.c_str(), &info) != 0) {
@@ -78,21 +100,6 @@ int main(int argc, char *argv[]) {
     TimeStamp campplus_ts;
     TimeStamp* ts = &campplus_ts;
 
-    // preparing files
-    int cn = 0;
-    std::vector<std::string> files_vector;
-    DIR *pDir;
-    struct dirent* ptr;
-    pDir = opendir(input.c_str());
-    while((ptr = readdir(pDir))!=0)
-        if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
-            files_vector.push_back(ptr->d_name);
-			++cn;
-		}
-
-    closedir(pDir);
-    std::sort(files_vector.begin(), files_vector.end());
-
     // initialize feature_extractor with n_mels = 80 and sampling rate=16000 Hz
     speakerlab::FbankOptions fbank_opts;
     fbank_opts.mel_opts.num_bins = 80;
@@ -102,40 +109,34 @@ int main(int argc, char *argv[]) {
     auto fbank_computer = std::make_shared<speakerlab::FbankComputer>(fbank_opts);
 
     // calculate embedding for each file and stored data in emb variable and npy file
-    int id = 0;
-    size_t dot_position;
-    std::string npypath;
     std::cout << "[INFO]: Extracting embeddings..." << std::endl;
     unsigned long output_shape1 = static_cast<unsigned long>(net_info->stages[0].output_shapes->dims[0]);
     unsigned long output_shape2 = static_cast<unsigned long>(net_info->stages[0].output_shapes->dims[1]);
-    float emb[cn][output_shape1 * output_shape2];
-    for (std::vector<std::string>::iterator iter = files_vector.begin(); iter != files_vector.end(); iter++){
+    std::vector<std::vector<float>> emb(cn, std::vector<float>(output_shape1 * output_shape2));
+    for (int i=0; i < cn; ++i) {
         // calculating embedding for wav_file
-        compute_embedding(input + "/" + *iter, fbank_computer, p_bmrt, emb[id], &campplus_ts);
-        //for (int i=0;i<10;i++)
-            //std::cout << emb[id][i] << std::endl;
+        compute_embedding(files_vector[i], fbank_computer, p_bmrt, emb[i], ts);
 
         // save embedding to npy
         npy::npy_data_ptr<float> d;
-        d.data_ptr = emb[id];
+        d.data_ptr = emb[i].data();
         d.shape = {output_shape1, output_shape2};
         d.fortran_order = false;
-        dot_position = files_vector[id].find_last_of('.');
-        npypath = output_dir + "/" + files_vector[id].substr(0, dot_position) + ".npy";
+        size_t slash_position = files_vector[i].find_last_of('/');
+        size_t dot_position = files_vector[i].find_last_of('.');
+        std::string npypath = output_dir + "/" + files_vector[i].substr(slash_position+1, dot_position) + ".npy";
         npy::write_npy(npypath, d);
-        std::cout << "[INFO]: The extracted embedding from " << files_vector[id] << " is saved to " << npypath << std::endl;
-
-        id++;
+        std::cout << "[INFO]: The extracted embedding from " << files_vector[i] << " is saved to " << npypath << std::endl;
     }
 
-    if (id>1)
+    if (cn>1)
         std::cout << "[INFO]: Computing the similarity score..." << std::endl;
 
-    for (int i=0;i < id;++i)
-        for (int j=i+1;j < id; ++j)
+    for (int i=0;i < cn;++i)
+        for (int j=i+1;j < cn; ++j)
             std::cout << "[INFO]: The similarity score between "
                 << files_vector[i] << " and " << files_vector[j] << " is "
-                << cosine_similarity(emb[i], emb[j], output_shape1*output_shape2) << std::endl;
+                << cosine_similarity(emb[i], emb[j]) << std::endl;
 
     bmrt_destroy(p_bmrt);
     bm_dev_free(bm_handle);

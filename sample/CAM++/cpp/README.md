@@ -42,7 +42,7 @@ make -j4
 ```bash
 usage: ./campplus [--model BMODEL] [--input INPUT_DIR] [--devid DEV_ID]
 --model: 用于推理的bmodel路径；
---input: 用于存放wav音频文件的目录路径；
+--input: 用于存放wav音频文件的目录路径或者单个音频文件的路径；
 --devid: 用于推理的tpu设备id；
 ```
 

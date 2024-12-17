@@ -17,24 +17,15 @@
 #include "utils/wav_reader.h"
 #include "feature/feature_fbank.h"
 
-float cosine_similarity(float* emb1, float* emb2, unsigned long size, float eps = 1e-6) {
-    float dot_product = 0.0f;
-    float norm1 = 0.0f;
-    float norm2 = 0.0f;
-
-    for (size_t i = 0; i < size; ++i) {
-        dot_product += emb1[i] * emb2[i];
-        norm1 += emb1[i] * emb1[i];
-        norm2 += emb2[i] * emb2[i];
-    }
-
-    norm1 = std::sqrt(norm1);
-    norm2 = std::sqrt(norm2);
+float cosine_similarity(std::vector<float>& emb1, std::vector<float>& emb2, float eps = 1e-6) {
+    float dot_product = std::inner_product(emb1.begin(), emb1.end(), emb2.begin(), 0.0f);
+    float norm1 = std::sqrt(std::inner_product(emb1.begin(), emb1.end(), emb1.begin(), 0.0f));
+    float norm2 = std::sqrt(std::inner_product(emb2.begin(), emb2.end(), emb2.begin(), 0.0f));
 
     return dot_product / (norm1 * norm2 + eps);
 }
 
-int compute_embedding(const std::string& wav_file, std::shared_ptr<speakerlab::FbankComputer> fbank_computer, void* p_bmrt, float* output, TimeStamp* m_ts) {
+int compute_embedding(const std::string& wav_file, std::shared_ptr<speakerlab::FbankComputer> fbank_computer, void* p_bmrt, std::vector<float>& output, TimeStamp* m_ts) {
     // get net_names and net_info
     const char **net_names = NULL;
     bmrt_get_network_names(p_bmrt, &net_names);
@@ -81,18 +72,18 @@ int compute_embedding(const std::string& wav_file, std::shared_ptr<speakerlab::F
     }
 
     // init input tensors
-    float feat[rows * cols];
+    std::vector<float> feat;
+    feat.reserve(rows*cols);
     bm_tensor_t input_tensors[1];
     bmrt_tensor(&input_tensors[0], p_bmrt, BM_FLOAT32, {3, {max_batch, rows, cols}});
     assert(BM_SUCCESS == status);
 
-    for (int row = 0; row < rows; ++row)
-        for (int col = 0; col < cols; ++col) {
-            feat[cols*row+col] = feature[row][col];
+    for (const auto& row : feature) {
+        feat.insert(feat.end(), row.begin(), row.end());
     }
 
     // s2d
-    status = bm_memcpy_s2d_partial(bm_handle, input_tensors[0].device_mem, feat, bmrt_tensor_bytesize(&input_tensors[0]));
+    status = bm_memcpy_s2d_partial(bm_handle, input_tensors[0].device_mem, feat.data(), bmrt_tensor_bytesize(&input_tensors[0]));
     assert(BM_SUCCESS == status);
 
     // init output tensors
@@ -116,7 +107,7 @@ int compute_embedding(const std::string& wav_file, std::shared_ptr<speakerlab::F
 
     m_ts->save("Campplus postprocess_time", max_batch);
 
-    status = bm_memcpy_d2s_partial(bm_handle, output, output_tensors[0].device_mem, bmrt_tensor_bytesize(&output_tensors[0]));
+    status = bm_memcpy_d2s_partial(bm_handle, output.data(), output_tensors[0].device_mem, bmrt_tensor_bytesize(&output_tensors[0]));
     assert(BM_SUCCESS == status);
 
     m_ts->save("Campplus postprocess_time", max_batch);
