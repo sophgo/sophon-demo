@@ -21,7 +21,7 @@
 PP-OCRv4，是百度飞桨团队开源的超轻量OCR系列模型，包含文本检测、文本分类、文本识别模型，是PaddleOCR工具库的重要组成之一。支持中英文数字组合识别、竖排文本识别、长文本识别，其性能及精度较之前的PP-OCR版本均有明显提升。本例程对[PaddleOCR-release-2.8](https://github.com/PaddlePaddle/PaddleOCR/tree/release/2.8)的`ch_PP-OCRv4_xx`系列模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV的Python推理
@@ -143,6 +143,10 @@ F-score: 0.57488, Precision: 0.80639, Recall: 0.44665
 | SE9-8        | ppocr_system_opencv.py    | fp16       |    0.608 |
 | SE9-8        | ppocr_bmcv.soc            | fp32       |    0.605 |
 | SE9-8        | ppocr_bmcv.soc            | fp16       |    0.604 |
+| SRM1-20      | ppocr_system_opencv.py    | fp32       |    0.608 |
+| SRM1-20      | ppocr_system_opencv.py    | fp16       |    0.608 |
+| SRM1-20      | ppocr_bmcv.pcie           | fp32       |    0.606 |
+| SRM1-20      | ppocr_bmcv.pcie           | fp16       |    0.606 |
 
 > **测试说明**：  
 > 1. 模型精度为fp32(fp16)，即代表检测模型和识别模型都是fp32(fp16)的精度；
@@ -252,6 +256,14 @@ bmrt_test --bmodel models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp32.bmodel    |        0.85         |        0.40         |        10.15        |        4.05         |
 |    SE9-8    |     ppocr_bmcv.soc      |    ch_PP-OCRv4_det_fp16.bmodel    |        14.21        |        3.09         |        12.12        |        4.66         |
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp16.bmodel    |        0.84         |        0.40         |        2.34         |        4.06         |
+|   SRM1-20   | ppocr_system_opencv.py  |    ch_PP-OCRv4_det_fp32.bmodel    |        26.60        |        34.00        |        41.57        |        17.32        |
+|      ^      |            ^            |    ch_PP-OCRv4_rec_fp32.bmodel    |        2.65         |        0.63         |        7.67         |        1.36         |
+|   SRM1-20   | ppocr_system_opencv.py  |    ch_PP-OCRv4_det_fp16.bmodel    |        26.45        |        35.01        |        27.88        |        17.00        |
+|      ^      |            ^            |    ch_PP-OCRv4_rec_fp16.bmodel    |        2.64         |        0.63         |        5.55         |        1.34         |
+|   SRM1-20   |     ppocr_bmcv.pcie     |    ch_PP-OCRv4_det_fp32.bmodel    |        12.16        |        1.57         |        17.73        |        16.27        |
+|      ^      |            ^            |    ch_PP-OCRv4_rec_fp32.bmodel    |        0.82         |        0.65         |        2.14         |        6.00         |
+|   SRM1-20   |     ppocr_bmcv.pcie     |    ch_PP-OCRv4_det_fp16.bmodel    |        10.16        |        1.54         |        4.10         |        14.55        |
+|      ^      |            ^            |    ch_PP-OCRv4_rec_fp16.bmodel    |        0.79         |        0.62         |        0.67         |        5.28         |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
