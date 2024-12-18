@@ -23,6 +23,7 @@ class Resnet(object):
     def __init__(self, args):
         # load bmodel
         self.net = sail.nn.Engine(args.bmodel, args.dev_id)
+        self.stream = sail.nn.Stream(args.dev_id)
         self.net_name = self.net.get_net_names()[0]
         self.input_names = self.net.get_input_names(self.net_name)
         self.input_shapes = self.net.get_input_shapes(self.net_name, 0)
@@ -67,7 +68,7 @@ class Resnet(object):
         shape_out0 = self.output_shapes[0]
         array_out0 = np.ndarray(shape=shape_out0, dtype=np.float32)
         outputs = {0: array_out0}
-        ret = self.net.process(input_data, outputs, self.net_name)
+        ret = self.net.process(input_data, outputs, self.stream, self.net_name)
         return list(outputs.values())[0]
 
     def postprocess(self, outputs):

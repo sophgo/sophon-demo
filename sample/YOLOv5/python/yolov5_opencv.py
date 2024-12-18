@@ -6,17 +6,20 @@
 # third-party components.
 #
 #===----------------------------------------------------------------------===#
-import os
-import json
-import time
-import cv2
 import argparse
+import ast
+import json
+import logging
+import os
+import time
+
+import cv2
 import numpy as np
 import sophon.sail as sail
+
 from postprocess_numpy import PostProcess
-from utils import COLORS, COCO_CLASSES
-import logging
-import ast
+from utils import COCO_CLASSES, COLORS
+
 logging.basicConfig(level=logging.INFO)
 # sail.set_print_flag(1)
 
@@ -24,6 +27,7 @@ class YOLOv5:
     def __init__(self, args):
         # load bmodel
         self.net = sail.nn.Engine(args.bmodel, args.dev_id)
+        self.stream = sail.nn.Stream(args.dev_id)
         logging.info("load {} success!".format(args.bmodel))
         self.net_name = self.net.get_net_names()[0]
         self.input_name = self.net.get_input_names(self.net_name)[0]
@@ -131,7 +135,7 @@ class YOLOv5:
         input_data = {0: input_img}
         output_arrays = [np.ndarray(shape=(self.output_shapes[i]), dtype=np.float32) for i in range(len(self.output_shapes))]
         outputs = {i:array for i, array in enumerate(output_arrays)}
-        ret = self.net.process(input_data, outputs, self.net_name)
+        ret = self.net.process(input_data, outputs, self.stream, self.net_name)
         
         if self.use_cpu_opt:
             out = {}
