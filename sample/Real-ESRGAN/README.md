@@ -17,7 +17,7 @@
 本例程对[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)的`realesr-general-x4v3`轻量级超分模型进行移植，使之能在SOPHON BM1684X/BM1688/CV186X 上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -194,7 +194,18 @@ bmrt_test --bmodel models/BM1684X/
 |   SE9-16    |real_esrgan_bmcv.soc| real_esrgan_fp16_1b_2core.bmodel    |      3.65       |      1.52       |     230.78      |      64.88      |
 |   SE9-16    |real_esrgan_bmcv.soc| real_esrgan_int8_1b_2core.bmodel    |      3.64       |      1.51       |      87.69      |      77.74      |
 |   SE9-16    |real_esrgan_bmcv.soc| real_esrgan_int8_4b_2core.bmodel    |      3.44       |      1.43       |      60.18      |      77.54      |
-
+|   SRM1-20   |real_esrgan_opencv.py|    real_esrgan_fp32_1b.bmodel     |      8.69       |      18.73      |     1058.38     |      60.99      |
+|   SRM1-20   |real_esrgan_opencv.py|    real_esrgan_fp16_1b.bmodel     |      9.13       |      18.35      |     313.17      |      61.03      |
+|   SRM1-20   |real_esrgan_opencv.py|    real_esrgan_int8_1b.bmodel     |      8.76       |      18.72      |     443.62      |      64.41      |
+|   SRM1-20   |real_esrgan_opencv.py|    real_esrgan_int8_4b.bmodel     |      8.21       |      18.36      |     443.42      |      59.28      |
+|   SRM1-20   | real_esrgan_bmcv.py |    real_esrgan_fp32_1b.bmodel     |      7.84       |      2.58       |     1022.23     |      94.99      |
+|   SRM1-20   | real_esrgan_bmcv.py |    real_esrgan_fp16_1b.bmodel     |      8.11       |      2.64       |     259.50      |      94.44      |
+|   SRM1-20   | real_esrgan_bmcv.py |    real_esrgan_int8_1b.bmodel     |      8.08       |      2.54       |      84.54      |      70.30      |
+|   SRM1-20   | real_esrgan_bmcv.py |    real_esrgan_int8_4b.bmodel     |      9.86       |      2.37       |     105.83      |      69.79      |
+|   SRM1-20   |real_esrgan_bmcv.pcie|    real_esrgan_fp32_1b.bmodel     |      25.20      |      1.22       |     843.29      |     1150.14     |
+|   SRM1-20   |real_esrgan_bmcv.pcie|    real_esrgan_fp16_1b.bmodel     |      19.57      |      1.25       |      75.70      |     1236.47     |
+|   SRM1-20   |real_esrgan_bmcv.pcie|    real_esrgan_int8_1b.bmodel     |      8.31       |      0.75       |      38.45      |     237.34      |
+|   SRM1-20   |real_esrgan_bmcv.pcie|    real_esrgan_int8_4b.bmodel     |      27.50      |      0.87       |      37.49      |     771.25      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
