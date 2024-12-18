@@ -194,6 +194,18 @@ python3 evaluation.py
 | BM1684 SoC  | retinaface_opencv.py | retinaface_mobilenet0.25_int8_4b.bmodel       |  87.4%  |
 | BM1684 SoC  | retinaface_bmcv.py   | retinaface_mobilenet0.25_int8_1b.bmodel       |  87.5%  |
 | BM1684 SoC  | retinaface_bmcv.py   | retinaface_mobilenet0.25_int8_4b.bmodel       |  87.5%  |
+| SRM1-20     | retinaface_opencv.py | retinaface_mobilenet0.25_fp32_1b.bmodel       |  89.2%  |
+| SRM1-20     | retinaface_bmcv.py   | retinaface_mobilenet0.25_fp32_1b.bmodel       |  89.2%  |
+| SRM1-20     | retinaface_opencv.py | retinaface_mobilenet0.25_fp16_1b.bmodel       |  89.2%  |
+| SRM1-20     | retinaface_bmcv.py   | retinaface_mobilenet0.25_fp16_1b.bmodel       |  89.2%  |
+| SRM1-20     | retinaface_opencv.py | retinaface_mobilenet0.25_int8_1b.bmodel       |  88.0%  |
+| SRM1-20     | retinaface_opencv.py | retinaface_mobilenet0.25_int8_4b.bmodel       |  88.0%  |
+| SRM1-20     | retinaface_bmcv.py   | retinaface_mobilenet0.25_int8_1b.bmodel       |  87.8%  |
+| SRM1-20     | retinaface_bmcv.py   | retinaface_mobilenet0.25_int8_4b.bmodel       |  87.8%  |
+| SRM1-20     | retinaface_bmcv.soc  | retinaface_mobilenet0.25_fp32_1b.bmodel       |  89.4%  |
+| SRM1-20     | retinaface_bmcv.soc  | retinaface_mobilenet0.25_fp16_1b.bmodel       |  89.4%  |
+| SRM1-20     | retinaface_bmcv.soc  | retinaface_mobilenet0.25_int8_1b.bmodel       |  88.3%  |
+| SRM1-20     | retinaface_bmcv.soc  | retinaface_mobilenet0.25_int8_4b.bmodel       |  88.3%  |
 
 > **测试说明**：  
 > 1. BM1688 单核和双核的模型精度一致。
@@ -282,6 +294,18 @@ bmrt_test --bmodel {path_of_bmodel}
 | BM1684 SoC  | retinaface_opencv.py | retinaface_mobilenet0.25_int8_4b.bmodel       |  8.86ms    |  112.9      |
 | BM1684 SoC  | retinaface_bmcv.py   | retinaface_mobilenet0.25_int8_1b.bmodel       |  7.71ms    |  129.8      |
 | BM1684 SoC  | retinaface_bmcv.py   | retinaface_mobilenet0.25_int8_4b.bmodel       |  4.84ms    |  206.7      |
+| SRM1-20     | retinaface_opencv.py | retinaface_mobilenet0.25_fp32_1b.bmodel       |  23.53ms   |  42.5       |
+| SRM1-20     | retinaface_bmcv.py   | retinaface_mobilenet0.25_fp32_1b.bmodel       |  9.94ms    |  100.6      |
+| SRM1-20     | retinaface_opencv.py | retinaface_mobilenet0.25_fp16_1b.bmodel       |  19.72ms   |  50.7       |
+| SRM1-20     | retinaface_bmcv.py   | retinaface_mobilenet0.25_fp16_1b.bmodel       |  6.07ms    |  164.8      |
+| SRM1-20     | retinaface_opencv.py | retinaface_mobilenet0.25_int8_1b.bmodel       |  19.27ms   |  51.9       |
+| SRM1-20     | retinaface_opencv.py | retinaface_mobilenet0.25_int8_4b.bmodel       |  16.51ms   |  60.6       |
+| SRM1-20     | retinaface_bmcv.py   | retinaface_mobilenet0.25_int8_1b.bmodel       |  5.84ms    |  171.3      |
+| SRM1-20     | retinaface_bmcv.py   | retinaface_mobilenet0.25_int8_4b.bmodel       |  4.76ms    |  210.2      |
+| SRM1-20     | retinaface_bmcv.pcie | retinaface_mobilenet0.25_fp32_1b.bmodel       |  9.02ms    |  110.9      |
+| SRM1-20     | retinaface_bmcv.pcie | retinaface_mobilenet0.25_fp16_1b.bmodel       |  5.03ms    |  199.0      |
+| SRM1-20     | retinaface_bmcv.pcie | retinaface_mobilenet0.25_int8_1b.bmodel       |  5.03ms    |  199.0      |
+| SRM1-20     | retinaface_bmcv.pcie | retinaface_mobilenet0.25_int8_4b.bmodel       |  4.46ms    |  224.4      |
 
 > **测试说明**：  
 > 1. infer_time: 程序运行时每张图的实际推理时间；
