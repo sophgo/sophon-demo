@@ -19,7 +19,7 @@
 ​​DirectMHP 是一种新颖的单级端到端网络，专注于全范围的多人头部姿势估计，通过联合回归位置和方向来直接预测图像中所有人类头部的姿势。本例程对[​DirectMHP官方开源仓库](https://github.com/hnuzhy/DirectMHP)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -144,6 +144,12 @@ python3 tools/eval.py --gt_path datasets/coco/coco_style_sampled_val.json --resu
 | SE9-8        | directmhp_bmcv.py         | directmhp_fp16_1b.bmodel                 |    0.858 |    8.729 |
 | SE9-8        | directmhp_bmcv.soc        | directmhp_fp32_1b.bmodel                 |    0.858 |    8.712 |
 | SE9-8        | directmhp_bmcv.soc        | directmhp_fp16_1b.bmodel                 |    0.859 |    8.713 |
+| SRM1-20      | directmhp_opencv.py       | directmhp_fp32_1b.bmodel                 |    0.856 |    8.706 |
+| SRM1-20      | directmhp_opencv.py       | directmhp_fp16_1b.bmodel                 |    0.857 |    8.697 |
+| SRM1-20      | directmhp_bmcv.py         | directmhp_fp32_1b.bmodel                 |    0.856 |    8.758 |
+| SRM1-20      | directmhp_bmcv.py         | directmhp_fp16_1b.bmodel                 |    0.855 |    8.751 |
+| SRM1-20      | directmhp_bmcv.pcie       | directmhp_fp32_1b.bmodel                 |    0.858 |    8.712 |
+| SRM1-20      | directmhp_bmcv.pcie       | directmhp_fp16_1b.bmodel                 |    0.859 |    8.710 |
 
 
 > **测试说明**：  
@@ -211,6 +217,12 @@ bmrt_test --bmodel models/BM1684X/directmhp_fp32_1b.bmodel
 |   SE9-8     | directmhp_bmcv.py |     directmhp_fp16_1b.bmodel      |      24.99      |      17.27      |     120.67      |      7.49       |
 |   SE9-8     |directmhp_bmcv.soc |     directmhp_fp32_1b.bmodel      |      17.18      |      7.16       |     420.06      |      3.45       |
 |   SE9-8     |directmhp_bmcv.soc |     directmhp_fp16_1b.bmodel      |      15.77      |      7.16       |     115.50      |      3.42       |
+|   SRM1-20   |directmhp_opencv.py|     directmhp_fp32_1b.bmodel      |      58.60      |     111.76      |     174.73      |      3.53       |
+|   SRM1-20   |directmhp_opencv.py|     directmhp_fp16_1b.bmodel      |      58.54      |     110.11      |     100.95      |      3.74       |
+|   SRM1-20   | directmhp_bmcv.py |     directmhp_fp32_1b.bmodel      |      38.25      |      6.75       |     124.67      |      3.65       |
+|   SRM1-20   | directmhp_bmcv.py |     directmhp_fp16_1b.bmodel      |      37.50      |      6.83       |     53.33       |      3.63       |
+|   SRM1-20   |directmhp_bmcv.soc |     directmhp_fp32_1b.bmodel      |      18.55      |      4.53       |     99.16       |      12.17      |
+|   SRM1-20   |directmhp_bmcv.soc |     directmhp_fp16_1b.bmodel      |      18.40      |      4.51       |     26.79       |      12.50      |
 
 
 > **测试说明**：  
