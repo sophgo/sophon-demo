@@ -270,6 +270,23 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. On 
 | SE9-8        | yolov5_sail.soc    | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.374 |    0.572 |
 | SE9-8        | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.354 |    0.564 |
 | SE9-8        | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.354 |    0.564 |
+| SRM1-20      | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
+| SRM1-20      | yolov5_opencv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.377 |    0.580 |
+| SRM1-20      | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.363 |    0.571 |
+| SRM1-20      | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.363 |    0.571 |
+| SRM1-20      | yolov5_bmcv.py     | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.373 |    0.573 |
+| SRM1-20      | yolov5_bmcv.py     | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.373 |    0.573 |
+| SRM1-20      | yolov5_bmcv.py     | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.356 |    0.562 |
+| SRM1-20      | yolov5_bmcv.py     | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.356 |    0.562 |
+| SRM1-20      | yolov5_bmcv.pcie   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.374 |    0.572 |
+| SRM1-20      | yolov5_bmcv.pcie   | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.374 |    0.572 |
+| SRM1-20      | yolov5_bmcv.pcie   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.356 |    0.562 |
+| SRM1-20      | yolov5_bmcv.pcie   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.356 |    0.562 |
+| SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.374 |    0.572 |
+| SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.374 |    0.572 |
+| SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.356 |    0.562 |
+| SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.356 |    0.562 |
+
 > **Note**:
 > 1. The model mAP of batch_size=4 and batch_size=1 is the same.
 > 2. Due to possible differences between SDK versions, it is normal for the mAP error of <0.01 between the actual running results and this table;
@@ -395,6 +412,22 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. Use
 |    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_3output_fp16_1b.bmodel|      3.60       |      4.82       |      29.83      |      19.99      |
 |    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      3.62       |      4.82       |      8.84       |      20.04      |
 |    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      3.45       |      4.63       |      8.53       |      19.78      |
+|   SRM1-20   | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      11.84      |      28.80      |      73.70      |     111.25      |
+|   SRM1-20   | yolov5_opencv.py  |yolov5s_v6.1_3output_fp16_1b.bmodel|      11.76      |      28.32      |      56.02      |     108.86      |
+|   SRM1-20   | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      11.92      |      28.79      |      50.73      |     111.86      |
+|   SRM1-20   | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      11.87      |      26.16      |      45.98      |     110.35      |
+|   SRM1-20   |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp32_1b.bmodel|      8.22       |      2.74       |      54.61      |      99.35      |
+|   SRM1-20   |  yolov5_bmcv.py   |yolov5s_v6.1_3output_fp16_1b.bmodel|      8.24       |      2.71       |      43.05      |      99.44      |
+|   SRM1-20   |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_1b.bmodel|      8.24       |      2.74       |      38.53      |      99.14      |
+|   SRM1-20   |  yolov5_bmcv.py   |yolov5s_v6.1_3output_int8_4b.bmodel|      8.07       |      2.65       |      32.13      |     110.55      |
+|   SRM1-20   |  yolov5_bmcv.pcie |yolov5s_v6.1_3output_fp32_1b.bmodel|      7.35       |      1.06       |      25.53      |      35.72      |
+|   SRM1-20   |  yolov5_bmcv.pcie |yolov5s_v6.1_3output_fp16_1b.bmodel|      7.23       |      1.05       |      8.58       |      34.55      |
+|   SRM1-20   |  yolov5_bmcv.pcie |yolov5s_v6.1_3output_int8_1b.bmodel|      7.25       |      1.06       |      4.05       |      35.61      |
+|   SRM1-20   |  yolov5_bmcv.pcie |yolov5s_v6.1_3output_int8_4b.bmodel|      7.25       |      0.92       |      3.78       |      34.39      |
+|   SRM1-20   |  yolov5_sail.pcie |yolov5s_v6.1_3output_fp32_1b.bmodel|      7.47       |      1.43       |      55.50      |      8.56       |
+|   SRM1-20   |  yolov5_sail.pcie |yolov5s_v6.1_3output_fp16_1b.bmodel|      7.54       |      1.41       |      34.56      |      8.48       |
+|   SRM1-20   |  yolov5_sail.pcie |yolov5s_v6.1_3output_int8_1b.bmodel|      7.60       |      1.43       |      30.28      |      8.60       |
+|   SRM1-20   |  yolov5_sail.pcie |yolov5s_v6.1_3output_int8_4b.bmodel|      7.39       |      1.23       |      28.49      |      8.37       |
 
 > **Note**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
