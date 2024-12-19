@@ -19,13 +19,13 @@
 
 CAM++模型是基于密集连接时延神经网络的说话人识别模型。相比于一些主流的说话人识别模型，比如ResNet34和ECAPA-TDNN，CAM++具有更准确的说话人识别性能和更快的推理速度。该模型可以用于说话人确认、说话人日志、语音合成、说话人风格转化等多项任务。关于该模型的其他特性，请前往源repo查看：[iic/speech_campplus_sv_zh-cn_16k-common](https://www.modelscope.cn/models/iic/speech_campplus_sv_zh-cn_16k-common)。本例程对[3D-Speaker](https://github.com/modelscope/3D-Speaker)中的`iic/speech_campplus_sv_zh-cn_16k-common`模型进行移植，使之能在SOPHON BM1684X/BM1688/CV186X上进行推理测试。
 
-该例程支持在V23.09LTS SP3及以上的BM1684X SOPHONSDK, 或在v1.7.0及以上的BM1688/CV186X SOPHONSDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行，也支持在BM1688/CV186X Soc设备（如SE9-16）上运行。
+该例程支持在V23.09LTS SP3及以上的BM1684X SOPHONSDK, 或在v1.7.0及以上的BM1688/CV186X SOPHONSDK上运行，支持在插有1684X加速卡(SC7系列)的x86/riscv主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行，也支持在BM1688/CV186X Soc设备（如SE9-16）上运行。
 
 在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2.特性
 
-* 支持BM1684X(x86 PCIe、SoC)，BM1688(SoC)，CV186X(Soc)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)，BM1688(SoC)，CV186X(Soc)
 * 支持FP32(BM1684X/BM1688/CV186X)模型编译和推理
 * 支持基于BMRT的C++例程
 
@@ -116,6 +116,8 @@ bmrt_test --bmodel models/BM1684X/campplus_bm1684x_fp32_1b.bmodel
 |   SE9-16    |campplus       |campplus_bm1684x_fp32_1b.bmodel|    0.26   |     109.53    |      99.55   |      0.02      |
 |   SE9-8     |campplus.py    |campplus_bm1684x_fp32_1b.bmodel|   40.08   |      22.56    |      99.79   |      0.00      |
 |   SE9-8     |campplus       |campplus_bm1684x_fp32_1b.bmodel|    0.28   |     109.64    |      99.35   |      0.02      |
+|   SRM1-20   |campplus.py    |campplus_bm1684x_fp32_1b.bmodel|   41.85   |     199.03    |      66.49   |      0.00      |
+|   SRM1-20   |campplus       |campplus_bm1684x_fp32_1b.bmodel|    0.22   |      48.48    |      59.91   |      0.23      |
 
 > **测试说明**：
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每个音频文件处理的时间；
