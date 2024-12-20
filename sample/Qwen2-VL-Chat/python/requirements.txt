@@ -1,0 +1,7 @@
+transformers==4.45.1
+torch==2.4.1
+numpy==1.24.4
+requests==2.32.3
+torchvision==0.19.1
+packaging==24.2
+av==12.3.0
