@@ -21,7 +21,7 @@
 ​YOLOv8_seg是YOLO系列的的一个重大更新版本，它抛弃了以往的YOLO系类模型使用的Anchor-Base，采用了Anchor-Free的思想。YOLOv8建立在YOLO系列成功的基础上，通过对网络结构的改造，进一步提升其性能和灵活性。本例程对[​YOLOv8官方开源仓库](https://github.com/ultralytics/ultralytics)的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688(SoC)和BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688(SoC)和BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -187,6 +187,18 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE9-16       | yolov8_bmcv.soc | yolov8s_fp16_1b_2core.bmodel  |    0.351 |    0.568 |
 | SE9-16       | yolov8_bmcv.soc | yolov8s_int8_1b_2core.bmodel  |    0.349 |    0.561 |
 | SE9-16       | yolov8_bmcv.soc | yolov8s_int8_4b_2core.bmodel  |    0.349 |    0.561 |
+| SRM1-20      | yolov8_opencv.py | yolov8s_fp32_1b.bmodel |    0.358 |    0.569 |
+| SRM1-20      | yolov8_opencv.py | yolov8s_fp16_1b.bmodel |    0.358 |    0.569 |
+| SRM1-20      | yolov8_opencv.py | yolov8s_int8_1b.bmodel |    0.354 |    0.556 |
+| SRM1-20      | yolov8_opencv.py | yolov8s_int8_4b.bmodel |    0.354 |    0.556 |
+| SRM1-20      | yolov8_bmcv.py | yolov8s_fp32_1b.bmodel |    0.357 |    0.569 |
+| SRM1-20      | yolov8_bmcv.py | yolov8s_fp16_1b.bmodel |    0.357 |    0.569 |
+| SRM1-20      | yolov8_bmcv.py | yolov8s_int8_1b.bmodel |    0.354 |    0.556 |
+| SRM1-20      | yolov8_bmcv.py | yolov8s_int8_4b.bmodel |    0.354 |    0.556 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_fp32_1b.bmodel |    0.351 |    0.567 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_fp16_1b.bmodel |    0.352 |    0.568 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_int8_1b.bmodel |    0.349 |    0.562 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_int8_4b.bmodel |    0.349 |    0.562 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -231,7 +243,7 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
-在不同的测试平台上，使用不同的例程、模型测试`datasets/val2017_1000`，conf_thresh=0.25，nms_thresh=0.7，性能测试结果如下：
+在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.25，nms_thresh=0.7，性能测试结果如下：
 |    测试平台  |     测试程序      |        测试模型        |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ---------------------- | -------- | --------- | --------- | --------- |
 | SE5-16      | yolov8_opencv.py | yolov8s_fp32_1b.bmodel | 3.40 | 26.79 | 46.53 | 165.20 |
@@ -279,6 +291,18 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 |   SE9-16    |  yolov8_bmcv.soc  |   yolov8s_fp16_1b_2core.bmodel    |      5.87       |      1.77       |      26.34      |     125.09      |
 |   SE9-16    |  yolov8_bmcv.soc  |   yolov8s_int8_1b_2core.bmodel    |      5.84       |      1.77       |      12.11      |     114.18      |
 |   SE9-16    |  yolov8_bmcv.soc  |   yolov8s_int8_4b_2core.bmodel    |      5.83       |      1.67       |      10.27      |     113.86      |
+|  SRM1-20    | yolov8_opencv.py  |  yolov8s_fp32_1b.bmodel | 11.62 | 21.36 | 84.04 | 128.19 |
+|  SRM1-20    | yolov8_opencv.py  |  yolov8s_fp16_1b.bmodel | 11.62 | 21.55 | 46.15 | 126.80 |
+|  SRM1-20    | yolov8_opencv.py  |  yolov8s_int8_1b.bmodel | 11.60 | 21.76 | 39.84 | 116.28 |
+|  SRM1-20    | yolov8_opencv.py  |  yolov8s_int8_4b.bmodel | 11.64 | 24.74 | 42.72 | 106.48 |
+|  SRM1-20    | yolov8_bmcv.py    |  yolov8s_fp32_1b.bmodel | 8.12  | 2.72  | 75.34 | 125.06 |
+|  SRM1-20    | yolov8_bmcv.py    |  yolov8s_fp16_1b.bmodel | 8.17  | 2.73  | 35.15 | 125.67 |
+|  SRM1-20    | yolov8_bmcv.py    |  yolov8s_int8_1b.bmodel | 8.15  | 2.76  | 30.97 | 113.76 |
+|  SRM1-20    | yolov8_bmcv.py    |  yolov8s_int8_4b.bmodel | 7.97  | 2.65  | 29.62 | 108.30 |
+|  SRM1-20    | yolov8_bmcv.pcie  |  yolov8s_fp32_1b.bmodel | 8.03  | 1.07  | 49.30 |  66.81 |
+|  SRM1-20    | yolov8_bmcv.pcie  |  yolov8s_fp16_1b.bmodel | 8.86  | 1.09  | 8.95  |  68.95 |
+|  SRM1-20    | yolov8_bmcv.pcie  |  yolov8s_int8_1b.bmodel | 8.56  | 1.08  | 4.86  |  64.28 |
+|  SRM1-20    | yolov8_bmcv.pcie  |  yolov8s_int8_4b.bmodel | 10.92 | 0.96  | 4.36  |  68.97 |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
