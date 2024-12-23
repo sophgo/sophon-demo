@@ -44,7 +44,7 @@
 ```
 
 ### 2.2 SDK特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 支持FP32、FP16模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV预处理的Python推理
@@ -202,6 +202,11 @@ classaps:  [72.2210693  61.68566016 61.76413838 72.79584505 90.74538823 48.91751
 | SE9-8        | yolov8_opencv.py   | yolov8s-obb_fp16_1b.bmodel               |    0.562 |
 | SE9-8        | yolov8_bmcv.soc    | yolov8s-obb_fp32_1b.bmodel               |    0.551 |
 | SE9-8        | yolov8_bmcv.soc    | yolov8s-obb_fp16_1b.bmodel               |    0.551 |
+| SRM1-20      | yolov8_opencv.py   | yolov8s-obb_fp32_1b.bmodel               |    0.562 |
+| SRM1-20      | yolov8_opencv.py   | yolov8s-obb_fp16_1b.bmodel               |    0.562 |
+| SRM1-20      | yolov8_bmcv.pcie   | yolov8s-obb_fp32_1b.bmodel               |    0.550 |
+| SRM1-20      | yolov8_bmcv.pcie   | yolov8s-obb_fp16_1b.bmodel               |    0.550 |
+
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -257,6 +262,10 @@ bmrt_test --bmodel models/BM1684/yolov8s-obb_fp32_1b.bmodel
 |    SE9-8    | yolov8_opencv.py  |yolov8s-obb_fp16_1b.bmodel|     169.59      |      86.64      |     103.97      |      49.06      |
 |    SE9-8    |  yolov8_bmcv.soc  |yolov8s-obb_fp32_1b.bmodel|      46.39      |      29.67      |     436.68      |      12.16      |
 |    SE9-8    |  yolov8_bmcv.soc  |yolov8s-obb_fp16_1b.bmodel|      57.61      |      29.67      |      92.13      |      12.02      |
+|   SRM1-20   | yolov8_opencv.py  |yolov8s-obb_fp32_1b.bmodel|     193.16      |      72.35      |     128.59      |      181.55     |
+|   SRM1-20   | yolov8_opencv.py  |yolov8s-obb_fp16_1b.bmodel|     200.58      |      68.67      |      61.97      |      166.76     |
+|   SRM1-20   |  yolov8_bmcv.pcie |yolov8s-obb_fp32_1b.bmodel|      132.98     |       7.75      |      90.56      |      59.50      |
+|   SRM1-20   |  yolov8_bmcv.pcie |yolov8s-obb_fp16_1b.bmodel|      127.94     |       7.54      |      17.41      |      60.45      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
