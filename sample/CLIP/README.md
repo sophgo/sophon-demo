@@ -18,7 +18,7 @@ CLIP（Contrastive Language-Image Pre-Training）是一个在多种（图像，�
 
 ## 2. 特性
 
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 支持FP16(BM1684X/BM1688/CV186X)模型编译和推理
 * 支持Python、C++例程
 * 支持单batch和多batch模型推理
@@ -129,6 +129,8 @@ bmrt_test --bmodel models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel
 | SE7-32   | zeroshot_predict.py | 12.17           | 9.63                | 18.90              |
 | SE9-16   | zeroshot_predict.py | 16.92           | 25.04               | 49.61              |
 | SE9-8    | zeroshot_predict.py | 17.09           | 30.59               | 59.56              |
+| SRM1-20  | zeroshot_predict.py | 17.07           | 11.46               | 39.29              |
+
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性，实测结果与该表结果有误差属正常现象，建议取稳定后的性能数据、并多次测试取平均值。
