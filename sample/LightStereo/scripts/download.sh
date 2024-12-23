@@ -23,15 +23,15 @@ if [ ! -d "../models" ];
 then
     mkdir ../models
     pushd ../models
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/models/BM1684X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/BM1684X.tar.gz
     tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/models/BM1688.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/BM1688.tar.gz
     tar xvf BM1688.tar.gz && rm BM1688.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/models/CV186X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/CV186X.tar.gz
     tar xvf CV186X.tar.gz && rm CV186X.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/models/ckpt.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/ckpt.tar.gz
     tar xvf ckpt.tar.gz && rm ckpt.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/models/onnx.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/onnx.tar.gz
     tar xvf onnx.tar.gz && rm onnx.tar.gz
     popd
     echo "models download!"
