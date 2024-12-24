@@ -87,26 +87,37 @@ function bmrt_test_case(){
 }
 
 function bmrt_test_benchmark(){
-    pushd models
-    printf "| %-60s| % 15s |\n" "测试模型" "calculate time(ms)"
-    printf "| %-60s| % 15s |\n" "------------------------------------------------------------" "--------------"
-   
-    bmrt_test_case bmodel/image/BM1688/image_encoder/sam2_encoder_f16_1b_1core.bmodel
-    bmrt_test_case bmodel/image/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel
-    bmrt_test_case bmodel/image/BM1688/image_encoder/sam2_encoder_f32_1b_1core.bmodel
-    bmrt_test_case bmodel/image/BM1688/image_encoder/sam2_encoder_f32_1b_2core.bmodel
+  pushd models
+  printf "| %-60s| % 15s |\n" "测试模型" "calculate time(ms)"
+  printf "| %-60s| % 15s |\n" "------------------------------------------------------------" "--------------"
+  if test $TARGET = "BM1684X"; then
+    bmrt_test_case BM1684X/image_encoder/sam2_encoder_f16_1b.bmodel
+    bmrt_test_case BM1684X/image_encoder/sam2_encoder_f32_1b.bmodel
 
-    bmrt_test_case bmodel/image/BM1688/image_decoder/sam2_decoder_f16_1b_1core.bmodel
-    bmrt_test_case bmodel/image/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
-    bmrt_test_case bmodel/image/BM1688/image_decoder/sam2_decoder_f32_1b_1core.bmodel
-    bmrt_test_case bmodel/image/BM1688/image_decoder/sam2_decoder_f32_1b_2core.bmodel
+    bmrt_test_case BM1684X/image_decoder/sam2_decoder_f16_1b.bmodel
+    bmrt_test_case BM1684X/image_decoder/sam2_decoder_f32_1b.bmodel
 
-    bmrt_test_case bmodel/video/BM1688/sam2_image_encoder_no_pos.bmodel 
-    bmrt_test_case bmodel/video/BM1688/sam2_image_decoder.bmodel
-    bmrt_test_case bmodel/video/BM1688/sam2_memory_attention_nomatmul.bmodel
-    bmrt_test_case bmodel/video/BM1688/sam2_memory_encoder.bmodel  
+    bmrt_test_case BM1684X/video/sam2_image_encoder_no_pos.bmodel 
+    bmrt_test_case BM1684X/video/sam2_image_decoder.bmodel
+    bmrt_test_case BM1684X/video/sam2_memory_attention_nomatmul.bmodel
+    bmrt_test_case BM1684X/video/sam2_memory_encoder.bmodel  
+  elif test $TARGET = "BM1688"; then
+    bmrt_test_case BM1688/image_encoder/sam2_encoder_f16_1b_1core.bmodel
+    bmrt_test_case BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel
+    bmrt_test_case BM1688/image_encoder/sam2_encoder_f32_1b_1core.bmodel
+    bmrt_test_case BM1688/image_encoder/sam2_encoder_f32_1b_2core.bmodel
 
-    popd
+    bmrt_test_case BM1688/image_decoder/sam2_decoder_f16_1b_1core.bmodel
+    bmrt_test_case BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
+    bmrt_test_case BM1688/image_decoder/sam2_decoder_f32_1b_1core.bmodel
+    bmrt_test_case BM1688/image_decoder/sam2_decoder_f32_1b_2core.bmodel
+
+    bmrt_test_case BM1688/video/sam2_image_encoder_no_pos.bmodel 
+    bmrt_test_case BM1688/video/sam2_image_decoder.bmodel
+    bmrt_test_case BM1688/video/sam2_memory_attention_nomatmul.bmodel
+    bmrt_test_case BM1688/video/sam2_memory_encoder.bmodel  
+  fi
+  popd
 }
 
 if test $PYTEST = "pytest"
@@ -157,17 +168,17 @@ function test_python() {
 	fi
 	python3 python/sam2_image_"$1".py --img_path datasets/images/truck.jpg \
 		--points '[[500, 375]]' --label 1 \
-		--encoder_bmodel models/bmodel/image/"${TARGET}"/image_encoder/"$2".bmodel \
-		--decoder_bmodel models/bmodel/image/"${TARGET}"/image_decoder/"$3".bmodel \
+		--encoder_bmodel models/"${TARGET}"/image_encoder/"$2".bmodel \
+		--decoder_bmodel models/"${TARGET}"/image_decoder/"$3".bmodel \
 		>log/"$1"_"$2"_python_test.log 2>&1
-	judge_ret $? "python3 python/sam2_image_$1.py --img_path datasets/images/truck.jpg --input_point '[[500, 375]]' --input_label 1 \
-                            --encoder_bmodel models/bmodel/image/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/bmodel/image/${TARGET}/image_decoder/$3.bmodel " log/"$1"_"$2"_python_test.log
+	judge_ret $? "python3 python/sam2_image_$1.py --img_path datasets/images/truck.jpg --points '[[500, 375]]' --label 1 \
+                            --encoder_bmodel models/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/${TARGET}/image_decoder/$3.bmodel " log/"$1"_"$2"_python_test.log
 	tail -n 20 log/"$1"_"$2"_python_test.log
 	if test "$4" = "img"; then
 		echo "==================="
 		echo "Comparing statis..."
-		python3 tools/compare_statis.py --target="${TARGET}" --platform="${MODE%_*}" --program=sam2_"$1".py --language=python --input=log/"$1"_"$2"_python_test.log --encoder_bmodel models/bmodel/image/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/bmodel/image/${TARGET}/image_decoder/$3.bmodel
-		judge_ret $? "python3 tools/compare_statis.py --target=${TARGET} --platform=${MODE%_*} --program=sam2_$1.py --language=python --input=log/$1_$2_python_test.log --encoder_bmodel models/bmodel/image/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/bmodel/image/${TARGET}/image_decoder/$3.bmodel"
+		python3 tools/compare_statis.py --target="${TARGET}" --platform="${MODE%_*}" --program=sam2_image_"$1".py --language=python --input=log/"$1"_"$2"_python_test.log --encoder_bmodel models/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/${TARGET}/image_decoder/$3.bmodel
+		judge_ret $? "python3 tools/compare_statis.py --target=${TARGET} --platform=${MODE%_*} --program=sam2_image_$1.py --language=python --input=log/$1_$2_python_test.log --encoder_bmodel models/${TARGET}/image_encoder/$2.bmodel   --decoder_bmodel models/${TARGET}/image_decoder/$3.bmodel"
 		echo "==================="
 	fi
 }
@@ -179,14 +190,14 @@ function eval_python()
     mkdir python/log
   fi
   python3 python/sam2_image_$1.py --img_path datasets/images/val2017 \
-                            --encoder_bmodel models/bmodel/image/$TARGET/image_encoder/$2.bmodel  \
-                            --decoder_bmodel models/bmodel/image/$TARGET/image_decoder/$3.bmodel  \
+                            --encoder_bmodel models/$TARGET/image_encoder/$2.bmodel  \
+                            --decoder_bmodel models/$TARGET/image_decoder/$3.bmodel  \
                             --gt_path $6  --mode $4 --dataset_type $5 \
                             --detect_num $7 > python/log/$1_$2_debug.log 2>&1
 
   judge_ret $? "python3 python/sam2_image_$1.py --img_path datasets/images/val2017  \
-                                          --encoder_bmodel models/bmodel/image/$TARGET/image_encoder/$2.bmodel  \
-                                          --decoder_bmodel models/bmodel/image/$TARGET/image_decoder/$3.bmodel  \
+                                          --encoder_bmodel models/$TARGET/image_encoder/$2.bmodel  \
+                                          --decoder_bmodel models/$TARGET/image_decoder/$3.bmodel  \
                                           --gt_path $6 --mode $4 --dataset_type $5 \
                                           --detect_num $7 > python/log/$1_$2_debug.log 2>&1" python/log/$1_$2_debug.log
   tail -n 20 python/log/$1_$2_debug.log
@@ -203,12 +214,12 @@ function eval_python()
 
 function compile_mlir()
 {
-  ./scripts/gen_fp32bmodel_mlir.sh $TARGET
-  judge_ret $? "generate $TARGET fp32bmodel" 0
-  ./scripts/gen_fp16bmodel_mlir.sh $TARGET
-  judge_ret $? "generate $TARGET fp16bmodel" 0
-  ./scripts/gen_fp16bmodel_mlir_video.sh $TARGET
-  judge_ret $? "generate $TARGET fp16bmodel" 0
+  ./scripts/gen_bmodel_image.sh --chip $TARGET --mode f32
+  judge_ret $? "generate $TARGET fp32 image bmodel" 0
+  ./scripts/gen_bmodel_image.sh --chip $TARGET --mode f16
+  judge_ret $? "generate $TARGET fp16 image bmodel" 0
+  ./scripts/gen_bmodel_video.sh --chip $TARGET --mode f16
+  judge_ret $? "generate $TARGET fp16 video bmodel" 0
 }
 
 function compare_res(){
@@ -229,19 +240,11 @@ function compare_res(){
     fi
 }
 
-if test $MODE = "compile_nntc"
-then
-  download
-  compile_nntc
-elif test $MODE = "compile_mlir"
+if [ x$MODE == x"compile_mlir" ]
 then
   download
   compile_mlir
-elif test $MODE = "soc_build"
-then
-  build_soc bmcv
-  build_soc sail
-elif test $MODE = "soc_test"
+elif [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]
 then
   download
   if test $TARGET = "BM1688"
@@ -257,6 +260,15 @@ then
     eval_python opencv sam2_encoder_f32_1b_2core sam2_decoder_f32_1b_2core dataset COCODataset datasets/images/instances_val2017.json 200 0.5
     eval_python opencv sam2_encoder_f16_1b_1core sam2_decoder_f16_1b_1core dataset COCODataset datasets/images/instances_val2017.json 200 0.5
     eval_python opencv sam2_encoder_f16_1b_2core sam2_decoder_f16_1b_2core dataset COCODataset datasets/images/instances_val2017.json 200 0.5
+  elif test $TARGET = "BM1684X"
+  then
+    echo ""
+
+    test_python opencv sam2_encoder_f32_1b sam2_decoder_f32_1b img
+    test_python opencv sam2_encoder_f16_1b sam2_decoder_f16_1b img
+
+    eval_python opencv sam2_encoder_f32_1b sam2_decoder_f32_1b dataset COCODataset datasets/images/instances_val2017.json 200 0.5
+    eval_python opencv sam2_encoder_f16_1b sam2_decoder_f16_1b dataset COCODataset datasets/images/instances_val2017.json 200 0.5
   fi
 fi
 

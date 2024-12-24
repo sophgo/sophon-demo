@@ -15,10 +15,12 @@ import sys
 baseline = """
 |    测试平台 |     测试程序      |             encoder_bmodel        |        decoder_bmodel             |   decode_time   | preprocess_time | inference_time  | postprocess_time| 
 | ----------- | ----------------- | --------------------------------- | --------------------------------- | --------------- | --------------- | --------------  | --------------- |
-|   SE9-16    |  sam2_opencv.py   | sam2_encoder_f32_1b_1core.bmodel  | sam2_decoder_f32_1b_1core.bmodel  |      95.91      |     2394.54     |      74.43      |      1.07       |
-|   SE9-16    |  sam2_opencv.py   | sam2_encoder_f32_1b_2core.bmodel  | sam2_decoder_f32_1b_2core.bmodel  |      99.32      |     1472.30     |      58.43      |      1.14       |
-|   SE9-16    |  sam2_opencv.py   | sam2_encoder_f16_1b_1core.bmodel  | sam2_decoder_f16_1b_1core.bmodel  |      96.10      |     457.77      |      37.05      |      2.77       |
-|   SE9-16    |  sam2_opencv.py   | sam2_encoder_f16_1b_2core.bmodel  | sam2_decoder_f16_1b_2core.bmodel  |     100.79      |     311.52      |      34.60      |      1.11       |
+|   SE7-32    |  sam2_image_opencv.py   |    sam2_encoder_f32_1b.bmodel     |    sam2_decoder_f32_1b.bmodel     |      74.79      |     847.89      |      40.83      |      1.61       |
+|   SE7-32    |  sam2_image_opencv.py   |    sam2_encoder_f16_1b.bmodel     |    sam2_decoder_f16_1b.bmodel     |      69.86      |     149.04      |      20.79      |      1.54       |
+|   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f32_1b_1core.bmodel  | sam2_decoder_f32_1b_1core.bmodel  |      95.91      |     2394.54     |      74.43      |      1.07       |
+|   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f32_1b_2core.bmodel  | sam2_decoder_f32_1b_2core.bmodel  |      99.32      |     1472.30     |      58.43      |      1.14       |
+|   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f16_1b_1core.bmodel  | sam2_decoder_f16_1b_1core.bmodel  |      96.10      |     457.77      |      37.05      |      2.77       |
+|   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f16_1b_2core.bmodel  | sam2_decoder_f16_1b_2core.bmodel  |     100.79      |     311.52      |      34.60      |      1.11       |
 
 
 """
@@ -155,6 +157,8 @@ if __name__ == "__main__":
         if (
             platform == table_data["platform"][i]
             and args.program == table_data["program"][i]
+            and table_data["encoder_bmodel"][i] in args.encoder_bmodel
+            and table_data["decoder_bmodel"][i] in args.decoder_bmodel
         ):
             match_index = i
             break

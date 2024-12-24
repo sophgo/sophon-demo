@@ -219,25 +219,25 @@ def argsparser():
     parser.add_argument(
         "--image_encoder_path",
         type=str,
-        default="models/bmodel/video/BM1688/sam2_image_encoder_no_pos.bmodel",
+        default="models/BM1688/video/sam2_image_encoder_no_pos.bmodel",
         help="Path of sam2 image encoder bmodel",
     )
     parser.add_argument(
         "--image_decoder_path",
         type=str,
-        default="models/bmodel/video/BM1688/sam2_image_decoder.bmodel",
+        default="models/BM1688/video/sam2_image_decoder.bmodel",
         help="Path of sam2 image decoder bmodel",
     )
     parser.add_argument(
         "--memory_attention_path",
         type=str,
-        default="models/bmodel/video/BM1688/sam2_memory_attention_nomatmul.bmodel",
+        default="models/BM1688/video/sam2_memory_attention_nomatmul.bmodel",
         help="Path of sam2 memory attention bmodel",
     )
     parser.add_argument(
         "--memory_encoder_path",
         type=str,
-        default="models/bmodel/video/BM1688/sam2_memory_encoder.bmodel",
+        default="models/BM1688/video/sam2_memory_encoder.bmodel",
         help="Path of sam2 memory encoder bmodel",
     )
     parser.add_argument(
@@ -249,7 +249,7 @@ def argsparser():
     parser.add_argument(
         "--constant_path",
         type=str,
-        default="models/bmodel/video/BM1688/",
+        default="models/BM1688/video/",
         help="Path of constant npz file",
     )
     parser.add_argument(

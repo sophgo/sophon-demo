@@ -97,7 +97,7 @@ sam2_video_open.py的参数说明如下：
 </div>
 
 ```bash
-python3 python/sam2_image_opencv.py --img_path datasets/images/truck.jpg --points '[[500, 375]]' --label 1 --encoder_bmodel models/bmodel/image/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel --decoder_bmodel models/bmodel/image/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
+python3 python/sam2_image_opencv.py --img_path datasets/images/truck.jpg --points '[[500, 375]]' --label 1 --encoder_bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel --decoder_bmodel models/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
 ```
 输出结果为：
 <div style="text-align: center;">
@@ -107,7 +107,7 @@ python3 python/sam2_image_opencv.py --img_path datasets/images/truck.jpg --point
 #### 2.2.2 多点测试 
 输入两个个point坐标，并指定其标签
 ```bash
-python3 python/sam2_image_opencv.py --img_path datasets/images/truck.jpg --points '[[500, 375], [345, 300]]' --label 1 --encoder_bmodel models/bmodel/image/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel --decoder_bmodel models/bmodel/image/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
+python3 python/sam2_image_opencv.py --img_path datasets/images/truck.jpg --points '[[500, 375], [345, 300]]' --label 1 --encoder_bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel --decoder_bmodel models/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
 ```
 
 输出结果为：
@@ -119,7 +119,7 @@ python3 python/sam2_image_opencv.py --img_path datasets/images/truck.jpg --point
 
 输入一个框，并指定其标签
 ```bash
-python3 python/sam2_image_opencv.py --img_path datasets/images/truck.jpg --points '[[900, 300, 350, 350]]' --label 1 --encoder_bmodel models/bmodel/image/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel --decoder_bmodel models/bmodel/image/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
+python3 python/sam2_image_opencv.py --img_path datasets/images/truck.jpg --points '[[900, 300, 350, 350]]' --label 1 --encoder_bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel --decoder_bmodel models/BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel
 ```
 
 输出结果为：

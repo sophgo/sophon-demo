@@ -1,14 +1,46 @@
 #!/bin/bash
+# set -ex
 model_dir=$(dirname $(readlink -f "$0"))
 
 echo $model_dir
 
-target=bm1688
-target_dir=BM1688
+target=bm1684x
+target_dir=BM1684X
+mode=f16
+# TO DO
+batch_size=1
+num_core=1
 
+while [[ $# -gt 0 ]]; do
+    key="$1"
 
-outdir=../models/$target_dir/bmodel/video/
+    case $key in
+        --chip)
+            target=${2,,}
+            target_dir=${target^^}
+            shift 2
+            ;;
+        --mode)
+            mode="${2}"
+            quantize_args="--quantize ${mode^^}"
+            shift 2
+            ;;
+        *)
+            echo "Invalid option: $key" >&2
+            exit 1
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            exit 1
+            ;;
+    esac
+done
 
+if [[ x"$target" != "bm1688" ]]; then
+    num_core=1
+fi
+
+outdir=../models/$target_dir/video/
 
 function gen_mlir_image_encoder()
 {
@@ -19,12 +51,13 @@ function gen_mlir_image_encoder()
         --mlir sam2_image_encoder_no_pos.mlir
 }
 
-function gen_fp16bmodel_image_encoder()
+function gen_bmodel_image_encoder()
 {
     model_deploy.py \
         --mlir sam2_image_encoder_no_pos.mlir \
-        --quantize F16 \
+        $quantize_args \
         --chip $target \
+        --num_core $num_core \
         --model sam2_image_encoder_no_pos.bmodel
 
     mv sam2_image_encoder_no_pos.bmodel $outdir
@@ -39,12 +72,13 @@ function gen_mlir_image_decoder()
         --mlir sam2_image_decoder.mlir
 }
 
-function gen_fp16bmodel_image_decoder()
+function gen_bmodel_image_decoder()
 {
     model_deploy.py \
         --mlir sam2_image_decoder.mlir \
-        --quantize F16 \
+        $quantize_args \
         --chip $target \
+        --num_core $num_core \
         --model sam2_image_decoder.bmodel
 
     mv sam2_image_decoder.bmodel $outdir
@@ -59,12 +93,13 @@ function gen_mlir_memory_attention()
         --mlir sam2_memory_attention_nomatmul.mlir
 }
 
-function gen_fp16bmodel_memory_attention()
+function gen_bmodel_memory_attention()
 {
     model_deploy.py \
         --mlir sam2_memory_attention_nomatmul.mlir \
         --quantize F16 \
         --chip $target \
+        --num_core $num_core \
         --model sam2_memory_attention_nomatmul.bmodel
 
     mv sam2_memory_attention_nomatmul.bmodel $outdir
@@ -79,12 +114,13 @@ function gen_mlir_memory_encoder()
         --mlir sam2_memory_encoder.mlir
 }
 
-function gen_fp16bmodel_memory_encoder()
+function gen_bmodel_memory_encoder()
 {
     model_deploy.py \
         --mlir sam2_memory_encoder.mlir \
         --quantize F16 \
         --chip $target \
+        --num_core $num_core \
         --model sam2_memory_encoder.bmodel
 
     mv sam2_memory_encoder.bmodel $outdir
@@ -100,15 +136,15 @@ else
 fi
 
 gen_mlir_image_encoder
-gen_fp16bmodel_image_encoder
+gen_bmodel_image_encoder
 
 gen_mlir_image_decoder
-gen_fp16bmodel_image_decoder
+gen_bmodel_image_decoder
 
 gen_mlir_memory_attention
-gen_fp16bmodel_memory_attention
+gen_bmodel_memory_attention
 
 gen_mlir_memory_encoder
-gen_fp16bmodel_memory_encoder
+gen_bmodel_memory_encoder
 
 popd
