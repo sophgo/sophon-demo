@@ -16,11 +16,11 @@
 ## 1. 简介
 Qwen-VL是阿里云研发的大规模视觉语言模型（Large Vision Language Model, LVLM）。Qwen-VL可以以图像、文本、检测框作为输入，并以文本和检测框作为输出。Qwen-VL系列模型性能强大，具备多语言对话、多图交错对话等能力，Qwen-VL仓库可见[Qwen-VL-Chat](https://huggingface.co/Qwen/Qwen-VL-Chat)。
 
-本例程对Qwen-VL进行移植，使其可在Sophon BM1684X芯片上运行。PCIE模式下，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行。在1684X SoC设备（如SE7、SM7、Airbox等）上，支持在V24.04.01(libsophon_0.5.1)SDK上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
+本例程对Qwen-VL进行移植，使其可在Sophon BM1684X芯片上运行。PCIE模式下，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86/riscv主机上运行。在1684X SoC设备（如SE7、SM7、Airbox等）上，支持在V24.04.01(libsophon_0.5.1)SDK上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
 
-* 支持BM1684X(x86 PCIe、SoC)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 支持FP16、INT8模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持多轮对话
@@ -139,6 +139,7 @@ cd scripts
 |    测试平台   |               测试模型                   |first token latency(s)|token per second(tokens/s)| 
 | -----------  | -------------------------------------- | --------------------- | ----------------------- | 
 |    SE7-32    | qwen-vl-chat-int8-vit-fp16-1dev.bmodel |    2.498              |        5.023            | 
+|    SRM1-20   | qwen-vl-chat-int8-vit-fp16-1dev.bmodel |    2.769              |        4.337            | 
  
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
