@@ -21,7 +21,7 @@
 Whisper 是一个开源的深度学习语音识别模型，由 OpenAI 开发，它能够实现实时、多语言的语音识别，并支持跨多种环境和设备的灵活部署。本例程对[Whisper官方开源仓库](https://github.com/openai/whisper)中的算法进行移植，使之能在SOPHON BM1684X上进行推理。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 支持FP16(BM1684X)模型编译和推理
 * 支持基于SAIL推理的Python例程
 
@@ -99,6 +99,9 @@ cat online_wer | grep "Overall"
 |   SE7-32     | whisper.py   | bmwhisper_base_1684x_f16.bmodel                       | 17.80% |
 |   SE7-32     | whisper.py   | bmwhisper_small_1684x_f16.bmodel                      | 9.44%  |
 |   SE7-32     | whisper.py   | bmwhisper_medium_1684x_f16.bmodel                     | 5.88%  |
+|   SRM1-20    | whisper.py   | bmwhisper_base_1684x_f16.bmodel                       | 17.68% |
+|   SRM1-20    | whisper.py   | bmwhisper_small_1684x_f16.bmodel                      | 9.44%  |
+|   SRM1-20    | whisper.py   | bmwhisper_medium_1684x_f16.bmodel                     | 5.99%  |
 
 > **测试说明**：
 1. 在使用的模型相同的情况下，wer在不同的测试平台上是相同的。
@@ -110,6 +113,9 @@ cat online_wer | grep "Overall"
 |   SE7-32     | whisper.py       | bmwhisper_base_1684x_f16.bmodel    | 247.61                | 61.70                   |
 |   SE7-32     | whisper.py       | bmwhisper_small_1684x_f16.bmodel   | 268.22                | 179.44                  |
 |   SE7-32     | whisper.py       | bmwhisper_medium_1684x_f16.bmodel  | 300.66                | 451.54                  |
+|   SRM1-20    | whisper.py       | bmwhisper_base_1684x_f16.bmodel    | 9112.57               | 791.98                  |
+|   SRM1-20    | whisper.py       | bmwhisper_small_1684x_f16.bmodel   | 5673.05               | 2129.36                 |
+|   SRM1-20    | whisper.py       | bmwhisper_medium_1684x_f16.bmodel  | 5723.73               | 5348.68                 |
 
 > **测试说明**：
 > 1. 该性能使用datasets/test/demo.wav音频进行测试，计算后得出平均每秒音频所需推理时间。
