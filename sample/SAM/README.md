@@ -22,7 +22,7 @@
 ​SAM是Meta提出的一个分割一切的提示型模型，其在1100万张图像上训练了超过10亿个掩码，实现了强大的零样本泛化，突破了分割界限。本例程对[​SAM官方开源仓库](https://github.com/facebookresearch/segment-anything)的模型和算法进行移植，使之能在SOPHON BM1684X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 图像压缩(embedding)部分支持FP16 1batch(BM1684X)模型编译和推理
 * 图像推理(mask_decoder)部分支持FP32 1batch、FP16 1batch(BM1684X)模型编译和推理
 * 支持基于OpenCV的Python推理
@@ -161,7 +161,12 @@ bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_decoder_fp32_1b.b
 | BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel  | 11.0        | 411.0          | 34.0             | 16.5             |
 | BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel | 11.0        | 416.0          | 15.5             | 16.2             |
 | BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel | 11.0        | 411.0          | 34.0             | 16.5             |
-| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_auto_decoder_fp32_1b.bmodel        | 37.39       | 512.61         | 28942.54         | 9403.08          |
+| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_auto_multi_decoder_fp32_1b.bmodel  | 37.39       | 512.61         | 28942.54         | 9403.08          |
+|   SRM1-20   | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  | 62.41       | 606.10         | 72.2             | 21.0             |
+|   SRM1-20   | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel  | 62.99       | 631.95         | 105.7            | 29.5             |
+|   SRM1-20   | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel | 62.39       | 604.78         | 36.4             | 5.9              |
+|   SRM1-20   | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel | 62.10       | 604.45         | 61.3             | 7.3              |
+|   SRM1-20   | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_auto_multi_decoder_fp32_1b.bmodel  | 14.06       | 3295.10        | 66056.41         | 25020.29         |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
