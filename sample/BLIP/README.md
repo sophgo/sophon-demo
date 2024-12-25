@@ -17,7 +17,7 @@ BLIP (Bootstrapping Language-Image Pre-training) 是一种用于多模态学习�
 
 ## 2. 特性
 
-* 支持BM1688(SoC)、BM1684/BM1684X(x86 PCIe、SoC)
+* 支持BM1688(SoC)、BM1684(x86 PCIe、SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 支持Python例程
 * 支持图片测试
 
@@ -171,6 +171,9 @@ bmrt_test --bmodel models/BM1684X/blip_itm_bm1684_f32_1b.bmodel
 | SE9-16   | blip_cap.py | 76.05           |1000.13        |
 | SE9-16   | blip_itm.py | 80.74           | 807.94        |
 | SE9-16   | blip_vqa.py | 19.01           | 309.29        |
+| SRM1-20  | blip_cap.py | 67.74           | 394.40        |
+| SRM1-20  | blip_itm.py | 67.43           | 239.84        |
+| SRM1-20  | blip_vqa.py | 28.61           |  78.51        |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性，实测结果与该表结果有误差属正常现象，建议取稳定后的性能数据、并多次测试取平均值。
