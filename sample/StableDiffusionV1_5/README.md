@@ -19,7 +19,7 @@ StableDiffusion V1.5 是开源AIGC模型:[Huggingface官网stable-diffusion-v1-5
 
 ## 2. 特性
 
-- 支持BM1684X(x86 PCIe、SoC)
+- 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 - 支持FP32(BM1684X)、FP16(BM1684X)
 - 基于sophon-sail的python推理，文生图和controlnet辅助生图两种模式
 
@@ -167,6 +167,8 @@ cd scripts
 | -----------  | ------------- | ------------------------------------------------------ | --------------- | -------------  | ---------------- |
 | BM1684X SoC  |    text2img   |   text_encoder fp32 + singlize unet/vae_decoder fp16   |      50.61      |    4808.42     |     493.20       |
 | BM1684X SoC  |   controlnet  |   text_encoder fp32 + multilize unet/vae_decoder fp16  |      50.69      |    9223.65     |     493.20       |
+|   SRM1-20    |    text2img   |   text_encoder fp32 + singlize unet/vae_decoder fp16   |      84.34      |    5883.03     |     583.24       |
+|   SRM1-20    |   controlnet  |   text_encoder fp32 + multilize unet/vae_decoder fp16  |      95.78      |    15703.22    |     592.36       |
 
 ## 6. FAQ
 [常见问题解答](../../docs/FAQ.md)
