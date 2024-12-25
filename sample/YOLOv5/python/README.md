@@ -32,6 +32,11 @@ pip3 install opencv-python-headless
 ## 2. 推理测试
 python例程不需要编译，可以直接运行。
 ### 2.1 参数说明
+
+yolov5_bmcv.py的参数与yolov5_opencv.py相同，但**目前只支持测试视频文件和batch size=1的模型**。
+
+以下命令均使用yolov5_opencv.py作为示例。
+
 yolov5_opencv.py的运行方法：
 ```bash
 usage: yolov5_opencv.py [-h] [--input INPUT] [--bmodel BMODEL] [--dev_id DEV_ID] [--conf_thresh CONF_THRESH] [--nms_thresh NMS_THRESH]
@@ -46,6 +51,8 @@ optional arguments:
   --nms_thresh NMS_THRESH
                         nms阈值
 ```
+
+
 
 ### 2.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。

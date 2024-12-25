@@ -34,6 +34,7 @@
 ├── python                # 存放Python例程及其README
 |   ├──README.md 
 |   ├──yolov5_opencv.py   # 使用OpenCV解码、OpenCV前处理、SAIL推理的Python例程
+|   ├──yolov5_bmcv.py     # 使用SAIL解码、预处理、推理的Python例程
 |   └──...                # Python例程共用功能的封装。
 ├── README.md             # 本例程的中文指南
 ├── scripts               # 存放模型编译、数据下载、自动测试等shell脚本
@@ -155,13 +156,17 @@ tpu-model-rt --bmodel models/BM1690/yolov5s_v6.1_3output_fp32_1b.bmodel
 ### 6.2 程序运行性能
 参考[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
 
-在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
+使用不同的例程、模型测试`datasets/coco/val2017_1000`或`test_car_person_1080P.mp4`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
+
+这里，`yolov5_opencv.py`测试数据为`datasets/coco/val2017_1000`，`yolov5_bmcv.py`测试数据为`test_car_person_1080P.mp4`。
 
 |    测试平台  |     测试程序      |             测试模型                |decode_time    |preprocess_time  |inference_time   |postprocess_time| 
 | ----------- | ---------------- | ----------------------------------- | --------      | ---------       | ---------        | --------- |
 | BM1690 PCIe | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      1.28       |      2.93       |      32.15      |      4.41       |
 | BM1690 PCIe | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      1.28       |      2.95       |      17.42      |      4.46       |
 | BM1690 PCIe | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      1.23       |      2.36       |      14.30      |      5.81       |
+| BM1690 PCIe | yolov5_bmcv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      0.44       |      3.93       |      2.06      |      5.07       |
+| BM1690 PCIe | yolov5_bmcv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      0.44       |      4.08       |      17.36      |      5.58       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
