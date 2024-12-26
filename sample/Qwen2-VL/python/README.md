@@ -29,17 +29,7 @@ Qwen2-vl能够输入单一图片/多张图/视频进行连续对话，python目�
 
 ```bash
 pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-
-# x86_64平台使用如下命令
-pip3 install decord==0.6.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
-
-# arm平台使用如下命令
-python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen2-VL/decord-0.6.0-cp38-cp38-linux_aarch64.whl
-pip3 install decord-0.6.0-cp38-cp38-linux_aarch64.whl
-rm -f decord-0.6.0-cp38-cp38-linux_aarch64.whl
 ```
-
-*其中decord在ARM平台没有官方安装包，若需要自行编译安装，可参考[decord从源码安装指南](https://github.com/dmlc/decord?tab=readme-ov-file#install-from-source)，该程序需要设置-DFFMPEG_DIR到FFMPEG路径。*
 
 - 您还需要安装sophon-sail，由于本例程需要的sophon-sail版本较新，可以用如下命令下载sophon-sail源码，并参考[sophon-sail python3接口编译安装指南](https://doc.sophgo.com/sdk-docs/v24.04.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#python3wheel)自行编译sophon-sail。
 
@@ -67,13 +57,7 @@ rm configs.zip
 
 ```bash
 pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-
-python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen2-VL/decord-0.6.0-cp38-cp38-linux_aarch64.whl
-pip3 install decord-0.6.0-cp38-cp38-linux_aarch64.whl
-rm -f decord-0.6.0-cp38-cp38-linux_aarch64.whl
 ``` 
-
-*其中decord在ARM平台没有官方安装包，若需要自行编译安装，可参考[decord从源码安装指南](https://github.com/dmlc/decord?tab=readme-ov-file#install-from-source)和[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)，该程序需要设置-DFFMPEG_DIR到FFMPEG路径。在交叉编译环境编译得到.so文件后，需要拷贝代码到ARM SOC机器，执行python bindings相关操作。*
 
 - 本例程依赖sophon-sail，可直接安装编译好的sophon-sail包，执行如下命令：
 
