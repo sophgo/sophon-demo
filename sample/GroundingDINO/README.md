@@ -140,9 +140,11 @@ bmrt_test --bmodel models/BM1684X/groundingdino_bm1684x_fp16.bmodel
 | BM1684X SoC | groundingdino_pil.py | groundingdino_bm1684x_fp16.bmodel | 3.50        | 36.25           | 547.12          | 2.73                |
 | BM1688 SoC  | groundingdino_pil.py | groundingdino_bm1688_fp16.bmodel  | 46.94       | 274.95          | 1336.27         | 31.67             |
 | CV186X SoC  | groundingdino_pil.py | groundingdino_cv186x_fp16.bmodel  | 42.92       | 233.76          | 1719.74         | 35.34             |
+| SRM1-20     | groundingdino_pil.py | groundingdino_bm1684x_fp16.bmodel | 32.09       | 200.05          | 641.01          | 10.22             |
 | BM1684X SoC | groundingdino_sail.soc | groundingdino_bm1684x_fp16.bmodel | 5.81      | 6.06            | 468.55          | 6.12              |
 | BM1688 SoC  | groundingdino_sail.soc | groundingdino_bm1688_fp16.bmodel  | 8.61      | 11.26           | 1295.12         | 8.61              |
 | CV186X SoC  | groundingdino_sail.soc | groundingdino_cv186x_fp16.bmodel  | 8.68      | 11.04           | 1364.86         | 8.61              |
+| SRM1-20     | groundingdino_sail.pcie| groundingdino_bm1684x_fp16.bmodel | 22.68     | 55.29           | 648.81          | 6.06              |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)；
