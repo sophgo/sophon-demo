@@ -23,30 +23,27 @@ st.title("Qwen-VL")
 
 # Function to display uploaded image in the sidebar
 def display_uploaded_image(image):
-    st.sidebar.image(image, caption='Uploaded Image', use_column_width=True)
+    st.sidebar.image(image, caption='Uploaded Image', use_container_width=True)
 
-# uploaded_file = st.file_uploader("上传图片", type=["jpg", "jpeg", "png"])
 with st.sidebar:
     uploaded_file = st.file_uploader("上传图片", type=["jpg", "jpeg", "png"])
 
 # Check if a file was uploaded
 if uploaded_file is not None:
+    if uploaded_file.size > 200 * 1024 * 1024:
+        st.error("Image is too large!")
+
     image = Image.open(uploaded_file)
 
     # Display the uploaded image in the sidebar
-    display_uploaded_image(uploaded_file)
+    display_uploaded_image(image)
 
     @st.cache_resource
     def get_handle():
         return sail.Handle(dev_id)
 
-    # @st.cache_resource
-    # def get_vit():
-    #     return sail.Engine(vit_path, dev_id[1], sail.IOMode.DEVIO)
-
     @st.cache_resource
     def get_llm():
-        # return sail.Engine(bmodel_path, dev_id, sail.IOMode.DEVIO)
         return sail.EngineLLM(bmodel_path, [dev_id])
 
     @st.cache_resource

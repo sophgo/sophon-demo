@@ -3,7 +3,7 @@ torch==2.3.0
 torchvision
 Pillow
 requests==2.27
-streamlit
+streamlit==1.41.1
 tiktoken
 matplotlib
 transformers_stream_generator
