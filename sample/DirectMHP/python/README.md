@@ -71,3 +71,5 @@ python3 python/directmhp_opencv.py --input datasets/test --bmodel models/BM1684X
 python3 python/directmhp_opencv.py --input datasets/person_small.mp4 --bmodel models/BM1684X/directmhp_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.001 --nms_thresh 0.65
 ```
 测试结束后，`directmhp_opencv.py`会将预测的结果画在`results/person_small.avi`中，同时会打印预测结果、推理时间等信息。`directmhp_bmcv.py`会将预测结果画在图片上并保存在`results/images`中。
+
+注意，riscv平台暂不支持用opencv进行视频测试，但是您可以选择`directmhp_bmcv.py`测试。

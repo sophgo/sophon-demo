@@ -94,6 +94,12 @@ python3 deepsort_opencv.py --input ../datasets/test_car_person_1080P.mp4 --bmode
 ```
 测试结束后，会将预测的结果画在`results/video/result.mp4`中，同时把图片保存在`results/video`下，预测的结果保存在`results/mot_eval/test_car_person_1080P_extractor_fp32_1b.bmodel.txt`，同时会打印推理时间等信息。  
 
+注意，riscv平台暂不支持用opencv进行视频测试，但是您可以使用cpp程序测试。
+```bash
+cd cpp/deepsort_bmcv
+./deepsort_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel_detector=../../models/BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel --bmodel_extractor=../../models/BM1684X/extractor_fp32_1b.bmodel --dev_id=0
+```
+
 ```bash
 INFO:root:decode_time(ms): 2.96             #平均每帧的解码耗时
 INFO:root:encode_time(ms): 77.97            #平均每帧画框和编码的时间

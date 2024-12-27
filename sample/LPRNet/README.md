@@ -212,22 +212,22 @@ python3 tools/eval_ccpd.py --gt_path datasets/test_label.json --result_json cpp/
 | SE9-16   | lprnet_bmcv.soc    | lprnet_fp16_1b.bmodel | 0.895 |
 | SE9-16   | lprnet_bmcv.soc    | lprnet_int8_1b.bmodel | 0.878 |
 | SE9-16   | lprnet_bmcv.soc    | lprnet_int8_4b.bmodel | 0.894 |
-| SG2042   | lprnet_opencv.py   | lprnet_fp32_1b.bmodel | 0.894 |
-| SG2042   | lprnet_opencv.py   | lprnet_fp16_1b.bmodel | 0.894 |
-| SG2042   | lprnet_opencv.py   | lprnet_int8_1b.bmodel | 0.867 |
-| SG2042   | lprnet_opencv.py   | lprnet_int8_4b.bmodel | 0.880 |
-| SG2042   | lprnet_bmcv.py     | lprnet_fp32_1b.bmodel | 0.882 |
-| SG2042   | lprnet_bmcv.py     | lprnet_fp16_1b.bmodel | 0.882 |
-| SG2042   | lprnet_bmcv.py     | lprnet_int8_1b.bmodel | 0.861 |
-| SG2042   | lprnet_bmcv.py     | lprnet_int8_4b.bmodel | 0.880 |
-| SG2042   | lprnet_opencv.pcie | lprnet_fp32_1b.bmodel | 0.882 |
-| SG2042   | lprnet_opencv.pcie | lprnet_fp16_1b.bmodel | 0.882 |
-| SG2042   | lprnet_opencv.pcie | lprnet_int8_1b.bmodel | 0.861 |
-| SG2042   | lprnet_opencv.pcie | lprnet_int8_4b.bmodel | 0.872 |
-| SG2042   | lprnet_bmcv.pcie   | lprnet_fp32_1b.bmodel | 0.882 |
-| SG2042   | lprnet_bmcv.pcie   | lprnet_fp16_1b.bmodel | 0.882 |
-| SG2042   | lprnet_bmcv.pcie   | lprnet_int8_1b.bmodel | 0.861 |
-| SG2042   | lprnet_bmcv.pcie   | lprnet_int8_4b.bmodel | 0.872 |
+| SRM1-20  | lprnet_opencv.py   | lprnet_fp32_1b.bmodel | 0.894 |
+| SRM1-20  | lprnet_opencv.py   | lprnet_fp16_1b.bmodel | 0.894 |
+| SRM1-20  | lprnet_opencv.py   | lprnet_int8_1b.bmodel | 0.867 |
+| SRM1-20  | lprnet_opencv.py   | lprnet_int8_4b.bmodel | 0.880 |
+| SRM1-20  | lprnet_bmcv.py     | lprnet_fp32_1b.bmodel | 0.882 |
+| SRM1-20  | lprnet_bmcv.py     | lprnet_fp16_1b.bmodel | 0.882 |
+| SRM1-20  | lprnet_bmcv.py     | lprnet_int8_1b.bmodel | 0.861 |
+| SRM1-20  | lprnet_bmcv.py     | lprnet_int8_4b.bmodel | 0.880 |
+| SRM1-20  | lprnet_opencv.pcie | lprnet_fp32_1b.bmodel | 0.882 |
+| SRM1-20  | lprnet_opencv.pcie | lprnet_fp16_1b.bmodel | 0.882 |
+| SRM1-20  | lprnet_opencv.pcie | lprnet_int8_1b.bmodel | 0.861 |
+| SRM1-20  | lprnet_opencv.pcie | lprnet_int8_4b.bmodel | 0.872 |
+| SRM1-20  | lprnet_bmcv.pcie   | lprnet_fp32_1b.bmodel | 0.882 |
+| SRM1-20  | lprnet_bmcv.pcie   | lprnet_fp16_1b.bmodel | 0.882 |
+| SRM1-20  | lprnet_bmcv.pcie   | lprnet_int8_1b.bmodel | 0.861 |
+| SRM1-20  | lprnet_bmcv.pcie   | lprnet_int8_4b.bmodel | 0.872 |
 
 
 > **测试说明**：  
@@ -339,22 +339,22 @@ bmrt_test --bmodel models/BM1684/lprnet_fp32_1b.bmodel
 | SE9-8    | lprnet_bmcv.soc   | lprnet_fp16_1b.bmodel | 1.25        | 0.45            | 0.98           | 0.08             |
 | SE9-8    | lprnet_bmcv.soc   | lprnet_int8_1b.bmodel | 1.20        | 0.45            | 0.56           | 0.08             |
 | SE9-8    | lprnet_bmcv.soc   | lprnet_int8_4b.bmodel | 1.10        | 0.36            | 0.42           | 0.06             |
-| SG2042   | lprnet_opencv.py  | lprnet_fp32_1b.bmodel |  0.44       |  0.12           |  2.37          |  0.12            |
-| SG2042   | lprnet_opencv.py  | lprnet_fp16_1b.bmodel |  0.43       |  0.12           |  2.06          |  0.13            |
-| SG2042   | lprnet_opencv.py  | lprnet_int8_1b.bmodel |  0.43       |  0.13           |  2.01          |  0.13            |
-| SG2042   | lprnet_opencv.py  | lprnet_int8_4b.bmodel |  0.33       |  0.08           |  0.70          |  0.06            |
-| SG2042   |  lprnet_bmcv.py   | lprnet_fp32_1b.bmodel |  2.20       |  0.79           |  1.79          |  0.13            |
-| SG2042   |  lprnet_bmcv.py   | lprnet_fp16_1b.bmodel |  2.20       |  0.79           |  1.50          |  0.13            |
-| SG2042   |  lprnet_bmcv.py   | lprnet_int8_1b.bmodel |  2.18       |  0.78           |  1.41          |  0.13            |
-| SG2042   |  lprnet_bmcv.py   | lprnet_int8_4b.bmodel |  2.11       |  0.76           |  0.50          |  0.06            |
-| SG2042   |lprnet_opencv.pcie | lprnet_fp32_1b.bmodel |  1.91       |  0.88           |  0.98          |  0.41            |
-| SG2042   |lprnet_opencv.pcie | lprnet_fp16_1b.bmodel |  1.56       |  0.72           |  0.65          |  0.39            |
-| SG2042   |lprnet_opencv.pcie | lprnet_int8_1b.bmodel |  1.56       |  0.71           |  0.59          |  0.38            |
-| SG2042   |lprnet_opencv.pcie | lprnet_int8_4b.bmodel |  1.46       |  0.40           |  0.27          |  0.14            |
-| SG2042   | lprnet_bmcv.pcie  | lprnet_fp32_1b.bmodel |  1.99       |  0.63           |  0.93          |  0.37            |
-| SG2042   | lprnet_bmcv.pcie  | lprnet_fp16_1b.bmodel |  3.33       |  0.83           |  0.71          |  0.45            |
-| SG2042   | lprnet_bmcv.pcie  | lprnet_int8_1b.bmodel |  1.96       |  0.63           |  0.57          |  0.36            |
-| SG2042   | lprnet_bmcv.pcie  | lprnet_int8_4b.bmodel |  1.94       |  0.50           |  0.27          |  0.13            |
+| SRM1-20  | lprnet_opencv.py  | lprnet_fp32_1b.bmodel |  0.44       |  0.12           |  2.37          |  0.12            |
+| SRM1-20  | lprnet_opencv.py  | lprnet_fp16_1b.bmodel |  0.43       |  0.12           |  2.06          |  0.13            |
+| SRM1-20  | lprnet_opencv.py  | lprnet_int8_1b.bmodel |  0.43       |  0.13           |  2.01          |  0.13            |
+| SRM1-20  | lprnet_opencv.py  | lprnet_int8_4b.bmodel |  0.33       |  0.08           |  0.70          |  0.06            |
+| SRM1-20  |  lprnet_bmcv.py   | lprnet_fp32_1b.bmodel |  2.20       |  0.79           |  1.79          |  0.13            |
+| SRM1-20  |  lprnet_bmcv.py   | lprnet_fp16_1b.bmodel |  2.20       |  0.79           |  1.50          |  0.13            |
+| SRM1-20  |  lprnet_bmcv.py   | lprnet_int8_1b.bmodel |  2.18       |  0.78           |  1.41          |  0.13            |
+| SRM1-20  |  lprnet_bmcv.py   | lprnet_int8_4b.bmodel |  2.11       |  0.76           |  0.50          |  0.06            |
+| SRM1-20  |lprnet_opencv.pcie | lprnet_fp32_1b.bmodel |  1.91       |  0.88           |  0.98          |  0.41            |
+| SRM1-20  |lprnet_opencv.pcie | lprnet_fp16_1b.bmodel |  1.56       |  0.72           |  0.65          |  0.39            |
+| SRM1-20  |lprnet_opencv.pcie | lprnet_int8_1b.bmodel |  1.56       |  0.71           |  0.59          |  0.38            |
+| SRM1-20  |lprnet_opencv.pcie | lprnet_int8_4b.bmodel |  1.46       |  0.40           |  0.27          |  0.14            |
+| SRM1-20  | lprnet_bmcv.pcie  | lprnet_fp32_1b.bmodel |  1.99       |  0.63           |  0.93          |  0.37            |
+| SRM1-20  | lprnet_bmcv.pcie  | lprnet_fp16_1b.bmodel |  3.33       |  0.83           |  0.71          |  0.45            |
+| SRM1-20  | lprnet_bmcv.pcie  | lprnet_int8_1b.bmodel |  1.96       |  0.63           |  0.57          |  0.36            |
+| SRM1-20  | lprnet_bmcv.pcie  | lprnet_int8_4b.bmodel |  1.94       |  0.50           |  0.27          |  0.13            |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

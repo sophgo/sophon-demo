@@ -86,6 +86,8 @@ python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmo
 After the test, the predicted results will be drawn in `results/test_car_person_1080P.avi`, and information such as predicted results and inference time will be printed at the same time.
 `yolov5_bmcv.py` do not save results as video, it will save results as images in `results/images` instead. 
 
+The RISC-V platform currently does not support video testing with OpenCV, but you can choose `yolov5_bmcv.py` instead.
+
 ### 3. Flowchart
 
 The processes in `yolov5_bmcv.py` and `yolov5_opencv.py` follow the following flowchart:
