@@ -229,7 +229,7 @@ source /etc/profile
     
     (1)通过apt安装交叉编译工具链：
 
-    如果您的系统是ubuntu20.04，GLIBC版本<=2.31，可以使用如下命令安装：
+    如果您的系统和目标SoC平台的libc版本相同，那么您可以使用如下命令安装：
     ```bash
     sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
     ```
@@ -244,10 +244,15 @@ source /etc/profile
     
     **请注意，不要将下文的stream_dev镜像和用于模型编译的tpuc_dev镜像混用。**
 
-    这里提供一个ubuntu20.04的docker镜像作为交叉编译环境，通过dfss下载：
+    可以使用我们提供的docker镜像作为交叉编译环境，通过dfss下载：
     ```bash
     pip3 install dfss
-    python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev.tar
+    python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev.tar # ubuntu 20.04, gcc-9
+    ```
+
+    如果您的设备为BM1688/CV186AH，SDK版本1.9以上，且您需要用到一些无法兼容20.04/22.04的第三方库，那么您需要使用这个镜像:
+    ```bash
+    python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev_22.04.tar # ubuntu 22.04, gcc-11
     ```
 
     如果是首次使用Docker, 可执行下述命令进行安装和配置(仅首次执行):
