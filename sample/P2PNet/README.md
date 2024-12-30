@@ -194,18 +194,18 @@ python3 tools/eval_acc.py --gt_path datasets/test/ground-truth --result_path pyt
 | SE9-8| p2pnet_bmcv.soc | p2pnet_cv186x_fp16_1b.bmodel | 18.06      | 28.65           |
 | SE9-8| p2pnet_bmcv.soc | p2pnet_cv186x_int8_1b.bmodel | 18.10          | 28.53            |
 | SE9-8| p2pnet_bmcv.soc | p2pnet_cv186x_int8_4b.bmodel | 18.10       | 28.53           |
-| SG2042       | p2pnet_opencv.py   | p2pnet_bm1684x_fp32_1b.bmodel |  18.35 | 29.12 |
-| SG2042       | p2pnet_opencv.py   | p2pnet_bm1684x_fp16_1b.bmodel |  18.34 | 29.11 |
-| SG2042       | p2pnet_opencv.py   | p2pnet_bm1684x_int8_1b.bmodel |  18.49 | 29.64 |
-| SG2042       | p2pnet_opencv.py   | p2pnet_bm1684x_int8_4b.bmodel |  18.49 | 29.64 |
-| SG2042       | p2pnet_bmcv.py     | p2pnet_bm1684x_fp32_1b.bmodel |  20.22 | 30.49 |
-| SG2042       | p2pnet_bmcv.py     | p2pnet_bm1684x_fp16_1b.bmodel |  20.21 | 30.49 |
-| SG2042       | p2pnet_bmcv.py     | p2pnet_bm1684x_int8_1b.bmodel |  20.34 | 30.71 |
-| SG2042       | p2pnet_bmcv.py     | p2pnet_bm1684x_int8_4b.bmodel |  20.34 | 30.71 |
-| SG2042       | p2pnet_bmcv.pcie   | p2pnet_bm1684x_fp32_1b.bmodel |  18.06 | 28.48 |
-| SG2042       | p2pnet_bmcv.pcie   | p2pnet_bm1684x_fp16_1b.bmodel |  18.09 | 28.51 |
-| SG2042       | p2pnet_bmcv.pcie   | p2pnet_bm1684x_int8_1b.bmodel |  17.99 | 28.32 |
-| SG2042       | p2pnet_bmcv.pcie   | p2pnet_bm1684x_int8_4b.bmodel |  17.99 | 28.32 |
+| SRM1-20      | p2pnet_opencv.py   | p2pnet_bm1684x_fp32_1b.bmodel |  18.35 | 29.12 |
+| SRM1-20      | p2pnet_opencv.py   | p2pnet_bm1684x_fp16_1b.bmodel |  18.34 | 29.11 |
+| SRM1-20      | p2pnet_opencv.py   | p2pnet_bm1684x_int8_1b.bmodel |  18.49 | 29.64 |
+| SRM1-20      | p2pnet_opencv.py   | p2pnet_bm1684x_int8_4b.bmodel |  18.49 | 29.64 |
+| SRM1-20      | p2pnet_bmcv.py     | p2pnet_bm1684x_fp32_1b.bmodel |  20.22 | 30.49 |
+| SRM1-20      | p2pnet_bmcv.py     | p2pnet_bm1684x_fp16_1b.bmodel |  20.21 | 30.49 |
+| SRM1-20      | p2pnet_bmcv.py     | p2pnet_bm1684x_int8_1b.bmodel |  20.34 | 30.71 |
+| SRM1-20      | p2pnet_bmcv.py     | p2pnet_bm1684x_int8_4b.bmodel |  20.34 | 30.71 |
+| SRM1-20      | p2pnet_bmcv.pcie   | p2pnet_bm1684x_fp32_1b.bmodel |  18.06 | 28.48 |
+| SRM1-20      | p2pnet_bmcv.pcie   | p2pnet_bm1684x_fp16_1b.bmodel |  18.09 | 28.51 |
+| SRM1-20      | p2pnet_bmcv.pcie   | p2pnet_bm1684x_int8_1b.bmodel |  17.99 | 28.32 |
+| SRM1-20      | p2pnet_bmcv.pcie   | p2pnet_bm1684x_int8_4b.bmodel |  17.99 | 28.32 |
 
 
 > **测试说明**：
@@ -313,18 +313,18 @@ bmrt_test --bmodel models/BM1684/p2pnet_bm1684_fp32_1b.bmodel
 | SE9-8  | p2pnet_bmcv.soc  | p2pnet_cv186x_fp16_1b.bmodel  | 6.358      | 1.976         | 109.408      | 1.935     |
 | SE9-8  | p2pnet_bmcv.soc  | p2pnet_cv186x_int8_1b.bmodel  | 6.334      | 1.972         | 28.505       | 1.917     |
 | SE9-8  | p2pnet_bmcv.soc  | p2pnet_cv186x_int8_4b.bmodel  | 6.188      | 1.88          | 110.584      | 1.89      |
-| SG2042 | p2pnet_opencv.py  |   p2pnet_bm1684x_fp32_1b.bmodel   |      21.31      |      36.80      |     208.18      |      4.10       |
-| SG2042 | p2pnet_opencv.py  |   p2pnet_bm1684x_fp16_1b.bmodel   |      21.96      |      35.67      |      28.74      |      4.25       |
-| SG2042 | p2pnet_opencv.py  |   p2pnet_bm1684x_int8_1b.bmodel   |      21.65      |      35.72      |      20.32      |      4.57       |
-| SG2042 | p2pnet_opencv.py  |   p2pnet_bm1684x_int8_4b.bmodel   |      22.53      |      44.95      |      18.58      |      4.20       |
-| SG2042 |  p2pnet_bmcv.py   |   p2pnet_bm1684x_fp32_1b.bmodel   |      59.92      |      6.83       |     206.82      |      5.92       |
-| SG2042 |  p2pnet_bmcv.py   |   p2pnet_bm1684x_fp16_1b.bmodel   |      58.35      |      6.82       |      26.55      |      6.18       |
-| SG2042 |  p2pnet_bmcv.py   |   p2pnet_bm1684x_int8_1b.bmodel   |      49.68      |      5.60       |      16.79      |      5.92       |
-| SG2042 |  p2pnet_bmcv.py   |   p2pnet_bm1684x_int8_4b.bmodel   |      16.59      |      3.53       |      9.57       |      4.21       |
-| SG2042 | p2pnet_bmcv.pcie  |   p2pnet_bm1684x_fp32_1b.bmodel   |      7.86       |      1.09       |     197.59      |      2.77       |
-| SG2042 | p2pnet_bmcv.pcie  |   p2pnet_bm1684x_fp16_1b.bmodel   |      7.95       |      1.10       |      17.33      |      2.86       |
-| SG2042 | p2pnet_bmcv.pcie  |   p2pnet_bm1684x_int8_1b.bmodel   |      7.94       |      1.11       |      8.54       |      2.81       |
-| SG2042 | p2pnet_bmcv.pcie  |   p2pnet_bm1684x_int8_4b.bmodel   |      7.88       |      0.99       |      8.22       |      2.39       |
+| SRM1-20| p2pnet_opencv.py  |   p2pnet_bm1684x_fp32_1b.bmodel   |      21.31      |      36.80      |     208.18      |      4.10       |
+| SRM1-20| p2pnet_opencv.py  |   p2pnet_bm1684x_fp16_1b.bmodel   |      21.96      |      35.67      |      28.74      |      4.25       |
+| SRM1-20| p2pnet_opencv.py  |   p2pnet_bm1684x_int8_1b.bmodel   |      21.65      |      35.72      |      20.32      |      4.57       |
+| SRM1-20| p2pnet_opencv.py  |   p2pnet_bm1684x_int8_4b.bmodel   |      22.53      |      44.95      |      18.58      |      4.20       |
+| SRM1-20|  p2pnet_bmcv.py   |   p2pnet_bm1684x_fp32_1b.bmodel   |      59.92      |      6.83       |     206.82      |      5.92       |
+| SRM1-20|  p2pnet_bmcv.py   |   p2pnet_bm1684x_fp16_1b.bmodel   |      58.35      |      6.82       |      26.55      |      6.18       |
+| SRM1-20|  p2pnet_bmcv.py   |   p2pnet_bm1684x_int8_1b.bmodel   |      49.68      |      5.60       |      16.79      |      5.92       |
+| SRM1-20|  p2pnet_bmcv.py   |   p2pnet_bm1684x_int8_4b.bmodel   |      16.59      |      3.53       |      9.57       |      4.21       |
+| SRM1-20| p2pnet_bmcv.pcie  |   p2pnet_bm1684x_fp32_1b.bmodel   |      7.86       |      1.09       |     197.59      |      2.77       |
+| SRM1-20| p2pnet_bmcv.pcie  |   p2pnet_bm1684x_fp16_1b.bmodel   |      7.95       |      1.10       |      17.33      |      2.86       |
+| SRM1-20| p2pnet_bmcv.pcie  |   p2pnet_bm1684x_int8_1b.bmodel   |      7.94       |      1.11       |      8.54       |      2.81       |
+| SRM1-20| p2pnet_bmcv.pcie  |   p2pnet_bm1684x_int8_4b.bmodel   |      7.88       |      0.99       |      8.22       |      2.39       |
 
 
 > **测试说明**：
