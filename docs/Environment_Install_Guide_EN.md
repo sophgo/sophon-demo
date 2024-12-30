@@ -229,7 +229,7 @@ You need to build a cross-compilation environment on an x86 host using SOPHONSDK
 
     (1)Install cross-compilation toolchain by apt:
 
-    If your environment satisfies `system ubuntu20.04` and `GLIBC version <= 2.31`, you can use following commands to install:
+    If your environment's libc version is the same as target SoC platform, you can use following commands to install:
     ```bash
     sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
     ```
@@ -247,7 +247,12 @@ You need to build a cross-compilation environment on an x86 host using SOPHONSDK
     Download the ubuntu20.04 image through dfss:
     ```bash
     pip3 install dfss
-    python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev.tar
+    python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev.tar # ubuntu 20.04, gcc-9
+    ```
+
+    If your target SoC is BM1688/CV186AH, SDK version >= 1.9(use command `bm_version` to check), and you need thirdparty libs which are not compatible with ubuntu 22.04/20.04, you should use this docker image:
+    ```bash
+    python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev_22.04.tar # ubuntu 22.04, gcc-11
     ```
 
     If you're using Docker for the first time, you can execute the following commands to install and configure it (only for the first-time setup):
