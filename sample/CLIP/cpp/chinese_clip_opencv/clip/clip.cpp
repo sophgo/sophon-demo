@@ -47,8 +47,9 @@ void CLIP::init(const std::string& image_model, const std::string& text_model, c
     assert(true == ret_image);
     printf("Image Model Done!\n");
 
-    std::string image_name = "cn_clip_image_vitb16";
-    image_net = const_cast<bm_net_info_t*>(bmrt_get_network_info(p_bmrt_image, image_name.c_str()));
+    image_name = NULL;
+    bmrt_get_network_names(p_bmrt_image, &image_name);
+    image_net = const_cast<bm_net_info_t*>(bmrt_get_network_info(p_bmrt_image, image_name[0]));
 
     const char* image_net_input_name = image_net->input_names[0];
     const char* image_net_output_name = image_net->output_names[0];
@@ -59,8 +60,9 @@ void CLIP::init(const std::string& image_model, const std::string& text_model, c
     image_resolution = image_net_input_shape->dims[2]; // 224 for vit32-b
     embed_dim = image_net_output_shape->dims[1]; // 512 for vit32-b
 
-    std::string text_name = "cn_clip_text_vitb16";
-    text_net = const_cast<bm_net_info_t*>(bmrt_get_network_info(p_bmrt_text, text_name.c_str()));
+    text_name = NULL;
+    bmrt_get_network_names(p_bmrt_text, &text_name);
+    text_net = const_cast<bm_net_info_t*>(bmrt_get_network_info(p_bmrt_text, text_name[0]));
     const char* text_net_input_name = text_net->input_names[0];
     const char* text_net_output_name = text_net->output_names[0];
     text_net_input_shape = text_net->stages[0].input_shapes;
@@ -104,7 +106,17 @@ void CLIP::deinit() {
     }
     bm_dev_free(bm_handle);
     text_projection.clear();
-    
+
+    if (image_name) {
+        free(image_name);
+        image_name = nullptr;
+    }
+
+    if (text_name) {
+        free(text_name);
+        text_name = nullptr;
+    }
+
     encode_image_time = 0.0;
     encode_text_time = 0.0;
     preprocess_time = 0.0;
