@@ -60,8 +60,8 @@ class YoloV8 {
 
     static float get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool *alignWidth);
     void NMS(YoloV8BoxVec &dets, float nmsConfidence);
-    int ReTransPoseBox(YoloV8BoxVec& v, float tx, float ty, float r, int fw, int fh, float* d, int n);
-    int ProcessPoseBox(YoloV8BoxVec& v, float* d, int n);
+    void ReTransPoseBox(YoloV8BoxVec& v, float tx, float ty, float r, int fw, int fh, float* d, int n);
+    void ProcessPoseBox(YoloV8BoxVec& v, float* d, int n);
     bmcv_color_t GetBmColor();
     public:
     YoloV8(std::shared_ptr<BMNNContext> context);
