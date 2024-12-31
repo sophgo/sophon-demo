@@ -250,7 +250,7 @@ source /etc/profile
     python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev.tar # ubuntu 20.04, gcc-9
     ```
 
-    如果您的设备为BM1688/CV186AH，SDK版本1.9以上，且您需要用到一些无法兼容20.04/22.04的第三方库，那么您需要使用这个镜像:
+    如果您的设备为BM1688/CV186AH，SDK版本1.9以上(可以使用bm_version命令查看版本)，那么您需要使用这个镜像:
     ```bash
     python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev_22.04.tar # ubuntu 22.04, gcc-11
     ```
