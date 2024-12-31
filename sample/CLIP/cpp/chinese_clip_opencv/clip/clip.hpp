@@ -62,6 +62,8 @@ private:
     std::vector<std::vector<float>> text_projection;
     void *p_bmrt_image;
     void *p_bmrt_text;
+    const char **image_name;
+    const char **text_name;
     bm_handle_t bm_handle;
     bm_shape_t* image_net_input_shape;
     bm_shape_t* image_net_output_shape;
