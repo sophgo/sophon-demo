@@ -299,7 +299,9 @@ int YoloV9::post_process(const std::vector<bm_image>& images, std::vector<YoloV9
                     box.y1 = centerY - height / 2 + c;
                     box.x2 = box.x1 + width;
                     box.y2 = box.y1 + height;
-                    box.mask = vector<float>(output_data + 4 + m_class_num, output_data + nout);
+                    for (int k = 0; k < mask_num; k++) {
+                        box.mask.push_back(output_data[i + (nout - mask_num + k) * feat_num]);
+                    }
 
                     yolobox_vec.push_back(box);
                 }
