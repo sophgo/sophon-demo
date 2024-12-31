@@ -462,7 +462,11 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
                 for(int i = 0; i < mask_times; i++){
                     int start = i * tpu_mask_num;
                     auto input_tensor1 = out_tensor1->get_tensor();
-                    getmask_tpu(yolobox_valid_vec, start, input_tensor1, paras, yolobox_vec_tmp);
+                    bm_tensor_t segmentation_tensor;
+                    unsigned long long seg_addr = bm_mem_get_device_addr(input_tensor1.device_mem);
+                    bm_device_mem_t seg_dev = bm_mem_from_device(seg_addr + batch_idx*netinfo->max_input_bytes[1], netinfo->max_input_bytes[1]);
+                    bmrt_tensor_with_device(&segmentation_tensor, seg_dev, netinfo->input_dtypes[1], netinfo->stages[0].input_shapes[1]);
+                    getmask_tpu(yolobox_valid_vec, start, segmentation_tensor, paras, yolobox_vec_tmp);
                 }
             } 
          }else{
