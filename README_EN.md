@@ -60,6 +60,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [YOLOv11_det](./sample/YOLOv11_det/README.md)                 | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [YOLO-world](./sample/YOLO_world/README.md)                   | Object Detection                   | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv8_obb](./sample/YOLOv8_obb/README.md)                   | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
 | [Whisper](./sample/Whisper/README.md)                         | Speech Recognition                 | Python     | FP16           | BM1684X                      |
@@ -72,11 +73,13 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [MiniCPM](./sample/MiniCPM/README.md)                         | Large Language Model               | C++        | INT8/INT4      | BM1684X/BM1688/CV186X        | 
 | [Baichuan2](./sample/Baichuan2/README.md)                     | Large Language Model               | Python     | INT8/INT4      | BM1684X                      | 
 | [ChatGLM4](./sample/ChatGLM4/README.md)                       | Large Language Model               | Python     | FP16/INT8/INT4 | BM1684X                      | 
+| [MiniCPM3](./sample/MiniCPM3/README.md)                       | Large Language Model               | Python     | INT8/INT4      | BM1684X        | 
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | Image Generation                   | Python     | FP32/FP16      | BM1684X                      |
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | Image Generation                   | Python     | FP32/FP16      | BM1684X                      |
 | [FLUX.1](./sample/FLUX.1/README.md)                           | Image Generation                   | Python     | FP32/INT4      | BM1684X                      |
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | MultiModal Object Detection        | Python     | FP16           | BM1684X/BM1688/CV186X        |
 | [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | Large Vision Language Model        | Python     | FP16/INT8      | BM1684X                      |
+| [Qwen2-VL](./sample/Qwen2-VL/README.md)                       | Large Vision Language Model        | Python     | INT4           | BM1684X                      |
 | [InternVL2](./sample/InternVL2/README.md)                     | Large Vision Language Model        | Python     | INT4           | BM1684X/BM1688               |
 | [Vila](./sample/Vila/README.md)                               | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
@@ -90,6 +93,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [CAM++](./sample/CAM++/README.md)                             | Speaker Recogition                 | C++/Python | FP32           | BM1684X/BM1688/CV186X        |
 | [FaceFormer](./sample/FaceFormer/README.md)                   | Speech-Driven 3D Facial Animation  | Python     | FP32           | BM1684X        |
 | [MP_SENet](./sample/MP_SENet/README.md)                       | Speech Enhancement                 | Python     | FP32/BF16      | BM1684X        |
+| [LightStereo](./sample/LightStereo/README.md)                 | Stereo                             | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 
 | application                                                              | scenarios                                         | code        | supported hardware           |
 |---                                                                       |---                                                |---          | ---                          | 
@@ -106,6 +110,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.2.8  | Fix documentation and other issues. Release new samples including MiniCPM3/LightStereo/Qwen2-VL/YOLO-world. |
 | 0.2.7  | Fix documentation and other issues. Release new samples including CAM++/ChatTTS/FaceFormer/MP_SENet/Vila, new applications ChatDoc/LLM_api_server/Audio_assistant.|
 | 0.2.6  |Fix documentation and other issues. Release new samples including YOLOv11_det/FLUX.1/SlowFast/YOLOv8_obb. |
 | 0.2.5  | Fix documentation and other issues. Remove all samples' common dependencies. Release new samples including SAM2/HRNet_pose/InternVL2/BLIP/DirectMHP/VITS_CHINESE, new applications cv-demo,YOLOv5_fuse_multi_QT. |
@@ -130,6 +135,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
+| 0.2.8  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.7  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.6  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.5  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
@@ -153,6 +159,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPH
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.2.8  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.7  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.6  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.5  | >=1.9       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |

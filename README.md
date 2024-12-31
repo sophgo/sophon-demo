@@ -60,6 +60,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [YOLOv11_det](./sample/YOLOv11_det/README.md)                 | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [YOLO_world](./sample/YOLO_world/README.md)                   | 目标检测          | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv8_obb](./sample/YOLOv8_obb/README.md)                   | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
 | [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
 | [Whisper](./sample/Whisper/README.md)                         | 语音识别          | Python     | FP16           | BM1684X                      |
@@ -72,11 +73,13 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [MiniCPM](./sample/MiniCPM/README.md)                         | 大规模语言模型     | C++        | INT8/INT4      | BM1684X/BM1688/CV186X       |
 | [Baichuan2](./sample/Baichuan2/README.md)                     | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
 | [ChatGLM4](./sample/ChatGLM4/README.md)                       | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
+| [MiniCPM3](./sample/MiniCPM3/README.md)                       | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | 图像生成          | Python     | FP32/FP16      | BM1684X                      |
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | 图像生成          | Python     | FP32/FP16      | BM1684X                      |
 | [FLUX.1](./sample/FLUX.1/README.md)                           | 图像生成          | Python     | FP32/INT4      | BM1684X                      |
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | 多模态目标检测     | Python     | FP16           | BM1684X/BM1688/CV186X       |
 | [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | 大规模视觉语言模型 | Python     | FP16/INT8      | BM1684X                     |
+| [Qwen2-VL](./sample/Qwen2-VL/README.md)                       | 大规模视觉语言模型 | Python     | INT4            | BM1684X                     |
 | [InternVL2](./sample/InternVL2/README.md)                     | 大规模视觉语言模型 | Python     | INT4           | BM1684X/BM1688              |
 | [Vila](./sample/Vila/README.md)                               | 大规模视觉语言模型 | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | 超分辨            | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
@@ -90,6 +93,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [CAM++](./sample/CAM++/README.md)                             | 说话人识别        | C++/Python | FP32           | BM1684X/BM1688/CV186X        |
 | [FaceFormer](./sample/FaceFormer/README.md)                   | 音频驱动口型      | Python     | FP32           | BM1684X        |
 | [MP_SENet](./sample/MP_SENet/README.md)                       | 语音降噪          | Python     | FP32/BF16      | BM1684X        |
+| [LightStereo](./sample/LightStereo/README.md)                 | 立体匹配          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 
 | application                                                              | 应用场景                  | 编程语言    | 支持硬件                     |
 |---                                                                       |---                       |---          | ---                         |
@@ -106,6 +110,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.2.8  | 完善和修复文档、代码问题，sample模块新增MiniCPM3、LightStereo、Qwen2-VL、YOLO-world例程。|
 | 0.2.7  | 完善和修复文档、代码问题，sample模块新增CAM++、ChatTTS、FaceFormer、MP_SENet、Vila例程。application模块新增ChatDoc、LLM_api_server、Audio_assistant例程。|
 | 0.2.6  | 完善和修复文档、代码问题，sample模块新增YOLOv11_det、FLUX.1、SlowFast、YOLOv8_obb例程。 |
 | 0.2.5  | 完善和修复文档、代码问题，去除所有sample的公共依赖。sample模块新增SAM2、HRNet_pose、InternVL2、BLIP、DirectMHP、VITS_CHINESE例程，application新增cv-demo、YOLOv5_fuse_multi_QT例程。 |
@@ -130,8 +135,9 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 SOPHON-DEMO主要依赖TPU-MLIR、TPU-NNTC、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SOPHON-SAIL，对于BM1684/BM1684X SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
-| 0.2.7  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
-| 0.2.6  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
+| 0.2.8  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
+| 0.2.7  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
+| 0.2.6  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.5  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.4  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
 | 0.2.3  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
@@ -153,6 +159,7 @@ SOPHON-DEMO主要依赖TPU-MLIR、TPU-NNTC、LIBSOPHON、SOPHON-FFMPEG、SOPHON-
 对于BM1688/CV186AH SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.2.8  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.7  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.6  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.5  | >=1.9       | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
