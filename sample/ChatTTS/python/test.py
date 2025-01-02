@@ -31,5 +31,5 @@ time_cost = time.time() - start
 sample_rate = 24000
 wav_len = wavs.shape[1] / sample_rate 
 
-print("Real-Time Factor(RTF): ", wav_len / time_cost)
+print("Real-Time Factor(RTF): ", time_cost / wav_len)
 torchaudio.save("test.wav", wavs, sample_rate=sample_rate)
