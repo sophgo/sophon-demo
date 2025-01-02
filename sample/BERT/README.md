@@ -21,7 +21,7 @@
 ​BERT的全称为Bidirectional Encoder Representation from Transformers，是一个预训练的语言表征模型。它强调了不再像以往一样采用传统的单向语言模型或者把两个单向语言模型进行浅层拼接的方法进行预训练，而是采用新的masked language model（MLM），以致能生成深度的双向语言表征。BERT论文发表时提及在11个NLP（Natural Language Processing，自然语言处理）任务中获得了新的state-of-the-art的结果，令人惊叹。
 本例程对[A simple training framework that recreates bert4keras in PyTorch. bert4torch](https://github.com/Tongjilibo/bert4torch/)的模型和算法进行移植,使之能在SOPHON BM1684\BM1684X\BM1688\CV186X上进行推理测试。
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)模型编译和推理
 * 支持基于sail的C++推理
 * 支持基于sail的Python推理
@@ -164,6 +164,15 @@ python3 eval_people.py --test_path ../datasets/china-people-daily-ner-corpus/exa
 | SE9-8        | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 0.9192        | 0.9916   |
 | SE9-8        | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 0.9199        | 0.9916   |
 | SE9-8        | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 0.9219        | 0.9916   |
+| SRM1-20      | bert_sail.pcie | bert4torch_output_fp32_1b.bmodel |   0.9130 |   0.9908 |
+| SRM1-20      | bert_sail.pcie | bert4torch_output_fp32_8b.bmodel |   0.9130 |   0.9908 |
+| SRM1-20      | bert_sail.pcie | bert4torch_output_fp16_1b.bmodel |   0.9122 |   0.9907 |
+| SRM1-20      | bert_sail.pcie | bert4torch_output_fp16_8b.bmodel |   0.9121 |   0.9908 |
+| SRM1-20      | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 0.9178        | 0.9915   |
+| SRM1-20      | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 0.9217        | 0.9918   |
+| SRM1-20      | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 0.9193        | 0.9915   |
+| SRM1-20      | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 0.9162        | 0.9915   |
+
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
@@ -244,6 +253,15 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 |    SE9-8    |   bert_sail.py    |bert4torch_output_fp32_8b.bmodel|     297.02      |      4.89       |     264.52      |      27.60      |
 |    SE9-8    |   bert_sail.py    |bert4torch_output_fp16_1b.bmodel|     242.85      |      4.89       |      40.59      |     197.30      |
 |    SE9-8    |   bert_sail.py    |bert4torch_output_fp16_8b.bmodel|      65.86      |      4.92       |      33.27      |      27.66      |
+|   SRM1-20   |   bert_sail.pcie  |bert4torch_output_fp32_1b.bmodel|     125.78      |      12.78      |     112.95      |      0.04       |
+|   SRM1-20   |   bert_sail.pcie  |bert4torch_output_fp32_8b.bmodel|     119.95      |      12.59      |     107.36      |      0.03       |
+|   SRM1-20   |   bert_sail.pcie  |bert4torch_output_fp16_1b.bmodel|      25.00      |      12.88      |      12.07      |      0.04       |
+|   SRM1-20   |   bert_sail.pcie  |bert4torch_output_fp16_8b.bmodel|      19.64      |      12.37      |       7.25      |      0.03       |
+|   SRM1-20   |   bert_sail.py    |bert4torch_output_fp32_1b.bmodel|     435.81      |      3.17       |     113.62      |     318.98      |
+|   SRM1-20   |   bert_sail.py    |bert4torch_output_fp32_8b.bmodel|     159.42      |      3.12       |     107.54      |     48.76       |
+|   SRM1-20   |   bert_sail.py    |bert4torch_output_fp16_1b.bmodel|     340.37      |      3.28       |      12.84      |     324.20      |
+|   SRM1-20   |   bert_sail.py    |bert4torch_output_fp16_8b.bmodel|      56.26      |      3.50       |       7.36      |      45.39      |
+
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每个文本处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
