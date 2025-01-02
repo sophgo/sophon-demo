@@ -21,6 +21,7 @@
     - [6.1 安装libsophon](#61-安装libsophon)
     - [6.2 安装sophon-ffmpeg和sophon-opencv](#62-安装sophon-ffmpeg和sophon-opencv)
     - [6.3 编译安装sophon-sail](#63-编译安装sophon-sail)
+    - [6.4 安装构建工具](#64-安装构建工具)
 
 Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC、TPU-MLIR环境，用于编译C++程序的开发环境以及用于部署程序的运行环境。
 
@@ -513,3 +514,14 @@ sudo rpm -e sophon-mw-sophon-ffmpeg
 
 需从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)上下载符合[环境依赖](../README.md#环境依赖)的SOPHONSDK，解压后在sophon-sail_{date}_{time}文件夹里面有sophon-sail的压缩包，命名如sophon-sail_x.y.z.tar.gz，x.y.z表示版本号。
 您可以打开sophon-sail压缩包里面提供的用户手册(命名为sophon-sail_zh.pdf)，参考编译安装指南章节，选择您需要的模式(C++/Python，RISCV PCIE MODE)进行安装。
+
+### 6.4 安装构建工具
+如果您使用的是fedora系统，没有默认安装构建工具的话容易导致pip安装第三方包时失败，因为大部分第三方包在riscv上安装需要重新编译，您可以通过以下命令安装构建工具，防止出现pip安装失败的情况。
+
+```bash
+sudo dnf install ninja-build
+sudo dnf groupinstall "Development Tools"
+sudo dnf install cmake automake autoconf libtool
+sudo dnf install openssl-devel
+pip3 install opencv-python-headless #尝试使用pip安装第三方包。
+```

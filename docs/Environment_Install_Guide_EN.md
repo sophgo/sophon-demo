@@ -21,6 +21,7 @@
     - [6.1 Installation of libsophon](#61-installation-of-libsophon)
     - [6.2 Installation of sophon-ffmpeg and sophon-opencv](#62-installation-of-sophon-ffmpeg-and-sophon-opencv)
     - [6.3 Compilation and Installation of sophon-sail](#63-compilation-and-installation-of-sophon-sail)
+    - [6.4 Install build tools](#64-install-build-tools)
 
 The environments Sophon Demo relies on include the TPU-NNTC and TPU-MLIR environments for compiling and quantifying the models, the development environment for compiling C++ programs, and the runtime environment for deploying the programs.
 
@@ -486,3 +487,14 @@ For other platform machines, please refer to "MULTIMEDIA User Manual", "Multimed
 ### 6.3 Compilation and Installation of sophon-sail
 If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), sophon-sail installation package is under the directory `sophon-sail_{date}_{time}`, the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
 You can open the user manual provided in the sophon-sail compressed package (named sophon-sail_en.pdf), refer to the compilation and installation guide chapter, and select the mode you need (C++/Python, RISCV PCIE MODE) for installation. 
+
+### 6.4 Install build tools
+If you are using fedora os, and there is no default build tools, you will probably failed when using `pip install xxx` to install thirdparty wheels. Because most thirdparty wheels need to recompile on riscv platform, you can use these commands to install build tools, avoid from `pip install xxx` failing.
+
+```bash
+sudo dnf install ninja-build
+sudo dnf groupinstall "Development Tools"
+sudo dnf install cmake automake autoconf libtool
+sudo dnf install openssl-devel
+pip3 install opencv-python-headless #Try this command to test.
+```
