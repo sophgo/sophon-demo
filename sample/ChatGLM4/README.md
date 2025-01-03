@@ -11,10 +11,10 @@
 ## 1. 简介
 ChatGLM4-9B 是开源中英双语对话模型 ChatGLM 的第四代版本，关于它的特性，请前往源repo查看：https://huggingface.co/THUDM/glm-4-9b-chat。本例程对ChatGLM4-9B进行移植，使之能在SOPHON BM1684X上进行推理测试。
 
-该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
+该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86/riscv主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 支持INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持多轮对话
@@ -99,6 +99,8 @@ chmod -R +x scripts/
 | -----------  | ---------------- | ---------------------------     | --------------------- | ----------------------- | 
 | SE7-32       | ChatGLM4.py      | ChatGLM4-9b_int8.bmodel         |    1.181              |    4.471          | 
 | SE7-32       | ChatGLM4.py      | ChatGLM4-9b_int4.bmodel         |    1.114              |    7.489          | 
+| SRM1-20      | ChatGLM4.py      | ChatGLM4-9b_int8.bmodel         |    1.241              |    3.794          | 
+| SRM1-20      | ChatGLM4.py      | ChatGLM4-9b_int4.bmodel         |    1.244              |    5.667          | 
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
