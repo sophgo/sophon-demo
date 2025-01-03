@@ -71,6 +71,17 @@ else
     echo "lib_pcie folder exist! Remove it if you need to update."
 fi
 
+# 检查 lib_pcie_riscv文件夹 是否存在
+if [ ! -d "../cpp/lib_pcie_riscv" ]; 
+then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPM/lib_pcie_riscv.zip
+    unzip lib_pcie_riscv.zip -d ../cpp/
+    rm lib_pcie_riscv.zip
+    echo "lib_pcie_riscv download!"
+else
+    echo "lib_pcie_riscv folder exist! Remove it if you need to update."
+fi
+
 # 检查 lib_soc_bm1684x文件夹 是否存在
 if [ ! -d "../cpp/lib_soc_bm1684x" ]; 
 then

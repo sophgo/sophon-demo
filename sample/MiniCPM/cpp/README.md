@@ -4,7 +4,7 @@
 - [MiniCPM-2B C++例程](#MiniCPM-2B-C++例程)
   - [目录](#目录)
   - [1. 环境准备](#1-环境准备)
-    - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    - [1.1 x86/arm/riscv PCIe平台](#11-x86armriscv-pcie平台)
     - [1.2 SoC平台](#12-soc平台)
   - [2. 编译程序](#2-编译程序)
   - [3. 例程测试](#3-例程测试)
@@ -13,8 +13,8 @@
     - [3.3 程序运行效果](#33-程序运行效果)
 
 ## 1. 环境准备
-### 1.1 x86/arm PCIe平台
-如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+### 1.1 x86/arm/riscv PCIe平台
+如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
 
 - 请确保您的驱动及libsophon版本满足本例程的要求，具体请参考[简介](../README.md#1-简介)
 
