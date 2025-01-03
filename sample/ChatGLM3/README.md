@@ -11,10 +11,10 @@
 ## 1. 简介
 ChatGLM3-6B 是开源中英双语对话模型 ChatGLM-6B 的第三代版本，关于它的特性，请前往源repo查看：https://huggingface.co/THUDM/chatglm3-6b。本例程对ChatGLM3-6B进行移植，使之能在SOPHON BM1684X上进行推理测试。
 
-该例程支持在V23.07.01(libsophon_0.4.9)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
+该例程支持在V23.07.01(libsophon_0.4.9)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86/riscv主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)、BM1688(SoC)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1688(SoC)
 * 支持FP16、INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持多轮对话
@@ -115,11 +115,14 @@ chmod -R +x scripts/
 这里的测试输入为："请使用C++写一段冒泡排序算法。"
 |    测试平台   |     测试程序       |           测试模型             |first token latency(s)|token per second(tokens/s)| 
 | -----------  | ---------------- | ---------------------------     | --------------------- | ----------------------- | 
-| SE7-32       | chatglm3.py      | chatglm3-6b_f16.bmodel          |    1.408              |    4.067          | 
+| SE7-32       | chatglm3.py      | chatglm3-6b_fp16.bmodel         |    1.408              |    4.067          | 
 | SE7-32       | chatglm3.py      | chatglm3-6b_int8.bmodel         |    1.116              |    8.184          | 
 | SE7-32       | chatglm3.py      | chatglm3-6b_int4.bmodel         |    1.121              |    12.822         | 
 | SE9-16       | chatglm3.py      | chatglm3-6b_int4_2core.bmodel   |    5.157              |    5.113          | 
+| SRM1-20      | chatglm3.py      | chatglm3-6b_fp16.bmodel         |    1.514              |    3.467          | 
+| SRM1-20      | chatglm3.py      | chatglm3-6b_int8.bmodel         |    1.179              |    6.525          | 
+| SRM1-20      | chatglm3.py      | chatglm3-6b_int4.bmodel         |    1.176              |    10.004         | 
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 2. 这里SE7-32使用的SDK版本是V23.07.01，SE9-16的SDK版本是V1.6；
+> 2. 这里SE7-32使用的SDK版本是V23.07.01，SE9-16的SDK版本是V1.6，SRM1-20使用的SDK版本是v24.04.01。
