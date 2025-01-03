@@ -14,7 +14,7 @@
 ## 1. 简介
 ChatGLM2-6B 是开源中英双语对话模型 ChatGLM-6B 的第二代版本,相比于初代模型，具有更强大的性能，更长的上下文，更高的推理性能和更开放的协议，ChatGLM2-6B 权重对学术研究完全开放。
 
-该例程支持在V23.03.01(libsophon_0.4.6)及以上的SDK上运行，提供C++、python版本，可以独立运行，支持在插有1684X系列加速卡的x86主机上运行，也可以SE7上运行。其中在SE7上运行需要额外进行环境配置，请参照[运行环境准备](#2-运行环境准备)完成环境部署。
+该例程支持在V23.03.01(libsophon_0.4.6)及以上的SDK上运行，提供C++、python版本，可以独立运行，支持在插有1684X系列加速卡的x86/riscv主机上运行，也可以SE7上运行。其中在SE7上运行需要额外进行环境配置，请参照[运行环境准备](#2-运行环境准备)完成环境部署。
 
 ## 2. 运行环境准备
 以下为soc模式相关：
@@ -109,11 +109,17 @@ chmod -R +x scripts/
 |    测试平台   |     测试程序       |           测试模型             |first token latency(s)|token per second(tokens/s)| 
 | -----------  | ---------------- | ---------------------------   | --------------------- | ----------------------- | 
 | BM1684X SoC  | chatglm2.soc    | chatglm2-6b_f16.bmodel         | 1.21                  | 3.96                    | 
-| BM1684X SoC  | chatglm2.soc    | chatglm2-6b_int8.bmodel         | 0.89                  | 8.64                    | 
+| BM1684X SoC  | chatglm2.soc    | chatglm2-6b_int8.bmodel        | 0.89                  | 8.64                    | 
 | BM1684X SoC  | chatglm2.soc    | chatglm2-6b_int4.bmodel        | 0.89                  | 14.24                   | 
 | BM1684X SoC  | chatglm2.py     | chatglm2-6b_f16.bmodel         | 1.59                  | 3.78                    | 
 | BM1684X SoC  | chatglm2.py     | chatglm2-6b_int8.bmodel        | 1.22                  | 8.12                    | 
-| BM1684X SoC  | chatglm2.py     | chatglm2-6b_int4.bmodel        | 1.22                  | 13.14                   | 
+| BM1684X SoC  | chatglm2.py     | chatglm2-6b_int4.bmodel        | 1.22                  | 13.14                   |
+|   SRM1-20    | chatglm2.pcie   | chatglm2-6b_f16.bmodel         | 1.49                  | 2.95                    | 
+|   SRM1-20    | chatglm2.pcie   | chatglm2-6b_int8.bmodel        | 1.29                  | 6.40                    | 
+|   SRM1-20    | chatglm2.pcie   | chatglm2-6b_int4.bmodel        | 1.28                  | 8.74                    | 
+|   SRM1-20    | chatglm2.py     | chatglm2-6b_f16.bmodel         | 1.87                  | 2.85                    | 
+|   SRM1-20    | chatglm2.py     | chatglm2-6b_int8.bmodel        | 1.67                  | 6.00                    | 
+|   SRM1-20    | chatglm2.py     | chatglm2-6b_int4.bmodel        | 1.57                  | 8.11                    |  
 
 > **测试说明**：  
 > 1. 输入为随机问题，性能测试结果具有一定的波动性，建议多次测试取平均值；

@@ -25,7 +25,8 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     include_directories(${LIBSOPHON}/include)
     link_directories(${LIBSOPHON}/lib)
 
-    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentencepiece/lib/x86) 
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentencepiece/lib/x86)
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentencepiece/lib/riscv) 
     add_definitions(-DDEBUG --std=c++17 -fPIC -Wall -Werror)
 
     add_executable(chatglm2.pcie main.cpp)

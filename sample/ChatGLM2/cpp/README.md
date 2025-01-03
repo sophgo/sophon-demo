@@ -4,7 +4,7 @@
 
 - [C++例程](#c例程)
   - [目录](#目录)
-  - [1. x86/arm PCIe平台 编译、运行](#1-x86arm-pcie平台-编译运行)
+  - [1. x86/arm/riscv PCIe平台 编译、运行](#1-x86armriscv-pcie平台-编译运行)
     - [1.1 环境配置](#11-环境配置)
     - [1.2 程序编译](#12-程序编译)
     - [1.3 参数说明](#13-参数说明)
@@ -21,9 +21,9 @@
     - [3.4 运行测试](#34-运行测试-1)
 
 
-## 1. x86/arm PCIe平台 编译、运行
+## 1. x86/arm/riscv PCIe平台 编译、运行
 ### 1.1 环境配置
-如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
 
 ### 1.2 程序编译
 C++程序运行前需要编译可执行文件，可以直接在PCIe平台上编译程序：
