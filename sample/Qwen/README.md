@@ -15,12 +15,12 @@
 ## 1. 简介
 Qwen / Qwen1.5/ Qwen2/ Qwen2.5是开源中英双语对话模型，关于它的特性，请前往源repo查看：https://huggingface.co/Qwen。 本例程对Qwen / Qwen1.5/ Qwen2/ Qwen2.5进行移植，使之能在SOPHON BM1684X、BM1688/CV186X（仅限Qwen1.5 1.8b、Qwen2.5 1.5b）上进行推理测试。
 
-对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
+对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86/riscv主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 对于BM1688/CV186X，该例程支持在V1.7.0及以上的SDK上运行，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 * Qwen1.5 1.8b支持BM1688/CV186X(SoC)
 * Qwen2.5 1.5b支持BM1688/CV186X(SoC)
 * 支持INT8、INT4模型编译和推理
@@ -162,6 +162,13 @@ sudo reboot
 | SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel |    0.701              |    14.858                |
 | SE9-16      | qwen.py           | qwen2.5-1.5b_int4_seq2048_bm1688_1dev_2core.bmodel|    3.016              |    14.613                | 
 | SE9-8       | qwen.py           | qwen1.5-1.8b_int4_seq512_cv186x_1dev.bmodel       |    1.007              |    13.226                | 
+| SRM1-20     | qwen.py           | qwen-7b_int4_seq512_1dev.bmodel                   |    0.915              |    5.850                 | 
+| SRM1-20     | qwen.py           | qwen-7b_int4_seq2048_1dev.bmodel                  |    3.984              |    4.751                 | 
+| SRM1-20     | qwen.py           | qwen1.5-7b_int4_seq512_1dev.bmodel                |    0.901              |    5.805                 | 
+| SRM1-20     | qwen.py           | qwen1.5-7b_int4_seq2048_1dev.bmodel               |    3.884              |    4.739                 |
+| SRM1-20     | qwen.py           | qwen2-7b_int4_seq512_1dev.bmodel                  |    0.981              |    6.234                 | 
+| SRM1-20     | qwen.py           | qwen2.5-1.5b_int4_seq512_1dev.bmodel              |    0.283              |    14.674                |
+| SRM1-20     | qwen.py           | qwen2.5-1.5b_int4_seq1024_1dev.bmodel             |    0.503              |    13.970                | 
 
 
 > **测试说明**：  
