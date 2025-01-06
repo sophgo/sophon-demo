@@ -18,7 +18,7 @@ StableDiffusionXL 是开源AIGC模型:[Huggingface官网stable-diffusion-xl-base
 
 ## 2. 特性
 
-- 支持BM1684X(x86 PCIe、SoC)
+- 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 - 支持FP32(BM1684X)、FP16(BM1684X)
 - 基于sophon-sail的python推理，文生图和图生图两种模式
 
@@ -129,6 +129,8 @@ sudo reboot
 | -----------  | ------------- | ---------------   | -------------  | ---------------- | ---------------- |
 | BM1684X SoC  |    text2img   |      178.96       |    37450.7     |    null          |     2099.22      |
 | BM1684X SoC  |    img2img    |      178.96       |    37450.7     |    1195.56       |     2099.22      |
+|   SRM1-20    |    text2img   |      925.21       |    46417.3     |    null          |     2535.54      |
+|   SRM1-20    |    img2img    |      340.00       |    76889.4     |    1399.37       |     2523.57      |
 
 ## 7. FAQ
 [常见问题解答](../../docs/FAQ.md)
