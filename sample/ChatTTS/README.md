@@ -12,7 +12,7 @@
   - [6. 程序性能测试](#6-程序性能测试)
 
 ## 1. 简介
-ChatTTS 是一款专门为对话场景（例如 LLM 助手）设计的文本转语音模型。本例程参考了[https://github.com/ZillaRU/ChatTTS-ONNX]，对[https://github.com/2noise/ChatTTS]中的算法进行移植，使之能在SOPHON BM1684X/BM1688上进行推理测试。
+ChatTTS 是一款专门为对话场景（例如 LLM 助手）设计的文本转语音模型。本例程参考了[ChatTTS-ONNX](https://github.com/ZillaRU/ChatTTS-ONNX)，对[ChatTTS官方仓库](https://github.com/2noise/ChatTTS)中的算法进行移植，使之能在SOPHON BM1684X/BM1688上进行推理测试。
 
 
 ## 2. 特性

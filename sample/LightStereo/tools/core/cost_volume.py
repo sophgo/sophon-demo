@@ -29,17 +29,29 @@ class CoExCostVolume(nn.Module):
         return cost
 
 
-def correlation_volume(left_feature, right_feature, max_disp):
-    b, c, h, w = left_feature.size()
-    cost_volume = left_feature.new_zeros(b, max_disp, h, w)
+def correlation_volume(left_features, right_features, max_disp):
+    # b, c, h, w = left_feature.size()
+    # cost_volume = left_feature.new_zeros(b, max_disp, h, w)
+    # for i in range(max_disp):
+    #     if i > 0:
+    #         cost_volume[:, i, :, i:] = (left_feature[:, :, :, i:] * right_feature[:, :, :, :-i]).mean(dim=1)
+    #     else:
+    #         cost_volume[:, i, :, :] = (left_feature * right_feature).mean(dim=1)
+    # cost_volume = cost_volume.contiguous()
+    # return cost_volume
+    b, _, h, w = left_features.size()
+    left_features = left_features.permute(0, 1, 3, 2)
+    right_features = right_features.permute(0, 1, 3, 2)
+    cost_volume_list = []
     for i in range(max_disp):
-        if i > 0:
-            cost_volume[:, i, :, i:] = (left_feature[:, :, :, i:] * right_feature[:, :, :, :-i]).mean(dim=1)
-        else:
-            cost_volume[:, i, :, :] = (left_feature * right_feature).mean(dim=1)
-    cost_volume = cost_volume.contiguous()
-    return cost_volume
-
+      if i > 0:
+        cost_volume = (left_features[:, :, i:, :] * right_features[:, :, :-i, :]).mean(dim=1, keepdim=True)
+        zeros = torch.zeros(b, 1, i, h)
+        cost_volume_list.append(torch.concat([zeros, cost_volume], 2))
+      else:
+        cost_volume = (left_features * right_features).mean(dim=1, keepdim=True)
+        cost_volume_list.append(cost_volume)
+    return torch.concat(cost_volume_list, 1).permute(0, 1, 3, 2).contiguous()
 
 def compute_volume(reference_embedding, target_embedding, maxdisp, side='left'):
     batch, channel, height, width = reference_embedding.size()
