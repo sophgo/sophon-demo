@@ -15,10 +15,10 @@
 ## 1. 简介
 MiniCPM3是开源中英双语对话模型，关于它的特性，请前往源repo查看：https://huggingface.co/openbmb/MiniCPM3-4B。 本例程对MiniCPM3进行移植，使之能在SOPHON BM1684X上进行推理测试。
 
-对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
+对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86/riscv主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 支持INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持多轮对话
@@ -110,8 +110,9 @@ sudo reboot
 这里的测试输入为："请使用C++写一段冒泡排序算法。"
 |   测试平台   |     测试程序       |           测试模型                                  |first token latency(s) |token per second(tokens/s)| 
 | ----------- | ----------------  | ------------------------------------------------- | --------------------- | ------------------------ | 
-| SE7-32      | minicpm3.py           | minicpm3-7b_int4_seq512_1dev.bmodel                   |    0.592              |    10.047                 | 
-| SC7-HP75      | minicpm3.py           | minicpm3-7b_int4_seq512_1dev.bmodel                   |    0.747              |    7.891                 | 
+| SE7-32      | minicpm3.py           | minicpm3-7b_int4_seq512_1dev.bmodel                   |    0.592              |    10.047                | 
+| SC7-HP75    | minicpm3.py           | minicpm3-7b_int4_seq512_1dev.bmodel                   |    0.747              |    7.891                 | 
+| SRM1-20     | minicpm3.py           | minicpm3-7b_int4_seq512_1dev.bmodel                   |    0.860              |    4.045                 |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
