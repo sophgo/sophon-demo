@@ -27,7 +27,7 @@ OpenPose人体姿态识别项目是美国卡耐基梅隆大学（CMU）基于卷
 
 ## 2. 特性
 * 支持18和25个身体关键点检测
-* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1688、BM1684X)和INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV的Python推理
@@ -175,6 +175,14 @@ python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000
 | SE9-16       | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |   0.419  |  0.697 |
 | SE9-16       | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |   0.419  |  0.697 |
 | SE9-16       | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |   0.418  |  0.701 |
+| SRM1-20      | openpose_opencv.py | pose_coco_fp32_1b.bmodel |   0.439  |  0.693 |
+| SRM1-20      | openpose_opencv.py | pose_coco_fp16_1b.bmodel |   0.440  |  0.693 |
+| SRM1-20      | openpose_opencv.py | pose_coco_int8_1b.bmodel |   0.437  |  0.691 |
+| SRM1-20      | openpose_opencv.py | pose_coco_int8_4b.bmodel |   0.437  |  0.691 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |   0.420  |  0.697 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_fp16_1b.bmodel |   0.420  |  0.697 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |   0.418  |  0.697 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_int8_4b.bmodel |   0.418  |  0.697 |
 
 若设置`--performance_opt=tpu_kernel_opt`，在coco val2017_1000数据集上，精度测试结果如下：
 |   测试平台    |      测试程序       |        测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
@@ -182,6 +190,9 @@ python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000
 | SE7-32       | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  0.419   |  0.696 |
 | SE7-32       | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |  0.419   |  0.696 |
 | SE7-32       | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  0.418   |  0.694 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |  0.419   |  0.696 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_fp16_1b.bmodel |  0.419   |  0.696 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |  0.418   |  0.694 |
 
 若设置`--performance_opt=tpu_kernel_half_img_size_opt`，在coco val2017_1000数据集上，精度测试结果如下：
 |   测试平台    |      测试程序       |        测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
@@ -189,6 +200,9 @@ python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000
 | SE7-32       | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  0.389   |  0.665 |
 | SE7-32       | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |  0.389   |  0.665 |
 | SE7-32       | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  0.390   |  0.668 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |  0.389   |  0.665 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_fp16_1b.bmodel |  0.389   |  0.665 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |  0.390   |  0.668 |
 
 若设置`--performance_opt=cpu_opt`，在coco val2017_1000数据集上，精度测试结果如下：
 |   测试平台    |      测试程序       |        测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
@@ -201,6 +215,10 @@ python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000
 | SE9-16       | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  0.390   |  0.666 |
 | SE9-16       | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |  0.390   |  0.666 |
 | SE9-16       | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  0.388   |  0.669 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |  0.391   |  0.667 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_fp16_1b.bmodel |  0.391   |  0.667 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |  0.394   |  0.668 |
+| SRM1-20      | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |  0.394   |  0.668 |
  
 > **测试说明**：  
 1. batch_size=4和batch_size=1的模型精度一致；
@@ -278,6 +296,14 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 | SE9-16      | openpose_bmcv.soc  | pose_coco_fp16_1b_2core.bmodel |  5.94   |  1.31  | 125.33  | 686.40   |
 | SE9-16      | openpose_bmcv.soc  | pose_coco_int8_1b_2core.bmodel |  5.96   |  1.31  | 38.05   | 675.93   |
 | SE9-16      | openpose_bmcv.soc  | pose_coco_int8_4b_2core.bmodel |  5.77   |  1.20  | 20.80   | 678.30   |
+| SRM1-20     | openpose_opencv.py | pose_coco_fp32_1b.bmodel |      13.82      |      8.57       |      334.71     |     1199.22     |
+| SRM1-20     | openpose_opencv.py | pose_coco_fp16_1b.bmodel |      13.94      |      8.58       |      43.25      |     1181.22     |
+| SRM1-20     | openpose_opencv.py | pose_coco_int8_1b.bmodel |      13.93      |      8.62       |      32.08      |     1201.91     |
+| SRM1-20     | openpose_opencv.py | pose_coco_int8_4b.bmodel |      13.82      |      9.70       |      30.59      |     1202.88     |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |      24.10      |      1.05       |     315.15      |     526.54      |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_fp16_1b.bmodel |      24.05      |      1.05       |      24.00      |     568.50      |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |      24.47      |      1.05       |      11.94      |     559.89      |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_int8_4b.bmodel |      23.98      |      0.81       |      11.64      |     558.54      |
 
 若设置`--performance_opt=tpu_kernel_opt`，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 |    测试平台  |      测试程序       |       测试模型           |decode_time|preprocess_time|inference_time|postprocess_time| 
@@ -285,7 +311,11 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 | SE7-32      | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  4.56   |  0.46  | 252.02   | 51.58   |
 | SE7-32      | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |  4.62   |  0.47  | 19.02    | 50.24   |
 | SE7-32      | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  4.60   |  0.47  | 9.37     | 50.43   |
-| SE7-32      | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel |  4.47   |  0.42  | 9.28     | 50.38    |
+| SE7-32      | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel |  4.47   |  0.42  | 9.28     | 50.38   |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |  24.37  |  1.07  | 315.17   | 211.33  |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_fp16_1b.bmodel |  24.08  |  1.01  | 24.00    | 205.11  |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |  24.03  |  1.04  | 11.94    | 205.91  |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_int8_4b.bmodel |  23.46  |  0.80  | 11.64    | 210.80  |
 
   若设置`--performance_opt=tpu_kernel_half_img_size_opt`，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 |    测试平台  |      测试程序       |       测试模型           |decode_time|preprocess_time|inference_time|postprocess_time| 
@@ -294,6 +324,10 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 | SE7-32      | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |  4.56   |  0.46  | 19.03   | 10.66   |
 | SE7-32      | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  4.60   |  0.46  | 9.37    | 10.43   |
 | SE7-32      | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel |  4.50   |  0.42  | 9.27    | 10.69   |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |  24.41  |  1.06  | 315.22  | 53.75   |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_fp16_1b.bmodel |  23.75  |  1.03  | 24.01   | 51.99   |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |  24.03  |  1.05  | 11.7    | 52.70   |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_int8_4b.bmodel |  24.16  |  0.79  | 11.64   | 52.13   |
 
 若设置`--performance_opt=cpu_opt`，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 |    测试平台  |      测试程序       |       测试模型           |decode_time|preprocess_time|inference_time|postprocess_time| 
@@ -313,6 +347,10 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 | SE9-16      | openpose_bmcv.soc  | pose_coco_fp16_1b_2core.bmodel |  6.10   |  1.31  | 125.33   | 342.49   |
 | SE9-16      | openpose_bmcv.soc  | pose_coco_int8_1b_2core.bmodel |  6.03   |  1.31  | 38.06    | 340.73   |
 | SE9-16      | openpose_bmcv.soc  | pose_coco_int8_4b_2core.bmodel |  5.83   |  1.20  | 20.80    | 340.56   |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_fp32_1b.bmodel |      23.75      |      1.06       |     315.17      |      57.59      |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_fp16_1b.bmodel |      23.93      |      1.05       |      24.04      |      56.87      |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |      24.01      |      1.06       |      11.95      |      55.77      |
+| SRM1-20     | openpose_bmcv.pcie | pose_coco_int8_4b.bmodel |      23.59      |      0.78       |      11.63      |      56.42      |
 
 > **测试说明**：  
 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

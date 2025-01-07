@@ -131,7 +131,7 @@ OpenPosePostProcess::~OpenPosePostProcess() {
 }
 
 
-int OpenPosePostProcess::Nms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, float threshold)
+void OpenPosePostProcess::Nms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, float threshold)
 {
     //maxPeaks就是最大人数，+1是为了第一位存个数
     //算法，是每个点，如果大于阈值，同时大于上下左右值的时候，则认为是峰值
@@ -205,7 +205,7 @@ int OpenPosePostProcess::Nms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, floa
     }
 }
 
-int OpenPosePostProcess::kernel_part_nms(
+void OpenPosePostProcess::kernel_part_nms(
     bm_device_mem_t input_data, int input_h, int input_w, int max_peak_num,
     float threshold, int* num_result, float* score_out_result,
     int* coor_out_result, PoseKeyPoints::EModelType model_type, bm_handle_t handle, tpu_kernel_function_t func_id) {
@@ -1193,7 +1193,7 @@ bm_image OpenPosePostProcess::renderPoseKeypointsBmcv(bm_handle_t &handle, bm_im
     
 }
 
-int OpenPosePostProcess::getKeyPoints(std::shared_ptr<BMNNTensor>  outputTensorPtr, const std::vector<bm_image> &images,
+void OpenPosePostProcess::getKeyPoints(std::shared_ptr<BMNNTensor>  outputTensorPtr, const std::vector<bm_image> &images,
         std::vector<PoseKeyPoints> &body_keypoints, PoseKeyPoints::EModelType model_type, float nms_threshold) {
     OpenPosePostProcess postProcess;
     // int n = outputTensorPtr->get_num();
@@ -1242,7 +1242,7 @@ int OpenPosePostProcess::getKeyPoints(std::shared_ptr<BMNNTensor>  outputTensorP
     }
 }
 
-int OpenPosePostProcess::getKeyPointsCPUOpt(std::shared_ptr<BMNNTensor>  outputTensorPtr, const std::vector<bm_image> &images,
+void OpenPosePostProcess::getKeyPointsCPUOpt(std::shared_ptr<BMNNTensor>  outputTensorPtr, const std::vector<bm_image> &images,
         std::vector<PoseKeyPoints> &body_keypoints, PoseKeyPoints::EModelType model_type, float nms_threshold) {
     OpenPosePostProcess postProcess;
     // int n = outputTensorPtr->get_num();

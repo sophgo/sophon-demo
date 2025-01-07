@@ -62,13 +62,13 @@ public:
 
     ~OpenPosePostProcess();
 
-    static int Nms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, float threshold);
+    static void Nms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, float threshold);
 
-    static int kernel_part_nms(bm_device_mem_t input_data, int input_h, int input_w, int max_peak_num,
+    static void kernel_part_nms(bm_device_mem_t input_data, int input_h, int input_w, int max_peak_num,
                             float threshold, int* num_result, float* score_out_result,
                             int* coor_out_result, PoseKeyPoints::EModelType model_type, bm_handle_t handle, tpu_kernel_function_t func_id);
 
-    static int cpuOptNms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, float threshold);
+    static void cpuOptNms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, float threshold);
 
     static void cpuOptNmsFunc(float* ptr, float* top_ptr, int length, int h, int w,
             int max_peaks, float threshold, int plane_offset,
@@ -112,11 +112,11 @@ public:
     static bm_image renderPoseKeypointsBmcv(bm_handle_t &handle, bm_image &frame, const std::vector<float> &poseKeypoints, std::vector<int> keyshape,
                            const float renderThreshold, float scale, PoseKeyPoints::EModelType modelType, const bool blendOriginalFrame = true);
 
-    static int getKeyPoints(std::shared_ptr<BMNNTensor> tensorPtr, const std::vector<bm_image> &images,
+    static void getKeyPoints(std::shared_ptr<BMNNTensor> tensorPtr, const std::vector<bm_image> &images,
                             std::vector<PoseKeyPoints> &body_keypoints, PoseKeyPoints::EModelType model_type, 
                             float nms_threshold);
 
-    static int getKeyPointsCPUOpt(std::shared_ptr<BMNNTensor>  tensorPtr, const std::vector<bm_image> &images,
+    static void getKeyPointsCPUOpt(std::shared_ptr<BMNNTensor>  tensorPtr, const std::vector<bm_image> &images,
             std::vector<PoseKeyPoints> &body_keypoints, PoseKeyPoints::EModelType model_type, float nms_threshold);
 
     static void getKeyPointsTPUKERNEL(
