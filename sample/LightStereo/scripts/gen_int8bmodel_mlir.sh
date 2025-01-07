@@ -48,7 +48,7 @@ function gen_int8bmodel()
     mv LightStereo-S-SceneFlow_int8_$1b.bmodel $outdir/
     if test $target = "bm1688";then
         model_deploy.py \
-            --mlir LightStereo_$1b.mlir \
+            --mlir LightStereo-S-SceneFlow_$1b.mlir \
             --quantize INT8 \
             --chip $target \
             --calibration_table LightStereo_cali_table \
@@ -72,7 +72,7 @@ gen_cali_table 1
 gen_int8bmodel 1
 
 # batch_size=4
-# gen_mlir 4
-# gen_int8bmodel 4
+gen_mlir 4
+gen_int8bmodel 4
 
 popd
