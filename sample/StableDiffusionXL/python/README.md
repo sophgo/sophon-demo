@@ -3,7 +3,7 @@
 ## 目录
 
 * [1. 环境准备](#1-环境准备)
-    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    * [1.1 x86/arm/riscv PCIe平台](#11-x86armriscv-pcie平台)
     * [1.2 SoC平台](#12-soc平台)
 * [2. 推理测试](#2-推理测试)
     * [2.1 参数说明](#21-参数说明)
@@ -13,9 +13,9 @@
 
 ## 1. 环境准备
 
-### 1.1 x86/arm PCIe平台
+### 1.1 x86/arm/riscv PCIe平台
 
-如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
 
 此外您可能还需要安装其他第三方库：
 
@@ -103,7 +103,7 @@ usage: run.py [--model_path BMODELS_PATH] [--tokenizer TOKENIZER_FILE] [--tokeni
 ```bash
 cd python
 
-python3 sdxl_t2i.py --model_path ../models/BM1684X --prompt "a rabbit driking at the bar" --neg_prompt "worst quality" --num_inference_steps 20 --dev_id 0
+python3 sdxl_t2i.py --model_path ../models/BM1684X --prompt "a rabbit drinking at the bar" --neg_prompt "worst quality" --num_inference_steps 20 --dev_id 0
 
 python3 sdxl_t2i.py --model_path ../models/BM1684X --prompt "a powerful mysterious sorceress, casting lightning magic, detailed clothing, digital painting, hyperrealistic, fantasy, Surrealist, upper body, artstation, highly detailed, sharp focus, stunningly beautiful, dystopian" --neg_prompt "worst quality" --num_inference_steps 50 --dev_id 0
 
