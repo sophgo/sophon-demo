@@ -42,7 +42,7 @@ state_dict = torch.load(args.loadckpt)
 model.load_state_dict(state_dict["model_state"],strict=False)
 model = model.eval()
 
-input_tensor = torch.randn(1, 3, 384, 1248)  # Example input shape (batch_size, channels, height, width)
+input_tensor = torch.randn(4, 3, 384, 1248)  # Example input shape (batch_size, channels, height, width)
 
 # Scale the tensor to be in the range [0, 255]
 scaled_tensor = (input_tensor - input_tensor.min()) / (input_tensor.max() - input_tensor.min()) * 255

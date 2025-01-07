@@ -238,10 +238,10 @@ std::vector<cv::Mat> LightStereo::process(const std::vector<bm_image>& left_imgs
     float* tensor_data = get_cpu_data(&output_tensor, netinfo->output_scales[0]); //will be freed in the end of postprocess.
     std::vector<cv::Mat> output_mats;
     for(int i = 0; i < left_imgs.size(); i++){
-        cv::Mat float_mat(m_net_h, m_net_w, CV_32FC1, tensor_data + i * m_net_h * m_net_w * sizeof(float));
+        cv::Mat float_mat(m_net_h, m_net_w, CV_32FC1, tensor_data + i * m_net_h * m_net_w);
         if(left_imgs[i].width <= m_net_w && left_imgs[i].height <= m_net_h){
             cv::Rect bound = cv::Rect{0, m_net_h - left_imgs[i].height, left_imgs[i].width, left_imgs[i].height};
-            output_mats.push_back(float_mat(bound));
+            output_mats.push_back(float_mat(bound).clone());
         }else{
             cv::Mat resized(left_imgs[i].height, left_imgs[i].width, CV_32FC1, cv::SophonDevice(m_dev_id));
             cv::resize(float_mat, resized, cv::Size(left_imgs[i].width, left_imgs[i].height));
@@ -249,6 +249,24 @@ std::vector<cv::Mat> LightStereo::process(const std::vector<bm_image>& left_imgs
         }
     }
     m_ts->save("LightStereo postprocess", left_imgs.size());
+    if(misc_info.pcie_soc_mode == 1){ // soc
+        if(output_tensor.dtype != BM_FLOAT32){
+            delete [] tensor_data;
+        } else {
+            int tensor_size = bm_mem_get_device_size(output_tensor.device_mem);
+            bm_status_t ret = bm_mem_unmap_device_mem(handle, tensor_data, tensor_size);
+            assert(BM_SUCCESS == ret);
+        }
+        if(output_tensor.dtype != BM_FLOAT32){
+            delete [] tensor_data;
+        } else {
+            int tensor_size = bm_mem_get_device_size(output_tensor.device_mem);
+            bm_status_t ret = bm_mem_unmap_device_mem(handle, tensor_data, tensor_size);
+            assert(BM_SUCCESS == ret);
+        }
+    } else {
+        delete [] tensor_data;
+    }
     bm_free_device(handle, output_tensor.device_mem);
     return output_mats;
 }

@@ -17,9 +17,10 @@ function gen_mlir()
         --model_name LightStereo \
         --model_def ../models/onnx/LightStereo-S-SceneFlow.onnx \
         --input_shapes [[$1,3,384,1248],[$1,3,384,1248]] \
-        --mlir LightStereo-S-SceneFlow_$1b.mlir \
-        --test_input ../datasets/cali_data/1.npz \
-        --test_result LightStereo_top_outputs.npz
+        --mlir LightStereo-S-SceneFlow_$1b.mlir
+        # --test_input ../datasets/cali_data/1.npz \
+        # --test_result LightStereo_top_outputs.npz
+        # test_input is only for 1b
 }
 
 function gen_cali_table()
@@ -39,11 +40,11 @@ function gen_int8bmodel()
         --quantize INT8 \
         --chip $target \
         --calibration_table LightStereo_cali_table \
-        --quantize_table ../models/onnx/lightstereo_sensitive_layer \
         --model LightStereo-S-SceneFlow_int8_$1b.bmodel \
-        --test_input ../datasets/cali_data/1.npz \
-        --test_reference LightStereo_top_outputs.npz \
-        --compare_all
+        --quant_input
+        # --test_input ../datasets/cali_data/1.npz \
+        # --test_reference LightStereo_top_outputs.npz \
+        # --compare_all
 
     mv LightStereo-S-SceneFlow_int8_$1b.bmodel $outdir/
     if test $target = "bm1688";then
@@ -52,11 +53,11 @@ function gen_int8bmodel()
             --quantize INT8 \
             --chip $target \
             --calibration_table LightStereo_cali_table \
-            --quantize_table ../models/onnx/lightstereo_sensitive_layer \
             --model LightStereo-S-SceneFlow_int8_$1b_2core.bmodel \
-            --num_core 2 \
-            --test_input ../datasets/cali_data/1.npz \
-            --test_reference LightStereo_top_outputs.npz
+            --quant_input \
+            --num_core 2
+            # --test_input ../datasets/cali_data/1.npz \
+            # --test_reference LightStereo_top_outputs.npz
 
         mv LightStereo-S-SceneFlow_int8_$1b_2core.bmodel $outdir/
     fi

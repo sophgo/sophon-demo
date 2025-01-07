@@ -100,19 +100,26 @@ function bmrt_test_benchmark(){
     elif test $TARGET = "BM1684X"; then
       bmrt_test_case BM1684X/LightStereo-S-SceneFlow_fp32_1b.bmodel
       bmrt_test_case BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel
+      bmrt_test_case BM1684X/LightStereo-S-SceneFlow_int8_1b.bmodel
+      bmrt_test_case BM1684X/LightStereo-S-SceneFlow_int8_4b.bmodel
     elif test $TARGET = "BM1688"; then
       bmrt_test_case BM1688/LightStereo-S-SceneFlow_fp32_1b.bmodel
       bmrt_test_case BM1688/LightStereo-S-SceneFlow_fp16_1b.bmodel
+      bmrt_test_case BM1688/LightStereo-S-SceneFlow_int8_1b.bmodel
+      bmrt_test_case BM1688/LightStereo-S-SceneFlow_int8_4b.bmodel
       bmrt_test_case BM1688/LightStereo-S-SceneFlow_fp32_1b_2core.bmodel
       bmrt_test_case BM1688/LightStereo-S-SceneFlow_fp16_1b_2core.bmodel
+      bmrt_test_case BM1688/LightStereo-S-SceneFlow_int8_1b_2core.bmodel
+      bmrt_test_case BM1688/LightStereo-S-SceneFlow_int8_4b_2core.bmodel
     elif test $TARGET = "CV186X"; then
       bmrt_test_case CV186X/LightStereo-S-SceneFlow_fp32_1b.bmodel
       bmrt_test_case CV186X/LightStereo-S-SceneFlow_fp16_1b.bmodel
+      bmrt_test_case CV186X/LightStereo-S-SceneFlow_int8_1b.bmodel
+      bmrt_test_case CV186X/LightStereo-S-SceneFlow_int8_4b.bmodel
     fi
 
     popd
 }
-
 
 if test $PYTEST = "pytest"
 then
@@ -152,7 +159,7 @@ function judge_ret() {
 function download()
 {
   chmod +x scripts/download.sh
-  ./scripts/download.sh
+  ./scripts/download.sh --$1
   judge_ret $? "download" 0
 }
 
@@ -162,6 +169,8 @@ function compile_mlir()
   judge_ret $? "generate $TARGET fp32bmodel" 0
   ./scripts/gen_fp16bmodel_mlir.sh $TARGET
   judge_ret $? "generate $TARGET fp16bmodel" 0
+  ./scripts/gen_int8bmodel_mlir.sh $TARGET
+  judge_ret $? "generate $TARGET int8bmodel" 0
 }
 
 function build_pcie()
@@ -273,14 +282,14 @@ function eval_python()
 
 if test $MODE = "compile_mlir"
 then
-  download
+  download onnx
   compile_mlir
 elif test $MODE = "pcie_build"
 then
-  download
   build_pcie bmcv
 elif test $MODE = "pcie_test"
 then
+  download $TARGET
   pip3 install opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684"
   then
@@ -289,18 +298,24 @@ then
   then
     eval_python opencv LightStereo-S-SceneFlow_fp32_1b.bmodel 0.454
     eval_python opencv LightStereo-S-SceneFlow_fp16_1b.bmodel 0.453
+    eval_python opencv LightStereo-S-SceneFlow_int8_1b.bmodel 0.405
+    eval_python opencv LightStereo-S-SceneFlow_int8_4b.bmodel 0.405
+
     eval_python bmcv LightStereo-S-SceneFlow_fp32_1b.bmodel   0.457
     eval_python bmcv LightStereo-S-SceneFlow_fp16_1b.bmodel   0.456
+    eval_python bmcv LightStereo-S-SceneFlow_int8_1b.bmodel   0.408
+    eval_python bmcv LightStereo-S-SceneFlow_int8_4b.bmodel   0.408
     eval_cpp pcie bmcv LightStereo-S-SceneFlow_fp32_1b.bmodel 0.457
     eval_cpp pcie bmcv LightStereo-S-SceneFlow_fp16_1b.bmodel 0.456
+    eval_cpp pcie bmcv LightStereo-S-SceneFlow_int8_1b.bmodel 0.408
+    eval_cpp pcie bmcv LightStereo-S-SceneFlow_int8_4b.bmodel 0.408
   fi
 elif test $MODE = "soc_build"
 then
-  download
   build_soc bmcv
 elif test $MODE = "soc_test"
 then
-  download
+  download $TARGET
   pip3 install opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   export LD_LIBRARY_PATH=$PWD/cpp/aarch64_lib/libtorch/lib:$LD_LIBRARY_PATH
   if test $TARGET = "BM1684"
@@ -310,25 +325,43 @@ then
   then
     eval_python opencv LightStereo-S-SceneFlow_fp32_1b.bmodel 0.454
     eval_python opencv LightStereo-S-SceneFlow_fp16_1b.bmodel 0.453
+    eval_python opencv LightStereo-S-SceneFlow_int8_1b.bmodel 0.405
+    eval_python opencv LightStereo-S-SceneFlow_int8_4b.bmodel 0.405
     eval_python bmcv LightStereo-S-SceneFlow_fp32_1b.bmodel   0.457
     eval_python bmcv LightStereo-S-SceneFlow_fp16_1b.bmodel   0.456
+    eval_python bmcv LightStereo-S-SceneFlow_int8_1b.bmodel   0.408
+    eval_python bmcv LightStereo-S-SceneFlow_int8_4b.bmodel   0.408
     eval_cpp soc bmcv LightStereo-S-SceneFlow_fp32_1b.bmodel  0.457
     eval_cpp soc bmcv LightStereo-S-SceneFlow_fp16_1b.bmodel  0.456
+    eval_cpp soc bmcv LightStereo-S-SceneFlow_int8_1b.bmodel 0.408
+    eval_cpp soc bmcv LightStereo-S-SceneFlow_int8_4b.bmodel 0.408
   elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
     eval_python opencv LightStereo-S-SceneFlow_fp32_1b.bmodel 0.454
     eval_python opencv LightStereo-S-SceneFlow_fp16_1b.bmodel 0.453
+    eval_python opencv LightStereo-S-SceneFlow_int8_1b.bmodel 0.405
+    eval_python opencv LightStereo-S-SceneFlow_int8_4b.bmodel 0.405
     eval_python bmcv LightStereo-S-SceneFlow_fp32_1b.bmodel   0.457
     eval_python bmcv LightStereo-S-SceneFlow_fp16_1b.bmodel   0.456
+    eval_python bmcv LightStereo-S-SceneFlow_int8_1b.bmodel   0.408
+    eval_python bmcv LightStereo-S-SceneFlow_int8_4b.bmodel   0.408
     eval_cpp soc bmcv LightStereo-S-SceneFlow_fp32_1b.bmodel  0.457
     eval_cpp soc bmcv LightStereo-S-SceneFlow_fp16_1b.bmodel  0.456
+    eval_cpp soc bmcv LightStereo-S-SceneFlow_int8_1b.bmodel 0.408
+    eval_cpp soc bmcv LightStereo-S-SceneFlow_int8_4b.bmodel 0.408
     if test "$PLATFORM" = "SE9-16"; then 
         eval_python opencv LightStereo-S-SceneFlow_fp32_1b_2core.bmodel 0.454
         eval_python opencv LightStereo-S-SceneFlow_fp16_1b_2core.bmodel 0.453
+        eval_python opencv LightStereo-S-SceneFlow_int8_1b_2core.bmodel 0.405
+        eval_python opencv LightStereo-S-SceneFlow_int8_4b_2core.bmodel 0.405
         eval_python bmcv LightStereo-S-SceneFlow_fp32_1b_2core.bmodel   0.457
         eval_python bmcv LightStereo-S-SceneFlow_fp16_1b_2core.bmodel   0.456
+        eval_python bmcv LightStereo-S-SceneFlow_int8_1b_2core.bmodel   0.408
+        eval_python bmcv LightStereo-S-SceneFlow_int8_4b_2core.bmodel   0.408
         eval_cpp soc bmcv LightStereo-S-SceneFlow_fp32_1b_2core.bmodel  0.457
         eval_cpp soc bmcv LightStereo-S-SceneFlow_fp16_1b_2core.bmodel  0.456
+        eval_cpp soc bmcv LightStereo-S-SceneFlow_int8_1b_2core.bmodel 0.408
+        eval_cpp soc bmcv LightStereo-S-SceneFlow_int8_4b_2core.bmodel 0.408
     fi
   fi
 fi
