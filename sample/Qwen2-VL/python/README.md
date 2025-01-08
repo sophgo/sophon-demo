@@ -91,28 +91,43 @@ python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测�
 
 ```bash
 usage: qwen2_vl.py [-h] [-m BMODEL_PATH] [-t TOKENIZER_PATH] [-p PROCESSOR_PATH] [-c CONFIG] [-d DEV_ID] [-g {greedy,penalty_sample}] [-i INPUT_PATHS [INPUT_PATHS ...]] [-ity {image,video}]
-                   [-vc VISION_PREPROCESS_CONFIG] [-fsn FRAME_SAMPLE_NUM]
+                   [-vc VISION_PREPROCESS_CONFIG]
 --bmodel_path: 用于推理的bmodel路径；
 --tokenizer_path: tokenizer目录路径；
 --processor_path: 预处理参数文件路径；
 --config: 模型配置文件路径；
 --dev_id: 用于推理的tpu设备id；
---input_paths: 输入图片、视频文件路径，可接受多个图片输入；
---input_type: 输入的类型，仅支持"image"、"video"两种；
---vision_preprocess_config: 用于生成prompt的额外预处理参数，例如可设置"resized_height"、"resized_width"、"min_pixels"、"max_pixels"等，与官方支持的输入一致，在内存不足时，可适当设置这些参数；
---frame_sample_num: 视频帧采样间隔，仅对输入为单一视频文件有用，对于输入一系列视频帧图片和图片输入无效；
+--vision_inputs: json格式，输入图片、视频文件路径、视觉预处理参数，可接受多个图片输入，格式：{"video":[{"path":str/list(str), "preprocess_config":dict},{"path":str/list(str), "preprocess_config":dict},...], "image":[{"path":str, "preprocess_config":dict},{"path":str, "preprocess_config":dict},...]}。其中preprocess_config参数用于生成prompt的额外视觉预处理参数，例如可设置"resized_height"、"resized_width"、"min_pixels"、"max_pixels"等，与官方支持的输入一致，在内存不足时，可适当设置这些参数，支持的常用参数说明如下：
+    * --resized_height: resize后的固定高度，会进行28对齐，即28的倍数；
+    * --resized_width: resize后的固定宽度，会进行28对齐，即28的倍数；
+    * --min_pixels: resize后的最小像素点数量，像素点数量是图片高度乘以宽度，若小于该像素数量会重新计算高宽的缩放比例，最终高度宽度也会进行28对齐，即28的倍数，若--resized_height和--resized_width设置，则该参数无效；
+    * --max_pixels: resize后的最大像素点数量，像素点数量是图片高度乘以宽度，若大于该像素数量会重新计算高宽的缩放比例，最终高度宽度也会进行28对齐，即28的倍数，若--resized_height和--resized_width设置，则该参数无效；
+    * --video_sample_num: 输入到模型推理的视频帧数量，仅对输入为单一视频文件有用，对于输入一系列视频帧图片和图片输入无效；
+    * --nframes: 均匀采样得到的视频帧数量，可以通过该参数实现抽帧；
+    * --video_start: 设置需要处理的视频起始帧；
+    * --video_end: 设置需要处理的视频结束帧；
 ```
 
 ### 2.2 使用方式
 
-- 为了测试`../datasets/videos/carvana_video.mp4`输入，设置`resized_height`、`resized_width`参数到较小值，并设置`--frame_sample_num`参数每隔两帧抽一帧，可以使用如下命令
+- 为了测试`../datasets/videos/carvana_video.mp4`输入，设置`resized_height`、`resized_width`参数到较小值，并设置`video_sample_num`参数为处理2帧，可以使用如下命令
 ```bash
-python3 qwen2_vl.py --frame_sample_num=2 --vision_preprocess_config=\{\"resized_height\":140,\"resized_width\":210\}
+python3 qwen2_vl.py --vision_inputs="{\"video\":[{\"path\":\"../datasets/videos/carvana_video.mp4\",\"preprocess_config\":{\"resized_height\":140,\"resized_width\":210,\"video_sample_num\":2}}],\"image\":[]}"
 ```
 
 - 为了测试图片，可以参考执行如下命令
 ```bash
-python3 qwen2_vl.py --input_paths ../datasets/images/panda.jpg --input_type image --vision_preprocess_config=\{\"resized_height\":280,\"resized_width\":420\}
+python3 qwen2_vl.py --vision_inputs="{\"video\":[],\"image\":[{\"path\":\"../datasets/images/panda.jpg\", \"preprocess_config\":{\"resized_height\":280,\"resized_width\":420}}]}"
+```
+
+- 为了同时对图片和视频提问，可以参考执行如下命令
+```bash
+python3 qwen2_vl.py --vision_inputs="{\"video\":[{\"path\":\"../datasets/videos/carvana_video.mp4\",\"preprocess_config\":{\"resized_height\":140,\"resized_width\":210,\"video_sample_num\":2}}],\"image\":[{\"path\":\"../datasets/images/panda.jpg\", \"preprocess_config\":{\"resized_height\":280,\"resized_width\":420}}]}"
+```
+
+- 为了纯文本对话，可以参考执行如下命令
+```bash
+python3 qwen2_vl.py --vision_inputs=""
 ```
 
 在Question: 处进行提问，例如：Describe this video。

@@ -139,11 +139,14 @@ class Qwen2VLInputProcessor:
 class Qwen2VL():
 
     def __init__(self, **kwargs):
+        st = time.time()
         # devid
         self.dev_id = kwargs.get("dev_id", 0)
         self.handle = sail.Handle(self.dev_id)
         self.net = sail.EngineLLM(kwargs["bmodel_path"], [self.dev_id])
+        print("load model cost: ", time.time() - st)
 
+        st = time.time()
         # graph
         self.graph_names = self.net.get_graph_names()
 
@@ -215,7 +218,9 @@ class Qwen2VL():
 
         # sample tensors (inputs & outputs)
         self.output_tensors[self.name_sample] = self.net.create_max_output_tensors(self.name_sample)
+        print("tensor init cost: ", time.time() - st)
 
+        st = time.time()
         # init preprocessor & tokenizer & configs
         self.processor = Qwen2VLInputProcessor(args.processor_path,
                                                        trust_remote_code=True)
@@ -229,6 +234,7 @@ class Qwen2VL():
 
         # init runtime val
         self.init_runtime_vals()
+        print("init config and preprocessor cost: ", time.time() - st)
 
     def init_runtime_vals(self):
         self.step = 0
@@ -370,15 +376,9 @@ class Qwen2VL():
         image_grid_thw=None, 
         video_grid_thw=None,
     ):
-        # check, only support a input type
-        if image_grid_thw is not None:
-            assert video_grid_thw is None
-        if video_grid_thw is not None:
-            assert image_grid_thw is None
-
         # init prompt
         texts = [
-            self.processor.apply_chat_template(msg, tokenize=False, add_generation_prompt=True)
+            self.processor.apply_chat_template(msg, tokenize=False, add_generation_prompt=True, add_vision_id=True) # add_vision_id=False)
             for msg in messages
         ]
         
@@ -409,13 +409,20 @@ class Qwen2VL():
                 )
 
         input_ids = inputs.input_ids
-        if image_grid_thw is None and video_grid_thw is None:
-            if "image_grid_thw" in inputs:
-                image_grid_thw = inputs.image_grid_thw
-                video_grid_thw = None
-            else:
-                image_grid_thw = None
-                video_grid_thw = inputs.video_grid_thw
+        if "image_grid_thw" in inputs:
+            image_grid_thw = inputs.image_grid_thw
+            if self.vision_seq_len < inputs.pixel_values.shape[0]:
+                raise ValueError(
+                        f"The vision input_length must be shorter than model's vision seq_length (got `input_length`: {inputs.pixel_values.shape[0]}"
+                        f" and `seq_length`: {self.vision_seq_len})."
+                )
+        if "video_grid_thw" in inputs:
+            video_grid_thw = inputs.video_grid_thw
+            if self.vision_seq_len < inputs.pixel_values_videos.shape[0]:
+                raise ValueError(
+                        f"The vision input_length must be shorter than model's vision seq_length (got `input_length`: {inputs.pixel_values_videos.shape[0]}"
+                        f" and `seq_length`: {self.vision_seq_len})."
+                )
         input_ids_prefill = torch.zeros(input_ids.shape[0], self.seq_len).to(torch.int32)
         input_ids_prefill[:, :input_ids.shape[-1]] = input_ids
         attention_mask_prefill = torch.zeros(inputs.attention_mask.shape[0], self.seq_len)
@@ -478,14 +485,25 @@ class Qwen2VL():
             pixel_values_videos: np.ndarray, 
             image_grid_thw,
             video_grid_thw):
+        # only for text
+        if pixel_values_images is None and pixel_values_videos is None:
+            return None, None
+        
         if pixel_values_images is not None:
-            pixel_values = pixel_values_images
-            grid_thw = image_grid_thw
-            input_type = "image"
+            image_embeds = self.vision_infer(pixel_values_images, image_grid_thw)
         else:
-            pixel_values = pixel_values_videos
-            grid_thw = video_grid_thw
-            input_type = "video"
+            image_embeds = None
+        if pixel_values_videos is not None:
+            video_embeds = self.vision_infer(pixel_values_videos, video_grid_thw)
+        else:
+            video_embeds = None
+        return image_embeds, video_embeds
+
+    def vision_infer(
+        self,
+        pixel_values,
+        grid_thw,
+    ):
         # ViT prepare inputs & infer
         real_len = pixel_values.shape[0]
         pixel_values_prefill = np.zeros(self.vit_hidden_states_input_shape, dtype=type_convert(self.input_tensors[self.name_vit][0].dtype()))
@@ -505,10 +523,7 @@ class Qwen2VL():
         self.net.process(self.name_vit, self.input_tensors[self.name_vit], self.output_tensors[self.name_vit])
         vision_embeds = torch.from_numpy(self.output_tensors[self.name_vit][0].asnumpy()[:real_len//4]).type( \
                                             torch.bfloat16).view(torch.uint16).detach().numpy() # uint16(bfloat16)
-        if input_type == "image":
-            return vision_embeds, None
-        else:
-            return None, vision_embeds
+        return vision_embeds
 
     # inference for the first token
     def forward_first(
@@ -532,7 +547,7 @@ class Qwen2VL():
         if video_embeds is not None:
             video_mask = input_ids == self.loaded_config.video_token_id
             inputs_embeds[video_mask] = video_embeds
-        else:
+        if image_embeds is not None:
             image_mask = input_ids == self.loaded_config.image_token_id
             inputs_embeds[image_mask] = image_embeds
         padded_position_ids = np.zeros((3, position_ids.shape[1], self.seq_len), dtype=type_convert(self.input_tensors[self.name_blocks[0]][1].dtype())) 
@@ -650,51 +665,43 @@ class Qwen2VL():
         self.last_id = self.output_tensors[self.name_sample][0].asnumpy().item()
         return self.last_id
 
-    def generate_message(self, input_type, paths, text, video_sample_num, **vision_configs):
-        assert input_type in ["image", "video"]
-        assert len(paths) > 0
-        if input_type == "image":
+    def generate_message(self, vision_inputs, text, history_messages):
+        assert len(text) > 0
+
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                ],
+            }
+        ]
+        for vision_input_type, vision_input in vision_inputs.items():
+            assert vision_input_type in ["image", "video"]
+            for vision_input_ele in vision_input:
+                if vision_input_type == "image":
+                    assert isinstance(vision_input_ele["path"], str)
+                elif vision_input_type == "video":
+                    assert isinstance(vision_input_ele["path"], str) or isinstance(vision_input_ele["path"], list)
+                messages[0]["content"].append(
+                    {
+                        "type": vision_input_type,
+                        vision_input_type: vision_input_ele["path"],
+                        **(vision_input_ele["preprocess_config"] if "preprocess_config" in vision_input_ele else {}),
+                    },
+                )
+
+        if len(messages[0]["content"]) == 0:
             messages = [
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": input_type,
-                                    input_type: path,
-                                    **vision_configs,
-                                } \
-                                for path in paths
-                            ],
-                        }
-            ]
-        elif len(paths) == 1:
-            messages = [
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": input_type,
-                                    input_type: paths[0],
-                                    "video_sample_num": video_sample_num,
-                                    **vision_configs,
-                                } \
-                            ],
-                        }
+                {
+                    "role": "user",
+                    "content": text,
+                },
             ]
         else:
-            messages = [
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": input_type,
-                                    input_type: paths,
-                                    **vision_configs,
-                                }
-                            ],
-                        }
-            ]
-        messages[0]["content"].append({"type": "text", "text": text})
+            messages[0]["content"].append({"type": "text", "text": text})
+
+        history_messages.extend(messages)
+        messages = history_messages
         return messages
 
     def is_end(self, token):
@@ -703,6 +710,7 @@ class Qwen2VL():
 
 
 def main(args):
+    history_messages = []
     model = Qwen2VL(dev_id=args.dev_id, bmodel_path=args.bmodel_path)
     video_embeds = None
     image_embeds = None
@@ -710,26 +718,32 @@ def main(args):
     image_grid_thw = None
     pixel_values_images = None
     pixel_values_videos = None
-    input_paths = args.input_paths
-    input_type = args.input_type
-    video_sample_num = args.frame_sample_num
-    vision_preprocess_config = args.vision_preprocess_config
-    if len(vision_preprocess_config) > 0:
-        vision_preprocess_config = json.loads(vision_preprocess_config)
+    vision_inputs = args.vision_inputs
+    if len(vision_inputs) > 0:
+        vision_inputs = json.loads(vision_inputs)
     else:
-        vision_preprocess_config = {}
+        vision_inputs = {}
 
     print(
         "\n================================================================="
             "\n1. If you want to quit, please enter one of [q]"
+            "\n2. If you want to clear history, please enter one of [c]"
             "\n=================================================================")
     
     while True:
         text = input("\nQuestion: ")
         if text == "q":
+            print("accept 'q', exit")
             break
+        elif text == "c":
+            print("accept 'c', clear history")
+            history_messages = []
+            continue
         first_start = time.time()
-        messages = model.generate_message(input_type, input_paths, text, video_sample_num, **vision_preprocess_config)
+        if len(history_messages) == 0:
+            messages = model.generate_message(vision_inputs, text, history_messages)
+        else:
+            messages = model.generate_message({}, text, history_messages)
         messages = [messages]
 
         # preprocess text and images/video, get model inputs
@@ -778,6 +792,10 @@ def main(args):
         tps = tok_num / next_duration
         print(f"\nFTL: {first_duration:.3f} s")
         print(f"TPS: {tps:.3f} token/s")
+        history_messages.append({
+            "role": "assistant",
+            "content": text,
+        })
 
 
 if __name__ == "__main__":
@@ -785,7 +803,7 @@ if __name__ == "__main__":
     parser.add_argument('-m',
                         '--bmodel_path',
                         type=str,
-                        default="../models/BM1684X/qwen2-vl-7b_int4_seq512_1dev.bmodel",
+                        default="../models/BM1684X/qwen2-vl-7b_int4_seq1536_1dev.bmodel",
                         help='path to the bmodel file')
     parser.add_argument('-t',
                         '--tokenizer_path',
@@ -810,27 +828,11 @@ if __name__ == "__main__":
                         choices=["greedy", "penalty_sample"],
                         default="greedy",
                         help='mode for generating next token')
-    parser.add_argument('-i',
-                        '--input_paths',
+    parser.add_argument('-vi',
+                        '--vision_inputs',
                         type=str,
-                        nargs="+",
-                        default=["../datasets/videos/carvana_video.mp4",],
-                        help='path to the video or images') 
-    parser.add_argument('-ity',
-                        '--input_type',
-                        type=str,
-                        choices=["image", "video"],
-                        default="video",
-                        help='input type') 
-    parser.add_argument('-vc',
-                        '--vision_preprocess_config',
-                        type=str,
-                        default="{}",
-                        help='vision preprocess config') 
-    parser.add_argument('-fsn',
-                        '--frame_sample_num',
-                        type=int,
-                        default=1,
-                        help='frame sampling interval') 
+                        default="{\"video\":[{\"path\":\"../datasets/videos/carvana_video.mp4\", \"preprocess_config\": \
+                                    {\"resized_height\":140,\"resized_width\":210,\"video_sample_num\":2}}],\"image\":[]}",
+                        help='path to the video or images and preprocess params, json format') 
     args = parser.parse_args()
     main(args)

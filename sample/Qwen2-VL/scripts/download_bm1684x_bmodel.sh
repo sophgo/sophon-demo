@@ -15,7 +15,7 @@ if [ ! -d "../models/BM1684X" ];
 then
     mkdir -p ../models/BM1684X
     pushd ../models/BM1684X
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen2-VL/qwen2-vl-7b_int4_seq512_1dev.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen2-VL/qwen2-vl-7b_int4_seq1536_1dev.bmodel
     popd
     echo "models download!"
 else

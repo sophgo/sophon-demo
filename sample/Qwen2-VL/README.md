@@ -21,11 +21,15 @@ Qwen2-VL是阿里云研发的大规模视觉语言模型（Large Vision Language
 ## 2. 特性
 
 * 支持BM1684X(x86 PCIe、SoC)
+* 支持ONNX导出
 * 支持FP16、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持连续对话
 * 支持单一图片、多图片、视频输入
+* 支持纯文本对话
+* 支持图像Resize
 * 支持视频抽帧
+* 支持历史信息存储与清理
 
 ## 3. 运行环境准备
 
@@ -59,7 +63,7 @@ sudo reboot
 
 ## 4. 准备模型
 
-该模型目前只支持在1684X上运行，已提供编译好的bmodel，LLM为int4, ViT为fp16。
+该模型目前只支持在1684X上运行，已提供编译好的bmodel，LLM为int4, ViT为fp16。其中编译好的BModel上下文长度为1.5k，ONNX为0.5k，若需要自行导出其他上下文长度模型，需要参考[4.2 自行导出ONNX模型](#42-自行导出ONNX模型)和[4.3 自行编译BModel模型](#43-自行编译BModel模型)
 
 ### 4.1 使用提供的模型
 
@@ -88,7 +92,7 @@ chmod -R +x scripts/
 ```bash
 ├── models
 |   └── BM1684X                                        
-|       └── qwen2-vl-7b_int4_seq512_1dev.bmodel                              # 使用TPU-MLIR编译，用于BM1684X的Qwen2-VL BModel，上下文长度为512
+|       └── qwen2-vl-7b_int4_seq1536_1dev.bmodel                              # 使用TPU-MLIR编译，用于BM1684X的Qwen2-VL BModel，上下文长度为1.5k
 └── datasets
     ├── images                                                               # 测试图片目录
     └── videos                                                               # 测试视频目录
@@ -166,12 +170,13 @@ cd scripts
 输入`datasets/videos/carvana_video.mp4`测试视频，测试问题为："请描述视频中的内容"，测试命令如下
 
 ```bash
-python3 qwen2_vl.py --frame_sample_num=2 --vision_preprocess_config=\{\"resized_height\":140,\"resized_width\":210\}
+python3 qwen2_vl.py --vision_inputs="{\"video\":[{\"path\":\"../datasets/videos/carvana_video.mp4\",\"preprocess_config\":{\"resized_height\":140,\"resized_width\":210,\"video_sample_num\":2}}],\"image\":[]}"
 ```
 
 |    测试平台   |               测试模型                   |first token latency(s)|token per second(tokens/s)| 
 | -----------  | -------------------------------------- | --------------------- | ----------------------- | 
 |    SE7-32    | qwen2-vl-7b_int4_seq512_1dev.bmodel   |   3.55               |     9.67               | 
+|    SE7-32    | qwen2-vl-7b_int4_seq1536_1dev.bmodel   |   6.08               |     9.19               | 
  
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，且与输入也有关，建议多次测试取平均值；
