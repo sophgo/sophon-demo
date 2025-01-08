@@ -308,7 +308,7 @@ source /etc/profile
     cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z}/include ${soc-sdk}
     ```
 
-4. 如果您使用BM1688的GeminiSDK1.3以上版本，您还需要做这些操作：
+4. 如果您使用BM1688 & CV186AH v1.3以上版本SOPHONSDK，您还需要做这些操作：
     从sdk中获取sophon-img/bsp-debs/目录下的sophon-soc-libisp_${x.y.z}_arm64.deb，然后运行如下命令：
     ```
     dpkg -x sophon-soc-libisp_${x.y.z}_arm64.deb sophon-libisp
