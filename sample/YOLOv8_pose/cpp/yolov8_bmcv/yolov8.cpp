@@ -335,7 +335,7 @@ void YoloV8::ReTransPoseBox(YoloV8BoxVec& v, float tx, float ty, float r, int fw
     }
 }
 #if USE_NEON
-int YoloV8::get_max_value_neno(float* cls_conf,float &max_value ,int & max_index,int i,int nout){
+void YoloV8::get_max_value_neon(float* cls_conf,float &max_value ,int & max_index,int i,int nout){
     
             int m_class_num_tmp=m_class_num/4;
 

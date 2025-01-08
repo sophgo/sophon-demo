@@ -369,7 +369,7 @@ int YoloV9::post_process(const std::vector<bm_image>& images, std::vector<YoloV9
     return 0;
 }
 #if USE_NEON
-int YoloV9::get_max_value_neno(float* cls_conf,float &max_value ,int & max_index,int i,int nout){
+void YoloV9::get_max_value_neon(float* cls_conf,float &max_value ,int & max_index,int i,int nout){
 
             int m_class_num_tmp=m_class_num/4;
 
