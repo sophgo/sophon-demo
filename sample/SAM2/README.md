@@ -50,7 +50,7 @@
 ```
 
 ### 2.2 SDK特性
-* 支持BM1684X(x86 PCIe、SoC)、BM1688(SoC)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1688(SoC)
 * 图像编码器（Image Encoder）部分支持FP16、FP32的模型编译和推理，支持1core和2core(BM1688)
 * 图像解码器（Image Decoder）部分支持FP16、FP32的模型编译和推理，支持1core和2core(BM1688)
 * Memory attention部分支持FP16的模型编译和推理
@@ -185,6 +185,8 @@ python3 tools/eval.py --gt_path datasets/images/instances_val2017.json --res_pat
 | SE9-16       | sam2_image_opencv.py     | sam2_encoder_f32_1b_2core.bmodel | sam2_decoder_f32_1b_2core.bmodel|    0.48|
 | SE9-16       | sam2_image_opencv.py     | sam2_encoder_f16_1b_1core.bmodel | sam2_decoder_f16_1b_1core.bmodel|    0.48|
 | SE9-16       | sam2_image_opencv.py     | sam2_encoder_f16_1b_2core.bmodel | sam2_decoder_f16_1b_2core.bmodel|    0.48|
+| SRM1-20      | sam2_image_opencv.py     | sam2_encoder_f32_1b.bmodel       | sam2_decoder_f32_1b.bmodel      |    0.48|
+| SRM1-20      | sam2_image_opencv.py     | sam2_encoder_f16_1b.bmodel       | sam2_decoder_f16_1b.bmodel      |    0.49|
 
 ## 6. 性能测试
 **以下性能测试仅针对图像分割进行测试**
@@ -238,6 +240,8 @@ bmrt_test --bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel
 |   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f32_1b_2core.bmodel  | sam2_decoder_f32_1b_2core.bmodel  |      99.32      |     1472.30     |      58.43      |      1.14       |
 |   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f16_1b_1core.bmodel  | sam2_decoder_f16_1b_1core.bmodel  |      96.10      |     457.77      |      37.05      |      2.77       |
 |   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f16_1b_2core.bmodel  | sam2_decoder_f16_1b_2core.bmodel  |     100.79      |     311.52      |      34.60      |      1.11       |
+|   SRM1-20   |  sam2_image_opencv.py   |    sam2_encoder_f32_1b.bmodel     |    sam2_decoder_f32_1b.bmodel     |      240.09     |     1299.50     |      116.50     |      5.19       |
+|   SRM1-20   |  sam2_image_opencv.py   |    sam2_encoder_f16_1b.bmodel     |    sam2_decoder_f16_1b.bmodel     |      251.30     |     473.61      |      91.98      |      4.19       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
