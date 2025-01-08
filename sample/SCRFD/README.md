@@ -25,7 +25,7 @@ SCRFD(Sample and Computation Redistribution for Efficient Face Detection)是一�
 **源码地址** (https://github.com/deepinsight/insightface/tree/master/detection/scrfd)
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -230,7 +230,22 @@ python3 evaluation.py --pred ./prediction_dir --gt ground_truth
 | SE9-8        | scrfd_sail.soc     | scrfd_10g_kps_fp16_1b.bmodel             |    0.936 |    0.916 |    0.765 |
 | SE9-8        | scrfd_sail.soc     | scrfd_10g_kps_int8_1b.bmodel             |    0.885 |    0.863 |    0.687 |
 | SE9-8        | scrfd_sail.soc     | scrfd_10g_kps_int8_4b.bmodel             |    0.885 |    0.863 |    0.687 |
-
+| SRM1-20      | scrfd_opencv.py    | scrfd_10g_kps_fp32_1b.bmodel             |    0.940 |    0.924 |    0.800 |
+| SRM1-20      | scrfd_opencv.py    | scrfd_10g_kps_fp16_1b.bmodel             |    0.940 |    0.924 |    0.800 |
+| SRM1-20      | scrfd_opencv.py    | scrfd_10g_kps_int8_1b.bmodel             |    0.939 |    0.923 |    0.796 |
+| SRM1-20      | scrfd_opencv.py    | scrfd_10g_kps_int8_4b.bmodel             |    0.939 |    0.923 |    0.799 |
+| SRM1-20      | scrfd_bmcv.py      | scrfd_10g_kps_fp32_1b.bmodel             |    0.939 |    0.921 |    0.786 |
+| SRM1-20      | scrfd_bmcv.py      | scrfd_10g_kps_fp16_1b.bmodel             |    0.939 |    0.921 |    0.786 |
+| SRM1-20      | scrfd_bmcv.py      | scrfd_10g_kps_int8_1b.bmodel             |    0.938 |    0.919 |    0.783 |
+| SRM1-20      | scrfd_bmcv.py      | scrfd_10g_kps_int8_4b.bmodel             |    0.937 |    0.919 |    0.783 |
+| SRM1-20      | scrfd_bmcv.pcie    | scrfd_10g_kps_fp32_1b.bmodel             |    0.937 |    0.917 |    0.772 |
+| SRM1-20      | scrfd_bmcv.pcie    | scrfd_10g_kps_fp16_1b.bmodel             |    0.937 |    0.917 |    0.772 |
+| SRM1-20      | scrfd_bmcv.pcie    | scrfd_10g_kps_int8_1b.bmodel             |    0.885 |    0.863 |    0.689 |
+| SRM1-20      | scrfd_bmcv.pcie    | scrfd_10g_kps_int8_4b.bmodel             |    0.887 |    0.865 |    0.691 |
+| SRM1-20      | scrfd_sail.pcie    | scrfd_10g_kps_fp32_1b.bmodel             |    0.937 |    0.917 |    0.772 |
+| SRM1-20      | scrfd_sail.pcie    | scrfd_10g_kps_fp16_1b.bmodel             |    0.937 |    0.917 |    0.772 |
+| SRM1-20      | scrfd_sail.pcie    | scrfd_10g_kps_int8_1b.bmodel             |    0.885 |    0.863 |    0.689 |
+| SRM1-20      | scrfd_sail.pcie    | scrfd_10g_kps_int8_4b.bmodel             |    0.888 |    0.865 |    0.691 |
 
 
 ## 7. 性能测试
@@ -354,6 +369,22 @@ bmrt_test --bmodel models/BM1684X/scrfd_10g_kps_fp32_1b.bmodel
 |    SE9-8    |  scrfd_sail.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      9.08       |      7.06       |      43.18      |      12.02      |
 |    SE9-8    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      10.51      |      7.06       |      13.52      |      12.02      |
 |    SE9-8    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      8.79       |      6.86       |      12.55      |      10.79      |
+|   SRM1-20   |  scrfd_opencv.py  |   scrfd_10g_kps_fp32_1b.bmodel    |      24.89      |      25.62      |      89.23      |      13.70      |
+|   SRM1-20   |  scrfd_opencv.py  |   scrfd_10g_kps_fp16_1b.bmodel    |      24.81      |      25.32      |      49.48      |      13.52      |
+|   SRM1-20   |  scrfd_opencv.py  |   scrfd_10g_kps_int8_1b.bmodel    |      24.84      |      25.38      |      48.56      |      13.67      |
+|   SRM1-20   |  scrfd_opencv.py  |   scrfd_10g_kps_int8_4b.bmodel    |      25.61      |      32.74      |      41.27      |      13.39      |
+|   SRM1-20   |   scrfd_bmcv.py   |   scrfd_10g_kps_fp32_1b.bmodel    |      64.25      |      6.42       |      68.14      |      13.85      |
+|   SRM1-20   |   scrfd_bmcv.py   |   scrfd_10g_kps_fp16_1b.bmodel    |      64.22      |      6.24       |      31.00      |      13.89      |
+|   SRM1-20   |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_1b.bmodel    |      64.49      |      6.26       |      29.67      |      14.03      |
+|   SRM1-20   |   scrfd_bmcv.py   |   scrfd_10g_kps_int8_4b.bmodel    |      63.74      |      5.89       |      23.00      |      13.16      |
+|   SRM1-20   |  scrfd_bmcv.pcie  |   scrfd_10g_kps_fp32_1b.bmodel    |      31.98      |      1.30       |      41.52      |      31.78      |
+|   SRM1-20   |  scrfd_bmcv.pcie  |   scrfd_10g_kps_fp16_1b.bmodel    |      31.94      |      1.29       |      4.72       |      31.39      |
+|   SRM1-20   |  scrfd_bmcv.pcie  |   scrfd_10g_kps_int8_1b.bmodel    |      31.83      |      1.30       |      3.34       |      30.98      |
+|   SRM1-20   |  scrfd_bmcv.pcie  |   scrfd_10g_kps_int8_4b.bmodel    |      31.75      |      1.07       |      3.02       |      82.13      |
+|   SRM1-20   |  scrfd_sail.pcie  |   scrfd_10g_kps_fp32_1b.bmodel    |      60.64      |      3.00       |      61.81      |      10.81      |
+|   SRM1-20   |  scrfd_sail.pcie  |   scrfd_10g_kps_fp16_1b.bmodel    |      61.68      |      3.05       |      25.71      |      10.87      |
+|   SRM1-20   |  scrfd_sail.pcie  |   scrfd_10g_kps_int8_1b.bmodel    |      61.71      |      3.04       |      24.27      |      10.91      |
+|   SRM1-20   |  scrfd_sail.pcie  |   scrfd_10g_kps_int8_4b.bmodel    |      61.66      |      2.21       |      21.18      |      8.85       |
 
 
 > **测试说明**：  
