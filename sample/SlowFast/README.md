@@ -180,6 +180,12 @@ python3 tools/eval_kinetics.py --gt_path datasets/ground_truth.json --result_jso
 | SE9-16       | slowfast_opencv.soc | slowfast_bm1688_fp16_4b_2core.bmodel |    0.627 |
 | SE9-16       | slowfast_opencv.soc | slowfast_bm1688_int8_1b_2core.bmodel |    0.628 |
 | SE9-16       | slowfast_opencv.soc | slowfast_bm1688_int8_4b_2core.bmodel |    0.628 |
+| SRM1-20      | slowfast_opencv.pcie | slowfast_bm1684x_fp32_1b.bmodel |    0.630 |
+| SRM1-20      | slowfast_opencv.pcie | slowfast_bm1684x_fp32_4b.bmodel |    0.630 |
+| SRM1-20      | slowfast_opencv.pcie | slowfast_bm1684x_fp16_1b.bmodel |    0.630 |
+| SRM1-20      | slowfast_opencv.pcie | slowfast_bm1684x_fp16_4b.bmodel |    0.630 |
+| SRM1-20      | slowfast_opencv.pcie | slowfast_bm1684x_int8_1b.bmodel |    0.621 |
+| SRM1-20      | slowfast_opencv.pcie | slowfast_bm1684x_int8_4b.bmodel |    0.621 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.02的精度误差是正常的；
@@ -263,6 +269,13 @@ bmrt_test --bmodel models/BM1684X/slowfast_bm1684x_fp32_1b.bmodel
 |   SE9-16    |slowfast_opencv.soc|slowfast_bm1688_fp16_4b_2core.bmodel|     119.55      |     173.87      |     193.42      |      0.56       |
 |   SE9-16    |slowfast_opencv.soc|slowfast_bm1688_int8_1b_2core.bmodel|     117.10      |     173.77      |      52.90      |      0.59       |
 |   SE9-16    |slowfast_opencv.soc|slowfast_bm1688_int8_4b_2core.bmodel|     118.87      |     173.69      |      50.75      |      0.56       |
+|   SRM1-20   |slowfast_opencv.pcie|slowfast_bm1684x_fp32_1b.bmodel|      1316.19      |     626.92       |     232.19      |      0.58       |
+|   SRM1-20   |slowfast_opencv.pcie|slowfast_bm1684x_fp32_4b.bmodel|      1399.07      |     685.75       |     224.80      |      0.51       |
+|   SRM1-20   |slowfast_opencv.pcie|slowfast_bm1684x_fp16_1b.bmodel|      1324.40      |     619.56       |      38.29      |      0.56       |
+|   SRM1-20   |slowfast_opencv.pcie|slowfast_bm1684x_fp16_4b.bmodel|      1372.36      |     648.29       |      36.15      |      0.50       |
+|   SRM1-20   |slowfast_opencv.pcie|slowfast_bm1684x_int8_1b.bmodel|      1321.58      |     630.19       |      28.99      |      0.56       |
+|   SRM1-20   |slowfast_opencv.pcie|slowfast_bm1684x_int8_4b.bmodel|      1372.79      |     679.48       |      27.56      |      0.49       |
+
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
@@ -270,6 +283,7 @@ bmrt_test --bmodel models/BM1684X/slowfast_bm1684x_fp32_1b.bmodel
 > 3. SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
 > 5. SlowFast的后处理只有softmax，耗时很短，可以忽略。
+> 6. riscv平台上，python例程的opencv目前不能处理视频。
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
