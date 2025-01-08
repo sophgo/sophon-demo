@@ -6,7 +6,7 @@
 
 * [Python Demo](#python-demo)
     * [1. Environments Preparation](#1-environments-preparation)
-        * [1.1 x86/arm PCIe Platform](#11-x86arm-pcie-platform)
+        * [1.1 x86/arm/riscv PCIe Platform](#11-x86armriscv-pcie-platform)
         * [1.2 SoC Platform](#12-soc-platform)
     * [2. Inference Test](#2-inference-test)
         * [2.1 Parameter Description](#21-parameter-description)
@@ -21,9 +21,9 @@ A series of Python demos are provided under the python directory, the details ar
 | 2    | yolox_bmcv.py   | Decoding with SAIL, preprocessing with BMCV, Inference with SAIL |
 
 ## 1. Environments Preparation
-### 1.1 x86/arm PCIe Platform
+### 1.1 x86/arm/riscv PCIe Platform
 
-If you have installed a PCIe accelerator card (such as SC series accelerator card) on the x86/arm platform and use it to test these demos, you need to install libsophon, sophon-opencv, sophon-ffmpeg and sophon-sail. For specific steps, please refer to [Construction of Development and Runtime Environment of x86-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#3-x86-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of arm-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#5-arm-pcie-platform-development-and-runtime-environment-construction).
+If you have installed a PCIe accelerator card (such as SC series accelerator card) on the x86/arm/riscv platform and use it to test these demos, you need to install libsophon, sophon-opencv, sophon-ffmpeg and sophon-sail. For specific steps, please refer to [Construction of Development and Runtime Environment of x86-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#3-x86-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of arm-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#5-arm-pcie-platform-development-and-runtime-environment-construction) or [Construction of Development and Runtime Environment of riscv-PCIe Platform](../../../docs/Environment_Install_Guide_EN.md#6-riscv-pcie-platform-development-and-runtime-environment-construction).
 
 In addition, you may need to install other third-party libraries:
 ```bash
@@ -76,3 +76,5 @@ The video test demo is as follows, which supports testing of video streams.
 python3 python/yolox_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1684/yolox_s_fp32_1b.bmodel --dev_id 0 --conf_thresh 0.5 --nms_thresh 0.5
 ```
 After the test, the predicted results will be drawn in `results/test_car_person_1080P.avi`, and information such as predicted results and inference time will be printed at the same time.
+
+The RISC-V platform currently does not support video testing with OpenCV, but you can choose `yolov5_bmcv.py` instead.

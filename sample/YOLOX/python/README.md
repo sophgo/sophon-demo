@@ -5,7 +5,7 @@
 ## 目录
 
 * [1. 环境准备](#1-环境准备)
-    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    * [1.1 x86/arm/riscv PCIe平台](#11-x86armriscv-pcie平台)
     * [1.2 SoC平台](#12-soc平台)
 * [2. 推理测试](#2-推理测试)
     * [2.1 参数说明](#21-参数说明)
@@ -20,9 +20,9 @@ python目录下提供了一系列Python例程，具体情况如下：
 | 2    | yolox_bmcv.py   | 使用SAIL解码、BMCV前处理、SAIL推理 |
 
 ## 1. 环境准备
-### 1.1 x86/arm PCIe平台
+### 1.1 x86/arm/riscv PCIe平台
 
-如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
 
 此外您可能还需要安装其他第三方库：
 ```bash
@@ -75,3 +75,5 @@ python3 python/yolox_opencv.py --input datasets/test_car_person_1080P.mp4 --bmod
 ```
 测试结束后，会将预测的结果画在`results/test_car_person_1080P.avi`中，同时会打印预测结果、推理时间等信息。  
 `yolox_bmcv.py`会将预测结果画在图片上并保存在`results/images`中。
+
+注意，riscv平台暂不支持用opencv进行视频测试，但是您可以选择`yolov5_bmcv.py`测试。
