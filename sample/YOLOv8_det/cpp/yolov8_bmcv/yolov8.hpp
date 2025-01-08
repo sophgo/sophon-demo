@@ -58,7 +58,7 @@ class YoloV8 {
     int pre_process(const std::vector<bm_image>& images);
     int post_process(const std::vector<bm_image>& images, std::vector<YoloV8BoxVec>& boxes);
     int post_process_opt(const std::vector<bm_image>& images, std::vector<YoloV8BoxVec>& detected_boxes);
-    int get_max_value_neon(float* cls_conf,float &max_value ,int & max_index,int i,int nout);
+    void get_max_value_neon(float* cls_conf,float &max_value ,int & max_index,int i,int nout);
 
     static float get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool *alignWidth);
     void xywh2xyxy(YoloV8BoxVec& xyxyboxes, std::vector<std::vector<float>> box);
