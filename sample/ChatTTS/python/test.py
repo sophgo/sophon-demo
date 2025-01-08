@@ -3,9 +3,11 @@ import torch
 import torchaudio
 import numpy as np
 import time as time
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "16"
 chat = ChatTTS.Chat()
 chat.load(local_path='../models')
-
+torch.set_num_threads(4)
 inputs_en = """
 chat T T S is a text to speech model designed for dialogue applications. 
 [uv_break]it supports mixed language input [uv_break]and offers multi speaker 
@@ -31,5 +33,5 @@ time_cost = time.time() - start
 sample_rate = 24000
 wav_len = wavs.shape[1] / sample_rate 
 
-print("Real-Time Factor(RTF): ", time_cost / wav_len)
+print("Real-Time Factor(RTF): ", time_cost /wav_len )
 torchaudio.save("test.wav", wavs, sample_rate=sample_rate)

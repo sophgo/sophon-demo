@@ -374,7 +374,6 @@ class Chat:
             add_special_tokens=False, padding=True
         ).input_ids
         start_idx = input_ids.shape[-2]
-
         num_code = self.config.gpt.num_audio_tokens - 1
 
         logits_warpers, logits_processors = gen_logits(
