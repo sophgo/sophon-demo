@@ -29,7 +29,7 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 
 ## 1. 环境准备
 ### 1.1 x86/arm/riscv PCIe平台
-如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
+如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），可以直接使用它作为开发环境和运行环境。您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体步骤可参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
 
 ### 1.2 SoC平台
 如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
@@ -111,9 +111,9 @@ Usage: yolov5_bmcv.pcie [params]
 ### 3.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-./yolov5_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id=0 --draw_thresh=0.5 --classnames=../../datasets/coco.names 
+./yolov5_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/yolov5s_v6.1_fuse_fp32_1b.bmodel --dev_id=0 --draw_thresh=0.5 --classnames=../../datasets/coco.names 
 ```
-测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov5s_v6.1_3output_fp32_1b.bmodel_test_bmcv_cpp_result.json`下，同时会打印预测结果、推理时间等信息。
+测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov5s_v6.1_fuse_fp32_1b.bmodel_test_bmcv_cpp_result.json`下，同时会打印预测结果、推理时间等信息。
 
 ![res](../pics/zidane_cpp_bmcv.jpg)
 
@@ -123,7 +123,7 @@ Usage: yolov5_bmcv.pcie [params]
 ### 3.3 测试视频
 视频测试实例如下，支持对视频流进行测试。
 ```bash
-./yolov5_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel=../../models/BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel --dev_id=0 --draw_thresh=0.5 --classnames=../../datasets/coco.names
+./yolov5_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel=../../models/BM1684X/yolov5s_v6.1_fuse_fp32_1b.bmodel --dev_id=0 --draw_thresh=0.5 --classnames=../../datasets/coco.names
 ```
 测试结束后，会将预测结果画在图片上并保存在`results/images`中，同时会打印预测结果、推理时间等信息。
 

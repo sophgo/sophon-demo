@@ -26,7 +26,7 @@
 ## 2. 特性
 * 将前后处理融入模型中
 * 支持使用tpu硬件进行前后处理加速
-* 支持BM1684X(x86 PCIe、SoC)、BM1688/CV186X(SoC)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1688/CV186X(SoC)
 * 支持FP32、FP16、INT8模型编译和推理
 * 支持python和C++推理
 * 支持单batch和多batch模型推理
@@ -242,6 +242,23 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE9-8        | yolov5_sail.soc    | yolov5s_v6.1_fuse_fp16_1b.bmodel      |    0.363 |    0.562 |
 | SE9-8        | yolov5_sail.soc    | yolov5s_v6.1_fuse_int8_1b.bmodel      |    0.343 |    0.554 |
 | SE9-8        | yolov5_sail.soc    | yolov5s_v6.1_fuse_int8_4b.bmodel      |    0.343 |    0.554 |
+| SRM1-20      | yolov5_opencv.py   | yolov5s_v6.1_fuse_fp32_1b.bmodel      |    0.366 |    0.570 |
+| SRM1-20      | yolov5_opencv.py   | yolov5s_v6.1_fuse_fp16_1b.bmodel      |    0.366 |    0.570 |
+| SRM1-20      | yolov5_opencv.py   | yolov5s_v6.1_fuse_int8_1b.bmodel      |    0.346 |    0.560 |
+| SRM1-20      | yolov5_opencv.py   | yolov5s_v6.1_fuse_int8_4b.bmodel      |    0.346 |    0.560 |
+| SRM1-20      | yolov5_bmcv.py     | yolov5s_v6.1_fuse_fp32_1b.bmodel      |    0.362 |    0.562 |
+| SRM1-20      | yolov5_bmcv.py     | yolov5s_v6.1_fuse_fp16_1b.bmodel      |    0.363 |    0.562 |
+| SRM1-20      | yolov5_bmcv.py     | yolov5s_v6.1_fuse_int8_1b.bmodel      |    0.342 |    0.553 |
+| SRM1-20      | yolov5_bmcv.py     | yolov5s_v6.1_fuse_int8_4b.bmodel      |    0.342 |    0.553 |
+| SRM1-20      | yolov5_bmcv.pcie   | yolov5s_v6.1_fuse_fp32_1b.bmodel      |    0.363 |    0.562 |
+| SRM1-20      | yolov5_bmcv.pcie   | yolov5s_v6.1_fuse_fp16_1b.bmodel      |    0.363 |    0.562 |
+| SRM1-20      | yolov5_bmcv.pcie   | yolov5s_v6.1_fuse_int8_1b.bmodel      |    0.344 |    0.554 |
+| SRM1-20      | yolov5_bmcv.pcie   | yolov5s_v6.1_fuse_int8_4b.bmodel      |    0.344 |    0.554 |
+| SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_fuse_fp32_1b.bmodel      |    0.363 |    0.562 |
+| SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_fuse_fp16_1b.bmodel      |    0.363 |    0.562 |
+| SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_fuse_int8_1b.bmodel      |    0.344 |    0.554 |
+| SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_fuse_int8_4b.bmodel      |    0.344 |    0.554 |
+
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标；
@@ -351,6 +368,22 @@ bmrt_test --bmodel models/BM1684X/yolov5s_v6.1_fuse_fp32_1b.bmodel
 |    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_fuse_fp16_1b.bmodel|      3.78       |      1.73       |      32.34      |      0.03       |
 |    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_fuse_int8_1b.bmodel|      3.85       |      1.76       |      11.08      |      0.03       |
 |    SE9-8    |  yolov5_sail.soc  |yolov5s_v6.1_fuse_int8_4b.bmodel|      3.60       |      1.25       |      10.53      |      0.01       |
+|   SRM1-20   | yolov5_opencv.py  | yolov5s_v6.1_fuse_fp32_1b.bmodel  |      13.13      |      1.25       |     134.85      |      4.03       |
+|   SRM1-20   | yolov5_opencv.py  | yolov5s_v6.1_fuse_fp16_1b.bmodel  |      13.26      |      1.18       |     118.71      |      3.74       |
+|   SRM1-20   | yolov5_opencv.py  | yolov5s_v6.1_fuse_int8_1b.bmodel  |      13.20      |      1.20       |     114.70      |      3.95       |
+|   SRM1-20   | yolov5_opencv.py  | yolov5s_v6.1_fuse_int8_4b.bmodel  |      13.02      |      1.25       |     110.64      |      3.53       |
+|   SRM1-20   |  yolov5_bmcv.py   | yolov5s_v6.1_fuse_fp32_1b.bmodel  |      23.83      |      3.36       |      27.52      |      4.61       |
+|   SRM1-20   |  yolov5_bmcv.py   | yolov5s_v6.1_fuse_fp16_1b.bmodel  |      24.12      |      3.38       |      10.30      |      4.66       |
+|   SRM1-20   |  yolov5_bmcv.py   | yolov5s_v6.1_fuse_int8_1b.bmodel  |      17.19      |      3.15       |      6.72       |      4.45       |
+|   SRM1-20   |  yolov5_bmcv.py   | yolov5s_v6.1_fuse_int8_4b.bmodel  |      23.95      |      3.04       |      4.02       |      3.30       |
+|   SRM1-20   | yolov5_bmcv.pcie  | yolov5s_v6.1_fuse_fp32_1b.bmodel  |      22.82      |      0.67       |      25.01      |      0.47       |
+|   SRM1-20   | yolov5_bmcv.pcie  | yolov5s_v6.1_fuse_fp16_1b.bmodel  |      11.61      |      0.58       |      7.79       |      0.36       |
+|   SRM1-20   | yolov5_bmcv.pcie  | yolov5s_v6.1_fuse_int8_1b.bmodel  |      23.26      |      0.67       |      4.58       |      0.48       |
+|   SRM1-20   | yolov5_bmcv.pcie  | yolov5s_v6.1_fuse_int8_4b.bmodel  |      23.07      |      0.59       |      3.45       |      0.17       |
+|   SRM1-20   | yolov5_sail.pcie  | yolov5s_v6.1_fuse_fp32_1b.bmodel  |      23.18      |      1.63       |      26.18      |      0.06       |
+|   SRM1-20   | yolov5_sail.pcie  | yolov5s_v6.1_fuse_fp16_1b.bmodel  |      22.94      |      1.56       |      8.92       |      0.07       |
+|   SRM1-20   | yolov5_sail.pcie  | yolov5s_v6.1_fuse_int8_1b.bmodel  |      22.74      |      1.57       |      5.34       |      0.07       |
+|   SRM1-20   | yolov5_sail.pcie  | yolov5s_v6.1_fuse_int8_4b.bmodel  |      16.60      |      0.47       |      3.58       |      0.02       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
