@@ -26,7 +26,7 @@ YOLOx, proposed by Megvii Technology Limited, is based on the improvement of YOL
 **URL of github repository** (https://github.com/Megvii-BaseDetection/YOLOX)
 
 ## 2. Feature
-* Support for BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC) and BM1684(x86 PCIe、SoC、arm PCIe)
+* Support for BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe) and BM1684(x86 PCIe、SoC、arm PCIe)
 * Support for FP32, FP16 (BM1684X/BM1688/CV186X), INT8 model compilation and inference
 * Support C++ inference based on BMCV preprocessing
 * Support Python inference based on OpenCV and BMCV preprocessing
@@ -194,6 +194,22 @@ On the `datasets/coco/val2017_1000` dataset, the accuracy test results with `nms
 | SE9-8        | yolox_bmcv.py    |    yolox_s_fp16_1b.bmodel           |      0.402    |   0.590    |
 | SE9-8        | yolox_bmcv.py    |    yolox_s_int8_1b.bmodel           |      0.402    |   0.587    |
 | SE9-8        | yolox_bmcv.py    |    yolox_s_int8_4b.bmodel           |      0.402    |   0.587    |
+| SRM1-20      | yolox_opencv.py  | yolox_s_fp32_1b.bmodel |      0.403      |   0.590    |
+| SRM1-20      | yolox_opencv.py  | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| SRM1-20      | yolox_opencv.py  | yolox_s_int8_1b.bmodel |      0.401      |   0.587    |
+| SRM1-20      | yolox_opencv.py  | yolox_s_int8_4b.bmodel |      0.401      |   0.587    |
+| SRM1-20      | yolox_bmcv.py    | yolox_s_fp32_1b.bmodel |      0.402      |   0.590    |
+| SRM1-20      | yolox_bmcv.py    | yolox_s_fp16_1b.bmodel |      0.402      |   0.590    |
+| SRM1-20      | yolox_bmcv.py    | yolox_s_int8_1b.bmodel |      0.402      |   0.586    |
+| SRM1-20      | yolox_bmcv.py    | yolox_s_int8_4b.bmodel |      0.402      |   0.586    |
+| SRM1-20      | yolox_bmcv.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| SRM1-20      | yolox_bmcv.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
+| SRM1-20      | yolox_bmcv.pcie  | yolox_s_int8_1b.bmodel |      0.401      |   0.592    |
+| SRM1-20      | yolox_bmcv.pcie  | yolox_s_int8_4b.bmodel |      0.401      |   0.592    |
+| SRM1-20      | yolox_sail.pcie  | yolox_s_fp32_1b.bmodel |      0.400      |   0.594    |
+| SRM1-20      | yolox_sail.pcie  | yolox_s_fp16_1b.bmodel |      0.400      |   0.594    |
+| SRM1-20      | yolox_sail.pcie  | yolox_s_int8_1b.bmodel |      0.401      |   0.592    |
+| SRM1-20      | yolox_sail.pcie  | yolox_s_int8_4b.bmodel |      0.401      |   0.592    |
 
 > **Note**:
 > 1. Due to possible differences between SDK versions, it is normal for the mAP error of <0.01 between the actual running results and this table;
@@ -299,6 +315,23 @@ Use different examples and models to test `datasets/coco/val2017_1000` with `con
 | SE9-8       | yolox_bmcv.soc   | yolox_s_fp16_1b.bmodel              | 5.58      | 1.74          | 34.67        | 3.73           |
 | SE9-8       | yolox_bmcv.soc   | yolox_s_int8_1b.bmodel              | 5.62      | 1.73          | 20.21        | 3.73           |
 | SE9-8       | yolox_bmcv.soc   | yolox_s_int8_4b.bmodel              | 5.41      | 1.65          | 20.07        | 3.73           |
+| SRM1-20     |  yolox_opencv.py  |      yolox_s_fp32_1b.bmodel       |      13.93      |      5.51       |     110.89      |      4.45       |
+| SRM1-20     |  yolox_opencv.py  |      yolox_s_fp16_1b.bmodel       |      13.99      |      5.65       |      82.79      |      4.41       |
+| SRM1-20     |  yolox_opencv.py  |      yolox_s_int8_1b.bmodel       |      14.01      |      5.64       |      81.37      |      4.32       |
+| SRM1-20     |  yolox_opencv.py  |      yolox_s_int8_4b.bmodel       |      13.78      |      10.45      |      82.91      |      3.37       |
+| SRM1-20     |   yolox_bmcv.py   |      yolox_s_fp32_1b.bmodel       |      25.50      |      5.52       |      88.04      |      4.25       |
+| SRM1-20     |   yolox_bmcv.py   |      yolox_s_fp16_1b.bmodel       |      25.67      |      5.59       |      60.08      |      4.29       |
+| SRM1-20     |   yolox_bmcv.py   |      yolox_s_int8_1b.bmodel       |      25.43      |      5.48       |      58.77      |      4.15       |
+| SRM1-20     |   yolox_bmcv.py   |      yolox_s_int8_4b.bmodel       |      24.39      |      5.25       |      56.00      |      3.23       |
+| SRM1-20     |  yolox_bmcv.pcie  |      yolox_s_fp32_1b.bmodel       |      13.67      |      1.08       |      34.68      |      21.84      |
+| SRM1-20     |  yolox_bmcv.pcie  |      yolox_s_fp16_1b.bmodel       |      23.05      |      1.27       |      6.90       |      51.20      |
+| SRM1-20     |  yolox_bmcv.pcie  |      yolox_s_int8_1b.bmodel       |      11.19      |      1.17       |      5.45       |      18.17      |
+| SRM1-20     |  yolox_bmcv.pcie  |      yolox_s_int8_4b.bmodel       |      11.01      |      0.99       |      5.20       |      18.21      |
+| SRM1-20     |  yolox_sail.pcie  |      yolox_s_fp32_1b.bmodel       |      43.52      |      1.81       |      52.45      |      1.63       |
+| SRM1-20     |  yolox_sail.pcie  |      yolox_s_fp16_1b.bmodel       |      19.87      |      2.00       |      39.49      |      1.67       |
+| SRM1-20     |  yolox_sail.pcie  |      yolox_s_int8_1b.bmodel       |      10.58      |      1.79       |      18.47      |      1.58       |
+| SRM1-20     |  yolox_sail.pcie  |      yolox_s_int8_4b.bmodel       |      10.76      |      1.32       |      16.96      |      1.53       |
+
 > **Note**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
 > 2. The performance test results are volatile to a certain extent, so it is recommended that the average value should be taken from multiple tests.
