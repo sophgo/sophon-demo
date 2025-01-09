@@ -21,7 +21,7 @@
 ​YOLOv10引入了一种新的实时目标检测方法，解决了YOLO 以前版本在后处理和模型架构方面的不足。通过消除非最大抑制（NMS）和优化各种模型组件，YOLOv10 在显著降低计算开销的同时实现了最先进的性能。本例程对[​YOLOv10官方开源仓库](https://github.com/THU-MIG/yolov10)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -172,6 +172,19 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE9-8    | yolov10_bmcv.soc  | yolov10s_fp16_1b.bmodel | 0.453           | 0.610      |
 | SE9-8    | yolov10_bmcv.soc  | yolov10s_int8_1b.bmodel | 0.443           | 0.600      |
 | SE9-8    | yolov10_bmcv.soc  | yolov10s_int8_4b.bmodel | 0.441           | 0.660      |
+| SRM1-20  | yolov10_opencv.py | yolov10s_fp32_1b.bmodel |    0.463 |    0.627 |
+| SRM1-20  | yolov10_opencv.py | yolov10s_fp16_1b.bmodel |    0.452 |    0.610 |
+| SRM1-20  | yolov10_opencv.py | yolov10s_int8_1b.bmodel |    0.443 |    0.600 |
+| SRM1-20  | yolov10_opencv.py | yolov10s_int8_4b.bmodel |    0.443 |    0.600 |
+| SRM1-20  | yolov10_bmcv.py   | yolov10s_fp32_1b.bmodel |    0.462 |    0.627 |
+| SRM1-20  | yolov10_bmcv.py   | yolov10s_fp16_1b.bmodel |    0.452 |    0.609 |
+| SRM1-20  | yolov10_bmcv.py   | yolov10s_int8_1b.bmodel |    0.441 |    0.599 |
+| SRM1-20  | yolov10_bmcv.py   | yolov10s_int8_4b.bmodel |    0.441 |    0.599 |
+| SRM1-20  | yolov10_bmcv.pcie | yolov10s_fp32_1b.bmodel |    0.463 |    0.627 |
+| SRM1-20  | yolov10_bmcv.pcie | yolov10s_fp16_1b.bmodel |    0.453 |    0.610 |
+| SRM1-20  | yolov10_bmcv.pcie | yolov10s_int8_1b.bmodel |    0.441 |    0.598 |
+| SRM1-20  | yolov10_bmcv.pcie | yolov10s_int8_4b.bmodel |    0.441 |    0.598 |
+
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -251,6 +264,19 @@ bmrt_test --bmodel models/BM1684X/yolov10s_fp32_1b.bmodel
 | SE9-8    | yolov10_bmcv.soc  | yolov10s_fp16_1b.bmodel | 5.62        | 1.73            | 35.22          | 0.04             |
 | SE9-8    | yolov10_bmcv.soc  | yolov10s_int8_1b.bmodel | 5.60        | 1.74            | 9.79           | 0.04             |
 | SE9-8    | yolov10_bmcv.soc  | yolov10s_int8_4b.bmodel | 5.40        | 1.65            | 9.00           | 0.02             |
+| SRM1-20  | yolov10_opencv.py | yolov10s_fp32_1b.bmodel | 13.31       | 21.70           | 51.73          | 1.23             |
+| SRM1-20  | yolov10_opencv.py | yolov10s_fp16_1b.bmodel | 13.56       | 21.61           | 31.30          | 1.21             |
+| SRM1-20  | yolov10_opencv.py | yolov10s_int8_1b.bmodel | 13.40       | 21.80           | 30.18          | 1.27             |
+| SRM1-20  | yolov10_opencv.py | yolov10s_int8_4b.bmodel | 13.11       | 30.57           | 24.71          | 0.75             |
+| SRM1-20  | yolov10_bmcv.py   | yolov10s_fp32_1b.bmodel | 24.76       | 4.67            | 31.78          | 1.08             |
+| SRM1-20  | yolov10_bmcv.py   | yolov10s_fp16_1b.bmodel | 24.66       | 4.62            | 11.71          | 1.05             |
+| SRM1-20  | yolov10_bmcv.py   | yolov10s_int8_1b.bmodel | 10.57       | 3.97            | 8.29           | 1.16             |
+| SRM1-20  | yolov10_bmcv.py   | yolov10s_int8_4b.bmodel | 16.26       | 4.12            | 4.92           | 0.68             |
+| SRM1-20  | yolov10_bmcv.pcie | yolov10s_fp32_1b.bmodel | 22.78       | 1.29            | 29.59          | 0.59             |
+| SRM1-20  | yolov10_bmcv.pcie | yolov10s_fp16_1b.bmodel | 22.93       | 1.30            | 9.45           | 0.58             |
+| SRM1-20  | yolov10_bmcv.pcie | yolov10s_int8_1b.bmodel | 22.86       | 1.29            | 6.52           | 0.58             |
+| SRM1-20  | yolov10_bmcv.pcie | yolov10s_int8_4b.bmodel | 22.84       | 1.07            | 4.43           | 0.26             |
+
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
