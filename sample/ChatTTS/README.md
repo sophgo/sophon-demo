@@ -49,7 +49,8 @@ chmod -R +x scripts/
 ├── python/
 |   ├── ChatTTS                     #封装好的ChatTTS模块，推理部分用sail实现。
 |   ├── README.md                   #运行指南
-|   └── test.py                     #模块调用示例
+|   └── test_stream.py              #流式调用示例
+|   └── test.py                     #非流式调用示例
 ├── README.md                       #ChatTTS例程指南
 ├── scripts                         
 │   ├── download.sh                 #下载脚本

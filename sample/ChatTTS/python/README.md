@@ -8,6 +8,8 @@
     - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
     - [1.2 SoC平台](#12-soc平台)
   - [2. 推理测试](#2-推理测试)
+    - [2.1 非流式推理](#21-非流式推理)
+    - [2.2 流式推理：](#22-流式推理)
   - [3. 程序流程图](#3-程序流程图)
 
 ## 1. 环境准备
@@ -45,6 +47,8 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/sophon_arm-3.8.0-py3-none
 
 ## 2. 推理测试
 
+### 2.1 非流式推理
+
 `ChatTTS`是封装好的模块，用户可以基于`ChatTTS`模块做二次开发。在调用之前，需要配置好`ChatTTS/config/config.py`里的`class Path`中相关bmodel的路径。
 
 `test.py`是调用示例，可以直接运行`test.py`：
@@ -53,6 +57,21 @@ cd python
 python3 test.py
 ```
 运行完成后会在当前目录下生成`test.wav`。
+
+### 2.2 流式推理：
+
+目标设备上需要有音频输出通道，并安装以下依赖：
+```bash
+sudo apt-get install libportaudio2
+pip3 install sounddevice
+```
+
+`test_stream.py`是流式调用实例，可以直接运行：
+```bash
+cd python
+python3 test_stream.py
+```
+运行过程中会播放声音，运行完成后在当前目录下生成`test_stream.wav`。
 
 ## 3. 程序流程图
 
