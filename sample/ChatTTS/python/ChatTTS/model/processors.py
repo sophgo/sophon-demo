@@ -2,7 +2,6 @@ import torch
 import torch.nn.functional as F
 from transformers.generation import TopKLogitsWarper, TopPLogitsWarper
 
-
 class CustomRepetitionPenaltyLogitsProcessorRepeat:
 
     def __init__(self, penalty: float, max_input_ids: int, past_window: int):
@@ -18,23 +17,26 @@ class CustomRepetitionPenaltyLogitsProcessorRepeat:
     def __call__(
         self, input_ids: torch.LongTensor, scores: torch.FloatTensor
     ) -> torch.FloatTensor:
+        # Step 1: Restrict input_ids to the past_window size
         if input_ids.size(1) > self.past_window:
-            input_ids = input_ids.narrow(1, -self.past_window, self.past_window)
-        freq = F.one_hot(input_ids, scores.size(1)).sum(1)
+            input_ids = input_ids[:, -self.past_window:]  # Take the last `past_window` tokens
+
+        # Step 2: Compute token frequencies
+        # One-hot encode input_ids and sum along the sequence dimension
+        freq = F.one_hot(input_ids, num_classes=scores.size(1)).sum(dim=1)
+
+        # Step 3: Zero out frequencies beyond max_input_ids
         if freq.size(0) > self.max_input_ids:
-            freq.narrow(
-                0, self.max_input_ids, freq.size(0) - self.max_input_ids
-            ).zero_()
+            freq[self.max_input_ids:] = 0  # Ensure slicing is valid
+
+        # Step 4: Compute alpha (penalty factor)
         alpha = torch.pow(self.penalty, freq)
-        scores = scores.contiguous()
-        inp = scores.multiply(alpha)
-        oth = scores.divide(alpha)
-        con = scores < 0
-        out = torch.where(con, inp, oth)
-        del inp, oth, scores, con, alpha
-        return out
 
+        # Step 5: Apply penalty to scores
+        # Use torch.where to handle positive and negative scores
+        scores = torch.where(scores < 0, scores * alpha, scores / alpha)
 
+        return scores
 def gen_logits(
     num_code: int,
     top_P=0.7,
