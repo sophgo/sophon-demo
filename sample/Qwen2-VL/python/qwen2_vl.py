@@ -35,6 +35,7 @@ class Qwen2VLInputProcessor:
             to use exsiting image_grid_thw or video_grid_thw
     """
     def __init__(self, processor_path, trust_remote_code=True, **kwargs):
+        self.version = "1.0.0"
         self.processor = AutoProcessor.from_pretrained(processor_path,
                                                        trust_remote_code=trust_remote_code, **kwargs)
     
@@ -139,6 +140,7 @@ class Qwen2VLInputProcessor:
 class Qwen2VL():
 
     def __init__(self, **kwargs):
+        self.version = "1.0.0"
         st = time.time()
         # devid
         self.dev_id = kwargs.get("dev_id", 0)

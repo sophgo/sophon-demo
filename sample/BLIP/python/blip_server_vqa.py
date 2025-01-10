@@ -32,6 +32,7 @@ config_default = {
 
 class BlipServer:
     def __init__(self, config=config_default):
+        self.version = "1.0.0"
         """
         初始化blip_engine, input_image_queue
         """

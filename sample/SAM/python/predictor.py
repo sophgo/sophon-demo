@@ -26,6 +26,7 @@ class SamPredictor:
         Arguments:
           sam_model (Sam): The model to use for mask prediction.
         """
+        self.version = "1.0.0"
         super().__init__()
         self.sam_encoder = sam_encoder
         self.model = sam_model

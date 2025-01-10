@@ -22,6 +22,7 @@ def type_convert(sail_dtype):
 
 class ChatGLM2:
     def __init__(self, args):
+        self.version = "1.0.0"
         # self.dev_id = args.dev_id
 
         self.NUM_LAYERS = 28

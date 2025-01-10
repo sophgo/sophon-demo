@@ -38,6 +38,7 @@ class SAM2VideoBase:
         # whether to also clear non-conditioning memory of the surrounding frames (only effective when `clear_non_cond_mem_around_input` is True).
         clear_non_cond_mem_for_multi_obj=False,
     ):
+        self.version = "1.0.0"
         self.image_encoder = sail.Engine(image_encoder_path, dev_id, sail.IOMode.SYSIO)
         self.image_encoder_graph_name = self.image_encoder.get_graph_names()[0]
         self.image_decoder = sail.Engine(image_decoder_path, dev_id, sail.IOMode.SYSIO)

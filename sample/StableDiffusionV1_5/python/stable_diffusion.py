@@ -63,6 +63,7 @@ class StableDiffusionPipeline():
         processor_name = None,
         tokenizer = None,
     ):
+        self.version = "1.0.0"
         super().__init__()
 
         # check configuration

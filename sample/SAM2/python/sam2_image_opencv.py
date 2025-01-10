@@ -28,6 +28,7 @@ logger.setLevel(level=logging.DEBUG)
 class SAM2ImageEncoder:
 
     def __init__(self, encoder_model_path: str, dev_id: int = 0) -> None:
+        self.version = "1.0.0"
         self.encoder = sail.Engine(encoder_model_path, dev_id, sail.IOMode.SYSIO)
         self.graph_name = self.encoder.get_graph_names()[0]
         self.input_names = self.encoder.get_input_names(self.graph_name)[0]

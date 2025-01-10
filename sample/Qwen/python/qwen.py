@@ -16,6 +16,7 @@ import argparse
 
 class Qwen:
     def __init__(self, bmodel_path, dev_ids, tokenizer_path) -> None:
+        self.version = "1.0.0"
 
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, trust_remote_code=True)
         self.EOS = self.tokenizer.eos_token_id

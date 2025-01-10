@@ -44,6 +44,7 @@ def fp16_cast(arr:np.ndarray): #这个接口的作用在于把np.float16假冒�
 
 class Qwen:
     def __init__(self, handle, engine_llm, tokenizer):
+        self.version = "1.0.0"
         self.handle = handle
         self.sp = tokenizer
         

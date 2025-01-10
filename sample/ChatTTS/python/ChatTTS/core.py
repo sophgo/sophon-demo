@@ -23,6 +23,7 @@ from .norm import Normalizer
 
 class Chat:
     def __init__(self, logger=logging.getLogger(__name__)):
+        self.version = "1.0.0"
         self.logger = logger
         utils_logger.set_logger(logger)
 

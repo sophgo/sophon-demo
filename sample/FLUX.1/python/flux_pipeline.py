@@ -155,6 +155,7 @@ class FluxPipeline:
         # tokenizer_2,
         # transformer,
     ):
+        self.version = "1.0.0"
         #### Config for sub modules, hyperparameters come from the original config.json
         self.default_sample_size = 64
         self.vae_scale_factor = 16

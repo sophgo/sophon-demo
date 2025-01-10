@@ -77,6 +77,7 @@ class SileroVADSilenceRemover:
 
 class seamless_stream_s2tt:
     def __init__(self, args):
+        self.version = "1.0.0"
         self.silence_remover = SileroVADSilenceRemover()
         self.is_standardized = False
         self.chunk_duration_ms = args.chunk_duration_ms # NOTE: original code: 320

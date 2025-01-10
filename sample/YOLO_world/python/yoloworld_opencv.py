@@ -51,6 +51,7 @@ class TextEmbedder:
 
 class YOLOworld:
     def __init__(self, args):
+        self.version = "1.0.0"
         # load bmodel
         self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
         logging.info("load {} success!".format(args.bmodel))

@@ -35,6 +35,7 @@ def preprocess(ori_image, image_size):
 
 class blip_itm:
     def __init__(self, args):
+        self.version = "1.0.0"
         self.net = sail.Engine(args.bmodel_path, args.dev_id, sail.IOMode.SYSIO)
         self.predict_time = 0.0
 
@@ -62,6 +63,7 @@ class blip_itm:
 
 class blip_vqa:
     def __init__(self, args):
+        self.version = "1.0.0"
         self.net_venc = sail.Engine(args.venc_bmodel_path, args.dev_id, sail.IOMode.SYSIO)
         self.net_tenc = sail.Engine(args.tenc_bmodel_path, args.dev_id, sail.IOMode.SYSIO)
         self.net_tdec = sail.Engine(args.tdec_bmodel_path, args.dev_id, sail.IOMode.SYSIO)
@@ -104,6 +106,7 @@ class blip_vqa:
 
 class blip_cap:
     def __init__(self, args):
+        self.version = "1.0.0"
         self.net = sail.Engine(args.bmodel_path, args.dev_id, sail.IOMode.SYSIO)
         self.predict_time = 0.0
 

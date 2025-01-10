@@ -87,6 +87,7 @@ class SAM2Video(SAM2VideoBase):
         num_mask_mem=7,
         max_obj_ptrs_in_encoder=16,
     ):
+        self.version = "1.0.0"
         super().__init__(
             dev_id=dev_id,
             image_encoder_path=image_encoder_path,

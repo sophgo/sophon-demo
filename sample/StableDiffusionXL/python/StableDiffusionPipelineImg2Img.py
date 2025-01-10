@@ -95,6 +95,7 @@ class StableDiffusionXLImg2ImgPipeline:
         unet_path,
         scheduler,
         dev_id = 0):
+        self.version = "1.0.0"
 
         # module config parameter
         self.device = dev_id

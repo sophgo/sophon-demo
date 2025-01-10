@@ -96,6 +96,7 @@ class SamAutomaticMaskGenerator:
             memory.
         """
 
+        self.version = "1.0.0"
         assert (points_per_side is None) != (
             point_grids is None
         ), "Exactly one of points_per_side or point_grid must be provided."

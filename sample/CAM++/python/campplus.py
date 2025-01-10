@@ -38,6 +38,7 @@ class FBank(object):
 
 class Campplus:
     def __init__(self, args):
+        self.version = "1.0.0"
         self.net = sail.Engine(args.bmodel, args.dev_id, sail.IOMode.SYSIO)
         self.feature_extractor = FBank(80, sample_rate=16000, mean_nor=True)
         self.preprocess_time = 0.0

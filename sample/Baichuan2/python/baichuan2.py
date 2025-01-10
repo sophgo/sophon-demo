@@ -15,6 +15,7 @@ import numpy as np
 class Baichuan2:
 
     def __init__(self, handle, engine, tokenizer):
+        self.version = "1.0.0"
         # load tokenizer
         self.sp = tokenizer
         self.handle = handle

@@ -33,6 +33,7 @@ class Sam(nn.Module):
           pixel_mean (list(float)): Mean values for normalizing pixels in the input image.
           pixel_std (list(float)): Std values for normalizing pixels in the input image.
         """
+        self.version = "1.0.0"
         super().__init__()
         # self.image_encoder = image_encoder
         # self.prompt_encoder = prompt_encoder

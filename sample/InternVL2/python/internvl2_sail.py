@@ -36,6 +36,7 @@ def load_image(image_file, input_size=448, max_num=12):
 
 class InternVL2():
     def __init__(self, args):
+        self.version = "1.0.0"
         # devid
         self.dev_ids = [args.devid]
         self.handles = {dev: sail.Handle(dev) for dev in self.dev_ids}

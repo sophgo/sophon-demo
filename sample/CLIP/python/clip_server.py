@@ -29,6 +29,7 @@ config_default = {
 
 class ClipServer:
     def __init__(self, config=config_default):
+        self.version = "1.0.0"
         """
         初始化clip_engine, input_image_queue
         """

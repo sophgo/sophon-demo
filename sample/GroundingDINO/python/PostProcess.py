@@ -4,6 +4,7 @@ import numpy as np
 
 class PostProcess():
     def __init__(self, caption, token_spans, tokenizer, box_threshold, text_threshold, with_logits=True):
+        self.version = "1.0.0"
 
         self.caption = caption
         self.token_spans = token_spans

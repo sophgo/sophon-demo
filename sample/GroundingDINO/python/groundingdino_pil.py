@@ -33,6 +33,7 @@ def load_image(image):
 
 class GroundingDINO():
     def __init__(self, args):
+        self.version = "1.0.0"
         # input info
         self.bmodel_path = args.bmodel
         self.text_prompt = args.text_prompt

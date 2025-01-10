@@ -32,6 +32,7 @@ dataset=MyDataset()
 
 class BERT:
     def __init__(self,model_path,dict_path,if_crf=True):
+        self.version = "1.0.0"
         self.io_mode = sail.IOMode.SYSIO
         self.device=0
         self.engine=sail.Engine(model_path,self.device,self.io_mode)

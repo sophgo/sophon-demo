@@ -37,6 +37,7 @@ class ModelDimensions:
 
 class Whisper():
     def __init__(self, dims: ModelDimensions, args):
+        self.version = "1.0.0"
         super().__init__()
         self.dims = dims
         self.encoder = None

@@ -34,6 +34,7 @@ def fp16_cast(arr:np.ndarray): #这个接口的作用在于把np.float16假冒�
     
 class ChatGLM3:
     def __init__(self, handle, engine, tokenizer):
+        self.version = "1.0.0"
         # load tokenizer
         self.sp = tokenizer
         self.handle = handle

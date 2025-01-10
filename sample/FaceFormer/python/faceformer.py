@@ -30,6 +30,7 @@ def enc_dec_mask(dataset, T, S):
 
 class Faceformer:
     def __init__(self, handle, engine, args):
+        self.version = "1.0.0"
         self.args = args
         self.handle = handle
 

@@ -5,6 +5,7 @@ logging.basicConfig(level=logging.INFO)
 
 class SamEncoder():
     def __init__(self,args,img_size = 1024) -> None:
+        self.version = "1.0.0"
         # load bmodel
         self.net = sail.Engine(args.embedding_bmodel, args.dev_id, sail.IOMode.SYSIO)
         self.graph_name = self.net.get_graph_names()[0]

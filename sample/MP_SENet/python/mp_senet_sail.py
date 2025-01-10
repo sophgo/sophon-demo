@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.INFO)
  
 class MP_SENET(object):
     def __init__(self, args):
+        self.version = "1.0.0"
         #self.net = Engine(args.mp_senet_model, device_id=args.dev_id,  graph_id=0, mode=sail.IOMode.SYSIO)
         self.net = sail.Engine(args.mp_senet_model, args.dev_id, sail.IOMode.SYSIO)
         logging.info("load {} success!".format(args.mp_senet_model))
