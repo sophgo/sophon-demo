@@ -285,9 +285,6 @@ float YoloV8::get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h
     return ratio;
 }
 
-
-
-
 int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8BoxVec>& detected_boxes) {
     YoloV8BoxVec yolobox_vec;
 
@@ -311,13 +308,8 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
         auto out_tensor = outputTensors[min_idx];
         auto out_tensor1 = outputTensors[1];
         
-        float* out1 = out_tensor1->get_cpu_data();
         const bm_shape_t* shape1 = out_tensor1->get_shape();
         
-        int dims = 4;
-        int sizes[] = {shape1->dims[0], shape1->dims[1], shape1->dims[2], shape1->dims[3]};
-        cv::Mat output1(dims, sizes, CV_32F, out1 + batch_idx * shape1->dims[2] * shape1->dims[1] * shape1->dims[3]); 
-
 #if USE_ASPECT_RATIO
 
         bool isAlignWidth = false;  
@@ -370,9 +362,7 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
                     box.y1 = centerY - height / 2 + c;
                     box.x2 = box.x1 + width;
                     box.y2 = box.y1 + height;
-                    for (int k = 0; k < mask_len; k++) {
-                        box.mask.push_back(output_data[i + (nout - mask_len + k) * feat_num]);
-                    }
+                    box.temp_id = i;
 
                     yolobox_vec.push_back(box);
                 }
@@ -402,9 +392,7 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
                 box.y1 = centerY - height / 2 + c;
                 box.x2 = box.x1 + width;
                 box.y2 = box.y1 + height;
-                for (int k = 0; k < mask_len; k++) {
-                    box.mask.push_back(output_data[i + (nout - mask_len + k) * feat_num]);
-                }
+                box.temp_id = i;
                 yolobox_vec.push_back(box);
             }
 #endif
@@ -415,21 +403,17 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
         NMS(yolobox_vec, m_nmsThreshold); 
 
         if (yolobox_vec.size() > max_det) {
-            yolobox_vec.erase(yolobox_vec.begin(), yolobox_vec.begin() + (yolobox_vec.size() - max_det));
+            yolobox_vec.resize(max_det);
         }
 
         for (int i = 0; i < yolobox_vec.size(); i++) {
+            for (int k = 0; k < mask_len; k++) {
+                yolobox_vec[i].mask.push_back(output_data[yolobox_vec[i].temp_id + (nout - mask_len + k) * feat_num]);
+            }
             int c = yolobox_vec[i].class_id * max_wh;
-            yolobox_vec[i].x1 = yolobox_vec[i].x1 - c;
-            yolobox_vec[i].y1 = yolobox_vec[i].y1 - c;
-            yolobox_vec[i].x2 = yolobox_vec[i].x2 - c;
-            yolobox_vec[i].y2 = yolobox_vec[i].y2 - c;
-        }
 
-        YoloV8BoxVec yolobox_vec_tmp;
-        for (int i = 0; i < yolobox_vec.size(); i++) {
-            float centerx = ((yolobox_vec[i].x2 + yolobox_vec[i].x1) / 2 - tx1) / ratio;
-            float centery = ((yolobox_vec[i].y2 + yolobox_vec[i].y1) / 2 - ty1) / ratio;
+            float centerx = ((yolobox_vec[i].x2 + yolobox_vec[i].x1) / 2 - c - tx1) / ratio;
+            float centery = ((yolobox_vec[i].y2 + yolobox_vec[i].y1) / 2 - c - ty1) / ratio;
             float width = (yolobox_vec[i].x2 - yolobox_vec[i].x1) / ratio;
             float height = (yolobox_vec[i].y2 - yolobox_vec[i].y1) / ratio; 
             yolobox_vec[i].x1 = centerx - width / 2;
@@ -466,28 +450,42 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
                     unsigned long long seg_addr = bm_mem_get_device_addr(input_tensor1.device_mem);
                     bm_device_mem_t seg_dev = bm_mem_from_device(seg_addr + batch_idx*netinfo->max_input_bytes[1], netinfo->max_input_bytes[1]);
                     bmrt_tensor_with_device(&segmentation_tensor, seg_dev, netinfo->input_dtypes[1], netinfo->stages[0].input_shapes[1]);
-                    getmask_tpu(yolobox_valid_vec, start, segmentation_tensor, paras, yolobox_vec_tmp);
+                    getmask_tpu(yolobox_valid_vec, start, segmentation_tensor, paras);
                 }
             } 
+            detected_boxes.push_back(yolobox_valid_vec);
          }else{
-                for (int i = 0; i < yolobox_vec.size(); i++) {
-                    if (yolobox_vec[i].x2 > yolobox_vec[i].x1 + 1 && yolobox_vec[i].y2 > yolobox_vec[i].y1 + 1) {
-                        get_mask(cv::Mat(yolobox_vec[i].mask).t(), output1, para,
-                                cv::Rect{yolobox_vec[i].x1, yolobox_vec[i].y1, yolobox_vec[i].x2 - yolobox_vec[i].x1,
-                                        yolobox_vec[i].y2 - yolobox_vec[i].y1},
-                                yolobox_vec[i].mask_img);
-                        yolobox_vec_tmp.push_back(yolobox_vec[i]);
-                    }
+            int sizes[] = {shape1->dims[0], shape1->dims[1], shape1->dims[2], shape1->dims[3]};
+            cv::Mat input2(4, sizes, CV_32F, out_tensor1->get_cpu_data() + batch_idx * shape1->dims[2] * shape1->dims[1] * shape1->dims[3]);
+
+            int r_x = floor(para.trans[2] / 4);
+            int r_y = floor(para.trans[3] / 4);
+            int r_w = MAX((m_net_w / 4) - 2 * r_x, 1);
+            int r_h = MAX((m_net_h / 4) - 2 * r_y, 1);
+
+            std::vector<cv::Range> roi_rangs = {cv::Range(0, 1), cv::Range::all(), cv::Range(r_y, r_h + r_y), cv::Range(r_x, r_w + r_x)};
+            cv::Mat temp_mask = input2(roi_rangs).clone();  // crop
+            cv::Mat protos = temp_mask.reshape(0, {32, r_w * r_h});
+
+            for (int i = 0; i < yolobox_vec.size(); i++) {
+                if (yolobox_vec[i].x2 > yolobox_vec[i].x1 + 1 && yolobox_vec[i].y2 > yolobox_vec[i].y1 + 1) {
+                    cv::Rect rect{yolobox_vec[i].x1, yolobox_vec[i].y1, yolobox_vec[i].x2 - yolobox_vec[i].x1, yolobox_vec[i].y2 - yolobox_vec[i].y1};
+                    cv::Mat matmul_res = (cv::Mat(yolobox_vec[i].mask).t() * protos);
+                    cv::Mat masks_feature = matmul_res.reshape(1, {r_h, r_w});
+                    cv::Mat mask;
+                    resize(masks_feature, mask, cv::Size(para.raw_size.width, para.raw_size.height));
+                    yolobox_vec[i].mask_img = mask(rect) > m_nmsThreshold;
                 }
+            }
+            detected_boxes.push_back(yolobox_vec);
         }
-        detected_boxes.push_back(yolobox_vec_tmp);
         LOG_TS(m_ts, "post 4: get mask");
     }
 
     return 0;
 }
 
-void YoloV8::getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, const bm_tensor_t& input_tensor1, Paras& paras, YoloV8BoxVec &yolobox_vec_tmp) {
+void YoloV8::getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, const bm_tensor_t& input_tensor1, Paras& paras) {
     int mask_height = m_tpumask_net_h;
     int mask_width = m_tpumask_net_w;
     int actual_mask_num = MIN(tpu_mask_num, yolobox_vec.size() - start);
@@ -545,41 +543,9 @@ void YoloV8::getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, const bm_tensor_t
         // crop + mask
         cv::Rect bound=cv::Rect{yolobox_vec[yi].x1, yolobox_vec[yi].y1, yolobox_vec[yi].x2 - yolobox_vec[yi].x1,yolobox_vec[yi].y2 - yolobox_vec[yi].y1};
         yolobox_vec[yi].mask_img=mask(bound) > m_confThreshold;
-        yolobox_vec_tmp.push_back(yolobox_vec[yi]);
     }
     LOG_TS(m_ts, "get_mask_tpu: crop+mask");
 
-}
-
-
-
-void YoloV8::get_mask(const cv::Mat& mask_info,
-                      const cv::Mat& mask_data,
-                      const ImageInfo& para,
-                      cv::Rect bound,
-                      cv::Mat& mast_out) {
-    cv::Vec4f trans = para.trans;
-    int r_x = floor(trans[2] / m_net_w * (m_net_w / 4));
-    int r_y = floor(trans[3] / m_net_h * (m_net_h / 4)); 
-    int r_w = (m_net_w / 4) - 2 * r_x;
-    int r_h = (m_net_h / 4) - 2 * r_y;
-    r_w = MAX(r_w, 1);
-    r_h = MAX(r_h, 1);
-
-    std::vector<cv::Range> roi_rangs = {cv::Range(0, 1), cv::Range::all(), cv::Range(r_y, r_h + r_y),
-                                        cv::Range(r_x, r_w + r_x)};
-    cv::Mat temp_mask = mask_data(roi_rangs).clone();  // crop
-    cv::Mat protos = temp_mask.reshape(0, {32, r_w * r_h});
-    cv::Mat matmul_res = (mask_info * protos);
-    cv::Mat masks_feature = matmul_res.reshape(1, {r_h, r_w});
-    int left = bound.x;         
-    int top = bound.y;          
-    int width = bound.width;    
-    int height = bound.height;  
-    cv::Mat mask;
-    resize(masks_feature, mask, cv::Size(para.raw_size.width, para.raw_size.height));
-
-    mast_out = mask(bound) > m_nmsThreshold;
 }
 
 void YoloV8::clip_boxes(YoloV8BoxVec& yolobox_vec, int src_w, int src_h) {
@@ -588,17 +554,6 @@ void YoloV8::clip_boxes(YoloV8BoxVec& yolobox_vec, int src_w, int src_h) {
         yolobox_vec[i].y1 = std::max((float)0.0, std::min(yolobox_vec[i].y1, (float)src_h));
         yolobox_vec[i].x2 = std::max((float)0.0, std::min(yolobox_vec[i].x2, (float)src_w));
         yolobox_vec[i].y2 = std::max((float)0.0, std::min(yolobox_vec[i].y2, (float)src_h));
-    }
-}
-
-void YoloV8::xywh2xyxy(YoloV8BoxVec& xyxyboxes, std::vector<std::vector<float>> box) {
-    for (int i = 0; i < box.size(); i++) {
-        YoloV8Box tmpbox;
-        tmpbox.x1 = box[i][0] - box[i][2] / 2;
-        tmpbox.y1 = box[i][1] - box[i][3] / 2;
-        tmpbox.x2 = box[i][0] + box[i][2] / 2;
-        tmpbox.y2 = box[i][1] + box[i][3] / 2;
-        xyxyboxes.push_back(tmpbox);
     }
 }
 

@@ -42,6 +42,7 @@ struct YoloV8Box {
     int class_id;
     std::vector<float> mask;
     cv::Mat mask_img;  // 预测出来不仅有框，还有mask
+    int temp_id; // 临时记录box在类别中的顺序，略去过滤前的mask填充
 };
 
 struct ImageInfo {
@@ -89,15 +90,9 @@ class YoloV8 {
     int pre_process(const std::vector<bm_image>& images);
     int post_process(const std::vector<bm_image>& images, std::vector<YoloV8BoxVec>& boxes);
     static float get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool* alignWidth);
-    void xywh2xyxy(YoloV8BoxVec& xyxyboxes, std::vector<std::vector<float>> box);
     static bool YoloV8Box_cmp(YoloV8Box a, YoloV8Box b);
     void NMS(YoloV8BoxVec& dets, float nmsConfidence);
     void clip_boxes(YoloV8BoxVec& yolobox_vec, int src_w, int src_h);
-    void get_mask(const cv::Mat& mask_info,
-                  const cv::Mat& mask_data,
-                  const ImageInfo& para,
-                  cv::Rect bound,
-                  cv::Mat& mast_out);
       
    public:
     YoloV8(std::shared_ptr<BMNNContext> context);
@@ -121,7 +116,7 @@ class YoloV8 {
 
     public:
     void tpumask_Init(std::string bmodel_file, int dev_id = 0);
-    void getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, const bm_tensor_t& input_tensor1, Paras& paras, YoloV8BoxVec &yolobox_vec_tmp);
+    void getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, const bm_tensor_t& input_tensor1, Paras& paras);
 
 };
 
