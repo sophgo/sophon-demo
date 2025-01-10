@@ -283,13 +283,10 @@ class Chat:
                 yield new_wavs
             else:
                 yield wavs
-        if stream:
+        if stream and length < wavs.shape[1]:
             new_wavs = wavs[:, length:]
-            # Identify rows with non-zero elements using np.any
-            # keep_rows = np.any(array != 0, axis=1)
-            keep_cols = np.sum(new_wavs != 0, axis=0) > 0
-            # Filter both rows and columns using slicing
-            yield new_wavs[:][:, keep_cols]
+            
+            yield new_wavs
 
     @torch.inference_mode()
     def _vocos_decode(self, spec: torch.Tensor) -> np.ndarray:
