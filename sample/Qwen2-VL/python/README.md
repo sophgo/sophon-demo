@@ -25,9 +25,15 @@ Qwen2-vl能够输入单一图片/多张图/视频进行连续对话，python目�
 
 - 如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
 
-- 此外您可能还需要安装其他第三方库：
+- 此外您可能还需要安装其他库：
 
 ```bash
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+
+python3 -m dfss --url=open@sophgo.com:tools/silk2/silk2.tools.logger-1.0.2-py3-none-any.whl
+pip3 install silk2.tools.logger-1.0.2-py3-none-any.whl --force-reinstall
+rm -f silk2.tools.logger-1.0.2-py3-none-any.whl
+
 pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
@@ -53,9 +59,15 @@ rm configs.zip
 
 - 如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，请使用**SDK V24.04.01及其以上版本**对应的刷机包进行刷机，刷机成功后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
-- 此外您可能还需要安装其他第三方库：
+- 此外您可能还需要安装其他库：
 
 ```bash
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+
+python3 -m dfss --url=open@sophgo.com:tools/silk2/silk2.tools.logger-1.0.2-py3-none-any.whl
+pip3 install silk2.tools.logger-1.0.2-py3-none-any.whl --force-reinstall
+rm -f silk2.tools.logger-1.0.2-py3-none-any.whl
+
 pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ``` 
 
@@ -97,7 +109,7 @@ usage: qwen2_vl.py [-h] [-m BMODEL_PATH] [-t TOKENIZER_PATH] [-p PROCESSOR_PATH]
 --processor_path: 预处理参数文件路径；
 --config: 模型配置文件路径；
 --dev_id: 用于推理的tpu设备id；
---vision_inputs: json格式，输入图片、视频文件路径、视觉预处理参数，可接受多个图片输入，格式：{"video":[{"path":str/list(str), "preprocess_config":dict},{"path":str/list(str), "preprocess_config":dict},...], "image":[{"path":str, "preprocess_config":dict},{"path":str, "preprocess_config":dict},...]}。其中preprocess_config参数用于生成prompt的额外视觉预处理参数，例如可设置"resized_height"、"resized_width"、"min_pixels"、"max_pixels"等，与官方支持的输入一致，在内存不足时，可适当设置这些参数，支持的常用参数说明如下：
+--vision_inputs: json格式，输入图片、视频文件路径、视觉预处理参数，可接受多个图片输入，格式：[{"type":"video","video":path-to-video/list(path-to-frame image), ...},{"type":"video","video":path-to-video/list(path-to-frame image), ...},{"type":"image","image":path-to-image, ...},...]。其中字典里面的其他参数用于生成prompt的额外视觉预处理参数，例如可设置"resized_height"、"resized_width"、"min_pixels"、"max_pixels"等，与官方支持的输入一致，在内存不足时，可适当设置这些参数，支持的常用参数说明如下：
     * --resized_height: resize后的固定高度，会进行28对齐，即28的倍数；
     * --resized_width: resize后的固定宽度，会进行28对齐，即28的倍数；
     * --min_pixels: resize后的最小像素点数量，像素点数量是图片高度乘以宽度，若小于该像素数量会重新计算高宽的缩放比例，最终高度宽度也会进行28对齐，即28的倍数，若--resized_height和--resized_width设置，则该参数无效；
@@ -106,23 +118,24 @@ usage: qwen2_vl.py [-h] [-m BMODEL_PATH] [-t TOKENIZER_PATH] [-p PROCESSOR_PATH]
     * --nframes: 均匀采样得到的视频帧数量，可以通过该参数实现抽帧；
     * --video_start: 设置需要处理的视频起始帧；
     * --video_end: 设置需要处理的视频结束帧；
+--log_level: log等级，支持DEBUG、INFO、WARNING、ERROR，默认为INFO。
 ```
 
 ### 2.2 使用方式
 
-- 为了测试`../datasets/videos/carvana_video.mp4`输入，设置`resized_height`、`resized_width`参数到较小值，并设置`video_sample_num`参数为处理2帧，可以使用如下命令
+- 为了测试`../datasets/videos/carvana_video.mp4`输入，设置`resized_height`、`resized_width`参数到较小值，并设置`nframes`参数为处理2帧，可以使用如下命令
 ```bash
-python3 qwen2_vl.py --vision_inputs="{\"video\":[{\"path\":\"../datasets/videos/carvana_video.mp4\",\"preprocess_config\":{\"resized_height\":140,\"resized_width\":210,\"video_sample_num\":2}}],\"image\":[]}"
+python3 qwen2_vl.py --vision_inputs="[{\"type\":\"video\",\"video\":\"../datasets/videos/carvana_video.mp4\",\"resized_height\":420,\"resized_width\":630,\"nframes\":2}]"
 ```
 
 - 为了测试图片，可以参考执行如下命令
 ```bash
-python3 qwen2_vl.py --vision_inputs="{\"video\":[],\"image\":[{\"path\":\"../datasets/images/panda.jpg\", \"preprocess_config\":{\"resized_height\":280,\"resized_width\":420}}]}"
+python3 qwen2_vl.py --vision_inputs="[{\"type\":\"image\",\"image\":\"../datasets/images/panda.jpg\", \"resized_height\":280,\"resized_width\":420}]"
 ```
 
 - 为了同时对图片和视频提问，可以参考执行如下命令
 ```bash
-python3 qwen2_vl.py --vision_inputs="{\"video\":[{\"path\":\"../datasets/videos/carvana_video.mp4\",\"preprocess_config\":{\"resized_height\":140,\"resized_width\":210,\"video_sample_num\":2}}],\"image\":[{\"path\":\"../datasets/images/panda.jpg\", \"preprocess_config\":{\"resized_height\":280,\"resized_width\":420}}]}"
+python3 qwen2_vl.py --vision_inputs="[{\"type\":\"video\",\"video\":\"../datasets/videos/carvana_video.mp4\",\"resized_height\":420,\"resized_width\":630,\"nframes\":2},{\"type\":\"image\",\"image\":\"../datasets/images/panda.jpg\", \"resized_height\":280,\"resized_width\":420}]"
 ```
 
 - 为了纯文本对话，可以参考执行如下命令
@@ -132,3 +145,6 @@ python3 qwen2_vl.py --vision_inputs=""
 
 在Question: 处进行提问，例如：Describe this video。
 终端将打印FTL、TPS性能数据，并输出回答结果，接着可进一步对视频进行提问，输入q即可退出。
+
+> **测试说明**：  
+> 1. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型；

@@ -170,15 +170,16 @@ cd scripts
 输入`datasets/videos/carvana_video.mp4`测试视频，测试问题为："请描述视频中的内容"，测试命令如下
 
 ```bash
-python3 qwen2_vl.py --vision_inputs="{\"video\":[{\"path\":\"../datasets/videos/carvana_video.mp4\",\"preprocess_config\":{\"resized_height\":140,\"resized_width\":210,\"video_sample_num\":2}}],\"image\":[]}"
+python3 qwen2_vl.py --vision_inputs="[{\"type\":\"video\",\"video\":\"../datasets/videos/carvana_video.mp4\",\"resized_height\":420,\"resized_width\":630,\"nframes\":2}]"
 ```
 
 |    测试平台   |               测试模型                   |first token latency(s)|token per second(tokens/s)| 
 | -----------  | -------------------------------------- | --------------------- | ----------------------- | 
 |    SE7-32    | qwen2-vl-7b_int4_seq512_1dev.bmodel   |   3.55               |     9.67               | 
-|    SE7-32    | qwen2-vl-7b_int4_seq1536_1dev.bmodel   |   6.08               |     9.19               | 
+|    SE7-32    | qwen2-vl-7b_int4_seq1536_1dev.bmodel   |   5.93               |     9.19               | 
  
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，且与输入也有关，建议多次测试取平均值；
 > 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 3. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型；
 

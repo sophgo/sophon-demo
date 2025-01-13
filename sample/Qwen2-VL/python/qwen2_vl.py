@@ -11,6 +11,8 @@ from typing import Optional, Tuple
 from typing import List
 import numpy as np
 import torch.nn.functional as F
+import copy
+import SILK2.Tools.logger as Logger
 
 # Preprocess the images
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
@@ -141,13 +143,19 @@ class Qwen2VL():
 
     def __init__(self, **kwargs):
         self.version = "1.0.0"
+        # init logger
+        self.logger = Logger.Log("Qwen2VL", kwargs.get("log_level", "INFO"))
+
+        self.logger.info(f"{Logger.file_lineno()} loading model {kwargs['bmodel_path']} to dev:{kwargs.get('dev_id', 0)}")
         st = time.time()
         # devid
         self.dev_id = kwargs.get("dev_id", 0)
         self.handle = sail.Handle(self.dev_id)
         self.net = sail.EngineLLM(kwargs["bmodel_path"], [self.dev_id])
-        print("load model cost: ", time.time() - st)
+        self.logger.info(f"{Logger.file_lineno()} load model cost: {time.time() - st}")
+        self.logger.info(f"{Logger.file_lineno()} model loaded!")
 
+        self.logger.info(f"{Logger.file_lineno()} init input/output tensors")
         st = time.time()
         # graph
         self.graph_names = self.net.get_graph_names()
@@ -220,8 +228,10 @@ class Qwen2VL():
 
         # sample tensors (inputs & outputs)
         self.output_tensors[self.name_sample] = self.net.create_max_output_tensors(self.name_sample)
-        print("tensor init cost: ", time.time() - st)
+        self.logger.info(f"{Logger.file_lineno()} tensor init cost: {time.time() - st}")
+        self.logger.info(f"{Logger.file_lineno()} init input/output tensors finish!")
 
+        self.logger.info(f"{Logger.file_lineno()} init tokenizer and preprocessor")
         st = time.time()
         # init preprocessor & tokenizer & configs
         self.processor = Qwen2VLInputProcessor(args.processor_path,
@@ -233,15 +243,18 @@ class Qwen2VL():
         self.loaded_config = Qwen2VLConfig(**self.config)
         self.ID_END = self.tokenizer.convert_tokens_to_ids("<|endoftext|>")
         self.ID_IM_END = self.tokenizer.convert_tokens_to_ids("<|im_end|>")
+        self.logger.debug(f"{Logger.file_lineno()} end token ids: {self.ID_IM_END}/{self.ID_END}, max step: {self.seq_len}")
 
         # init runtime val
         self.init_runtime_vals()
-        print("init config and preprocessor cost: ", time.time() - st)
+        self.logger.info(f"{Logger.file_lineno()} init tokenizer and preprocessor cost: {time.time() - st}")
+        self.logger.info(f"{Logger.file_lineno()} init tokenizer and preprocessor finish!")
 
     def init_runtime_vals(self):
         self.step = 0
         self.token_pos_length = 0
         self.last_id = None
+        self.logger.debug(f"{Logger.file_lineno()} clear runtime vals success!")
 
     def init_sail_tensor(self, name, tensor_idx, shape=None, is_input=True):
         """
@@ -380,7 +393,7 @@ class Qwen2VL():
     ):
         # init prompt
         texts = [
-            self.processor.apply_chat_template(msg, tokenize=False, add_generation_prompt=True, add_vision_id=True) # add_vision_id=False)
+            self.processor.apply_chat_template(msg, tokenize=False, add_generation_prompt=True, add_vision_id=True) # add_vision_id=False) has higher precision
             for msg in messages
         ]
         
@@ -441,6 +454,7 @@ class Qwen2VL():
             input_ids_prefill, image_grid_thw, video_grid_thw, attention_mask_prefill
         )
 
+        self.logger.debug(f"{Logger.file_lineno()} get preprocess results position ids {position_ids}, inputs {inputs}")
         return position_ids, inputs, first_true_index
 
     def rot_pos_emb(self, grid_thw):
@@ -596,6 +610,7 @@ class Qwen2VL():
         # sample
         self.net.process(self.name_sample, self.output_tensors[self.name_lm], self.output_tensors[self.name_sample])
         self.last_id = self.output_tensors[self.name_sample][0].asnumpy().item()
+        self.logger.debug(f"{Logger.file_lineno()} get first inference results token id {self.last_id}")
         return self.last_id
 
     # The following tokens prediction
@@ -665,55 +680,65 @@ class Qwen2VL():
         # sample
         self.net.process(self.name_sample, self.output_tensors[self.name_lm], self.output_tensors[self.name_sample])
         self.last_id = self.output_tensors[self.name_sample][0].asnumpy().item()
+        self.logger.debug(f"{Logger.file_lineno()} get step {self.step} inference results token id {self.last_id}")
         return self.last_id
 
-    def generate_message(self, vision_inputs, text, history_messages):
-        assert len(text) > 0
+    def generate_message(self, history_messages, cur_data, cur_role):
+        """ accept current question and vision info, will combine with history_messages
 
+        params:
+            history_messages: list, element is dict, qwen2-vl messages' format
+            cur_data: list or str. if list, element is dict. qwen2-vl messages' `content` format
+            cur_role: str, current role, support [`user`, `system`, `assistant`]
+
+        return:
+            messages: messages input to model, list, element is dict, qwen2-vl messages' format
+        """
+        self.logger.debug(f"{Logger.file_lineno()} receive data history: {history_messages}, current data: {cur_data}, current role: {cur_role}, which need convert to qwen2-vl messages format")
+
+        assert cur_role in ["system", "assistant", "user"]
+        assert isinstance(history_messages, list)
         messages = [
             {
-                "role": "user",
+                "role": cur_role,
                 "content": [
                 ],
             }
         ]
-        for vision_input_type, vision_input in vision_inputs.items():
-            assert vision_input_type in ["image", "video"]
-            for vision_input_ele in vision_input:
-                if vision_input_type == "image":
-                    assert isinstance(vision_input_ele["path"], str)
-                elif vision_input_type == "video":
-                    assert isinstance(vision_input_ele["path"], str) or isinstance(vision_input_ele["path"], list)
-                messages[0]["content"].append(
-                    {
-                        "type": vision_input_type,
-                        vision_input_type: vision_input_ele["path"],
-                        **(vision_input_ele["preprocess_config"] if "preprocess_config" in vision_input_ele else {}),
-                    },
-                )
+
+        if isinstance(cur_data, str):
+            messages[0]["content"] = cur_data
+        elif isinstance(cur_data, list):
+            for ele in cur_data:
+                assert ele["type"] in ["image", "video", "text"]
+                if ele["type"] == "image":
+                    assert isinstance(ele[ele["type"]], str)
+                elif ele["type"] == "video":
+                    assert isinstance(ele[ele["type"]], str) or isinstance(ele[ele["type"]], list)
+                elif ele["type"] == "text":
+                    assert isinstance(ele[ele["type"]], str)
+                messages[0]["content"].append(ele)
+        else:
+            raise TypeError(f"cur_data only support list or str type, qwen2-vl messages' `content` format")
 
         if len(messages[0]["content"]) == 0:
-            messages = [
-                {
-                    "role": "user",
-                    "content": text,
-                },
-            ]
-        else:
-            messages[0]["content"].append({"type": "text", "text": text})
-
+            self.logger.debug(f"{Logger.file_lineno()} get model messages input {history_messages}")
+            return history_messages
         history_messages.extend(messages)
         messages = history_messages
+        self.logger.debug(f"{Logger.file_lineno()} get model messages input {messages}")
         return messages
 
     def is_end(self, token):
         return token in [self.ID_IM_END, self.ID_END
                                 ] or self.step > self.seq_len
 
+    def decode(self, tokens, **kwargs):
+        return self.tokenizer.decode(tokens, **kwargs)
 
 def main(args):
     history_messages = []
-    model = Qwen2VL(dev_id=args.dev_id, bmodel_path=args.bmodel_path)
+    model = Qwen2VL(dev_id=args.dev_id, bmodel_path=args.bmodel_path, log_level=args.log_level)
     video_embeds = None
     image_embeds = None
     video_grid_thw = None
@@ -724,7 +749,7 @@ def main(args):
     if len(vision_inputs) > 0:
         vision_inputs = json.loads(vision_inputs)
     else:
-        vision_inputs = {}
+        vision_inputs = []
 
     print(
         "\n================================================================="
@@ -742,10 +767,12 @@ def main(args):
             history_messages = []
             continue
         first_start = time.time()
-        if len(history_messages) == 0:
-            messages = model.generate_message(vision_inputs, text, history_messages)
+        if len(history_messages) == 0 and len(vision_inputs) > 0:
+            cur_data = copy.deepcopy(vision_inputs)
+            cur_data.append({"type": "text", "text": text})
+            messages = model.generate_message(history_messages, cur_data, "user")
         else:
-            messages = model.generate_message({}, text, history_messages)
+            messages = model.generate_message(history_messages, text, "user")
         messages = [messages]
 
         # preprocess text and images/video, get model inputs
@@ -833,8 +860,14 @@ if __name__ == "__main__":
     parser.add_argument('-vi',
                         '--vision_inputs',
                         type=str,
-                        default="{\"video\":[{\"path\":\"../datasets/videos/carvana_video.mp4\", \"preprocess_config\": \
-                                    {\"resized_height\":140,\"resized_width\":210,\"video_sample_num\":2}}],\"image\":[]}",
+                        default="[{\"type\":\"video\", \"video\":\"../datasets/videos/carvana_video.mp4\", \
+                                    \"resized_height\":420,\"resized_width\":630,\"nframes\":2}]",
                         help='path to the video or images and preprocess params, json format') 
+    parser.add_argument('-ll',
+                        '--log_level',
+                        type=str,
+                        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+                        default="INFO",
+                        help='log level, default: INFO, option[DEBUG, INFO, WARNING, ERROR]')
     args = parser.parse_args()
     main(args)
