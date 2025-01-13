@@ -25,7 +25,7 @@
 
 ## 2. 特性
 
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -227,6 +227,18 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE9-8    | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp16_1b.bmodel       | 0.493           | 0.696      |
 | SE9-8    | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel       | 0.490           | 0.695      |
 | SE9-8    | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel       | 0.490           | 0.695      |
+| SRM1-20  | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel       | 0.514           | 0.699      |
+| SRM1-20  | yolov7_opencv.py | yolov7_v0.1_3output_fp16_1b.bmodel       | 0.514           | 0.700      |
+| SRM1-20  | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel       | 0.511           | 0.698      |
+| SRM1-20  | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel       | 0.511           | 0.698      |
+| SRM1-20  | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel       | 0.504           | 0.687      |
+| SRM1-20  | yolov7_bmcv.py   | yolov7_v0.1_3output_fp16_1b.bmodel       | 0.504           | 0.688      |
+| SRM1-20  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel       | 0.501           | 0.687      |
+| SRM1-20  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel       | 0.501           | 0.687      |
+| SRM1-20  | yolov7_bmcv.pcie | yolov7_v0.1_3output_fp32_1b.bmodel       | 0.493           | 0.696      |
+| SRM1-20  | yolov7_bmcv.pcie | yolov7_v0.1_3output_fp16_1b.bmodel       | 0.494           | 0.696      |
+| SRM1-20  | yolov7_bmcv.pcie | yolov7_v0.1_3output_int8_1b.bmodel       | 0.492           | 0.698      |
+| SRM1-20  | yolov7_bmcv.pcie | yolov7_v0.1_3output_int8_4b.bmodel       | 0.492           | 0.698      |
 
 > **测试说明**：  
 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -336,6 +348,18 @@ bmrt_test --bmodel models/BM1684/yolov7_v0.1_3output_fp32_1b.bmodel
 | SE9-8    | yolov7_bmcv.soc  | yolov7_v0.1_3output_fp16_1b.bmodel       | 6.74        | 1.81            | 123.12         | 25.96            |
 | SE9-8    | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_1b.bmodel       | 5.63        | 1.81            | 33.37          | 25.96            |
 | SE9-8    | yolov7_bmcv.soc  | yolov7_v0.1_3output_int8_4b.bmodel       | 5.47        | 1.72            | 32.98          | 25.80            |
+| SRM1-20  | yolov7_opencv.py | yolov7_v0.1_3output_fp32_1b.bmodel       | 13.24       | 36.69           | 292.91         | 117.08           |
+| SRM1-20  | yolov7_opencv.py | yolov7_v0.1_3output_fp16_1b.bmodel       | 12.95       | 29.91           | 71.46          | 116.20           |
+| SRM1-20  | yolov7_opencv.py | yolov7_v0.1_3output_int8_1b.bmodel       | 13.32       | 36.53           | 182.75         | 118.87           |
+| SRM1-20  | yolov7_opencv.py | yolov7_v0.1_3output_int8_4b.bmodel       | 13.08       | 30.89           | 175.73         | 116.97           |
+| SRM1-20  | yolov7_bmcv.py   | yolov7_v0.1_3output_fp32_1b.bmodel       | 23.51       | 4.47            | 269.55         | 102.65           |
+| SRM1-20  | yolov7_bmcv.py   | yolov7_v0.1_3output_fp16_1b.bmodel       | 23.51       | 4.51            | 178.15         | 102.68           |
+| SRM1-20  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_1b.bmodel       | 23.44       | 4.58            | 160.10         | 102.37           |
+| SRM1-20  | yolov7_bmcv.py   | yolov7_v0.1_3output_int8_4b.bmodel       | 8.85        | 3.61            | 40.10          | 112.70           |
+| SRM1-20  | yolov7_bmcv.pcie | yolov7_v0.1_3output_fp32_1b.bmodel       | 8.64        | 1.01            | 118.38         | 43.19            |
+| SRM1-20  | yolov7_bmcv.pcie | yolov7_v0.1_3output_fp16_1b.bmodel       | 8.39        | 1.01            | 27.98          | 42.23            |
+| SRM1-20  | yolov7_bmcv.pcie | yolov7_v0.1_3output_int8_1b.bmodel       | 8.58        | 1.02            | 10.67          | 42.32            |
+| SRM1-20  | yolov7_bmcv.pcie | yolov7_v0.1_3output_int8_4b.bmodel       | 8.59        | 0.91            | 10.13          | 40.75            |
 
 
 
