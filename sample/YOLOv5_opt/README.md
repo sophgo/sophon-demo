@@ -23,7 +23,7 @@
 
 ## 2. 特性
 * 支持使用tpu_kernel进行后处理加速
-* 支持BM1684X(x86 PCIe、SoC)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 支持FP32、FP16(BM1684X)、INT8模型编译和推理
 * 支持基于BMCV预处理C++推理
 * 支持单batch和多batch模型推理
@@ -125,7 +125,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.353         | 0.536    |
 | BM1684X PCIe | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.339         | 0.527    |
 | BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.351         | 0.532    |
-| BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.351         | 0.532   |
+| BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.351         | 0.532    |
 | BM1684X PCIe | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.334         | 0.520    |
 | BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.351         | 0.536    |
 | BM1684X PCIe | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.351         | 0.535    |
@@ -133,6 +133,22 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1684X PCIe | yolov5_sail.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.351         | 0.536    |
 | BM1684X PCIe | yolov5_sail.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.351         | 0.535    |
 | BM1684X PCIe | yolov5_sail.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.337         | 0.526    |
+|   SRM1-20    | yolov5_opencv.py | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.353         | 0.537    |
+|   SRM1-20    | yolov5_opencv.py | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.353         | 0.537    |
+|   SRM1-20    | yolov5_opencv.py | yolov5s_v6.1_3output_int8_1b.bmodel | 0.341         | 0.531    |
+|   SRM1-20    | yolov5_opencv.py | yolov5s_v6.1_3output_int8_4b.bmodel | 0.341         | 0.531    |
+|   SRM1-20    | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.351         | 0.532    |
+|   SRM1-20    | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.351         | 0.532    |
+|   SRM1-20    | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.334         | 0.520    |
+|   SRM1-20    | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_4b.bmodel | 0.334         | 0.520    |
+|   SRM1-20    | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.351         | 0.536    |
+|   SRM1-20    | yolov5_bmcv.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.351         | 0.535    |
+|   SRM1-20    | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.337         | 0.526    |
+|   SRM1-20    | yolov5_bmcv.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 0.337         | 0.526    |
+|   SRM1-20    | yolov5_sail.pcie | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.351         | 0.536    |
+|   SRM1-20    | yolov5_sail.pcie | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.351         | 0.535    |
+|   SRM1-20    | yolov5_sail.pcie | yolov5s_v6.1_3output_int8_1b.bmodel | 0.337         | 0.526    |
+|   SRM1-20    | yolov5_sail.pcie | yolov5s_v6.1_3output_int8_4b.bmodel | 0.337         | 0.526    |
 
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
@@ -183,6 +199,22 @@ bmrt_test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel
 | BM1684X SoC | yolov5_sail.soc  | yolov5s_tpukernel_fp16_1b.bmodel | 2.8      | 3.1           | 6.30           | 1.38      |
 | BM1684X SoC | yolov5_sail.soc  | yolov5s_tpukernel_int8_1b.bmodel | 2.8      | 3.1           | 3.41           | 1.38      |
 | BM1684X SoC | yolov5_sail.soc  | yolov5s_tpukernel_int8_4b.bmodel | 2.6      | 2.5           | 3.18           | 1.38      |
+|   SRM1-20   | yolov5_opencv.py | yolov5s_tpukernel_fp32_1b.bmodel | 12.7     | 20.7          | 48.76          | 4.01      |
+|   SRM1-20   | yolov5_opencv.py | yolov5s_tpukernel_fp16_1b.bmodel | 18.2     | 22.0          | 47.27          | 4.04      |
+|   SRM1-20   | yolov5_opencv.py | yolov5s_tpukernel_int8_1b.bmodel | 13.7     | 22.7          | 43.24          | 4.38      |
+|   SRM1-20   | yolov5_opencv.py | yolov5s_tpukernel_int8_4b.bmodel | 12.8     | 26.3          | 29.68          | 3.17      |
+|   SRM1-20   | yolov5_bmcv.py   | yolov5s_tpukernel_fp32_1b.bmodel | 24.0     | 4.5           | 25.88          | 4.28      |
+|   SRM1-20   | yolov5_bmcv.py   | yolov5s_tpukernel_fp16_1b.bmodel | 23.7     | 4.6           | 9.80           | 4.08      |
+|   SRM1-20   | yolov5_bmcv.py   | yolov5s_tpukernel_int8_1b.bmodel | 24.0     | 4.6           | 6.12           | 4.12      |
+|   SRM1-20   | yolov5_bmcv.py   | yolov5s_tpukernel_int8_4b.bmodel | 24.5     | 4.3           | 5.42           | 3.13      |
+|   SRM1-20   | yolov5_bmcv.pcie | yolov5s_tpukernel_fp32_1b.bmodel | 22.4     | 1.3           | 23.15          | 2.19      |
+|   SRM1-20   | yolov5_bmcv.pcie | yolov5s_tpukernel_fp16_1b.bmodel | 12.4     | 1.1           | 6.71           | 2.07      |
+|   SRM1-20   | yolov5_bmcv.pcie | yolov5s_tpukernel_int8_1b.bmodel | 13.3     | 1.1           | 3.08           | 2.07      |
+|   SRM1-20   | yolov5_bmcv.pcie | yolov5s_tpukernel_int8_4b.bmodel | 13.7     | 1.0           | 2.8            | 2.01      |
+|   SRM1-20   | yolov5_sail.pcie | yolov5s_tpukernel_fp32_1b.bmodel | 14.9     | 2.1           | 23.28          | 2.24      |
+|   SRM1-20   | yolov5_sail.pcie | yolov5s_tpukernel_fp16_1b.bmodel | 14.8     | 2.3           | 7.07           | 2.45      |
+|   SRM1-20   | yolov5_sail.pcie | yolov5s_tpukernel_int8_1b.bmodel | 10.7     | 1.9           | 3.38           | 2.25      |
+|   SRM1-20   | yolov5_sail.pcie | yolov5s_tpukernel_int8_4b.bmodel | 11.7     | 1.5           | 2.90           | 2.08      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

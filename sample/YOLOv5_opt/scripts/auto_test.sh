@@ -266,16 +266,20 @@ then
 
     #performence test
     test_python opencv yolov5s_tpukernel_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python opencv yolov5s_tpukernel_fp16_1b.bmodel datasets/coco/val2017_1000
     test_python opencv yolov5s_tpukernel_int8_1b.bmodel datasets/coco/val2017_1000
     test_python opencv yolov5s_tpukernel_int8_4b.bmodel datasets/coco/val2017_1000
     test_python bmcv yolov5s_tpukernel_fp32_1b.bmodel datasets/coco/val2017_1000
+    test_python bmcv yolov5s_tpukernel_fp16_1b.bmodel datasets/coco/val2017_1000
     test_python bmcv yolov5s_tpukernel_int8_1b.bmodel datasets/coco/val2017_1000
     test_python bmcv yolov5s_tpukernel_int8_4b.bmodel datasets/coco/val2017_1000
     test_cpp pcie bmcv yolov5s_tpukernel_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-    test_cpp pcie bmcv yolov5s_tpukernel_int8_4b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie bmcv yolov5s_tpukernel_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie bmcv yolov5s_tpukernel_int8_1b.bmodel ../../datasets/coco/val2017_1000
     test_cpp pcie bmcv yolov5s_tpukernel_int8_4b.bmodel ../../datasets/coco/val2017_1000
     test_cpp pcie sail yolov5s_tpukernel_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-    test_cpp pcie sail yolov5s_tpukernel_int8_4b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie sail yolov5s_tpukernel_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+    test_cpp pcie sail yolov5s_tpukernel_int8_1b.bmodel ../../datasets/coco/val2017_1000
     test_cpp pcie sail yolov5s_tpukernel_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
     eval_python opencv yolov5s_tpukernel_fp32_1b.bmodel 0.35288875872473324
