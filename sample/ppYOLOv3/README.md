@@ -24,7 +24,7 @@ ppyolov3 是百度提出的一种基于YOLOv3和一些几乎不增加推理代�
 **官方源码地址** (https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.6/configs/ppyolo)
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于BMCV和opencv预处理的Python推理
@@ -196,6 +196,18 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE9-8        | ppyolov3_sail.soc  | ppyolov3_fp32_1b.bmodel        |    0.281 |    0.552 |
 | SE9-8        | ppyolov3_sail.soc  | ppyolov3_fp16_1b.bmodel        |    0.281 |    0.552 |
 | SE9-8        | ppyolov3_sail.soc  | ppyolov3_int8_1b.bmodel        |    0.276 |    0.543 |
+| SRM1-20      | ppyolov3_opencv.py | ppyolov3_fp32_1b.bmodel        |    0.290 |    0.560 |
+| SRM1-20      | ppyolov3_opencv.py | ppyolov3_fp16_1b.bmodel        |    0.290 |    0.560 |
+| SRM1-20      | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel        |    0.285 |    0.556 |
+| SRM1-20      | ppyolov3_bmcv.py   | ppyolov3_fp32_1b.bmodel        |    0.289 |    0.559 |
+| SRM1-20      | ppyolov3_bmcv.py   | ppyolov3_fp16_1b.bmodel        |    0.289 |    0.559 |
+| SRM1-20      | ppyolov3_bmcv.py   | ppyolov3_int8_1b.bmodel        |    0.282 |    0.551 |
+| SRM1-20      | ppyolov3_bmcv.pcie | ppyolov3_fp32_1b.bmodel        |    0.279 |    0.548 |
+| SRM1-20      | ppyolov3_bmcv.pcie | ppyolov3_fp16_1b.bmodel        |    0.278 |    0.547 |
+| SRM1-20      | ppyolov3_bmcv.pcie | ppyolov3_int8_1b.bmodel        |    0.273 |    0.544 |
+| SRM1-20      | ppyolov3_sail.pcie | ppyolov3_fp32_1b.bmodel        |    0.281 |    0.551 |
+| SRM1-20      | ppyolov3_sail.pcie | ppyolov3_fp16_1b.bmodel        |    0.281 |    0.551 |
+| SRM1-20      | ppyolov3_sail.pcie | ppyolov3_int8_1b.bmodel        |    0.274 |    0.542 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -296,6 +308,18 @@ bmrt_test --bmodel models/BM1684/ppyolov3_fp32_1b.bmodel
 |    SE9-8    | ppyolov3_sail.soc |   ppyolov3_fp32_1b.bmodel    |      4.67       |      5.07       |     746.61      |      22.05      |
 |    SE9-8    | ppyolov3_sail.soc |   ppyolov3_fp16_1b.bmodel    |      5.93       |      5.07       |      99.83      |      22.02      |
 |    SE9-8    | ppyolov3_sail.soc |   ppyolov3_int8_1b.bmodel    |      3.80       |      5.05       |      34.31      |      21.97      |
+|   SRM1-20   |ppyolov3_opencv.py |   ppyolov3_fp32_1b.bmodel    |      14.32      |      42.29      |     334.65      |     100.72      |
+|   SRM1-20   |ppyolov3_opencv.py |   ppyolov3_fp16_1b.bmodel    |      14.37      |      42.17      |     174.95      |     100.61      |
+|   SRM1-20   |ppyolov3_opencv.py |   ppyolov3_int8_1b.bmodel    |      14.28      |      42.34      |     169.64      |     100.62      |
+|   SRM1-20   | ppyolov3_bmcv.py  |   ppyolov3_fp32_1b.bmodel    |      24.34      |      3.43       |     318.49      |     110.09      |
+|   SRM1-20   | ppyolov3_bmcv.py  |   ppyolov3_fp16_1b.bmodel    |      24.22      |      3.36       |     157.90      |     110.69      |
+|   SRM1-20   | ppyolov3_bmcv.py  |   ppyolov3_int8_1b.bmodel    |      24.20      |      3.35       |     149.05      |     108.06      |
+|   SRM1-20   |ppyolov3_bmcv.pcie |   ppyolov3_fp32_1b.bmodel    |      11.83      |      1.04       |     176.66      |      62.18      |
+|   SRM1-20   |ppyolov3_bmcv.pcie |   ppyolov3_fp16_1b.bmodel    |      18.52      |      1.13       |      17.00      |     114.12      |
+|   SRM1-20   |ppyolov3_bmcv.pcie |   ppyolov3_int8_1b.bmodel    |      16.37      |      1.05       |      8.53       |      99.83      |
+|   SRM1-20   |ppyolov3_sail.pcie |   ppyolov3_fp32_1b.bmodel    |      23.12      |      2.64       |     313.51      |      12.08      |
+|   SRM1-20   |ppyolov3_sail.pcie |   ppyolov3_fp16_1b.bmodel    |      22.12      |      2.53       |     136.06      |      12.35      |
+|   SRM1-20   |ppyolov3_sail.pcie |   ppyolov3_int8_1b.bmodel    |      23.50      |      2.69       |     141.91      |      13.09      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
