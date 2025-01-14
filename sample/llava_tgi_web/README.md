@@ -15,8 +15,8 @@ bunzip2 -c docker-soph_tgi-<version>-slim-<date>-<commit_id>-<hash>.tar.bz2 | do
 ## 2. 获取模型
 
 ```bash
+git lfs install
 git clone https://huggingface.co/llava-hf/llava-v1.6-vicuna-7b-hf/tree/main
-git lfs pull
 ```
 
 ## 3. 在容器中启动TGI服务
