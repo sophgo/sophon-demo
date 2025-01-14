@@ -128,20 +128,6 @@ model_deploy.py \
     $device_args \
     --model embedding_text_cache.bmodel
 
-# model_transform.py \
-#     --model_name embedding_code \
-#     --model_def $onnx_path/embedding_code.onnx \
-#     --mlir embedding_code.mlir
-
-# model_deploy.py \
-#     --mlir embedding_code.mlir \
-#     --quantize F16 \
-#     --quant_input \
-#     --quant_output \
-#     --chip $target \
-#     $device_args \
-#     --model embedding_code.bmodel
-
 model_transform.py \
     --model_name embedding_code_cache \
     --model_def $onnx_path/embedding_code_cache.onnx \
@@ -157,7 +143,7 @@ model_deploy.py \
     --model embedding_code_cache.bmodel
 rm *.npz
 
-models=$models' '$outdir'/embedding_text.bmodel '$outdir'/embedding_text_cache.bmodel '$outdir'/embedding_code.bmodel '$outdir'/embedding_code_cache.bmodel '
+models=$models' '$outdir'/embedding_text.bmodel '$outdir'/embedding_text_cache.bmodel '$outdir'/embedding_code_cache.bmodel '
 
 popd
 
