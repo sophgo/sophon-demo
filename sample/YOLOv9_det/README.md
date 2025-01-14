@@ -19,7 +19,7 @@
 YOLOv9 引入了可编程梯度信息 (PGI) 和广义高效层聚合网络 (GELAN) 等开创性技术，标志着实时目标检测领域的重大进步。该模型在效率、准确性和适应性方面都有显著提高，在 MS COCO 数据集上树立了新的标杆。本例程对[​YOLOv9官方开源仓库](https://github.com/WongKinYiu/yolov9)的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -203,6 +203,19 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE9-8        | yolov9_bmcv.soc | yolov9s_fp16_1b.bmodel |    0.464 |    0.630 |
 | SE9-8        | yolov9_bmcv.soc | yolov9s_int8_1b.bmodel |    0.462 |    0.626 |
 | SE9-8        | yolov9_bmcv.soc | yolov9s_int8_4b.bmodel |    0.462 |    0.626 |
+| SRM1-20      | yolov9_opencv.py | yolov9s_fp32_1b.bmodel |    0.465 |    0.630 |
+| SRM1-20      | yolov9_opencv.py | yolov9s_fp16_1b.bmodel |    0.464 |    0.630 |
+| SRM1-20      | yolov9_opencv.py | yolov9s_int8_1b.bmodel |    0.461 |    0.625 |
+| SRM1-20      | yolov9_opencv.py | yolov9s_int8_4b.bmodel |    0.461 |    0.625 |
+| SRM1-20      | yolov9_bmcv.py | yolov9s_fp32_1b.bmodel |    0.464 |    0.630 |
+| SRM1-20      | yolov9_bmcv.py | yolov9s_fp16_1b.bmodel |    0.463 |    0.630 |
+| SRM1-20      | yolov9_bmcv.py | yolov9s_int8_1b.bmodel |    0.461 |    0.626 |
+| SRM1-20      | yolov9_bmcv.py | yolov9s_int8_4b.bmodel |    0.461 |    0.626 |
+| SRM1-20      | yolov9_bmcv.pcie | yolov9s_fp32_1b.bmodel |    0.465 |    0.630 |
+| SRM1-20      | yolov9_bmcv.pcie | yolov9s_fp16_1b.bmodel |    0.464 |    0.629 |
+| SRM1-20      | yolov9_bmcv.pcie | yolov9s_int8_1b.bmodel |    0.461 |    0.625 |
+| SRM1-20      | yolov9_bmcv.pcie | yolov9s_int8_4b.bmodel |    0.461 |    0.625 |
+
 > **测试说明**：
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -310,6 +323,19 @@ bmrt_test --bmodel models/BM1684/yolov9s_fp32_1b.bmodel
 |    SE9-8    |  yolov9_bmcv.soc  | yolov9s_fp16_1b.bmodel  |      5.79       |      1.72       |      40.94      |      12.14      |
 |    SE9-8    |  yolov9_bmcv.soc  | yolov9s_int8_1b.bmodel  |      5.75       |      1.72       |      18.15      |      12.15      |
 |    SE9-8    |  yolov9_bmcv.soc  | yolov9s_int8_4b.bmodel  |      5.62       |      1.64       |      17.66      |      12.10      |
+|   SRM1-20   | yolov9_opencv.py  | yolov9s_fp32_1b.bmodel  |      13.37      |      21.71      |     110.26      |      5.69       |
+|   SRM1-20   | yolov9_opencv.py  | yolov9s_fp16_1b.bmodel  |      13.38      |      20.87      |      77.13      |      5.24       |
+|   SRM1-20   | yolov9_opencv.py  | yolov9s_int8_1b.bmodel  |      13.30      |      21.03      |      73.85      |      5.16       |
+|   SRM1-20   | yolov9_opencv.py  | yolov9s_int8_4b.bmodel  |      13.29      |      30.60      |      72.66      |      6.94       |
+|   SRM1-20   |  yolov9_bmcv.py   | yolov9s_fp32_1b.bmodel  |      23.46      |      4.53       |      89.47      |      5.33       |
+|   SRM1-20   |  yolov9_bmcv.py   | yolov9s_fp16_1b.bmodel  |      23.10      |      4.56       |      54.96      |      5.63       |
+|   SRM1-20   |  yolov9_bmcv.py   | yolov9s_int8_1b.bmodel  |      23.92      |      4.57       |      55.29      |      5.32       |
+|   SRM1-20   |  yolov9_bmcv.py   | yolov9s_int8_4b.bmodel  |      23.79      |      4.32       |      53.27      |      5.02       |
+|   SRM1-20   | yolov9_bmcv.pcie  | yolov9s_fp32_1b.bmodel  |      19.83      |      1.24       |      40.06      |      46.09      |
+|   SRM1-20   | yolov9_bmcv.pcie  | yolov9s_fp16_1b.bmodel  |      23.27      |      1.30       |      8.92       |      54.80      |
+|   SRM1-20   | yolov9_bmcv.pcie  | yolov9s_int8_1b.bmodel  |      15.94      |      1.20       |      5.92       |      34.40      |
+|   SRM1-20   | yolov9_bmcv.pcie  | yolov9s_int8_4b.bmodel  |      22.90      |      1.05       |      5.38       |      53.30      |
+
 > **测试说明**：
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
