@@ -19,7 +19,7 @@
 ​YOLOv8是YOLO系列的的一个重大更新版本，它抛弃了以往的YOLO系类模型使用的Anchor-Base，采用了Anchor-Free的思想。YOLOv8建立在YOLO系列成功的基础上，通过对网络结构的改造，进一步提升其性能和灵活性。本例程对[​YOLOv8官方开源仓库](https://github.com/ultralytics/ultralytics)的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -245,6 +245,23 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE9-8        | yolov8_bmcv.soc | yolov8s_opt_fp16_1b.bmodel |    0.447 |    0.609 |
 | SE9-8        | yolov8_bmcv.soc | yolov8s_opt_int8_1b.bmodel |    0.442 |    0.606 |
 | SE9-8        | yolov8_bmcv.soc | yolov8s_opt_int8_4b.bmodel |    0.442 |    0.606 |
+| SRM1-20      | yolov8_opencv.py | yolov8s_fp32_1b.bmodel |    0.448 |    0.609 |
+| SRM1-20      | yolov8_opencv.py | yolov8s_fp16_1b.bmodel |    0.447 |    0.609 |
+| SRM1-20      | yolov8_opencv.py | yolov8s_int8_1b.bmodel |    0.443 |    0.607 |
+| SRM1-20      | yolov8_opencv.py | yolov8s_int8_4b.bmodel |    0.443 |    0.607 |
+| SRM1-20      | yolov8_bmcv.py | yolov8s_fp32_1b.bmodel |    0.447 |    0.610 |
+| SRM1-20      | yolov8_bmcv.py | yolov8s_fp16_1b.bmodel |    0.447 |    0.610 |
+| SRM1-20      | yolov8_bmcv.py | yolov8s_int8_1b.bmodel |    0.442 |    0.606 |
+| SRM1-20      | yolov8_bmcv.py | yolov8s_int8_4b.bmodel |    0.442 |    0.606 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_fp32_1b.bmodel |    0.448 |    0.610 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_fp16_1b.bmodel |    0.447 |    0.609 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_int8_1b.bmodel |    0.443 |    0.606 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_int8_4b.bmodel |    0.443 |    0.606 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_opt_fp32_1b.bmodel |    0.448 |    0.610 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_opt_fp16_1b.bmodel |    0.447 |    0.609 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_opt_int8_1b.bmodel |    0.442 |    0.605 |
+| SRM1-20      | yolov8_bmcv.pcie | yolov8s_opt_int8_4b.bmodel |    0.442 |    0.605 |
+
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -390,6 +407,23 @@ bmrt_test --bmodel models/BM1684/yolov8s_fp32_1b.bmodel
 |    SE9-8    |  yolov8_bmcv.soc  |yolov8s_opt_fp16_1b.bmodel|      5.79       |      1.82       |      34.15      |      4.01       |
 |    SE9-8    |  yolov8_bmcv.soc  |yolov8s_opt_int8_1b.bmodel|      5.70       |      1.82       |      7.77       |      3.68       |
 |    SE9-8    |  yolov8_bmcv.soc  |yolov8s_opt_int8_4b.bmodel|      5.55       |      1.73       |      7.54       |      3.73       |
+|   SRM1-20   | yolov8_opencv.py  | yolov8s_fp32_1b.bmodel  |      13.36      |      21.01      |     103.03      |      5.33       |
+|   SRM1-20   | yolov8_opencv.py  | yolov8s_fp16_1b.bmodel  |      13.47      |      21.06      |      74.21      |      5.29       |
+|   SRM1-20   | yolov8_opencv.py  | yolov8s_int8_1b.bmodel  |      13.44      |      21.40      |      71.44      |      5.24       |
+|   SRM1-20   | yolov8_opencv.py  | yolov8s_int8_4b.bmodel  |      13.49      |      30.47      |      71.27      |      6.79       |
+|   SRM1-20   |  yolov8_bmcv.py   | yolov8s_fp32_1b.bmodel  |      11.31      |      4.06       |      51.87      |      6.45       |
+|   SRM1-20   |  yolov8_bmcv.py   | yolov8s_fp16_1b.bmodel  |      12.44      |      4.08       |      26.37      |      6.20       |
+|   SRM1-20   |  yolov8_bmcv.py   | yolov8s_int8_1b.bmodel  |      24.31      |      4.59       |      53.81      |      6.02       |
+|   SRM1-20   |  yolov8_bmcv.py   | yolov8s_int8_4b.bmodel  |      23.20      |      4.20       |      52.30      |      4.95       |
+|   SRM1-20   | yolov8_bmcv.pcie  | yolov8s_fp32_1b.bmodel  |      22.61      |      1.36       |      34.75      |      69.87      |
+|   SRM1-20   | yolov8_bmcv.pcie  | yolov8s_fp16_1b.bmodel  |      19.09      |      1.25       |      6.57       |      60.69      |
+|   SRM1-20   | yolov8_bmcv.pcie  | yolov8s_int8_1b.bmodel  |      22.62      |      1.39       |      4.05       |      67.01      |
+|   SRM1-20   | yolov8_bmcv.pcie  | yolov8s_int8_4b.bmodel  |      12.30      |      0.98       |      3.88       |      37.72      |
+|   SRM1-20   | yolov8_bmcv.pcie  |yolov8s_opt_fp32_1b.bmodel|      15.29      |      1.23       |      34.93      |      42.53      |
+|   SRM1-20   | yolov8_bmcv.pcie  |yolov8s_opt_fp16_1b.bmodel|      21.18      |      1.31       |      6.74       |      58.42      |
+|   SRM1-20   | yolov8_bmcv.pcie  |yolov8s_opt_int8_1b.bmodel|      11.01      |      1.18       |      3.51       |      31.42      |
+|   SRM1-20   | yolov8_bmcv.pcie  |yolov8s_opt_int8_4b.bmodel|      23.01      |      1.08       |      3.40       |      64.25      |
+
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
