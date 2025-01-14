@@ -16,7 +16,7 @@ then
     tar xvf cityscapes.tar.gz && rm cityscapes.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/segformer/datasets/cityscapes_small.tar.gz 
     tar xvf cityscapes_small.tar.gz && rm cityscapes_small.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/segformer/datasets/test_car_person_1080P.mp4         
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/segformer/datasets/cityscapes_video.avi
     popd
     echo "datasets download!"
 else
