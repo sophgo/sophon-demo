@@ -27,7 +27,7 @@ ppyoloe是百度提出的基于PP-YOLOv2的卓越的单阶段Anchor-free模型�
 **官方源码地址** (https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.6/configs/ppyoloe)
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)模型编译和推理
 * 支持基于BMCV、sail预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -168,6 +168,14 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE9-8        | ppyoloe_bmcv.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
 | SE9-8        | ppyoloe_sail.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
 | SE9-8        | ppyoloe_sail.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
+| SRM1-20      | ppyoloe_opencv.py  | ppyoloe_fp32_1b.bmodel       |    0.377 |    0.508 |
+| SRM1-20      | ppyoloe_opencv.py  | ppyoloe_fp16_1b.bmodel       |    0.377 |    0.508 |
+| SRM1-20      | ppyoloe_bmcv.py    | ppyoloe_fp32_1b.bmodel       |    0.380 |    0.513 |
+| SRM1-20      | ppyoloe_bmcv.py    | ppyoloe_fp16_1b.bmodel       |    0.380 |    0.513 |
+| SRM1-20      | ppyoloe_bmcv.pcie  | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
+| SRM1-20      | ppyoloe_bmcv.pcie  | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
+| SRM1-20      | ppyoloe_sail.pcie  | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
+| SRM1-20      | ppyoloe_sail.pcie  | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -244,6 +252,14 @@ bmrt_test --bmodel models/BM1684/ppyoloe_fp32_1b.bmodel
 |    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       |      5.64       |      2.59       |      34.85      |      12.14      |
 |    SE9-8    | ppyoloe_sail.soc  |      ppyoloe_fp32_1b.bmodel       |      3.67       |      6.34       |     123.30      |      11.33      |
 |    SE9-8    | ppyoloe_sail.soc  |      ppyoloe_fp16_1b.bmodel       |      3.64       |      6.32       |      35.81      |      11.33      |
+|   SRM1-20   | ppyoloe_opencv.py |      ppyoloe_fp32_1b.bmodel       |      13.23      |      66.43      |     109.16      |      8.64       |
+|   SRM1-20   | ppyoloe_opencv.py |      ppyoloe_fp16_1b.bmodel       |      13.39      |      66.59      |      83.91      |      8.74       |
+|   SRM1-20   |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      23.82      |      4.43       |      86.33      |      9.52       |
+|   SRM1-20   |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       |      23.78      |      4.46       |      61.68      |      9.14       |
+|   SRM1-20   | ppyoloe_bmcv.pcie |      ppyoloe_fp32_1b.bmodel       |      22.13      |      1.98       |      32.41      |      53.15      |
+|   SRM1-20   | ppyoloe_bmcv.pcie |      ppyoloe_fp16_1b.bmodel       |      12.04      |      1.80       |      8.02       |      23.27      |
+|   SRM1-20   | ppyoloe_sail.pcie |      ppyoloe_fp32_1b.bmodel       |      13.72      |      2.84       |      51.68      |      4.50       |
+|   SRM1-20   | ppyoloe_sail.pcie |      ppyoloe_fp16_1b.bmodel       |      23.50      |      3.40       |      56.11      |      4.91       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
