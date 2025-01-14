@@ -427,6 +427,12 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
 
         LOG_TS(m_ts, "post 4: get mask");
         if(tpu_post){
+            auto input_tensor1 = out_tensor1->get_tensor();
+            bm_tensor_t segmentation_tensor;
+            unsigned long long seg_addr = bm_mem_get_device_addr(input_tensor1.device_mem);
+            bm_device_mem_t seg_dev = bm_mem_from_device(seg_addr + batch_idx*netinfo->max_input_bytes[1], netinfo->max_input_bytes[1]);
+            bmrt_tensor_with_device(&segmentation_tensor, seg_dev, netinfo->input_dtypes[1], netinfo->stages[0].input_shapes[1]);
+
             cv::Vec4f trans = para.trans;
             int r_x = floor(trans[2] / m_net_w * shape1->dims[3]);
             int r_y = floor(trans[3] / m_net_h * shape1->dims[2]); 
@@ -445,11 +451,6 @@ int YoloV8::post_process(const std::vector<bm_image>& images, std::vector<YoloV8
                 int mask_times = (yolobox_valid_vec.size() + tpu_mask_num - 1) / tpu_mask_num;
                 for(int i = 0; i < mask_times; i++){
                     int start = i * tpu_mask_num;
-                    auto input_tensor1 = out_tensor1->get_tensor();
-                    bm_tensor_t segmentation_tensor;
-                    unsigned long long seg_addr = bm_mem_get_device_addr(input_tensor1.device_mem);
-                    bm_device_mem_t seg_dev = bm_mem_from_device(seg_addr + batch_idx*netinfo->max_input_bytes[1], netinfo->max_input_bytes[1]);
-                    bmrt_tensor_with_device(&segmentation_tensor, seg_dev, netinfo->input_dtypes[1], netinfo->stages[0].input_shapes[1]);
                     getmask_tpu(yolobox_valid_vec, start, segmentation_tensor, paras);
                 }
             } 
@@ -490,21 +491,16 @@ void YoloV8::getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, const bm_tensor_t
     int mask_width = m_tpumask_net_w;
     int actual_mask_num = MIN(tpu_mask_num, yolobox_vec.size() - start);
 
-    netinfo->stages[0].input_shapes[0].dims[0] = 1;
-    netinfo->stages[0].input_shapes[0].dims[1] = actual_mask_num;
-    netinfo->stages[0].input_shapes[0].dims[2] = mask_len;
-
     //1. prepare bmodel inputs
     LOG_TS(m_ts, "get_mask_tpu: prepare");
     bm_tensor_t input_tensor0;
-    assert(true == bmrt_tensor(&input_tensor0, bmrt, netinfo->input_dtypes[0], netinfo->stages[0].input_shapes[0]));
+    assert(true == bmrt_tensor(&input_tensor0, bmrt, netinfo->input_dtypes[0], {3, {1, actual_mask_num, mask_len}}));
     for (size_t i = start; i < start + actual_mask_num; i++)
     {
         CV_Assert(BM_SUCCESS == bm_memcpy_s2d_partial_offset(tpu_mask_handle, input_tensor0.device_mem, reinterpret_cast<void*>(yolobox_vec[i].mask.data()), 32*4, 32*4*(i-start)));
     }
 
-    std::vector<bm_tensor_t> input_tensors = {input_tensor0, input_tensor1};
-    // bm_tensor_t input_tensors[2] = {input_tensor0, input_tensor1};
+    bm_tensor_t input_tensors[2] = {input_tensor0, input_tensor1};
     std::vector<bm_tensor_t> output_tensors;
     LOG_TS(m_ts, "get_mask_tpu: prepare");
 
@@ -512,10 +508,9 @@ void YoloV8::getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, const bm_tensor_t
     LOG_TS(m_ts, "get_mask_tpu: forward");
 
     output_tensors.resize(netinfo->output_num);  // 1
-    bool ok = bmrt_launch_tensor(bmrt, netinfo->name, input_tensors.data(), netinfo->input_num, output_tensors.data(), netinfo->output_num);
-    
-
+    bool ok = bmrt_launch_tensor(bmrt, netinfo->name, input_tensors, netinfo->input_num, output_tensors.data(), netinfo->output_num);
     assert(true == ok);
+
     assert(BM_SUCCESS == bm_thread_sync(tpu_mask_handle)); 
     bm_free_device(tpu_mask_handle, input_tensors[0].device_mem);
     LOG_TS(m_ts, "get_mask_tpu: forward");
@@ -525,7 +520,6 @@ void YoloV8::getmask_tpu(YoloV8BoxVec &yolobox_vec, int start, const bm_tensor_t
     bm_tensor_t output_tensor = output_tensors[0];
     float output0[1 * actual_mask_num * mask_height * mask_width];
     int ret = bm_memcpy_d2s_partial(tpu_mask_handle, output0, output_tensor.device_mem, bmrt_tensor_bytesize(&output_tensor));
-    size_t size = bmrt_tensor_bytesize(&output_tensor);
 
     for (int i = 0; i < output_tensors.size(); i++) {
         bm_free_device(tpu_mask_handle, output_tensors[i].device_mem);  
