@@ -149,12 +149,11 @@ class GPT(nn.Module):
             for j in range(len(self.dev_ids)):
                 self.past_kv_tensors[i][5*j+0]={}
                 self.past_kv_tensors[i][5*j+1]={}
-                for k in range(1,1024):
-           
+                for k in range(1, self.SEQLEN+1):
                     self.past_kv_tensors[i][5*j+0][k] = sail.Tensor(self.past_k[i][j], [1, 1, self.ATTEN_HEAD, self.ATTEN_DIM], (k-1) * (self.ATTEN_HEAD * self.ATTEN_DIM))
                     self.past_kv_tensors[i][5*j+1][k] = sail.Tensor(self.past_v[i][j], [1, 1, self.ATTEN_HEAD, self.ATTEN_DIM], (k-1) * (self.ATTEN_HEAD * self.ATTEN_DIM))
         self.position_id={}
-        for k in range(1,1024):
+        for k in range(self.SEQLEN+1):
             self.position_id[k] = np.array(k - 1, self.type_convert(self.tensors[self.name_blocks_cache[0]]["input"][1].dtype()))
         self.attention_mask = np.zeros(self.SEQLEN+1, self.type_convert(self.tensors[self.name_blocks_cache[0]]["input"][2].dtype()))
         self.last_hidden_tensor = sail.Tensor(self.handle, [self.HIDDEN_SIZE], self.next_hidden_state_code[0].dtype(), True, False)
@@ -490,8 +489,6 @@ class GPT(nn.Module):
                 logits = torch.tensor(logits).reshape(self.num_audio_tokens, self.num_vq).transpose(0, 1)
                 
                 # 应用logits处理器
-                # logits_token = inputs_ids[:, -1:]
-                # logits_token = rearrange(logits_token, "b c n -> (b n) c") #####
                 inputs_ids_sliced = inputs_ids.narrow(
                     1,
                     start_idx,
@@ -611,8 +608,8 @@ class GPT(nn.Module):
         self.code_token_length += 1
         position_id=self.position_id[self.code_token_length]
         attention_mask=self.attention_mask
-        if self.code_token_length - 2>=0:
-            attention_mask[self.code_token_length - 2]=0
+        if self.code_token_length - 2 >= 0:
+            attention_mask[self.code_token_length - 2] = 0
         input_ids = np.asarray(tokens, dtype=self.type_convert(self.next_embed_input_code[0].dtype()))
         for i in range(len(self.dev_ids)):
             self.next_embed_input_code[i].update_data(input_ids.reshape(self.tensors[self.name_embed_cache_code]["input"][i].shape()))

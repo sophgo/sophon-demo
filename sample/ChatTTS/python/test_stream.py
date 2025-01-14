@@ -56,7 +56,7 @@ for wav in chat.infer(inputs_en,
         wavs = torch.cat((wavs, wav), dim=1)
     wav = wav.squeeze()
     audio_queue.put(wav.numpy())
-time_cost = time.time() - start 
+time_cost = time.time() - start
 
 torchaudio.save("test_stream.wav", wavs, sample_rate=sample_rate)
 

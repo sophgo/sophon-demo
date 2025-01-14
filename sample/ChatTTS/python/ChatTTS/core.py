@@ -285,7 +285,6 @@ class Chat:
                 yield wavs
         if stream and length < wavs.shape[1]:
             new_wavs = wavs[:, length:]
-            
             yield new_wavs
 
     @torch.inference_mode()
@@ -380,16 +379,6 @@ class Chat:
             top_K=params.top_K,
             repetition_penalty=params.repetition_penalty,
         )
-
-        # if params.spk_emb is not None:
-            # self.speaker.apply(
-            #     emb,
-            #     params.spk_emb,
-            #     input_ids,
-            #     self.tokenizer.spk_emb_ids,
-            #     self.gpt.device_gpt,
-            # )
-
         result = gpt.generate(
             input_ids,
             temperature=torch.tensor(temperature, device=device),
