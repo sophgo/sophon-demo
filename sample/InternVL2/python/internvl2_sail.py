@@ -42,6 +42,8 @@ def find_closest_aspect_ratio(aspect_ratio, target_ratios, width, height, image_
     return best_ratio
 
 def dynamic_preprocess(image, min_num=1, max_num=12, image_size=448, use_thumbnail=False):
+    if max_num <= 0:
+        return [image.resize((image_size, image_size))]
     orig_width, orig_height = image.size
     aspect_ratio = orig_width / orig_height
 
@@ -82,7 +84,7 @@ def dynamic_preprocess(image, min_num=1, max_num=12, image_size=448, use_thumbna
 def load_image(image_file, input_size=448, max_num=12):
     image = Image.open(image_file).convert('RGB')
     transform = build_transform(input_size=input_size)
-    images = dynamic_preprocess(image, max_num=max_num, image_size=input_size, use_thumbnail=True)
+    images = dynamic_preprocess(image, max_num=max_num, image_size=input_size, use_thumbnail=False)
     pixel_values = [transform(image) for image in images]
     pixel_values = torch.stack(pixel_values)
     return pixel_values
@@ -103,7 +105,6 @@ class InternVL2():
 
         # preprocess parameters, such as prompt & tokenizer
         self.system_prompt = '<|im_start|>system\n你是由上海人工智能实验室联合商汤科技开发的书生多模态大模型，英文名叫InternVL, 是一个有用无害的人工智能助手。<|im_end|><|im_start|>user\n'
-        self.image_ids = [0] * 256
 
         # load model
         start_time = time.time()
@@ -210,8 +211,6 @@ class InternVL2():
             self.first_attention_mask[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks[0]]["input"][2])
             self.next_pid[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][1])
             self.next_attention_mask[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][2])
-        self.vit_input = self.tensors[self.name_vit]["input"][0]
-        self.vit_output = self.tensors[self.name_vit]["output"][0]
         
     def init_input_tensor(self, dev_id, net, index):
         shape = self.model.get_input_shape(net, index)
@@ -257,7 +256,8 @@ class InternVL2():
     
     def forward_first(self, tokens, pixel_values, img_offset):
         self.token_length = len(tokens)
-        
+        if self.token_length > self.SEQLEN:
+            print("warining, input seq len too large")
         length = self.token_length + 1 if self.is_dynamic else self.SEQLEN
         input_ids, position_id, attention_mask = self.get_first_input(length, tokens)
         
@@ -268,14 +268,18 @@ class InternVL2():
         self.model.process(self.name_embed, self.tensors[self.name_embed]["input"], self.tensors[self.name_embed]["output"])
 
         # ViT Inference
-        if img_offset > 0 and pixel_values.numel() == np.prod(self.vit_input.shape()) :
-            self.vit_input.update_data(pixel_values)
-            input_vit_tensors = {0: self.vit_input}
-            output_vit_tensors = {0: self.vit_output}
-            self.model.process(self.name_vit, input_vit_tensors, output_vit_tensors)
-            self.tensors[self.name_embed]["output"][0].sync_d2d(self.vit_output, 0, int(img_offset * self.HIDDEN_SIZE), np.prod(self.vit_output.shape()))
-        else:
-            print("No image found or invalid vit data, skip vit inference.")
+        for i in range(pixel_values.shape[0]):
+            self.vit_input = self.tensors[self.name_vit]["input"][0]
+            self.vit_output = self.tensors[self.name_vit]["output"][0]
+            assert self.vit_input.shape()[0] == 1, "vit only support bs=1"
+            if img_offset > 0 and pixel_values[i].numel() == np.prod(self.vit_input.shape()):
+                self.vit_input.update_data(np.expand_dims(pixel_values[i], axis=0))
+                input_vit_tensors = {0: self.vit_input}
+                output_vit_tensors = {0: self.vit_output}
+                self.model.process(self.name_vit, input_vit_tensors, output_vit_tensors)
+                self.tensors[self.name_embed]["output"][0].sync_d2d(self.vit_output, 0, int((img_offset + i * self.vit_output.shape()[1]) * self.HIDDEN_SIZE), np.prod(self.vit_output.shape()))
+            else:
+                print("No image found or invalid vit data, skip vit inference.")
             
         # blocks
         for i in range(len(self.dev_ids)):
@@ -374,13 +378,14 @@ class InternVL2():
             self.image_offset = 0
             self.pixel_values = []
             return
-        self.pixel_values = load_image(
-            self.image_str, max_num=1)
+        max_num = self.SEQLEN / self.tensors[self.name_vit]["output"][0].shape()[1] - 3 # 3072 / 256 - 3 = 9
+        self.pixel_values = load_image(self.image_str, max_num=int(max_num)) # 10,3,448,448
         system_ids = self.tokenizer.encode(self.system_prompt + "<img>")
         self.image_offset = len(system_ids)
         prompt_ids = self.tokenizer.encode(
             "</img>{}<|im_end|><|im_start|>assistant\n".format(self.input_str))
-        self.input_ids = system_ids + self.image_ids + prompt_ids
+        image_ids = [0] * 256 * self.pixel_values.size(0)
+        self.input_ids = system_ids + image_ids + prompt_ids
 
     def chat(self):
         """
@@ -415,7 +420,6 @@ class InternVL2():
             full_word_tokens = []
             print("\nAnswer:")
             while token not in [self.ID_EOS, self.ID_END, self.ID_IM_END] and self.token_length < self.SEQLEN:
-                # print("token is:<{}>".format(token))
                 full_word_tokens.append(token)
                 word = self.tokenizer.decode(
                     full_word_tokens, skip_special_tokens=True)
