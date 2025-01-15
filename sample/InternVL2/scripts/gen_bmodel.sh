@@ -65,7 +65,7 @@ else
 fi
 
 if [ x$mode == x"int8" ]; then
-    quantize_args="--quantize W8F16"
+    quantize_args="--quantize W8F16 --q_group_size 64"
 elif [ x$mode == x"bf16" ]; then
     quantize_args="--quantize BF16"
 elif [ x$mode == x"int4" ]; then
@@ -95,7 +95,7 @@ model_deploy.py \
     --quantize BF16 \
     --processor ${chip} \
     --quant_output \
-    --model vit_bf16.bmodel
+    --model vit_bf16.bmodel \
 
 models=${models}${outdir}'/vit_bf16.bmodel '
 

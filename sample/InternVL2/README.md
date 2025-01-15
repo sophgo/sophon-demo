@@ -30,7 +30,8 @@ Intern-VL2是由上海人工智能实验室联合商汤科技开发的书生多�
 |   ├──image1.jpg         # 测试图片
 |   ├──requirements.txt   # 运行环境上需要安装的第三方依赖
 |   ├──token_config_2b    # 2b模型的tokenizer
-|   └──token_config_4b    # 4b模型的tokenizer
+|   ├──token_config_4b    # 4b模型的tokenizer
+|   └──token_config_2b    # 8b模型的tokenizer
 ├── README.md             # 本例程的中文指南
 ├── scripts               # 存放模型编译等shell脚本
 └── tools                 # 存放onnx导出等python脚本
@@ -50,8 +51,10 @@ Intern-VL2是由上海人工智能实验室联合商汤科技开发的书生多�
 
 ```bash
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU/internvl2-4b_bm1684x_int4.bmodel #1684x 4b
-python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/internvl2-2b_bm1688_int4_2core.bmodel #1688 2b
+python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU/internvl2-4b_bm1684x_int4.bmodel #1684x 4b seq_len=512
+python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/internvl2-2b_bm1688_int4_2core.bmodel #1688 2b seq_len=512
+python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/internvl2-8b_bm1684x_int4_3072.bmodel #1684x 8b seq_len=3072
+python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/internvl2-8b_bm1684x_int8_3072.bmodel #1684x 8b seq_len=3072
 ```
 
 ### 4.2 自行编译模型
@@ -65,6 +68,7 @@ pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 git lfs install
 git clone https://huggingface.co/OpenGVLab/InternVL2-4B
 git clone https://huggingface.co/OpenGVLab/InternVL2-2B
+git clone https://huggingface.co/OpenGVLab/InternVL2-8B
 ```
 
 如果git clone完代码之后出现卡住，可以尝试`ctrl+c`中断，然后进入仓库运行`git lfs pull`。  
@@ -75,6 +79,7 @@ git clone https://huggingface.co/OpenGVLab/InternVL2-2B
 # /path/to/InternVL2-4B/ 为下载的InternVL2-4B官方仓库的路径
 cp tools/files/InternVL2-4B/* /path/to/InternVL2-4B/
 cp tools/files/InternVL2-2B/* /path/to/InternVL2-2B/
+cp tools/files/InternVL2-8B/* /path/to/InternVL2-8B/
 ```
 
 在`tools`文件夹下，运行`export_onnx.py`脚本即可导出onnx模型，并存放在`models/onnx`中的`internvl2-4b`和`internvl2-2b`文件夹下，指令如下：
@@ -82,6 +87,7 @@ cp tools/files/InternVL2-2B/* /path/to/InternVL2-2B/
 ```bash
 python3 tools/export_onnx.py --model_path /path/to/InternVL2-4B
 python3 tools/export_onnx.py --model_path /path/to/InternVL2-2B
+python3 tools/export_onnx.py --model_path /path/to/InternVL2-8B
 ```
 
 建议使用TPU-MLIR编译BModel，模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录，并使用本例程提供的脚本将onnx模型编译为BModel。脚本中命令的详细说明可参考《TPU-MLIR开发手册》(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
@@ -92,6 +98,7 @@ python3 tools/export_onnx.py --model_path /path/to/InternVL2-2B
 cd scripts
 ./gen_bmodel.sh --mode int4 --name internvl2-4b --chip bm1684x #会在当前目录下生成internvl2-4b_bm1684x_int4_1core.bmodel
 ./gen_bmodel.sh --mode int4 --name internvl2-2b --chip bm1688  #会在当前目录下生成internvl2-2b_bm1688_int4_2core.bmodel
+./gen_bmodel.sh --mode int4 --name internvl2-8b --chip bm1684x #会在当前目录下生成internvl2-4b_bm1684x_int8_1core.bmodel
 ```
 
 ## 5. 例程测试
@@ -103,6 +110,7 @@ cd scripts
 这里的测试输入为："please describe this image in detail."
 |    测试平台   |               测试模型                   |first token latency(s)|token per second(tokens/s)| 
 | -----------  | -------------------------------------- | --------------------- | ----------------------- | 
+|    SE7-32    | internvl2-8b_bm1684x_int4_3072.bmodel  |   7.686               |       8.722             | 
 |    SE7-32    | internvl2-4b_bm1684x_int4.bmodel       |   0.365               |       27.092            | 
  
 > **测试说明**：  
