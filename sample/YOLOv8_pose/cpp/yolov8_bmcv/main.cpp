@@ -60,7 +60,7 @@ void DetectAndDump(YoloV8& yolov8, bm_handle_t h, vector<bm_image>& batch_imgs, 
         size_t out_size = 0;
         int ret = bmcv_image_jpeg_enc(h, 1, &batch_imgs[i], &jpeg_data, &out_size);
         if (ret == BM_SUCCESS) {
-            string img_file = dumpJson ? "results/images/" + batch_names[i] : to_string(id) + ".jpg";
+            string img_file = "results/images/" + (dumpJson ? batch_names[i] : to_string(id) + ".jpg");
             FILE *fp = fopen(img_file.c_str(), "wb");
             fwrite(jpeg_data, out_size, 1, fp);
             fclose(fp);
