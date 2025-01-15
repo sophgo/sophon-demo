@@ -19,7 +19,7 @@
 YOLOv9 引入了可编程梯度信息 (PGI) 和广义高效层聚合网络 (GELAN) 等开创性技术，标志着实时目标检测领域的重大进步。该模型在效率、准确性和适应性方面都有显著提高，在 MS COCO 数据集上树立了新的标杆。本例程对[​YOLOv9官方开源仓库](https://github.com/WongKinYiu/yolov9)的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688(SoC)和BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688(SoC)和BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -183,6 +183,20 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE9-16       | yolov9_bmcv.soc | yolov9c_fp16_1b_2core.bmodel |    0.405 |    0.641 |
 | SE9-16       | yolov9_bmcv.soc | yolov9c_int8_1b_2core.bmodel |    0.405 |    0.638 |
 | SE9-16       | yolov9_bmcv.soc | yolov9c_int8_4b_2core.bmodel |    0.405 |    0.638 |
+| SRM1-20      | yolov9_opencv.py | yolov9c_fp32_1b.bmodel |    0.417 |    0.644 |
+| SRM1-20      | yolov9_opencv.py | yolov9c_fp16_1b.bmodel |    0.417 |    0.644 |
+| SRM1-20      | yolov9_opencv.py | yolov9c_int8_1b.bmodel |    0.416 |    0.639 |
+| SRM1-20      | yolov9_opencv.py | yolov9c_int8_4b.bmodel |    0.416 |    0.639 |
+| SRM1-20      | yolov9_bmcv.py | yolov9c_fp32_1b.bmodel |    0.416 |    0.644 |
+| SRM1-20      | yolov9_bmcv.py | yolov9c_fp16_1b.bmodel |    0.416 |    0.644 |
+| SRM1-20      | yolov9_bmcv.py | yolov9c_int8_1b.bmodel |    0.416 |    0.638 |
+| SRM1-20      | yolov9_bmcv.py | yolov9c_int8_4b.bmodel |    0.416 |    0.638 |
+| SRM1-20      | yolov9_bmcv.pcie| yolov9c_fp32_1b.bmodel |    0.395 |    0.633 |
+| SRM1-20      | yolov9_bmcv.pcie| yolov9c_fp16_1b.bmodel |    0.397 |    0.635 |
+| SRM1-20      | yolov9_bmcv.pcie| yolov9c_int8_1b.bmodel |    0.404 |    0.638 |
+| SRM1-20      | yolov9_bmcv.pcie| yolov9c_int8_4b.bmodel |    0.404 |    0.638 |
+| SRM1-20      | yolov9_bmcv.pcie | yolov9c_int8_1b.bmodel |    0.396 |    0.633 |
+| SRM1-20      | yolov9_bmcv.pcie | yolov9c_int8_4b.bmodel |    0.396 |    0.633 |
 
 > **测试说明**：
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -275,6 +289,18 @@ bmrt_test --bmodel models/BM1684/yolov9c_fp32_1b.bmodel
 |   SE9-16    |  yolov9_bmcv.soc  |   yolov9c_fp16_1b_2core.bmodel    |      5.90       |      1.73       |      80.05      |     118.54      |
 |   SE9-16    |  yolov9_bmcv.soc  |   yolov9c_int8_1b_2core.bmodel    |      5.92       |      1.74       |      22.14      |     110.50      |
 |   SE9-16    |  yolov9_bmcv.soc  |   yolov9c_int8_4b_2core.bmodel    |      5.87       |      1.65       |      17.90      |     110.19      |
+|   SRM1-20   | yolov9_opencv.py  |      yolov9c_fp32_1b.bmodel       |      12.99      |      22.88      |     309.11      |     150.13      |
+|   SRM1-20   | yolov9_opencv.py  |      yolov9c_fp16_1b.bmodel       |      12.94      |      23.02      |     170.56      |     174.38      |
+|   SRM1-20   | yolov9_opencv.py  |      yolov9c_int8_1b.bmodel       |      12.90      |      22.86      |     155.44      |     137.05      |
+|   SRM1-20   | yolov9_opencv.py  |      yolov9c_int8_4b.bmodel       |      12.97      |      28.00      |     153.11      |     139.46      |
+|   SRM1-20   |  yolov9_bmcv.py   |      yolov9c_fp32_1b.bmodel       |      23.81      |      4.91       |     286.91      |     147.15      |
+|   SRM1-20   |  yolov9_bmcv.py   |      yolov9c_fp16_1b.bmodel       |      23.59      |      4.67       |     148.15      |     146.38      |
+|   SRM1-20   |  yolov9_bmcv.py   |      yolov9c_int8_1b.bmodel       |      23.68      |      5.01       |     134.89      |     136.07      |
+|   SRM1-20   |  yolov9_bmcv.py   |      yolov9c_int8_4b.bmodel       |      23.36      |      4.42       |     133.96      |     137.18      |
+|   SRM1-20   |  yolov9_bmcv.pcie |      yolov9c_fp32_1b.bmodel       |      9.67       |      1.14       |     162.98      |      91.05      |
+|   SRM1-20   |  yolov9_bmcv.pcie |      yolov9c_fp16_1b.bmodel       |      11.35      |      1.14       |      25.19      |      92.40      |
+|   SRM1-20   |  yolov9_bmcv.pcie |      yolov9c_int8_1b.bmodel       |      10.65      |      1.16       |      11.57      |      94.05      |
+|   SRM1-20   |  yolov9_bmcv.pcie |      yolov9c_int8_4b.bmodel       |      9.32       |      0.98       |      10.92      |      81.31      |
 
 > **测试说明**：
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
