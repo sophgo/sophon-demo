@@ -199,6 +199,7 @@ int main(int argc, char *argv[]){
             if (!img)
                 break;
             batch_imgs.push_back(*img);
+            batch_names.push_back(std::to_string(id));
             delete img;
             img = nullptr;
             if ((int)batch_imgs.size() == batch_size){
