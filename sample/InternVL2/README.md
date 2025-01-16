@@ -110,6 +110,7 @@ cd scripts
 这里的测试输入为："please describe this image in detail."
 |    测试平台   |               测试模型                   |first token latency(s)|token per second(tokens/s)| 
 | -----------  | -------------------------------------- | --------------------- | ----------------------- | 
+|    SE7-32    | internvl2-8b_bm1684x_int8_3072.bmodel  |   7.706               |       5.710             | 
 |    SE7-32    | internvl2-8b_bm1684x_int4_3072.bmodel  |   7.686               |       8.722             | 
 |    SE7-32    | internvl2-4b_bm1684x_int4.bmodel       |   0.365               |       27.092            | 
  
