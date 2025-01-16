@@ -434,6 +434,8 @@ then
     eval_cpp pcie bmcv yolov4_int8_4b.bmodel 0.23092078998731425 
     eval_cpp pcie sail yolov4_fp32_1b.bmodel 0.24749183135236155 
     eval_cpp pcie sail yolov4_fp16_1b.bmodel 0.24715251586618836
+    eval_cpp pcie sail yolov4_int8_1b.bmodel 0.23207870486180743 
+    eval_cpp pcie sail yolov4_int8_4b.bmodel 0.23092078998731425
   fi
 elif test $MODE = "soc_build"
 then

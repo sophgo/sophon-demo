@@ -26,7 +26,7 @@
 
 
 ## 2. 特性
-* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -207,6 +207,22 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1688 SoC   | yolov34_sail.soc  | yolov3_fp32_1b.bmodel | 0.446         | 0.649    |
 | BM1688 SoC   | yolov34_sail.soc  | yolov3_fp16_1b.bmodel | 0.446         | 0.649    |
 | BM1688 SoC   | yolov34_sail.soc  | yolov3_int8_1b.bmodel | 0.427         | 0.641    |
+|   SRM1-20    | yolov34_opencv.py | yolov3_fp32_1b.bmodel | 0.471         | 0.663    |
+|   SRM1-20    | yolov34_opencv.py | yolov3_fp16_1b.bmodel | 0.471         | 0.663    |
+|   SRM1-20    | yolov34_opencv.py | yolov3_int8_1b.bmodel | 0.445         | 0.656    |
+|   SRM1-20    | yolov34_opencv.py | yolov3_int8_4b.bmodel | 0.444         | 0.655    |
+|   SRM1-20    | yolov34_bmcv.py   | yolov3_fp32_1b.bmodel | 0.458         | 0.657    |
+|   SRM1-20    | yolov34_bmcv.py   | yolov3_fp16_1b.bmodel | 0.458         | 0.657    |
+|   SRM1-20    | yolov34_bmcv.py   | yolov3_int8_1b.bmodel | 0.436         | 0.651    |
+|   SRM1-20    | yolov34_bmcv.py   | yolov3_int8_4b.bmodel | 0.435         | 0.650    |
+|   SRM1-20    | yolov34_bmcv.pcie | yolov3_fp32_1b.bmodel | 0.446         | 0.649    |
+|   SRM1-20    | yolov34_bmcv.pcie | yolov3_fp16_1b.bmodel | 0.446         | 0.649    |
+|   SRM1-20    | yolov34_bmcv.pcie | yolov3_int8_1b.bmodel | 0.427         | 0.641    |
+|   SRM1-20    | yolov34_bmcv.pcie | yolov3_int8_4b.bmodel | 0.427         | 0.641    |
+|   SRM1-20    | yolov34_sail.pcie | yolov3_fp32_1b.bmodel | 0.446         | 0.649    |
+|   SRM1-20    | yolov34_sail.pcie | yolov3_fp16_1b.bmodel | 0.446         | 0.649    |
+|   SRM1-20    | yolov34_sail.pcie | yolov3_int8_1b.bmodel | 0.427         | 0.641    |
+|   SRM1-20    | yolov34_sail.pcie | yolov3_int8_4b.bmodel | 0.427         | 0.641    |
 
 在coco2017val_1000数据集上，**推理时设置参数：--conf_thresh=0.3 --nms_thresh=0.5**，yolov4精度测试结果如下：
 |   测试平台    |      测试程序     |              测试模型               |AP@IoU=0.5:0.95|AP@IoU=0.5|
@@ -243,6 +259,22 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1688 SoC   | yolov34_sail.soc  | yolov4_fp32_1b.bmodel | 0.246         | 0.520    |
 | BM1688 SoC   | yolov34_sail.soc  | yolov4_fp16_1b.bmodel | 0.247         | 0.521    |
 | BM1688 SoC   | yolov34_sail.soc  | yolov4_int8_1b.bmodel | 0.229         | 0.491    |
+|   SRM1-20    | yolov34_opencv.py | yolov4_fp32_1b.bmodel | 0.381         | 0.557    |
+|   SRM1-20    | yolov34_opencv.py | yolov4_fp16_1b.bmodel | 0.381         | 0.557    |
+|   SRM1-20    | yolov34_opencv.py | yolov4_int8_1b.bmodel | 0.320         | 0.528    |
+|   SRM1-20    | yolov34_opencv.py | yolov4_int8_4b.bmodel | 0.319         | 0.527    |
+|   SRM1-20    | yolov34_bmcv.py   | yolov4_fp32_1b.bmodel | 0.368         | 0.544    |
+|   SRM1-20    | yolov34_bmcv.py   | yolov4_fp16_1b.bmodel | 0.368         | 0.544    |
+|   SRM1-20    | yolov34_bmcv.py   | yolov4_int8_1b.bmodel | 0.304         | 0.508    |
+|   SRM1-20    | yolov34_bmcv.py   | yolov4_int8_4b.bmodel | 0.305         | 0.512    |
+|   SRM1-20    | yolov34_bmcv.pcie | yolov4_fp32_1b.bmodel | 0.376         | 0.553    |
+|   SRM1-20    | yolov34_bmcv.pcie | yolov4_fp16_1b.bmodel | 0.375         | 0.552    |
+|   SRM1-20    | yolov34_bmcv.pcie | yolov4_int8_1b.bmodel | 0.310         | 0.522    |
+|   SRM1-20    | yolov34_bmcv.pcie | yolov4_int8_4b.bmodel | 0.308         | 0.522    |
+|   SRM1-20    | yolov34_sail.pcie | yolov4_fp32_1b.bmodel | 0.376         | 0.553    |
+|   SRM1-20    | yolov34_sail.pcie | yolov4_fp16_1b.bmodel | 0.375         | 0.552    |
+|   SRM1-20    | yolov34_sail.pcie | yolov4_int8_1b.bmodel | 0.310         | 0.522    |
+|   SRM1-20    | yolov34_sail.pcie | yolov4_int8_4b.bmodel | 0.308         | 0.522    |
 
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
@@ -347,6 +379,22 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 | BM1688 SoC  | yolov34_sail.soc  | yolov3_fp16_1b.bmodel | 4.0      | 4.9           | 137.0         | 25.7       |
 | BM1688 SoC  | yolov34_sail.soc  | yolov3_int8_1b.bmodel | 4.2      | 5.0           | 33.1          | 26.0       |
 | BM1688 SoC  | yolov34_sail.soc  | yolov3_int8_4b.bmodel | 4.0      | 4.7           | 30.6          | 25.8       |
+|   SRM1-20   | yolov34_opencv.py | yolov3_fp32_1b.bmodel | 13.4     | 23.8          | 342.6         | 157.1      |
+|   SRM1-20   | yolov34_opencv.py | yolov3_fp16_1b.bmodel | 13.4     | 24.0          | 186.6         | 157.1      |
+|   SRM1-20   | yolov34_opencv.py | yolov3_int8_1b.bmodel | 13.4     | 23.1          | 170.8         | 160.0      |
+|   SRM1-20   | yolov34_opencv.py | yolov3_int8_4b.bmodel | 13.4     | 30.0          | 166.1         | 168.9      |
+|   SRM1-20   | yolov34_bmcv.py   | yolov3_fp32_1b.bmodel | 24.2     | 4.6           | 321.7         | 166.2      |
+|   SRM1-20   | yolov34_bmcv.py   | yolov3_fp16_1b.bmodel | 24.2     | 4.6           | 165.7         | 165.0      |
+|   SRM1-20   | yolov34_bmcv.py   | yolov3_int8_1b.bmodel | 24.2     | 4.5           | 150.2         | 166.4      |
+|   SRM1-20   | yolov34_bmcv.py   | yolov3_int8_4b.bmodel | 23.9     | 4.2           | 149.1         | 177.2      |
+|   SRM1-20   | yolov34_bmcv.pcie | yolov3_fp32_1b.bmodel | 10.3     | 1.1           | 182.5         | 50.8       |
+|   SRM1-20   | yolov34_bmcv.pcie | yolov3_fp16_1b.bmodel | 12.0     | 1.1           | 26.3          | 66.3       |
+|   SRM1-20   | yolov34_bmcv.pcie | yolov3_int8_1b.bmodel | 12.4     | 1.1           | 11.0          | 66.9       |
+|   SRM1-20   | yolov34_bmcv.pcie | yolov3_int8_4b.bmodel | 11.0     | 0.9           | 10.8          | 57.8       |
+|   SRM1-20   | yolov34_sail.pcie | yolov3_fp32_1b.bmodel | 23.2     | 2.8           | 316.8         | 16.1       |
+|   SRM1-20   | yolov34_sail.pcie | yolov3_fp16_1b.bmodel | 12.5     | 2.3           | 80.7          | 15.6       |
+|   SRM1-20   | yolov34_sail.pcie | yolov3_int8_1b.bmodel | 23.2     | 2.7           | 145.0         | 16.3       |
+|   SRM1-20   | yolov34_sail.pcie | yolov3_int8_4b.bmodel | 23.1     | 1.7           | 145.8         | 15.8       |
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.3，nms_thresh=0.5，yolov4性能测试结果如下：
 |    测试平台  |     测试程序      |       测试模型         |decode_time|preprocess_time|inference_time|postprocess_time| 
@@ -395,6 +443,22 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 | BM1688 SoC  | yolov34_sail.soc  | yolov4_fp16_1b.bmodel | 4.1      | 3.7           | 93.8          | 10.1       |
 | BM1688 SoC  | yolov34_sail.soc  | yolov4_int8_1b.bmodel | 4.2      | 3.6           | 17.8          | 10.1       |
 | BM1688 SoC  | yolov34_sail.soc  | yolov4_int8_4b.bmodel | 4.0      | 3.3           | 15.8          | 10.0       |
+|   SRM1-20   | yolov34_opencv.py | yolov4_fp32_1b.bmodel | 13.5     | 12.3          | 161.7         | 95.9       |
+|   SRM1-20   | yolov34_opencv.py | yolov4_fp16_1b.bmodel | 13.4     | 12.2          | 93.2          | 95.4       |
+|   SRM1-20   | yolov34_opencv.py | yolov4_int8_1b.bmodel | 13.4     | 12.2          | 81.9          | 92.2       |
+|   SRM1-20   | yolov34_opencv.py | yolov4_int8_4b.bmodel | 13.3     | 17.0          | 80.1          | 97.4       |
+|   SRM1-20   | yolov34_bmcv.py   | yolov4_fp32_1b.bmodel | 14.3     | 3.8           | 117.6         | 105.2      |
+|   SRM1-20   | yolov34_bmcv.py   | yolov4_fp16_1b.bmodel | 23.0     | 4.2           | 78.2          | 102.7      |
+|   SRM1-20   | yolov34_bmcv.py   | yolov4_int8_1b.bmodel | 12.1     | 3.7           | 33.6          | 100.2      |
+|   SRM1-20   | yolov34_bmcv.py   | yolov4_int8_4b.bmodel | 24.2     | 3.9           | 74.1          | 101.7      |
+|   SRM1-20   | yolov34_bmcv.pcie | yolov4_fp32_1b.bmodel | 13.8     | 0.8           | 83.6          | 37.5       |
+|   SRM1-20   | yolov34_bmcv.pcie | yolov4_fp16_1b.bmodel | 12.7     | 0.8           | 16.2          | 32.5       |
+|   SRM1-20   | yolov34_bmcv.pcie | yolov4_int8_1b.bmodel | 23.0     | 1.0           | 7.2           | 69.5       |
+|   SRM1-20   | yolov34_bmcv.pcie | yolov4_int8_4b.bmodel | 22.8     | 0.8           | 6.6           | 68.6       |
+|   SRM1-20   | yolov34_sail.pcie | yolov4_fp32_1b.bmodel | 16.9     | 2.1           | 116.4         | 5.6        |
+|   SRM1-20   | yolov34_sail.pcie | yolov4_fp16_1b.bmodel | 23.6     | 2.6           | 80.4          | 5.8        |
+|   SRM1-20   | yolov34_sail.pcie | yolov4_int8_1b.bmodel | 21.4     | 2.4           | 60.0          | 6.1        |
+|   SRM1-20   | yolov34_sail.pcie | yolov4_int8_4b.bmodel | 13.7     | 1.3           | 30.8          | 5.1        |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
