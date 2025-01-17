@@ -31,6 +31,7 @@ class GPT(nn.Module):
         self.logger = logger
 
         self.dev_ids = [tpu_id]
+        self.dev_ids_num = len(self.dev_ids)
         self.handles = {dev: sail.Handle(dev) for dev in self.dev_ids}
         self.handle = self.handles[0]
         self.target = sail.Handle(self.dev_ids[0]).get_target()
@@ -104,25 +105,31 @@ class GPT(nn.Module):
             for j in range(self.NUM_LAYERS):
                 self.past_k[j] = {}
                 self.past_v[j] = {}
-                for i in range(len(self.dev_ids)):
+                for i in range(self.dev_ids_num):
                     self.past_k[j][i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[j]]["input"][5 * i + 3])
                     self.past_v[j][i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[j]]["input"][5 * i + 4])
         else:
             for j in range(self.NUM_LAYERS):
                 self.past_k[j] = {}
                 self.past_v[j] = {}
-                for i in range(len(self.dev_ids)):
+                for i in range(self.dev_ids_num):
                     self.past_k[j][i] = self.tensors[self.name_blocks_cache[j]]["input"][5 * i + 3]
                     self.past_v[j][i] = self.tensors[self.name_blocks_cache[j]]["input"][5 * i + 4]
-    
+        self.past_kv_cache_tensors={}
+        for i in range(self.NUM_LAYERS):
+            self.past_kv_cache_tensors[i]={}
+            for j in range(self.dev_ids_num):
+                self.past_kv_cache_tensors[i][5 * j + 0]={}
+                self.past_kv_cache_tensors[i][5 * j + 1]={}
+                for k in range(1, self.SEQLEN+1):
+                    self.past_kv_cache_tensors[i][5 * j + 0][k] = sail.Tensor(self.past_k[i][j], [1, 1, self.ATTEN_HEAD, self.ATTEN_DIM], (k-1) * (self.ATTEN_HEAD * self.ATTEN_DIM))
+                    self.past_kv_cache_tensors[i][5 * j + 1][k] = sail.Tensor(self.past_v[i][j], [1, 1, self.ATTEN_HEAD, self.ATTEN_DIM], (k-1) * (self.ATTEN_HEAD * self.ATTEN_DIM))
 
         self.first_embed_input_text = self.model.create_max_input_tensors(self.name_embed_text)
         self.first_hidden_state_text = self.model.create_max_output_tensors(self.name_embed_text)
         self.next_embed_input_text = self.model.create_max_input_tensors(self.name_embed_cache_text)
         self.next_hidden_state_text = self.model.create_max_output_tensors(self.name_embed_cache_text)
 
-        # self.first_embed_input_code = self.model.create_max_input_tensors(self.name_embed_code)
-        # self.first_hidden_state_code = self.model.create_max_output_tensors(self.name_embed_code)
         self.next_embed_input_code = self.model.create_max_input_tensors(self.name_embed_cache_code)
         self.next_hidden_state_code = self.model.create_max_output_tensors(self.name_embed_cache_code)
         
@@ -137,47 +144,12 @@ class GPT(nn.Module):
         self.lm_code_input = self.model.create_max_input_tensors(self.name_lm_code)
         self.lm_code_output = self.model.create_max_output_tensors(self.name_lm_code)
         
-        for i in range(len(self.dev_ids)):
+        for i in range(self.dev_ids_num):
             self.first_pid[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks[0]]["input"][1])
             self.first_attention_mask[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks[0]]["input"][2])
             self.next_pid[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][1])
             self.next_attention_mask[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][2])
-        self.tmp_shape = self.model.get_input_shape(self.name_blocks_cache[0], 3)
-        self.past_kv_tensors={}
-        for i in range(self.NUM_LAYERS):
-            self.past_kv_tensors[i]={}
-            for j in range(len(self.dev_ids)):
-                self.past_kv_tensors[i][5*j+0]={}
-                self.past_kv_tensors[i][5*j+1]={}
-                for k in range(1, self.SEQLEN+1):
-                    self.past_kv_tensors[i][5*j+0][k] = sail.Tensor(self.past_k[i][j], [1, 1, self.ATTEN_HEAD, self.ATTEN_DIM], (k-1) * (self.ATTEN_HEAD * self.ATTEN_DIM))
-                    self.past_kv_tensors[i][5*j+1][k] = sail.Tensor(self.past_v[i][j], [1, 1, self.ATTEN_HEAD, self.ATTEN_DIM], (k-1) * (self.ATTEN_HEAD * self.ATTEN_DIM))
-        self.position_id={}
-        for k in range(self.SEQLEN+1):
-            self.position_id[k] = np.array(k - 1, self.type_convert(self.tensors[self.name_blocks_cache[0]]["input"][1].dtype()))
-        self.attention_mask = np.zeros(self.SEQLEN+1, self.type_convert(self.tensors[self.name_blocks_cache[0]]["input"][2].dtype()))
-        self.last_hidden_tensor = sail.Tensor(self.handle, [self.HIDDEN_SIZE], self.next_hidden_state_code[0].dtype(), True, False)
-
-        for i in range(self.NUM_LAYERS):
-            
-            for j in range(len(self.dev_ids)):
-                # breakpoint()
-                
-                
-                self.tensors[self.name_blocks_cache[i]]["input"][5 * j] = self.next_hidden_state_code[j]
-                self.tensors[self.name_blocks_cache[i]]["output"][3 * j] = self.next_hidden_state_code[j]
-                self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 3] = self.past_k[i][j]
-                self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 4] = self.past_v[i][j]
-            if i > 0:
-                for j in range(len(self.dev_ids)):
-                    self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 1] = self.tensors[self.name_blocks_cache[0]]["input"][5 * j + 1]
-                    self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 2] = self.tensors[self.name_blocks_cache[0]]["input"][5 * j + 2]
-        for i in range(len(self.dev_ids)):
-            self.tensors[self.name_embed_cache_code]["input"][i] = self.next_embed_input_code[i]
-            self.tensors[self.name_embed_cache_code]["output"][i] = self.next_hidden_state_code[i] 
-            self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1] = self.next_pid[i]
-            self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2] = self.next_attention_mask[i]
-        self.tensors[self.name_lm_code]["output"][0] = self.lm_code_output[0]
+        
     def init_input_tensor(self, dev_id, net, index):
         shape = self.model.get_input_shape(net, index)
         type = self.model.get_input_dtype(net, index)
@@ -322,7 +294,7 @@ class GPT(nn.Module):
         # length = self.SEQLEN
         input_ids, position_id, attention_mask = self.get_first_input(length, tokens, True)
 
-        for i in range(len(self.dev_ids)):
+        for i in range(self.dev_ids_num):
             # breakpoint()
             self.tensors[self.name_embed_text]["input"][i] = sail.Tensor(self.first_embed_input_text[i], [1, length], 0)
             self.tensors[self.name_embed_text]["output"][i] = sail.Tensor(self.first_hidden_state_text[i], [1, length, self.HIDDEN_SIZE], 0)
@@ -331,19 +303,19 @@ class GPT(nn.Module):
 
  
         # blocks
-        for i in range(len(self.dev_ids)):
+        for i in range(self.dev_ids_num):
             self.tensors[self.name_blocks[0]]["input"][3 * i + 1] = sail.Tensor(self.first_pid[i], [1, length], 0)
             self.tensors[self.name_blocks[0]]["input"][3 * i + 2] = sail.Tensor(self.first_attention_mask[i], [1, 1, length, length], 0)
             self.tensors[self.name_blocks[0]]["input"][3 * i + 1].update_data(position_id.reshape(self.tensors[self.name_blocks[0]]["input"][3 * i + 1].shape()))
             self.tensors[self.name_blocks[0]]["input"][3 * i + 2].update_data(attention_mask.reshape(self.tensors[self.name_blocks[0]]["input"][3 * i + 2].shape()).view(np.uint16))
         for i in range(self.NUM_LAYERS):
-            for j in range(len(self.dev_ids)):
+            for j in range(self.dev_ids_num):
                 self.tensors[self.name_blocks[i]]["input"][3 * j] = sail.Tensor(self.first_hidden_state_text[j], [1, length, self.HIDDEN_SIZE], 0)
                 self.tensors[self.name_blocks[i]]["output"][3 * j] = sail.Tensor(self.first_hidden_state_text[j], [1, length, self.HIDDEN_SIZE], 0)
                 self.tensors[self.name_blocks[i]]["output"][3 * j + 1] = sail.Tensor(self.past_k[i][j], [1, length, self.ATTEN_HEAD, self.ATTEN_DIM], 0)
                 self.tensors[self.name_blocks[i]]["output"][3 * j + 2] = sail.Tensor(self.past_v[i][j], [1, length, self.ATTEN_HEAD, self.ATTEN_DIM], 0)
             if i > 0:
-                for j in range(len(self.dev_ids)):
+                for j in range(self.dev_ids_num):
                     self.tensors[self.name_blocks[i]]["input"][3 * j + 1] = self.tensors[self.name_blocks[0]]["input"][3 * j + 1]
                     self.tensors[self.name_blocks[i]]["input"][3 * j + 2] = self.tensors[self.name_blocks[0]]["input"][3 * j + 2]
             # breakpoint()
@@ -361,6 +333,7 @@ class GPT(nn.Module):
         self.model.process(self.greedy_text, self.tensors[self.greedy_text]["input"], self.tensors[self.greedy_text]["output"])
 
         return int(self.tensors[self.greedy_text]["output"][0].asnumpy())
+
     def forward_next_text(self):
         self.text_token_length += 1
         position_id = np.array(self.text_token_length - 1, self.type_convert(self.tensors[self.name_blocks_cache[0]]["input"][1].dtype()))
@@ -369,21 +342,21 @@ class GPT(nn.Module):
             attention_mask[i] = self.ATTENTION_MASK
 
         # embedding_cache
-        if len(self.dev_ids) > 1:
+        if self.dev_ids_num > 1:
             # breakpoint()
             input_ids = np.array(int(self.tensors[self.greedy_text]["output"][0].asnumpy()), self.type_convert(self.tensors[self.name_embed_cache_text]["input"][0].dtype()))
-            for i in range(len(self.dev_ids)):
+            for i in range(self.dev_ids_num):
                 self.next_embed_input_text[i].update_data(input_ids.reshape(self.tensors[self.name_embed_cache_text]["input"][i].shape()))
                 self.tensors[self.name_embed_cache_text]["input"][i] = self.next_embed_input_text[i]
         else:
             self.tensors[self.name_embed_cache_text]["input"][0] = self.tensors[self.greedy_text]["output"][0]
-        for i in range(len(self.dev_ids)):
+        for i in range(self.dev_ids_num):
             self.tensors[self.name_embed_cache_text]["output"][i] = self.next_hidden_state_text[i] 
 
         self.model.process(self.name_embed_cache_text, self.tensors[self.name_embed_cache_text]["input"], self.tensors[self.name_embed_cache_text]["output"])
 
         # block_cache
-        for i in range(len(self.dev_ids)):
+        for i in range(self.dev_ids_num):
             self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1] = self.next_pid[i]
             self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2] = self.next_attention_mask[i]
             self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1].update_data(position_id.reshape(self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1].shape()))
@@ -391,16 +364,16 @@ class GPT(nn.Module):
 
 
         for i in range(self.NUM_LAYERS):
-            for j in range(len(self.dev_ids)):
+            for j in range(self.dev_ids_num):
                 # breakpoint()
                 self.tensors[self.name_blocks_cache[i]]["input"][5 * j] = self.next_hidden_state_text[j]
                 self.tensors[self.name_blocks_cache[i]]["output"][3 * j] = self.next_hidden_state_text[j]
                 self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 3] = self.past_k[i][j]
                 self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 4] = self.past_v[i][j]
-                self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 1] = sail.Tensor(self.past_k[i][j], [1, 1, self.ATTEN_HEAD, self.ATTEN_DIM], (self.text_token_length-1) * (self.ATTEN_HEAD * self.ATTEN_DIM))
-                self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 2] = sail.Tensor(self.past_v[i][j], [1, 1, self.ATTEN_HEAD, self.ATTEN_DIM], (self.text_token_length-1) * (self.ATTEN_HEAD * self.ATTEN_DIM))
+                self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 1] = self.past_kv_cache_tensors[i][j * 5 + 0][self.text_token_length]
+                self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 2] = self.past_kv_cache_tensors[i][j * 5 + 1][self.text_token_length]
             if i > 0:
-                for j in range(len(self.dev_ids)):
+                for j in range(self.dev_ids_num):
                     self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 1] = self.tensors[self.name_blocks_cache[0]]["input"][5 * j + 1]
                     self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 2] = self.tensors[self.name_blocks_cache[0]]["input"][5 * j + 2]
             # breakpoint()
@@ -508,7 +481,6 @@ class GPT(nn.Module):
                 
                 scores = F.softmax(logits / temperature, dim=-1)
                 idx_next = torch.multinomial(scores, num_samples=1)
-                
                 idx_next = idx_next.view(-1, self.num_vq)
                 finish |= (idx_next == eos_token).any(1)
                 inputs_ids = torch.cat([inputs_ids, idx_next.unsqueeze(1)], 1)
@@ -551,14 +523,14 @@ class GPT(nn.Module):
                 hiddens,
                 infer_text,
             )
+            
     def forward_first_code_core(self, tokens, spk_idx, spk_emb):
         self.code_token_length = len(tokens)
-        for i in range(self.code_token_length, self.SEQLEN):
-            self.attention_mask[i] = self.ATTENTION_MASK
+
         length = self.text_token_length + 1 if self.is_dynamic else self.SEQLEN
         input_ids, position_id, attention_mask = self.get_first_input(length, tokens, False)
 
-        for i in range(len(self.dev_ids)):
+        for i in range(self.dev_ids_num):
             # breakpoint()
             self.tensors[self.name_embed_text]["input"][i] = sail.Tensor(self.first_embed_input_text[i], [1, length], 0)
             self.tensors[self.name_embed_text]["output"][i] = sail.Tensor(self.first_hidden_state_text[i], [1, length, self.HIDDEN_SIZE], 0)
@@ -566,25 +538,25 @@ class GPT(nn.Module):
         self.model.process(self.name_embed_text, self.tensors[self.name_embed_text]["input"], self.tensors[self.name_embed_text]["output"])
 
         if spk_idx != -1:
-            for i in range(len(self.dev_ids)):
+            for i in range(self.dev_ids_num):
                 spk_emb_tensor = sail.Tensor(self.handle, [self.HIDDEN_SIZE], self.first_hidden_state_text[i].dtype(), True, False)
                 spk_emb_tensor.update_data(np.array(spk_emb).astype(np.float16).view(np.uint16))
                 self.first_hidden_state_text[i].sync_s2d(spk_emb_tensor, 0, spk_idx * self.HIDDEN_SIZE, self.HIDDEN_SIZE)
  
         # blocks
-        for i in range(len(self.dev_ids)):
+        for i in range(self.dev_ids_num):
             self.tensors[self.name_blocks[0]]["input"][3 * i + 1] = sail.Tensor(self.first_pid[i], [1, length], 0)
             self.tensors[self.name_blocks[0]]["input"][3 * i + 2] = sail.Tensor(self.first_attention_mask[i], [1, 1, length, length], 0)
             self.tensors[self.name_blocks[0]]["input"][3 * i + 1].update_data(position_id.reshape(self.tensors[self.name_blocks[0]]["input"][3 * i + 1].shape()))
             self.tensors[self.name_blocks[0]]["input"][3 * i + 2].update_data(attention_mask.reshape(self.tensors[self.name_blocks[0]]["input"][3 * i + 2].shape()).view(np.uint16))
         for i in range(self.NUM_LAYERS):
-            for j in range(len(self.dev_ids)):
+            for j in range(self.dev_ids_num):
                 self.tensors[self.name_blocks[i]]["input"][3 * j] = sail.Tensor(self.first_hidden_state_text[j], [1, length, self.HIDDEN_SIZE], 0)
                 self.tensors[self.name_blocks[i]]["output"][3 * j] = sail.Tensor(self.first_hidden_state_text[j], [1, length, self.HIDDEN_SIZE], 0)
                 self.tensors[self.name_blocks[i]]["output"][3 * j + 1] = sail.Tensor(self.past_k[i][j], [1, length, self.ATTEN_HEAD, self.ATTEN_DIM], 0)
                 self.tensors[self.name_blocks[i]]["output"][3 * j + 2] = sail.Tensor(self.past_v[i][j], [1, length, self.ATTEN_HEAD, self.ATTEN_DIM], 0)
             if i > 0:
-                for j in range(len(self.dev_ids)):
+                for j in range(self.dev_ids_num):
                     self.tensors[self.name_blocks[i]]["input"][3 * j + 1] = self.tensors[self.name_blocks[0]]["input"][3 * j + 1]
                     self.tensors[self.name_blocks[i]]["input"][3 * j + 2] = self.tensors[self.name_blocks[0]]["input"][3 * j + 2]
             # breakpoint()
@@ -601,32 +573,57 @@ class GPT(nn.Module):
         last_hidden_tensor.sync_d2s(self.first_hidden_state_text[0], (self.code_token_length - 1) * self.HIDDEN_SIZE, 0, self.HIDDEN_SIZE)
         last_hidden = last_hidden_tensor.asnumpy().view(np.float16)
         logits = self.lm_code_output[0].asnumpy()
-        self.tensors[self.name_lm_code]["input"][0] = self.next_hidden_state_code[0]
         return logits, last_hidden
     
     def forward_next_code_core(self, tokens):
         self.code_token_length += 1
-        position_id=self.position_id[self.code_token_length]
-        attention_mask=self.attention_mask
-        if self.code_token_length - 2 >= 0:
-            attention_mask[self.code_token_length - 2] = 0
-        input_ids = np.asarray(tokens, dtype=self.type_convert(self.next_embed_input_code[0].dtype()))
-        for i in range(len(self.dev_ids)):
+        position_id = np.array(self.code_token_length - 1, self.type_convert(self.tensors[self.name_blocks_cache[0]]["input"][1].dtype()))
+        attention_mask = np.zeros(self.SEQLEN+1, self.type_convert(self.tensors[self.name_blocks_cache[0]]["input"][2].dtype()))
+        for i in range(self.code_token_length - 1, self.SEQLEN):
+            attention_mask[i] = self.ATTENTION_MASK
+
+        # embedding_cache
+        input_ids = np.array(tokens, dtype=self.type_convert(self.next_embed_input_code[0].dtype()))
+        for i in range(self.dev_ids_num):
             self.next_embed_input_code[i].update_data(input_ids.reshape(self.tensors[self.name_embed_cache_code]["input"][i].shape()))
+            self.tensors[self.name_embed_cache_code]["input"][i] = self.next_embed_input_code[i]
+        for i in range(self.dev_ids_num):
+            self.tensors[self.name_embed_cache_code]["output"][i] = self.next_hidden_state_code[i] 
+
         self.model.process(self.name_embed_cache_code, self.tensors[self.name_embed_cache_code]["input"], self.tensors[self.name_embed_cache_code]["output"])
+
         # block_cache
-        for i in range(len(self.dev_ids)):
+        for i in range(self.dev_ids_num):
+            self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1] = self.next_pid[i]
+            self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2] = self.next_attention_mask[i]
             self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1].update_data(position_id.reshape(self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1].shape()))
             self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2].update_data(attention_mask.reshape(self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2].shape()).view(np.uint16))
 
         for i in range(self.NUM_LAYERS):
-            for j in range(len(self.dev_ids)):
-                self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 1] = self.past_kv_tensors[i][j*5+0][self.code_token_length]
-                self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 2] = self.past_kv_tensors[i][j*5+1][self.code_token_length]
-          
+            for j in range(self.dev_ids_num):
+                # breakpoint()
+                self.tensors[self.name_blocks_cache[i]]["input"][5 * j] = self.next_hidden_state_code[j]
+                self.tensors[self.name_blocks_cache[i]]["output"][3 * j] = self.next_hidden_state_code[j]
+                self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 3] = self.past_k[i][j]
+                self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 4] = self.past_v[i][j]
+                self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 1] = self.past_kv_cache_tensors[i][j * 5 + 0][self.code_token_length]
+                self.tensors[self.name_blocks_cache[i]]["output"][3 * j + 2] = self.past_kv_cache_tensors[i][j * 5 + 1][self.code_token_length]
+            if i > 0:
+                for j in range(self.dev_ids_num):
+                    self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 1] = self.tensors[self.name_blocks_cache[0]]["input"][5 * j + 1]
+                    self.tensors[self.name_blocks_cache[i]]["input"][5 * j + 2] = self.tensors[self.name_blocks_cache[0]]["input"][5 * j + 2]
+            # breakpoint()
             self.model.process(self.name_blocks_cache[i], self.tensors[self.name_blocks_cache[i]]["input"], self.tensors[self.name_blocks_cache[i]]["output"])
+
+        
+        #lm_head
+        self.tensors[self.name_lm_code]["input"][0] = self.next_hidden_state_code[0]
+        # breakpoint()
+        self.tensors[self.name_lm_code]["output"][0] = self.lm_code_output[0]
         self.model.process(self.name_lm_code, self.tensors[self.name_lm_code]["input"], self.tensors[self.name_lm_code]["output"])
-        self.last_hidden_tensor.sync_d2s(self.next_hidden_state_code[0], 0, 0, self.HIDDEN_SIZE)
-        last_hidden = self.last_hidden_tensor.asnumpy().view(np.float16)
+
+        last_hidden_tensor = sail.Tensor(self.handle, [self.HIDDEN_SIZE], self.next_hidden_state_code[0].dtype(), True, False)
+        last_hidden_tensor.sync_d2s(self.next_hidden_state_code[0], 0, 0, self.HIDDEN_SIZE)
+        last_hidden = last_hidden_tensor.asnumpy().view(np.float16)
         logits = self.lm_code_output[0].asnumpy()
         return logits, last_hidden
