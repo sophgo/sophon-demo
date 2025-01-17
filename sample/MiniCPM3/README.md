@@ -110,9 +110,9 @@ sudo reboot
 这里的测试输入为："请使用C++写一段冒泡排序算法。"
 |   测试平台   |     测试程序       |           测试模型                                  |first token latency(s) |token per second(tokens/s)| 
 | ----------- | ----------------  | ------------------------------------------------- | --------------------- | ------------------------ | 
-| SE7-32      | minicpm3.py           | minicpm3-7b_int4_seq512_1dev.bmodel                   |    0.592              |    10.047                | 
-| SC7-HP75    | minicpm3.py           | minicpm3-7b_int4_seq512_1dev.bmodel                   |    0.747              |    7.891                 | 
-| SRM1-20     | minicpm3.py           | minicpm3-7b_int4_seq512_1dev.bmodel                   |    0.860              |    4.045                 |
+| SE7-32      | minicpm3.py           | minicpm3-4b_int4_seq512_1dev.bmodel                   |    0.592              |    10.047                | 
+| SC7-HP75    | minicpm3.py           | minicpm3-4b_int4_seq512_1dev.bmodel                   |    0.747              |    7.891                 | 
+| SRM1-20     | minicpm3.py           | minicpm3-4b_int4_seq512_1dev.bmodel                   |    0.860              |    4.045                 |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
