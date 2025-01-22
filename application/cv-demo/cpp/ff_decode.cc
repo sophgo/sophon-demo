@@ -11,8 +11,8 @@
 
 using namespace std;
 
-bool hardware_decode = true;
-bool data_on_device_mem = true;
+thread_local bool hardware_decode = true;
+thread_local bool data_on_device_mem = true;
 
 const int hw_jpeg_header_fmt_words[] = {
     0x221111,  // yuv420
