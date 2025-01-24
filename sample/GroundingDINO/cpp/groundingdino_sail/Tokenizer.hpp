@@ -132,12 +132,12 @@ public:
 					{
 						int cplen = 1;
 						if ((t[i] & 0xf8) == 0xf0)
-							cplen = 4; // ռ��4���ֽڣ�ǰ5λΪ11110
+							cplen = 4; 				// 占用4个字节，前5位为11110
 						else if ((t[i] & 0xf0) == 0xe0)
-							cplen = 3; // ռ��3���ֽڣ�ǰ4λΪ1110
+							cplen = 3;				// 占用3个字节，前4位为1110
 						else if ((t[i] & 0xe0) == 0xc0)
-							cplen = 2; // ռ��2���ֽڣ�ǰ3λΪ110
-						// ���˸о����д������ûʲô�ã������������������ϣ���ôcplen��Ϊ��ʼ����0���Ƿ���utf-8���붨���
+							cplen = 2;				// 占用2个字节，前3位为110
+						// use default
 						if ((i + cplen) > t.length())
 							cplen = 1;
 						auto tmp = t.substr(i, cplen);
