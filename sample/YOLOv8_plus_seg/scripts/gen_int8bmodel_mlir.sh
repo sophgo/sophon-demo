@@ -82,7 +82,7 @@ fi
 # batch_size=1
 model_name=yolov8s
 gen_mlir 1
-# gen_cali_table 1
+gen_cali_table 1
 gen_int8bmodel 1
 
 # batch_size=4
@@ -92,7 +92,7 @@ gen_int8bmodel 4
 # batch_size=1
 model_name=yolov9c
 gen_mlir 1
-# gen_cali_table 1
+gen_cali_table 1
 gen_int8bmodel 1
 
 # batch_size=4
