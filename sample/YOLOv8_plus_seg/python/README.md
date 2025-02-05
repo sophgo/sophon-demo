@@ -61,11 +61,11 @@ python3 python/yolov8_bmcv.py --input datasets/test --bmodel models/BM1688/yolov
 ```
 测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov8s_int8_1b.bmodel.bmodel_test_bmcv_python_result.json`下，同时会打印预测结果、推理时间等信息。
 
-![res](../pics/res_bmcv_3.jpg)
+![res](../pics/3_python_bmcv.jpg)
 
 ### 2.3 测试视频
 视频测试实例如下，支持对视频流进行测试。
 ```bash
-python3 python/yolov8_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1688/yolov8s_int8_1b.bmodel --dev_id 0 --conf_thresh 0.25 --nms_thresh 0.7
+python3 python/yolov8_bmcv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1688/yolov8s_int8_1b.bmodel --dev_id 0 --conf_thresh 0.25 --nms_thresh 0.7
 ```
 测试结束后，同时会打印预测结果、推理时间等信息。`yolov8_bmcv.py`会将预测结果画在图片上并保存在`results/output.mp4`中。
