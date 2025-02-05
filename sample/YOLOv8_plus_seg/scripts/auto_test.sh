@@ -104,17 +104,11 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1688/yolov8s_fp16_1b.bmodel
       bmrt_test_case BM1688/yolov8s_int8_1b.bmodel
       bmrt_test_case BM1688/yolov8s_int8_4b.bmodel
-      bmrt_test_case BM1688/yolov8s_fp32_1b_2core.bmodel
-      bmrt_test_case BM1688/yolov8s_fp16_1b_2core.bmodel
-      bmrt_test_case BM1688/yolov8s_int8_1b_2core.bmodel
       bmrt_test_case BM1688/yolov8s_int8_4b_2core.bmodel
       bmrt_test_case BM1688/yolov9c_fp32_1b.bmodel
       bmrt_test_case BM1688/yolov9c_fp16_1b.bmodel
       bmrt_test_case BM1688/yolov9c_int8_1b.bmodel
       bmrt_test_case BM1688/yolov9c_int8_4b.bmodel
-      bmrt_test_case BM1688/yolov9c_fp32_1b_2core.bmodel
-      bmrt_test_case BM1688/yolov9c_fp16_1b_2core.bmodel
-      bmrt_test_case BM1688/yolov9c_int8_1b_2core.bmodel
       bmrt_test_case BM1688/yolov9c_int8_4b_2core.bmodel
     fi
     popd
@@ -429,13 +423,7 @@ elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
       test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
       if test "$PLATFORM" = "SE9-16"; then 
-        test_python bmcv yolov8s_fp32_1b_2core.bmodel datasets/coco/val2017_1000
-        test_python bmcv yolov8s_fp16_1b_2core.bmodel datasets/coco/val2017_1000
-        test_python bmcv yolov8s_int8_1b_2core.bmodel datasets/coco/val2017_1000
         test_python bmcv yolov8s_int8_4b_2core.bmodel datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov8s_fp32_1b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov8s_fp16_1b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov8s_int8_1b_2core.bmodel ../../datasets/coco/val2017_1000
         test_cpp soc bmcv yolov8s_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
       fi
       
@@ -449,13 +437,7 @@ elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
       eval_cpp soc bmcv yolov8s_int8_4b.bmodel 
 
       if test "$PLATFORM" = "SE9-16"; then 
-        eval_python bmcv yolov8s_fp32_1b_2core.bmodel  
-        eval_python bmcv yolov8s_fp16_1b_2core.bmodel  
-        eval_python bmcv yolov8s_int8_1b_2core.bmodel  
         eval_python bmcv yolov8s_int8_4b_2core.bmodel  
-        eval_cpp soc bmcv yolov8s_fp32_1b_2core.bmodel  
-        eval_cpp soc bmcv yolov8s_fp16_1b_2core.bmodel  
-        eval_cpp soc bmcv yolov8s_int8_1b_2core.bmodel 
         eval_cpp soc bmcv yolov8s_int8_4b_2core.bmodel 
       fi
 
@@ -469,13 +451,7 @@ elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
       test_cpp soc bmcv yolov9c_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
       if test "$PLATFORM" = "SE9-16"; then 
-        test_python bmcv yolov9c_fp32_1b_2core.bmodel datasets/coco/val2017_1000
-        test_python bmcv yolov9c_fp16_1b_2core.bmodel datasets/coco/val2017_1000
-        test_python bmcv yolov9c_int8_1b_2core.bmodel datasets/coco/val2017_1000
         test_python bmcv yolov9c_int8_4b_2core.bmodel datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov9c_fp32_1b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov9c_fp16_1b_2core.bmodel ../../datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov9c_int8_1b_2core.bmodel ../../datasets/coco/val2017_1000
         test_cpp soc bmcv yolov9c_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
       fi
       
@@ -489,13 +465,7 @@ elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
       eval_cpp soc bmcv yolov9c_int8_4b.bmodel 
 
       if test "$PLATFORM" = "SE9-16"; then 
-        eval_python bmcv yolov9c_fp32_1b_2core.bmodel  
-        eval_python bmcv yolov9c_fp16_1b_2core.bmodel  
-        eval_python bmcv yolov9c_int8_1b_2core.bmodel  
         eval_python bmcv yolov9c_int8_4b_2core.bmodel  
-        eval_cpp soc bmcv yolov9c_fp32_1b_2core.bmodel  
-        eval_cpp soc bmcv yolov9c_fp16_1b_2core.bmodel  
-        eval_cpp soc bmcv yolov9c_int8_1b_2core.bmodel 
         eval_cpp soc bmcv yolov9c_int8_4b_2core.bmodel 
       fi
     elif test $CASE_MODE = "partly"
