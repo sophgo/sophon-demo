@@ -63,7 +63,7 @@ chmod -R +x scripts/
 ./scripts/download.sh --all 
 ```
 
-`download.sh`默认下载`datasets`，`models`可以通过指定参数分平台下载，参数如下：
+`download.sh`默认只下载`datasets`，`models`可以通过指定参数分平台下载，参数如下：
 ```bash
 --all     # 下载所有模型
 --BM1684X # 下载BM1684X的bmodel
@@ -135,7 +135,7 @@ datasets/
 ./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
 ```
 
-​上述脚本会在`models/BM1684`等文件夹下生成转换好的INT8 BModel。
+​上述脚本会在`models/BM1684X`等文件夹下生成转换好的INT8 BModel。
 
 
 ## 4. 例程测试
