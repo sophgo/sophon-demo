@@ -1,0 +1,3 @@
+bmodel_path: ../models/BM1684X/deepseek-r1-distill-qwen2-1.5b/deepseek-r1-distill-qwen2-1.5b_w4bf16_seq8192.bmodel
+token_path: ../models/BM1684X/deepseek-r1-distill-qwen2-1.5b/tokenizer
+dev_ids: 0
