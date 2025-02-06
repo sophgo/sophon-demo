@@ -1,4 +1,4 @@
-[简体中文](./README.md) | [English](./README_EN.md)
+[简体中文](./README.md)
 
 # YOLOv5
 
@@ -29,6 +29,9 @@
 
 ### 2.1 目录结构说明
 ```bash
+├── cpp                   # 存放C++例程及其README  
+|   ├──README.md      
+|   └──yolov5_bmcv        # 使用FFmpeg解码、BMCV前处理、tpuv7-rt推理的C++例程
 ├── docs                  # 存放本例程专用文档，如ONNX导出、移植常见问题等
 ├── pics                  # 存放README等说明文档中用到的图片
 ├── python                # 存放Python例程及其README
@@ -108,12 +111,13 @@ chmod -R +x scripts/
 
 
 ## 4. 例程测试
+- [C++例程](./cpp/README.md)
 - [Python例程](./python/README.md)
 
 ## 5. 精度测试
 ### 5.1 测试方法
 
-首先，参考[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(conf_thresh=0.001、nms_thresh=0.6)。  
+首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件，注意修改数据集(datasets/coco/val2017_1000)和相关参数(conf_thresh=0.001、nms_thresh=0.6)。  
 然后，使用`tools`目录下的`eval_coco.py`脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
 ```bash
 # 安装pycocotools，若已安装请跳过
@@ -128,6 +132,8 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 |     BM1690 PCIe     | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
 |     BM1690 PCIe     | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.355 |    0.571 |
 |     BM1690 PCIe     | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.355 |    0.571 |
+|     BM1690 PCIe     | yolov5_bmcv.pcie   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.374 |    0.572 |
+|     BM1690 PCIe     | yolov5_bmcv.pcie   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.353 |    0.562 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -154,7 +160,7 @@ tpu-model-rt --bmodel models/BM1690/yolov5s_v6.1_3output_fp32_1b.bmodel
 > 2. `Launch time`已折算为平均每张图片的推理时间；
 
 ### 6.2 程序运行性能
-参考[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
+参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
 
 使用不同的例程、模型测试`datasets/coco/val2017_1000`或`test_car_person_1080P.mp4`，conf_thresh=0.5，nms_thresh=0.5，性能测试结果如下：
 
@@ -167,6 +173,8 @@ tpu-model-rt --bmodel models/BM1690/yolov5s_v6.1_3output_fp32_1b.bmodel
 | BM1690 PCIe | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      1.23       |      2.36       |      14.30      |      5.81       |
 | BM1690 PCIe | yolov5_bmcv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      0.44       |      3.93       |      2.06      |      5.07       |
 | BM1690 PCIe | yolov5_bmcv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      0.44       |      4.08       |      17.36      |      5.58       |
+| BM1690 PCIe | yolov5_bmcv.pcie  |yolov5s_v6.1_3output_int8_1b.bmodel|      4.33       |      2.46       |      2.07       |      7.00       |
+| BM1690 PCIe | yolov5_bmcv.pcie  |yolov5s_v6.1_3output_fp32_1b.bmodel|      4.44       |      2.52       |      17.35      |      7.22       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
