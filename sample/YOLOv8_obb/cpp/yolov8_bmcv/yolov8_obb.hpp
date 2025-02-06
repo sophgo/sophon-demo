@@ -41,30 +41,25 @@ struct obbBox_xyxy{
 };
 using obbBoxVec_xyxy = std::vector<obbBox_xyxy>;
 
-
 class YoloV8_obb {
     bm_handle_t handle;
-    void *bmrt;
-    const bm_net_info_t *netinfo;
+    void *bmrt = NULL;
+    const bm_net_info_t *netinfo = NULL;
     std::vector<std::string> network_names;
     bm_misc_info misc_info;
 
     // configuration
     float m_confThreshold = 0.25;
     float m_nmsThreshold = 0.7;
-    bool use_cpu_opt;
     std::vector<std::string> m_class_names = {"plane", "ship", "storage-tank", "baseball-diamond", "tennis-court", "basketball-court", "ground-track-field", 
     "harbor", "bridge", "large-vehicle", "small-vehicle", "helicopter", "roundabout", "soccer-ball-field", "swimming-pool"};
     bool agnostic = false;
     int m_class_num = 15;  // default is coco names
-    int mask_num = 0;
     int m_net_h, m_net_w;
-    int output_num;
-    int min_dim;
     int max_det = 300;
     int max_wh = 7680;  // (pixels) maximum box width and height
     bmcv_convert_to_attr converto_attr;
-
+    TimeStamp tmp_ts;
 
 private:
     int pre_process(const std::vector<bm_image>& images, 
@@ -86,8 +81,8 @@ private:
     void regularize_rbox(obbBoxVec& obb);
     obbBoxVec_xyxy xywhr2xyxyxyxy(const obbBoxVec& obb);
 public:
-    int batch_size;
-    TimeStamp* m_ts;
+    int batch_size = -1;
+    TimeStamp* m_ts = NULL;
     YoloV8_obb(std::string bmodel_file, int dev_id = 0, float confThresh = 0.25, float nmsThresh = 0.7){
         // set thresh 
         m_confThreshold = confThresh;
@@ -138,6 +133,9 @@ public:
         converto_attr.beta_1 = 0;
         converto_attr.alpha_2 = input_scale;
         converto_attr.beta_2 = 0;
+        
+        // set temp timestamp
+        m_ts = &tmp_ts;
     }
     ~YoloV8_obb(){
         if (bmrt!=NULL) {
@@ -146,7 +144,6 @@ public:
         }  
         bm_dev_free(handle);
     };
-    int Init(float confThresh = 0.5, float nmsThresh = 0.5);
     int Detect(const std::vector<bm_image>& images, std::vector<obbBoxVec_xyxy>& boxes);
     void drawPred(obbBoxVec_xyxy& box_vec, cv::Mat& frame, float draw_thresh = 0.1);
 };
