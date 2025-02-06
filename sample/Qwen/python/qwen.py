@@ -12,11 +12,12 @@ from transformers import AutoTokenizer
 import numpy as np
 import yaml
 import time
+import os
 import argparse
 
 class Qwen:
     def __init__(self, bmodel_path, dev_ids, tokenizer_path) -> None:
-        self.version = "1.0.0"
+        self.version = "1.1.0"
 
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, trust_remote_code=True)
         self.EOS = self.tokenizer.eos_token_id
@@ -67,9 +68,7 @@ class Qwen:
         self.is_sample = False
         if ("greedy_head" in self.graph_names):
             self.is_sample = True
-        self.NUM_LAYERS = (len(self.graph_names) - 3) // 2
-        if self.is_sample:
-            self.NUM_LAYERS = (len(self.graph_names) - 5) // 2
+        self.NUM_LAYERS = sum(1 for item in self.graph_names if item.startswith("block_cache_"))
         self.token_length = 0
 
 
@@ -103,10 +102,14 @@ class Qwen:
                     self.past_v[j][i] = self.tensors[self.name_blocks_cache[j]]["input"][5 * i + 4]
     
 
-        self.first_embed_input = self.model.create_max_input_tensors(self.name_embed)
-        self.first_hidden_state = self.model.create_max_output_tensors(self.name_embed)
-        self.next_embed_input = self.model.create_max_input_tensors(self.name_embed_cache)
-        self.next_hidden_state = self.model.create_max_output_tensors(self.name_embed_cache)
+        if self.name_embed in self.tensors:
+            self.first_embed_input = self.model.create_max_input_tensors(self.name_embed)
+            self.first_hidden_state = self.model.create_max_output_tensors(self.name_embed)
+            self.next_embed_input = self.model.create_max_input_tensors(self.name_embed_cache)
+            self.next_hidden_state = self.model.create_max_output_tensors(self.name_embed_cache)
+        else:
+            self.first_hidden_state = {}
+            self.next_hidden_state = {}
         self.first_pid = {}
         self.next_pid = {}
         self.first_attention_mask = {}
@@ -119,6 +122,32 @@ class Qwen:
             self.next_pid[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][1])
             self.next_attention_mask[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][2])
 
+        if self.name_embed not in self.tensors:
+            for i in range(len(self.dev_ids)):
+                self.first_hidden_state[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks[0]]["input"][0])
+                self.next_hidden_state[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][0])
+            self.embedding_path = os.path.dirname(bmodel_path) + "/embedding.bin"
+            self.hidden_bytes = self.HIDDEN_SIZE*np.dtype(np.uint16).itemsize
+
+    def load_and_infer_embedding(self, tokens):
+        try:
+            with open(self.embedding_path, "rb") as file:
+                size = len(tokens)
+                buffer = np.zeros((size, self.HIDDEN_SIZE), dtype=np.uint16)
+
+                for i in range(min(size, self.token_length)):
+                    start_position = tokens[i] * self.hidden_bytes
+                    file.seek(start_position)
+
+                    data = file.read(self.hidden_bytes)
+                    if len(data) != self.hidden_bytes:
+                        raise RuntimeError("File read failed")
+
+                    buffer[i] = np.frombuffer(data, dtype=np.uint16)
+
+                return buffer
+        except FileNotFoundError:
+            raise RuntimeError("Unable to open embedding file")
 
     def init_input_tensor(self, dev_id, net, index):
         shape = self.model.get_input_shape(net, index)
@@ -147,8 +176,12 @@ class Qwen:
             return np.uint16
     
     def get_first_input(self, length, token):
-        input_ids = np.zeros(length, self.type_convert(self.tensors[self.name_embed]["input"][0].dtype()))
-        input_ids[:len(token)] = token
+        if self.name_embed in self.tensors:
+            input_ids = np.zeros(length, self.type_convert(self.tensors[self.name_embed]["input"][0].dtype()))
+            input_ids[:len(token)] = token
+        else:
+            input_ids = np.zeros([length,self.HIDDEN_SIZE], self.type_convert(self.tensors[self.name_blocks[0]]["input"][0].dtype()))
+            input_ids[:len(token)] = self.load_and_infer_embedding(token)
 
         position_id = np.zeros(length, self.type_convert(self.tensors[self.name_blocks[0]]["input"][1].dtype()))
         for i in range(self.token_length):
@@ -169,12 +202,16 @@ class Qwen:
         # length = self.SEQLEN
         input_ids, position_id, attention_mask = self.get_first_input(length, token)
 
-        for i in range(len(self.dev_ids)):
-            # breakpoint()
-            self.tensors[self.name_embed]["input"][i] = sail.Tensor(self.first_embed_input[i], [1, length], 0)
-            self.tensors[self.name_embed]["output"][i] = sail.Tensor(self.first_hidden_state[i], [1, length, self.HIDDEN_SIZE], 0)
-            self.tensors[self.name_embed]["input"][i].update_data(input_ids.reshape(self.tensors[self.name_embed]["input"][i].shape()))
-        self.model.process(self.name_embed, self.tensors[self.name_embed]["input"], self.tensors[self.name_embed]["output"])
+        if self.name_embed in self.tensors:
+            for i in range(len(self.dev_ids)):
+                # breakpoint()
+                self.tensors[self.name_embed]["input"][i] = sail.Tensor(self.first_embed_input[i], [1, length], 0)
+                self.tensors[self.name_embed]["output"][i] = sail.Tensor(self.first_hidden_state[i], [1, length, self.HIDDEN_SIZE], 0)
+                self.tensors[self.name_embed]["input"][i].update_data(input_ids.reshape(self.tensors[self.name_embed]["input"][i].shape()))
+            self.model.process(self.name_embed, self.tensors[self.name_embed]["input"], self.tensors[self.name_embed]["output"])
+        else:
+            for i in range(len(self.dev_ids)):
+                self.first_hidden_state[i].update_data(input_ids.reshape(self.tensors[self.name_blocks[0]]["input"][0].shape()).view(np.uint16))
 
  
         # blocks
@@ -219,20 +256,26 @@ class Qwen:
             attention_mask[i] = self.ATTENTION_MASK
 
         # embedding_cache
-        if len(self.dev_ids) > 1:
-            # breakpoint()
-            input_ids = np.array(int(self.tensors[self.name_lm]["output"][0].asnumpy()), self.type_convert(self.tensors[self.name_embed_cache]["input"][0].dtype()))
+        if self.name_embed in self.tensors:
+            if len(self.dev_ids) > 1:
+                # breakpoint()
+                input_ids = np.array(int(self.tensors[self.name_lm]["output"][0].asnumpy()), self.type_convert(self.tensors[self.name_embed_cache]["input"][0].dtype()))
+                for i in range(len(self.dev_ids)):
+                    self.next_embed_input[i].update_data(input_ids.reshape(self.tensors[self.name_embed_cache]["input"][i].shape()))
+                    self.tensors[self.name_embed_cache]["input"][i] = self.next_embed_input[i]
+            else:
+                self.tensors[self.name_embed_cache]["input"][0] = self.tensors[self.name_lm]["output"][0]
+                if self.is_sample:
+                    self.tensors[self.name_embed_cache]["input"][0] = self.tensors[self.greedy]["output"][0]
             for i in range(len(self.dev_ids)):
-                self.next_embed_input[i].update_data(input_ids.reshape(self.tensors[self.name_embed_cache]["input"][i].shape()))
-                self.tensors[self.name_embed_cache]["input"][i] = self.next_embed_input[i]
-        else:
-            self.tensors[self.name_embed_cache]["input"][0] = self.tensors[self.name_lm]["output"][0]
-            if self.is_sample:
-                self.tensors[self.name_embed_cache]["input"][0] = self.tensors[self.greedy]["output"][0]
-        for i in range(len(self.dev_ids)):
-            self.tensors[self.name_embed_cache]["output"][i] = self.next_hidden_state[i] 
+                self.tensors[self.name_embed_cache]["output"][i] = self.next_hidden_state[i]
 
-        self.model.process(self.name_embed_cache, self.tensors[self.name_embed_cache]["input"], self.tensors[self.name_embed_cache]["output"])
+            self.model.process(self.name_embed_cache, self.tensors[self.name_embed_cache]["input"], self.tensors[self.name_embed_cache]["output"])
+        else:
+            temp_data = self.load_and_infer_embedding([int(self.tensors[self.greedy]["output"][0].asnumpy())])
+            temp_data = temp_data.reshape(self.tensors[self.name_blocks_cache[0]]["input"][0].shape()).view(np.uint16)
+            for i in range(len(self.dev_ids)):
+                self.next_hidden_state[i].update_data(temp_data)
 
         # block_cache
         for i in range(len(self.dev_ids)):

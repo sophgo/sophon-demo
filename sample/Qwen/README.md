@@ -13,7 +13,9 @@
   - [6. 程序性能测试](#6-程序性能测试)
 
 ## 1. 简介
-Qwen / Qwen1.5/ Qwen2/ Qwen2.5是开源中英双语对话模型，关于它的特性，请前往源repo查看：https://huggingface.co/Qwen。 本例程对Qwen / Qwen1.5/ Qwen2/ Qwen2.5进行移植，使之能在SOPHON BM1684X、BM1688/CV186X（仅限Qwen1.5 1.8b、Qwen2.5 1.5b）上进行推理测试。
+Qwen / Qwen1.5/ Qwen2/ Qwen2.5是开源中英双语对话模型，关于它的特性，请前往源repo查看：[Qwen](https://huggingface.co/Qwen)。 本例程对Qwen / Qwen1.5/ Qwen2/ Qwen2.5进行移植，使之能在SOPHON BM1684X、BM1688/CV186X（仅限Qwen1.5 1.8b、Qwen2.5 1.5b）上进行推理测试。
+
+本例程还支持DeepSeek-R1-Distill-Qwen-1.5B/ DeepSeek-R1-Distill-Qwen-7B，关于它的特性，请前往源repo查看：[DeepSeek-R1-Distill-Qwen-1.5B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B)，[DeepSeek-R1-Distill-Qwen-7B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B)。本例程对这些模型进行移植，使之能在SOPHON BM1684X上进行推理测试。
 
 对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86/riscv主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
@@ -79,6 +81,9 @@ sudo reboot
 # qwen2.5 1684x
 ./scripts/download.sh qwen2.5
 
+# deepseek-r1-distill-qwen2
+./scripts/download.sh deepseek-r1-distill-qwen2
+
 # bm1688
 ./scripts/download.sh bm1688
 
@@ -94,8 +99,10 @@ sudo reboot
 ├── models
 │   └── BM1684X                     #download.sh下载的bmodel
 │       ├── qwen-xxx.bmodel
-│       └── qwen1.5-xxx.bmodel
-│       └── qwen2-xxx.bmodel
+│       ├── qwen1.5-xxx.bmodel
+│       ├── qwen2-xxx.bmodel
+│       ├── deepseek-r1-distill-qwen-1.5b
+│       └── deepseek-r1-distill-qwen-7b
 │   └── CV186X                    #download.sh下载的cv186x bmodel
 │       └── qwen1.5-xxx.bmodel
 │   └── BM1688                    #download.sh下载的bm1688 bmodel
@@ -148,27 +155,29 @@ sudo reboot
 ## 6. 程序性能测试
 
 这里的测试输入为："请使用C++写一段冒泡排序算法。"
-|   测试平台   |     测试程序       |           测试模型                                  |first token latency(s) |token per second(tokens/s)| 
-| ----------- | ----------------  | ------------------------------------------------- | --------------------- | ------------------------ | 
-| SE7-32      | qwen.py           | qwen-7b_int4_seq512_1dev.bmodel                   |    0.739              |    9.840                 | 
-| SE7-32      | qwen.py           | qwen-7b_int4_seq2048_1dev.bmodel                  |    3.328              |    7.245                 | 
-| SE7-32      | qwen.py           | qwen1.5-7b_int4_seq512_1dev.bmodel                |    0.728              |    9.504                 | 
-| SE7-32      | qwen.py           | qwen1.5-7b_int4_seq2048_1dev.bmodel               |    3.234              |    7.083                 | 
-| SE7-32      | qwen.py           | qwen2-7b_int4_seq512_1dev.bmodel                  |    0.728              |    9.504                 | 
-| SE7-32      | qwen.py           | qwen2.5-7b_int4_seq512_1dev.bmodel                |    0.652              |    10.26                 | 
-| SE7-32      | qwen.py           | qwen2.5-7b_int4_seq2048_1dev.bmodel               |    2.704              |    9.753                 | 
-| SC7-HP75    | qwen.py           | qwen1.5-7b_int4_seq4096_2dev_dyn.bmodel           |    >=1.56             |    9.748                 |
-| SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev.bmodel       |    1.094              |    12.995                | 
-| SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel |    0.701              |    14.858                |
-| SE9-16      | qwen.py           | qwen2.5-1.5b_int4_seq2048_bm1688_1dev_2core.bmodel|    3.016              |    14.613                | 
-| SE9-8       | qwen.py           | qwen1.5-1.8b_int4_seq512_cv186x_1dev.bmodel       |    1.007              |    13.226                | 
-| SRM1-20     | qwen.py           | qwen-7b_int4_seq512_1dev.bmodel                   |    0.915              |    5.850                 | 
-| SRM1-20     | qwen.py           | qwen-7b_int4_seq2048_1dev.bmodel                  |    3.984              |    4.751                 | 
-| SRM1-20     | qwen.py           | qwen1.5-7b_int4_seq512_1dev.bmodel                |    0.901              |    5.805                 | 
-| SRM1-20     | qwen.py           | qwen1.5-7b_int4_seq2048_1dev.bmodel               |    3.884              |    4.739                 |
-| SRM1-20     | qwen.py           | qwen2-7b_int4_seq512_1dev.bmodel                  |    0.981              |    6.234                 | 
-| SRM1-20     | qwen.py           | qwen2.5-1.5b_int4_seq512_1dev.bmodel              |    0.283              |    14.674                |
-| SRM1-20     | qwen.py           | qwen2.5-1.5b_int4_seq1024_1dev.bmodel             |    0.503              |    13.970                | 
+|   测试平台   |     测试程序       |           测试模型                                 |first token latency(s) |token per second(tokens/s)| 
+| ----------- | ----------------  | ---------------------------------------------------- | --------------------- | ------------------------ | 
+| SE7-32      | qwen.py           | qwen-7b_int4_seq512_1dev.bmodel                      |    0.739              |    9.840                 | 
+| SE7-32      | qwen.py           | qwen-7b_int4_seq2048_1dev.bmodel                     |    3.328              |    7.245                 | 
+| SE7-32      | qwen.py           | qwen1.5-7b_int4_seq512_1dev.bmodel                   |    0.728              |    9.504                 | 
+| SE7-32      | qwen.py           | qwen1.5-7b_int4_seq2048_1dev.bmodel                  |    3.234              |    7.083                 | 
+| SE7-32      | qwen.py           | qwen2-7b_int4_seq512_1dev.bmodel                     |    0.728              |    9.504                 | 
+| SE7-32      | qwen.py           | qwen2.5-7b_int4_seq512_1dev.bmodel                   |    0.652              |    10.26                 | 
+| SE7-32      | qwen.py           | qwen2.5-7b_int4_seq2048_1dev.bmodel                  |    2.704              |    9.753                 | 
+| SE7-32      | qwen.py           | deepseek-r1-distill-qwen2-1.5b_w4bf16_seq8192.bmodel |    5.455              |    20.083                | 
+| SE7-32      | qwen.py           | deepseek-r1-distill-qwen2-7b_w4bf16_seq2048.bmodel   |    2.937              |    8.301                 | 
+| SC7-HP75    | qwen.py           | qwen1.5-7b_int4_seq4096_2dev_dyn.bmodel              |    >=1.56             |    9.748                 |
+| SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev.bmodel          |    1.094              |    12.995                | 
+| SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel    |    0.701              |    14.858                |
+| SE9-16      | qwen.py           | qwen2.5-1.5b_int4_seq2048_bm1688_1dev_2core.bmodel   |    3.016              |    14.613                | 
+| SE9-8       | qwen.py           | qwen1.5-1.8b_int4_seq512_cv186x_1dev.bmodel          |    1.007              |    13.226                | 
+| SRM1-20     | qwen.py           | qwen-7b_int4_seq512_1dev.bmodel                      |    0.915              |    5.850                 | 
+| SRM1-20     | qwen.py           | qwen-7b_int4_seq2048_1dev.bmodel                     |    3.984              |    4.751                 | 
+| SRM1-20     | qwen.py           | qwen1.5-7b_int4_seq512_1dev.bmodel                   |    0.901              |    5.805                 | 
+| SRM1-20     | qwen.py           | qwen1.5-7b_int4_seq2048_1dev.bmodel                  |    3.884              |    4.739                 |
+| SRM1-20     | qwen.py           | qwen2-7b_int4_seq512_1dev.bmodel                     |    0.981              |    6.234                 | 
+| SRM1-20     | qwen.py           | qwen2.5-1.5b_int4_seq512_1dev.bmodel                 |    0.283              |    14.674                |
+| SRM1-20     | qwen.py           | qwen2.5-1.5b_int4_seq1024_1dev.bmodel                |    0.503              |    13.970                | 
 
 
 > **测试说明**：  
