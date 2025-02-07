@@ -72,6 +72,8 @@ class PPyoloe:
 
         """
         ratio = [self.net_w/img.shape[0], self.net_h/img.shape[1]]
+        if img.shape[2] == 4:
+            img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
         preprocessed_img = cv2.resize(img.astype(np.float32), (self.net_w, self.net_h)) / 255.0
         preprocessed_img = (preprocessed_img - self.mean) / self.std
         chw_img = preprocessed_img[:, :, ::-1].transpose((2, 0, 1))
