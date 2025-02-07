@@ -86,6 +86,8 @@ python3 qwen.py --config ./config/qwen.yaml
 ```
 在读入模型后会显示"Question:"，然后输入就可以了。模型的回答会出现在"Answer"中。结束对话请输入"exit"。
 
+如果要加载deepseek-r1-distill-qwen2模型，那么请将config参数修改为 ./config/deepseek-r1-distill-qwen2.yaml
+
 ## 3. Web Demo
 我们提供了基于[streamlit](https://streamlit.io/)的web demo。
 ### 3.1 参数说明
