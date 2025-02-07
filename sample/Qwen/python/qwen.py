@@ -339,6 +339,7 @@ class Qwen:
         tokens = self.tokenizer(text).input_ids
         if (len(tokens) > self.SEQLEN - 5):
             yield f"##reach max length, max token length is {self.SEQLEN}"
+            return
         first_start = time.time()
         token = self.forward_first(tokens)
         first_end = time.time()
