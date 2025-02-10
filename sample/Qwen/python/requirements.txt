@@ -1,4 +1,5 @@
-transformers>=4.41.2
+transformers>=4.45.1
+tokenizers>=0.20.3
 tiktoken>=0.6.0
 streamlit>=1.33.0
 fastapi>=0.110.0
