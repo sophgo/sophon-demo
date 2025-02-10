@@ -25,6 +25,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [bm1688_2core2task_yolov5](./tutorial/bm1688_2core2task_yolov5/README.md)| 使用bm1688的双核双任务推理部署的yolov5                                       | BM1688                       |
 | [mmap](./tutorial/mmap/README.md)                                        | mmap接口，映射TPU内存到CPU                                                  | BM1684X/BM1688/CV186H         |
 | [video_encode](./tutorial/video_encode/README.md)                        | 视频编码和推流                                                              | BM1684/BM1684X/BM1688/CV186H |
+| [yolov8_ffmpeg_encode](./tutorial/yolov8_ffmpeg_encode/README.md)        | 解码+推理+画框+视频编码和推流                                                 | BM1684X |
 
 | sample                                                        | 算法类别          | 编程语言    | BModel         |支持硬件                     |
 |---                                                            |---               |---         | ---            |---                            |
