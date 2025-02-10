@@ -25,6 +25,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [bm1688_2core2task_yolov5](./tutorial/bm1688_2core2task_yolov5/README.md)| yolov5 deployment using the 2core-2task feature of bm1688.                | BM1688                                                                             |
 | [mmap](./tutorial/mmap/README.md)                                        | mmap api, map TPU memory to CPU.                                          | BM1684X/BM1688/CV186H                                                              |
 | [video_encode](./tutorial/video_encode/README.md)                        | video encode and stream push.                                             | BM1684/BM1684X/BM1688/CV186H                                                       |
+| [yolov8_ffmpeg_encode](./tutorial/yolov8_ffmpeg_encode/README.md)        | ffmpeg decode + yolov8 inference + bmcv rectangle + ffmpeg encode         | BM1684X |
 
 | contents                                                      | category                           | code       |  BModel        | supported hardware           |
 |---                                                            |---                                 |---         | ---            | ---                          |
