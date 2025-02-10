@@ -22,6 +22,7 @@
     - [6.2 安装sophon-ffmpeg和sophon-opencv](#62-安装sophon-ffmpeg和sophon-opencv)
     - [6.3 编译安装sophon-sail](#63-编译安装sophon-sail)
     - [6.4 安装构建工具](#64-安装构建工具)
+    - [6.5 注意事项](#65-注意事项)
 
 Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC、TPU-MLIR环境，用于编译C++程序的开发环境以及用于部署程序的运行环境。
 
@@ -524,4 +525,16 @@ sudo dnf groupinstall "Development Tools"
 sudo dnf install cmake automake autoconf libtool
 sudo dnf install openssl-devel
 pip3 install opencv-python-headless #尝试使用pip安装第三方包。
+```
+
+### 6.5 注意事项
+如果您在RISC-V平台上运行需要torch的demo，需要自行编译安装2.4.0版本的torch。如果demo依赖torchaudio或torchvision，则需要编译安装与torch适配的版本，其中torchaudio版本为2.4.0，torchvision版本为0.19.0。
+另外您可以通过我们预构建好的wheel文件直接安装这些依赖，通过dfss下载：
+
+```bash
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+python3 -m dfss --url=open@sophgo.com:/sophon-demo/RISCV_Packages/wheels.tar.gz
+tar xvf wheels.tar.gz
+#根据对应例程的requirements.txt要求选择安装，例如：
+pip3 install -r requirements.txt --no-index --find-links=wheels/
 ```

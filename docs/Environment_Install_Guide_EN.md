@@ -22,6 +22,7 @@
     - [6.2 Installation of sophon-ffmpeg and sophon-opencv](#62-installation-of-sophon-ffmpeg-and-sophon-opencv)
     - [6.3 Compilation and Installation of sophon-sail](#63-compilation-and-installation-of-sophon-sail)
     - [6.4 Install build tools](#64-install-build-tools)
+    - [6.5 Notes](#65-notes)
 
 The environments Sophon Demo relies on include the TPU-NNTC and TPU-MLIR environments for compiling and quantifying the models, the development environment for compiling C++ programs, and the runtime environment for deploying the programs.
 
@@ -497,4 +498,17 @@ sudo dnf groupinstall "Development Tools"
 sudo dnf install cmake automake autoconf libtool
 sudo dnf install openssl-devel
 pip3 install opencv-python-headless #Try this command to test.
+```
+
+### 6.5 Notes
+If you are running a demo requiring torch on the RISC-V platform, you need to compile and install version 2.4.0 of torch yourself. If the demo depends on torchaudio or torchvision, you also need to compile and install versions compatible with torch. Specifically, the required version of torchaudio is 2.4.0, and the required version of torchvision is 0.19.0.  
+
+Additionally, you can directly install these dependencies using the pre-built wheel files we provide, which can be downloaded via dfss: 
+
+```bash
+pip3 install dfss --upgrade
+python3 -m dfss --url=open@sophgo.com:/sophon-demo/RISCV_Packages/wheels.tar.gz
+tar xvf wheels.tar.gz
+#Install dependencies by the provided requirements.txt file, such as:
+pip3 install -r requirements.txt --no-index --find-links=wheels/
 ```
