@@ -1,13 +1,17 @@
 #===----------------------------------------------------------------------===#
 #
-# Copyright (C) 2024 Sophgo Technologies Inc.  All rights reserved.
+# Copyright (C) 2025 Sophgo Technologies Inc.  All rights reserved.
 #
 # SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
 # third-party components.
 #
 #===----------------------------------------------------------------------===#
+import gc
 import inspect
+import multiprocessing
 import os
+import signal
+import sys
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from diffusers.image_processor import VaeImageProcessor
@@ -22,13 +26,6 @@ from transformers import CLIPTokenizer, T5TokenizerFast
 import sophon.sail as sail
 
 logger = logging.get_logger(__name__)
-
-def print_thread_info():
-    import threading
-    threads = threading.enumerate()
-    print(f"Active threads: {len(threads)}")
-    for thread in threads:
-        print(f"Thread name: {thread.name}, Thread ID: {thread.ident}")
 
 # define an unsupported exception when type(flux type, quantization type, chip type...) is not supported
 class UnSupportedError(Exception):
@@ -121,8 +118,10 @@ class StableDiffusion3Pipeline:
         self.vae_scale_factor = (
             2 ** (len(self.vae.config.block_out_channels) - 1) if hasattr(self, "vae") and self.vae is not None else 8
         )
-        self.vae_config_scaling_factor = 1.5305
-        self.vae_config_shift_factor = 0.0609
+        self.vae_config_scaling_factor = 1
+        self.vae_config_shift_factor = 0
+        # self.vae_config_scaling_factor = 1.5305
+        # self.vae_config_shift_factor = 0.0609
         self.image_processor = VaeImageProcessor(vae_scale_factor=self.vae_scale_factor)
         self.tokenizer_max_length = (
             self.tokenizer.model_max_length if hasattr(self, "tokenizer") and self.tokenizer is not None else 77
@@ -155,7 +154,7 @@ class StableDiffusion3Pipeline:
         self, 
         full_model_path: str = "../models",
         chip_type: str = "BM1690",
-        device_ids: int = 0, 
+        device_ids: Union[int, List[int]] = 0, 
     ):
         r"""
         Load both model and bmodel files from full model directory, then allocate input/ouput memory.
@@ -163,7 +162,7 @@ class StableDiffusion3Pipeline:
         Args:
             full_model_path: direcotry of all model files.
             chip_type: product type.
-            device_id: TPU ID.
+            device_ids: TPU ID.
         """
         # 1. process and check parameters
         if not os.path.isdir(full_model_path):
@@ -172,10 +171,6 @@ class StableDiffusion3Pipeline:
         chip_type = chip_type.upper()
         if chip_type not in self.CHIP_TYPE:
             raise UnSupportedError(chip_type)
-
-        self.device_ids = [device_ids] if isinstance(device_ids, int) else device_ids
-
-        self.scheduler = FlowMatchEulerDiscreteScheduler(shift=3.0)
 
         # 2. check tokenizer path
         #### clip_l
@@ -215,18 +210,64 @@ class StableDiffusion3Pipeline:
         if not os.path.isfile(transformer_path):
             raise FileNotFoundError(f"No '{os.path.basename(transformer_path)}' file found at {bmodel_path}.")
 
-        # 4. load tokenizers
+        # 4. load mmdit on second device, if use two chips
+        self.device_ids = device_ids if type(device_ids) is list else [device_ids]
+        if len(self.device_ids) == 2:
+            if self.device_ids[0] == self.device_ids[1]:
+                raise UnSupportedError("Two same device id")
+
+            device_id1 = self.device_ids[1]
+            self.event = multiprocessing.Event()
+            
+            self.input_queue = multiprocessing.Queue()
+            self.result_queue = multiprocessing.Queue()
+
+            self.process_child = multiprocessing.Process(target=self.child_process, args=(device_id1, transformer_path, self.event, self.input_queue, self.result_queue))
+            self.process_child.start()
+
+        # 5. load tokenizers
+        self.scheduler = FlowMatchEulerDiscreteScheduler(shift=3.0)
         self.tokenizer = CLIPTokenizer.from_pretrained(tokenizer_path)
         self.tokenizer_2 = CLIPTokenizer.from_pretrained(tokenizer_2_path)
         self.tokenizer_3 = T5TokenizerFast.from_pretrained(tokenizer_3_path)
 
-        # 5. load clip_l, clip_g, t5, vae_decoder and mmDiT
+        # 6. load clip_l, clip_g, t5, vae_decoder and mmDiT on device 0
         device_id0 = self.device_ids[0]
         self.text_encoder =  sail.nn.Engine(clip_l_path, device_id0)
         self.text_encoder_2 = sail.nn.Engine(clip_g_path, device_id0)
         self.text_encoder_3 = sail.nn.Engine(t5_path, device_id0)
         self.vae_decoder = sail.nn.Engine(vae_decoder_path, device_id0)
-        self.transformer_on_dev0 = sail.nn.Engine(transformer_path, device_id0)
+        setattr(self, f"transformer_on_dev{device_id0}", sail.nn.Engine(transformer_path, device_id0))
+
+        self.stream = sail.nn.Stream(device_id0)
+    
+    def child_process(self, dev_id, transformer_path, event, input_queue, result_queue):
+        def handle_termination_signal(sig, frame):
+            if hasattr(self, f"transformer_on_dev{dev_id}"):
+                delattr(self, f"transformer_on_dev{dev_id}")
+            gc.collect()
+            sys.exit()
+
+        signal.signal(signal.SIGTERM, handle_termination_signal)
+        setattr(self, f"transformer_on_dev{dev_id}", sail.nn.Engine(transformer_path, dev_id))
+        self.stream = sail.nn.Stream(dev_id)
+        try:
+            while True:
+                event.wait()
+                input_data = input_queue.get()
+                if input_data == "terminate child process":
+                    break
+                input_data = [torch.tensor(data, dtype=dtype).reshape(shape) for shape, dtype, data in input_data]
+                latent = self.__mmdit_infer__(dev_id, *input_data)
+                result_queue.put(latent)
+                event.clear()
+
+        except Exception as e:
+            print(f"child process error: {e}")
+        finally:
+            if hasattr(self, f"transformer_on_dev{dev_id}"):
+                delattr(self, f"transformer_on_dev{dev_id}")
+            gc.collect()
 
     def _get_t5_prompt_embeds(
         self,
@@ -293,15 +334,15 @@ class StableDiffusion3Pipeline:
         hidden_states_tensor = sail.nn.Tensor(hidden_states_shape, sail.DataType.TPU_FLOAT32, self.device_ids[0])
         t5_head_outputs = {0: hidden_states_tensor}
 
-        ret = self.text_encoder_3.process(t5_head_inputs, t5_head_outputs, "t5_head")
+        ret = self.text_encoder_3.process(t5_head_inputs, t5_head_outputs, self.stream, "t5_head")
 
         t5_block_inputs = {0: hidden_states_tensor}
         t5_block_outputs = {0: hidden_states_tensor}
         for idx in range(self.T5_LAYER_NUM):
-            ret = self.text_encoder_3.process(t5_block_inputs, t5_block_outputs, f"t5_block_{idx}")
+            ret = self.text_encoder_3.process(t5_block_inputs, t5_block_outputs, self.stream, f"t5_block_{idx}")
         t5_tail_inputs = {0: hidden_states_tensor}
         t5_tail_outputs = {0: hidden_states_tensor}
-        ret = self.text_encoder_3.process(t5_tail_inputs, t5_tail_outputs, "t5_tail")
+        ret = self.text_encoder_3.process(t5_tail_inputs, t5_tail_outputs, self.stream, "t5_tail")
 
         hidden_states_tensor.to_("host")
         prompt_embeds = hidden_states_tensor.asnumpy()
@@ -381,13 +422,13 @@ class StableDiffusion3Pipeline:
         hidden_states_shape = text_encoder.get_output_shapes(clip_type+"_head", 0)[0]
         hidden_states_tensor = sail.nn.Tensor(hidden_states_shape, sail.DataType.TPU_FLOAT32, self.device_ids[0])
         clip_head_outputs = {0: hidden_states_tensor}
-        ret = text_encoder.process(clip_head_inputs, clip_head_outputs, clip_type+"_head")
+        ret = text_encoder.process(clip_head_inputs, clip_head_outputs, self.stream, clip_type+"_head")
 
         #### clip block process
         clip_block_inputs = {0: hidden_states_tensor}
         clip_block_outputs= {0: hidden_states_tensor}
         for idx in range(block_nums):
-            ret = text_encoder.process(clip_block_inputs, clip_block_outputs, clip_type+"_block"+f"_{idx}")
+            ret = text_encoder.process(clip_block_inputs, clip_block_outputs, self.stream, clip_type+"_block"+f"_{idx}")
             if idx == block_nums - (2 + clip_skip):
                 hidden_states_tensor.to_("host")
                 prompt_embeds = hidden_states_tensor.asnumpy()
@@ -397,7 +438,7 @@ class StableDiffusion3Pipeline:
         pooled_output = np.ndarray(shape=(hidden_states_shape[0], hidden_states_shape[2]), dtype=np.float32)
         pooled_output_tensor = sail.nn.Tensor(pooled_output, sail.DataType.TPU_FLOAT32, self.device_ids[0])
         clip_tail_outputs = {0: pooled_output_tensor}
-        ret = text_encoder.process(clip_tail_inputs, clip_tail_outputs, clip_type+"_tail")
+        ret = text_encoder.process(clip_tail_inputs, clip_tail_outputs, self.stream, clip_type+"_tail")
         pooled_output_tensor.to_("host")
 
         # 3. convert to torch.Tensor
@@ -710,51 +751,43 @@ class StableDiffusion3Pipeline:
     def interrupt(self):
         return self._interrupt
 
-    def __mmdit_infer__(self, latent_model_input, timestep, prompt_embed, pooled_prompt_embed):
-        transformer = self.transformer_on_dev0
-
+    def __mmdit_infer__(self, dev_id, latent_model_input, timestep, prompt_embed, pooled_prompt_embed):
+        transformer = getattr(self, f'transformer_on_dev{dev_id}')
         latent_model_input = latent_model_input.numpy().astype(np.float32)
         timestep = timestep.numpy().astype(np.int32)
         prompt_embed = prompt_embed.numpy().astype(np.float32)
         pooled_prompt_embed = pooled_prompt_embed.numpy().astype(np.float32)
 
-        latent_model_input_tensor = sail.nn.Tensor(latent_model_input, sail.DataType.TPU_FLOAT32, self.device_ids[0])
-        timestep_tensor = sail.nn.Tensor(timestep, sail.DataType.TPU_INT32, self.device_ids[0])
-        prompt_embed_tensor = sail.nn.Tensor(prompt_embed, sail.DataType.TPU_FLOAT32, self.device_ids[0])
-        pooled_prompt_embed_tensor = sail.nn.Tensor(pooled_prompt_embed, sail.DataType.TPU_FLOAT32, self.device_ids[0])
+        latent_model_input_tensor = sail.nn.Tensor(latent_model_input, sail.DataType.TPU_FLOAT32, dev_id)
+        timestep_tensor = sail.nn.Tensor(timestep, sail.DataType.TPU_INT32, dev_id)
+        prompt_embed_tensor = sail.nn.Tensor(prompt_embed, sail.DataType.TPU_FLOAT32, dev_id)
+        pooled_prompt_embed_tensor = sail.nn.Tensor(pooled_prompt_embed, sail.DataType.TPU_FLOAT32, dev_id)
+
         mmdit_head_inputs = {0: latent_model_input_tensor, 1: prompt_embed_tensor, 2: pooled_prompt_embed_tensor, 3: timestep_tensor}
         mmdit_head_output_shapes = transformer.get_output_shapes("mmdit_head", 0)
-        hidden_states_tensor = sail.nn.Tensor(mmdit_head_output_shapes[0], sail.DataType.TPU_FLOAT32, self.device_ids[0])
-        temb = np.ndarray(mmdit_head_output_shapes[1], dtype=np.float32)
-        temb_tensor = sail.nn.Tensor(temb, sail.DataType.TPU_FLOAT32, self.device_ids[0])
-        encoder_hidden_states_tensor = sail.nn.Tensor(mmdit_head_output_shapes[2], sail.DataType.TPU_FLOAT32, self.device_ids[0])
+        hidden_states_tensor = sail.nn.Tensor(mmdit_head_output_shapes[0], sail.DataType.TPU_FLOAT32, dev_id)
+        temb_tensor = sail.nn.Tensor(mmdit_head_output_shapes[1], sail.DataType.TPU_FLOAT32, dev_id)
+        encoder_hidden_states_tensor = sail.nn.Tensor(mmdit_head_output_shapes[2], sail.DataType.TPU_FLOAT32, dev_id)
         mmdit_head_outputs = {
             0: hidden_states_tensor,
             1: temb_tensor,
             2: encoder_hidden_states_tensor,
         }
-        ret = transformer.process(mmdit_head_inputs, mmdit_head_outputs, "mmdit_head")
-
-        #### expand batch dim
-        temb = np.expand_dims(temb, axis = 0)
-        temb_tensor.reshape(list(temb.shape))
+        ret = transformer.process(mmdit_head_inputs, mmdit_head_outputs, self.stream, "mmdit_head")
+        temb_tensor.reshape([1, 1, 1536])
 
         #### mmdit block process
         mmdit_block_inputs = {0: hidden_states_tensor, 1: temb_tensor, 2: encoder_hidden_states_tensor}
-        mmdit_block_outputs = {0: encoder_hidden_states_tensor, 1: hidden_states_tensor}
-
-        for idx in range(self.MMDIT_LAYER_NUM - 1):
-            ret = transformer.process(mmdit_block_inputs, mmdit_block_outputs, f"mmdit_block_{idx}")
-
         mmdit_block_outputs = {0: hidden_states_tensor}
-        ret = transformer.process(mmdit_block_inputs, mmdit_block_outputs, f"mmdit_block_{self.MMDIT_LAYER_NUM - 1}")
+
+        ret = transformer.process(mmdit_block_inputs, mmdit_block_outputs, self.stream, f"mmdit_block")
         
         #### mmdit tail process
         mmdit_tail_inputs = {0: hidden_states_tensor, 1: temb_tensor}
         mmdit_output_shape = transformer.get_output_shapes("mmdit_tail", 0)[0]
-        latent = sail.nn.Tensor(mmdit_output_shape, sail.DataType.TPU_FLOAT32, self.device_ids[0])
+        latent = sail.nn.Tensor(mmdit_output_shape, sail.DataType.TPU_FLOAT32, dev_id)
         mmdit_tail_outputs = {0: latent}
-        ret = transformer.process(mmdit_tail_inputs, mmdit_tail_outputs, "mmdit_tail")
+        ret = transformer.process(mmdit_tail_inputs, mmdit_tail_outputs, self.stream, "mmdit_tail")
         latent.to_("host")
         output = torch.from_numpy(latent.asnumpy())
         return output
@@ -914,7 +947,6 @@ class StableDiffusion3Pipeline:
             max_sequence_length=max_sequence_length,
             lora_scale=lora_scale,
         )
-
         if self.do_classifier_free_guidance:
             prompt_embeds = torch.cat([negative_prompt_embeds, prompt_embeds], dim=0)
             pooled_prompt_embeds = torch.cat([negative_pooled_prompt_embeds, pooled_prompt_embeds], dim=0)
@@ -951,8 +983,15 @@ class StableDiffusion3Pipeline:
                 timestep = t.expand(latent_model_input.shape[0])
 
                 if self.do_classifier_free_guidance:
-                    noise_pred_uncond = self.__mmdit_infer__(latent_model_input[0].unsqueeze(0), timestep[0].unsqueeze(0), prompt_embeds[0].unsqueeze(0), pooled_prompt_embeds[0].unsqueeze(0))
-                    noise_pred_text = self.__mmdit_infer__(latent_model_input[1].unsqueeze(0), timestep[1].unsqueeze(0), prompt_embeds[1].unsqueeze(0), pooled_prompt_embeds[1].unsqueeze(0))
+                    if len(self.device_ids)==1:
+                        noise_pred_uncond = self.__mmdit_infer__(self.device_ids[0], latent_model_input[0].unsqueeze(0), timestep[0].unsqueeze(0), prompt_embeds[0].unsqueeze(0), pooled_prompt_embeds[0].unsqueeze(0))
+                    elif len(self.device_ids)==2:
+                        mmdit_input = [ (t.shape, t.dtype, t.numpy().astype(np.float32)) for t in [latent_model_input[0].unsqueeze(0), timestep[0].unsqueeze(0), prompt_embeds[0].unsqueeze(0), pooled_prompt_embeds[0].unsqueeze(0)]]
+                        self.input_queue.put(mmdit_input)
+                        self.event.set()
+                    noise_pred_text = self.__mmdit_infer__(self.device_ids[0], latent_model_input[1].unsqueeze(0), timestep[1].unsqueeze(0), prompt_embeds[1].unsqueeze(0), pooled_prompt_embeds[1].unsqueeze(0))
+                    if len(self.device_ids)==2:
+                        noise_pred_uncond = self.result_queue.get()
                     noise_pred = torch.cat([noise_pred_uncond, noise_pred_text])
                     noise_pred = noise_pred.reshape(
                         shape=(noise_pred.shape[0], latent_height//self.config_patch_size, latent_width//self.config_patch_size, self.config_patch_size, self.config_patch_size, self.out_channels)
@@ -964,7 +1003,7 @@ class StableDiffusion3Pipeline:
                     noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
                     noise_pred = noise_pred_uncond + self.guidance_scale * (noise_pred_text - noise_pred_uncond)
                 else:
-                    noise_pred = self.__mmdit_infer__(latent_model_input, timestep, prompt_embeds, pooled_prompt_embeds)
+                    noise_pred = self.__mmdit_infer__(self.device_ids[0], latent_model_input, timestep, prompt_embeds, pooled_prompt_embeds)
                     noise_pred = noise_pred.reshape(
                         shape=(noise_pred.shape[0], latent_height // self.config_patch_size, latent_width // self.config_patch_size, self.config_patch_size, self.config_patch_size, self.out_channels)
                     )
@@ -1014,7 +1053,7 @@ class StableDiffusion3Pipeline:
             vae_inputs = {0: latents_tensor}
             vae_outputs_shape = self.vae_decoder.get_output_shapes("vae_decoder", 0)[0]
             vae_outputs = {0: sail.nn.Tensor(vae_outputs_shape, sail.DataType.TPU_FLOAT32, self.device_ids[0])}
-            ret = self.vae_decoder.process(vae_inputs, vae_outputs, "vae_decoder")
+            ret = self.vae_decoder.process(vae_inputs, vae_outputs, self.stream, "vae_decoder")
             vae_outputs[0].to_("host")
             image = vae_outputs[0].asnumpy()
             image = torch.from_numpy(image)
@@ -1024,3 +1063,20 @@ class StableDiffusion3Pipeline:
             return (image,)
 
         return image
+
+    def __del__(self):
+        if not hasattr(self, 'process_child'):
+            return
+        if self.process_child.is_alive():
+            self.input_queue.put("terminate child process")
+            self.event.set()
+            self.process_child.join(timeout=3)
+            if self.process_child.is_alive():
+                self.process_child.terminate()
+                self.process_child.join(timeout=3)
+        if hasattr(self, 'input_queue'):
+            self.input_queue.close()
+            self.input_queue.join_thread()
+        if hasattr(self, 'result_queue'):
+            self.result_queue.close()
+            self.result_queue.join_thread()

@@ -1,20 +1,39 @@
 #===----------------------------------------------------------------------===#
 #
-# Copyright (C) 2024 Sophgo Technologies Inc.  All rights reserved.
+# Copyright (C) 2025 Sophgo Technologies Inc.  All rights reserved.
 #
 # SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
 # third-party components.
 #
 #===----------------------------------------------------------------------===#
 import argparse
+import atexit
 import logging as log
 import os
 import random
+import signal
+import sys
 import time
 
 import numpy as np
 import torch
+
 from stable_diffusion3_pipeline import StableDiffusion3Pipeline
+
+pipeline = None
+
+def cleanup():
+    global pipeline
+    try:
+        if pipeline is not None:
+            pipeline.__del__()
+            pipeline = None
+    except NameError:
+        print("pipeline is not defined or has been cleaned.")
+
+def signal_handler(sig, frame):
+    cleanup()
+    sys.exit()
 
 def load_pipeline(args):
     pipeline = StableDiffusion3Pipeline()
@@ -68,11 +87,11 @@ if __name__ == "__main__":
     # num_inference_steps
     parser.add_argument("--num_inference_steps", type=int, default=20, help="total denoising steps")
     # guidance_scale
-    parser.add_argument("--guidance_scale", type=float, default=7.0, help="guidance for each step, must >= 1")
+    parser.add_argument("--guidance_scale", type=float, default=7.0, help="guidance for each step, 2 batch when it greater than 1")
     # dev_ids
-    parser.add_argument("--dev_ids", type=int, nargs='+', default= 0, help="TPU ID")
+    parser.add_argument("--dev_ids", type=int, nargs='+', default= [0, 1], help="TPU ID, support 1 or 2 devices, such as 0 or 0,1")
     # fix seed
-    parser.add_argument("--seed", type=int, default=42, help="seed value, must be between 0 and 2**32 - 1")
+    parser.add_argument("--seed", type=int, default=42, help="seed value, must be between 0 and 2^32 - 1")
     try:
         args = parser.parse_args()
     except SystemExit as e:
@@ -83,11 +102,28 @@ if __name__ == "__main__":
 
     log.basicConfig(level=log.INFO)
 
-    pipe = load_pipeline(args)
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
-    pipe_start = time.time()
-    result = run(pipe, args)
-    pipe_time = time.time() - pipe_start
-    log.info("pipeline time(s): {:.2f}".format(pipe_time))
+    atexit.register(cleanup)
+    
+    if len(args.dev_ids) == 2:
+        import multiprocessing
+        multiprocessing.set_start_method('spawn')
 
-    result[0].save('result.png')
+    try:
+        pipeline = load_pipeline(args)
+
+        for idx in range(1):
+            pipeline_start = time.time()
+            result = run(pipeline, args)
+            pipeline_time = time.time() - pipeline_start
+            print(f"The {idx}th:")
+            log.info("pipeline time(s): {:.2f}".format(pipeline_time))
+            result[0].save(f'result_{idx}.png')
+
+    except Exception as e:
+        print(f"main process error: {e}")
+
+    finally:
+        cleanup()

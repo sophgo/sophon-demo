@@ -1,6 +1,6 @@
 #===----------------------------------------------------------------------===#
 #
-# Copyright (C) 2024 Sophgo Technologies Inc.  All rights reserved.
+# Copyright (C) 2025 Sophgo Technologies Inc.  All rights reserved.
 #
 # SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
 # third-party components.
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # chip_type 
     parser.add_argument("--chip_type", type=str, default="BM1690", help="product type")
     # dev_ids
-    parser.add_argument("--dev_ids", type=int, nargs='+', default=0, help="TPU ID")
+    parser.add_argument("--dev_ids", type=int, nargs='+', default= [0, 1], help="TPU ID, support 1 or 2 devices, such as 0 or 0,1")
     try:
         args = parser.parse_args()
     except SystemExit as e:
