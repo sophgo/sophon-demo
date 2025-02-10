@@ -26,20 +26,6 @@ struct YoloV8Box {
     int class_id;
 };
 
-struct ImageInfo {
-    cv::Size raw_size;
-    cv::Vec4d trans;
-};
-
-struct Paras {
-    int r_x;
-    int r_y;
-    int r_w;
-    int r_h;
-    int width;
-    int height;
-};
-
 using YoloV8BoxVec = std::vector<YoloV8Box>;
 
 class YoloV8_det {
