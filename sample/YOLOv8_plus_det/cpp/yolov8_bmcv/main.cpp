@@ -12,83 +12,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include "json.hpp"
-#include "opencv2/opencv.hpp"
 #include "yolov8_det.hpp"
 using json = nlohmann::json;
 using namespace std;
-
-char* rleToString(vector<int> R) {
-    /* Similar to LEB128 but using 6 bits/char and ascii chars 48-111. */
-    unsigned long p = 0;
-    long x;
-    int more;
-    unsigned long m = R.size();
-    char* s = (char*)malloc(sizeof(char) * m * 6);
-    for (int i = 0; i < m; i++) {
-        x = (long)R[i];
-        if (i > 2)
-            x -= (long)R[i - 2];
-        more = 1;
-        while (more) {
-            char c = x & 0x1f;
-            x >>= 5;
-            more = (c & 0x10) ? x != -1 : x != 0;
-            if (more)
-                c |= 0x20;
-            c += 48;
-            s[p++] = c;
-        }
-    }
-    s[p] = 0;
-    return s;
-}
-// 对一维数组进行RLE编码
-json runLengthEncode(const cv::Mat ucharMat, int x1, int y1, int bboxw, int bboxh, int source_w, int source_h) {
-    json results;
-    int sum = x1 * (source_h) + y1;
-    uchar currentPixel = false;
-    vector<int> result;
-    for (int row = 0; row < ucharMat.cols; ++row) {
-        std::vector<unsigned char> contourPoints;
-
-        for (int col = 0; col < ucharMat.rows; ++col) {
-            unsigned char pixelValue = ucharMat.at<unsigned char>(col, row);
-            if (pixelValue == currentPixel)
-                sum++;
-            else {
-                result.push_back(sum);
-                currentPixel = pixelValue;
-                sum = 1;
-            }
-        }
-        if (row != ucharMat.cols - 1) {
-            if (currentPixel == false)
-                sum += source_h - bboxh;
-            else {
-                result.push_back(sum);
-                currentPixel = false;
-                sum = source_h - bboxh;
-            }
-        } else {
-            if (currentPixel == false)
-                sum += source_h - bboxh - y1;
-            else {
-                result.push_back(sum);
-                currentPixel = false;
-                sum = source_h - bboxh - y1;
-            }
-        }
-    }
-    sum += (source_w - bboxw - x1) * source_h;
-
-    result.push_back(sum);
-    int tot = 0;
-    for (int j = 0; j < result.size(); j++)
-        tot += result[j];
-    results["size"] = {source_h, source_w};
-    results["counts"] = rleToString(result);
-    return results;
-}
 
 int main(int argc, char* argv[]) {
     cout.setf(ios::fixed);
