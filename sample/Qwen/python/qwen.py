@@ -20,7 +20,10 @@ class Qwen:
         self.version = "1.1.0"
 
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, trust_remote_code=True)
-        self.EOS = self.tokenizer.eos_token_id
+        ID_IM_END = self.tokenizer.convert_tokens_to_ids("<|im_end|>")
+        ID_END = self.tokenizer.convert_tokens_to_ids("<|end|>")
+        EOF = self.tokenizer.convert_tokens_to_ids("<|endoftext|>")
+        self.EOS = [self.tokenizer.eos_token_id, ID_IM_END, ID_END, EOF]
         self.dev_ids = [int(x) for x in str(dev_ids).split(',')]
         self.handles = {dev: sail.Handle(dev) for dev in self.dev_ids}
         self.target = sail.Handle(self.dev_ids[0]).get_target()
@@ -345,7 +348,7 @@ class Qwen:
         first_end = time.time()
         full_word_tokens = []
         tok_num = 0
-        while(token != self.EOS and self.token_length < self.SEQLEN):
+        while token not in self.EOS and self.token_length < self.SEQLEN:
             full_word_tokens.append(token)
             word = self.tokenizer.decode(full_word_tokens)
             if "�" in word:
@@ -373,7 +376,7 @@ class Qwen:
             return
         token = self.forward_first(tokens)
         full_word_tokens = []
-        while(token != self.EOS and self.token_length < self.SEQLEN):
+        while token not in self.EOS and self.token_length < self.SEQLEN:
             full_word_tokens.append(token)
             text = self.tokenizer.decode(full_word_tokens)
             if "�" in text:
@@ -397,7 +400,7 @@ class Qwen:
             return res_dict
         all_token = []
         token = self.forward_first(input_tokens)
-        while token != self.EOS and self.token_length < self.SEQLEN:
+        while token not in self.EOS and self.token_length < self.SEQLEN:
             all_token.append(token)
             token = self.forward_next()
         text = self.tokenizer.decode(all_token)
