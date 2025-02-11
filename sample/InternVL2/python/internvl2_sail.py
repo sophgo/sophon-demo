@@ -122,6 +122,7 @@ class InternVL2():
         self.target = sail.Handle(self.dev_ids[0]).get_target()
         self.tensors = {}
         start_time = time.time()
+        self.io_alone = 0
         if self.target in ["BM1688", "CV186AH"]:
             for net in self.graph_names:
                 self.tensors[net] = {}
@@ -211,7 +212,7 @@ class InternVL2():
             self.first_attention_mask[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks[0]]["input"][2])
             self.next_pid[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][1])
             self.next_attention_mask[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][2])
-        
+    
     def init_input_tensor(self, dev_id, net, index):
         shape = self.model.get_input_shape(net, index)
         type = self.model.get_input_dtype(net, index)
