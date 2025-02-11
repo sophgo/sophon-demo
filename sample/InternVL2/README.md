@@ -51,7 +51,7 @@ Intern-VL2是由上海人工智能实验室联合商汤科技开发的书生多�
 
 ```bash
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU/internvl2-4b_bm1684x_int4.bmodel #1684x 4b seq_len=512
+python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/internvl2-4b_bm1684x_int4_1core.bmodel #1684x 4b seq_len=512
 python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/internvl2-2b_bm1688_int4_2core.bmodel #1688 2b seq_len=512
 python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/internvl2-8b_bm1684x_int4_3072.bmodel #1684x 8b seq_len=3072
 python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/internvl2-8b_bm1684x_int8_3072.bmodel #1684x 8b seq_len=3072
