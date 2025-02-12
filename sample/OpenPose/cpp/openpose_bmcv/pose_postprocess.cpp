@@ -302,7 +302,7 @@ void OpenPosePostProcess::cpuOptNmsFunc(float* ptr, float* top_ptr, int length, 
 }
 
 
-int OpenPosePostProcess::cpuOptNms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, float threshold)
+void OpenPosePostProcess::cpuOptNms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, float threshold)
 {
     //maxPeaks就是最大人数，+1是为了第一位存个数
     //算法，是每个点，如果大于阈值，同时大于上下左右值的时候，则认为是峰值
