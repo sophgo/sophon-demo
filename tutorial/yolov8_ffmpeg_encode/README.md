@@ -1,5 +1,5 @@
 # 简介：
-本例程的处理流程是：ffmpeg decode + bmcv preprocess + bmrt yolov8 inference + cpu postprocess + bmcv rectangle + ffmpeg encode，支持在BM1684X上测试，如果用户需要实现ffmpeg编解码、ffmpeg和bmcv格式转换等逻辑，可以参考本例程。
+本例程的处理流程是：ffmpeg decode + bmcv preprocess + bmrt yolov8 inference + cpu postprocess + bmcv rectangle + ffmpeg encode，支持在BM1684X/BM1688/CV186X上测试，如果用户需要实现ffmpeg编解码、ffmpeg和bmcv格式转换等逻辑，可以参考本例程。
 
 # 目录结构说明：
 
@@ -21,9 +21,15 @@
 ```bash
 pip3 install dfss --upgrade
 python3 -m dfss --url=open@sophgo.com:sophon-demo/common/test_car_person_1080P.mp4
-python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_det/BM1684X.tar.gz
-tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
+
+python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_det/BM1684X.tar.gz #bm1684x
+tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz #bm1684x
+
+python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_det/BM1688.tar.gz #bm1688/cv168ah
+tar xvf BM1688.tar.gz && rm BM1688.tar.gz #bm1688/cv168ah
+
 ```
+
 
 # 编译运行方法：
 
@@ -32,7 +38,7 @@ tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
 运行方法：
 
 首先在目标推流服务器上运行rtsp服务器，准备接收流。
-然后在搭载BM1684X设备的机器上运行如下命令：
+然后在搭载BM1684X/BM1688/CV186X设备的机器上运行如下命令：
 ```bash
 ./yolov8_bmcv.soc --output=rtsp://172.21.80.56:8554/test --bmodel=BM1684X/yolov8s_int8_1b.bmodel --input=test_car_person_1080P.mp4
 ```
