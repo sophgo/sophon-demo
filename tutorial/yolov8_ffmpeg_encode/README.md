@@ -23,11 +23,13 @@ pip3 install dfss --upgrade
 python3 -m dfss --url=open@sophgo.com:sophon-demo/common/test_car_person_1080P.mp4
 
 python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_det/BM1684X.tar.gz #bm1684x
-tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz #bm1684x
+tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
 
-python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_det/BM1688.tar.gz #bm1688/cv168ah
-tar xvf BM1688.tar.gz && rm BM1688.tar.gz #bm1688/cv168ah
+python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_det/BM1688.tar.gz #bm1688
+tar xvf BM1688.tar.gz && rm BM1688.tar.gz
 
+python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_det/CV186X.tar.gz #cv186x
+tar xvf CV186X.tar.gz && rm CV186X.tar.gz
 ```
 
 
