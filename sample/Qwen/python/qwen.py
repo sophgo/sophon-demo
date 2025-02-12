@@ -28,7 +28,10 @@ class Qwen:
         self.handles = {dev: sail.Handle(dev) for dev in self.dev_ids}
         self.target = sail.Handle(self.dev_ids[0]).get_target()
 
-        self.model = sail.EngineLLM(bmodel_path, self.dev_ids)
+        if self.target == "BM1688":
+            self.model = sail.EngineLLM(bmodel_path, sail.BmrtFlag.BM_RUNTIME_SHARE_MEM,self.dev_ids)
+        else:
+            self.model = sail.EngineLLM(bmodel_path, self.dev_ids)
         self.tensors = {}
         self.graph_names = self.model.get_graph_names()
         self.io_alone = 0
