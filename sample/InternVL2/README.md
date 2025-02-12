@@ -97,7 +97,7 @@ python3 tools/export_onnx.py --model_path /path/to/InternVL2-8B
 ```bash
 cd scripts
 ./gen_bmodel.sh --mode int4 --name internvl2-4b --chip bm1684x #会在当前目录下生成internvl2-4b_bm1684x_int4_1core.bmodel
-./gen_bmodel.sh --mode int4 --name internvl2-2b --chip bm1688  #会在当前目录下生成internvl2-2b_bm1688_int4_2core.bmodel
+./gen_bmodel.sh --mode int4 --name internvl2-2b --chip bm1688 --num_core 2  #会在当前目录下生成internvl2-2b_bm1688_int4_2core.bmodel
 ./gen_bmodel.sh --mode int4 --name internvl2-8b --chip bm1684x #会在当前目录下生成internvl2-4b_bm1684x_int8_1core.bmodel
 ```
 
@@ -107,12 +107,13 @@ cd scripts
 
 ## 6. 程序性能测试
 
-这里的测试输入为："please describe this image in detail."
+这里的测试输入为："please describe this image in detail."，测试图片为`image1.jpg`。
 |    测试平台   |               测试模型                   |first token latency(s)|token per second(tokens/s)| 
 | -----------  | -------------------------------------- | --------------------- | ----------------------- | 
 |    SE7-32    | internvl2-8b_bm1684x_int8_3072.bmodel  |   7.706               |       5.710             | 
 |    SE7-32    | internvl2-8b_bm1684x_int4_3072.bmodel  |   7.686               |       8.722             | 
 |    SE7-32    | internvl2-4b_bm1684x_int4_1core.bmodel |   0.573               |       15.692            | 
+|    SE9-16    | internvl2-2b_bm1688_int4_2core.bmodel  |   1.397               |       14.876            | 
  
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；

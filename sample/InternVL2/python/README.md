@@ -19,20 +19,19 @@
 
 ### 1.1 x86/arm PCIe平台
 
-如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
+
+您还需要安装sophon-sail，现在可以直接通过dfss安装：
+
+```bash
+pip3 install dfss --upgrade
+python3 -m dfss --install sail
+```
 
 此外您可能还需要安装其他第三方库：
 
 ```bash
 pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-```
-
-您还需要安装sophon-sail，由于本例程需要的sophon-sail版本较新，可以用如下命令下载sophon-sail源码，并参考[sophon-sail python3接口编译安装指南](https://doc.sophgo.com/sdk-docs/v24.04.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#python3wheel)自己编译sophon-sail，该例程编译不包含bmcv,sophon-ffmpeg,sophon-opencv的SAIL的即可。
-
-```bash
-pip3 install dfss --upgrade
-python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/sophon-sail_3.9.0.tar.gz
-tar xvf sophon-sail.tar.gz
 ```
 
 ### 1.2 SoC平台
@@ -46,9 +45,9 @@ pip3 install dfss --upgrade
 python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/whls/se7/sophon_arm-3.9.3-py3-none-any.whl
 
 #如果是在bm1688环境上，下载这个：
-python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/whls/se9/sophon_arm-3.9.0-py3-none-any.whl
+python3 -m dfss --url=open@sophgo.com:sophon-demo/InternVL2/whls/se9/sophon_arm-3.9.3-py3-none-any.whl
 
-pip3 install sophon_arm-3.9.0-py3-none-any.whl --force-reinstall
+pip3 install sophon_arm-3.9.3-py3-none-any.whl --force-reinstall
 ```
 
 此外您可能还需要安装其他第三方库：
