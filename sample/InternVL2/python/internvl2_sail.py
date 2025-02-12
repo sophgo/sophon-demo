@@ -275,6 +275,7 @@ class InternVL2():
             assert self.vit_input.shape()[0] == 1, "vit only support bs=1"
             if img_offset > 0 and pixel_values[i].numel() == np.prod(self.vit_input.shape()):
                 self.vit_input.update_data(np.expand_dims(pixel_values[i], axis=0))
+                self.vit_input.sync_s2d()
                 input_vit_tensors = {0: self.vit_input}
                 output_vit_tensors = {0: self.vit_output}
                 self.model.process(self.name_vit, input_vit_tensors, output_vit_tensors)
