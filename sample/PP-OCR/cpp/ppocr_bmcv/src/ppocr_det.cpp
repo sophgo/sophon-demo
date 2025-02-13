@@ -201,37 +201,44 @@ std::vector<std::vector<int>> PPOCR_Detector::preprocess_bmcv(const std::vector<
 
         if(need_copy){
             int stride1[3], stride2[3];
-            assert(BM_SUCCESS == bm_image_get_stride(image1, stride1));
+            ret = bm_image_get_stride(image1, stride1);
+            assert(BM_SUCCESS == ret);
             stride2[0] = FFALIGN(stride1[0], 64);
             stride2[1] = FFALIGN(stride1[1], 64);
             stride2[2] = FFALIGN(stride1[2], 64);
-            assert(BM_SUCCESS == bm_image_create(m_bmContext->handle(), image1.height, image1.width,
-                image1.image_format, image1.data_type, &image_aligned, stride2));
-            assert(BM_SUCCESS == bm_image_alloc_dev_mem(image_aligned, BMCV_IMAGE_FOR_IN));
+            ret = bm_image_create(m_bmContext->handle(), image1.height, image1.width,
+                image1.image_format, image1.data_type, &image_aligned, stride2);
+            assert(BM_SUCCESS == ret);
+            ret = bm_image_alloc_dev_mem(image_aligned, BMCV_IMAGE_FOR_IN);
+            assert(BM_SUCCESS == ret);
             bmcv_copy_to_atrr_t copyToAttr;
             memset(&copyToAttr, 0, sizeof(copyToAttr));
             copyToAttr.start_x = 0;
             copyToAttr.start_y = 0;
             copyToAttr.if_padding = 1;
-            assert(BM_SUCCESS == bmcv_image_copy_to(m_bmContext->handle(), copyToAttr, image1, image_aligned));
+            ret = bmcv_image_copy_to(m_bmContext->handle(), copyToAttr, image1, image_aligned);
+            assert(BM_SUCCESS == ret);
         } else {
             image_aligned = image1;
         }
 
         resize_vector.push_back(resize_padding_op_(image_aligned, resize_bmcv_[i], det_limit_len_));
-
-        assert(BM_SUCCESS == bmcv_image_convert_to(m_bmContext->handle(), 1, linear_trans_param_, &resize_bmcv_[i], &linear_trans_bmcv_[i]));
+        ret = bmcv_image_convert_to(m_bmContext->handle(), 1, linear_trans_param_, &resize_bmcv_[i], &linear_trans_bmcv_[i]);
+        assert(BM_SUCCESS == ret);
     #if USE_ZERO_PADDING
         bmcv_rect_t rect_t = {0,0,resize_vector[i][1], resize_vector[i][0]};
         bmcv_copy_to_atrr_t  atrr_t = {0, 0, 0, 0, 0, 1};
-        assert(BM_SUCCESS == bm_image_create(m_bmContext->handle(),
+        ret = bm_image_create(m_bmContext->handle(),
                                     resize_vector[i][0],
                                     resize_vector[i][1],
                                     FORMAT_BGR_PLANAR,
                                     DATA_TYPE_EXT_FLOAT32,
-                                    &crop_bmcv_[i]));
-        assert(BM_SUCCESS == bmcv_image_crop(m_bmContext->handle(), 1, &rect_t, linear_trans_bmcv_[i], &crop_bmcv_[i]));
-        assert(BM_SUCCESS == bmcv_image_copy_to(m_bmContext->handle(), atrr_t, crop_bmcv_[i], padding_bmcv_[i]));    
+                                    &crop_bmcv_[i]);
+        assert(BM_SUCCESS == ret);
+        ret = bmcv_image_crop(m_bmContext->handle(), 1, &rect_t, linear_trans_bmcv_[i], &crop_bmcv_[i]);
+        assert(BM_SUCCESS == ret);
+        ret = bmcv_image_copy_to(m_bmContext->handle(), atrr_t, crop_bmcv_[i], padding_bmcv_[i]);
+        assert(BM_SUCCESS == ret);    
         bm_image_destroy(crop_bmcv_[i]);
     #endif
         if(need_copy){
@@ -249,26 +256,15 @@ std::vector<std::vector<int>> PPOCR_Detector::preprocess_bmcv(const std::vector<
 
     bm_device_mem_t input_dev_mem;
 
-#if 0 //debug code
-    // std::ifstream in("../../python/bin/det_preprocessed_{}.npy", std::ios::binary);
-    // float* python_det_input = new float[1*3*640*640];
-    // in.read(reinterpret_cast<char*>(python_det_input), 1*3*640*640*sizeof(float));
-    // assert(BM_SUCCESS == bm_malloc_device_byte(m_bmContext->handle(), &input_dev_mem, 1*3*640*640*sizeof(float)));
-    // assert(BM_SUCCESS == bm_memcpy_s2d(m_bmContext->handle(), input_dev_mem, python_det_input));
-    // in.close();
-    static int i = 0;
-    cnpy::NpyArray arr = cnpy::npy_load(cv::format("../../python/bin/det_preprocessed_%d.npy", i));
-    i++;
-    float* python_det_input = arr.data<float>();
-    assert(BM_SUCCESS == bm_malloc_device_byte(m_bmContext->handle(), &input_dev_mem, arr.shape[0]*3*640*640*sizeof(float)));
-    assert(BM_SUCCESS == bm_memcpy_s2d(m_bmContext->handle(), input_dev_mem, python_det_input));
-#else
+
     #if USE_ZERO_PADDING
-        assert(BM_SUCCESS == bm_image_get_contiguous_device_mem(input.size(), padding_bmcv_.data(), &input_dev_mem));
+        ret = bm_image_get_contiguous_device_mem(input.size(), padding_bmcv_.data(), &input_dev_mem);
+        assert(BM_SUCCESS == ret);
     #else
-        assert(BM_SUCCESS == bm_image_get_contiguous_device_mem(input.size(), linear_trans_bmcv_.data(), &input_dev_mem));
+        ret = bm_image_get_contiguous_device_mem(input.size(), linear_trans_bmcv_.data(), &input_dev_mem);
+        assert(BM_SUCCESS == ret);
     #endif
-#endif
+
     input_tensor->set_device_mem(&input_dev_mem);
     input_tensor->set_shape_by_dim(0, image_n);  // set real batch number
     
@@ -307,7 +303,8 @@ std::vector<int> PPOCR_Detector::resize_padding_op_(bm_image src_img, bm_image &
     padding_attr.padding_r = 0;
     padding_attr.if_memset = 1;
     bmcv_rect_t crop_rect{0, 0, src_img.width, src_img.height};
-    assert(BM_SUCCESS == bmcv_image_vpp_convert_padding(m_bmContext->handle(), 1, src_img, &dst_img, &padding_attr, &crop_rect));
+    auto ret = bmcv_image_vpp_convert_padding(m_bmContext->handle(), 1, src_img, &dst_img, &padding_attr, &crop_rect);
+    assert(BM_SUCCESS == ret);
     return resize_hw;
 }
 

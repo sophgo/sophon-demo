@@ -176,15 +176,18 @@ int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &b
             batch_ids.push_back(ids_staged[i]);
             if(batch_images.size() == max_batch){
                 m_ts->save("(per crop)Rec preprocess", batch_images.size());
-                assert(0 == preprocess_bmcv(batch_images, stage_w));
+                ret = preprocess_bmcv(batch_images, stage_w);
+                assert(0 == ret);
                 m_ts->save("(per crop)Rec preprocess", batch_images.size());
 
                 m_ts->save("(per crop)Rec inference", batch_images.size());
-                assert(0 == m_bmNetwork->forward());
+                ret = m_bmNetwork->forward();
+                assert(0 == ret);
                 m_ts->save("(per crop)Rec inference", batch_images.size());
 
                 m_ts->save("(per crop)Rec postprocess", batch_images.size());
-                assert(0 == post_process(results, beam_search, beam_size));
+                ret = post_process(results, beam_search, beam_size);
+                assert(0 == ret);
                 m_ts->save("(per crop)Rec postprocess", batch_images.size());
                 assert(max_batch == results.size());
                 for(int j = 0; j < results.size(); j++){
@@ -204,15 +207,18 @@ int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &b
                 batch_images.push_back(batch_images[0]);
             }
             m_ts->save("(per crop)Rec preprocess", batch_images.size());
-            assert(0 == preprocess_bmcv(batch_images, stage_w));
+            ret = preprocess_bmcv(batch_images, stage_w);
+            assert(0 == ret);
             m_ts->save("(per crop)Rec preprocess", batch_images.size());
 
             m_ts->save("(per crop)Rec inference", batch_images.size());
-            assert(0 == m_bmNetwork->forward());
+            ret = m_bmNetwork->forward();
+            assert(0 == ret);
             m_ts->save("(per crop)Rec inference", batch_images.size());
 
             m_ts->save("(per crop)Rec postprocess", batch_images.size());
-            assert(0 == post_process(results, beam_search, beam_size));
+            ret = post_process(results, beam_search, beam_size);
+            assert(0 == ret);
             m_ts->save("(per crop)Rec postprocess", batch_images.size());
             for(int j = 0; j < batch_size_tmp; j++){
                 boxes_vec[batch_ids[j].first][batch_ids[j].second].rec_res = results[j].first;
@@ -222,15 +228,18 @@ int PPOCR_Rec::run(std::vector<bm_image> input_images, std::vector<OCRBoxVec> &b
         // Last incomplete batch, use single batch model stage.
         else for(int i = 0; i < batch_images.size(); i++){
             m_ts->save("(per crop)Rec preprocess", 1);
-            assert(0 == preprocess_bmcv({batch_images[i]}, stage_w));
+            ret = preprocess_bmcv({batch_images[i]}, stage_w);
+            assert(0 == ret);
             m_ts->save("(per crop)Rec preprocess", 1);
 
             m_ts->save("(per crop)Rec inference", 1);
-            assert(0 == m_bmNetwork->forward());
+            ret = m_bmNetwork->forward();
+            assert(0 == ret);
             m_ts->save("(per crop)Rec inference", 1);
 
             m_ts->save("(per crop)Rec postprocess", 1);
-            assert(0 == post_process(results, beam_search, beam_size));
+            ret = post_process(results, beam_search, beam_size);
+            assert(0 == ret);
             m_ts->save("(per crop)Rec postprocess", 1);
             
             boxes_vec[batch_ids[i].first][batch_ids[i].second].rec_res = results[i].first;

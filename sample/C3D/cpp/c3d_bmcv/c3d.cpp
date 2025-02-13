@@ -193,7 +193,8 @@ void C3D::decode_video(const std::string video_path, std::vector<bm_image> &deco
             continue;
 
         bm_image tmp;
-        assert(0 == cv::bmcv::toBMI((cv::Mat&)img, &tmp, true));
+        auto ret = cv::bmcv::toBMI((cv::Mat&)img, &tmp, true);
+        assert(0 == ret);
         bm_image_create(m_bmContext->handle(), h, w, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &decoded_frames[channel_base + frame_count]);
         ret = bmcv_image_vpp_convert(m_bmContext->handle(), 
                                         1, 

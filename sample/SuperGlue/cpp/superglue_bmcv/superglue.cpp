@@ -50,30 +50,35 @@ int SuperGlue::preprocess(torch::Tensor& keypoints0, torch::Tensor& scores0, tor
     int keypoints0_size = MIN(keypoints0.size(0), keypoints_sizes[current_stage]);
     int keypoints1_size = MIN(keypoints1.size(0), keypoints_sizes[current_stage]);
 
-    assert(BM_SUCCESS == bm_memcpy_s2d_partial_offset(handle, input_tensors[0].device_mem, (void*)keypoints0.data_ptr<float>(), keypoints0_size * 2 * sizeof(float), 0));
-    assert(BM_SUCCESS == bm_memcpy_s2d_partial_offset(handle, input_tensors[1].device_mem, (void*)scores0.data_ptr<float>(), keypoints0_size * sizeof(float), 0));
+    auto ret = bm_memcpy_s2d_partial_offset(handle, input_tensors[0].device_mem, (void*)keypoints0.data_ptr<float>(), keypoints0_size * 2 * sizeof(float), 0);
+    assert(BM_SUCCESS == ret);
+    ret = bm_memcpy_s2d_partial_offset(handle, input_tensors[1].device_mem, (void*)scores0.data_ptr<float>(), keypoints0_size * sizeof(float), 0);
+    assert(BM_SUCCESS == ret);
     
     for(int i = 0; i < descriptors0.size(0); i++){
         float *desc = descriptors0[i].data_ptr<float>();
-        assert(BM_SUCCESS == bm_memcpy_s2d_partial_offset(handle, 
-                                                         input_tensors[2].device_mem, 
-                                                         (void*)desc, 
-                                                         keypoints0_size * sizeof(float), 
-                                                         i * keypoints_sizes[current_stage] * sizeof(float)));
+        ret = bm_memcpy_s2d_partial_offset(handle, 
+                                           input_tensors[2].device_mem, 
+                                           (void*)desc, 
+                                           keypoints0_size * sizeof(float), 
+                                           i * keypoints_sizes[current_stage] * sizeof(float));
+        assert(BM_SUCCESS == ret);
     }
-    
-    assert(BM_SUCCESS == bm_memcpy_s2d_partial_offset(handle, input_tensors[3].device_mem, (void*)keypoints1.data_ptr<float>(), keypoints1_size * 2 * sizeof(float), 0));
-    assert(BM_SUCCESS == bm_memcpy_s2d_partial_offset(handle, input_tensors[4].device_mem, (void*)scores1.data_ptr<float>(), keypoints1_size * sizeof(float), 0));
+    ret = bm_memcpy_s2d_partial_offset(handle, input_tensors[3].device_mem, (void*)keypoints1.data_ptr<float>(), keypoints1_size * 2 * sizeof(float), 0);
+    assert(BM_SUCCESS == ret);
+    ret = bm_memcpy_s2d_partial_offset(handle, input_tensors[4].device_mem, (void*)scores1.data_ptr<float>(), keypoints1_size * sizeof(float), 0);
+    assert(BM_SUCCESS == ret);
 
     for(int i = 0; i < descriptors1.size(0); i++){
         float *desc = descriptors1[i].data_ptr<float>();
-        assert(BM_SUCCESS == bm_memcpy_s2d_partial_offset(handle, 
+        ret = bm_memcpy_s2d_partial_offset(handle, 
                                                          input_tensors[5].device_mem, 
                                                          (void*)desc, 
                                                          keypoints1_size * sizeof(float), 
-                                                         i * keypoints_sizes[current_stage] * sizeof(float)));
+                                                         i * keypoints_sizes[current_stage] * sizeof(float));
+        assert(BM_SUCCESS == ret);
     }
-    return 0;
+    return ret;
 }
     
 int SuperGlue::forward(std::vector<bm_tensor_t>& input_tensors, std::vector<bm_tensor_t>& output_tensors){
@@ -82,13 +87,14 @@ int SuperGlue::forward(std::vector<bm_tensor_t>& input_tensors, std::vector<bm_t
     bool ok = bmrt_launch_tensor(bmrt, netinfo->name, input_tensors.data(), netinfo->input_num,
                     output_tensors.data(), netinfo->output_num);
     assert(ok == true);
-    assert(BM_SUCCESS == bm_thread_sync(handle));
+    auto ret = bm_thread_sync(handle);
+    assert(BM_SUCCESS == ret);
 
     for(int i = 0; i < input_tensors.size(); i++){
         bm_free_device(handle, input_tensors[i].device_mem);
     }
     
-    return 0;
+    return ret;
 }
 
 /**
@@ -146,10 +152,12 @@ int SuperGlue::postprocess(std::vector<bm_tensor_t>& output_tensors,
     for(int i = 0; i < output_tensors.size(); i++){
         if(std::strcmp(netinfo->output_names[i], "matches0_Where") == 0
         || std::strcmp(netinfo->output_names[i], "matches0_Where_f32") == 0){
-            assert(0 == get_cpu_data(&output_tensors[i], netinfo->output_scales[i], matchings0));
+            auto ret = get_cpu_data(&output_tensors[i], netinfo->output_scales[i], matchings0);
+            assert(0 == ret);
         } else if(std::strcmp(netinfo->output_names[i], "matching_scores0_Where") == 0
         || std::strcmp(netinfo->output_names[i], "matching_scores0_Where_f32") == 0){
-            assert(0 == get_cpu_data(&output_tensors[i], netinfo->output_scales[i], matchings0_score));
+            auto ret = get_cpu_data(&output_tensors[i], netinfo->output_scales[i], matchings0_score);
+            assert(0 == ret);
         }
     }
     

@@ -162,7 +162,8 @@ int main(int argc, char* argv[]) {
             cv::bmcv::toBMI(anchor_mat, &anchor_bmimg);
             torch::Tensor anchor_keypoints, anchor_scores, anchor_descriptors;
             ts.save("superpoint time");
-            assert(0 == superpoint.detect(anchor_bmimg, anchor_keypoints, anchor_scores, anchor_descriptors));
+            auto ret = superpoint.detect(anchor_bmimg, anchor_keypoints, anchor_scores, anchor_descriptors);
+            assert(0 == ret);
             ts.save("superpoint time");
             float anchor_x_scale = anchor_mat.cols / (float)superpoint.get_network_input_w();
             float anchor_y_scale = anchor_mat.rows / (float)superpoint.get_network_input_h();
@@ -183,7 +184,8 @@ int main(int argc, char* argv[]) {
 
             ts.save("superpoint time");
             torch::Tensor keypoints, scores, descriptors;
-            assert(0 == superpoint.detect(bmimg, keypoints, scores, descriptors));
+            ret = superpoint.detect(bmimg, keypoints, scores, descriptors);
+            assert(0 == ret);
             ts.save("superpoint time");
                 
             float x_scale = cvmat.cols / (float)superpoint.get_network_input_w();

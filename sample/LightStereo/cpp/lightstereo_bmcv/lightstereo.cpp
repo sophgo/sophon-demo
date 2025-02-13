@@ -83,7 +83,8 @@ int LightStereo::pre_process(const std::vector<bm_image>& images,
     }
 
     // create tensor for converto_img to attach
-    assert(true == bmrt_tensor(&input_tensor, bmrt, netinfo->input_dtypes[0], netinfo->stages[0].input_shapes[0]));
+    ret = bmrt_tensor(&input_tensor, bmrt, netinfo->input_dtypes[0], netinfo->stages[0].input_shapes[0]);
+    assert(true == ret);
     bm_image_attach_contiguous_mem(batch_size, m_converto_imgs.data(), input_tensor.device_mem);
 
     auto converto_attr = is_left ? converto_attr_left : converto_attr_right;
@@ -110,7 +111,8 @@ int LightStereo::forward(bm_tensor_t& input_tensor_left, bm_tensor_t& input_tens
     bool ok = bmrt_launch_tensor(bmrt, netinfo->name, input_tensors, netinfo->input_num,
                     &output_tensor, netinfo->output_num);
     assert(ok == true);
-    assert(BM_SUCCESS == bm_thread_sync(handle));
+    auto ret = bm_thread_sync(handle);
+    assert(BM_SUCCESS == ret);
     bm_free_device(handle, input_tensor_left.device_mem);
     bm_free_device(handle, input_tensor_right.device_mem);
     return 0;
