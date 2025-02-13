@@ -6,30 +6,35 @@
 # third-party components.
 #
 # ===----------------------------------------------------------------------===#
+import sophon.sail as sail
 import argparse
 import ast
 import copy
 import json
-import logging
 import os
 import time
-
 import cv2
 import datasets
 import numpy as np
-import sophon.sail as sail
+import logging
+logging.basicConfig(level=logging.INFO)
+
 from tqdm import tqdm
-from utils import (bytes_to_megabytes, draw_masks, logger,
-                   mask_to_coco_segmentation)
+from utils import draw_masks, mask_to_coco_segmentation
+class SAM2ModelLoader:
+    def __init__(self, encoder_path, decoder_path, dev_id=0):
+        self.encoder = sail.Engine(encoder_path, dev_id, sail.IOMode.SYSIO)
+        self.decoder = sail.Engine(decoder_path, dev_id, sail.IOMode.SYSIO)
 
-logger.setLevel(level=logging.DEBUG)
+    def get_encoder(self):
+        return self.encoder
 
-
-class SAM2ImageEncoder:
-
-    def __init__(self, encoder_model_path: str, dev_id: int = 0) -> None:
-        self.version = "1.0.0"
-        self.encoder = sail.Engine(encoder_model_path, dev_id, sail.IOMode.SYSIO)
+    def get_decoder(self):
+        return self.decoder
+    
+class SAM2ImageFeatureExtractor:
+    def __init__(self, encoder) -> None:
+        self.encoder = encoder
         self.graph_name = self.encoder.get_graph_names()[0]
         self.input_names = self.encoder.get_input_names(self.graph_name)[0]
         self.input_shape = self.encoder.get_input_shape(
@@ -41,21 +46,8 @@ class SAM2ImageEncoder:
         self.std = np.array([0.229, 0.224, 0.225])
         self.encoder_time = 0
         self.preprocess_time = 0
-
-    def __call__(self, image: np.ndarray):
-        return self.encode_image(image)
-
-    def encode_image(self, image: np.ndarray):
-
-        input_tensor = self.prepare_input(image)
-        start = time.perf_counter()
-        outputs = self.infer(input_tensor)
-        self.encoder_time = time.perf_counter() - start
-        return [output for output in outputs.values()]
-
+        
     def prepare_input(self, image: np.ndarray) -> np.ndarray:
-        start = time.perf_counter()
-
         self.img_height, self.img_width = image.shape[:2]
         input_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         input_img = cv2.resize(
@@ -70,25 +62,21 @@ class SAM2ImageEncoder:
         input_img = normalized_img.transpose(2, 0, 1)
         input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
 
-        self.preprocess_time = time.perf_counter() - start
         return input_tensor
 
-    def infer(self, input_tensor: np.ndarray):
-        return self.encoder.process(self.graph_name, {self.input_names: input_tensor})
+    def __call__(self, image: np.ndarray):
+        start = time.time()
+        input_tensor = self.prepare_input(image)
+        self.preprocess_time = time.time() - start
+        start = time.time()
+        outputs = self.encoder.process(self.graph_name, {self.input_names: input_tensor})
+        self.encoder_time = time.time() - start
+        return [output for output in outputs.values()]
 
-
-class SAM2ImageDecoder:
-
-    def __init__(
-        self,
-        decoder_model_path: str,
-        encoder_input_size,
-        orig_im_size=None,
-        mask_threshold: float = 0.0,
-        dev_id: int = 0,
-        select_best: bool = True,
-    ) -> None:
-        self.decoder = sail.Engine(decoder_model_path, dev_id, sail.IOMode.SYSIO)
+    
+class SAM2ImageMaskPredictor:
+    def __init__(self, decoder, encoder_input_size, orig_im_size=None, mask_threshold=0.0, select_best=True):
+        self.decoder = decoder
         self.graph_name = self.decoder.get_graph_names()[0]
         self.input_names = self.decoder.get_input_names(self.graph_name)
         self.orig_im_size = (
@@ -101,62 +89,15 @@ class SAM2ImageDecoder:
         self.decoder_time = 0
         self.preprocess_time = 0
         self.postprocess_time = 0
-
-    def __call__(
-        self,
-        image_embed: np.ndarray,
-        high_res_feats_0: np.ndarray,
-        high_res_feats_1: np.ndarray,
-        point_coords,
-        point_labels,
-    ):
-
-        return self.predict(
-            image_embed, high_res_feats_0, high_res_feats_1, point_coords, point_labels
-        )
-
-    def predict(
-        self,
-        image_embed: np.ndarray,
-        high_res_feats_0: np.ndarray,
-        high_res_feats_1: np.ndarray,
-        point_coords,
-        point_labels,
-    ):
-        inputs = self.prepare_inputs(
-            image_embed, high_res_feats_0, high_res_feats_1, point_coords, point_labels
-        )
-        start = time.perf_counter()
-        outputs = self.infer(inputs)
-        self.decoder_time = time.perf_counter() - start
-        return self.process_output(outputs)
-
-    def prepare_inputs(
-        self,
-        image_embed: np.ndarray,
-        high_res_feats_0: np.ndarray,
-        high_res_feats_1: np.ndarray,
-        point_coords,
-        point_labels,
-    ):
-        start = time.perf_counter()
-
-        input_point_coords, input_point_labels = self.prepare_points(
-            point_coords, point_labels
-        )
+        
+    def prepare_inputs(self, image_embed, high_res_feats_0, high_res_feats_1, point_coords, point_labels):
+        input_point_coords, input_point_labels = self.prepare_points(point_coords, point_labels)
         num_labels = input_point_labels.shape[0]
         mask_input = np.zeros(
-            (
-                num_labels,
-                1,
-                self.encoder_input_size[0] // self.scale_factor,
-                self.encoder_input_size[1] // self.scale_factor,
-            ),
+            (num_labels, 1, self.encoder_input_size[0] // self.scale_factor, self.encoder_input_size[1] // self.scale_factor),
             dtype=np.float32,
         )
         has_mask_input = np.array([0], dtype=np.float32)
-
-        self.preprocess_time = time.perf_counter() - start
         return (
             image_embed,
             high_res_feats_0,
@@ -168,34 +109,38 @@ class SAM2ImageDecoder:
         )
 
     def prepare_points(self, point_coords, point_labels):
-
         input_point_coords = point_coords[np.newaxis, ...]
         input_point_labels = point_labels[np.newaxis, ...]
 
-        input_point_coords[..., 0] = (
-            input_point_coords[..., 0]
-            / self.orig_im_size[1]
-            * self.encoder_input_size[1]
-        )  # Normalize x
-        input_point_coords[..., 1] = (
-            input_point_coords[..., 1]
-            / self.orig_im_size[0]
-            * self.encoder_input_size[0]
-        )  # Normalize y
+        input_point_coords[..., 0] = input_point_coords[..., 0] / self.orig_im_size[1] * self.encoder_input_size[1] # Normalize x
+        input_point_coords[..., 1] = input_point_coords[..., 1] / self.orig_im_size[0] * self.encoder_input_size[0] # Normalize y
 
-        return input_point_coords.astype(np.float32), input_point_labels.astype(
-            np.float32
-        )
+        return input_point_coords.astype(np.float32), input_point_labels.astype(np.float32)
 
-    def infer(self, inputs):
-        return self.decoder.process(
-            self.graph_name,
-            {self.input_names[i]: inputs[i] for i in range(len(self.input_names))},
+    def __call__(
+        self,                      
+        image_embed: np.ndarray,
+        high_res_feats_0: np.ndarray,
+        high_res_feats_1: np.ndarray,
+        point_coords,
+        point_labels,
+    ):
+        start = time.time()
+        inputs = self.prepare_inputs(
+            image_embed, high_res_feats_0, high_res_feats_1, point_coords, point_labels
         )
+        self.preprocess_time = time.time() - start
+        start = time.time()
+        outputs = self.decoder.process(
+            self.graph_name, {self.input_names[i]: inputs[i] for i in range(len(self.input_names))},
+        )
+        self.decoder_time = time.time() - start
+        start = time.time()
+        results = self.process_output(outputs)
+        self.postprocess_time = time.time() - start
+        return results
 
     def process_output(self, outputs):
-        # 每次转bmodel之后，bmodel中的outputname末尾最添加一个f32之类的字符串
-        start = time.perf_counter()
         for key, value in outputs.items():
             if "iou" in key:
                 scores = value.squeeze()
@@ -209,22 +154,25 @@ class SAM2ImageDecoder:
             best_mask = cv2.resize(
                 best_mask, (self.orig_im_size[1], self.orig_im_size[0])
             )
-            self.postprocess_time = time.perf_counter() - start
             return np.array([[best_mask]]), format(np.max(scores), ".4f")
         else:
             return masks, scores.tolist()
-
 
 class SAM2Image:
     # 在转bmodel的时候将模型定义为静态，每次给image decoder输入一个点的坐标
     # 该类主要对所要分割的图像的点和框的预测做管理，部分达到多点输入效果（多点之间相互隔离）
     def __init__(self, encoder_path, decoder_path, select_best):
-        self.sam2_encoder = SAM2ImageEncoder(encoder_path)
-        self.decoder_path = decoder_path
+        self.version = "1.1.0"
+        self.model_loader = SAM2ModelLoader(encoder_path, decoder_path)
+        self.sam2_encoder = SAM2ImageFeatureExtractor(self.model_loader.get_encoder())
+        self.sam2_decoder = None
         self.select_best = select_best
         self.image_info = {}
         self.res = {}
         self.point_nums = 0
+        logging.info("SAM2Image init, encoder_path:{}, decoder_path:{}, select_best:{}".format(
+                        encoder_path, decoder_path, select_best)
+                    )
         self.init_times()
 
     def init_times(self):
@@ -232,18 +180,18 @@ class SAM2Image:
         self.encoder_time = 0
         self.decoder_time = 0
         self.postprocess_time = 0
-
+        
     def set_image(self, img):
         self.h, self.w, _ = img.shape
         self.img = copy.deepcopy(img)
         self.image_embeddings = self.sam2_encoder(self.img)
-        self.sam2_decoder = SAM2ImageDecoder(
-            self.decoder_path,
+        self.encoder_time += self.sam2_encoder.encoder_time
+        self.preprocess_time += self.sam2_encoder.preprocess_time
+        self.sam2_decoder = SAM2ImageMaskPredictor(
+            self.model_loader.get_decoder(),
             self.sam2_encoder.input_shape[2:],
             orig_im_size=[self.h, self.w]
         )
-        self.encoder_time += self.sam2_encoder.encoder_time
-        self.preprocess_time += self.sam2_encoder.preprocess_time
         self.reset_points()
 
     def add_point(self, point_coords, label):
@@ -280,11 +228,10 @@ class SAM2Image:
                 input_point,
                 input_label,
             )
-            self.decoder_time += self.sam2_decoder.decoder_time
-            self.preprocess_time += self.sam2_decoder.preprocess_time
-            self.postprocess_time += self.sam2_decoder.postprocess_time
             self.res[point_id] = {"masks": masks, "scores": scores}
-
+        self.preprocess_time += self.sam2_decoder.preprocess_time
+        self.decoder_time += self.sam2_decoder.decoder_time
+        self.postprocess_time += self.sam2_decoder.postprocess_time
         return self.res
 
     def save_img(self, image_id):
@@ -311,12 +258,35 @@ class SAM2Image:
             self.decoder_time,
             self.postprocess_time,
         )
+        
+def pred(args):
+    img = cv2.imread(args.img_path)
+    sam2 = SAM2Image(args.encoder_bmodel, args.decoder_bmodel, args.select_best)
+    sam2.set_image(img)
 
+    input_points = ast.literal_eval(args.points)
+    for point in input_points:
+        if len(point) == 2:
+            sam2.add_point(point, args.label)
+        elif len(point) == 4:
+            sam2.add_box(point, args.label)
 
+    res = sam2.predict()
+    drawn_image = img
+    for point_id in sam2.image_info.keys():
+        drawn_image = draw_masks(drawn_image, [res[point_id]["masks"]])
+    cv2.imwrite(os.path.join(args.output_dir, "images", "res.jpg"), drawn_image)
+    
+    preprocess_time, encoder_time, decoder_time, postprocess_time = (
+        sam2.get_times_info()
+    )
+
+    print(f"Preprocess time(ms): {preprocess_time * 1000:.2f}")
+    print(f"Encoder time(ms): {encoder_time * 1000:.2f}")
+    print(f"Decoder time(ms): {decoder_time * 1000:.2f}")
+    print(f"Postprocess time(ms): {postprocess_time * 1000:.2f}")
+    
 def pred_dataset(args):
-
-    logger.setLevel(level=logging.CRITICAL)
-
     dataset_type = args.dataset_type
     dataset_names = getattr(datasets, "__all__", None)
     if dataset_type in dataset_names:
@@ -340,11 +310,13 @@ def pred_dataset(args):
             point = center_info["center"]
             label = center_info["label"]
             bbox_list.append(center_info["bbox"])
-
             sam2.add_point(point, label)
-
+            
         res = sam2.predict()
-        sam2.save_img(os.path.join(args.output_dir, "images", str(image_id)))
+        drawn_image = img
+        for point_id in sam2.image_info.keys():
+            drawn_image = draw_masks(drawn_image, [res[point_id]["masks"]])
+        cv2.imwrite(os.path.join(args.output_dir, "images", str(image_id) + ".jpg"), drawn_image)
         segmentations = []
         for key in res.keys():
             _res = res[key]
@@ -380,40 +352,12 @@ def pred_dataset(args):
         map(avg_time, sam2.get_times_info())
     )
 
-    print(
-        f"Preprocess time(ms): {preprocess_time * 1000:.2f}\n",
-        f"Encoder time(ms): {encoder_time * 1000:.2f}\n ",
-        f"Decoder time(ms): {decoder_time * 1000:.2f}\n ",
-        f"Postprocess time(ms): {postprocess_time * 1000:.2f}\n",
-    )
+    print(f"Preprocess time(ms): {preprocess_time * 1000:.2f}")
+    print(f"Encoder time(ms): {encoder_time * 1000:.2f}")
+    print(f"Decoder time(ms): {decoder_time * 1000:.2f}")
+    print(f"Postprocess time(ms): {postprocess_time * 1000:.2f}")
     print("\nResult saved in {}".format(os.path.join(args.output_dir, json_name)))
 
-
-def pred(args):
-    img = cv2.imread(args.img_path)
-    sam2 = SAM2Image(args.encoder_bmodel, args.decoder_bmodel, args.select_best)
-    sam2.set_image(img)
-
-    input_points = ast.literal_eval(args.points)
-    for point in input_points:
-        if len(point) == 2:
-            sam2.add_point(point, args.label)
-        elif len(point) == 4:
-            sam2.add_box(point, args.label)
-
-    sam2.predict()
-    sam2.save_img(os.path.join(args.output_dir, "images", "res"))
-
-    preprocess_time, encoder_time, decoder_time, postprocess_time = (
-        sam2.get_times_info()
-    )
-
-    print(
-        f"Preprocess time(ms): {preprocess_time * 1000:.2f}\n",
-        f"Encoder time(ms): {encoder_time * 1000:.2f}\n ",
-        f"Decoder time(ms): {decoder_time * 1000:.2f}\n ",
-        f"Postprocess time(ms): {postprocess_time * 1000:.2f}\n",
-    )
 
 
 def argsparser():
