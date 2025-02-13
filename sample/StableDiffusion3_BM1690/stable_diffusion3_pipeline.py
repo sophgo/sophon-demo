@@ -9,6 +9,7 @@
 import gc
 import inspect
 import multiprocessing
+import multiprocessing.shared_memory
 import os
 import signal
 import sys
@@ -120,8 +121,6 @@ class StableDiffusion3Pipeline:
         )
         self.vae_config_scaling_factor = 1
         self.vae_config_shift_factor = 0
-        # self.vae_config_scaling_factor = 1.5305
-        # self.vae_config_shift_factor = 0.0609
         self.image_processor = VaeImageProcessor(vae_scale_factor=self.vae_scale_factor)
         self.tokenizer_max_length = (
             self.tokenizer.model_max_length if hasattr(self, "tokenizer") and self.tokenizer is not None else 77
@@ -210,63 +209,82 @@ class StableDiffusion3Pipeline:
         if not os.path.isfile(transformer_path):
             raise FileNotFoundError(f"No '{os.path.basename(transformer_path)}' file found at {bmodel_path}.")
 
-        # 4. load mmdit on second device, if use two chips
-        self.device_ids = device_ids if type(device_ids) is list else [device_ids]
-        if len(self.device_ids) == 2:
-            if self.device_ids[0] == self.device_ids[1]:
-                raise UnSupportedError("Two same device id")
-
-            device_id1 = self.device_ids[1]
-            self.event = multiprocessing.Event()
-            
-            self.input_queue = multiprocessing.Queue()
-            self.result_queue = multiprocessing.Queue()
-
-            self.process_child = multiprocessing.Process(target=self.child_process, args=(device_id1, transformer_path, self.event, self.input_queue, self.result_queue))
-            self.process_child.start()
-
-        # 5. load tokenizers
+        # 4. load tokenizers
         self.scheduler = FlowMatchEulerDiscreteScheduler(shift=3.0)
         self.tokenizer = CLIPTokenizer.from_pretrained(tokenizer_path)
         self.tokenizer_2 = CLIPTokenizer.from_pretrained(tokenizer_2_path)
         self.tokenizer_3 = T5TokenizerFast.from_pretrained(tokenizer_3_path)
 
-        # 6. load clip_l, clip_g, t5, vae_decoder and mmDiT on device 0
+        # 5. load mmdit on device0
+        self.device_ids = device_ids if type(device_ids) is list else [device_ids]
+        if len(self.device_ids) == 2:
+            if self.device_ids[0] == self.device_ids[1]:
+                raise UnSupportedError("Two same device id")
+
         device_id0 = self.device_ids[0]
+
+        transformer_engine = sail.nn.Engine(transformer_path, device_id0)
+
+        # 6. load mmdit on second device and create shared mem if use two chips
+        if len(self.device_ids) == 2:
+            # prepare shared data
+            mmdit_head_input_shapes = transformer_engine.get_input_shapes('mmdit_head', 0)
+            mmdit_tail_output_shapes = transformer_engine.get_output_shapes('mmdit_tail', 0)
+
+            self.shared_data_shapes =  mmdit_head_input_shapes + mmdit_tail_output_shapes
+            self.shared_data_dtypes = [np.float32, np.float32, np.float32, np.int32, np.float32]
+
+            shared_data = [np.zeros(shape, dtype=dtype) for shape, dtype in zip(self.shared_data_shapes, self.shared_data_dtypes)]
+            shared_memories= []
+            shared_memories_names = []
+            for idx in range(len(shared_data)):
+                shm = multiprocessing.shared_memory.SharedMemory(create=True, size=shared_data[idx].nbytes)
+                shared_memories.append(shm)
+                shared_memories_names.append(shm.name)
+            self.event_start = multiprocessing.Event()
+            self.event_done = multiprocessing.Event()
+            self.process_child = multiprocessing.Process(target=self.child_process, args=(transformer_path, shared_memories_names))
+            self.process_child.start()
+            for idx in range(len(shared_memories)):
+                setattr(self, f"shared_mem{idx}", shared_memories[idx]) 
+
+        # 7. load text encoder and vae on chip0
         self.text_encoder =  sail.nn.Engine(clip_l_path, device_id0)
         self.text_encoder_2 = sail.nn.Engine(clip_g_path, device_id0)
         self.text_encoder_3 = sail.nn.Engine(t5_path, device_id0)
         self.vae_decoder = sail.nn.Engine(vae_decoder_path, device_id0)
-        setattr(self, f"transformer_on_dev{device_id0}", sail.nn.Engine(transformer_path, device_id0))
-
+        setattr(self, f"transformer_on_dev{device_id0}", transformer_engine)
         self.stream = sail.nn.Stream(device_id0)
     
-    def child_process(self, dev_id, transformer_path, event, input_queue, result_queue):
+    def child_process(self, transformer_path, shm_names):
         def handle_termination_signal(sig, frame):
-            if hasattr(self, f"transformer_on_dev{dev_id}"):
-                delattr(self, f"transformer_on_dev{dev_id}")
+            if hasattr(self, f"transformer_on_dev{self.device_ids[1]}"):
+                delattr(self, f"transformer_on_dev{self.device_ids[1]}")
+            for idx in range(len(shm_names)):
+                getattr(self, f"shared_mem{idx}").close()
             gc.collect()
             sys.exit()
 
         signal.signal(signal.SIGTERM, handle_termination_signal)
-        setattr(self, f"transformer_on_dev{dev_id}", sail.nn.Engine(transformer_path, dev_id))
-        self.stream = sail.nn.Stream(dev_id)
+        setattr(self, f"transformer_on_dev{self.device_ids[1]}", sail.nn.Engine(transformer_path, self.device_ids[1]))
+        for idx in range(len(shm_names)):
+            setattr(self, f"shared_mem{idx}", multiprocessing.shared_memory.SharedMemory(name=shm_names[idx], create=False))
+        self.stream = sail.nn.Stream(self.device_ids[1])
         try:
             while True:
-                event.wait()
-                input_data = input_queue.get()
-                if input_data == "terminate child process":
-                    break
-                input_data = [torch.tensor(data, dtype=dtype).reshape(shape) for shape, dtype, data in input_data]
-                latent = self.__mmdit_infer__(dev_id, *input_data)
-                result_queue.put(latent)
-                event.clear()
-
+                self.event_start.wait()
+                self.event_start.clear()
+                shared_data = []
+                for idx in range(len(shm_names)):
+                    shared_data.append(torch.from_numpy(np.ndarray(self.shared_data_shapes[idx], self.shared_data_dtypes[idx], getattr(self, f"shared_mem{idx}").buf)))
+                result = self.__mmdit_infer__(self.device_ids[1], *shared_data[:-1])
+                np.copyto(shared_data[-1].numpy(), result.numpy())
+                self.event_done.set()
         except Exception as e:
             print(f"child process error: {e}")
         finally:
-            if hasattr(self, f"transformer_on_dev{dev_id}"):
-                delattr(self, f"transformer_on_dev{dev_id}")
+            if hasattr(self, f"transformer_on_dev{self.device_ids[1]}"):
+                delattr(self, f"transformer_on_dev{self.device_ids[1]}")
             gc.collect()
 
     def _get_t5_prompt_embeds(
@@ -751,7 +769,7 @@ class StableDiffusion3Pipeline:
     def interrupt(self):
         return self._interrupt
 
-    def __mmdit_infer__(self, dev_id, latent_model_input, timestep, prompt_embed, pooled_prompt_embed):
+    def __mmdit_infer__(self, dev_id, latent_model_input, prompt_embed, pooled_prompt_embed, timestep):
         transformer = getattr(self, f'transformer_on_dev{dev_id}')
         latent_model_input = latent_model_input.numpy().astype(np.float32)
         timestep = timestep.numpy().astype(np.int32)
@@ -984,14 +1002,20 @@ class StableDiffusion3Pipeline:
 
                 if self.do_classifier_free_guidance:
                     if len(self.device_ids)==1:
-                        noise_pred_uncond = self.__mmdit_infer__(self.device_ids[0], latent_model_input[0].unsqueeze(0), timestep[0].unsqueeze(0), prompt_embeds[0].unsqueeze(0), pooled_prompt_embeds[0].unsqueeze(0))
+                        noise_pred_uncond = self.__mmdit_infer__(self.device_ids[0], latent_model_input[0].unsqueeze(0), prompt_embeds[0].unsqueeze(0), pooled_prompt_embeds[0].unsqueeze(0), timestep[0].unsqueeze(0))
                     elif len(self.device_ids)==2:
-                        mmdit_input = [ (t.shape, t.dtype, t.numpy().astype(np.float32)) for t in [latent_model_input[0].unsqueeze(0), timestep[0].unsqueeze(0), prompt_embeds[0].unsqueeze(0), pooled_prompt_embeds[0].unsqueeze(0)]]
-                        self.input_queue.put(mmdit_input)
-                        self.event.set()
-                    noise_pred_text = self.__mmdit_infer__(self.device_ids[0], latent_model_input[1].unsqueeze(0), timestep[1].unsqueeze(0), prompt_embeds[1].unsqueeze(0), pooled_prompt_embeds[1].unsqueeze(0))
+                        shared_arrays = []
+                        for idx in range(len(self.shared_data_shapes)):
+                            shared_arrays.append(np.ndarray(self.shared_data_shapes[idx], self.shared_data_dtypes[idx], getattr(self, f"shared_mem{idx}").buf))
+                        shared_data = [latent_model_input[0].unsqueeze(0), prompt_embeds[0].unsqueeze(0), pooled_prompt_embeds[0].unsqueeze(0), timestep[0].unsqueeze(0)]
+                        for idx in range(len(shared_data)):
+                            shared_arrays[idx][:] = shared_data[idx].numpy()
+                        self.event_start.set()
+                    noise_pred_text = self.__mmdit_infer__(self.device_ids[0], latent_model_input[1].unsqueeze(0), prompt_embeds[1].unsqueeze(0), pooled_prompt_embeds[1].unsqueeze(0), timestep[1].unsqueeze(0))
                     if len(self.device_ids)==2:
-                        noise_pred_uncond = self.result_queue.get()
+                        self.event_done.wait()
+                        noise_pred_uncond = torch.from_numpy(np.ndarray(self.shared_data_shapes[-1],self.shared_data_dtypes[-1],getattr(self, f"shared_mem{len(self.shared_data_shapes)-1}").buf))
+                        self.event_done.clear()
                     noise_pred = torch.cat([noise_pred_uncond, noise_pred_text])
                     noise_pred = noise_pred.reshape(
                         shape=(noise_pred.shape[0], latent_height//self.config_patch_size, latent_width//self.config_patch_size, self.config_patch_size, self.config_patch_size, self.out_channels)
@@ -1003,7 +1027,7 @@ class StableDiffusion3Pipeline:
                     noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
                     noise_pred = noise_pred_uncond + self.guidance_scale * (noise_pred_text - noise_pred_uncond)
                 else:
-                    noise_pred = self.__mmdit_infer__(self.device_ids[0], latent_model_input, timestep, prompt_embeds, pooled_prompt_embeds)
+                    noise_pred = self.__mmdit_infer__(self.device_ids[0], latent_model_input, prompt_embeds, pooled_prompt_embeds, timestep)
                     noise_pred = noise_pred.reshape(
                         shape=(noise_pred.shape[0], latent_height // self.config_patch_size, latent_width // self.config_patch_size, self.config_patch_size, self.config_patch_size, self.out_channels)
                     )
@@ -1065,18 +1089,15 @@ class StableDiffusion3Pipeline:
         return image
 
     def __del__(self):
-        if not hasattr(self, 'process_child'):
-            return
-        if self.process_child.is_alive():
-            self.input_queue.put("terminate child process")
-            self.event.set()
-            self.process_child.join(timeout=3)
+        if hasattr(self, "process_child"):
             if self.process_child.is_alive():
                 self.process_child.terminate()
                 self.process_child.join(timeout=3)
-        if hasattr(self, 'input_queue'):
-            self.input_queue.close()
-            self.input_queue.join_thread()
-        if hasattr(self, 'result_queue'):
-            self.result_queue.close()
-            self.result_queue.join_thread()
+        try:
+            for idx in range(len(self.shared_data_shapes)):
+                shared_mem = getattr(self, f"shared_mem{idx}", None)
+                shared_mem.close()
+                shared_mem.unlink()
+        except:
+            pass
+        return

@@ -32,10 +32,8 @@
 sudo apt install unzip
 # 安装dfss，若已安装请跳过
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-
 # 下载模型
 ./download.sh
-
 # 安装第三方库
 pip3 install -r requirements.txt
 ```
@@ -79,7 +77,7 @@ pip3 install -r requirements.txt
 
 ### 3.2 测试结果说明
 
-`run.py`程序运行结束，会在终端输出stable diffusion加载模型的耗时，以及整个pipeline的耗时，生成的图像保存在`result.png`。
+`run.py`程序运行结束，会在终端输出stable diffusion加载模型的耗时，以及整个pipeline的耗时，生成的图像保存在`result_{idx}.png`。
 
 ### 3.3 测试步骤
 
@@ -105,11 +103,12 @@ python3 run.py
 # 单芯推理
 python3 run.py --dev_ids 0
 ```
+
 测试结果如下：
 
 | 是否双芯并行 | 系统内存(GB)  | load bmodel time(s) | pipeline (s)/20steps |
 |----------- |--------------| ------------------- | -------------------- |
-|    是      |     29       |        9.83         |         1.11         |
+|    是      |     29       |        9.83         |         0.93         |
 |    否      |     24       |        9.25         |         1.71         |
 
 > **测试说明**：  
