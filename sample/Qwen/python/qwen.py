@@ -134,26 +134,29 @@ class Qwen:
                 self.next_hidden_state[i] = self.init_tensor(self.dev_ids[i], self.tensors[self.name_blocks_cache[0]]["input"][0])
             self.embedding_path = os.path.dirname(bmodel_path) + "/embedding.bin"
             self.hidden_bytes = self.HIDDEN_SIZE*np.dtype(np.uint16).itemsize
+            try:
+                with open(self.embedding_path, "rb") as file:
+                    self.embedding_content = file.read()
+            except FileNotFoundError:
+                raise RuntimeError("Unable to open embedding file")
 
     def load_and_infer_embedding(self, tokens):
-        try:
-            with open(self.embedding_path, "rb") as file:
-                size = len(tokens)
-                buffer = np.zeros((size, self.HIDDEN_SIZE), dtype=np.uint16)
+        size = len(tokens)
+        buffer = np.zeros((size, self.HIDDEN_SIZE), dtype=np.uint16)
 
-                for i in range(min(size, self.token_length)):
-                    start_position = tokens[i] * self.hidden_bytes
-                    file.seek(start_position)
+        for i in range(min(size, self.token_length)):
+            # 根据tokens的值定位到文件内容中的位置
+            start_position = tokens[i] * self.hidden_bytes
 
-                    data = file.read(self.hidden_bytes)
-                    if len(data) != self.hidden_bytes:
-                        raise RuntimeError("File read failed")
+            # 从读取的内存内容中提取数据
+            data = self.embedding_content[start_position:start_position + self.hidden_bytes]
 
-                    buffer[i] = np.frombuffer(data, dtype=np.uint16)
+            if len(data) != self.hidden_bytes:
+                raise RuntimeError("File read failed")
 
-                return buffer
-        except FileNotFoundError:
-            raise RuntimeError("Unable to open embedding file")
+            buffer[i] = np.frombuffer(data, dtype=np.uint16)
+
+        return buffer
 
     def init_input_tensor(self, dev_id, net, index):
         shape = self.model.get_input_shape(net, index)
