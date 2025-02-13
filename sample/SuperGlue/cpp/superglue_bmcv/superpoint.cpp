@@ -16,13 +16,6 @@ int SuperPoint::detect(const bm_image& image, torch::Tensor& keypoints, torch::T
     std::vector<bm_tensor_t> output_tensors;
     std::vector<bm_image> images{image};
     ts->save("superpoint preprocess time", batch_size);
-    // int ret = 0;
-    // static int i = 0;
-    // std::ifstream input_data("input_data_"+std::to_string(i++)+".dat",std::ios::binary);
-    // float *input = new float[360*640];
-    // input_data.read((char*)input, 360*640*sizeof(float));
-    // assert(true == bmrt_tensor(&input_tensor, bmrt, netinfo->input_dtypes[0], netinfo->stages[0].input_shapes[0]));
-    // bm_memcpy_s2d(handle, input_tensor.device_mem, input);
     int ret = preprocess(images, input_tensor);
     assert(ret == 0);
     ts->save("superpoint preprocess time", batch_size);
@@ -129,7 +122,8 @@ int SuperPoint::preprocess(const std::vector<bm_image>& images, bm_tensor_t& inp
     }
     
     // create tensor for converto_img to attach
-    assert(true == bmrt_tensor(&input_tensor, bmrt, netinfo->input_dtypes[0], netinfo->stages[0].input_shapes[0]));
+    ret = bmrt_tensor(&input_tensor, bmrt, netinfo->input_dtypes[0], netinfo->stages[0].input_shapes[0]);
+    assert(true == ret);
     bm_image_attach_contiguous_mem(batch_size, m_converto_imgs.data(), input_tensor.device_mem);
 
     // normalize
@@ -161,9 +155,10 @@ int SuperPoint::forward(bm_tensor_t& input_tensor, std::vector<bm_tensor_t>& out
     output_tensors.resize(netinfo->output_num);
     bool ok = bmrt_launch_tensor(bmrt, netinfo->name, &input_tensor, netinfo->input_num,
                     output_tensors.data(), netinfo->output_num);
-    assert(BM_SUCCESS == bm_thread_sync(handle));
+    auto ret = bm_thread_sync(handle);
+    assert(BM_SUCCESS == ret);
     bm_free_device(handle, input_tensor.device_mem);
-    return 0;
+    return ret;
 }
 
 /**

@@ -27,7 +27,8 @@ VLPR::VLPR(demo_config& config)
 
   this->config = config;
   total_frame_num = 0;
-  assert(BM_SUCCESS == bm_dev_request(&m_handle, config.dev_id));
+  auto ret = bm_dev_request(&m_handle, config.dev_id);
+  assert(BM_SUCCESS == ret);
   runtime_performance_info_thread_exit = false;
 
 #if DET_VIS
@@ -207,9 +208,8 @@ void VLPR::crop(int process_id) {
                                .start_y = dilated_top,
                                .crop_w = dilated_w,
                                .crop_h = dilated_h};
-      assert(BM_SUCCESS == bmcv_image_vpp_convert(m_handle, 1, image_aligned,
-                                                  croped_bmimg->bmimg.get(),
-                                                  &crop_rect));
+      auto ret = bmcv_image_vpp_convert(m_handle, 1, image_aligned, croped_bmimg->bmimg.get(), &crop_rect);
+      assert(BM_SUCCESS == ret);
       lprnet->push_m_queue_decode(croped_bmimg);
 
 #if DET_VIS

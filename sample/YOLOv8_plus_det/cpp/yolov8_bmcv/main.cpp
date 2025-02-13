@@ -116,7 +116,8 @@ int main(int argc, char* argv[]) {
             iter--;
             if ((batch_imgs.size() == batch_size || end_flag) && !batch_imgs.empty()) {
                 // predict
-                assert(0 == yolov8.Detect(batch_imgs, boxes));
+                auto ret = yolov8.Detect(batch_imgs, boxes);
+                assert(0 == ret);
 
                 for (int i = 0; i < batch_size; i++) {
                     yolov8.draw_result(batch_mats[i], boxes[i]);

@@ -82,10 +82,12 @@ public:
         m_nmsThreshold = nmsThresh;
 
         // get handle
-        assert(BM_SUCCESS == bm_dev_request(&handle, dev_id));
+        auto ret = bm_dev_request(&handle, dev_id);
+        assert(BM_SUCCESS == ret);
 
         // judge now is pcie or soc
-        assert(BM_SUCCESS == bm_get_misc_info(handle, &misc_info));
+        ret = bm_get_misc_info(handle, &misc_info);
+        assert(BM_SUCCESS == ret);
 
         // create bmrt
         bmrt = bmrt_create(handle);

@@ -61,8 +61,10 @@ int main(int argc, char* argv[]) {
     // check board type
     char board_name[50];
     bm_handle_t handle;
-    assert(BM_SUCCESS == bm_dev_request(&handle, dev_id));
-    assert(BM_SUCCESS == bm_get_board_name(handle, board_name));
+    auto ret = bm_dev_request(&handle, dev_id);
+    assert(BM_SUCCESS == ret);
+    ret = bm_get_board_name(handle, board_name);
+    assert(BM_SUCCESS == ret);
     printf("########################\n");
     printf("board_name: %s\n", board_name);
     printf("########################\n");
@@ -103,7 +105,8 @@ int main(int argc, char* argv[]) {
                     batch_names.push_back(frame_name);
                 }
                 if ((batch_imgs.size() == batch_size || end_flag) && !batch_imgs.empty()){
-                    assert(0 == yolov5.yolov5_detect(batch_imgs, boxes));
+                    auto ret = yolov5.yolov5_detect(batch_imgs, boxes);
+                    assert(0 == ret);
                     for (int j = 0; j < batch_imgs.size(); j++) {
                         for (auto bbox : boxes[j]) {
                             yolov5.yolov5_draw(bbox.class_id, bbox.score, bbox.x, bbox.y, bbox.width + bbox.x,

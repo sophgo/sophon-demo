@@ -124,8 +124,10 @@ int main(int argc, char *argv[]){
     bm_free_device(handle,device_memory);
 
     // 释放bm_image
-    assert(bm_image_destroy(bmimg) == BM_SUCCESS);
-    assert(bm_image_destroy(bmimg_rgb_planar) == BM_SUCCESS);
+    ret = bm_image_destroy(bmimg);
+    assert(ret == BM_SUCCESS);
+    ret = bm_image_destroy(bmimg_rgb_planar);
+    assert(ret == BM_SUCCESS);
 
     // 释放handle
     bm_dev_free(handle);

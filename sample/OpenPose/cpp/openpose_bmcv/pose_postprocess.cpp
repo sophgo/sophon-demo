@@ -213,12 +213,10 @@ void OpenPosePostProcess::kernel_part_nms(
     api.input_c = getNumberBodyParts(model_type);
 
     bm_device_mem_t output_data, output_num;
-    assert(BM_SUCCESS == bm_malloc_device_byte(
-                            handle, &output_data,
-                            sizeof(float) * api.input_c * input_h * input_w));
-    assert(BM_SUCCESS == bm_malloc_device_byte(handle,
-                                                &output_num,
-                                                sizeof(int) * api.input_c));
+    auto ret = bm_malloc_device_byte(handle, &output_data, sizeof(float) * api.input_c * input_h * input_w);
+    assert(BM_SUCCESS == ret);
+    ret = bm_malloc_device_byte(handle, &output_num, sizeof(int) * api.input_c);
+    assert(BM_SUCCESS == ret);
     api.input_data_addr = bm_mem_get_device_addr(input_data);
     api.output_data_addr = bm_mem_get_device_addr(output_data);
     api.num_output_data_addr = bm_mem_get_device_addr(output_num);
@@ -227,9 +225,8 @@ void OpenPosePostProcess::kernel_part_nms(
     api.input_w = input_w;
     api.max_peak_num = max_peak_num;
     api.nms_thresh = threshold;
-
-    assert(BM_SUCCESS == tpu_kernel_launch(handle,
-                                            func_id, &api, sizeof(api)));
+    ret = tpu_kernel_launch(handle, func_id, &api, sizeof(api));
+    assert(BM_SUCCESS == ret);
     bm_thread_sync(handle);
 
     bm_memcpy_d2s_partial(handle, num_result, output_num,

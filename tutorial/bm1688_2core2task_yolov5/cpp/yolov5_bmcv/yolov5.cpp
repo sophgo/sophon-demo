@@ -125,6 +125,7 @@ void YOLOv5::yolov5_draw(int classId, float conf, int left, int top, int right, 
 // 1b or 4b
 int YOLOv5::yolov5_preprocess(std::vector<cv::Mat>& dec_images, std::vector<bm_tensor_t>& input_tensors) {
     // resize需要单图做，但convertto不需要
+    int ret = 0;
     for (int i = 0; i < dec_images.size(); i++) {
         auto dec_image = dec_images[i];
 
@@ -138,10 +139,10 @@ int YOLOv5::yolov5_preprocess(std::vector<cv::Mat>& dec_images, std::vector<bm_t
             stride2[0] = FFALIGN(stride1[0], 64);
             stride2[1] = FFALIGN(stride1[1], 64);
             stride2[2] = FFALIGN(stride1[2], 64);
-            assert(BM_SUCCESS == bm_image_create(m_handle, bmimg.height, bmimg.width, bmimg.image_format, bmimg.data_type, &bmimg_aligned,
-                            stride2));
-
-            assert(BM_SUCCESS == bm_image_alloc_dev_mem(bmimg_aligned, 1));
+            ret = bm_image_create(m_handle, bmimg.height, bmimg.width, bmimg.image_format, bmimg.data_type, &bmimg_aligned, stride2);
+            assert(BM_SUCCESS == ret);
+            ret = bm_image_alloc_dev_mem(bmimg_aligned, 1);
+            assert(BM_SUCCESS == ret);
             bmcv_copy_to_atrr_t copyToAttr;
             memset(&copyToAttr, 0, sizeof(copyToAttr));
             copyToAttr.start_x = 0;
@@ -200,13 +201,14 @@ int YOLOv5::yolov5_preprocess(std::vector<cv::Mat>& dec_images, std::vector<bm_t
     int size_byte = 0;
     bm_device_mem_t tensor_mem;
     bm_image_get_byte_size(converto_bmimgs[0], &size_byte);
-    assert(BM_SUCCESS == bm_malloc_device_byte_heap(m_handle, &tensor_mem, 0, size_byte * m_batch_size));
-
-    assert(BM_SUCCESS == bm_image_attach_contiguous_mem(m_batch_size, converto_bmimgs.data(), tensor_mem));
-
-    assert(BM_SUCCESS == bmcv_image_convert_to(m_handle, m_batch_size, m_converto_attr, m_resized_bmimgs.data(), converto_bmimgs.data()));
-
-    assert(BM_SUCCESS == bm_image_detach_contiguous_mem(m_batch_size, converto_bmimgs.data()));
+    ret = bm_malloc_device_byte_heap(m_handle, &tensor_mem, 0, size_byte * m_batch_size);
+    assert(BM_SUCCESS == ret);
+    ret = bm_image_attach_contiguous_mem(m_batch_size, converto_bmimgs.data(), tensor_mem);
+    assert(BM_SUCCESS == ret);
+    ret = bmcv_image_convert_to(m_handle, m_batch_size, m_converto_attr, m_resized_bmimgs.data(), converto_bmimgs.data());
+    assert(BM_SUCCESS == ret);
+    ret = bm_image_detach_contiguous_mem(m_batch_size, converto_bmimgs.data());
+    assert(BM_SUCCESS == ret);
 
     for (int i = 0; i < m_batch_size; i++) {
         bm_image_destroy(converto_bmimgs[i]);
@@ -223,7 +225,8 @@ int YOLOv5::yolov5_inference(std::vector<bm_tensor_t>& input_tensors, std::vecto
         std::cout << "bmrt_launch_tensor_multi_cores() failed." << std::endl;
         return -1;
     }
-    assert(BM_SUCCESS == bm_thread_sync_from_core(m_handle, m_core_id));
+    auto ret = bm_thread_sync_from_core(m_handle, m_core_id);
+    assert(BM_SUCCESS == ret);
 
     for (auto& input_tensor : input_tensors) {
         bm_free_device(m_handle, input_tensor.device_mem);

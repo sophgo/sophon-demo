@@ -125,7 +125,8 @@ int main(int argc, char* argv[]) {
                     AVFrame* frame_yuv420p = av_frame_alloc(); //for encoder
                     bm_image* bm_image_yuv420p = (bm_image*) malloc(sizeof(bm_image)); // for bmBufferDeviceMemFree
                     memcpy(bm_image_yuv420p, &batch_imgs[i], sizeof(bm_image));
-                    assert(0 == bm_image_to_avframe(handle, bm_image_yuv420p, frame_yuv420p)); //on 1684x, this bmimg must on vpu heap.
+                    ret = bm_image_to_avframe(handle, bm_image_yuv420p, frame_yuv420p);
+                    assert(0 == ret); //on 1684x, this bmimg must on vpu heap.
 
                     if (encoder.isClosed()){
                         ret = encoder.openEnc(output.c_str(), 

@@ -49,7 +49,8 @@ LPRNet::LPRNet(int dev_id, std::string bmodel_path, int pre_thread_num,
 
   // context
   m_ctx = std::make_unique<bmruntime::Context>(dev_id);
-  assert(BM_SUCCESS == m_ctx->load_bmodel(bmodel_path.c_str()));
+  auto ret = m_ctx->load_bmodel(bmodel_path.c_str());
+  assert(BM_SUCCESS == ret);
 
   // network
   std::vector<const char*> net_names;
@@ -65,7 +66,8 @@ LPRNet::LPRNet(int dev_id, std::string bmodel_path, int pre_thread_num,
   seq_len = m_outputs[0]->tensor()->shape.dims[2];
   m_netinfo = m_ctx->get_network_info(net_names[0]);
   struct bm_misc_info misc_info;
-  assert(BM_SUCCESS == bm_get_misc_info(m_handle, &misc_info));
+  ret = bm_get_misc_info(m_handle, &misc_info);
+  assert(BM_SUCCESS == ret);
   is_soc = misc_info.pcie_soc_mode == 1;
 
   // preprocess interval variables
@@ -76,7 +78,7 @@ LPRNet::LPRNet(int dev_id, std::string bmodel_path, int pre_thread_num,
     int aligned_net_w = FFALIGN(m_net_w, 64);
     int strides[3] = {aligned_net_w, aligned_net_w, aligned_net_w};
     for (int j = 0; j < batch_size; j++) {
-      auto ret = bm_image_create(m_handle, m_net_h, m_net_w, FORMAT_BGR_PLANAR,
+      ret = bm_image_create(m_handle, m_net_h, m_net_w, FORMAT_BGR_PLANAR,
                                  DATA_TYPE_EXT_1N_BYTE, &m_resized_imgs[i][j],
                                  strides);
       assert(BM_SUCCESS == ret);
@@ -175,8 +177,8 @@ void LPRNet::preprocess(int process_id) {
     for (int i = 0; i < batch_size; i++)
       bm_image_create(m_handle, m_net_h, m_net_w, FORMAT_BGR_PLANAR, img_dtype,
                       &m_converto_imgs[i]);
-    assert(BM_SUCCESS ==
-           bm_image_alloc_contiguous_mem(batch_size, m_converto_imgs));
+    auto ret = bm_image_alloc_contiguous_mem(batch_size, m_converto_imgs);
+    assert(BM_SUCCESS == ret);
     CV_Assert(0 == bmcv_image_convert_to(m_handle, batch_size, converto_attr,
                                          m_resized_imgs[process_id].data(),
                                          m_converto_imgs));
@@ -190,8 +192,8 @@ void LPRNet::preprocess(int process_id) {
     cur_tensor->bmtensor = std::make_shared<bm_tensor_t>();
     cur_tensor->bmtensor.reset(
         new bm_tensor_t(), [this, m_converto_imgs](bm_tensor_t* p) {
-          assert(BM_SUCCESS == bm_image_free_contiguous_mem(this->batch_size,
-                                                            m_converto_imgs));
+          auto ret = bm_image_free_contiguous_mem(this->batch_size, m_converto_imgs);
+          assert(BM_SUCCESS == ret);
           for (int i = 0; i < this->batch_size; i++)
             bm_image_destroy(m_converto_imgs[i]);
 
@@ -241,8 +243,8 @@ void LPRNet::inference() {
     if (BM_FLOAT32 == m_netinfo->output_dtypes[0]) output_size *= 4;
 
     // malloc output dev mem
-    assert(BM_SUCCESS == bm_malloc_device_byte(
-                             m_handle, &(out_tensor->device_mem), output_size));
+    auto ret = bm_malloc_device_byte(m_handle, &(out_tensor->device_mem), output_size);
+    assert(BM_SUCCESS == ret);
     cur_tensor->bmtensor.reset(out_tensor, [this](bm_tensor_t* p) {
       if (p->device_mem.u.device.device_addr != 0) {
         bm_free_device(this->get_handle(), p->device_mem);
@@ -256,7 +258,8 @@ void LPRNet::inference() {
     m_outputs[0]->set_device_mem(cur_tensor->bmtensor->device_mem);
 
     // forward
-    assert(BM_SUCCESS == m_net->Forward(true));
+    ret = m_net->Forward(true);
+    assert(BM_SUCCESS == ret);
 
     // push data
     m_queue_infer.push_back(cur_tensor);
