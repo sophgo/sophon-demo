@@ -157,19 +157,18 @@ RESNET::~RESNET() {
 int RESNET::post_process(vector<cv::Mat> &images, vector<pair<int, float>> &results) {
   results.clear();
   m_output_tensor = m_bmNetwork->outputTensor(0);
-  output_scale = m_output_tensor->get_scale();
   float* output_data = (float*)m_output_tensor->get_cpu_data();
 
   for(unsigned int batch_idx = 0; batch_idx < images.size(); ++ batch_idx) {
     float exp_sum = 0;
     for (int j = 0; j < class_num; j++) {
-      exp_sum += std::exp(*(output_data + batch_idx * class_num + j) * output_scale);
+      exp_sum += std::exp(*(output_data + batch_idx * class_num + j));
     }
     int max_idx = -1;
     float max_score = -1;
     for (int j = 0; j < class_num; j++) {
       float score = 0;
-      score = std::exp(*(output_data + batch_idx * class_num + j) * output_scale) / exp_sum;
+      score = std::exp(*(output_data + batch_idx * class_num + j)) / exp_sum;
       if (max_score < score) {
         max_score = score;
         max_idx = j;

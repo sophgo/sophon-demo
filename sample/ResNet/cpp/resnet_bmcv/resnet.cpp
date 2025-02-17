@@ -111,21 +111,20 @@ int RESNET::post_process(vector<bm_image> &images, vector<pair<int, float>> &res
   assert(output_num == 1);
   std::shared_ptr<BMNNTensor> outputTensor = m_bmNetwork->outputTensor(output_num - 1);
   float* output_data = (float*)outputTensor->get_cpu_data();
-  auto output_scale = outputTensor->get_scale();
 
   for(unsigned int batch_idx = 0; batch_idx < images.size(); ++ batch_idx)
   {
     float exp_sum = 0;
     for (int j = 0; j < class_num; j++)
     {
-      exp_sum += std::exp(*(output_data + batch_idx * class_num + j) * output_scale);
+      exp_sum += std::exp(*(output_data + batch_idx * class_num + j));
     }
     int max_idx = -1;
     float max_score = -1;
     for (int j = 0; j < class_num; j++)
     {
       float score = 0;
-      score = std::exp(*(output_data + batch_idx * class_num + j) * output_scale) / exp_sum;
+      score = std::exp(*(output_data + batch_idx * class_num + j) ) / exp_sum;
       if (max_score < score)
       {
         max_score = score;
