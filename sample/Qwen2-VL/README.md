@@ -131,7 +131,7 @@ usage: tools/export_onnx_video.py [-h] [-m MODEL_PATH] [-d {cpu,cuda}] [-s SEQ_L
 --model_path: 模型路径或模型名，默认为Qwen/Qwen2-VL-7B-Instruct
 --device: pt模型加载的位置，仅支持cpu、cuda两类，默认为cpu
 --seq_length: LLM的上下文最大长度，默认为512
---vision_seq_length: 视觉输入的最大长度，默认为1024
+--vision_seq_length: 视觉输入的最大长度，默认为1024，**根据经验，该参数需要被设置为--seq_length数值的两倍**
 --num_threads: PyTorch的CPU线程数
 ```
 
@@ -140,6 +140,8 @@ usage: tools/export_onnx_video.py [-h] [-m MODEL_PATH] [-d {cpu,cuda}] [-s SEQ_L
 ```bash
 python3 tools/export_onnx_video.py
 ```
+
+**注意：根据经验，参数`vision_seq_length`往往是`seq_length`两倍**
 
 最终会在`models/onnx/llm`和`models/onnx/vit`两个目录下分别生成LLM和VIT的ONNX模型。
 
@@ -159,7 +161,8 @@ cd scripts
 ./compile.sh --seq_length 512 --vision_seq_length 1024
 ```
 
-其中参数`seq_length`和`vision_seq_length`与ONNX参数对应，需根据实际情况修改。执行完以后最终的BModel会存储在`models/BM1684X/`。
+**注意：其中参数`seq_length`和`vision_seq_length`与ONNX参数对应，需保持一样，请根据实际情况修改。**
+执行完以后最终的BModel会存储在`models/BM1684X/`。
 
 ## 5. 例程测试
 
