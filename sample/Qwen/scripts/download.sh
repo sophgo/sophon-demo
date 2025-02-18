@@ -1,10 +1,4 @@
 #!/bin/bash
-res=$(which unzip)
-if [ $? != 0 ];
-then
-    echo "Please install unzip on your system!"
-    exit
-fi
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 scripts_dir=$(dirname $(readlink -f "$0"))
 
@@ -29,12 +23,10 @@ function download_bm1684x {
         python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/models/qwen2.5-1.5b_int4_seq512_1dev.bmodel
         python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/models/qwen2.5-1.5b_int4_seq1024_1dev.bmodel
     elif [ x"$1" == x"deepseek-r1-distill-qwen2" ]; then
-        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/deepseek-r1-distill-qwen2-1.5b.zip
-        unzip deepseek-r1-distill-qwen2-1.5b.zip
-        rm deepseek-r1-distill-qwen2-1.5b.zip
-        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/deepseek-r1-distill-qwen2-7b.zip
-        unzip deepseek-r1-distill-qwen2-7b.zip
-        rm deepseek-r1-distill-qwen2-7b.zip
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/deepseek-r1-distill-qwen2-1.5b.tar.gz
+        tar xvf deepseek-r1-distill-qwen2-1.5b.tar.gz && rm deepseek-r1-distill-qwen2-1.5b.tar.gz
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/deepseek-r1-distill-qwen2-7b.tar.gz
+        tar xvf deepseek-r1-distill-qwen2-7b.tar.gz && rm deepseek-r1-distill-qwen2-7b.tar.gz
     else
         echo "invalid model name"
     fi
