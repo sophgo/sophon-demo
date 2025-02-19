@@ -32,6 +32,7 @@ Qwen / Qwen1.5/ Qwen2/ Qwen2.5是开源中英双语对话模型，关于它的�
 
 ## 3. 运行环境准备
 在PCIe上无需修改内存，以下为soc模式相关：
+本例程对应的模型都较小，不用修改内存分布，如遇到设备内存不够的情况，请参考以下说明修改内存分布，并注意留出足够的CPU内存（大约1.7G）。
 对于1684X系列设备（如SE7/SM7）和1688/cv186系列设备（SE9-16的8G/16G版本和SE9-8的8G版本）都可以通过这种方式完成环境准备，使得满足Qwen运行条件。参考如下命令修改设备内存。
 ```bash
 cd /data/
@@ -44,12 +45,12 @@ cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息
 
 #如果是1684x系列设备，执行以下命令
-./memory_edit.sh -c -npu 7615 -vpu 3072 -vpp 3072 #npu也可以访问vpu和vpp的内存
+./memory_edit.sh -c -npu 5120 -vpu 3072 -vpp 3072 #npu也可以访问vpu和vpp的内存
 sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/emmcboot.itb /boot/emmcboot.itb && sync
 sudo reboot
 
 #如果是se9-16设备或se9-8 8G版本设备，执行以下命令
-./memory_edit.sh -c -npu 6800 -vpu 0 -vpp 40 #npu也可以访问vpu和vpp的内存
+./memory_edit.sh -c -npu 5120 -vpu 0 -vpp 40 #npu也可以访问vpu和vpp的内存
 sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/boot.itb /boot/boot.itb && sync
 sudo reboot
 
