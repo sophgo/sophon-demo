@@ -90,8 +90,13 @@ def tokenizer_image_token(prompt, tokenizer, image_token_index=-200, lstrip=Fals
 
 class Vila:
     def __init__(self, video_path, llm_bmodel_path, vision_bmodel_path, dev_id) -> None:
-        self.model = sail.EngineLLM(llm_bmodel_path, [dev_id])
-        self.vision_model = sail.EngineLLM(vision_bmodel_path, [dev_id])
+        self.target = sail.Handle(dev_id).get_target()
+        if self.target in ["BM1688", "CV186AH"]:
+            self.model = sail.EngineLLM(llm_bmodel_path, sail.BmrtFlag.BM_RUNTIME_SHARE_MEM, [dev_id])
+            self.vision_model = sail.EngineLLM(vision_bmodel_path, sail.BmrtFlag.BM_RUNTIME_SHARE_MEM, [dev_id])
+        else:
+            self.model = sail.EngineLLM(llm_bmodel_path, [dev_id])
+            self.vision_model = sail.EngineLLM(vision_bmodel_path, [dev_id])
         self.handle = sail.Handle(dev_id)
         image_processor = SiglipImageProcessor.from_pretrained("./python/config/image_processer")
         self.tokenizer = AutoTokenizer.from_pretrained("./python/config/llm_token")
