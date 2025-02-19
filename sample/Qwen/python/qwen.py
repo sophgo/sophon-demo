@@ -28,7 +28,7 @@ class Qwen:
         self.handles = {dev: sail.Handle(dev) for dev in self.dev_ids}
         self.target = sail.Handle(self.dev_ids[0]).get_target()
 
-        if self.target == "BM1688":
+        if self.target in ["BM1688", "CV186AH"]:
             self.model = sail.EngineLLM(bmodel_path, sail.BmrtFlag.BM_RUNTIME_SHARE_MEM,self.dev_ids)
         else:
             self.model = sail.EngineLLM(bmodel_path, self.dev_ids)
