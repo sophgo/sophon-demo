@@ -243,6 +243,7 @@ class StableDiffusion3Pipeline:
                 shared_memories_names.append(shm.name)
             self.event_start = multiprocessing.Event()
             self.event_done = multiprocessing.Event()
+            self.exit_event = multiprocessing.Event()
             self.process_child = multiprocessing.Process(target=self.child_process, args=(transformer_path, shared_memories_names))
             self.process_child.start()
             for idx in range(len(shared_memories)):
@@ -258,12 +259,8 @@ class StableDiffusion3Pipeline:
     
     def child_process(self, transformer_path, shm_names):
         def handle_termination_signal(sig, frame):
-            if hasattr(self, f"transformer_on_dev{self.device_ids[1]}"):
-                delattr(self, f"transformer_on_dev{self.device_ids[1]}")
-            for idx in range(len(shm_names)):
-                getattr(self, f"shared_mem{idx}").close()
-            gc.collect()
-            sys.exit()
+            self.exit_event.set()
+            sys.exit(0)
 
         signal.signal(signal.SIGTERM, handle_termination_signal)
         setattr(self, f"transformer_on_dev{self.device_ids[1]}", sail.nn.Engine(transformer_path, self.device_ids[1]))
@@ -274,6 +271,8 @@ class StableDiffusion3Pipeline:
             while True:
                 self.event_start.wait()
                 self.event_start.clear()
+                if self.exit_event.is_set():
+                    break
                 shared_data = []
                 for idx in range(len(shm_names)):
                     shared_data.append(torch.from_numpy(np.ndarray(self.shared_data_shapes[idx], self.shared_data_dtypes[idx], getattr(self, f"shared_mem{idx}").buf)))
@@ -285,6 +284,8 @@ class StableDiffusion3Pipeline:
         finally:
             if hasattr(self, f"transformer_on_dev{self.device_ids[1]}"):
                 delattr(self, f"transformer_on_dev{self.device_ids[1]}")
+            for idx in range(len(shm_names)):
+                getattr(self, f"shared_mem{idx}").close()
             gc.collect()
 
     def _get_t5_prompt_embeds(
@@ -1091,6 +1092,8 @@ class StableDiffusion3Pipeline:
     def __del__(self):
         if hasattr(self, "process_child"):
             if self.process_child.is_alive():
+                self.event_start.set()
+                self.exit_event.set()
                 self.process_child.terminate()
                 self.process_child.join(timeout=3)
         try:

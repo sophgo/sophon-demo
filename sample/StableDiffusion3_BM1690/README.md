@@ -23,7 +23,7 @@
 
 ## 2. 环境准备
 
-从SDK目录里获取sophon-sail压缩包，根据README自行编译，或者按照python版本选择安装已经编译好的whl文件。
+从SDK目录里获取sophon-sail压缩包，根据README自行编译，或者按照python版本（**注意，请使用python3.10+版本，避免torch, networkx等库的冲突**）选择安装已经编译好的whl文件。
 
 *`注意：如果已经安装过适配BM1690的sophon-sail，并且已有基于BM1690的模型可以跳过此步骤`*
 

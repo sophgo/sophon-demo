@@ -12,6 +12,7 @@ import logging as log
 import os
 import random
 import signal
+import sys
 import time
 
 import gradio as gr
@@ -19,9 +20,24 @@ import numpy as np
 import torch
 from stable_diffusion3_pipeline import StableDiffusion3Pipeline
 
+pipeline = None
+web_demo = None
+
 def signal_handler(sig, frame):
-    demo.close()
-    exit(0)
+    global pipeline
+    global web_demo
+    try:
+        if pipeline is not None:
+            pipeline.__del__()
+            pipeline = None
+    except NameError:
+        print("pipeline is not defined or has been cleaned.")
+    try:
+        if web_demo is not None:
+            web_demo.close()
+    except NameError:
+        print("web_demo is not defined or has been cleaned.")
+    sys.exit(0)
 
 def load_pipeline(args):
     pipeline = StableDiffusion3Pipeline()
@@ -78,9 +94,13 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
+    if len(args.dev_ids) == 2:
+        import multiprocessing
+        multiprocessing.set_start_method('spawn')
+
     pipeline = load_pipeline(args)
 
-    with gr.Blocks() as demo:
+    with gr.Blocks() as web_demo:
         gr.Markdown(f"# SD3.0 Image Generation Demo - Model: stable-diffusion-3-medium")
 
         with gr.Row():
@@ -104,4 +124,4 @@ if __name__ == "__main__":
             inputs=[prompt, negative_prompt, num_steps, guidance, seed],
             outputs=[output_image, download_btn],
         )
-    demo.launch(server_name="0.0.0.0")
+    web_demo.launch(server_name="0.0.0.0")
