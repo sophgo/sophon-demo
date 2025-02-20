@@ -19,6 +19,8 @@ function gen_mlir()
         onnx_path=../models/onnx/yolov9-s-converted.onnx
     elif test $model_name = "yolov11s"; then
         onnx_path=../models/onnx/yolo11s.onnx
+    elif test $model_name = "yolov12s"; then
+        onnx_path=../models/onnx/yolov12s.onnx
     fi
     model_transform.py \
         --model_name ${model_name} \
@@ -103,6 +105,16 @@ gen_int8bmodel 4
 
 # batch_size=1
 model_name=yolov11s
+gen_mlir 1
+gen_cali_table 1
+gen_int8bmodel 1
+
+# batch_size=4
+gen_mlir 4
+gen_int8bmodel 4
+
+# batch_size=1
+model_name=yolov12s
 gen_mlir 1
 gen_cali_table 1
 gen_int8bmodel 1
