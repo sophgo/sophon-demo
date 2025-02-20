@@ -1,0 +1,4 @@
+title: llama2-7b
+bmodel_path: ../models/BM1684X/llama_w4f16_seq512_20250121_171104/llama_w4f16_seq512_20250121_171104.bmodel
+token_path: ../models/BM1684X/llama_w4f16_seq512_20250121_171104/tokenizer
+dev_ids: 0
