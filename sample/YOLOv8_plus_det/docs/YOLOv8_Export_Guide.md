@@ -73,3 +73,30 @@ python3 export.py --weights yolov9-s-converted.pt --dynamic --include onnx
 ```
 
 上述脚本会在原始pt模型所在目录下生成导出的onnx模型`yolov9-s-converted.onnx`。
+
+# YOL0v12模型导出
+## 1. 准备工作
+YOLOv12模型导出是在Pytorch模型的生产环境下进行的，需提前根据[​YOLOv12官方开源仓库](https://github.com/sunsmarterjie/yolov12)的要求安装好Pytorch环境，准备好相应的代码和模型，并保证模型能够在Pytorch环境下正常推理运行。请先从官方主页下载`yolov12s.pt`模型。
+
+找到这个文件：`yolov12/ultralytics/nn/tasks.py`。
+找到这个函数：
+```python
+def _predict_once(self, x, profile=False, visualize=False, embed=None):
+    ...
+    return x
+```
+修改返回值，加一个transpose操作，这样更有利于cpu后处理连续取数。将`return x`修改为：
+```python
+    return x.permute(0, 2, 1)
+```
+
+## 2. 导出onnx模型
+如果使用tpu-mlir编译模型，则必须先将Pytorch模型导出为onnx模型。YOL0v12官方仓库提供了模型导出接口，可以直接使用它导出onnx模型：
+请在yolov12仓库文件夹内执行以下python代码
+```python
+from ultralytics import YOLO
+model = YOLO("yolov12s.pt")
+model.export(format="onnx", batch=1, opset=12, dynamic=True)
+```
+
+上述脚本会在原始pt模型所在目录下生成导出的`yolov12s.onnx`等模型。
