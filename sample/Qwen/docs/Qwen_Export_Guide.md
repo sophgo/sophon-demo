@@ -39,6 +39,9 @@ newgrp docker​
 pip3 install dfss --upgrade
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/tpu-mlir_v1.10.beta.0-31-g896b42e8c-20240809.tar.gz
 tar -xf tpu-mlir_v1.10.beta.0-31-g896b42e8c-20240809.tar.gz
+#1684X导出Deepseek-R1-Distill-Qwen专用
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/tpu-mlir_v1.14.beta.0-25-gbca81b22c-20250107.tar.gz
+tar -xf tpu-mlir_v1.14.beta.0-25-gbca81b22c-20250107.tar.gz
 ```
 
 ### 2.1.3. 创建并进入docker
@@ -63,17 +66,20 @@ source ./envsetup.sh
 **注：** 
 - Qwen1.5-1.8B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
 - Qwen1.5-7B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
+- Deepseek-R1-Distill-Qwen-1.5B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
+- Deepseek-R1-Distill-Qwen-7B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
 
 
 ```bash
 git lfs install
 git clone https://huggingface.co/Qwen/Qwen1.5-7B-Chat
 git clone https://huggingface.co/Qwen/Qwen1.5-1.8B-Chat
-
+git clone https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+git clone https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
 ```
 如果git clone完代码之后出现卡住，可以尝试`ctrl+c`中断，然后进入仓库运行`git lfs pull`。
 
-### 2.1.2 修改官方代码：
+### 2.2.2 修改官方代码：
 本例程的`tools`目录下提供了修改好之后的`config.json`和`modeling_qwen.py`。可以直接替换掉原仓库的文件：
 
 Qwen
@@ -108,7 +114,14 @@ pip install transformers_stream_generator einops tiktoken accelerate torch==2.0.
 cp tools/Qwen2.5-7B-Instruct/modeling_qwen2.py /usr/local/lib/python3.10/dist-packages/transformers/models/qwen2/
 ```
 
-### 2.1.3 导出onnx
+Deepseek-R1-Distill-Qwen-1.5B/7B (BM1684X，BM1688都需要)
+```bash
+pip install transformers_stream_generator einops tiktoken accelerate torch==2.0.1+cpu torchvision==0.15.2 transformers==4.45.2
+cp tools/DeepSeek_R1_Distill_Qwen2.5-1.5B-Instruct/modeling_qwen2.py /usr/local/lib/python3.10/dist-packages/transformers/models/qwen2/
+```
+
+
+### 2.2.3 导出onnx
 
 - 导出所有onnx模型，如果过程中提示缺少某些组件，直接**pip install**组件即可
 
@@ -148,9 +161,16 @@ Qwen2.5
 python3 tools/export_onnx_qwen2_5.py --model_path /workspace/Qwen2.5-7B-Instruct --seq_length 512 
 
 ```
+
+Deepseek-R1-Distill-Qwen-1.5B(BM1688，[参考地址](https://github.com/sophgo/LLM-TPU_Lite/tree/main/models/DeepseekR1Distill))
+```bash
+# bm1688 单芯
+python3 tools/export_onnx_DeepSeek_R1_Distill_qwen2_5_BM1688.py --model_path /workspace/DeepSeek-R1-Distill-Qwen-1.5B --seq_length 1024 --lmhead_with_topk 1
+```
+
 此时有大量onnx模型被导出到本例程中`Qwen/models/onnx`的目录。
 
-### 2.2 bmodel编译
+### 2.3 bmodel编译
 首先需要在mlir工具下激活环境，[mlir下载地址可参考](./Qwen_Export_Guide.md/#212-下载并解压tpu-mlir)
 ```bash
 cd tpu-mlir_v1.10.beta.0-31-g896b42e8c-20240809
@@ -195,4 +215,19 @@ Qwen2.5
 # bm1684x 单芯
 ./scripts/gen_bmodel.sh --target bm1684x --mode int4 --name qwen2.5-7b --seq_length 512 --addr_mode io_alone
 ```
+
+Deepseek-R1-Distill-Qwen-1.5B(BM1688，[参考地址](https://github.com/sophgo/LLM-TPU_Lite/tree/main/models/DeepseekR1Distill))
+```bash
+# bm1688 单芯
+./scripts/gen_bmodel_deepseek_r1_distill_qwen_1_5b.sh --name qwen2.5-1.5b --seq_length 1024 --mode int4 --addr_mode io_alone
+```
+
 其中，mode可以指定bf16/int8/int4，编译成功之后，BM1684X模型将会存放在`models/BM1684X`目录下，BM1688模型将会存放在`models/BM1688`目录下，CV186X模型将会存放在`models/CV186X`目录下。
+
+### 2.3.1 BM1684X编译 Deepseek-R1-Distill-Qwen bmodel
+```bash
+# bm1684x 单芯
+# 请注意1684X导出Deepseek-R1-Distill-Qwen bmodel仅需要运行该脚本，无需转onnx，请使用2.1.3中专用版本tpu-mlir
+python tools/model_export_BM1684X_DS_qwen.py --quantize w4bf16 --tpu_mlir_path /workspace/tpu-mlir/ --torch_path /workspace/models/Qwen2-**-Instruct --seq_length 1440  --out_dir qwen2_vl_2b_s1440_v576_bca81b22c3
+```
+其中，tpu_mlir_path指定tpu-mlir地址，编译成功之后，BM1684X模型将会存放在torch_path指定目录下，该目录下还会存在onnx和bmodel两个中间文件夹可以删除。
