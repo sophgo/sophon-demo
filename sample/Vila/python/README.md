@@ -60,13 +60,12 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/vila/sophon_arm-3.9.0-py3-none
 
 如果whl包无法使用，也可以参考上一小节，下载源码自己编译。
 
-> **注:**
->
-> 上述命令安装的opencv是公版opencv，如果您希望使用sophon-opencv，可以设置如下环境变量：
-> ```bash
-> export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
-> ```
-> **若使用sophon-opencv需要保证python版本小于等于3.8。**
+**注:**
+上述命令安装的opencv是公版opencv，如果您希望使用sophon-opencv，可以设置如下环境变量：
+```bash
+export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
+```
+**若使用sophon-opencv需要保证python版本小于等于3.8。**
 
 ## 2. 推理测试
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
@@ -80,13 +79,18 @@ vila1.5模型有vision_embedding和LLM模块，其中vision_embedding模块负�
 usage: vila.py [--llm LLM_BMODEL] [--vision VISION_BMODEL] [--video VIDEO] [--dev_id DEV_ID]
 --llm: 用于推理的llm bmodel路径；
 --vision: 用于推理的vision_embedding bmodel路径；
---video: 视频路径
+--video: 视频路径；
+--image：图片路径；
 --dev_id: 用于推理的tpu设备id；
 ```
 ### 2.2 使用方式
 必须在Vila目录下执行程序
 ```bash
+#测试视频
 python3 python/vila.py --llm ./models/BM1684X/llama_int4_seq2560.bmodel --vision ./models/BM1684X/vision_embedding_6batch.bmodel --video datasets/test_car_person_1080P.mp4 --dev_id 0
+#测试图片
+python3 python/vila.py --llm ./models/BM1684X/llama_int4_seq2560.bmodel --vision ./models/BM1684X/vision_embedding_6batch.bmodel --image pics/demo.jpg --dev_id 0
 ```
 在Question for this video: 处进行提问，例如：Please describe this video。
+在Question for this image: 处进行提问，例如：what happen?
 
