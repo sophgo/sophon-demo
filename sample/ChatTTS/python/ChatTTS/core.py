@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 import tempfile
 from dataclasses import dataclass, asdict
@@ -127,10 +128,29 @@ class Chat:
         use_decoder=True,
         do_text_normalization=True,
         do_homophone_replacement=True,
+        split_text=True,
+        max_split_batch=1,
         params_refine_text=RefineTextParams(),
         params_infer_code=InferCodeParams(),
     ):
         self.context.set(False)
+        if split_text and isinstance(text, str):
+            if "\n" in text:
+                text = text.split("\n")
+            else:
+                text = re.split(r"(?<=。)|(?<=\.\s)", text)
+                nt = []
+                if isinstance(text, list):
+                    for t in text:
+                        if t:
+                            nt.append(t)
+                    text = nt
+                else:
+                    text = [text]
+            self.logger.info("split text into %d parts", len(text))
+            self.logger.debug("%s", str(text))
+        if len(text) == 0:
+            return []
         res_gen = self._infer(
             text,
             stream,
@@ -140,11 +160,21 @@ class Chat:
             use_decoder,
             do_text_normalization,
             do_homophone_replacement,
+            split_text,
+            max_split_batch,
             params_refine_text,
             params_infer_code,
         )
         if stream:
             return res_gen
+        elif not refine_text_only:
+            stripped_wavs = []
+            for wavs in res_gen:
+                for wav in wavs:
+                    stripped_wavs.append(wav[np.abs(wav) > 1e-5])
+            if split_text:
+                return [np.concatenate(stripped_wavs)]
+            return stripped_wavs
         else:
             return next(res_gen)
 
@@ -219,6 +249,8 @@ class Chat:
         use_decoder=True,
         do_text_normalization=True,
         do_homophone_replacement=True,
+        split_text=True,
+        max_split_batch=1,
         params_refine_text=RefineTextParams(),
         params_infer_code=InferCodeParams(),
     ):
@@ -243,49 +275,92 @@ class Chat:
         self.logger.debug("normed texts %s", str(text))
 
         if not skip_refine_text:
-            refined = self._refine_text(
-                text,
-                params_refine_text,
-            )
-            text_tokens = refined.ids
-            text_tokens = [i[i.less(self.tokenizer.convert_tokens_to_ids('[break_0]'))] for i in text_tokens]
-            text = self.tokenizer.batch_decode(text_tokens)
-            refined.destroy()
+            for text_ in text:
+                refined = self._refine_text(
+                    text_,
+                    params_refine_text,
+                )
+                text_tokens = refined.ids
+                text_tokens = [i[i.less(self.tokenizer.convert_tokens_to_ids('[break_0]'))] for i in text_tokens]
+                text_  = self.tokenizer.batch_decode(text_tokens)
+                refined.destroy()
             if refine_text_only:
+                if split_text and isinstance(text, list):
+                    text = "\n".join(text)
                 yield text
                 return
-        print(text)
-
-        if stream:
-            length = 0
-            pass_batch_count = 0
-        for result in self._infer_code(
-            text,
-            stream,
-            use_decoder,
-            params_infer_code,
-        ):
+        if split_text and len(text) > 1 and params_infer_code.spk_smp is None:
+            refer_text = text[0]
+            result = next(
+                self._infer_code(
+                    refer_text,
+                    False,
+                    use_decoder,
+                    params_infer_code,
+                )
+            )
             wavs = self._decode_to_wavs(
                 result.hiddens if use_decoder else result.ids,
                 use_decoder,
             )
             result.destroy()
+            assert len(wavs), 1
+            params_infer_code.spk_smp = self.sample_audio_speaker(wavs[0])
+            params_infer_code.txt_smp = ''
+        
+        
+        if stream:
+            length = 0
+            pass_batch_count = 0
+        if split_text:
+            n = len(text) // max_split_batch
+            if len(text) % max_split_batch:
+                n += 1
+        else:
+            n = 1
+            max_split_batch = len(text)
+        for i in range(n):
             if stream:
-                pass_batch_count += 1
-                if pass_batch_count <= params_infer_code.pass_first_n_batches:
-                    continue
-                a = length
-                b = a + params_infer_code.stream_speed
-                if b > wavs.shape[1]:
-                    b = wavs.shape[1]
-                new_wavs = wavs[:, a:b]
-                length = b
-                yield new_wavs
-            else:
-                yield wavs
-        if stream and length < wavs.shape[1]:
-            new_wavs = wavs[:, length:]
-            yield new_wavs
+                length =0
+                pass_batch_count =0
+            text_remain = text[i * max_split_batch :]
+            
+            if len(text_remain) > max_split_batch:
+                text_remain = text_remain[:max_split_batch]
+            if split_text:
+                self.logger.info(
+                    "infer split %d~%d",
+                    i * max_split_batch,
+                    i * max_split_batch + len(text_remain),
+                )
+            for result in self._infer_code(
+                text_remain,
+                stream,
+                use_decoder,
+                params_infer_code,
+            ):
+                wavs = self._decode_to_wavs(
+                    result.hiddens if use_decoder else result.ids,
+                    use_decoder,
+                )
+                result.destroy()
+                if stream:
+                    pass_batch_count += 1
+                    if pass_batch_count <= params_infer_code.pass_first_n_batches:
+                        continue
+                    a = length
+                    b = a + params_infer_code.stream_speed
+                    if b > wavs.shape[1]:
+                        b = wavs.shape[1]
+                    new_wavs = wavs[:, a:b]
+                    length = b
+                    yield new_wavs
+                else:
+                    yield wavs
+            if stream:
+                new_wavs = wavs[:, length:]
+                keep_cols = np.sum(np.abs(new_wavs).numpy() > 1e-5, axis=0) > 0
+                yield new_wavs[:][:, keep_cols]
 
     @torch.inference_mode()
     def _vocos_decode(self, spec: torch.Tensor) -> np.ndarray:
