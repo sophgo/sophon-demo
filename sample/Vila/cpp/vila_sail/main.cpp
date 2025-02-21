@@ -62,6 +62,27 @@ void opencv_extract_frames(std::vector<cv::Mat>& images, std::string video_file,
   vidcap.release();
 }
 
+void load_image_as_rgb(std::vector<cv::Mat>& images, const std::string& img_file, int num_frames) {
+    // 读取图像，默认以 BGR 格式读取
+    cv::Mat image_bgr = cv::imread(img_file);
+
+    // 检查图像是否成功读取
+    if (image_bgr.empty()) {
+        std::cerr << "无法读取图像，请检查文件路径或文件格式。" << img_file << std::endl;
+        return; // 读取失败，直接返回
+    }
+
+    // 将 BGR 图像转换为 RGB
+    cv::Mat image_rgb;
+    cv::cvtColor(image_bgr, image_rgb, cv::COLOR_BGR2RGB);
+
+    // 将 RGB 图像添加到 images 向量中
+    images.clear(); // 清空之前的内容
+    for (int i = 0; i < num_frames; ++i) {
+        images.push_back(image_rgb.clone()); // 克隆图像以避免共享同一内存
+    }
+}
+
 int main(int argc, char* argv[]) {
     cout.setf(ios::fixed);
     // get params
@@ -69,6 +90,7 @@ int main(int argc, char* argv[]) {
         "{llm | ../../models/BM1684X/llama_int4_seq2560.bmodel | path of llm model}"
         "{vision | ../../models/BM1684X/vision_embedding_1batch.bmodel | path of vision_embedding model}"
         "{video | ../../datasets/test_car_person_1080P.mp4 | path of video}"
+        "{image | NO | path of video}"
         "{num_input_frames | 6 | the number of sampled frames to infer}"
         "{tokenizer_path | ../../python/config/llm_token/tokenizer.model | path of tokenizer config}"
         "{dev_id | 0 | TPU device id}"
@@ -81,6 +103,7 @@ int main(int argc, char* argv[]) {
     std::string llm_bmodel_file = parser.get<std::string>("llm");
     std::string vision_bmodel_file = parser.get<std::string>("vision");
     std::string input = parser.get<std::string>("video");
+    std::string input_img = parser.get<std::string>("image");
     int num_input_frames = parser.get<int>("num_input_frames");
     std::string tokenizer_path = parser.get<std::string>("tokenizer_path");
     int dev_id = parser.get<int>("dev_id");
@@ -97,8 +120,8 @@ int main(int argc, char* argv[]) {
         std::cout << "Cannot find valid model file: " << vision_bmodel_file << std::endl;
         exit(1);
     }
-    if (stat(input.c_str(), &info) != 0) {
-        std::cout << "Cannot find valid input file: " << input << std::endl;
+    if (stat(input.c_str(), &info) != 0 && stat(input_img.c_str(), &info) != 0) {
+        std::cout << "Cannot find valid input file: " << input << " and " << input_img << " Provide at least one file. " << std::endl;
         exit(1);
     }
 
@@ -107,14 +130,23 @@ int main(int argc, char* argv[]) {
 
     // read video
     std::vector<cv::Mat> images;
-    opencv_extract_frames(images, input, num_input_frames, dev_id);
+    if (input_img == "NO") {
+      opencv_extract_frames(images, input, num_input_frames, dev_id);
+    }else{
+      load_image_as_rgb(images, input_img, num_input_frames);
+    }
 
     // get vision feat
     std::vector<std::map<int, std::shared_ptr<sail::Tensor>>> vision_feat;
     vila.vision_process(vision_feat, images);
 
     while (true) {
-        std::cout << "\nQuestion for this video: ";
+        if (input_img == "NO") {
+          std::cout << "\nQuestion for this video: ";
+        }else{
+          std::cout << "\nQuestion for this image: ";
+        }
+
         std::string input_str;
         std::getline(std::cin, input_str);
         if (input_str == "exit")

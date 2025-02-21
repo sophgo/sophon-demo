@@ -16,6 +16,7 @@ import time
 import argparse
 
 def opencv_extract_frames(video_file, num_frames):
+    print(num_frames)
     vidcap = cv2.VideoCapture(video_file)
     fps = vidcap.get(cv2.CAP_PROP_FPS)
     frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -44,6 +45,7 @@ def opencv_extract_frames(video_file, num_frames):
             count += 1
         else:
             # Left padding frames if the video is not long enough
+            # 视频长度不够这里有补帧处理嘛？ 依靠video读取完毕出循环？ 后续没有return ，这会报错吧
             success, frame = vidcap.read()
             if success:
                 try:
@@ -55,6 +57,26 @@ def opencv_extract_frames(video_file, num_frames):
                 count += 1
             else:
                 break
+
+def load_image_as_rgb(image_path, num_frames):
+    # 读取图像，默认以 BGR 格式读取
+    image_bgr = cv2.imread(image_path)
+
+    # 检查图像是否成功读取
+    if image_bgr is None:
+        print("无法读取图像，请检查文件路径或文件格式。")
+        return None
+
+    # 将 BGR 图像转换为 RGB
+    image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+
+    # 将 NumPy 数组转换为 PIL 图像对象
+    image_pil = Image.fromarray(image_rgb)
+    
+    #匹配数量维度
+    images = [image_pil]*num_frames
+
+    return images, num_frames
 
 def process_images(images, image_processor):
     new_images = []
@@ -89,7 +111,7 @@ def tokenizer_image_token(prompt, tokenizer, image_token_index=-200, lstrip=Fals
     return input_ids
 
 class Vila:
-    def __init__(self, video_path, llm_bmodel_path, vision_bmodel_path, dev_id) -> None:
+    def __init__(self, video_path, image_path, llm_bmodel_path, vision_bmodel_path, dev_id) -> None:
         self.target = sail.Handle(dev_id).get_target()
         if self.target in ["BM1688", "CV186AH"]:
             self.model = sail.EngineLLM(llm_bmodel_path, sail.BmrtFlag.BM_RUNTIME_SHARE_MEM, [dev_id])
@@ -113,10 +135,17 @@ class Vila:
         self.input_tensors[self.name_vision_embed] = self.vision_model.create_max_input_tensors(self.name_vision_embed)
         self.output_tensors[self.name_vision_embed] = self.vision_model.create_max_output_tensors(self.name_vision_embed)
         self.num_frames, self.vision_token_length, _ = self.output_tensors[self.name_vision_embed][0].shape()
-        start = time.time()
-        images, _ = opencv_extract_frames(video_path, self.num_frames)
-        end = time.time()
-        print(f"opencv_extract_frames cost: {end -  start}")
+        if image_path == 'NO':
+            start = time.time()
+            images, _ = opencv_extract_frames(video_path, self.num_frames)
+            end = time.time()
+            print(f"opencv_extract_frames cost: {end -  start}")
+        else:
+            start = time.time()
+            images, _ = load_image_as_rgb(image_path, self.num_frames)
+            end = time.time()
+            print(f"load_image_as_rgb: {end -  start}")
+
         images_np = process_images(images, image_processor).astype(np.float16)
         self.input_tensors[self.name_vision_embed][0].update_data(images_np.view(np.uint16))
         vision_start = time.time()
@@ -268,6 +297,7 @@ def argsparser():
     parser.add_argument('--llm', type=str, default='./models/BM1684X/llama_int4_seq512.bmodel', help='path of llm model')
     parser.add_argument('--vision', type=str, default='./models/BM1684X/vision_embedding_1batch.bmodel', help='path of vision_embedding model')
     parser.add_argument('--video', type=str, default='./demo.mp4', help='path of video')
+    parser.add_argument('--image',type=str, default='NO', help='path of image')
     parser.add_argument('--dev_id', type=int, default=0, help='tpu id')
     args = parser.parse_args()
     return args
@@ -275,9 +305,13 @@ def argsparser():
 
 if __name__ == "__main__":
     args = argsparser()
-    vila = Vila(args.video, args.llm, args.vision, args.dev_id)
+    vila = Vila(args.video, args.image, args.llm, args.vision, args.dev_id)
     while True:
-        input_str = input("\nQuestion for this video: ")
+        if args.image == 'NO':
+            input_str = input("\nQuestion for this video: ")
+        else: 
+            input_str = input("\nQuestion for this image: ")
+
         if input_str == "exit":
             break
         print("\nAnswer: ", end = '')
@@ -291,12 +325,12 @@ if __name__ == "__main__":
         token_num = 0
         start = time.time()
         ftl = start - first_start
+
         while(token != 2):
             token_num += 1
             print(vila.tokenizer.decode([29871, token]), end="", flush=True)
-            token = vila.forward_next()        
+            token = vila.forward_next()
 
         end = time.time()
         print(f"\nftl: {ftl}")
         print(f"\ntps: {token_num / (end - start)}")
-
