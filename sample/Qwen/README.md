@@ -15,7 +15,7 @@
 ## 1. 简介
 Qwen / Qwen1.5/ Qwen2/ Qwen2.5是开源中英双语对话模型，关于它的特性，请前往源repo查看：[Qwen](https://huggingface.co/Qwen)。 本例程对Qwen / Qwen1.5/ Qwen2/ Qwen2.5进行移植，使之能在SOPHON BM1684X、BM1688/CV186X（仅限Qwen1.5 1.8b、Qwen2.5 1.5b）上进行推理测试。
 
-本例程还支持DeepSeek-R1-Distill-Qwen-1.5B/ DeepSeek-R1-Distill-Qwen-7B，关于它的特性，请前往源repo查看：[DeepSeek-R1-Distill-Qwen-1.5B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B)，[DeepSeek-R1-Distill-Qwen-7B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B)。本例程对这些模型进行移植，使之能在SOPHON BM1684X上进行推理测试。
+本例程还支持DeepSeek-R1-Distill-Qwen-1.5B/ DeepSeek-R1-Distill-Qwen-7B，关于它的特性，请前往源repo查看：[DeepSeek-R1-Distill-Qwen-1.5B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B)，[DeepSeek-R1-Distill-Qwen-7B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B)。本例程对这些模型进行移植，使之能在SOPHON BM1684X、BM1688/CV186X上进行推理测试。
 
 对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86/riscv主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
@@ -82,13 +82,13 @@ sudo reboot
 # qwen2.5 1684x
 ./scripts/download.sh qwen2.5
 
-# deepseek-r1-distill-qwen2
+# deepseek-r1-distill-qwen2 1684x
 ./scripts/download.sh deepseek-r1-distill-qwen2
 
-# bm1688
+# Include all bm1688 models
 ./scripts/download.sh bm1688
 
-# cv186x
+# Include all cv186x models
 ./scripts/download.sh cv186x
 
 ```
@@ -107,7 +107,10 @@ sudo reboot
 │   └── CV186X                    #download.sh下载的cv186x bmodel
 │       └── qwen1.5-xxx.bmodel
 │   └── BM1688                    #download.sh下载的bm1688 bmodel
-│       └── qwen1.5-xxx.bmodel
+│       ├── qwen1.5-xxx.bmodel
+│       ├── qwen2.5-xxx.bmodel
+│       ├── deepseek-r1-distill-qwen-1.5b
+│       └── deepseek-r1-distill-qwen-7b
 ├── python
 │   ├── qwen.py                     #Qwen python推理脚本
 │   ├── web_demo.py                 # web demo
@@ -124,8 +127,10 @@ sudo reboot
 │       ├── tokenizer_config.json
 │       └── qwen.tiktoken 
 ├── README.md                       #Qwen例程指南
-├── scripts                         
+├── scripts
 │   ├── download.sh                 #下载脚本
+│   ├── gen_bmodel_qwen2_parallel.sh  #模型编译脚本                         
+│   ├── gen_bmodel_deepseek_r1_distill_qwen_1_5b.sh  #模型编译脚本
 │   └── gen_bmodel.sh               #模型编译脚本
 └── tools
     ├── Qwen-xx-Chat                #修改过的Qwen源码
@@ -138,11 +143,15 @@ sudo reboot
     │   ├── config.json
     │   └── modeling_qwen.py
     ├── Qwen2.5-xx-Instruct              #修改过的Qwen2.5源码
+    ├── DeepSeek_R1_Distill_Qwen2.5-1.5B-Instruct    #修改过的DS Qwen2.5源码
+    │   └── modeling_qwen2.py            
     └── export_onnx_qwen.py              #Qwen导出onnx脚本。
     └── export_onnx_qwen1_5.py           #Qwen1.5导出onnx脚本。
     └── export_onnx_qwen2.py             #Qwen2导出onnx脚本。
     └── export_onnx_qwen2_5.py           #Qwen2.5导出onnx脚本。
     └── export_onnx_qwen2_parallel.py    #Qwen2导出多芯onnx脚本。
+    └── model_export_BM1684X_DS_qwen.py  #BM1684X deepseek-r1-distill-qwen2直接导出bmodel脚本
+    └── export_onnx_deepseek_r1_sidtill_qwen2_BM1688.py           #BM1688 deepseek-r1-distill-qwen2导出onnx脚本(BM1688)。
 ```
 
 ### 4.2 自行编译模型
@@ -171,6 +180,7 @@ sudo reboot
 | SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev.bmodel          |    1.094              |    12.995                | 
 | SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel    |    0.701              |    14.858                |
 | SE9-16      | qwen.py           | qwen2.5-1.5b_int4_seq2048_bm1688_1dev_2core.bmodel   |    3.016              |    14.613                | 
+| SE9-16      | qwen.py           | deepseek-r1-distill-qwen-1.5b_int4_seq1024_1688_2core.bmodel   |    1.485              |    14.865                | 
 | SE9-8       | qwen.py           | qwen1.5-1.8b_int4_seq512_cv186x_1dev.bmodel          |    1.007              |    13.226                | 
 | SRM1-20     | qwen.py           | qwen-7b_int4_seq512_1dev.bmodel                      |    0.915              |    5.850                 | 
 | SRM1-20     | qwen.py           | qwen-7b_int4_seq2048_1dev.bmodel                     |    3.984              |    4.751                 | 
