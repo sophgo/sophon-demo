@@ -17,6 +17,7 @@
   - [3. 推理测试](#3-推理测试)
     - [3.1 参数说明](#31-参数说明)
     - [3.2 测试视频](#32-测试视频)
+    
   - [4. 流程图](#4-流程图)
 
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
@@ -94,6 +95,8 @@ Usage: vila_sail.pcie [params]
                 path of tokenizer config
         --video (value:../../datasets/test_car_person_1080P.mp4)
                 path of video
+        --image (value:NO)
+                path of image
         --vision (value:../../models/BM1684X/vision_embedding_6batch.bmodel)
                 path of vision_embedding model
 ```
@@ -103,6 +106,12 @@ Usage: vila_sail.pcie [params]
 需要在`cpp/vila_sail`目录下执行程序，视频测试实例如下。
 ```bash
 ./vila_sail.pcie --video=../../datasets/test_car_person_1080P.mp4
+```
+
+### 3.3 测试图片
+需要在`cpp/vila_sail`目录下执行程序，图片测试实例如下。
+```bash
+./vila_sail.pcie --image=../../pics/demo.jpg
 ```
 在Question for this video: 处进行提问，例如：Please describe this video，接着程序会将预测结果输出，同时会打印FTL、推理速度等信息。
 
