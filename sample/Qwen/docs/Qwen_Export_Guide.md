@@ -32,7 +32,7 @@ newgrp docker​
 ```
 > **提示**：需要logout系统然后重新登录，再使用docker就不需要sudo了。
 
-### 2.1.2. 下载并解压TPU-MLIR
+### 2.1.2 下载并解压TPU-MLIR
 
 从sftp上获取TPU-MLIR压缩包
 ```bash
@@ -44,7 +44,7 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/tpu-mlir_v1.14.beta.0-25-
 tar -xf tpu-mlir_v1.14.beta.0-25-gbca81b22c-20250107.tar.gz
 ```
 
-### 2.1.3. 创建并进入docker
+### 2.1.3 创建并进入docker
 
 TPU-MLIR使用的docker是sophgo/tpuc_dev:latest, docker镜像和tpu-mlir有绑定关系，少数情况下有可能更新了tpu-mlir，需要新的镜像。
 ```bash
@@ -216,7 +216,7 @@ Qwen2.5
 ./scripts/gen_bmodel.sh --target bm1684x --mode int4 --name qwen2.5-7b --seq_length 512 --addr_mode io_alone
 ```
 
-Deepseek-R1-Distill-Qwen-1.5B(BM1688，[参考地址](https://github.com/sophgo/LLM-TPU_Lite/tree/main/models/DeepseekR1Distill))
+Deepseek-R1-Distill-Qwen-1.5B (BM1688，[参考地址](https://github.com/sophgo/LLM-TPU_Lite/tree/main/models/DeepseekR1Distill))
 ```bash
 # bm1688 单芯
 ./scripts/gen_bmodel_deepseek_r1_distill_qwen_1_5b.sh --name qwen2.5-1.5b --seq_length 1024 --mode int4 --addr_mode io_alone
@@ -227,7 +227,8 @@ Deepseek-R1-Distill-Qwen-1.5B(BM1688，[参考地址](https://github.com/sophgo/
 ### 2.3.1 BM1684X编译 Deepseek-R1-Distill-Qwen bmodel
 ```bash
 # bm1684x 单芯
-# 请注意1684X导出Deepseek-R1-Distill-Qwen bmodel仅需要运行该脚本，无需转onnx，请使用2.1.3中专用版本tpu-mlir
-python tools/model_export_BM1684X_DS_qwen.py --quantize w4bf16 --tpu_mlir_path /workspace/tpu-mlir/ --torch_path /workspace/models/Qwen2-**-Instruct --seq_length 1440  --out_dir qwen2_vl_2b_s1440_v576_bca81b22c3
+# 请注意1684X导出Deepseek-R1-Distill-Qwen bmodel仅需要运行该脚本，无需转onnx，请使用2.1.2中专用版本tpu-mlir
+python tools/model_export_BM1684X_DS_qwen.py --quantize w4bf16 --tpu_mlir_path /workspace/tpu-mlir/ --torch_path /workspace/models/DeepSeek-R1-Distill-Qwen-1.5B --seq_length 1024  --out_dir deepseek-r1-distill-qwen-1.5b-1024
 ```
 其中，tpu_mlir_path指定tpu-mlir地址，编译成功之后，BM1684X模型将会存放在torch_path指定目录下，该目录下还会存在onnx和bmodel两个中间文件夹可以删除。
+
