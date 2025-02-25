@@ -17,6 +17,8 @@ from packaging import version
 from PIL import Image
 from torchvision import io, transforms
 from torchvision.transforms import InterpolationMode
+import cv2
+import psutil
 
 
 logger = logging.getLogger(__name__)
@@ -162,6 +164,10 @@ def smart_nframes(
     return nframes
 
 
+def _cpu_memory_check(total_bytes, rate=2.2):
+    mem = psutil.virtual_memory()
+    assert total_bytes * rate < mem.available, "available memory not suffice to load data"
+
 def _read_video_torchvision(
     ele: dict,
 ) -> torch.Tensor:
@@ -182,6 +188,26 @@ def _read_video_torchvision(
             warnings.warn("torchvision < 0.19.0 does not support http/https video path, please upgrade to 0.19.0.")
         if "file://" in video_path:
             video_path = video_path[7:]
+
+    # memory check
+    cap = cv2.VideoCapture(video_path)
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    fps = round(cap.get(cv2.CAP_PROP_FPS))
+    num_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    cap.release()
+    if ele.get("video_end", None) is None and ele.get("video_start", 0.0) > 0:
+        num_frames = 1 + num_frames - ele.get("video_start", 0.0) * fps # torchvision.io.read_video has a other frame 
+    elif ele.get("video_end", None) is not None and ele.get("video_start", 0.0) >= 0:
+        assert ele.get("video_end", None) - ele.get("video_start", 0.0) > 0
+        num_frames = 1 + (ele.get("video_end", None) - ele.get("video_start", 0.0)) * fps # torchvision.io.read_video has a other frame 
+    elif ele.get("video_end", None) is None and ele.get("video_start", 0.0) == 0:
+        pass
+    else:
+        raise ValueError(f"error params video_end {video_end} or video_start {video_start}")
+    frame_size = width * height * 3 # bytes
+    _cpu_memory_check(num_frames * frame_size)
+
     st = time.time()
     video, audio, info = io.read_video(
         video_path,
