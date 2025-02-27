@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     if len(args.dev_ids) == 2:
         import multiprocessing
-        multiprocessing.set_start_method('spawn')
+        multiprocessing.set_start_method('spawn', force=True)
 
     pipeline = load_pipeline(args)
 
