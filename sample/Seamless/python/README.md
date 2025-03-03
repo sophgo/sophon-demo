@@ -22,14 +22,14 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
 
-由于本例程依赖[fairseq2n](https://github.com/facebookresearch/fairseq2/blob/v0.2.0/INSTALL_FROM_SOURCE.md)，该库目前只提供了x86_64架构的预编译好的安装包。为了快速进行运行环境搭建，我们提供了arm64平台预编译好的`fairseq2n==0.2.0`的whl包，arm64平台需要单独执行如下命令安装：
+由于本例程依赖[fairseq2n](https://github.com/facebookresearch/fairseq2/blob/v0.2.0/INSTALL_FROM_SOURCE.md)，该库目前只提供了x86_64架构的预编译好的安装包。为了快速进行运行环境搭建，我们提供了arm64平台预编译好的`fairseq2n==0.2.0`的Python3.8.2 whl包，arm64平台需要单独执行如下命令安装：
 ```bash
 pip3 install dfss --upgrade #安装dfss依赖
 python3 -m dfss --url=open@sophgo.com:test/seamless_bmodel/0415/fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 pip3 install fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 rm -f fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 ```
-对于其他平台（例如arm32），可以在平台上从源码编译安装：
+对于其他平台（例如arm32）或者其他Python版本，可以在平台上从源码编译安装：
 ```bash
 git clone https://github.com/facebookresearch/fairseq2.git
 cd fairseq2
