@@ -27,6 +27,7 @@ Qwen / Qwen1.5/ Qwen2/ Qwen2.5是开源中英双语对话模型，关于它的�
 * Qwen2.5 1.5b支持BM1688/CV186X(SoC)
 * 支持INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
+* 支持基于BMRT推理的CPP例程
 * 支持多轮对话
 
 
@@ -112,6 +113,14 @@ sudo reboot
 │       ├── qwen2.5-xxx.bmodel
 │       ├── deepseek-r1-distill-qwen-1.5b
 │       └── deepseek-r1-distill-qwen-7b
+├── cpp
+│   ├── README.md                 # CPP例程文档
+│   └── qwen_bmlib                      
+│       ├── CMakeLists.txt        # 编译配置文件
+│       ├── main.cpp              # demo
+│       ├── qwen.cpp              # qwen cpp源文件
+│       ├── qwen.hpp              # qwen cpp头文件
+│       └── utils.hpp             # 功能 cpp头文件
 ├── python
 │   ├── qwen.py                     #Qwen python推理脚本
 │   ├── web_demo.py                 # web demo
@@ -162,6 +171,7 @@ sudo reboot
 ## 5. 例程测试
 
 - [Python例程](./python/README.md)
+- [CPP例程](./cpp/README.md)
 
 ## 6. 程序性能测试
 
@@ -179,6 +189,8 @@ sudo reboot
 | SE7-32      | qwen.py           | deepseek-r1-distill-qwen2-1.5b_w4bf16_seq8192.bmodel |    5.455              |    20.083                | 
 | SE7-32      | qwen.py           | deepseek-r1-distill-qwen2-7b_w4bf16_seq2048.bmodel   |    2.937              |    8.301                 | 
 | SE7-32      | qwen.py           | deepseek-r1-distill-qwen2-14b_w4bf16_seq512.bmodel   |    1.297              |    5.652                 | 
+| SE7-32      | main.cpp          | qwen2.5-1.5b_int4_seq512_1dev.bmodel                 |    0.200              |    28.188                | 
+| SE7-32      | main.cpp          | qwen2.5-1.5b_int4_seq1024_1dev.bmodel                |    0.383              |    27.576                | 
 | SC7-HP75    | qwen.py           | qwen1.5-7b_int4_seq4096_2dev_dyn.bmodel              |    >=1.56             |    9.748                 |
 | SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev.bmodel          |    1.094              |    12.995                | 
 | SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel    |    0.701              |    14.858                |
