@@ -66,8 +66,9 @@ source ./envsetup.sh
 **注：** 
 - Qwen1.5-1.8B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
 - Qwen1.5-7B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
-- Deepseek-R1-Distill-Qwen-1.5B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
-- Deepseek-R1-Distill-Qwen-7B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
+- Deepseek-R1-Distill-Qwen-1.5B官方库3.5G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
+- Deepseek-R1-Distill-Qwen-7B官方库15G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
+- Deepseek-R1-Distill-Qwen-14B官方库30G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
 
 
 ```bash
@@ -76,6 +77,7 @@ git clone https://huggingface.co/Qwen/Qwen1.5-7B-Chat
 git clone https://huggingface.co/Qwen/Qwen1.5-1.8B-Chat
 git clone https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
 git clone https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+git clone https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
 ```
 如果git clone完代码之后出现卡住，可以尝试`ctrl+c`中断，然后进入仓库运行`git lfs pull`。
 
