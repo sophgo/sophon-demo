@@ -95,8 +95,8 @@ cat online_wer | grep "Overall"
 |   SE7-32     | whisper.py       | bmwhisper_base_1684x_f16.bmodel             | 247.61                | 61.70                   |
 |   SE7-32     | whisper.py       | bmwhisper_small_1684x_f16.bmodel            | 268.22                | 179.44                  |
 |   SE7-32     | whisper.py       | bmwhisper_medium_1684x_f16.bmodel           | 300.66                | 451.54                  |
-|   SE7-32     | whisper.py       | bmwhisper_small.en_1684x_f16.bmodel         |                 |                   |
-|   SE7-32     | whisper.py       | bmwhisper_distil.small.en_1684x_f16.bmodel  |                 |                   |
+|   SE7-32     | whisper.py       | bmwhisper_small.en_1684x_f16.bmodel         | 348.63                | 217.15                  |
+|   SE7-32     | whisper.py       | bmwhisper_distil.small.en_1684x_f16.bmodel  | 470.63                | 74.80                   |
 |   SRM1-20    | whisper.py       | bmwhisper_base_1684x_f16.bmodel             | 9112.57               | 791.98                  |
 |   SRM1-20    | whisper.py       | bmwhisper_small_1684x_f16.bmodel            | 5673.05               | 2129.36                 |
 |   SRM1-20    | whisper.py       | bmwhisper_medium_1684x_f16.bmodel           | 5723.73               | 5348.68                 |
