@@ -296,9 +296,10 @@ class Whisper(nn.Module):
         self.alignment_heads = all_heads.to_sparse()
 
         # get positional embedding from npz file
-        positional_embedding_path = os.path.join(os.path.dirname(__file__), "assets", f"positional_embedding_{self.model_name}.npz")
-        assert os.path.exists(positional_embedding_path), f"{positional_embedding_path} not found"
-        self.positional_embedding = torch.tensor(np.load(positional_embedding_path)["positional_embedding"])
+        # positional_embedding_path = os.path.join(os.path.dirname(__file__), "../../python/bmwhisper/assets", f"positional_embedding_{self.model_name}.npz")
+        # positional_embedding_path = os.path.join(os.path.dirname(__file__), "../../python/bmwhisper/assets", f"positional_embedding_small.npz")
+        # assert os.path.exists(positional_embedding_path), f"{positional_embedding_path} not found"
+        # self.positional_embedding = torch.tensor(np.load(positional_embedding_path)["positional_embedding"])
 
         self.time = 0
         self.main_loop_cnt = 0
@@ -329,7 +330,6 @@ class Whisper(nn.Module):
         output_names = ["logits",]
         input_dict = {"tokens":tokens, "audio_features":audio_features}
         np.savez(model_name + "_inputs.npz", **input_dict)
-
         if self.export_mode == "onnx":
             torch.onnx.export(
                 self.decoder,

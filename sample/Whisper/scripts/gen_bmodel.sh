@@ -1,5 +1,5 @@
 #!/bin/bash
-
+script_dir=$(dirname $(readlink -f "$0"))
 # Default values for parameters
 model="small"
 beam_size=5
@@ -8,7 +8,8 @@ quant=true
 process=""
 
 
-work_dir="./models"
+work_dir="$script_dir/../models"
+onnx_dir="$work_dir/onnx"
 if [ ! -d "$work_dir/onnx" ]; then
     echo "[Err] "$work_dir" directory not found, please download onnx model first"
     exit 1
@@ -53,16 +54,29 @@ if [ "$model" == "base" ]; then
 	n_text_state=512
 	n_text_head=8
 	n_text_layer=6
+    process_list=("encoder" "logits_decoder" "decoder_main_with_kvcache" "decoder_post" "decoder_loop_with_kvcache" "kvcache_rearrange" )
 elif [ "$model" == "small" ]; then
 	n_text_state=768
 	n_text_head=12
 	n_text_layer=12
+    process_list=("encoder" "logits_decoder" "decoder_main_with_kvcache" "decoder_post" "decoder_loop_with_kvcache" "kvcache_rearrange" )
 elif [ "$model" == "medium" ]; then
 	n_text_state=1024
 	n_text_head=16
 	n_text_layer=24
+    process_list=("encoder" "logits_decoder" "decoder_main_with_kvcache" "decoder_post" "decoder_loop_with_kvcache" "kvcache_rearrange" )
+elif [ "$model" == "small.en" ]; then
+	n_text_state=768
+	n_text_head=12
+	n_text_layer=12
+    process_list=("encoder" "decoder_main_with_kvcache" "decoder_post" "decoder_loop_with_kvcache" "kvcache_rearrange" )
+elif [ "$model" == "distil.small.en" ]; then
+	n_text_state=768
+	n_text_head=12
+	n_text_layer=4
+    process_list=("encoder" "decoder_main_with_kvcache" "decoder_post" "decoder_loop_with_kvcache" "kvcache_rearrange" )
 else
-	echo "model must be one of tiny, base, small, medium, large"
+	echo "model must be one of tiny, base, small, medium, large, small.en, distil.small.en"
 	exit 1
 fi
 
@@ -101,9 +115,9 @@ function gen_bmodel() {
             ;;
     esac
 
-    onnx_file="${model_name}.onnx"
+    onnx_file="${onnx_dir}/${model_name}.onnx"
     model_transform_cmd="model_transform.py --model_name $model_name \
-        --model_def ../${onnx_file} \
+        --model_def ${onnx_file} \
         --input_shapes $input_shapes \
         --mlir transformed.mlir"
 
@@ -125,17 +139,15 @@ function gen_bmodel() {
     echo "[Msg] Bmodel generate done!"
 }
 
-
-process_list=("encoder" "logits_decoder" "decoder_main_with_kvcache" "decoder_post" "decoder_loop_with_kvcache" "kvcache_rearrange" )
-
 echo "Generating process list ..."
 
 echo "process list: ${process_list[@]}"
 
+models=""
 for process_name in "${process_list[@]}"; do
     model_name="${process_name}_${model}_${beam_size}beam_${padding_size}pad"
     bmodel_file="all_quant_${model_name}_1684x_f16.bmodel"
-
+    models="${models} ${bmodel_file}"
     if [ -e "$bmodel_dir/$bmodel_file" ]; then
         echo "[Msg] $bmodel_dir/$bmodel_file already exists, skip this process"
         continue
@@ -145,20 +157,15 @@ for process_name in "${process_list[@]}"; do
         mkdir "$process_name"
         echo "[Cmd] mkdir $process_name"
     fi
-    cp onnx/$process_name*.* $process_name/
     pushd "$process_name"
     if [ ! -d "$model_name" ]; then
         mkdir "$model_name"
         echo "[Cmd] mkdir $model_name"
     fi
     pushd "$model_name"
-
-
     gen_bmodel
-
-
-    echo "[Cmd] cp $bmodel_file ../../BM1684X/"
-    cp $bmodel_file ../../BM1684X/
+    echo "[Cmd] mv $bmodel_file ../../BM1684X/"
+    mv $bmodel_file ../../BM1684X/
     popd
     rm -rf $bmodel_file
     popd
@@ -166,5 +173,7 @@ done
 popd
 chmod -R 777 $bmodel_dir/
 cd $bmodel_dir/
-model_tool --combine all_quant_encoder_${model}_5beam_448pad_1684x_f16.bmodel all_quant_logits_decoder_${model}_5beam_448pad_1684x_f16.bmodel all_quant_decoder_main_with_kvcache_${model}_5beam_448pad_1684x_f16.bmodel all_quant_decoder_post_${model}_5beam_448pad_1684x_f16.bmodel all_quant_decoder_loop_with_kvcache_${model}_5beam_448pad_1684x_f16.bmodel all_quant_kvcache_rearrange_${model}_5beam_448pad_1684x_f16.bmodel -o bmwhisper_${model}_1684x_f16.bmodel
+
+model_tool --combine $models \
+                     -o bmwhisper_${model}_1684x_f16.bmodel && rm $models
 chown 1000:1000 bmwhisper_${model}_1684x_f16.bmodel
