@@ -27,6 +27,8 @@ function download_bm1684x {
         tar xvf deepseek-r1-distill-qwen2-1.5b.tar.gz && rm deepseek-r1-distill-qwen2-1.5b.tar.gz
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/deepseek-r1-distill-qwen2-7b.tar.gz
         tar xvf deepseek-r1-distill-qwen2-7b.tar.gz && rm deepseek-r1-distill-qwen2-7b.tar.gz
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/deepseek-r1-distill-qwen2-14b.tar.gz
+        tar xvf deepseek-r1-distill-qwen2-14b.tar.gz && rm deepseek-r1-distill-qwen2-14b.tar.gz
     else
         echo "invalid model name"
     fi
