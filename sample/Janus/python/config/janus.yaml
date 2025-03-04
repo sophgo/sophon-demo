@@ -1,0 +1,4 @@
+bmodel_path: ../models/BM1684X/janus-pro-7b_int4_seq2048.bmodel
+token_path: ./processor_config
+dev_ids: 0
+image_path: ../pics/test.jpg
