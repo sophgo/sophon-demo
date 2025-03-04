@@ -28,6 +28,7 @@ _MODELS = {
     "large-v2": "https://openaipublic.azureedge.net/main/whisper/models/81f7c96c852ee8fc832187b0132e569d6c3065a3252ed18e56effd0b6a73e524/large-v2.pt",
     "large-v3": "https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt",
     "large": "https://openaipublic.azureedge.net/main/whisper/models/81f7c96c852ee8fc832187b0132e569d6c3065a3252ed18e56effd0b6a73e524/large-v2.pt",
+    "distil.small.en": "https://huggingface.co/distil-whisper/distil-small.en/blob/main/original-model.bin",
 }
 
 # base85-encoded (n_layers, n_heads) boolean arrays indicating the cross-attention heads that are
@@ -46,7 +47,6 @@ _ALIGNMENT_HEADS = {
     "large-v3": b"ABzY8gWO1E0{>%R7(9S+Kn!D~%ngiGaR?*L!iJG9p-nab0JQ=-{D1-g00",
     "large": b"ABzY8zd+h!0{>%R7=D0pU<_bnWW*tkYAhobTNnu$jnkEkXqp)j;w1Tzk)UH3X%SZd&fFZ2fC2yj",
 }
-
 
 def _download(url: str, root: str, in_memory: bool) -> Union[bytes, str]:
     os.makedirs(root, exist_ok=True)
@@ -201,19 +201,41 @@ def load_model(
             n_text_head=12,
             n_text_layer=12
         )
+    elif name == "small.en":
+        dims = ModelDimensions(
+            n_mels=80,
+            n_audio_ctx=1500,
+            n_audio_state=768,
+            n_audio_head=12,
+            n_audio_layer=12,
+            n_vocab=51864,
+            n_text_ctx=448,
+            n_text_state=768,
+            n_text_head=12,
+            n_text_layer=12
+        )
+    elif name == "distil.small.en":
+        dims = ModelDimensions(
+            n_mels=80,
+            n_audio_ctx=1500,
+            n_audio_state=768,
+            n_audio_head=12,
+            n_audio_layer=12,
+            n_vocab=51864,
+            n_text_ctx=448,
+            n_text_state=768,
+            n_text_head=12,
+            n_text_layer=4
+        )
     else:
-        raise NotImplementedError("Only \"tiny, base, small, medium, large\" model is supported for inference")
+        raise NotImplementedError("Only \"tiny, base, small, medium, large, small.en, distil.small.en\" model is supported for inference")
 
     model = Whisper(dims, args)
 
-    if name in _MODELS:
+    if name in _ALIGNMENT_HEADS:
         alignment_heads = _ALIGNMENT_HEADS[name]
-    elif os.path.isfile(name):
-        alignment_heads = None
     else:
-        raise RuntimeError(
-            f"Model {name} not found; available models = {available_models()}"
-        )
+        alignment_heads = None
 
     if alignment_heads is not None:
         model.set_alignment_heads(alignment_heads)

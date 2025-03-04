@@ -138,7 +138,6 @@ def transcribe(
                 print(
                     f"Detected language: {LANGUAGES[decode_options['language']].title()}\n"
                 )
-
     language: str = decode_options["language"]
     task: str = decode_options.get("task", "transcribe")
     tokenizer = get_tokenizer(

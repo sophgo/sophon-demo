@@ -5,12 +5,6 @@
 - [2. 特性](#2-特性)
 - [3. 准备模型与数据](#3-准备模型与数据)
 - [4. 模型编译](#4-模型编译)
-  - [4.1 TPU-MLIR环境搭建](#41-tpu-mlir环境搭建)
-    - [4.1.1 安装docker](#411-安装docker)
-    - [4.1.2 下载并解压TPU-MLIR](#412-下载并解压tpu-mlir)
-    - [4.1.3 创建并进入docker](#413-创建并进入docker)
-  - [4.2 获取onnx](#42-获取onnx)
-  - [4.3 bmodel编译](#43-bmodel编译)
 - [5. 例程测试](#5-例程测试)
 - [6. 精度测试](#6-精度测试)
   - [6.1 测试方法](#61-测试方法)
@@ -34,35 +28,23 @@ Whisper 是一个开源的深度学习语音识别模型，由 OpenAI 开发，�
 # 安装unzip，若已安装请跳过
 sudo apt install unzip
 chmod -R +x scripts/
-./scripts/download.sh
+# 通过指定--model参数下载您需要的模型
+./scripts/download.sh --model base
+./scripts/download.sh --model small
+./scripts/download.sh --model medium
+./scripts/download.sh --model small.en
+./scripts/download.sh --model distil.small.en
 ```
 
 下载的模型包括：
 ```
 ./models
-├── BM1684X
-│   ├── bmwhisper_base_1684x_f16.bmodel # whisper-medium模型，模型参数量为769 M
-│   ├── bmwhisper_medium_1684x_f16.bmodel # whisper-small模型，模型参数量为244 M
-│   └── bmwhisper_small_1684x_f16.bmodel # whisper-base模型，模型参数量为74 M
-└── onnx # whisper的onnx原始模型
-    ├── decoder_loop_with_kvcache_base_5beam_448pad.onnx
-    ├── decoder_loop_with_kvcache_medium_5beam_448pad.onnx
-    ├── decoder_loop_with_kvcache_small_5beam_448pad.onnx
-    ├── decoder_main_with_kvcache_base_5beam_448pad.onnx
-    ├── decoder_main_with_kvcache_medium_5beam_448pad.onnx
-    ├── decoder_main_with_kvcache_small_5beam_448pad.onnx
-    ├── decoder_post_base_5beam_448pad.onnx
-    ├── decoder_post_medium_5beam_448pad.onnx
-    ├── decoder_post_small_5beam_448pad.onnx
-    ├── encoder_base_5beam_448pad.onnx
-    ├── encoder_medium_5beam_448pad.onnx
-    ├── encoder_small_5beam_448pad.onnx
-    ├── kvcache_rearrange_base_5beam_448pad.onnx
-    ├── kvcache_rearrange_medium_5beam_448pad.onnx
-    ├── kvcache_rearrange_small_5beam_448pad.onnx
-    ├── logits_decoder_base_5beam_448pad.onnx
-    ├── logits_decoder_medium_5beam_448pad.onnx
-    └── logits_decoder_small_5beam_448pad.onnx
+└── BM1684X
+    ├── bmwhisper_base_1684x_f16.bmodel # whisper-medium模型，模型参数量为769 M
+    ├── bmwhisper_medium_1684x_f16.bmodel # whisper-small模型，模型参数量为244 M
+    ├── bmwhisper_small_1684x_f16.bmodel # whisper-base模型，模型参数量为74 M
+    ├── bmwhisper_small.en_1684x_f16.bmodel # whisper-small.en模型
+    └── bmwhisper_distil.small.en_1684x_f16.bmodel # whisper-distil.small.en模型
 ```
 
 下载的数据包括：
@@ -79,7 +61,6 @@ chmod -R +x scripts/
 此部分请参考[Whisper模型的导出与编译](./docs/Whisper_Export_Guide.md)
 
 ## 5. 例程测试
-
 - [Python例程](./python/README.md)
 
 ## 6. 精度测试
@@ -106,16 +87,19 @@ cat online_wer | grep "Overall"
 > **测试说明**：
 1. 在使用的模型相同的情况下，wer在不同的测试平台上是相同的。
 2. 由于SDK版本之间的差异，实测的wer与本表有1%以内的差值是正常的。
+3. `small.en/distil.small.en`不适用aishell数据集，暂无精度测试结果。
 
 ## 7. 性能测试
-|    测试平台   |     测试程序      |           测试模型                  |  Preprocess time(ms) |    Inference time(ms)   |
-| -----------  | ---------------- | -----------------------------------| --------------------- | ----------------------- |
-|   SE7-32     | whisper.py       | bmwhisper_base_1684x_f16.bmodel    | 247.61                | 61.70                   |
-|   SE7-32     | whisper.py       | bmwhisper_small_1684x_f16.bmodel   | 268.22                | 179.44                  |
-|   SE7-32     | whisper.py       | bmwhisper_medium_1684x_f16.bmodel  | 300.66                | 451.54                  |
-|   SRM1-20    | whisper.py       | bmwhisper_base_1684x_f16.bmodel    | 9112.57               | 791.98                  |
-|   SRM1-20    | whisper.py       | bmwhisper_small_1684x_f16.bmodel   | 5673.05               | 2129.36                 |
-|   SRM1-20    | whisper.py       | bmwhisper_medium_1684x_f16.bmodel  | 5723.73               | 5348.68                 |
+|    测试平台   |     测试程序      |           测试模型                           |  Preprocess time(ms) |    Inference time(ms)   |
+| -----------  | ---------------- | -----------------------------------         | --------------------- | ----------------------- |
+|   SE7-32     | whisper.py       | bmwhisper_base_1684x_f16.bmodel             | 247.61                | 61.70                   |
+|   SE7-32     | whisper.py       | bmwhisper_small_1684x_f16.bmodel            | 268.22                | 179.44                  |
+|   SE7-32     | whisper.py       | bmwhisper_medium_1684x_f16.bmodel           | 300.66                | 451.54                  |
+|   SE7-32     | whisper.py       | bmwhisper_small.en_1684x_f16.bmodel         |                 |                   |
+|   SE7-32     | whisper.py       | bmwhisper_distil.small.en_1684x_f16.bmodel  |                 |                   |
+|   SRM1-20    | whisper.py       | bmwhisper_base_1684x_f16.bmodel             | 9112.57               | 791.98                  |
+|   SRM1-20    | whisper.py       | bmwhisper_small_1684x_f16.bmodel            | 5673.05               | 2129.36                 |
+|   SRM1-20    | whisper.py       | bmwhisper_medium_1684x_f16.bmodel           | 5723.73               | 5348.68                 |
 
 > **测试说明**：
 > 1. 该性能使用datasets/test/demo.wav音频进行测试，计算后得出平均每秒音频所需推理时间。
