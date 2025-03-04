@@ -62,25 +62,6 @@ def detect_language(
     start_time = time.time()
     # skip encoder forward pass if already-encoded audio features were given
     if mel.shape[-2:] != (model.dims.n_audio_ctx, model.dims.n_audio_state):
-        if model.export_mode:
-            pass
-            model_name= f"encoder_{model.model_name}_{model.beam_size}beam_{model.padding_size}pad"
-            onnx_input_dict = {"mel":mel}
-            np.savez(model_name + "_inputs.npz", **onnx_input_dict)
-            if model.export_mode == "onnx":
-                onnx_input_names = ["mel"]
-                onnx_output_names = ["audio_features",]
-                torch.onnx.export(
-                    model.encoder,
-                    (mel,),  # Pass the actual input data
-                    model_name + ".onnx",
-                    verbose=True,
-                    input_names=onnx_input_names,  # Provide input names
-                    output_names=onnx_output_names,  # Provide output names
-                    opset_version=15,  # ONNX opset version to use
-                )
-            elif model.export_mode == "pt":
-                torch.jit.trace(model.encoder, (mel,)).save(model_name + ".pt")
         mel_out = model.encoder(mel)
         # mel = model.encoder(mel)
         model.call_encoder += 1
@@ -1041,7 +1022,6 @@ class DecodingTask:
     def _get_audio_features(self, mel: Tensor):
         if self.options.fp16:
             mel = mel.half()
-
         if mel.shape[-2:] == (
             self.model.dims.n_audio_ctx,
             self.model.dims.n_audio_state,
@@ -1050,6 +1030,24 @@ class DecodingTask:
             audio_features = mel
         else:
             audio_features = self.model.encoder(mel)
+            if self.model.export_mode:
+                model_name= f"encoder_{self.model.model_name}_{self.model.beam_size}beam_{self.model.padding_size}pad"
+                onnx_input_dict = {"mel":mel}
+                np.savez(model_name + "_inputs.npz", **onnx_input_dict)
+                if self.model.export_mode == "onnx":
+                    onnx_input_names = ["mel"]
+                    onnx_output_names = ["audio_features",]
+                    torch.onnx.export(
+                        self.model.encoder,
+                        (mel,),  # Pass the actual input data
+                        model_name + ".onnx",
+                        verbose=True,
+                        input_names=onnx_input_names,  # Provide input names
+                        output_names=onnx_output_names,  # Provide output names
+                        opset_version=15,  # ONNX opset version to use
+                    )
+                elif self.model.export_mode == "pt":
+                    torch.jit.trace(self.model.encoder, (mel,)).save(model_name + ".pt")
         return audio_features
 
     def _detect_language(self, audio_features: Tensor, tokens: Tensor):
@@ -1087,14 +1085,14 @@ class DecodingTask:
             for i in range(self.sample_len):
                 if i == 0 or not self.model.use_kvcache:
                     tokens_input = F.pad(tokens, (padding_num - tokens.shape[-1], 0, 0, 0), value=0)
-                    positional_embedding_input = F.pad(self.model.positional_embedding[:i+initial_tokens_length], (0, 0, padding_num - initial_tokens_length - i, 0), value=0)
+                    positional_embedding_input = F.pad(self.model.decoder.positional_embedding[:i+initial_tokens_length], (0, 0, padding_num - initial_tokens_length - i, 0), value=0)
                     mask = F.pad(attention_mask_firstly[:tokens.shape[-1], :tokens.shape[-1]], (padding_num - tokens.shape[-1], 0, 0, 0), value=-10000)
                     mask = F.pad(mask, (0, 0, padding_num - tokens.shape[-1], 0), value=0)
                     mask = mask.reshape(1, 1, *mask.shape).repeat(n_batch, self.n_text_head, 1, 1).permute(0, 2, 1, 3).contiguous()
                 else:
                     tokens_input = tokens[:, -1:]
                     offset = i + initial_tokens_length - 1
-                    positional_embedding_input = self.model.positional_embedding[offset:offset+1]
+                    positional_embedding_input = self.model.decoder.positional_embedding[offset:offset+1]
                     mask = attention_mask_with_kvcache[offset:offset+1].flip(1)
                     mask = mask.reshape(1, 1, *mask.shape).repeat(n_batch, self.n_text_head, 1, 1).permute(0, 2, 1, 3).contiguous()
                 # import pdb; pdb.set_trace()
@@ -1224,6 +1222,7 @@ class DecodingTask:
                             )
                         elif self.model.export_mode == "pt":
                             torch.jit.trace(self.inference_loop, input).save(model_name + ".pt")
+                        print("exit export")
                         exit()
 
                     self.model.call_decoder_loop += 1

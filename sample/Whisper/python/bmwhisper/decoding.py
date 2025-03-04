@@ -701,7 +701,6 @@ class DecodingTask:
             mel = mel.numpy().astype(np.float16)
             mel = mel if mel.flags.c_contiguous else np.ascontiguousarray(mel)
             self.model.encoder_input_tensors_map[self.model.encoder_input_names[0]].update_data(fp16_cast(mel));
-
             start_time = time.time()
             self.model.combined_whisper_engine.process(self.model.encoder_engine_graph_name, self.model.encoder_input_tensors_map, self.model.encoder_output_tensors_map)
             self.model.inference_time += time.time() - start_time
@@ -845,6 +844,7 @@ class DecodingTask:
         return tokens, sum_logprobs, no_speech_probs
 
     def run(self, mel: Tensor) -> List[DecodingResult]:
+        
         self.decoder.reset()
         tokenizer: Tokenizer = self.tokenizer
         n_audio: int = mel.shape[0]

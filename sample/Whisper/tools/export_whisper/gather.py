@@ -95,6 +95,32 @@ def export_gather():
             n_text_head=12,
             n_text_layer=12
         )
+    elif name == "small.en":
+        dims = ModelDimensions(
+            n_mels=80,
+            n_audio_ctx=1500,
+            n_audio_state=768,
+            n_audio_head=12,
+            n_audio_layer=12,
+            n_vocab=51864,
+            n_text_ctx=448,
+            n_text_state=768,
+            n_text_head=12,
+            n_text_layer=12
+        )
+    elif name == "distil.small.en":
+        dims = ModelDimensions(
+            n_mels=80,
+            n_audio_ctx=1500,
+            n_audio_state=768,
+            n_audio_head=12,
+            n_audio_layer=12,
+            n_vocab=51864,
+            n_text_ctx=448,
+            n_text_state=768,
+            n_text_head=12,
+            n_text_layer=4
+        )
     gather = Gather()
     input = torch.randn(args["beam_size"], dims.n_text_ctx, dims.n_text_state)
     index = torch.tensor(range(args["beam_size"]))

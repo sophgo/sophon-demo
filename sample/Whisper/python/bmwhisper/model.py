@@ -76,34 +76,40 @@ class Whisper():
         # load combined model
         self.combined_whisper_engine = sail.Engine(combined_whisper_model_path, self.dev_id, sail.IOMode.DEVIO)
 
+        graph_id = 0
         # initial encoder engine
-        self.encoder_engine_graph_name = self.combined_whisper_engine.get_graph_names()[0]
+        self.encoder_engine_graph_name = self.combined_whisper_engine.get_graph_names()[graph_id]
         self.encoder_input_names = self.combined_whisper_engine.get_input_names(self.encoder_engine_graph_name)
         self.encoder_input_tensors_map = self.combined_whisper_engine.create_input_tensors_map(self.encoder_engine_graph_name)
         self.encoder_output_tensors_map = self.combined_whisper_engine.create_output_tensors_map(self.encoder_engine_graph_name)
 
         # initial logits_decoder engine
-        self.logits_decoder_graph_name = self.combined_whisper_engine.get_graph_names()[1]
-        self.logits_decoder_input_names = self.combined_whisper_engine.get_input_names(self.logits_decoder_graph_name)
-        self.logits_decoder_input_tensors_map = self.combined_whisper_engine.create_input_tensors_map(self.logits_decoder_graph_name)
-        self.logits_decoder_output_tensors_map = self.combined_whisper_engine.create_output_tensors_map(self.logits_decoder_graph_name)
+        if ("logits_decoder" in self.combined_whisper_engine.get_graph_names()[graph_id+1]):
+            graph_id += 1
+            self.logits_decoder_graph_name = self.combined_whisper_engine.get_graph_names()[graph_id]
+            self.logits_decoder_input_names = self.combined_whisper_engine.get_input_names(self.logits_decoder_graph_name)
+            self.logits_decoder_input_tensors_map = self.combined_whisper_engine.create_input_tensors_map(self.logits_decoder_graph_name)
+            self.logits_decoder_output_tensors_map = self.combined_whisper_engine.create_output_tensors_map(self.logits_decoder_graph_name)
 
         # initial decoder_main engine
-        self.decoder_main_graph_name = self.combined_whisper_engine.get_graph_names()[2]
+        graph_id += 1
+        self.decoder_main_graph_name = self.combined_whisper_engine.get_graph_names()[graph_id]
         self.decoder_main_input_names = self.combined_whisper_engine.get_input_names(self.decoder_main_graph_name)
         self.decoder_main_output_names = self.combined_whisper_engine.get_output_names(self.decoder_main_graph_name)
         self.decoder_main_input_tensors_map = self.combined_whisper_engine.create_input_tensors_map(self.decoder_main_graph_name)
         self.decoder_main_output_tensors_map = self.combined_whisper_engine.create_output_tensors_map(self.decoder_main_graph_name)
 
         # initial decoder_post engine
-        self.decoder_post_graph_name = self.combined_whisper_engine.get_graph_names()[3]
+        graph_id += 1
+        self.decoder_post_graph_name = self.combined_whisper_engine.get_graph_names()[graph_id]
         self.decoder_post_input_names = self.combined_whisper_engine.get_input_names(self.decoder_post_graph_name)
         self.decoder_post_output_names = self.combined_whisper_engine.get_output_names(self.decoder_post_graph_name)
         self.decoder_post_input_tensors_map = self.combined_whisper_engine.create_input_tensors_map(self.decoder_post_graph_name)
         self.decoder_post_output_tensors_map = self.combined_whisper_engine.create_output_tensors_map(self.decoder_post_graph_name)
 
         # initial decoder_loop engine
-        self.decoder_loop_graph_name = self.combined_whisper_engine.get_graph_names()[4]
+        graph_id += 1
+        self.decoder_loop_graph_name = self.combined_whisper_engine.get_graph_names()[graph_id]
         self.decoder_loop_input_names = self.combined_whisper_engine.get_input_names(self.decoder_loop_graph_name)
         self.decoder_loop_output_names = self.combined_whisper_engine.get_output_names(self.decoder_loop_graph_name)
         self.decoder_loop_input_tensors_map = self.combined_whisper_engine.create_input_tensors_map(self.decoder_loop_graph_name)
@@ -111,7 +117,8 @@ class Whisper():
 
         self.kvcache_rearrange_input_list = []
         self.kvcache_rearrange_output_list = []
-        self.kvcache_rearrange_graph_name = self.combined_whisper_engine.get_graph_names()[5]
+        graph_id += 1
+        self.kvcache_rearrange_graph_name = self.combined_whisper_engine.get_graph_names()[graph_id]
         self.kvcache_rearrange_input_names = self.combined_whisper_engine.get_input_names(self.kvcache_rearrange_graph_name)
         self.kvcache_rearrange_output_names = self.combined_whisper_engine.get_output_names(self.kvcache_rearrange_graph_name)
         for i in range(self.dims.n_text_layer * 2):

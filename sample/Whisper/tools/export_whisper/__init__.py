@@ -31,6 +31,7 @@ _MODELS = {
     "large-v2": "https://openaipublic.azureedge.net/main/whisper/models/81f7c96c852ee8fc832187b0132e569d6c3065a3252ed18e56effd0b6a73e524/large-v2.pt",
     "large-v3": "https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt",
     "large": "https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt",
+    "distil.small.en": "weights/original-model.bin",
 }
 
 # base85-encoded (n_layers, n_heads) boolean arrays indicating the cross-attention heads that are
@@ -47,7 +48,7 @@ _ALIGNMENT_HEADS = {
     "large-v1": b"ABzY8r9j$a0{>%R7#4sLmoOs{s)o3~84-RPdcFk!JR<kSfC2yj",
     "large-v2": b"ABzY8zd+h!0{>%R7=D0pU<_bnWW*tkYAhobTNnu$jnkEkXqp)j;w1Tzk)UH3X%SZd&fFZ2fC2yj",
     "large-v3": b"ABzY8gWO1E0{>%R7(9S+Kn!D~%ngiGaR?*L!iJG9p-nab0JQ=-{D1-g00",
-    "large": b"ABzY8gWO1E0{>%R7(9S+Kn!D~%ngiGaR?*L!iJG9p-nab0JQ=-{D1-g00",
+    "large": b"ABzY8gWO1E0{>%R7(9S+Kn!D~%ngiGaR?*L!iJG9p-nab0JQ=-{D1-g00"
 }
 
 
@@ -56,7 +57,6 @@ def _download(url: str, root: str, in_memory: bool) -> Union[bytes, str]:
 
     expected_sha256 = url.split("/")[-2]
     download_target = os.path.join(root, os.path.basename(url))
-
     if os.path.exists(download_target) and not os.path.isfile(download_target):
         raise RuntimeError(f"{download_target} exists and is not a regular file")
 
@@ -69,7 +69,6 @@ def _download(url: str, root: str, in_memory: bool) -> Union[bytes, str]:
             warnings.warn(
                 f"{download_target} exists, but the SHA256 checksum does not match; re-downloading the file"
             )
-
     with urllib.request.urlopen(url) as source, open(download_target, "wb") as output:
         with tqdm(
             total=int(source.info().get("Content-Length")),
@@ -134,8 +133,9 @@ def load_model(
     if download_root is None:
         default = os.path.join(os.path.expanduser("~"), ".cache")
         download_root = os.path.join(os.getenv("XDG_CACHE_HOME", default), "whisper")
-
-    if name in _MODELS:
+    if os.path.isfile(_MODELS[name]):
+        checkpoint_file = open(_MODELS[name], "rb").read() if in_memory else _MODELS[name]
+    elif name in _MODELS:
         checkpoint_file = _download(_MODELS[name], download_root, in_memory)
         # alignment_heads = _ALIGNMENT_HEADS[name]
     elif os.path.isfile(name):
@@ -156,16 +156,17 @@ def load_model(
     model = Whisper(dims, args)
     model.load_state_dict(checkpoint["model_state_dict"])
 
-    if name in _MODELS:
+    if name in _ALIGNMENT_HEADS:
         alignment_heads = _ALIGNMENT_HEADS[name]
-    elif os.path.isfile(name):
-        alignment_heads = None
     else:
-        raise RuntimeError(
-            f"Model {name} not found; available models = {available_models()}"
-        )
+        alignment_heads = None
 
     if alignment_heads is not None:
         model.set_alignment_heads(alignment_heads)
 
+    # print(model.decoder.positional_embedding)
+    # print(model.decoder.positional_embedding.shape)
+    # psd = {"positional_embedding": model.decoder.positional_embedding.detach().numpy()}
+    # np.savez("positional_embedding_{}.npz".format(name), **psd)
+    # exit(1)
     return model
