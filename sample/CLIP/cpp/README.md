@@ -2,15 +2,15 @@
 
 ## 目录
 
-- [C++例程](#python例程)
+- [C++例程](#c例程)
   - [目录](#目录)
   - [1. 环境准备](#1-环境准备)
     - [1.1 x86/arm/riscv PCIe平台](#11-x86armriscv-pcie平台)
     - [1.2 SoC平台](#12-soc平台)
   - [2. 编译程序](#2-编译程序)
-    - [2.1 x86/arm/riscv PCIe平台](#21-x86armriscv-PCIe平台)
-    - [2.2 SoC平台](#22-SoC平台)
-  - [3. 推理测试](#2-推理测试)
+    - [2.1 x86/arm/riscv PCIe平台](#21-x86armriscv-pcie平台)
+    - [2.2 SoC平台](#22-soc平台)
+  - [3. 推理测试](#3-推理测试)
     - [3.1 参数说明](#31-参数说明)
     - [3.2 测试图片](#32-测试图片)
 
@@ -75,6 +75,8 @@ usage: clip_opencv.pcie  [params]
                 image_model image_model path
         --text_model (value:../../models/BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel)
                 text_model text_model path
+        --text_projection (value:../../models/text_projection_512_512.npy)
+                path to the text projection data
         --help (value:true)
                 print help information.
 ```
