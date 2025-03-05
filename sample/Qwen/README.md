@@ -192,8 +192,9 @@ sudo reboot
 | SRM1-20     | qwen.py           | qwen2-7b_int4_seq512_1dev.bmodel                     |    0.981              |    6.234                 | 
 | SRM1-20     | qwen.py           | qwen2.5-1.5b_int4_seq512_1dev.bmodel                 |    0.283              |    14.674                |
 | SRM1-20     | qwen.py           | qwen2.5-1.5b_int4_seq1024_1dev.bmodel                |    0.503              |    13.970                | 
-| SRM1-20     | qwen.py           | deepseek-r1-distill-qwen2-7b_w4bf16_seq2048.bmodel   |    3.437              |    6.213                 | 
-
+| SRM1-20     | qwen.py           | deepseek-r1-distill-qwen2-1.5b_w4bf16_seq8192.bmodel |    5.950              |    12.524                | 
+| SRM1-20     | qwen.py           | deepseek-r1-distill-qwen2-7b_w4bf16_seq2048.bmodel   |    3.437              |    6.213                 |  
+| SRM1-20     | qwen.py           | deepseek-r1-distill-qwen2-14b_w4bf16_seq512.bmodel   |    1.577              |    3.958                 |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
