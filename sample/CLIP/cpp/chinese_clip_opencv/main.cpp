@@ -113,6 +113,7 @@ int main(int argc, char *argv[]){
         "{text | \"流程图,狗,车\" | text inputs for prediction (multiple texts can be separated by spaces and must be quoted)}"
         "{image_model | ../../models/BM1684X/cn_clip_image_vitb16_bm1684x_f16_1b.bmodel | path to the image model file}"
         "{text_model | ../../models/BM1684X/cn_clip_text_vitb16_bm1684x_f16_1b.bmodel | path to the text model file}"
+        "{text_projection | ../../models/text_projection_512_512.npy | path to the text projection data}"
         "{dev_id | 0 | TPU device ids (comma-separated list)}"
         "{help | 0 | print help information.}";
     cv::CommandLineParser parser(argc, argv, keys);
@@ -131,6 +132,7 @@ int main(int argc, char *argv[]){
     std::vector<std::string> text_vector = split(text_input);
     std::string image_model = parser.get<string>("image_model");
     std::string text_model = parser.get<string>("text_model");
+    std::string text_projection_path = parser.get<string>("text_projection");
     int dev_id = parser.get<int>("dev_id");
 
     // check params
@@ -143,6 +145,10 @@ int main(int argc, char *argv[]){
         cout << "Cannot find valid text model file: " << text_model << endl;
         exit(1);
     }
+    if (stat(text_projection_path.c_str(), &info) != 0) {
+        cout << "Cannot find valid text_projection_path: " << text_projection_path << endl;
+        exit(1);
+    }
     if (stat(image_path.c_str(), &info) != 0) {
         cout << "Cannot find input path: " << image_path << endl;
         exit(1);
@@ -151,7 +157,7 @@ int main(int argc, char *argv[]){
     //  Load bmodel
     CLIP clip;
     printf("Init Environment ...\n");
-    clip.init(image_model, text_model, dev_id);
+    clip.init(image_model, text_model, dev_id, text_projection_path);
     printf("==========================\n");
     // tokenizer;
     BertTokenizer tokenizer;

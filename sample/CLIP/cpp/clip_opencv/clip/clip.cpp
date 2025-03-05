@@ -24,7 +24,7 @@
 #include <string>
 #include <filesystem>
 
-void CLIP::init(const std::string& image_model, const std::string& text_model, const int &dev_id) {
+void CLIP::init(const std::string& image_model, const std::string& text_model, const int &dev_id, const std::string& text_projection_path) {
     bm_status_t status = bm_dev_request(&bm_handle, dev_id);
     assert(BM_SUCCESS == status);
     std::cout << "set device id: " << dev_id << std::endl;
@@ -72,8 +72,7 @@ void CLIP::init(const std::string& image_model, const std::string& text_model, c
     top_k = 5;
 
     // load text_projection
-    std::filesystem::path script_path = std::filesystem::current_path();
-    std::ifstream file(script_path / "../../models/text_projection_512_512.npy", std::ios::binary);
+    std::ifstream file(text_projection_path, std::ios::binary);
     char header[128];
     file.read(header, 128);
     size_t header_length = 0;
