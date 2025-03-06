@@ -64,7 +64,7 @@ usage: blip_cap.py  [--image_path IMAGE_PATH] [--bmodel_path MODEL] [--tokenizer
 
 blip_itm.py
 ```bash
-usage: blip_cap.py  [--image_path IMAGE_PATH] [--text [text ...]] [--bmodel_path MODEL] [--tokenizer_path TOKENIZER_PATH] [--dev_id DEV_ID]
+usage: blip_itm.py  [--image_path IMAGE_PATH] [--text [text ...]] [--bmodel_path MODEL] [--tokenizer_path TOKENIZER_PATH] [--dev_id DEV_ID]
 --image_path 测试图片路径，也可输入整个图片文件夹的路径；
 --text 用于与图片测试匹配度的文字;
 --bmodel_path bmodel路径；
@@ -74,7 +74,7 @@ usage: blip_cap.py  [--image_path IMAGE_PATH] [--text [text ...]] [--bmodel_path
 
 blip_vqa.py
 ```bash
-usage: blip_cap.py  [--image_path IMAGE_PATH] [--venc_bmodel_path VENC_MODEL] [--tenc_bmodel_path TENC_MODEL] [--tdec_bmodel_path TDEC_MODEL] [--tokenizer_path TOKENIZER_PATH] [--dev_id DEV_ID]
+usage: blip_vqa.py  [--image_path IMAGE_PATH] [--venc_bmodel_path VENC_MODEL] [--tenc_bmodel_path TENC_MODEL] [--tdec_bmodel_path TDEC_MODEL] [--tokenizer_path TOKENIZER_PATH] [--dev_id DEV_ID]
 --image_path 测试图片路径；
 --venc_bmodel_path 图像编码器bmodel路径；
 --tenc_bmodel_path 多模态编码器bmodel路径；
