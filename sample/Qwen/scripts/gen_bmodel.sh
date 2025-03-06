@@ -118,6 +118,9 @@ elif [ "$name" = "qwen2.5-7b" ]; then
 elif [ "$name" = "qwen2.5-1.5b" ]; then
   num_layers=28
   hidden_size=1536
+elif [ "$name" = "qwen2.5-0.5b" ]; then
+  num_layers=24
+  hidden_size=896
 else
   >&2 echo -e "Error: Invalid name $name, the input name must be \033[31mqwen1.5-0.5b|qwen1.5-1.8b|qwen1.5-4b|qwen1.5-7b|qwen1.5-32b\033[0m"
   exit 1

@@ -2,19 +2,21 @@
 
 ## 目录
 
-* [1. 环境准备](#1-环境准备)
-    * [1.1 x86/arm/riscv PCIe平台](#11-x86armriscv-pcie平台)
-    * [1.2 SoC平台](#12-soc平台)
-* [2. 推理测试](#2-推理测试)
-    * [2.1 参数说明](#21-参数说明)
-    * [2.2 使用方式](#22-使用方式)
-* [3. Web Demo](#3-Web-Demo)
-    * [3.1 参数说明](#31-使用方式)
-    * [3.2 程序流程图](#32-程序流程图)
-    * [3.3 使用方式](#33-使用方式)
-* [4. Openai API 接口服务](#4-Openai-API接口服务)
-    * [4.1 参数说明](#41-参数说明)
-    * [4.2 使用方式](#42-使用方式)
+- [Python例程](#python例程)
+  - [目录](#目录)
+  - [1. 环境准备](#1-环境准备)
+    - [1.1 x86/arm/riscv PCIe平台](#11-x86armriscv-pcie平台)
+    - [1.2 SoC平台](#12-soc平台)
+  - [2. 推理测试](#2-推理测试)
+    - [2.1 参数说明](#21-参数说明)
+    - [2.2 使用方式](#22-使用方式)
+  - [3. Web Demo](#3-web-demo)
+    - [3.1 参数说明](#31-参数说明)
+    - [3.2 程序流程图](#32-程序流程图)
+    - [3.3 使用方式](#33-使用方式)
+  - [4. Openai API接口服务](#4-openai-api接口服务)
+    - [4.1 参数说明](#41-参数说明)
+    - [4.2 使用方式](#42-使用方式)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -44,13 +46,19 @@ cd driver_0714
 sudo dpkg -i *.deb
 ```
 
-您还需要安装sophon-sail，由于本例程需要的sophon-sail版本较新，相关功能还未发布，这里暂时提供一个可用的sophon-sail源码，x86/arm/riscv PCIe环境可以通过下面的命令下载：
+x86环境可以通过如下命令安装sophon-sail：
+```bash
+pip3 install dfss --upgrade
+python3 -m dfss --install sail
+```
+
+这里提供一个可用的sophon-sail源码，arm/riscv PCIe环境可以通过下面的命令下载：
 ```bash
 pip3 install dfss --upgrade #安装dfss依赖
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/sophon-sail.tar.gz
 tar xvf sophon-sail.tar.gz
 ```
-参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v24.04.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)编译不包含bmcv,sophon-ffmpeg,sophon-opencv的可被Python3接口调用的Wheel文件。
+下载完成后，参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v24.04.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)编译不包含bmcv,sophon-ffmpeg,sophon-opencv的可被Python3接口调用的Wheel文件。
 
 ### 1.2 SoC平台
 
@@ -60,11 +68,10 @@ tar xvf sophon-sail.tar.gz
 ```bash
 pip3 install -r python/requirements.txt
 ```
-由于本例程需要的sophon-sail版本较新，这里提供一个可用的sophon-sail whl包，SoC环境可以通过下面的命令下载：
+安装sophon-sail：
 ```bash
 pip3 install dfss --upgrade
-python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/sophon_arm-3.8.0-py3-none-any.whl  #arm soc, py38
-python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/sophon_arm-3.9.2-py3-none-any.whl #arm soc 1688, py38
+python3 -m dfss --install sail
 ```
 如果whl包无法使用，也可以参考上一小节，下载源码自己编译。
 ## 2. 推理测试
@@ -75,7 +82,7 @@ qwen.py使用config/qwen.yaml配置文件进行参数配置。
 qwen.yaml内容如下
 ```yaml
 bmodel_path: ../models/BM1684X/qwen1.5-7b_int4_seq512_1dev.bmodel   ## 用于推理的bmodel路径
-token_path: ./token_config    ## tokenizer目录路径；
+token_path: ./token_config    ## tokenizer目录路径；如果跑别的模型，需要使用相应的tokenizer。
 dev_ids: 0   ## 用于推理的tpu设备id；
 ```
 
@@ -89,7 +96,7 @@ python3 qwen.py --config ./config/qwen.yaml
 
 **注意：**
 >用户应根据需要自己选择或创建相应的配置文件，并正确填写配置文件中的参数(以下为特殊事例)。
->1. 如果要加载deepseek-r1-distill-qwen2模型(BM1688)，./config/qwen.yaml 中 token_path 参数修改为 ../models/BM1688/tokenizer_deepseek_r1_distill_qwen2
+>1. 如果要加载deepseek-r1-distill-qwen2模型(BM1688)，./config/qwen.yaml 中 bmodel_path参数修改为 ../models/BM1688/deepseek-r1-distill-qwen-1.5b_int4_seq1024_1688_2core.bmodel，token_path 参数修改为 ../models/BM1688/tokenizer_deepseek_r1_distill_qwen2
 >2. 如果要加载deepseek-r1-distill-qwen2模型(BM1684X)，那么请将--config参数修改为 ./config/deepseek-r1-distill-qwen2.yaml
 
 ## 3. Web Demo
