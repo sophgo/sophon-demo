@@ -175,6 +175,7 @@ sudo reboot
 | SE7-32      | qwen.py           | qwen2-7b_int4_seq512_1dev.bmodel                     |    0.728              |    9.504                 | 
 | SE7-32      | qwen.py           | qwen2.5-7b_int4_seq512_1dev.bmodel                   |    0.652              |    10.26                 | 
 | SE7-32      | qwen.py           | qwen2.5-7b_int4_seq2048_1dev.bmodel                  |    2.704              |    9.753                 | 
+| SE7-32      | qwen.py           | qwen2.5-0.5b_int4_seq1024_1dev.bmodel                |    0.186              |    43.389                | 
 | SE7-32      | qwen.py           | deepseek-r1-distill-qwen2-1.5b_w4bf16_seq8192.bmodel |    5.455              |    20.083                | 
 | SE7-32      | qwen.py           | deepseek-r1-distill-qwen2-7b_w4bf16_seq2048.bmodel   |    2.937              |    8.301                 | 
 | SE7-32      | qwen.py           | deepseek-r1-distill-qwen2-14b_w4bf16_seq512.bmodel   |    1.297              |    5.652                 | 
