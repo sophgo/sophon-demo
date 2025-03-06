@@ -66,6 +66,8 @@ source ./envsetup.sh
 **注：** 
 - Qwen1.5-1.8B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
 - Qwen1.5-7B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
+- Qwen2.5-1.5B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
+- Qwen2.5-7B官方库50G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
 - Deepseek-R1-Distill-Qwen-1.5B官方库3.5G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
 - Deepseek-R1-Distill-Qwen-7B官方库15G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
 - Deepseek-R1-Distill-Qwen-14B官方库30G左右，在下载之前，要确认自己有huggingface官网的access token或者SSH key。
@@ -75,6 +77,8 @@ source ./envsetup.sh
 git lfs install
 git clone https://huggingface.co/Qwen/Qwen1.5-7B-Chat
 git clone https://huggingface.co/Qwen/Qwen1.5-1.8B-Chat
+git clone https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct
+git clone https://huggingface.co/Qwen/Qwen2.5-7B-Instruct
 git clone https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
 git clone https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
 git clone https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
@@ -163,6 +167,9 @@ Qwen2.5
 # bm1684x 单芯
 python3 tools/export_onnx_qwen2_5.py --model_path /workspace/Qwen2.5-7B-Instruct --seq_length 512 
 python3 tools/export_onnx_qwen2_5.py --model_path /workspace/Qwen2.5-0.5B --seq_length 1024 
+
+# bm1688 单芯
+python3 tools/export_onnx_qwen2_5.py --model_path /workspace/Qwen2.5-1.5B-Instruct --seq_length 512 --lmhead_with_topk 1
 ```
 
 Deepseek-R1-Distill-Qwen-1.5B(BM1688，[参考地址](https://github.com/sophgo/LLM-TPU_Lite/tree/main/models/DeepseekR1Distill))
@@ -218,6 +225,9 @@ Qwen2.5
 # bm1684x 单芯
 ./scripts/gen_bmodel.sh --target bm1684x --mode int4 --name qwen2.5-7b --seq_length 512 --addr_mode io_alone
 ./scripts/gen_bmodel.sh --target bm1684x --mode int4 --name qwen2.5-0.5b --seq_length 1024 --addr_mode io_alone
+
+# bm1688 单芯
+./scripts/gen_bmodel_qwen2_1688.sh --name qwen2.5-1.5b --seq_length 512 --mode int4 --addr_mode io_alone
 ```
 
 Deepseek-R1-Distill-Qwen-1.5B (BM1688，[参考地址](https://github.com/sophgo/LLM-TPU_Lite/tree/main/models/DeepseekR1Distill))

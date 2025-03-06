@@ -433,11 +433,15 @@ if __name__ == "__main__":
         if input_str == "exit":
             break
         print("\nAnswer: ", end = '')
-        assistant_msg = ''
-        messages.append({"role": "user", "content": input_str})
-        for response in qwen.chat_stream(messages):
-            assistant_msg += response
-            print(response, flush=True, end='')
-        messages.append({"role": "assistant", "content": assistant_msg})
-        if ("##reach max length" in assistant_msg):
+        if input_str == "clear":
             messages = []
+            print('历史消息清除完毕')
+        else:
+            assistant_msg = ''
+            messages.append({"role": "user", "content": input_str})
+            for response in qwen.chat_stream(messages):
+                assistant_msg += response
+                print(response, flush=True, end='')
+            messages.append({"role": "assistant", "content": assistant_msg})
+            if ("##reach max length" in assistant_msg):
+                messages = []

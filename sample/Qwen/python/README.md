@@ -62,6 +62,11 @@ tar xvf sophon-sail.tar.gz
 
 ### 1.2 SoC平台
 
+>注意：
+在SOC模式下1684X芯片建议使用包括 v24.04.01 之后版本，1688芯片建议使用包括 V1.8.0 之后版本。
+1684X芯片SOC[刷机参考链接](https://doc.sophgo.com/sdk-docs/v24.04.01/docs_latest_release/docs/sophon-img/reference/html/1_BM1684X-software.html#id13). 1688芯片SOC[刷机参考链接](https://doc.sophgo.com/bm1688_sdk-docs/v1.8/docs_latest_release/docs/athena2-img/2_software_installation.html#id2)
+```
+
 如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
 此外您还需要安装其他第三方库：
@@ -71,7 +76,10 @@ pip3 install -r python/requirements.txt
 安装sophon-sail：
 ```bash
 pip3 install dfss --upgrade
-python3 -m dfss --install sail
+python3 -m dfss --install sail #自动按平台识别安装（和下方安装二选一即可）
+#单独选择安装
+python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/sail_1684X/sophon_arm-3.9.1-py3-none-any.whl  #arm soc 1684X, py38
+python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/sophon_arm-3.9.2-py3-none-any.whl #arm soc 1688, py38
 ```
 如果whl包无法使用，也可以参考上一小节，下载源码自己编译。
 ## 2. 推理测试
@@ -128,6 +136,7 @@ pip3 install -r python/requirements.txt
 ```bash
 cd python
 python3 -m streamlit run web_demo.py -- --config=./config/web.yaml
+#在聊天框中输入clear可以清除历史对话记录
 ```
 
 首次运行需要输入邮箱，输入邮箱后命令行输出以下信息则表示启动成功

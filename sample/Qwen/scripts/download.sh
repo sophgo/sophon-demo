@@ -42,6 +42,8 @@ function download_bm1688 {
     fi
     pushd ../models/BM1688
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen1.5/qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel
+    python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/models/qwen2.5-1.5b_int4_seq512_1688_2core.bmodel
+    python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/models/qwen2.5-1.5b_int4_seq1024_1688_2core.bmodel
     python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/qwen2.5-1.5b_int4_seq2048_1688_2core.bmodel
     python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/deepseek-r1-distill-qwen-1.5b_int4_seq1024_1688_2core.bmodel
     python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/deepseek-r1-distill-qwen-7b_int4_seq1024_1688_2core.bmodel    
