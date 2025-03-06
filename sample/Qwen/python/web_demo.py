@@ -24,15 +24,14 @@ st.title(config["title"])
 def get_client():
     return Qwen(config["bmodel_path"], config["dev_ids"], config["token_path"])
 
-
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-
 # Initialize Tokenizer
 if "client" not in st.session_state:
     st.session_state.client = get_client()
+
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -40,16 +39,20 @@ for message in st.session_state.messages:
 
 # React to user input
 if prompt := st.chat_input("请输入您的问题 "):
-    # Display user message in chat message container
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    # 如果用户输入 "clear"，清除历史记录
+    if prompt.strip().lower() == "clear":
+        st.session_state.messages = []  # 清空对话历史
+        st.rerun()  # 刷新页面以更新显示
+    else:
+        # Display user message in chat message container
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
 
-    # Display assistant response in chat message container
-    with st.chat_message("assistant"):
-        
-        stream = st.session_state.client.chat_stream([{"role": m["role"], "content": m["content"]} for m in st.session_state.messages])
-        response = st.write_stream(stream)
+        # Display assistant response in chat message container
+        with st.chat_message("assistant"):
+            stream = st.session_state.client.chat_stream([{"role": m["role"], "content": m["content"]} for m in st.session_state.messages])
+            response = st.write_stream(stream)
 
-        # Add assistant message to chat history
-        st.session_state.messages.append({"role": "assistant", "content": response})
+            # Add assistant message to chat history
+            st.session_state.messages.append({"role": "assistant", "content": response})
