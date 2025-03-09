@@ -290,7 +290,7 @@ then
   pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684X"
   then
-    download BM1684X
+    download $TARGET
     if test $CASE_MODE = "fully"
     then
       test_python bmcv yolov8s_int8_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -349,7 +349,7 @@ then
   pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
   if test $TARGET = "BM1684X"
   then
-    download BM1684X
+    download $TARGET
     if test $CASE_MODE = "fully"
     then
       test_python bmcv yolov8s_int8_1b.bmodel datasets/test_car_person_1080P.mp4
@@ -405,7 +405,7 @@ then
     fi
 elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
-    download BM1684X
+    download $TARGET
     if test $CASE_MODE = "fully"
     then
       test_python bmcv yolov8s_int8_1b.bmodel datasets/test_car_person_1080P.mp4
