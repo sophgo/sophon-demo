@@ -1,16 +1,19 @@
 # Seamless websocket应用例程 <!-- omit in toc -->
 
 ## 目录 <!-- omit in toc -->
-- [1. Server端环境准备](#1-Server端环境准备)
+- [1. Server端环境准备](#1-server端环境准备)
   - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
   - [1.2 SoC平台](#12-soc平台)
-- [2. Client端环境准备](#2-Client端环境准备)
-  - [2.1 x86/arm PCIe、SoC平台](#21-x86/arm-pcie、soc平台)
-- [3. Server端准备模型](#3-Server端准备模型)
-- [4. Client端准备数据](#4-Client端准备数据)
+- [2. Client端环境准备](#2-client端环境准备)
+  - [2.1 x86/arm PCIe、SoC平台](#21-x86arm-pciesoc平台)
+- [3. Server端准备模型](#3-server端准备模型)
+- [4. Client端准备数据](#4-client端准备数据)
 - [5. 推理测试](#5-推理测试)
   - [5.1 参数说明](#51-参数说明)
   - [5.2 使用方式](#52-使用方式)
+  - [5.2.1 流式+离线修正并行方式](#521-流式离线修正并行方式)
+  - [5.2.2 流式方式](#522-流式方式)
+  - [3.2.3 离线方式](#323-离线方式)
 
 websocket_demo目录下提供了一系列Python例程，具体情况如下：
 
@@ -29,7 +32,7 @@ websocket_demo目录下提供了一系列Python例程，具体情况如下：
 由于本例程依赖[fairseq2n](https://github.com/facebookresearch/fairseq2/blob/v0.2.0/INSTALL_FROM_SOURCE.md)，该库目前只提供了x86_64架构的预编译好的安装包。为了快速进行运行环境搭建，我们提供了arm64平台预编译好的`fairseq2n==0.2.0`的whl包，arm64平台需要单独执行如下命令安装：
 ```bash
 pip3 install dfss --upgrade #安装dfss依赖
-python3 -m dfss --url=open@sophgo.com:test/seamless_bmodel/0415/fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 pip3 install fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 rm -f fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 ```
@@ -72,7 +75,7 @@ unzip sophon-sail.zip
 此外您还需要安装其他第三方库：
 ```bash
 pip3 install dfss --upgrade #安装dfss依赖
-python3 -m dfss --url=open@sophgo.com:test/seamless_bmodel/0415/fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 pip3 install fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 rm -f fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 

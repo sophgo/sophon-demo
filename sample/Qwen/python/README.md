@@ -77,9 +77,6 @@ pip3 install -r python/requirements.txt
 ```bash
 pip3 install dfss --upgrade
 python3 -m dfss --install sail #自动按平台识别安装（和下方安装二选一即可）
-#单独选择安装
-python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/sail_1684X/sophon_arm-3.9.1-py3-none-any.whl  #arm soc 1684X, py38
-python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/sophon_arm-3.9.2-py3-none-any.whl #arm soc 1688, py38
 ```
 如果whl包无法使用，也可以参考上一小节，下载源码自己编译。
 ## 2. 推理测试

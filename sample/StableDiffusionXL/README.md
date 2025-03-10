@@ -52,7 +52,7 @@ python3 export_models_from_Huggingface.py
 
 ```bash
 pip3 install dfss --upgrade
-python3 -m dfss --url=open@sophgo.com:/aigc/tpu_mlir-1.6.502-py3-none-any.whl
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Stable_diffusion_v1_5/tpu_mlir-1.6.502-py3-none-any.whl
 ```
 
 安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/all/all.html)相应版本的SDK中获取)。

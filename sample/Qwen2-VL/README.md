@@ -8,8 +8,8 @@
   - [3. 运行环境准备](#3-运行环境准备)
   - [4. 准备模型](#4-准备模型)
     - [4.1 使用提供的模型](#41-使用提供的模型)
-    - [4.2 自行导出ONNX模型](#42-自行导出ONNX模型)
-    - [4.3 自行编译BModel模型](#43-自行编译BModel模型)
+    - [4.2 自行导出ONNX模型](#42-自行导出onnx模型)
+    - [4.3 自行编译BModel模型](#43-自行编译bmodel模型)
   - [5. 例程测试](#5-例程测试)
   - [6. 程序性能测试](#6-程序性能测试)
 
@@ -34,12 +34,7 @@ Qwen2-VL是阿里云研发的大规模视觉语言模型（Large Vision Language
 ## 3. 运行环境准备
 
 在PCIe上无需修改内存，以下为soc模式相关：
-对于1684X系列设备（如SE7/SM7），都可以通过这种方式完成环境准备，使其满足Qwen2-VL运行条件。首先，确保使用V24.04.01刷机包，刷机包可由如下命令获取：
-
-```bash
-pip3 install dfss --upgrade
-python3 -m dfss --url=open@sophgo.com:sophon-sdk/release/v24.04.01/sophon-img/sdcard.tgz
-```
+对于1684X系列设备（如SE7/SM7），都可以通过这种方式完成环境准备，使其满足Qwen2-VL运行条件。首先，确保使用V24.04.01 SDK，可以通过bm_version命令检查SDK版本，如需要升级，可从sophgo.com获取v24.04.01版本SDK，刷机包位于sophon-img-xxx/sdcard.tgz中，参考对应的产品手册进行刷机。
 
 确保SDK版本后，在1684x SoC环境上，参考如下命令修改设备内存。
 

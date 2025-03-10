@@ -20,8 +20,8 @@ function download_bm1684x {
     elif [ x"$1" == x"qwen2" ]; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen2/qwen2-7b_int4_seq512_1dev.bmodel
     elif [ x"$1" == x"qwen2.5" ]; then
-        python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/models/qwen2.5-1.5b_int4_seq512_1dev.bmodel
-        python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/models/qwen2.5-1.5b_int4_seq1024_1dev.bmodel
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen2.5/qwen2.5-1.5b_int4_seq512_1dev.bmodel
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen2.5/qwen2.5-1.5b_int4_seq1024_1dev.bmodel
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen2.5/qwen-0.5b_int4_seq1024_1dev.bmodel 
     elif [ x"$1" == x"deepseek-r1-distill-qwen2" ]; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/deepseek-r1-distill-qwen2-1.5b.tar.gz
@@ -42,11 +42,11 @@ function download_bm1688 {
     fi
     pushd ../models/BM1688
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen1.5/qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel
-    python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/models/qwen2.5-1.5b_int4_seq512_1688_2core.bmodel
-    python3 -m dfss --url=open@sophgo.com:/SILK/level-3/service_llm/models/qwen2.5-1.5b_int4_seq1024_1688_2core.bmodel
-    python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/qwen2.5-1.5b_int4_seq2048_1688_2core.bmodel
-    python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/deepseek-r1-distill-qwen-1.5b_int4_seq1024_1688_2core.bmodel
-    python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/deepseek-r1-distill-qwen-7b_int4_seq1024_1688_2core.bmodel    
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/qwen2.5-1.5b_int4_seq512_1688_2core.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/qwen2.5-1.5b_int4_seq1024_1688_2core.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/qwen2.5-1.5b_int4_seq2048_1688_2core.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/deepseek-r1-distill-qwen-1.5b_int4_seq1024_1688_2core.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/deepseek-r1-distill-qwen-7b_int4_seq1024_1688_2core.bmodel    
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/tokenizer_deepseek_r1_distill_qwen2.tgz
     tar -xzvf tokenizer_deepseek_r1_distill_qwen2.tgz
     rm -f tokenizer_deepseek_r1_distill_qwen2.tgz
