@@ -249,12 +249,12 @@ source /etc/profile
     可以使用我们提供的docker镜像作为交叉编译环境，通过dfss下载：
     ```bash
     pip3 install dfss
-    python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev.tar # ubuntu 20.04, gcc-9
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/common/docker/stream_dev.tar # ubuntu 20.04, gcc-9
     ```
 
     如果您的设备为BM1688/CV186AH，SDK版本1.9以上(可以使用bm_version命令查看版本)，那么您需要使用这个镜像:
     ```bash
-    python3 -m dfss --url=open@sophgo.com:/sophon-stream/docker/stream_dev_22.04.tar # ubuntu 22.04, gcc-11
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/common/docker/stream_dev_22.04.tar # ubuntu 22.04, gcc-11
     ```
 
     如果是首次使用Docker, 可执行下述命令进行安装和配置(仅首次执行):

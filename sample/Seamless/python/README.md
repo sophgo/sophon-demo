@@ -25,7 +25,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 由于本例程依赖[fairseq2n](https://github.com/facebookresearch/fairseq2/blob/v0.2.0/INSTALL_FROM_SOURCE.md)，该库目前只提供了x86_64架构的预编译好的安装包。为了快速进行运行环境搭建，我们提供了arm64平台预编译好的`fairseq2n==0.2.0`的Python3.8.2 whl包，arm64平台需要单独执行如下命令安装：
 ```bash
 pip3 install dfss --upgrade #安装dfss依赖
-python3 -m dfss --url=open@sophgo.com:test/seamless_bmodel/0415/fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 pip3 install fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 rm -f fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 ```
@@ -67,7 +67,7 @@ unzip sophon-sail.zip
 此外您还需要安装其他第三方库：
 ```bash
 pip3 install dfss --upgrade #安装dfss依赖
-python3 -m dfss --url=open@sophgo.com:test/seamless_bmodel/0415/fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 pip3 install fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 rm -f fairseq2n-0.2.0-cp38-cp38-linux_aarch64.whl
 

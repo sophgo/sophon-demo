@@ -73,7 +73,7 @@ git clone https://huggingface.co/meta-llama/Llama-3.2-11B-Vision-Instruct
 如果您的网络在下载的时候有问题，也可以使用下面的方法下载我们上传的源码模型包：
 ```bash
 pip3 install dfss --upgrade
-python3 -m dfss --url=open@sophgo.com:ext_model_information/LLM/torch/Llama-3.2-11B-Vision-Instruct.zip
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Llama3_2_Vision/Llama-3.2-11B-Vision-Instruct.zip
 ```
 
 ### 2.1.2 修改官方代码：

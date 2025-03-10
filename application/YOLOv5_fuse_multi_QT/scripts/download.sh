@@ -39,7 +39,7 @@ fi
 if [ ! -d "../cpp/install" ];
 then
     mkdir -p ../cpp/install
-    python3 -m dfss --url=open@sophgo.com:gemini-sdk/qtbase-5.12.8.tar
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/common/qtbase-5.12.8.tar
     tar -xf qtbase-5.12.8.tar --strip-components=1 -C ../cpp/install
     rm -r qtbase-5.12.8.tar
     echo "qtbase download!"

@@ -26,13 +26,6 @@ git clone git@hf.co:THUDM/chatglm3-6b
 ```
 如果git clone完代码之后出现卡住，可以尝试`ctrl+c`中断，然后进入仓库运行`git lfs pull`。
 
-如果无法从官网下载，也可以下载我们之前下好的，压缩包20G左右
-```bash
-pip3 install dfss
-python3 -m dfss --url=open@sophgo.com:ext_model_information/LLM/chatglm3-6b.tar.gz
-tar zxvf chatglm3-6b.tar.gz
-```
-
 ### 2.1.2 修改官方代码：
 本例程的`tools`目录下提供了修改好之后的`config.json`和`modeling_chatglm.py`。可以直接替换掉原仓库的文件：
 ```bash

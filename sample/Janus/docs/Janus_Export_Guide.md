@@ -73,7 +73,7 @@ git clonehttps://huggingface.co/deepseek-ai/Janus-Pro-7B
 如果您的网络在下载的时候有问题，也可以使用下面的方法下载我们上传的源码模型包：
 ```bash
 pip3 install dfss --upgrade
-python3 -m dfss --url=open@sophgo.com:ext_model_information/LLM/torch/Janus-Pro-7B.zip
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Janus/Janus-Pro-7B.zip
 ```
 
 ### 2.1.2 修改官方代码：

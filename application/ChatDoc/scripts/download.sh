@@ -28,7 +28,7 @@ fi
 # nltk_data & embedding model & reranker model are required
 if [ ! -d "../nltk_data" ]; then
     echo "../nltk_data does not exist, download..."
-    python3 -m dfss --url=open@sophgo.com:ezoo/chatdoc/nltk_data.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/application/ChatDoc/nltk_data.zip
     unzip nltk_data.zip
     mv nltk_data ..
     rm nltk_data.zip
@@ -50,7 +50,7 @@ if [[ "$chip" == "bm1684x" && ! -d "../models/BM1684X/qwen" ]]; then
 elif [[ "$chip" == "bm1688" && ! -d "../models/BM1688/qwen" ]]; then
     echo "download qwen2.5-1.5b as an example..."
     mkdir -p ../models/BM1688/qwen
-    python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/qwen2.5-1.5b_int4_seq2048_1688_2core.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/application/ChatDoc/qwen2.5-1.5b_int4_seq2048_1688_2core.bmodel
     mv qwen2.5-1.5b_int4_seq2048_1688_2core.bmodel ../models/BM1688/qwen
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen1_5/token_config.zip  # same as 84x
     unzip token_config.zip -d ../models/BM1688/qwen/
@@ -63,7 +63,7 @@ fi
 # download embedding model
 if [[ "$chip" == "bm1684x" && ! -d "../models/BM1684X/bce_embedding" ]]; then
     echo "bce_embedding model does not exist, download..."
-    python3 -m dfss --url=open@sophgo.com:ezoo/chatdoc/bce_embedding.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/application/ChatDoc/bce_embedding.zip
     unzip bce_embedding.zip -d ../models/BM1684X
     rm bce_embedding.zip
     echo "bce_embedding download!"
@@ -80,7 +80,7 @@ fi
 # download reranker model
 if [[ "$chip" == "bm1684x" && ! -d "../models/BM1684X/bce_reranker" ]]; then
     echo "bce_reranker model does not exist, download..."
-    python3 -m dfss --url=open@sophgo.com:ezoo/chatdoc/bce_reranker.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/application/ChatDoc/bce_reranker.zip
     unzip bce_reranker.zip -d ../models/BM1684X
     rm bce_reranker.zip
     echo "bce_reranker download!"

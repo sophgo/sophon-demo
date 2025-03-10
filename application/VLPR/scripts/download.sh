@@ -41,12 +41,12 @@ fi
 if [ ! -d "../models" ]; 
 then
     mkdir -p ../models ../models/lprnet/
-    python3 -m dfss --url=open@sophgo.com:/sophon-stream/lprnet/models.7z    
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/application/VLPR/models.7z   
     7z x models.7z 
     mv models/* ../models/lprnet/
     rm -r models.7z models
 
-    python3 -m dfss --url=open@sophgo.com:/sophon-stream/license_plate_recognition/yolov5s-licensePlate.7z
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/application/VLPR/yolov5s-licensePlate.7z
     7z x yolov5s-licensePlate.7z -o../models
     rm yolov5s-licensePlate.7z
 
