@@ -69,13 +69,13 @@ private:
     int pre_process(const std::vector<bm_image>& images, 
                     bm_tensor_t& input_tensor,
                     std::vector<std::pair<int, int>>& txy_batch, 
-                    std::vector<float>& ratios_batch);
+                    std::vector<std::pair<float, float>>& ratios_batch);
     int forward(bm_tensor_t& input_tensor, std::vector<bm_tensor_t>& output_tensors);
     float* get_cpu_data(bm_tensor_t* tensor, float scale);
     int post_process(const std::vector<bm_image>& input_images, 
                      std::vector<bm_tensor_t>& output_tensors, 
                      const std::vector<std::pair<int, int>>& txy_batch, 
-                     const std::vector<float>& ratios_batch, 
+                     const std::vector<std::pair<float, float>>& ratios_batch,
                      std::vector<YoloV8BoxVec>& boxes);
     static float get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool* alignWidth);
     int argmax(float* data, int num);
