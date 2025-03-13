@@ -28,7 +28,7 @@ int YoloV8_det::Detect(const std::vector<bm_image>& input_images, std::vector<Yo
     std::vector<bm_tensor_t> output_tensors;
     output_tensors.resize(netinfo->output_num);
     std::vector<std::pair<int, int>> txy_batch;
-    std::vector<float> ratios_batch;
+    std::vector<std::pair<float, float>> ratios_batch;
     m_ts->save("yolov8 preprocess", input_images.size());
     ret = pre_process(input_images, input_tensor, txy_batch, ratios_batch);
     assert(ret == 0);
@@ -63,7 +63,7 @@ float YoloV8_det::get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int d
 int YoloV8_det::pre_process(const std::vector<bm_image>& images, 
                             bm_tensor_t& input_tensor, 
                             std::vector<std::pair<int, int>>& txy_batch, 
-                            std::vector<float>& ratios_batch) {
+                            std::vector<std::pair<float, float>>& ratios_batch) {
     int ret = 0;
     std::vector<bm_image> m_resized_imgs;
     std::vector<bm_image> m_converto_imgs;
@@ -138,14 +138,14 @@ int YoloV8_det::pre_process(const std::vector<bm_image>& images,
             padding_attr.dst_crop_stx = tx1;
         }
         txy_batch.push_back(std::make_pair(tx1, ty1));
-        ratios_batch.push_back(ratio);
+        ratios_batch.push_back(std::make_pair(ratio, ratio));
         bmcv_rect_t crop_rect{0, 0, image1.width, image1.height};
         auto ret = bmcv_image_vpp_convert_padding(handle, 1, image_aligned, &m_resized_imgs[i],
                                                   &padding_attr, &crop_rect);
 #else
         auto ret = bmcv_image_vpp_convert(handle, 1, images[i], &m_resized_imgs[i]);
         txy_batch.push_back(std::make_pair(0, 0));
-        ratios_batch.push_back(1.0);
+        ratios_batch.push_back(std::make_pair((float)m_net_w/images[i].width,(float)m_net_h/images[i].height));
 #endif
         assert(BM_SUCCESS == ret);
         if (need_copy)
@@ -290,7 +290,7 @@ float* YoloV8_det::get_cpu_data(bm_tensor_t* tensor, float scale){
 int YoloV8_det::post_process(const std::vector<bm_image>& input_images, 
                              std::vector<bm_tensor_t>& output_tensors, 
                              const std::vector<std::pair<int, int>>& txy_batch, 
-                             const std::vector<float>& ratios_batch, 
+                             const std::vector<std::pair<float, float>>& ratios_batch,
                              std::vector<YoloV8BoxVec>& detected_boxes) {
     float* data_box = NULL;
     bm_tensor_t tensor_box;
@@ -374,13 +374,15 @@ int YoloV8_det::post_process(const std::vector<bm_image>& input_images,
 
         int tx1 = txy_batch[batch_idx].first;
         int ty1 = txy_batch[batch_idx].second;
-        float ratio = ratios_batch[batch_idx];
-        float inv_ratio = 1.0 / ratio;
+        float ratio_x = ratios_batch[batch_idx].first;
+        float ratio_y = ratios_batch[batch_idx].second;
+        float inv_ratio_x = 1.0 / ratio_x;
+        float inv_ratio_y = 1.0 / ratio_y;
         for (int i = 0; i < yolobox_vec.size(); i++) {
-            yolobox_vec[i].x1 = std::round((yolobox_vec[i].x1 - tx1) * inv_ratio);
-            yolobox_vec[i].y1 = std::round((yolobox_vec[i].y1 - ty1) * inv_ratio);
-            yolobox_vec[i].x2 = std::round((yolobox_vec[i].x2 - tx1) * inv_ratio);
-            yolobox_vec[i].y2 = std::round((yolobox_vec[i].y2 - ty1) * inv_ratio);
+            yolobox_vec[i].x1 = std::round((yolobox_vec[i].x1 - tx1) * inv_ratio_x);
+            yolobox_vec[i].y1 = std::round((yolobox_vec[i].y1 - ty1) * inv_ratio_y);
+            yolobox_vec[i].x2 = std::round((yolobox_vec[i].x2 - tx1) * inv_ratio_x);
+            yolobox_vec[i].y2 = std::round((yolobox_vec[i].y2 - ty1) * inv_ratio_y);
         }
         clip_boxes(yolobox_vec, frame_width, frame_height);
         detected_boxes.push_back(yolobox_vec);
