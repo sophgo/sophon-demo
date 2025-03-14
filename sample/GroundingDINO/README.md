@@ -4,15 +4,17 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-* [5. 例程测试](#5-例程测试)
-* [6. 性能测试](#7-性能测试)
-  * [6.1 bmrt_test](#6.1-bmrt_test)
-  * [6.2 程序运行性能](#6.2-程序运行性能)
-* [7. FAQ](#7-faq)
+- [GroundingDINO](#groundingdino)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 性能测试](#6-性能测试)
+    - [6.1 bmrt\_test](#61-bmrt_test)
+    - [6.2 程序运行性能](#62-程序运行性能)
+  - [7. FAQ](#7-faq)
 
 ## 1. 简介
 GroundingDINO是一种多模态的目标检测模型。
@@ -29,7 +31,7 @@ GroundingDINO是一种多模态的目标检测模型。
 ## 3. 准备模型与数据
 建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型，其中Pytorch转onnx模型具体可参考[常见问题](./docs/GroundingDINO_Common_Problems.md)。
 
-​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，通过下载的mlir工具`tpu-mlir_v1.9.beta.0-89-g009410603-20240715.tar.gz`，并参考[4. 模型编译](#4-模型编译)进行模型转换。
+​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，通过下载的mlir工具`tpu-mlir_v1.16.beta.0-30-gd1b8b38f1-20250314.tar.gz`，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
 ```bash
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
@@ -44,7 +46,7 @@ chmod -R +x scripts/
 │   └── GroundingDINO_Common_Problems.md        #GroundingDINO 常见问题及解答
 ├── models
 │   ├── bert-base-uncased                       # tokenizer 分词器文件夹					
-│   ├── tpu-mlir_v1.9.beta.0-89-g009410603-20240715.tar.gz                       # TPU-MLIR工具包				
+│   ├── tpu-mlir_v1.16.beta.0-30-gd1b8b38f1-20250314.tar.gz                       # TPU-MLIR工具包				
 │   ├── BM1684X
 │   │  └── groundingdino_bm1684x_fp16.bmodel    # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 |   ├── BM1688
