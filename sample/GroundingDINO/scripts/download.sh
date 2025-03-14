@@ -36,8 +36,8 @@ then
     unzip models.zip -d ../models
     rm models.zip
 
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/tpu-mlir_v1.9.beta.0-89-g009410603-20240715.tar.gz
-    mv tpu-mlir_v1.9.beta.0-89-g009410603-20240715.tar.gz ../models
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/tpu-mlir_v1.16.beta.0-30-gd1b8b38f1-20250314.tar.gz
+    mv tpu-mlir_v1.16.beta.0-30-gd1b8b38f1-20250314.tar.gz ../models
 
     python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/bert-base-uncased.zip
     unzip bert-base-uncased.zip -d ../models
