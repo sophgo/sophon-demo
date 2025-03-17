@@ -857,7 +857,7 @@ bm_status_t jpgDec(bm_handle_t& handle, uint8_t* bs_buffer, int numBytes, bm_ima
 
     // filter convert format to I420
     // TODO
-    if (!hardware_decode) {
+    if (!hardware_decode && pFrame->format == AV_PIX_FMT_YUVJ420P) {
         int height = pFrame->height;
         int width = pFrame->width;
         uchar bgr_buffer[height * width * 3];
