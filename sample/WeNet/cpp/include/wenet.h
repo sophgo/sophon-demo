@@ -10,6 +10,7 @@
 #include <armadillo>
 #include <string>
 #include <cassert>
+#include <memory>
 #include "processor.h"
 #include "bmruntime_cpp.h"
 #include "utils.hpp"
