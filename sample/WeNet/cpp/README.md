@@ -2,16 +2,18 @@
 
 ## 目录
 
-* [1. 环境准备](#1-环境准备)
-    * [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
-    * [1.2 SoC平台](#12-soc平台)
-    * [1.3 第三方库依赖](#13-第三方库依赖)
-* [2. 程序编译](#2-程序编译)
-    * [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
-    * [2.2 SoC平台](#22-soc平台)
-* [3. 推理测试](#3-推理测试)
-    * [3.1 参数说明](#31-参数说明)
-    * [3.2 测试音频](#32-测试音频)
+- [C++例程](#c例程)
+  - [目录](#目录)
+  - [1. 环境准备](#1-环境准备)
+    - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    - [1.2 SoC平台](#12-soc平台)
+    - [1.3 第三方库依赖](#13-第三方库依赖)
+  - [2. 程序编译](#2-程序编译)
+    - [2.1 x86/arm PCIe平台](#21-x86arm-pcie平台)
+    - [2.2 SoC平台](#22-soc平台)
+  - [3. 推理测试](#3-推理测试)
+    - [3.1 参数说明](#31-参数说明)
+    - [3.2 测试音频](#32-测试音频)
 
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
@@ -79,12 +81,12 @@ make
 ```bash
 # SoC设置环境变量，每次开一个新终端都需要重新设置。也可以将下面这些环境变量写到~/.bashrc里面并source ~/.bashrc，这样就不用每次开新终端都重新设置了。
 # ${path/to/cpp}表示cross_compile_module所在目录，填绝对路径。
-export LD_LIBRARY_PATH=${path/to/cpp}/cross_compile_module/ctcdecode-cpp/openfst-1.6.3/src/lib/.libs/:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=${path/to/cpp}/cross_compile_module/ctcdecode-cpp/build/:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=${path/to/cpp}/cross_compile_module/ctcdecode-cpp/build/3rd_party/kenlm/lib/:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=${path/to/cpp}/cross_compile_module/3rd_party/lib/:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=${path/to/cpp}/cross_compile_module/3rd_party/lib/blas/:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=${path/to/cpp}/cross_compile_module/3rd_party/lib/lapack/:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PWD/cross_compile_module/ctcdecode-cpp/openfst-1.6.3/src/lib/.libs/:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PWD/cross_compile_module/ctcdecode-cpp/build/:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PWD/cross_compile_module/ctcdecode-cpp/build/3rd_party/kenlm/lib/:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PWD/cross_compile_module/3rd_party/lib/:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PWD/cross_compile_module/3rd_party/lib/blas/:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PWD/cross_compile_module/3rd_party/lib/lapack/:$LD_LIBRARY_PATH
 ```
 PCIe和SoC平台的测试参数及运行方式是一致的，下面主要以PCIe模式进行介绍：
 
