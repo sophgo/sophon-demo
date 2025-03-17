@@ -119,7 +119,11 @@ arma::fmat bm_fft(const arma::fmat& A) {
     bm_malloc_device_byte(handle, &out_imaginary_device, n_cols * sizeof(float));
 
     void *plan = nullptr;
-    bmcv_fft_1d_create_plan(handle, 1, n_cols, true, plan);
+    #if BMCV_VERSION_MAJOR > 1
+        bmcv_fft_1d_create_plan(handle, 1, n_cols, true, &plan);
+    #else
+        bmcv_fft_1d_create_plan(handle, 1, n_cols, true, plan);
+    #endif
     for(int i = 0; i < n_rows; i++) {
         void* input_real = rowvec_to_sys_mem<float>(A.row(i));
 

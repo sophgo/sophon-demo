@@ -9,6 +9,7 @@
 #include "wenet.h"
 #include "wrapper.h"
 #include "ctcdecode.h"
+
 #define IGNORE_ID -1
 using namespace bmruntime;
 
@@ -144,10 +145,10 @@ int WeNet::pre_process(const char* file_path) {
         }
     }
     else if(sfinfo.channels == 2) {
-        for (int i = 0; i < sfinfo.frames; i += 2) {
-            waveform(0, i / 2) = buffer[i] * (1 << 15);
-            waveform(0, i / 2) = buffer[i + 1] * (1 << 15);
-        }       
+        for (int i = 0; i < sfinfo.frames; i += 1) {
+            waveform(0, i) = buffer[2 * i] * (1 << 15);
+            waveform(1, i) = buffer[2 * i + 1] * (1 << 15);
+        }
     }
     else {
         std::cerr << "The number of channels in the wav file is not normal!" << std::endl;
@@ -410,7 +411,7 @@ int WeNet::inference() {
         std::free(beam_log_probs_idx_ptr);
         std::free(best_idx);
         LOG_TS(m_ts, "wenet postprocess");
-    } else if(max_len + 2 >= encoder_out.n_rows){
+    } else if(mode == "attention_rescoring" && max_len + 2 >= encoder_out.n_rows){
         std::cout<<"encoder_output's length is too long for decoder, skip decoder part..."<<std::endl;
     }
 

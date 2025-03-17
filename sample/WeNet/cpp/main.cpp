@@ -18,7 +18,6 @@
 #include <yaml-cpp/yaml.h>
 #include "bmruntime_cpp.h"
 #include "util.h"
-#include "utils.hpp"
 #include "wenet.h"
 #include "opencv2/opencv.hpp"
 
