@@ -115,17 +115,17 @@ usage: qwen2_vl.py [-h] [-m BMODEL_PATH] [-t TOKENIZER_PATH] [-p PROCESSOR_PATH]
 
 - 为了测试`../datasets/videos/carvana_video.mp4`输入，设置`resized_height`、`resized_width`参数到较小值，并设置`nframes`参数为处理2帧，可以使用如下命令
 ```bash
-python3 qwen2_vl.py --vision_inputs="[{\"type\":\"video\",\"video\":\"../datasets/videos/carvana_video.mp4\",\"resized_height\":420,\"resized_width\":630,\"nframes\":2}]"
+python3 qwen2_vl.py --vision_inputs="[{\"type\":\"video_url\",\"video_url\":{\"url\": \"../datasets/videos/carvana_video.mp4\"},\"resized_height\":420,\"resized_width\":630,\"nframes\":2}]"
 ```
 
 - 为了测试图片，可以参考执行如下命令
 ```bash
-python3 qwen2_vl.py --vision_inputs="[{\"type\":\"image\",\"image\":\"../datasets/images/panda.jpg\", \"resized_height\":280,\"resized_width\":420}]"
+python3 qwen2_vl.py --vision_inputs="[{\"type\":\"image_url\",\"image_url\":{\"url\": \"../datasets/images/panda.jpg\"}, \"max_side\":420}]"
 ```
 
 - 为了同时对图片和视频提问，可以参考执行如下命令
 ```bash
-python3 qwen2_vl.py --vision_inputs="[{\"type\":\"video\",\"video\":\"../datasets/videos/carvana_video.mp4\",\"resized_height\":420,\"resized_width\":630,\"nframes\":2},{\"type\":\"image\",\"image\":\"../datasets/images/panda.jpg\", \"resized_height\":280,\"resized_width\":420}]"
+python3 qwen2_vl.py --vision_inputs="[{\"type\":\"video_url\",\"video_url\":{\"url\": \"../datasets/videos/carvana_video.mp4\"},\"resized_height\":420,\"resized_width\":630,\"nframes\":2},{\"type\":\"image_url\",\"image_url\":{\"url\": \"../datasets/images/panda.jpg\"}, \"max_side\":840}]"
 ```
 
 - 为了纯文本对话，可以参考执行如下命令
