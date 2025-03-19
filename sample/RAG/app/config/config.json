@@ -1,0 +1,17 @@
+{
+    "llm_config": {
+        "model": "spn3/Qwen2.5-72B-Instruct",
+        "api_url": "http://localhost:8090/v1",
+        "api_key": ""
+    },
+    "doc_config": {
+        "embedding_model": "bge",
+        "embedding_model_path": "/home/xyz/RAG/bge-small-zh",
+        "split_method": "FixedLength",
+        "chunk_length": 256,
+        "overlap": 50,
+        "database_method": "Faiss",
+        "dimension": 512,
+        "topk": 5
+    }
+}
