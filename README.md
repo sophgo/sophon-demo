@@ -76,6 +76,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [Baichuan2](./sample/Baichuan2/README.md)                     | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
 | [ChatGLM4](./sample/ChatGLM4/README.md)                       | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
 | [MiniCPM3](./sample/MiniCPM3/README.md)                       | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
+| [DeepSeek](./sample/DeepSeek/README.md)                       | 大规模语言模型     | Python     | INT4           | BM1684X/BM1688               |
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | 图像生成          | Python     | FP32/FP16      | BM1684X                      |
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | 图像生成          | Python     | FP32/FP16      | BM1684X                      |
 | [FLUX.1](./sample/FLUX.1/README.md)                           | 图像生成          | Python     | FP32/INT4      | BM1684X                      |

@@ -76,6 +76,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [Baichuan2](./sample/Baichuan2/README.md)                     | Large Language Model               | Python     | INT8/INT4      | BM1684X                      | 
 | [ChatGLM4](./sample/ChatGLM4/README.md)                       | Large Language Model               | Python     | FP16/INT8/INT4 | BM1684X                      | 
 | [MiniCPM3](./sample/MiniCPM3/README.md)                       | Large Language Model               | Python     | INT8/INT4      | BM1684X        | 
+| [DeepSeek](./sample/DeepSeek/README.md)                       | Large Language Model               | Python     | INT4           | BM1684X/BM1688               |
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | Image Generation                   | Python     | FP32/FP16      | BM1684X                      |
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | Image Generation                   | Python     | FP32/FP16      | BM1684X                      |
 | [FLUX.1](./sample/FLUX.1/README.md)                           | Image Generation                   | Python     | FP32/INT4      | BM1684X                      |
