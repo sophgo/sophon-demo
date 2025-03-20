@@ -135,6 +135,20 @@ class Qwen2VLInputProcessor:
 
         return BatchFeature(data={**text_inputs, **image_inputs, **video_inputs})
 
+    def compute_ids_length_exclude_vision(self, text, **kwargs):
+        output_kwargs = self.processor._merge_kwargs(
+            Qwen2VLProcessorKwargs,
+            tokenizer_init_kwargs=self.processor.tokenizer.init_kwargs,
+            **kwargs,
+        )
+        text = copy.deepcopy(text)
+        if not isinstance(text, list):
+            text = [text]
+        for indx in range(len(text)):
+            text[indx] = text[indx].replace("<|image_pad|>", "")
+            text[indx] = text[indx].replace("<|video_pad|>", "")
+        return self.processor.tokenizer(text, **output_kwargs["text_kwargs"])["input_ids"].shape[1]
+
     def apply_chat_template(self, msg, tokenize=False, add_generation_prompt=True, **kwargs):
         return self.processor.apply_chat_template(msg, tokenize=tokenize, add_generation_prompt=add_generation_prompt, **kwargs)
 
@@ -177,6 +191,7 @@ class Qwen2VL():
         for dim_i in range(len(self.net.get_input_shape("block_cache_0", 3))-2, -1, -1):
             self.past_kv_stride[dim_i] = self.net.get_input_shape("block_cache_0", 3)[dim_i + 1] * \
                                             self.past_kv_stride[dim_i + 1]
+        self.vision_seq_max_ratio = 0.8 # apply auto resize
 
         # initialize net name
         self.is_greedy_sample = True
@@ -234,11 +249,11 @@ class Qwen2VL():
         self.logger.info(f"{Logger.file_lineno()} init tokenizer and preprocessor")
         st = time.time()
         # init preprocessor & tokenizer & configs
-        self.processor = Qwen2VLInputProcessor(args.processor_path,
+        self.processor = Qwen2VLInputProcessor(kwargs["processor_path"],
                                                        trust_remote_code=True)
-        self.tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_path,
+        self.tokenizer = AutoTokenizer.from_pretrained(kwargs["tokenizer_path"],
                                                        trust_remote_code=True)
-        with open(args.config, 'r') as f:
+        with open(kwargs["config"], 'r') as f:
             self.config = json.load(f)
         self.loaded_config = Qwen2VLConfig(**self.config)
         self.ID_END = self.tokenizer.convert_tokens_to_ids("<|endoftext|>")
@@ -255,6 +270,9 @@ class Qwen2VL():
         self.token_pos_length = 0
         self.last_id = None
         self.logger.debug(f"{Logger.file_lineno()} clear runtime vals success!")
+    
+    def get_dev_id(self):
+        return self.dev_id
 
     def init_sail_tensor(self, name, tensor_idx, shape=None, is_input=True):
         """
@@ -390,15 +408,25 @@ class Qwen2VL():
         messages, 
         image_grid_thw=None, 
         video_grid_thw=None,
+        vision_seq_max_ratio=None,
     ):
         # init prompt
         texts = [
-            self.processor.apply_chat_template(msg, tokenize=False, add_generation_prompt=True, add_vision_id=True) # add_vision_id=False) has higher precision
+            self.processor.apply_chat_template(msg, tokenize=False, add_generation_prompt=True, add_vision_id=False) # add_vision_id=False) has higher precision
             for msg in messages
         ]
+
+        # compute max vision seq length
+        if vision_seq_max_ratio is None:
+            vision_seq_max_ratio = self.vision_seq_max_ratio
+        vision_max_output_seq_length = self.seq_len * vision_seq_max_ratio - self.processor.compute_ids_length_exclude_vision(text=texts, padding=True, return_tensors="pt")
+        vision_max_input_seq_length = (self.loaded_config.vision_config.spatial_merge_size ** 2) * vision_max_output_seq_length
+        real_vision_max_input_shape = [*self.vit_hidden_states_input_shape]
+        real_vision_max_input_shape[0] = min(real_vision_max_input_shape[0], vision_max_input_seq_length) # consider both llm and vision seq length
         
         if image_grid_thw is None and video_grid_thw is None:
-            image_inputs, video_inputs = process_vision_info(messages)
+            image_inputs, video_inputs = process_vision_info(self.handle, messages, \
+                max_vision_shape=real_vision_max_input_shape, merge_size=self.loaded_config.vision_config.spatial_merge_size, logger=self.logger)
             inputs = self.processor(
                 text=texts,
                 images=image_inputs,
@@ -537,9 +565,12 @@ class Qwen2VL():
         self.input_tensors[self.name_vit][1].update_data(pos_ids_prefill)
         self.input_tensors[self.name_vit][2].update_data(visual_attention_mask_prefill)
         self.net.process(self.name_vit, self.input_tensors[self.name_vit], self.output_tensors[self.name_vit])
-        vision_embeds = torch.from_numpy(self.output_tensors[self.name_vit][0].asnumpy()[:real_len//4]).type( \
+        vision_embeds = torch.from_numpy(self.output_tensors[self.name_vit][0].asnumpy()[:real_len//(self.loaded_config.vision_config.spatial_merge_size**2)]).type( \
                                             torch.bfloat16).view(torch.uint16).detach().numpy() # uint16(bfloat16)
         return vision_embeds
+
+    def get_current_step(self):
+        return self.step
 
     # inference for the first token
     def forward_first(
@@ -696,6 +727,7 @@ class Qwen2VL():
         """
         self.logger.debug(f"{Logger.file_lineno()} receive data history: {history_messages}, current data: {cur_data}, current role: {cur_role}, which need convert to qwen2-vl messages format")
 
+        cur_data = copy.deepcopy(cur_data)
         assert cur_role in ["system", "assistant", "user"]
         assert isinstance(history_messages, list)
         messages = [
@@ -710,11 +742,18 @@ class Qwen2VL():
             messages[0]["content"] = cur_data
         elif isinstance(cur_data, list):
             for ele in cur_data:
-                assert ele["type"] in ["image", "video", "text"]
-                if ele["type"] == "image":
-                    assert isinstance(ele[ele["type"]], str)
-                elif ele["type"] == "video":
-                    assert isinstance(ele[ele["type"]], str) or isinstance(ele[ele["type"]], list)
+                assert ele["type"] in ["image_url", "video_url", "text"], \
+                        f"get {ele['type']}, expect: image_url/video_url/text"
+                if ele["type"] == "image_url":
+                    assert isinstance(ele[ele["type"]], dict)
+                    ele["image"] = ele[ele["type"]]["url"]
+                    del ele[ele["type"]]
+                    ele["type"] = "image"
+                elif ele["type"] == "video_url":
+                    assert isinstance(ele[ele["type"]], dict)
+                    ele["video"] = ele[ele["type"]]["url"]
+                    del ele[ele["type"]]
+                    ele["type"] = "video"
                 elif ele["type"] == "text":
                     assert isinstance(ele[ele["type"]], str)
                 messages[0]["content"].append(ele)
@@ -729,16 +768,16 @@ class Qwen2VL():
         self.logger.debug(f"{Logger.file_lineno()} get model messages input {messages}")
         return messages
 
-    def is_end(self, token):
+    def is_end_with_reason(self, token):
         return token in [self.ID_IM_END, self.ID_END
-                                ] or self.step > self.seq_len
+                                ], self.step >= self.seq_len
 
     def decode(self, tokens, **kwargs):
         return self.tokenizer.decode(tokens, **kwargs)
 
 def main(args):
     history_messages = []
-    model = Qwen2VL(dev_id=args.dev_id, bmodel_path=args.bmodel_path, log_level=args.log_level)
+    model = Qwen2VL(dev_id=args.dev_id, bmodel_path=args.bmodel_path, log_level=args.log_level, processor_path=args.processor_path, tokenizer_path=args.tokenizer_path, config=args.config)
     video_embeds = None
     image_embeds = None
     video_grid_thw = None
@@ -766,7 +805,7 @@ def main(args):
             print("accept 'c', clear history")
             history_messages = []
             continue
-        first_start = time.time()
+        message_start_time = time.time()
         if len(history_messages) == 0 and len(vision_inputs) > 0:
             cur_data = copy.deepcopy(vision_inputs)
             cur_data.append({"type": "text", "text": text})
@@ -774,8 +813,10 @@ def main(args):
         else:
             messages = model.generate_message(history_messages, text, "user")
         messages = [messages]
+        message_duration = time.time() - message_start_time
 
         # preprocess text and images/video, get model inputs
+        preprocess_start_time = time.time()
         position_ids, inputs, image_offset = model.preprocess(messages=messages, \
                         video_grid_thw=video_grid_thw, image_grid_thw=image_grid_thw)
         if image_grid_thw is None and video_grid_thw is None:
@@ -783,24 +824,30 @@ def main(args):
             video_grid_thw = inputs.video_grid_thw if "video_grid_thw" in inputs else None
             pixel_values_images = inputs.pixel_values if "pixel_values" in inputs else None
             pixel_values_videos = inputs.pixel_values_videos if "pixel_values_videos" in inputs else None
+        preprocess_duration = time.time() - preprocess_start_time
 
         # vision
+        vision_duration = -1
         if image_embeds is None and video_embeds is None:
+            vision_start = time.time()
             image_embeds, video_embeds = model.vision_process(
                 pixel_values_images=pixel_values_images.numpy() if pixel_values_images is not None else None,
                 pixel_values_videos=pixel_values_videos.numpy() if pixel_values_videos is not None else None, 
                 image_grid_thw=image_grid_thw.numpy() if image_grid_thw is not None else None,
                 video_grid_thw=video_grid_thw.numpy() if video_grid_thw is not None else None)
+            vision_duration = time.time() - vision_start
+            print(f"vision inference cost time(s): {time.time() - vision_start}")
 
         # Chat
         print("\nAnswer: ", end = '')
+        first_start = time.time()
         token = model.forward_first(inputs.input_ids.numpy(), position_ids.numpy(), image_embeds, video_embeds)
         first_end = time.time()
         tok_num = 0
         # Following tokens
         full_word_tokens = []
         text = ""
-        while not model.is_end(token):
+        while not (model.is_end_with_reason(token)[0] or model.is_end_with_reason(token)[1]):
             full_word_tokens.append(token)
             word = model.tokenizer.decode(full_word_tokens,
                                         skip_special_tokens=True)
@@ -819,7 +866,10 @@ def main(args):
         first_duration = first_end - first_start
         next_duration = next_end - first_end
         tps = tok_num / next_duration
-        print(f"\nFTL: {first_duration:.3f} s")
+        print(f"\ngenerate message: {message_duration:.3f} s")
+        print(f"preprocess: {preprocess_duration:.3f} s")
+        print(f"vision: {vision_duration:.3f} s")
+        print(f"FTL: {first_duration:.3f} s")
         print(f"TPS: {tps:.3f} token/s")
         history_messages.append({
             "role": "assistant",
@@ -860,8 +910,8 @@ if __name__ == "__main__":
     parser.add_argument('-vi',
                         '--vision_inputs',
                         type=str,
-                        default="[{\"type\":\"video\", \"video\":\"../datasets/videos/carvana_video.mp4\", \
-                                    \"resized_height\":420,\"resized_width\":630,\"nframes\":2}]",
+                        default="[{\"type\":\"image_url\", \"image_url\":{\"url\":\"../datasets/images/panda.jpg\"}, \
+                                    \"max_side\":-1}]",
                         help='path to the video or images and preprocess params, json format') 
     parser.add_argument('-ll',
                         '--log_level',

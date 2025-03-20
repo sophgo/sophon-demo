@@ -19,6 +19,9 @@ from torchvision import io, transforms
 from torchvision.transforms import InterpolationMode
 import cv2
 import psutil
+import SILK2.Tools.logger as Logger
+from sophon import sail
+import numpy as np
 
 
 logger = logging.getLogger(__name__)
@@ -36,6 +39,12 @@ FPS = 2.0
 FPS_MIN_FRAMES = 4
 FPS_MAX_FRAMES = 768
 
+
+BMCV_RESIZE_ALGORITHM_MAP = {
+    "INTER_NEAREST": sail.bmcv_resize_algorithm.BMCV_INTER_NEAREST,
+    "INTER_LINEAR": sail.bmcv_resize_algorithm.BMCV_INTER_LINEAR,
+    "INTER_BICUBIC": sail.bmcv_resize_algorithm.BMCV_INTER_BICUBIC
+}
 
 def round_by_factor(number: int, factor: int) -> int:
     """Returns the closest integer to 'number' that is divisible by 'factor'."""
@@ -70,7 +79,7 @@ def smart_resize(
         )
     h_bar = max(factor, round_by_factor(height, factor))
     w_bar = max(factor, round_by_factor(width, factor))
-    if h_bar * w_bar > max_pixels:
+    if h_bar * w_bar > max_pixels or max_pixels == min_pixels:
         beta = math.sqrt((height * width) / max_pixels)
         h_bar = floor_by_factor(height / beta, factor)
         w_bar = floor_by_factor(width / beta, factor)
@@ -80,8 +89,12 @@ def smart_resize(
         w_bar = ceil_by_factor(width * beta, factor)
     return h_bar, w_bar
 
+def bmimage2image(image: sail.BMImage) -> Image.Image:
+    image = image.asmat()
+    image = Image.fromarray(image)
+    return image
 
-def fetch_image(ele: dict[str, str | Image.Image], size_factor: int = IMAGE_FACTOR) -> Image.Image:
+def fetch_image(handle: sail.Handle, bmcv: sail.Bmcv, ele: dict[str, str | Image.Image], size_factor: int = IMAGE_FACTOR) -> sail.BMImage:
     if "image" in ele:
         image = ele["image"]
     else:
@@ -89,29 +102,66 @@ def fetch_image(ele: dict[str, str | Image.Image], size_factor: int = IMAGE_FACT
     image_obj = None
     if isinstance(image, Image.Image):
         image_obj = image
+    elif not isinstance(image, str):
+        raise ValueError(f"Unrecognized image input, support local path, http url, base64 and PIL.Image, got {image}")
     elif image.startswith("http://") or image.startswith("https://"):
-        image_obj = Image.open(requests.get(image, stream=True).raw)
+        # image_obj = Image.open(requests.get(image, stream=True).raw)
+        with open(requests.get(image, stream=True).raw, "rb") as fr:
+            image_bytes = fr.read()
+        image_obj = bmcv.imdecode(image_bytes)
     elif image.startswith("file://"):
-        image_obj = Image.open(image[7:])
+        # image_obj = Image.open(image[7:])
+        with open(image[7:], "rb") as fr:
+            image_bytes = fr.read()
+        image_obj = bmcv.imdecode(image_bytes)
     elif image.startswith("data:image"):
         if "base64," in image:
             _, base64_data = image.split("base64,", 1)
             data = base64.b64decode(base64_data)
-            image_obj = Image.open(BytesIO(data))
+            # image_obj = Image.open(BytesIO(data))
+            image_obj = bmcv.imdecode(BytesIO(data).getvalue())
+        else:
+            raise ValueError(f"Unrecognized image input type, support base64")
+
     else:
-        image_obj = Image.open(image)
+        # image_obj = Image.open(image)
+        with open(image, "rb") as fr:
+            image_bytes = fr.read()
+        image_obj = bmcv.imdecode(image_bytes)
     if image_obj is None:
         raise ValueError(f"Unrecognized image input, support local path, http url, base64 and PIL.Image, got {image}")
-    image = image_obj.convert("RGB")
+    if isinstance(image_obj, Image.Image):
+        image = image_obj.convert("RGB")
+        image = np.array(image)
+        image = sail.BMImage(handle=handle, buffer=image, h=image.shape[0], \
+                        w=image.shape[1], format=sail.Format.FORMAT_RGB_PACKED)
+    else:
+        image = image_obj
+    return image
+
+def compute_image_size(image: sail.BMImage, ele: dict[str, str | Image.Image], size_factor: int = IMAGE_FACTOR):
     ## resize
-    if "resized_height" in ele and "resized_width" in ele:
+    if "max_side" in ele and ele["max_side"] is not None:
+        width, height = image.width(), image.height()
+        if width > height:
+            height = int(ele["max_side"] / width * height)
+            width = int(ele["max_side"])
+        else:
+            width = int(ele["max_side"] / height * width)
+            height = int(ele["max_side"])
+        resized_height, resized_width = smart_resize(
+            height,
+            width,
+            factor=size_factor,
+        )
+    elif "resized_height" in ele and "resized_width" in ele:
         resized_height, resized_width = smart_resize(
             ele["resized_height"],
             ele["resized_width"],
             factor=size_factor,
         )
     else:
-        width, height = image.size
+        width, height = image.width(), image.height()
         min_pixels = ele.get("min_pixels", MIN_PIXELS)
         max_pixels = ele.get("max_pixels", MAX_PIXELS)
         resized_height, resized_width = smart_resize(
@@ -121,8 +171,11 @@ def fetch_image(ele: dict[str, str | Image.Image], size_factor: int = IMAGE_FACT
             min_pixels=min_pixels,
             max_pixels=max_pixels,
         )
-    image = image.resize((resized_width, resized_height))
+    return resized_width, resized_height # wh
 
+def image_resize(bmcv: sail.Bmcv, image: Image.Image, resized_width: int, resized_height: int, resize_algorithm: str):
+    # image = image.resize((resized_width, resized_height))
+    image = bmcv.resize(image, resized_width, resized_height, BMCV_RESIZE_ALGORITHM_MAP[resize_algorithm])
     return image
 
 
@@ -278,10 +331,30 @@ def get_video_reader_backend() -> str:
     return video_reader_backend
 
 
-def fetch_video(ele: dict, image_factor: int = IMAGE_FACTOR) -> torch.Tensor | list[Image.Image]:
+def fetch_video(handle: sail.Handle, bmcv: sail.Bmcv, ele: dict, image_factor: int = IMAGE_FACTOR) -> torch.Tensor | list[Image.Image]:
     if isinstance(ele["video"], str):
-        video_reader_backend = get_video_reader_backend()
-        video = VIDEO_READER_BACKENDS[video_reader_backend](ele)
+        video = None
+        if ele["video"].startswith("http://") or ele["video"].startswith("https://"):
+            ele["video"] = requests.get(image, stream=True).raw
+            video_reader_backend = get_video_reader_backend()
+            video = VIDEO_READER_BACKENDS[video_reader_backend](ele)
+        elif ele["video"].startswith("data:video"):
+            if "base64," in ele["video"]:
+                _, base64_data = ele["video"].split("base64,", 1)
+                data = base64.b64decode(base64_data)
+                file_name = "input_video_temp"
+                with open(file_name, "wb") as f:
+                    f.write(data)
+                ele["video"] = file_name
+                video_reader_backend = get_video_reader_backend()
+                video = VIDEO_READER_BACKENDS[video_reader_backend](ele)
+            else:
+                raise ValueError(f"Unrecognized video input type, support base64")
+        else:
+            video_reader_backend = get_video_reader_backend()
+            video = VIDEO_READER_BACKENDS[video_reader_backend](ele)
+        if video is None:
+            raise ValueError(f"Unrecognized video input, support local path, http url, frame path list, base64, got {ele['video']}")
         if "video_sample_num" in ele:
             video = video[::ele["video_sample_num"]]
         video = video[::]
@@ -314,11 +387,14 @@ def fetch_video(ele: dict, image_factor: int = IMAGE_FACTOR) -> torch.Tensor | l
         return video
     else:
         assert isinstance(ele["video"], (list, tuple))
+        for video_element in ele["video"]:
+            if not isinstance(video_element, str):
+                raise ValueError(f"Unrecognized video input, support local path, http url, frame path list, base64, got {ele['video']}")
         process_info = ele.copy()
         process_info.pop("type", None)
         process_info.pop("video", None)
         images = [
-            fetch_image({"image": video_element, **process_info}, size_factor=image_factor)
+            bmimage2image(fetch_image(handle, bmcv, {"image": video_element, **process_info}, size_factor=image_factor))
             for video_element in ele["video"]
         ]
         nframes = ceil_by_factor(len(images), FRAME_FACTOR)
@@ -346,17 +422,82 @@ def extract_vision_info(conversations: list[dict] | list[list[dict]]) -> list[di
 
 
 def process_vision_info(
-    conversations: list[dict] | list[list[dict]],
+    handle: sail.Handle, conversations: list[dict] | list[list[dict]], max_vision_shape: list[int], merge_size: int=2, logger: Logger=None
 ) -> tuple[list[Image.Image] | None, list[torch.Tensor | list[Image.Image]] | None]:
+    bmcv = sail.Bmcv(handle)
     vision_infos = extract_vision_info(conversations)
     ## Read images or videos
     image_inputs = []
     video_inputs = []
+
+    # compute adaptive size with keeping ratio
+    max_pixels_num = 1
+    for dim in max_vision_shape:
+        max_pixels_num *= dim
+    remain_max_pixels_num = max_pixels_num
+    has_video = False
+    imgs_and_size = []
+    auto_indxs = []
+    img_indx = 0
     for vision_info in vision_infos:
         if "image" in vision_info or "image_url" in vision_info:
-            image_inputs.append(fetch_image(vision_info))
+            if "resize_type" not in vision_info:
+                vision_info["resize_type"] = "INTER_LINEAR"
+            if vision_info["resize_type"] != "Origin":
+                if "max_side" not in vision_info:
+                    vision_info["max_side"] = 0
+            if "max_side" not in vision_info or vision_info["max_side"] > 0:
+                image = fetch_image(handle, bmcv, vision_info)
+                if vision_info["max_side"] == 0:
+                    del vision_info["max_side"]
+                    vision_info["max_pixels"] = image.width() * image.height()
+                sizes = compute_image_size(image, vision_info)
+                imgs_and_size.append([image, *sizes, vision_info["resize_type"]])
+                # compute remain space
+                remain_max_pixels_num = remain_max_pixels_num - 3 * sizes[0] * sizes[1] * merge_size
+                if remain_max_pixels_num < 0:
+                    raise ValueError(
+                            f"The vision input_length must be shorter than model's vision seq_length (got `input_length`: {max_pixels_num-remain_max_pixels_num}"
+                            f" and `seq_length`: {max_pixels_num})."
+                    )
+            else:
+                auto_indxs.append(img_indx)
+                image = fetch_image(handle, bmcv, vision_info)
+                imgs_and_size.append([image, vision_info, vision_info["resize_type"]])
+            img_indx += 1
         elif "video" in vision_info:
-            video_inputs.append(fetch_video(vision_info))
+            has_video = True
+        else:
+            raise ValueError("image, image_url or video should in content.")
+    # generate auto size
+    if len(auto_indxs) > 0:
+        if has_video:
+            raise ValueError("auto param only support full images, but get video")
+        auto_mean_max_pixels_num = remain_max_pixels_num // 3 // len(auto_indxs) // merge_size
+        if auto_mean_max_pixels_num < MIN_PIXELS:
+            raise ValueError(
+                    f"The vision input_length must be shorter than model's vision seq_length (got `input_length`: auto"
+                    f" and `seq_length`: {max_pixels_num})."
+            )
+        for img_indx in auto_indxs:
+            if imgs_and_size[img_indx][1]["max_side"] == 0:
+                auto_mean_max_pixels_num = min(auto_mean_max_pixels_num, imgs_and_size[img_indx][0].width() * imgs_and_size[img_indx][0].height())
+            resize_type = imgs_and_size[img_indx][1]["resize_type"]
+            imgs_and_size[img_indx] = [imgs_and_size[img_indx][0]]
+            auto_size = compute_image_size(imgs_and_size[img_indx][0], {"max_pixels": auto_mean_max_pixels_num, "min_pixels": auto_mean_max_pixels_num})
+            imgs_and_size[img_indx].extend(auto_size)
+            imgs_and_size[img_indx].append(resize_type)
+            if logger is not None:
+                logger.info(f"{Logger.file_lineno()} generate image auto size {auto_size}")
+
+    img_indx = 0
+    for vision_info in vision_infos:
+        if "image" in vision_info or "image_url" in vision_info:
+            image = image_resize(bmcv, *(imgs_and_size[img_indx]))
+            image_inputs.append(bmimage2image(image))
+            img_indx += 1
+        elif "video" in vision_info:
+            video_inputs.append(fetch_video(handle, bmcv, vision_info))
         else:
             raise ValueError("image, image_url or video should in content.")
     if len(image_inputs) == 0:
