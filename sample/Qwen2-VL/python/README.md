@@ -29,6 +29,9 @@ Qwen2-vl能够输入单一图片/多张图/视频进行连续对话，python目�
 
 ```bash
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+python3 -m dfss --url=open@sophgo.com:tools/silk2/silk2.tools.logger-1.0.2-py3-none-any.whl
+pip3 install silk2.tools.logger-1.0.2-py3-none-any.whl --force-reinstall
+rm -f silk2.tools.logger-1.0.2-py3-none-any.whl
 pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
@@ -58,6 +61,9 @@ rm configs.zip
 
 ```bash
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+python3 -m dfss --url=open@sophgo.com:tools/silk2/silk2.tools.logger-1.0.2-py3-none-any.whl
+pip3 install silk2.tools.logger-1.0.2-py3-none-any.whl --force-reinstall
+rm -f silk2.tools.logger-1.0.2-py3-none-any.whl
 pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ``` 
 
