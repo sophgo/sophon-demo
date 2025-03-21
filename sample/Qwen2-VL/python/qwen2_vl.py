@@ -156,7 +156,7 @@ class Qwen2VLInputProcessor:
 class Qwen2VL():
 
     def __init__(self, **kwargs):
-        self.version = "1.0.0"
+        self.version = "1.1.4"
         # init logger
         self.logger = Logger.Log("Qwen2VL", kwargs.get("log_level", "INFO"))
 
