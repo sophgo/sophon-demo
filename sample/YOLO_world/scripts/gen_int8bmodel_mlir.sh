@@ -20,8 +20,8 @@ fi
 function gen_mlir()
 {
    model_transform.py \
-        --model_name yoloworld${opt} \
-        --model_def ../models/onnx/yoloworld${opt}.onnx \
+        --model_name yoloworld \
+        --model_def ../models/onnx/yoloworld.onnx \
         --input_shapes [[$1,3,640,640],[1,80,512]] \
         --mean 0.0,0.0,0.0 \
         --scale 0.0039216,0.0039216,0.0039216 \
@@ -29,58 +29,58 @@ function gen_mlir()
         --keep_aspect_ratio \
         --pixel_format rgb  \
         --test_input ../models/onnx/coco128_npz/000000000009.npz  \
-        --test_result yoloworld${opt}_top_outputs.npz \
-        --mlir yoloworld${opt}_$1b.mlir
+        --test_result yoloworld_top_outputs.npz \
+        --mlir yoloworld_$1b.mlir
 }
 
 function gen_cali_table()
 {
-    run_calibration.py yoloworld${opt}_$1b.mlir \
+    run_calibration.py yoloworld_$1b.mlir \
         --dataset ../models/onnx/coco128_npz \
         --input_num 32 \
-        -o yoloworld${opt}_cali_table
+        -o yoloworld_cali_table
 }
 
 function gen_qtable()
 {
-    fp_forward.py yoloworld${opt}_$1b.mlir \
+    fp_forward.py yoloworld_$1b.mlir \
         --quantize INT8 \
         --chip $fp_forward_chip \
         --fpfwd_outputs /model.22/cv3.2/cv3.2.2/Conv_output_0_Conv,/model.22/cv3.2/cv3.2.1/conv/Conv_output_0_Conv,/model.22/cv3.2/cv3.2.0/conv/Conv_output_0_Conv,/model.18/cv1/conv/Conv_output_0_Conv,/model.22/cv2.2/cv2.2.0/conv/Conv_output_0_Conv,/model.22/cv2.2/cv2.2.1/conv/Conv_output_0_Conv \
-        -o yoloworld${opt}_qtable
+        -o yoloworld_qtable
 }
 
 function gen_int8bmodel()
 {
-    qtable_path=../models/onnx/yoloworld${opt}_qtable_fp16
+    qtable_path=../models/onnx/yoloworld_qtable_fp16
     if test $target = "bm1684";then
-        qtable_path=../models/onnx/yoloworld${opt}_qtable_fp32
+        qtable_path=../models/onnx/yoloworld_qtable_fp32
     fi
     model_deploy.py \
-        --mlir yoloworld${opt}_$1b.mlir \
+        --mlir yoloworld_$1b.mlir \
         --quantize INT8 \
         --chip $target \
-        --calibration_table yoloworld${opt}_cali_table \
-        --quantize_table yoloworld${opt}_qtable \
-        --test_input yoloworld${opt}_in_f32.npz \
-        --test_reference yoloworld${opt}_top_outputs.npz \
-        --model yoloworld${opt}_int8_$1b.bmodel
+        --calibration_table yoloworld_cali_table \
+        --quantize_table yoloworld_qtable \
+        --test_input yoloworld_in_f32.npz \
+        --test_reference yoloworld_top_outputs.npz \
+        --model yoloworld_int8_$1b.bmodel
 
-    mv yoloworld${opt}_int8_$1b.bmodel $outdir/
+    mv yoloworld_int8_$1b.bmodel $outdir/
     if test $target = "bm1688";then
         model_deploy.py \
-            --mlir yoloworld${opt}_$1b.mlir \
+            --mlir yoloworld_$1b.mlir \
             --quantize INT8 \
             --chip $target \
-            --model yoloworld${opt}_int8_$1b_2core.bmodel \
-            --calibration_table yoloworld${opt}_cali_table \
+            --model yoloworld_int8_$1b_2core.bmodel \
+            --calibration_table yoloworld_cali_table \
             --num_core 2 \
-            --quantize_table yoloworld${opt}_qtable \
-            --test_input yoloworld${opt}_in_f32.npz \
-            --test_reference yoloworld${opt}_top_outputs.npz 
+            --quantize_table yoloworld_qtable \
+            --test_input yoloworld_in_f32.npz \
+            --test_reference yoloworld_top_outputs.npz 
 
 
-        mv yoloworld${opt}_int8_$1b_2core.bmodel $outdir/
+        mv yoloworld_int8_$1b_2core.bmodel $outdir/
     fi
 }
 

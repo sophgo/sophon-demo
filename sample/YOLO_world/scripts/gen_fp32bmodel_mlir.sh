@@ -14,37 +14,37 @@ outdir=../models/$target_dir
 function gen_mlir()
 {   
     model_transform.py \
-        --model_name yoloworld${opt} \
-        --model_def ../models/onnx/yoloworld${opt}.onnx \
+        --model_name yoloworld \
+        --model_def ../models/onnx/yoloworld.onnx \
         --input_shapes [[$1,3,640,640],[1,80,512]] \
         --mean 0.0,0.0,0.0 \
         --scale 0.0039216,0.0039216,0.0039216 \
         --output_names output    \
         --keep_aspect_ratio \
         --pixel_format rgb  \
-        --mlir yoloworld${opt}_$1b.mlir 
+        --mlir yoloworld_$1b.mlir 
 }
 
 function gen_fp32bmodel()
 {
     model_deploy.py \
-        --mlir yoloworld${opt}_$1b.mlir \
+        --mlir yoloworld_$1b.mlir \
         --quantize F32 \
         --chip $target \
-        --model yoloworld${opt}_fp32_$1b.bmodel 
+        --model yoloworld_fp32_$1b.bmodel 
 
-    mv yoloworld${opt}_fp32_$1b.bmodel $outdir/
+    mv yoloworld_fp32_$1b.bmodel $outdir/
     if test $target = "bm1688";then
         model_deploy.py \
-            --mlir yoloworld${opt}_$1b.mlir \
+            --mlir yoloworld_$1b.mlir \
             --quantize F32 \
             --chip $target \
-            --model yoloworld${opt}_fp32_$1b_2core.bmodel \
+            --model yoloworld_fp32_$1b_2core.bmodel \
             --num_core 2
             # --test_input ../datasets/test/3.jpg \
             # --test_reference yolov5_top.npz \
             # --debug 
-        mv yoloworld${opt}_fp32_$1b_2core.bmodel $outdir/
+        mv yoloworld_fp32_$1b_2core.bmodel $outdir/
     fi
 }
 
