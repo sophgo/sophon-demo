@@ -20,34 +20,34 @@ function gen_mlir()
 {   
     model_transform.py \
         --model_name yoloworld \
-        --model_def ../models/onnx/yoloworld${opt}.onnx \
+        --model_def ../models/onnx/yoloworld.onnx \
         --input_shapes [[$1,3,640,640],[1,80,512]] \
         --mean 0.0,0.0,0.0 \
         --output_names output    \
         --scale 0.0039216,0.0039216,0.0039216 \
         --keep_aspect_ratio \
         --pixel_format rgb  \
-        --mlir yoloworld${opt}_$1b.mlir
+        --mlir yoloworld_$1b.mlir
 }
 
 function gen_fp16bmodel()
 {
     model_deploy.py \
-        --mlir yoloworld${opt}_$1b.mlir \
+        --mlir yoloworld_$1b.mlir \
         --quantize F16 \
         --chip $target \
-        --model yoloworld${opt}_fp16_$1b.bmodel
+        --model yoloworld_fp16_$1b.bmodel
 
-    mv yoloworld${opt}_fp16_$1b.bmodel $outdir/
+    mv yoloworld_fp16_$1b.bmodel $outdir/
     if test $target = "bm1688";then
         model_deploy.py \
-            --mlir yoloworld${opt}_$1b.mlir \
+            --mlir yoloworld_$1b.mlir \
             --quantize F16 \
             --chip $target \
-            --model yoloworld${opt}_fp16_$1b_2core.bmodel \
+            --model yoloworld_fp16_$1b_2core.bmodel \
             --num_core 2
 
-        mv yoloworld${opt}_fp16_$1b_2core.bmodel $outdir/
+        mv yoloworld_fp16_$1b_2core.bmodel $outdir/
     fi
 }
 

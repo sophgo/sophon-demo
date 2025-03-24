@@ -12,6 +12,7 @@ import json
 import argparse
 import numpy as np
 import sophon.sail as sail
+import cv2 as cv2
 from postprocess_numpy import PostProcess
 from utils import COCO_CLASSES, COLORS
 import clip as clip
@@ -265,27 +266,38 @@ class YOLOworld:
         self.postprocess_time += time.time() - start_time
 
         return results
-        
-def draw_bmcv(dev_id, image, boxes, output_img_dir, file_name, cn, masks=None, classes_ids=None, conf_scores=None, isvideo=False,  classes=None):
-    bmcv = sail.Bmcv(sail.Handle(dev_id))
-    img_bgr_planar = bmcv.convert_format(image)
-    thickness = 2
+
+def draw_numpy(image, boxes, masks=None, classes_ids=None, conf_scores=None , classes=None):
     for idx in range(len(boxes)):
         x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
         if classes_ids is not None:
-            color = np.array(COLORS[int(classes_ids[idx]) + 1]).astype(np.uint8).tolist()
+            color = COLORS[int(classes_ids[idx]) + 1]
         else:
             color = (0, 0, 255)
-        if (x2 - x1) <= thickness * 2 or (y2 - y1) <= thickness * 2:
-            logging.info("width or height too small, this rect will not be drawed: (x1={},y1={},w={},h={})".format(x1, y1, x2-x1, y2-y1))
-        else:
-            bmcv.rectangle(img_bgr_planar, x1, y1, (x2 - x1), (y2 - y1), color, thickness)
-        # bmcv.putText(image, classes[int(classes_ids[idx])], x1, y1, tuple(color),1.0,1)
-        logging.debug("class id={}, score={}, (x1={},y1={},w={},h={})".format(COCO_CLASSES.index(classes[int(classes_ids[idx])]), conf_scores[idx], x1, y1, x2-x1, y2-y1))
+        cv2.rectangle(image, (x1, y1), (x2, y2), color, thickness=2)
+        if classes_ids is not None and conf_scores is not None:
+            classes_ids = classes_ids.astype(np.int8)
+            # print("classes_ids[idx]:",classes_ids[idx])
+            cv2.putText(image, classes[classes_ids[idx]] + ':' + str(round(conf_scores[idx], 2)),
+                        (x1, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness=2)
+        # print("classe ss_ids[idx]:",classes_ids[idx])
+        if masks is not None:
+            mask = masks[:, :, idx]
+            image[mask] = image[mask] * 0.5 + np.array(color) * 0.5
+        # print("COCO_CLASSES.index(classes[classes_ids[idx]]:",COCO_CLASSES.index(classes[classes_ids[idx]]))
+        logging.debug("class id={}, score={}, (x1={},y1={},x2={},y2={})".format(COCO_CLASSES.index(classes[classes_ids[idx]]),conf_scores[idx], x1, y1, x2, y2))
+    return image
+
+def draw_bmcv(dev_id, image, boxes, output_img_dir, file_name, cn, masks=None, classes_ids=None, conf_scores=None, isvideo=False,  classes=None):
+    bmcv = sail.Bmcv(sail.Handle(dev_id))
+    mat = image.asmat()
+    drawed_mat = draw_numpy(mat, boxes, masks=None, classes_ids=classes_ids, conf_scores=conf_scores, classes=classes)
+    drawed_bmimg = bmcv.mat_to_bm_image(drawed_mat)
     if isvideo:
-        bmcv.imwrite(os.path.join(output_img_dir, file_name + '_' + str(cn) + '.jpg'), img_bgr_planar)
+        bmcv.imwrite(os.path.join(output_img_dir, file_name + '_' + str(cn) + '.jpg'), drawed_bmimg)
     else:
-        bmcv.imwrite(os.path.join(output_img_dir, file_name), img_bgr_planar)
+        bmcv.imwrite(os.path.join(output_img_dir, file_name), drawed_bmimg)
 
 def main(args):
     # check params

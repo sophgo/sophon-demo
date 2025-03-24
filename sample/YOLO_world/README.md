@@ -206,7 +206,7 @@ bmrt_test --bmodel models/BM1684X/yoloworld_fp32_1b.bmodel
 ### 7.2 程序运行性能
 参考[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
 
-在不同的测试平台上，使用不同的例程、模型测试`datasets/val2017_1000`，conf_thresh=0.25，nms_thresh=0.7，性能测试结果如下：
+在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.25，nms_thresh=0.7，性能测试结果如下：
 |    测试平台  |     测试程序      |        测试模型        |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ---------------------- | --------  | ---------    | ---------     | ---------      |
 |   SE7-32    |yoloworld_opencv.py|yoloworld_fp32_1b.bmodel |      9.56       |      22.52      |      41.79      |      4.48       |

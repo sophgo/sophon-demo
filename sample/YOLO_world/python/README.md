@@ -22,10 +22,11 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 此外您可能还需要安装其他第三方库：
 ```bash
-pip3 install ftfy
-pip3 install regex
-pip3 install torch
-pip3 install opencv-python-headless
+pip3 install ftfy -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install regex -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install torch -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install setuptools==69.5.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ### 1.2 SoC平台
@@ -34,19 +35,11 @@ pip3 install opencv-python-headless
 
 此外您可能还需要安装其他第三方库：
 ```bash
-pip3 install ftfy
-pip3 install regex
-pip3 install torch
-pip3 install opencv-python-headless
+pip3 install ftfy -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install regex -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install torch -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
-
-> **注:**
->
-> 上述命令安装的opencv是公版opencv，如果您希望使用sophon-opencv，可以设置如下环境变量：
-> ```bash
-> export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
-> ```
-> **若使用sophon-opencv需要保证python版本小于等于3.8。**
 
 ## 2. 推理测试
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
