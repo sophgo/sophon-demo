@@ -53,7 +53,12 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     message("SDK: " ${SDK})
 
     # use libtorch
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "../aarch64_lib/libtorch")
+    if(${CMAKE_CXX_COMPILER_VERSION} STREQUAL "11.4.0")
+        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "../aarch64_lib/libtorch_gcc11")
+    else()
+        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "../aarch64_lib/libtorch")
+    endif()
+    
     find_package(Torch REQUIRED QUIET)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     include_directories(${TORCH_INCLUDE_DIRS})
