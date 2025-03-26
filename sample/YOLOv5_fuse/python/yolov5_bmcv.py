@@ -231,6 +231,8 @@ def draw_bmcv(bmcv, bmimg, boxes, classes_ids=None, conf_scores=None, save_path=
     img_bgr_planar = bmcv.convert_format(bmimg)
     thickness = 2
     for idx in range(len(boxes)):
+        boxes[idx, [0, 2]] = boxes[idx, [0, 2]].clip(0, bmimg.width() - 1)
+        boxes[idx, [1, 3]] = boxes[idx, [1, 3]].clip(0, bmimg.height() - 1)
         x1, y1, x2, y2 = boxes[idx, :].astype(np.int32).tolist()
         logging.debug("class id={}, score={}, (x1={},y1={},w={},h={})".format(int(classes_ids[idx]), conf_scores[idx], x1, y1, x2-x1, y2-y1))
         if conf_scores[idx] < draw_thresh:
