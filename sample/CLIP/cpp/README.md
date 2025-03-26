@@ -85,7 +85,7 @@ usage: clip_opencv.pcie  [params]
 ### 3.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-./clip_opencv.pcie --image_path=../../datasets --text="a diagram, a dog, a car" --dev_id=0 --image_model="../../models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel" --text_model="../../models/BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel"
+./clip_opencv.pcie --image_path=../../datasets --text="a diagram, a dog, a car" --dev_id=0 --image_model="../../models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel" --text_model="../../models/BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel" --text_projection="../../models/text_projection_512_512.npy"
 ```
 程序运行结束后，会在命令行中打印信息，输出图片和文本的匹配度。
 
@@ -128,7 +128,7 @@ text_encode(ms): 9.12867
 
 中文版CLIP图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-./clip_opencv.pcie --image_path=../../datasets --text="流程图,狗,车" --dev_id=0 --image_model="../../models/BM1684X/cn_clip_image_vitb16_bm1684x_f16_1b.bmodel" --text_model="../../models/BM1684X/cn_clip_text_vitb16_bm1684x_f16_1b.bmodel"
+./clip_opencv.pcie --image_path=../../datasets --text="流程图,狗,车" --dev_id=0 --image_model="../../models/BM1684X/cn_clip_image_vitb16_bm1684x_f16_1b.bmodel" --text_model="../../models/BM1684X/cn_clip_text_vitb16_bm1684x_f16_1b.bmodel" --text_projection="../../models/text_projection_512_512.npy"
 ```
 程序运行结束后，会在命令行中打印信息，输出图片和文本的匹配度。
 
