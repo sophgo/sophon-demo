@@ -32,9 +32,15 @@ then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/CLIP/cn_clip/models.zip
         unzip models.zip -d ../
         rm models.zip
+
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/CLIP/text_projection_512_512.npy
+        mv text_projection_512_512.npy ../models
         echo "models download!"
     else
         mkdir -p ../models
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/CLIP/text_projection_512_512.npy
+        mv text_projection_512_512.npy ../models
+
         python3 -m dfss --url=open@sophgo.com:sophon-demo/CLIP/cn_clip/$target.zip
         unzip $target.zip -d ../models
         rm $target.zip
