@@ -2,15 +2,19 @@
 
 ## 目录
 
-* [1. 环境准备](#1-环境准备)
-    * [1.1 x86 PCIe平台](#11-x86-pcie平台)
-    * [1.2 SoC平台](#12-soc平台)
-* [2. 程序编译](#2-程序编译)
-    * [2.1 x86 PCIe平台](#21-x86-pcie平台)
-    * [2.2 SoC平台](#22-soc平台)
-* [3. 推理测试](#3-推理测试)
-    * [3.1 参数说明](#31-参数说明)
-    * [3.2 测试图片](#32-测试图片)
+- [C++例程](#c例程)
+  - [目录](#目录)
+  - [1. 环境准备](#1-环境准备)
+    - [1.1 x86PCIe平台](#11-x86pcie平台)
+    - [1.2 SoC平台](#12-soc平台)
+  - [2. 程序编译](#2-程序编译)
+    - [2.1 x86 PCIe平台](#21-x86-pcie平台)
+      - [2.1.1 bmcv](#211-bmcv)
+    - [2.2 SoC平台](#22-soc平台)
+      - [2.2.1 bmcv](#221-bmcv)
+  - [3. 推理测试](#3-推理测试)
+    - [3.1 参数说明](#31-参数说明)
+    - [3.2 测试图片](#32-测试图片)
 
 cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程      | 说明                                 |
@@ -48,21 +52,36 @@ cd ..
 
 ### 2.2 SoC平台
 
-通常在x86主机上（**本例程使用ubuntu20.04系统**）交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包以及一些第三方库，为了在x86上下载这些arm64架构的第三方库，您可能需要更换apt源，将如下源替换掉您`/etc/apt/source.list`里的源，**注意对原来的源做好备份**。
+通常在x86主机上（**本例程使用ubuntu20.04/22.04系统**）交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包以及一些第三方库，为了在x86上下载这些arm64架构的第三方库，您可能需要更换apt源，将如下源替换掉您`/etc/apt/source.list`里的源，**注意对原来的源做好备份**。
 
 ```bash
+#for ubuntu 20.04
 deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse
 deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse
 deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse
 deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse
+
+#for ubuntu 22.04
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ jammy main restricted universe multiverse
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ jammy-security main restricted universe multiverse
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ jammy-updates main restricted universe multiverse
+deb [arch=amd64] https://mirrors.aliyun.com/ubuntu/ jammy-backports main restricted universe multiverse
+
 ```
 
 然后在`/etc/apt/sources.list.d/`目录下新建`arm-cross-compile-sources.list`文件，写入如下内容：
 ```bash
+#for ubuntu 20.04
 deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal main restricted universe multiverse
 deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal-security main restricted universe multiverse
 deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal-updates main restricted universe multiverse
 deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ focal-backports main restricted universe multiverse
+
+#for ubuntu 22.04
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ jammy main restricted universe multiverse
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ jammy-security main restricted universe multiverse
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ jammy-updates main restricted universe multiverse
+deb [arch=arm64] https://mirrors.aliyun.com/ubuntu-ports/ jammy-backports main restricted universe multiverse
 ```
 
 然后运行如下命令，下载第三方依赖：
@@ -130,7 +149,7 @@ Usage: superglue_bmcv.pcie [params]
 ### 3.2 测试图片
 图片测试实例如下：
 ```bash
-./superglue_bmcv.pcie --bmodel_superglue=../../models/BM1688/superglue_fp32_1b_1024.bmodel --bmodel_superpoint=../../models/BM1688/superpoint_fp32_1b.bmodel --input_dir=../../datasets/scannet_sample_images --input_pairs=../../datasets/scannet_sample_pairs_with_gt.txt
+./superglue_bmcv.soc --bmodel_superglue=../../models/BM1688/superglue_fp32_1b_iter20_1024.bmodel --bmodel_superpoint=../../models/BM1688/superpoint_fp32_1b.bmodel --input_dir=../../datasets/scannet_sample_images --input_pairs=../../datasets/scannet_sample_pairs_with_gt.txt
 ```
 测试结束后，会将图片保存在`results/images`下，匹配结果保存在`results/result.json`下，同时会打印性能信息。
 
