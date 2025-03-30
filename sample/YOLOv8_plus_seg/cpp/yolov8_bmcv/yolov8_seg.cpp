@@ -437,13 +437,6 @@ int YoloV8_seg::post_process(const std::vector<bm_image>& input_images,
                 bm_status_t ret = bm_mem_unmap_device_mem(handle, tensor_data, tensor_size);
                 assert(BM_SUCCESS == ret);
             }
-            if(output_tensors[i].dtype != BM_FLOAT32){
-                delete [] tensor_data;
-            } else {
-                int tensor_size = bm_mem_get_device_size(output_tensors[i].device_mem);
-                bm_status_t ret = bm_mem_unmap_device_mem(handle, tensor_data, tensor_size);
-                assert(BM_SUCCESS == ret);
-            }
         } else {
             delete [] tensor_data;
         }
@@ -492,7 +485,7 @@ void YoloV8_seg::get_mask(const cv::Mat& mask_info,
     cv::Mat mask;
     resize(masks_feature, mask, cv::Size(para.raw_size.width, para.raw_size.height));
 
-    mast_out = mask(bound) > m_nmsThreshold;
+    mast_out = mask(bound) > 0.5;
 }
 
 void YoloV8_seg::clip_boxes(YoloV8BoxVec& yolobox_vec, int src_w, int src_h) {
