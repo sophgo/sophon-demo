@@ -402,13 +402,6 @@ int YoloV8_det::post_process(const std::vector<bm_image>& input_images,
                 bm_status_t ret = bm_mem_unmap_device_mem(handle, tensor_data, tensor_size);
                 assert(BM_SUCCESS == ret);
             }
-            if(output_tensors[i].dtype != BM_FLOAT32){
-                delete [] tensor_data;
-            } else {
-                int tensor_size = bm_mem_get_device_size(output_tensors[i].device_mem);
-                bm_status_t ret = bm_mem_unmap_device_mem(handle, tensor_data, tensor_size);
-                assert(BM_SUCCESS == ret);
-            }
         } else {
             delete [] tensor_data;
         }
