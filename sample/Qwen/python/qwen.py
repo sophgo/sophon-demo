@@ -249,7 +249,7 @@ class Qwen:
         
         self.model.process(self.name_lm, self.tensors[self.name_lm]["input"], self.tensors[self.name_lm]["output"])
         if not self.is_sample:
-            return int(self.tensors[self.name_lm]["output"][0].asnumpy())
+            return int(np.squeeze(self.tensors[self.name_lm]["output"][0].asnumpy()))
 
         # sample
         self.tensors[self.greedy]["input"][0] = self.tensors[self.name_lm]["output"][0]
@@ -268,7 +268,7 @@ class Qwen:
         if self.name_embed in self.tensors:
             if len(self.dev_ids) > 1:
                 # breakpoint()
-                input_ids = np.array(int(self.tensors[self.name_lm]["output"][0].asnumpy()), self.type_convert(self.tensors[self.name_embed_cache]["input"][0].dtype()))
+                input_ids = np.array(int(np.squeeze(self.tensors[self.name_lm]["output"][0].asnumpy())), self.type_convert(self.tensors[self.name_embed_cache]["input"][0].dtype()))
                 for i in range(len(self.dev_ids)):
                     self.next_embed_input[i].update_data(input_ids.reshape(self.tensors[self.name_embed_cache]["input"][i].shape()))
                     self.tensors[self.name_embed_cache]["input"][i] = self.next_embed_input[i]
@@ -335,7 +335,7 @@ class Qwen:
         self.tensors[self.name_lm]["output"][0] = self.lm_output[0]
         self.model.process(self.name_lm, self.tensors[self.name_lm]["input"], self.tensors[self.name_lm]["output"])
         if not self.is_sample:
-            return int(self.tensors[self.name_lm]["output"][0].asnumpy())
+            return int(np.squeeze(self.tensors[self.name_lm]["output"][0].asnumpy()))
 
         # sample
         self.tensors[self.greedy]["input"][0] = self.tensors[self.name_lm]["output"][0]
