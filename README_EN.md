@@ -38,6 +38,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [SAM2](./sample/SAM2/README.md)                               | Semantic Segmentation              | Python     | FP32/FP16      | BM1688                       |
 | [yolact](./sample/yolact/README.md)                           | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
 | [YOLOv8_plus_seg](./sample/YOLOv8_plus_seg/README.md)         | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688        |
+| [YOLOv8_plus_seg_fuse](./sample/YOLOv8_plus_seg_fuse/README.md)| Instance Segmentation(TPU Postprocess) | C++/Python | INT8      | BM1684X/BM1688        |
 | [YOLOv9_seg](./sample/YOLOv8_plus_seg/README.md)              | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688        |
 | [PP-OCR](./sample/PP-OCR/README.md)                           | OCR                                | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
 | [OpenPose](./sample/OpenPose/README.md)                       | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
@@ -71,12 +72,13 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [ChatGLM2](./sample/ChatGLM2/README.md)                       | Large Language Model               | C++/Python | FP16/INT8/INT4 | BM1684X                      |
 | [Llama2](./sample/Llama2/README.md)                           | Large Language Model               | C++        | FP16/INT8/INT4 | BM1684X                      |
 | [ChatGLM3](./sample/ChatGLM3/README.md)                       | Large Language Model               | Python     | FP16/INT8/INT4 | BM1684X/BM1688               |
-| [Qwen](./sample/Qwen/README.md)                               | Large Language Model               | Python     | FP16/INT8/INT4 | BM1684X/BM1688/CV186X        |
+| [Qwen](./sample/Qwen/README.md)                               | Large Language Model               | C++/Python | FP16/INT8/INT4 | BM1684X/BM1688/CV186X        |
 | [MiniCPM](./sample/MiniCPM/README.md)                         | Large Language Model               | C++        | INT8/INT4      | BM1684X/BM1688/CV186X        | 
 | [Baichuan2](./sample/Baichuan2/README.md)                     | Large Language Model               | Python     | INT8/INT4      | BM1684X                      | 
 | [ChatGLM4](./sample/ChatGLM4/README.md)                       | Large Language Model               | Python     | FP16/INT8/INT4 | BM1684X                      | 
 | [MiniCPM3](./sample/MiniCPM3/README.md)                       | Large Language Model               | Python     | INT8/INT4      | BM1684X        | 
 | [DeepSeek](./sample/DeepSeek/README.md)                       | Large Language Model               | Python     | INT4           | BM1684X/BM1688               |
+| [Janus](./sample/Janus/README.md)                             | Large Language Model               | Python     | INT4           | BM1684X/BM1688               |
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | Image Generation                   | Python     | FP32/FP16      | BM1684X                      |
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | Image Generation                   | Python     | FP32/FP16      | BM1684X                      |
 | [FLUX.1](./sample/FLUX.1/README.md)                           | Image Generation                   | Python     | FP32/INT4      | BM1684X                      |
@@ -114,6 +116,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.2.10  | Fix documentation and other issues. Qwen supports C++, Release new samples including YOLOv12_det/YOLOv8_plus_seg_fuse/Janus/Qwen2.5-VL, new tutorial yolov8_ffmpeg_encode. |
 | 0.2.9  | Fix documentation and other issues. **The sample Qwen supports deepseek-r1-distill-qwen2-1.5b and deepseek-r1-distill-qwen2-7b**. Release new sample Llama3_2_Vision. Refactor YOLOv8_det/YOLOv9_det/YOLOv11_det to YOLOv8_det, YOLOv8_seg/YOLOv9_seg to YOLOv8_plus_seg. |
 | 0.2.8  | Fix documentation and other issues. Release new samples including MiniCPM3/LightStereo/Qwen2-VL/YOLO-world. |
 | 0.2.7  | Fix documentation and other issues. Release new samples including CAM++/ChatTTS/FaceFormer/MP_SENet/Vila, new applications ChatDoc/LLM_api_server/Audio_assistant.|
@@ -140,6 +143,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
+| 0.2.10 | >=1.15      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.9  | >=1.15      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.8  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.7  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -165,6 +169,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPH
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.2.10 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.9  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.8  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.7  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |

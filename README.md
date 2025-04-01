@@ -38,6 +38,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [SAM2](./sample/SAM2/README.md)                               | 语义分割          | Python     | FP32/FP16      | BM1688                       |
 | [yolact](./sample/yolact/README.md)                           | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
 | [YOLOv8_plus_seg](./sample/YOLOv8_plus_seg/README.md)         | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
+| [YOLOv8_plus_seg_fuse](./sample/YOLOv8_plus_seg_fuse/README.md)| 实例分割(TPU后处理) | C++/Python | INT8          | BM1684X/BM1688               |
 | [YOLOv9_seg](./sample/YOLOv8_plus_seg/README.md)              | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
 | [PP-OCR](./sample/PP-OCR/README.md)                           | OCR              | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X  |
 | [OpenPose](./sample/OpenPose/README.md)                       | 人体关键点检测    | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
@@ -71,12 +72,13 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [ChatGLM2](./sample/ChatGLM2/README.md)                       | 大规模语言模型     | C++/Python | FP16/INT8/INT4 | BM1684X                     |
 | [Llama2](./sample/Llama2/README.md)                           | 大规模语言模型     | C++/Python | FP16/INT8/INT4 | BM1684X                     |
 | [ChatGLM3](./sample/ChatGLM3/README.md)                       | 大规模语言模型     | Python     | FP16/INT8/INT4 | BM1684X/BM1688              |
-| [Qwen](./sample/Qwen/README.md)                               | 大规模语言模型     | Python     | FP16/INT8/INT4 | BM1684X/BM1688/CV186X       |
+| [Qwen](./sample/Qwen/README.md)                               | 大规模语言模型     | C++/Python | FP16/INT8/INT4 | BM1684X/BM1688/CV186X       |
 | [MiniCPM](./sample/MiniCPM/README.md)                         | 大规模语言模型     | C++        | INT8/INT4      | BM1684X/BM1688/CV186X       |
 | [Baichuan2](./sample/Baichuan2/README.md)                     | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
 | [ChatGLM4](./sample/ChatGLM4/README.md)                       | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
 | [MiniCPM3](./sample/MiniCPM3/README.md)                       | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
 | [DeepSeek](./sample/DeepSeek/README.md)                       | 大规模语言模型     | Python     | INT4           | BM1684X/BM1688               |
+| [Janus](./sample/Janus/README.md)                             | 大规模语言模型     | Python     | INT4           | BM1684X/BM1688               |
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | 图像生成          | Python     | FP32/FP16      | BM1684X                      |
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | 图像生成          | Python     | FP32/FP16      | BM1684X                      |
 | [FLUX.1](./sample/FLUX.1/README.md)                           | 图像生成          | Python     | FP32/INT4      | BM1684X                      |
@@ -114,6 +116,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.2.10  | 完善和修复文档、代码问题，Qwen例程支持C++，sample模块新增YOLOv12_det、YOLOv8_plus_seg_fuse、Janus、Qwen2.5-VL。tutorial模块新增yolov8_ffmpeg_encode。|
 | 0.2.9  | 完善和修复文档、代码问题，**Qwen例程支持deepseek-r1-distill-qwen2-1.5b、deepseek-r1-distill-qwen2-7b**，sample模块新增Llama3_2_Vision，新增YOLOv8_plus_det代替YOLOv8_det、YOLOv9_det、YOLOv11_det，新增YOLOv8_plus_seg代替YOLOv8_seg、YOLOv9_seg。|
 | 0.2.8  | 完善和修复文档、代码问题，sample模块新增MiniCPM3、LightStereo、Qwen2-VL、YOLO-world例程。|
 | 0.2.7  | 完善和修复文档、代码问题，sample模块新增CAM++、ChatTTS、FaceFormer、MP_SENet、Vila例程。application模块新增ChatDoc、LLM_api_server、Audio_assistant例程。|
@@ -140,6 +143,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 SOPHON-DEMO主要依赖TPU-MLIR、TPU-NNTC、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SOPHON-SAIL，对于BM1684/BM1684X SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
+| 0.2.10 | >=1.15      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.9  | >=1.15      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.8  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.7  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -165,6 +169,7 @@ SOPHON-DEMO主要依赖TPU-MLIR、TPU-NNTC、LIBSOPHON、SOPHON-FFMPEG、SOPHON-
 对于BM1688/CV186AH SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.2.10 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.9  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.8  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.7  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
