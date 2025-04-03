@@ -17,16 +17,31 @@ python目录下提供了一系列Python例程，具体情况如下：
 ## 1. 环境准备
 ### 1.1 x86/arm/riscv PCIe平台
 
-如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg和sophon-sail，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)。或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
+如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)。或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
+
+本例程需要用到的sophon-sail包含暂未发布的修改，arm/riscv PCIe环境可以通过下面的命令下载：
+```bash
+pip3 install dfss --upgrade #安装dfss依赖
+python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_seg_fuse/sophon-sail.tar.gz
+tar xvf sophon-sail.tar.gz
+```
+下载完成后，参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v24.04.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)编译。
 
 此外您可能还需要安装其他第三方库：
 ```bash
 pip3 install opencv-python-headless
 ```
-
 ### 1.2 SoC平台
 
-如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。您还需要交叉编译安装sophon-sail，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
+如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
+
+本例程需要用到的sophon-sail包含暂未发布的修改，arm/riscv PCIe环境可以通过下面的命令下载：
+```bash
+pip3 install dfss --upgrade #安装dfss依赖
+python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_seg_fuse/sophon-sail.tar.gz
+tar xvf sophon-sail.tar.gz
+```
+下载完成后，参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v24.04.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)编译。
 
 此外您可能还需要安装其他第三方库：
 ```bash
