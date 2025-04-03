@@ -94,12 +94,7 @@ models/
 
 源模型需要编译成BModel才能在SOPHON TPU上运行，源模型在编译前要导出成onnx模型，如果您使用的TPU-MLIR版本>=v1.3.0（即官网v23.07.01），也可以直接使用torchscript模型。具体可参考[模型导出](./docs/YOLOv8_Export_Guide.md)。​同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
-建议使用TPU-MLIR编译BModel，模型编译前需要安装TPU-MLIR，本例程需要使用特定的mlir版本，请通过如下命令下载：
-```bash
-pip3 install dfss --upgrade
-python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_seg_fuse/tpu-mlir_v1.16.beta.0-44-g98f098494-20250324.tar.gz
-```
-下载完成之后可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中的发布包安装方式来配置mlir环境。安装好后需在TPU-MLIR环境中进入例程目录，并使用本例程提供的脚本将onnx模型编译为BModel。脚本中命令的详细说明可参考《TPU-MLIR开发手册》(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
+建议使用TPU-MLIR编译BModel，模型编译前需要安装TPU-MLIR，参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中的pip下载方式来配置mlir环境(要求tpu-mlir >= 1.17)。安装好后需在TPU-MLIR环境中进入例程目录，并使用本例程提供的脚本将onnx模型编译为BModel。脚本中命令的详细说明可参考《TPU-MLIR开发手册》(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
 
 - 生成INT8 BModel
 
