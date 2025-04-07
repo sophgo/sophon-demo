@@ -45,7 +45,7 @@ if (${TARGET_ARCH} STREQUAL "pcie")
 
     aux_source_directory(. SRC_FILES)
     add_executable(qwen_bmlib.pcie ${SRC_FILES})
-    target_link_libraries(qwen_bmlib.pcie ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} tokenizers_cpp -lpthread -ltokenizers_c)
+    target_link_libraries(qwen_bmlib.pcie ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} tokenizers_cpp -ltokenizers_c -lpthread -ldl)
 elseif (${TARGET_ARCH} STREQUAL "soc")
     message( "${TARGET_ARCH} mode, starting......")
     add_definitions(-DSOC_TARGET)
