@@ -288,58 +288,33 @@ then
 elif test $MODE = "pcie_test"
 then
   pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
-  if test $TARGET = "BM1684X"
+  download $TARGET
+  if test $CASE_MODE = "fully"
   then
-    download $TARGET
-    if test $CASE_MODE = "fully"
-    then
-      test_python bmcv yolov8s_int8_1b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov8s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp pcie bmcv yolov8s_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp pcie bmcv yolov8s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-
-      test_python bmcv yolov8s_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov8s_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov8s_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov8s_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov8s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov8s_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov8s_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov8s_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python bmcv yolov8s_fp32_1b.bmodel
-      eval_python bmcv yolov8s_fp16_1b.bmodel 
-      eval_python bmcv yolov8s_int8_1b.bmodel
-      eval_python bmcv yolov8s_int8_4b.bmodel
-      eval_cpp pcie bmcv yolov8s_fp32_1b.bmodel
-      eval_cpp pcie bmcv yolov8s_fp16_1b.bmodel
-      eval_cpp pcie bmcv yolov8s_int8_1b.bmodel
-      eval_cpp pcie bmcv yolov8s_int8_4b.bmodel
-
-      test_python bmcv yolov9c_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov9c_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov9c_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov9c_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov9c_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov9c_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov9c_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp pcie bmcv yolov9c_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python bmcv yolov9c_fp32_1b.bmodel
-      eval_python bmcv yolov9c_fp16_1b.bmodel 
-      eval_python bmcv yolov9c_int8_1b.bmodel
-      eval_python bmcv yolov9c_int8_4b.bmodel
-      eval_cpp pcie bmcv yolov9c_fp32_1b.bmodel
-      eval_cpp pcie bmcv yolov9c_fp16_1b.bmodel
-      eval_cpp pcie bmcv yolov9c_int8_1b.bmodel
-      eval_cpp pcie bmcv yolov9c_int8_4b.bmodel
-    elif test $CASE_MODE = "partly"
-    then
-      test_python bmcv yolov8s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp pcie bmcv yolov8s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      eval_python bmcv yolov8s_int8_4b.bmodel
-      eval_cpp pcie bmcv yolov8s_int8_4b.bmodel
-    fi
+    for model in yolov8s yolov9c; do
+      for pre in int8_1b int8_4b; do
+        test_python bmcv ${model}_${pre}.bmodel datasets/test_car_person_1080P.mp4
+        test_cpp pcie bmcv ${model}_${pre}.bmodel ../../datasets/test_car_person_1080P.mp4
+      done
+      for pre in fp32_1b fp16_1b int8_1b int8_4b; do
+        test_python bmcv ${model}_${pre}.bmodel datasets/coco/val2017_1000
+        test_cpp pcie bmcv ${model}_${pre}.bmodel ../../datasets/coco/val2017_1000
+        eval_python bmcv ${model}_${pre}.bmodel
+        eval_cpp pcie bmcv ${model}_${pre}.bmodel
+      done
+      if test "$TARGET" = "BM1688"; then 
+        test_python bmcv ${model}_int8_4b_2core.bmodel datasets/coco/val2017_1000
+        test_cpp pcie bmcv ${model}_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
+        eval_python bmcv ${model}_int8_4b_2core.bmodel
+        eval_cpp pcie bmcv ${model}_int8_4b_2core.bmodel
+      fi
+    done
+  elif test $CASE_MODE = "partly"
+  then
+    test_python bmcv yolov8s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_cpp pcie bmcv yolov8s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    eval_python bmcv yolov8s_int8_4b.bmodel
+    eval_cpp pcie bmcv yolov8s_int8_4b.bmodel
   fi
 elif test $MODE = "soc_build"
 then
@@ -347,140 +322,38 @@ then
 elif test $MODE = "soc_test"
 then
   pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
-  if test $TARGET = "BM1684X"
+  download $TARGET
+  if test $CASE_MODE = "fully"
   then
-    download $TARGET
-    if test $CASE_MODE = "fully"
-    then
-      test_python bmcv yolov8s_int8_1b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov8s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov8s_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      
-      test_python bmcv yolov8s_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov8s_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov8s_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov8s_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov8s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov8s_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov8s_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python bmcv yolov8s_fp32_1b.bmodel 
-      eval_python bmcv yolov8s_fp16_1b.bmodel  
-      eval_python bmcv yolov8s_int8_1b.bmodel 
-      eval_python bmcv yolov8s_int8_4b.bmodel 
-      eval_cpp soc bmcv yolov8s_fp32_1b.bmodel
-      eval_cpp soc bmcv yolov8s_fp16_1b.bmodel
-      eval_cpp soc bmcv yolov8s_int8_1b.bmodel
-      eval_cpp soc bmcv yolov8s_int8_4b.bmodel
-
-      test_python bmcv yolov9c_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov9c_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov9c_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov9c_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov9c_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov9c_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov9c_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov9c_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python bmcv yolov9c_fp32_1b.bmodel 
-      eval_python bmcv yolov9c_fp16_1b.bmodel  
-      eval_python bmcv yolov9c_int8_1b.bmodel 
-      eval_python bmcv yolov9c_int8_4b.bmodel 
-      eval_cpp soc bmcv yolov9c_fp32_1b.bmodel
-      eval_cpp soc bmcv yolov9c_fp16_1b.bmodel
-      eval_cpp soc bmcv yolov9c_int8_1b.bmodel
-      eval_cpp soc bmcv yolov9c_int8_4b.bmodel
-    elif test $CASE_MODE = "partly"
-    then
-      test_python bmcv yolov8s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      
-      test_python bmcv yolov8s_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python bmcv yolov8s_int8_4b.bmodel
-      eval_cpp soc bmcv yolov8s_int8_4b.bmodel
-    fi
-elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
+    for model in yolov8s yolov9c; do
+      for pre in int8_1b int8_4b; do
+        test_python bmcv ${model}_${pre}.bmodel datasets/test_car_person_1080P.mp4
+        test_cpp soc bmcv ${model}_${pre}.bmodel ../../datasets/test_car_person_1080P.mp4
+      done
+      for pre in fp32_1b fp16_1b int8_1b int8_4b; do
+        test_python bmcv ${model}_${pre}.bmodel datasets/coco/val2017_1000
+        test_cpp soc bmcv ${model}_${pre}.bmodel ../../datasets/coco/val2017_1000
+        eval_python bmcv ${model}_${pre}.bmodel
+        eval_cpp soc bmcv ${model}_${pre}.bmodel
+      done
+      if test "$PLATFORM" = "SE9-16"; then 
+        test_python bmcv ${model}_int8_4b_2core.bmodel datasets/coco/val2017_1000
+        test_cpp soc bmcv ${model}_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
+      fi
+    done
+  elif test $CASE_MODE = "partly"
   then
-    download $TARGET
-    if test $CASE_MODE = "fully"
-    then
-      test_python bmcv yolov8s_int8_1b.bmodel datasets/test_car_person_1080P.mp4
-      test_python bmcv yolov8s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov8s_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+    test_python bmcv yolov8s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+    test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
 
-      test_python bmcv yolov8s_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov8s_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov8s_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov8s_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov8s_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov8s_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov8s_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/coco/val2017_1000
+    test_python bmcv yolov8s_int8_4b.bmodel datasets/coco/val2017_1000
+    test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
-      if test "$PLATFORM" = "SE9-16"; then 
-        test_python bmcv yolov8s_int8_4b_2core.bmodel datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov8s_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
-      fi
-      
-      eval_python bmcv yolov8s_fp32_1b.bmodel  
-      eval_python bmcv yolov8s_fp16_1b.bmodel  
-      eval_python bmcv yolov8s_int8_1b.bmodel  
-      eval_python bmcv yolov8s_int8_4b.bmodel  
-      eval_cpp soc bmcv yolov8s_fp32_1b.bmodel 
-      eval_cpp soc bmcv yolov8s_fp16_1b.bmodel 
-      eval_cpp soc bmcv yolov8s_int8_1b.bmodel 
-      eval_cpp soc bmcv yolov8s_int8_4b.bmodel 
-
-      if test "$PLATFORM" = "SE9-16"; then 
-        eval_python bmcv yolov8s_int8_4b_2core.bmodel  
-        eval_cpp soc bmcv yolov8s_int8_4b_2core.bmodel 
-      fi
-
-      test_python bmcv yolov9c_fp32_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov9c_fp16_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov9c_int8_1b.bmodel datasets/coco/val2017_1000
-      test_python bmcv yolov9c_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov9c_fp32_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov9c_fp16_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov9c_int8_1b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov9c_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      if test "$PLATFORM" = "SE9-16"; then 
-        test_python bmcv yolov9c_int8_4b_2core.bmodel datasets/coco/val2017_1000
-        test_cpp soc bmcv yolov9c_int8_4b_2core.bmodel ../../datasets/coco/val2017_1000
-      fi
-      
-      eval_python bmcv yolov9c_fp32_1b.bmodel  
-      eval_python bmcv yolov9c_fp16_1b.bmodel  
-      eval_python bmcv yolov9c_int8_1b.bmodel  
-      eval_python bmcv yolov9c_int8_4b.bmodel  
-      eval_cpp soc bmcv yolov9c_fp32_1b.bmodel 
-      eval_cpp soc bmcv yolov9c_fp16_1b.bmodel 
-      eval_cpp soc bmcv yolov9c_int8_1b.bmodel 
-      eval_cpp soc bmcv yolov9c_int8_4b.bmodel 
-
-      if test "$PLATFORM" = "SE9-16"; then 
-        eval_python bmcv yolov9c_int8_4b_2core.bmodel  
-        eval_cpp soc bmcv yolov9c_int8_4b_2core.bmodel 
-      fi
-    elif test $CASE_MODE = "partly"
-    then
-      test_python bmcv yolov8s_int8_4b.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
-      
-      test_python bmcv yolov8s_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp soc bmcv yolov8s_int8_4b.bmodel ../../datasets/coco/val2017_1000
-
-      eval_python bmcv yolov8s_int8_4b.bmodel
-      eval_cpp soc bmcv yolov8s_int8_4b.bmodel
-    fi
+    eval_python bmcv yolov8s_int8_4b.bmodel
+    eval_cpp soc bmcv yolov8s_int8_4b.bmodel
   fi
 fi
+
 if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
   cat tools/acc.txt
   echo "-----------------------------"
