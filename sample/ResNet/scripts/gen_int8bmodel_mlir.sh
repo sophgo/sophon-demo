@@ -43,36 +43,12 @@ function gen_mlir_onnx()
     cp -r resnet50_$1b.mlir onnx.mlir
 }
 
-function gen_mlir_onnx_v2()
-{
-    model_transform.py \
-        --model_name resnet50_$1b \
-        --model_def ../models/onnx/resnet_dynamic.onnx \
-        --input_shapes [[$1,3,224,224]] \
-	--resize_dims 256,256 \
-        --mean 123.67,116.28,103.53 \
-        --scale 0.017,0.017,0.017 \
-        --pixel_format rgb  \
-        --test_input ../datasets/cali_data/ILSVRC2012_val_00000555.jpg \
-        --test_result resnet50_$1b_top_outputs.npz \
-        --mlir resnet50_$1b.mlir \
-	--onnx_sim="skip_fuse_bn"
-}
-
-
-
 function gen_cali_table()
 {
     run_calibration.py resnet50_$1b.mlir \
         --dataset ../datasets/cali_data \
         --input_num 200 \
         -o resnet50_cali_table
-    # run_qtable.py resnet50_$1b.mlir \
-    #     --dataset ../datasets/cali_data \
-    #     --input_num 25 \
-    #     --calibration_table resnet50_cali_table \
-    #     --chip $target \
-    #     -o resnet50_qtable
 }
 
 function gen_int8bmodel()
