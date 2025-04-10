@@ -452,6 +452,8 @@ int VideoDecFFM::openDec(bm_handle_t* dec_handle, const char* input) {
     av_dict_set(&dict, "gb28181_transport_rtp", "tcp", 0);
   } else {
     av_dict_set(&dict, "rtsp_flags", "prefer_tcp", 0);
+    av_dict_set(&dict, "stimeout", "5*1000*1000", 0);
+    av_dict_set(&dict, "timeout", "5*1000*1000", 0);
     // av_dict_set(&dict, "rtsp_transport", "tcp", 0);
   }
 
@@ -604,6 +606,8 @@ void VideoDecFFM::reConnectVideoStream() {
       av_dict_set(&dict, "gb28181_rtsp_transport", "tcp", 0);
     } else {
       av_dict_set(&dict, "rtsp_flags", "prefer_tcp", 0);
+      av_dict_set(&dict, "stimeout", "5*1000*1000", 0);
+      av_dict_set(&dict, "timeout", "5*1000*1000", 0);
     }
 
     if (this->is_camera) {

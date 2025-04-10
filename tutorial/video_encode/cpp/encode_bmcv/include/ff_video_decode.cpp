@@ -47,6 +47,8 @@ int VideoDec_FFMPEG::openDec(const char* filename,int codec_name_flag,
     int ret = 0;
     AVDictionary *dict = NULL;
     av_dict_set(&dict, "rtsp_flags", "prefer_tcp", 0);
+    av_dict_set(&dict, "stimeout", "5*1000*1000", 0);
+    av_dict_set(&dict, "timeout", "5*1000*1000", 0);
     av_dict_set(&dict, "probesize", "5000000", 0);
     av_dict_set(&dict, "analyzeduration","5000000", 0);
 
