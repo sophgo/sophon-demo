@@ -60,6 +60,13 @@ tar xvf sophon-sail.tar.gz
 ```
 下载完成后，参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v24.04.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)编译不包含bmcv,sophon-ffmpeg,sophon-opencv的可被Python3接口调用的Wheel文件。
 
+如果在SC7-224T上运行多芯模型QwQ-32B，还需使用指定版本的libsophon，x86环境(ubuntu20)可以通过如下命令下载安装包
+```bash
+pip3 install dfss --upgrade
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwq/sophon-libsophon_0.5.2_amd64.deb
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwq/sophon-libsophon-dev_0.5.2_amd64.deb
+```
+
 ### 1.2 SoC平台
 
 >注意：

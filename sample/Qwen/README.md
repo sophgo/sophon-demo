@@ -17,6 +17,8 @@ Qwen / Qwen1.5/ Qwen2/ Qwen2.5是开源中英双语对话模型，关于它的�
 
 本例程还支持DeepSeek-R1-Distill-Qwen-1.5B/7B/14B，关于它们的特性，请前往源repo查看：[DeepSeek-R1-Distill-Qwen-1.5B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B)，[DeepSeek-R1-Distill-Qwen-7B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B)，[DeepSeek-R1-Distill-Qwen-14B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B)。本例程对这些模型进行移植，使之能在SOPHON BM1684X、BM1688/CV186X上进行推理测试。
 
+本例程还支持QwQ-32B，关于它的特性，请前往源repo查看：[QwQ-32B](https://huggingface.co/Qwen/QwQ-32B)，本例程对这个模型进行移植，使之能在BM1684X(仅限SC7-224T加速卡)上进行推理测试。
+
 对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86/riscv主机上运行，也可以在1684X SoC设备（如SE7、SM7、Airbox等）上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 对于BM1688/CV186X，该例程支持在V1.7.0及以上的SDK上运行，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
@@ -25,6 +27,7 @@ Qwen / Qwen1.5/ Qwen2/ Qwen2.5是开源中英双语对话模型，关于它的�
 * 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 * Qwen1.5 1.8b支持BM1688/CV186X(SoC)
 * Qwen2.5 1.5b支持BM1688/CV186X(SoC)
+* QwQ-32B支持BM1684X(SC7-224T)
 * 支持INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持基于BMRT推理的CPP例程
@@ -86,6 +89,9 @@ sudo reboot
 # deepseek-r1-distill-qwen2 1684x
 ./scripts/download.sh deepseek-r1-distill-qwen2
 
+# qwq-32b 1684x
+./scripts/download.sh qwq-32b
+
 # Include all bm1688 models
 ./scripts/download.sh bm1688
 
@@ -99,15 +105,16 @@ sudo reboot
 ├── docs
 │   └── Qwen_Export_Guide.md        #Qwen onnx导出和bmodel编译指南
 ├── models
-│   └── BM1684X                     #download.sh下载的bmodel
-│       ├── qwen-xxx.bmodel
-│       ├── qwen1.5-xxx.bmodel
-│       ├── qwen2-xxx.bmodel
-│       ├── deepseek-r1-distill-qwen-1.5b
-│       ├── deepseek-r1-distill-qwen-7b
-│       └── deepseek-r1-distill-qwen-14b
-│   └── CV186X                    #download.sh下载的cv186x bmodel
-│       └── qwen1.5-xxx.bmodel
+│   ├── BM1684X                     #download.sh下载的bmodel
+│   │   ├── qwen-xxx.bmodel
+│   │   ├── qwen1.5-xxx.bmodel
+│   │   ├── qwen2-xxx.bmodel
+│   │   ├── deepseek-r1-distill-qwen-1.5b
+│   │   ├── deepseek-r1-distill-qwen-7b
+│   │   ├── deepseek-r1-distill-qwen-14b
+│   │   └── qwq-32b
+│   ├── CV186X                    #download.sh下载的cv186x bmodel
+│   │   └── qwen1.5-xxx.bmodel
 │   └── BM1688                    #download.sh下载的bm1688 bmodel
 │       ├── qwen1.5-xxx.bmodel
 │       ├── qwen2.5-xxx.bmodel
@@ -192,6 +199,9 @@ sudo reboot
 | SE7-32      | main.cpp          | qwen2.5-1.5b_int4_seq512_1dev.bmodel                 |    0.200              |    28.188                | 
 | SE7-32      | main.cpp          | qwen2.5-1.5b_int4_seq1024_1dev.bmodel                |    0.383              |    27.576                | 
 | SC7-HP75    | qwen.py           | qwen1.5-7b_int4_seq4096_2dev_dyn.bmodel              |    >=1.56             |    9.748                 |
+| SC7-224T    | qwen.py           | qwq-32b_int4_seq2048_2dev.bmodel                     |    8.398              |    3.852                 |
+| SC7-224T    | qwen.py           | qwq-32b_int4_seq2048_4dev.bmodel                     |    5.663              |    5.961                 |
+| SC7-224T    | qwen.py           | qwq-32b_int4_seq2048_8dev.bmodel                     |    4.530              |    5.929                 |
 | SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev.bmodel          |    1.094              |    12.995                | 
 | SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel    |    0.701              |    14.858                |
 | SE9-16      | qwen.py           | qwen2.5-1.5b_int4_seq2048_bm1688_1dev_2core.bmodel   |    3.016              |    14.613                | 

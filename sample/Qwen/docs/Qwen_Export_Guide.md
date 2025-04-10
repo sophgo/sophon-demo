@@ -246,3 +246,5 @@ python tools/model_export_BM1684X_DS_qwen.py --quantize w4bf16 --tpu_mlir_path /
 ```
 其中，tpu_mlir_path指定tpu-mlir地址，编译成功之后，BM1684X模型将会存放在torch_path指定目录下，该目录下还会存在onnx和bmodel两个中间文件夹可以删除。
 
+### 2.3.2 BM1684X编译QwQ-32B
+请参考[LLM-TPU Qwen2_5](https://github.com/sophgo/LLM-TPU/tree/main/models/Qwen2_5/compile)
