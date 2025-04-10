@@ -303,9 +303,7 @@ int Real_ESRGAN::post_process_bmcv(const std::vector<bm_image>& input_images,
         }
     #endif
         cv::Mat output_image;
-        output_image.create(cv::Size(output_w, output_h), m_input_format == FORMAT_GRAY ? CV_8UC1 : CV_8UC3, m_dev_id);
         cv::bmcv::toMAT(&raw_outputs[i], output_image);
-
         // 根据tx1和ty1裁剪图像
         if (tx1 != 0) {
             int tx = tx1 * upsample_scale; // 调整比例
@@ -392,6 +390,17 @@ int Real_ESRGAN::post_process_opencv(const std::vector<bm_image>& input_images,
             output_image = output_image(cv::Rect(0, ty, output_image.cols, output_image.rows - 2*ty));
         }
         output_mats.push_back(output_image);
+    }
+    if(misc_info.pcie_soc_mode == 1){ // soc
+        if(output_tensor.dtype != BM_FLOAT32){
+            delete [] output_data;
+        } else {
+            int tensor_size = bm_mem_get_device_size(output_tensor.device_mem);
+            bm_status_t ret = bm_mem_unmap_device_mem(handle, output_data, tensor_size);
+            assert(BM_SUCCESS == ret);
+        }
+    } else {
+        delete [] output_data;
     }
     bm_free_device(handle, output_tensor.device_mem);
     return 0;
