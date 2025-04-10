@@ -26,19 +26,9 @@ function gen_fp32bmodel()
         --mlir real_esrgan_$1b.mlir \
         --quantize F32 \
         --chip $target \
-        --model real_esrgan_fp32_$1b.bmodel \
-        --quant_output
+        --model real_esrgan_fp32_$1b.bmodel
 
     mv real_esrgan_fp32_$1b.bmodel $outdir/
-    if test $target = "bm1688";then
-        model_deploy.py \
-            --mlir real_esrgan_$1b.mlir \
-            --quantize F32 \
-            --chip $target \
-            --model real_esrgan_fp32_$1b_2core.bmodel \
-            --num_core 2
-        mv real_esrgan_fp32_$1b_2core.bmodel $outdir/
-    fi
 }
 
 pushd $model_dir

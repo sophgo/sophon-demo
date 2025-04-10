@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(real_esrgan)
-
-set(CMAKE_CXX_FLAGS "-O3")
+project(real_esrgan_bmcv)
 set(CMAKE_BUILD_TYPE "Debug")
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 message("cur dir: ${PROJECT_SOURCE_DIR}")
@@ -48,13 +46,14 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     find_package(libsophon REQUIRED)
     include_directories(${LIBSOPHON_INCLUDE_DIRS})
     link_directories(${LIBSOPHON_LIB_DIRS})
-
+    
     include_directories("../dependencies/include/")
-
+    
     aux_source_directory(. SRC_FILES)
     aux_source_directory(../dependencies/src/ SRC_FILES)
     add_executable(real_esrgan_bmcv.pcie ${SRC_FILES})
     target_link_libraries(real_esrgan_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} -lpthread)
+
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     message( "${TARGET_ARCH} mode, starting......")
@@ -74,7 +73,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     aux_source_directory(. SRC_FILES)
     aux_source_directory(../dependencies/src/ SRC_FILES)
     add_executable(real_esrgan_bmcv.soc ${SRC_FILES})
-    target_link_libraries(real_esrgan_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS} -lpthread -lavcodec -lavformat -lavutil)
+    target_link_libraries(real_esrgan_bmcv.soc ${BM_LIBS} ${OPENCV_LIBS}  ${JPU_LIBS} -lpthread -lavcodec -lavformat -lavutil)
 else ()
     message( FATAL_ERROR  "not support mode, eg: soc/pcie, cur: ${TARGET_ARCH}")
-endif ()
+endif()

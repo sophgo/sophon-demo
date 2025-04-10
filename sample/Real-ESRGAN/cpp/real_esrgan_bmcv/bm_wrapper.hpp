@@ -47,7 +47,6 @@ static inline bm_status_t bm_image_dettach_contiguous_mem(int image_num, bm_imag
 }
 #endif
 #endif
-
 /* Define this macro in advance to enable following APIs */
 #ifdef USE_OPENCV
 
@@ -508,8 +507,9 @@ static inline bm_status_t bm_image_create_batch (bm_handle_t              handle
                                                  bm_image                 *image,
                                                  int                      batch_num,
                                                  int                      *stride = NULL,
-                                                 int                      heap_mask = -1) {
-  bm_status_t res;
+                                                 int                      heap_mask = -1,
+                                                 bool                     pre_alloc = true) {
+  bm_status_t res = BM_SUCCESS;
   // init images
   for (int i = 0; i < batch_num; i++) {
     if (stride != NULL)
@@ -517,12 +517,13 @@ static inline bm_status_t bm_image_create_batch (bm_handle_t              handle
     else
         bm_image_create(handle, img_h, img_w, img_format, data_type, &image[i]);
   }
-
-  // alloc continuous memory for multi-batch
-  if (-1 == heap_mask)
-      res = bm_image_alloc_contiguous_mem (batch_num, image);
-  else
-      res = bm_image_alloc_contiguous_mem_heap_mask (batch_num, image, heap_mask);
+  if(pre_alloc){
+    // alloc continuous memory for multi-batch
+    if (-1 == heap_mask)
+        res = bm_image_alloc_contiguous_mem (batch_num, image);
+    else
+        res = bm_image_alloc_contiguous_mem_heap_mask (batch_num, image, heap_mask);
+  }
   return res;
 }
 
@@ -536,10 +537,12 @@ static inline bm_status_t bm_image_create_batch (bm_handle_t              handle
  * @retval BM_SUCCESS    change success.
  * @retval other values  change failed.
  */
-static inline bm_status_t bm_image_destroy_batch (bm_image *image, int batch_num) {
-  bm_status_t res;
-  // free memory
-  res = bm_image_free_contiguous_mem (batch_num, image);
+static inline bm_status_t bm_image_destroy_batch (bm_image *image, int batch_num, bool is_contiguous=true) {
+  bm_status_t res = BM_SUCCESS;
+  if(is_contiguous){
+    // free memory
+    res = bm_image_free_contiguous_mem (batch_num, image);
+  }
 
   // deinit bm image
   for (int i = 0; i < batch_num; i++) {
