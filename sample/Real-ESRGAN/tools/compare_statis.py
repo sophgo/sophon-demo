@@ -5,56 +5,47 @@ import os
 import sys
 
 baseline = """
-|    测试平台  |     测试程序      |             测试模型                 |   decode_time   | preprocess_time | inference_time  | postprocess_time| 
-|   SE7-32    |real_esrgan_opencv.py|    real_esrgan_fp32_1b.bmodel      |      1.86       |      18.56      |     761.65      |      80.92      |
-|   SE7-32    |real_esrgan_opencv.py|    real_esrgan_fp16_1b.bmodel      |      1.84       |      18.70      |     114.75      |      72.18      |
-|   SE7-32    |real_esrgan_opencv.py|    real_esrgan_int8_1b.bmodel      |      1.83       |      18.46      |     344.08      |      71.63      |
-|   SE7-32    |real_esrgan_opencv.py|    real_esrgan_int8_4b.bmodel      |      1.76       |      19.39      |     342.58      |      83.54      |
-|   SE7-32    |real_esrgan_bmcv.py|    real_esrgan_fp32_1b.bmodel        |      1.75       |      1.92       |     722.50      |     106.98      |
-|   SE7-32    |real_esrgan_bmcv.py|    real_esrgan_fp16_1b.bmodel        |      1.73       |      1.93       |      75.53      |     106.83      |
-|   SE7-32    |real_esrgan_bmcv.py|    real_esrgan_int8_1b.bmodel        |      1.75       |      1.51       |      35.57      |      58.49      |
-|   SE7-32    |real_esrgan_bmcv.py|    real_esrgan_int8_4b.bmodel        |      1.41       |      1.36       |      34.53      |      58.79      |
-|   SE7-32    |real_esrgan_bmcv.soc|    real_esrgan_fp32_1b.bmodel       |      2.25       |      0.61       |     711.02      |      51.60      |
-|   SE7-32    |real_esrgan_bmcv.soc|    real_esrgan_fp16_1b.bmodel       |      2.25       |      0.61       |      64.18      |      51.72      |
-|   SE7-32    |real_esrgan_bmcv.soc|    real_esrgan_int8_1b.bmodel       |      2.27       |      0.46       |      32.59      |      93.60      |
-|   SE7-32    |real_esrgan_bmcv.soc|    real_esrgan_int8_4b.bmodel       |      1.95       |      0.43       |      31.69      |      91.32      |
-|    SE9-8    |real_esrgan_opencv.py|    real_esrgan_fp32_1b.bmodel      |      13.90      |      43.32      |     3803.27     |      90.92      |
-|    SE9-8    |real_esrgan_opencv.py|    real_esrgan_fp16_1b.bmodel      |      3.21       |      42.89      |     512.60      |      87.89      |
-|    SE9-8    |real_esrgan_opencv.py|    real_esrgan_int8_1b.bmodel      |      3.20       |      42.98      |     537.23      |      87.68      |
-|    SE9-8    |real_esrgan_opencv.py|    real_esrgan_int8_4b.bmodel      |      8.46       |      47.41      |     541.77      |     213.41      |
-|    SE9-8    |real_esrgan_bmcv.py|    real_esrgan_fp32_1b.bmodel        |      13.33      |      3.73       |     3758.24     |     131.44      |
-|    SE9-8    |real_esrgan_bmcv.py|    real_esrgan_fp16_1b.bmodel        |      3.22       |      3.73       |     467.73      |     132.85      |
-|    SE9-8    |real_esrgan_bmcv.py|    real_esrgan_int8_1b.bmodel        |      3.21       |      3.38       |     125.12      |      74.66      |
-|    SE9-8    |real_esrgan_bmcv.py|    real_esrgan_int8_4b.bmodel        |      2.86       |      3.02       |     122.24      |     106.95      |
-|    SE9-8    |real_esrgan_bmcv.soc|    real_esrgan_fp32_1b.bmodel       |      5.54       |      1.60       |     3741.92     |     108.41      |
-|    SE9-8    |real_esrgan_bmcv.soc|    real_esrgan_fp16_1b.bmodel       |      4.82       |      1.59       |     451.58      |     108.37      |
-|    SE9-8    |real_esrgan_bmcv.soc|    real_esrgan_int8_1b.bmodel       |      5.02       |      1.58       |     120.78      |     121.39      |
-|    SE9-8    |real_esrgan_bmcv.soc|    real_esrgan_int8_4b.bmodel       |      4.53       |      1.49       |     118.20      |     121.00      |
-|   SE9-16    |real_esrgan_opencv.py|    real_esrgan_fp32_1b.bmodel      |      3.32       |      24.22      |     3791.12     |      88.00      |
-|   SE9-16    |real_esrgan_opencv.py|    real_esrgan_fp16_1b.bmodel      |      3.26       |      23.95      |     500.79      |      88.22      |
-|   SE9-16    |real_esrgan_opencv.py|    real_esrgan_int8_1b.bmodel      |      3.26       |      23.90      |     548.49      |      88.13      |
-|   SE9-16    |real_esrgan_opencv.py|    real_esrgan_int8_4b.bmodel      |      3.14       |      24.95      |     545.45      |     113.01      |
-|   SE9-16    |real_esrgan_bmcv.py|    real_esrgan_fp32_1b.bmodel        |      3.24       |      3.81       |     3746.02     |     132.69      |
-|   SE9-16    |real_esrgan_bmcv.py|    real_esrgan_fp16_1b.bmodel        |      3.26       |      3.85       |     455.66      |     132.52      |
-|   SE9-16    |real_esrgan_bmcv.py|    real_esrgan_int8_1b.bmodel        |      3.24       |      3.46       |     120.55      |      76.49      |
-|   SE9-16    |real_esrgan_bmcv.py|    real_esrgan_int8_4b.bmodel        |      2.93       |      3.08       |     118.63      |      76.70      |
-|   SE9-16    |real_esrgan_bmcv.soc|    real_esrgan_fp32_1b.bmodel       |      3.64       |      1.52       |     3729.57     |      65.26      |
-|   SE9-16    |real_esrgan_bmcv.soc|    real_esrgan_fp16_1b.bmodel       |      3.64       |      1.53       |     439.27      |      65.06      |
-|   SE9-16    |real_esrgan_bmcv.soc|    real_esrgan_int8_1b.bmodel       |      3.66       |      1.52       |     116.17      |      80.13      |
-|   SE9-16    |real_esrgan_bmcv.soc|    real_esrgan_int8_4b.bmodel       |      3.40       |      1.43       |     114.54      |      77.70      |
-|   SE9-16    |real_esrgan_opencv.py| real_esrgan_fp32_1b_2core.bmodel   |      3.30       |      24.39      |     1946.97     |      88.10      |
-|   SE9-16    |real_esrgan_opencv.py| real_esrgan_fp16_1b_2core.bmodel   |      3.28       |      24.25      |     292.25      |      88.05      |
-|   SE9-16    |real_esrgan_opencv.py| real_esrgan_int8_1b_2core.bmodel   |      3.30       |      24.10      |     520.30      |      88.24      |
-|   SE9-16    |real_esrgan_opencv.py| real_esrgan_int8_4b_2core.bmodel   |      3.17       |      24.98      |     490.98      |     106.71      |
-|   SE9-16    |real_esrgan_bmcv.py| real_esrgan_fp32_1b_2core.bmodel     |      3.24       |      3.87       |     1901.67     |     131.68      |
-|   SE9-16    |real_esrgan_bmcv.py| real_esrgan_fp16_1b_2core.bmodel     |      3.23       |      3.85       |     247.06      |     133.33      |
-|   SE9-16    |real_esrgan_bmcv.py| real_esrgan_int8_1b_2core.bmodel     |      3.25       |      3.48       |      92.04      |      76.11      |
-|   SE9-16    |real_esrgan_bmcv.py| real_esrgan_int8_4b_2core.bmodel     |      2.96       |      3.07       |      64.27      |      76.60      |
-|   SE9-16    |real_esrgan_bmcv.soc| real_esrgan_fp32_1b_2core.bmodel    |      3.65       |      1.52       |     1885.24     |      64.88      |
-|   SE9-16    |real_esrgan_bmcv.soc| real_esrgan_fp16_1b_2core.bmodel    |      3.65       |      1.52       |     230.78      |      64.88      |
-|   SE9-16    |real_esrgan_bmcv.soc| real_esrgan_int8_1b_2core.bmodel    |      3.64       |      1.51       |      87.69      |      77.74      |
-|   SE9-16    |real_esrgan_bmcv.soc| real_esrgan_int8_4b_2core.bmodel    |      3.44       |      1.43       |      60.18      |      77.54      |
-
+|   测试平台  |     测试程序        |             测试模型               |   decode_time   | preprocess_time | inference_time  |postprocess_time  |
+| ----------  | -----------------   | -----------------------------------|-----------------|-----------------|-----------------|-----------------|
+|   SE7-32    |real_esrgan_opencv.py|    real_esrgan_fp32_1b.bmodel     |      1.87       |      18.88      |     766.08   |      71.21      |
+|   SE7-32    |real_esrgan_opencv.py|    real_esrgan_fp16_1b.bmodel     |      1.86       |      18.61      |     114.84   |      71.46      |
+|   SE7-32    |real_esrgan_opencv.py|    real_esrgan_int8_1b.bmodel     |      1.85       |      18.60      |     344.06   |      71.41      |
+|   SE7-32    |real_esrgan_opencv.py|    real_esrgan_int8_4b.bmodel     |      1.78       |      19.32      |     342.83    |      79.77      |
+|   SE7-32    |real_esrgan_bmcv.py|    real_esrgan_fp32_1b.bmodel     |      1.81       |      1.96       |     723.02      |  109.33      |
+|   SE7-32    |real_esrgan_bmcv.py|    real_esrgan_fp16_1b.bmodel     |      1.81       |      1.97       |      75.08      |  109.82      |
+|   SE7-32    |real_esrgan_bmcv.py|    real_esrgan_int8_1b.bmodel     |      1.83       |      1.55       |      35.46      |   58.71      |
+|   SE7-32    |real_esrgan_bmcv.py|    real_esrgan_int8_4b.bmodel     |      1.46       |      1.38       |      34.57      |   60.03      |
+|   SE7-32    |real_esrgan_bmcv.soc|    real_esrgan_fp32_1b.bmodel     |      1.32       |      1.11       |     724.83      |   97.69      |
+|   SE7-32    |real_esrgan_bmcv.soc|    real_esrgan_fp16_1b.bmodel     |      1.34       |      1.11       |      76.64      |   97.63      |
+|   SE7-32    |real_esrgan_bmcv.soc|    real_esrgan_int8_1b.bmodel     |      1.30       |      0.69       |      33.92      |   3.10       |
+|   SE7-32    |real_esrgan_bmcv.soc|    real_esrgan_int8_4b.bmodel     |      1.14       |      0.63       |      33.13      |   3.09       |
+|   SE9-16    |real_esrgan_opencv.py|    real_esrgan_fp32_1b.bmodel     |      4.09       |      24.75      |     3794.30     |      89.71      |
+|   SE9-16    |real_esrgan_opencv.py|    real_esrgan_fp16_1b.bmodel     |      3.38       |      24.39      |     503.90      |      89.40      |
+|   SE9-16    |real_esrgan_opencv.py|    real_esrgan_int8_1b.bmodel     |      3.35       |      24.42      |     549.36      |      90.44      |
+|   SE9-16    |real_esrgan_opencv.py|    real_esrgan_int8_4b.bmodel     |      3.11       |      24.95      |     546.77      |      88.84      |
+|   SE9-16    |real_esrgan_opencv.py| real_esrgan_int8_4b_2core.bmodel  |      3.12       |      24.91      |     142.10      |      89.03      |
+|   SE9-16    |real_esrgan_bmcv.py|    real_esrgan_fp32_1b.bmodel     |      3.23       |      3.59       |     3746.51     |     138.87      |
+|   SE9-16    |real_esrgan_bmcv.py|    real_esrgan_fp16_1b.bmodel     |      3.28       |      3.63       |     455.04      |     139.14      |
+|   SE9-16    |real_esrgan_bmcv.py|    real_esrgan_int8_1b.bmodel     |      3.25       |      3.24       |     119.96      |      75.59      |
+|   SE9-16    |real_esrgan_bmcv.py|    real_esrgan_int8_4b.bmodel     |      2.85       |      2.87       |     118.97      |      76.46      |
+|   SE9-16    |real_esrgan_bmcv.py| real_esrgan_int8_4b_2core.bmodel  |      2.85       |      2.86       |      64.48      |      75.93      |
+|   SE9-16    |real_esrgan_bmcv.soc|    real_esrgan_fp32_1b.bmodel     |      2.49       |      2.14       |     3738.22     |     130.09      |
+|   SE9-16    |real_esrgan_bmcv.soc|    real_esrgan_fp16_1b.bmodel     |      2.50       |      2.13       |     446.65      |     129.98      |
+|   SE9-16    |real_esrgan_bmcv.soc|    real_esrgan_int8_1b.bmodel     |      2.43       |      1.74       |     117.58      |      10.39      |
+|   SE9-16    |real_esrgan_bmcv.soc|    real_esrgan_int8_4b.bmodel     |      2.18       |      1.61       |     116.93      |      10.40      |
+|   SE9-16    |real_esrgan_bmcv.soc| real_esrgan_int8_4b_2core.bmodel  |      2.18       |      1.61       |      62.47      |      10.37      |
+|    SE9-8    |real_esrgan_opencv.py|    real_esrgan_fp32_1b.bmodel     |      17.15      |      24.43      |     3813.90     |     132.27      |
+|    SE9-8    |real_esrgan_opencv.py|    real_esrgan_fp16_1b.bmodel     |      5.63       |      24.49      |     516.81      |     132.07      |
+|    SE9-8    |real_esrgan_opencv.py|    real_esrgan_int8_1b.bmodel     |      5.66       |      24.60      |     550.77      |     132.19      |
+|    SE9-8    |real_esrgan_opencv.py|    real_esrgan_int8_4b.bmodel     |      11.43      |      24.77      |     549.46      |     237.89      |
+|    SE9-8    |real_esrgan_bmcv.py|    real_esrgan_fp32_1b.bmodel     |      12.47      |      3.60       |     3765.67     |     142.59      |
+|    SE9-8    |real_esrgan_bmcv.py|    real_esrgan_fp16_1b.bmodel     |      3.41       |      3.57       |     466.11      |     142.27      |
+|    SE9-8    |real_esrgan_bmcv.py|    real_esrgan_int8_1b.bmodel     |      3.46       |      3.21       |     123.81      |      77.01      |
+|    SE9-8    |real_esrgan_bmcv.py|    real_esrgan_int8_4b.bmodel     |      9.51       |      2.85       |     122.29      |     157.92      |
+|    SE9-8    |real_esrgan_bmcv.soc|    real_esrgan_fp32_1b.bmodel     |      16.42      |      2.13       |     3757.22     |     164.12      |
+|    SE9-8    |real_esrgan_bmcv.soc|    real_esrgan_fp16_1b.bmodel     |      2.48       |      2.13       |     457.72      |     163.80      |
+|    SE9-8    |real_esrgan_bmcv.soc|    real_esrgan_int8_1b.bmodel     |      2.46       |      1.74       |     121.44      |      10.39      |
+|    SE9-8    |real_esrgan_bmcv.soc|    real_esrgan_int8_4b.bmodel     |      2.19       |      1.61       |     120.20      |      10.35      |
 """
 table_data = {
     "platform": [],

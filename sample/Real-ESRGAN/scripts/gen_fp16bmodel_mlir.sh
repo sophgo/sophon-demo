@@ -30,17 +30,8 @@ function gen_fp16bmodel()
         --mlir real_esrgan_$1b.mlir \
         --quantize F16 \
         --chip $target \
-        --model real_esrgan_fp16_$1b.bmodel 
+        --model real_esrgan_fp16_$1b.bmodel
     mv real_esrgan_fp16_$1b.bmodel $outdir/
-    if test $target = "bm1688";then
-        model_deploy.py \
-            --mlir real_esrgan_$1b.mlir \
-            --quantize F16 \
-            --chip $target \
-            --model real_esrgan_fp16_$1b_2core.bmodel \
-            --num_core 2
-        mv real_esrgan_fp16_$1b_2core.bmodel $outdir/
-    fi
 }
 
 pushd $model_dir
@@ -50,8 +41,5 @@ fi
 # batch_size=1
 gen_mlir 1
 gen_fp16bmodel 1
-
-
-
 
 popd

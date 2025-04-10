@@ -146,7 +146,7 @@ class Real_ESRGAN:
         #cpu postprocess
         outputs_arr = outputs_arr.astype(np.float32)
         outputs_arr *= 255
-        outputs_arr = outputs_arr.transpose(0, 2, 3, 1)
+        outputs_arr = outputs_arr.astype(np.uint8).transpose(0, 2, 3, 1)
         clipped_arr = []
         for i in range(len(outputs_arr)):
             if txy_list[i][0] != 0: #tx

@@ -7,60 +7,115 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef F9766C78_A85E_4E73_9C8B_94C41D63180B
-#define F9766C78_A85E_4E73_9C8B_94C41D63180B
+#ifndef REAL_ESRGAN_H
+#define REAL_ESRGAN_H
 
-#ifndef Real_ESRGAN_H
-#define Real_ESRGAN_H
-
-#include <fstream>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include "opencv2/opencv.hpp"
-#include "bmnn_utils.h"
 #include "utils.hpp"
-#include "bm_wrapper.hpp"
 // Define USE_OPENCV for enabling OPENCV related funtions in bm_wrapper.hpp
 #define USE_OPENCV 1
+#include "bm_wrapper.hpp"
 #define DEBUG 0
 
-
 class Real_ESRGAN {
-  std::shared_ptr<BMNNContext> m_bmContext;
-  std::shared_ptr<BMNNNetwork> m_bmNetwork;
-  std::vector<bm_image> m_resized_imgs;
-  std::vector<bm_image> m_converto_imgs;
+    bm_handle_t handle;
+    void *bmrt = NULL;
+    const bm_net_info_t *netinfo = NULL;
+    std::vector<std::string> network_names;
+    bm_misc_info misc_info;
 
-  //configuration
+    // configuration
+    int m_dev_id = 0;
+    bm_image_format_ext m_input_format = FORMAT_RGB_PLANAR;
+    int m_net_h, m_net_w;
+    bmcv_convert_to_attr converto_attr;
+    TimeStamp tmp_ts;
 
-  bool use_cpu_opt;
+private:
+    int pre_process(const std::vector<bm_image>& images, bm_tensor_t& input_tensor);
+    int forward(bm_tensor_t& input_tensor, bm_tensor_t& output_tensor);
+    float* get_cpu_data(bm_tensor_t* tensor, float scale);
+    int post_process(const std::vector<bm_image>& input_images, 
+                     bm_tensor_t& output_tensor,
+                     std::vector<cv::Mat>& output_mats);
+    int post_process_bmcv(const std::vector<bm_image>& input_images, 
+                     bm_tensor_t& output_tensor,
+                     std::vector<cv::Mat>& output_mats);
+    int post_process_opencv(const std::vector<bm_image>& input_images, 
+                     bm_tensor_t& output_tensor,
+                     std::vector<cv::Mat>& output_mats);
+    static float get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool* alignWidth);
+public:
+    int batch_size = -1;
+    TimeStamp* m_ts = NULL;
+    Real_ESRGAN(std::string bmodel_file, int dev_id = 0){
+        m_dev_id = dev_id;
+        // get handle
+        auto ret = bm_dev_request(&handle, dev_id);
+        assert(BM_SUCCESS == ret);
 
+        // judge now is pcie or soc
+        ret = bm_get_misc_info(handle, &misc_info);
+        assert(BM_SUCCESS == ret);
 
-  int m_net_h, m_net_w;
-  int max_batch;
-  int output_num;
-  int min_dim;
-  int upsample_scale;
-  bmcv_convert_to_attr converto_attr;
+        // create bmrt
+        bmrt = bmrt_create(handle);
+        if (!bmrt_load_bmodel(bmrt, bmodel_file.c_str())) {
+            std::cout << "load bmodel(" << bmodel_file << ") failed" << std::endl;
+        }
 
-  TimeStamp *m_ts;
+        // get network names from bmodel
+        const char **names;
+        int num = bmrt_get_network_number(bmrt);
+        if (num > 1){
+            std::cout << "This bmodel have " << num << " networks, and this program will only take network 0." << std::endl;
+        }
+        bmrt_get_network_names(bmrt, &names);
+        for(int i = 0; i < num; ++i) {
+            network_names.push_back(names[i]);
+        }
+        free(names);
 
-  private:
-  int pre_process(const std::vector<bm_image>& images);
-  int post_process(const std::vector<bm_image>& images,std::vector<cv::Mat>& output_mats);
-  static float get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool *alignWidth);
- 
-  public:
-  Real_ESRGAN(std::shared_ptr<BMNNContext> context);
-  virtual ~Real_ESRGAN();
-  int Init();
-  void enableProfile(TimeStamp *ts);
-  int batch_size();
-  int Detect(const std::vector<bm_image>& images,std::vector<cv::Mat>& output_mats);
-  
+        // get netinfo by netname
+        netinfo = bmrt_get_network_info(bmrt, network_names[0].c_str());
+        if (netinfo->stage_num > 1){
+            std::cout << "This bmodel have " << netinfo->stage_num << " stages, and this program will only take stage 0." << std::endl;
+        }
+        batch_size = netinfo->stages[0].input_shapes[0].dims[0];
+        m_net_h = netinfo->stages[0].input_shapes[0].dims[2];
+        m_net_w = netinfo->stages[0].input_shapes[0].dims[3];
+        
+        int channel_num = netinfo->stages[0].input_shapes[0].dims[1];
+        if(channel_num == 3){
+            m_input_format = FORMAT_RGB_PLANAR;
+        }else if(channel_num == 1){
+            m_input_format = FORMAT_GRAY;
+        }else{
+            throw std::runtime_error("Unsupport model input format, only support 1 or 3 channels input now.");
+        }
+
+        float input_scale = netinfo->input_scales[0] / 255.f;
+        converto_attr.alpha_0 = input_scale;
+        converto_attr.beta_0 = 0;
+        converto_attr.alpha_1 = input_scale;
+        converto_attr.beta_1 = 0;
+        converto_attr.alpha_2 = input_scale;
+        converto_attr.beta_2 = 0;
+
+        // set temp timestamp
+        m_ts = &tmp_ts;
+    }
+    ~Real_ESRGAN(){
+        if (bmrt!=NULL) {
+            bmrt_destroy(bmrt);
+            bmrt = NULL;
+        }  
+        bm_dev_free(handle);
+    };
+    int process(const std::vector<bm_image>& images, std::vector<cv::Mat>& output_mats);
 };
 
-#endif //!Real_ESRGAN_H
-
-
-#endif /* F9766C78_A85E_4E73_9C8B_94C41D63180B */
+#endif  //! REAL_ESRGAN_H
