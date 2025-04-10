@@ -27,8 +27,8 @@
 using namespace std::chrono;
 using time_stamp_t = time_point<steady_clock, microseconds>;
 
-#define MAX_TAGS 2000
-#define MAX_RECORDS 40000
+#define MAX_TAGS 500
+#define MAX_RECORDS 4000
 
 #define LOG_TS(p_ts, tag) if ((p_ts)) (p_ts)->save((tag));
 

@@ -11,11 +11,12 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
-export PYTHONPATH=/opt/sophon/sophon-opencv-latest/opencv-python/:$PYTHONPATH
 if [ -f "tools/benchmark.txt" ]; then
   rm tools/benchmark.txt
 fi
-
+if [ -f "tools/acc.txt" ]; then
+  rm tools/acc.txt
+fi
 
 usage() 
 {
@@ -87,7 +88,7 @@ function judge_ret() {
 function download()
 {
   chmod -R +x scripts/
-  ./scripts/download.sh
+  ./scripts/download.sh --$TARGET
   judge_ret $? "download" 0
 }
 
@@ -226,12 +227,11 @@ function eval_python()
 
   echo "Evaluating..."
   res=$(python3 tools/eval_psnr.py --left_results results/images_onnx --right_results results/images_$1 2>&1 | tee python/log/$1_$2_eval.log)
-  echo -e "$res"
-  psnr=$(echo "$res" | grep -oP 'average_psnr:\s+\K[0-9.]+')
-  echo -e "$psnr"
-  compare_res $psnr $3
-  judge_ret $? "$2_$1_python_result: Precision compare!" log/$1_$2_eval.log
-
+  echo "==================="
+  echo "Comparing acc..."
+  python3 tools/compare_acc.py --target=$TARGET --platform=${MODE%_*} --program=real_esrgan_$1.py --language=python --input=python/log/$1_$2_eval.log --bmodel=$2 2>&1
+  judge_ret $? "python3 tools/compare_acc.py --target=$TARGET --platform=${MODE%_*} --program=real_esrgan_$1.py --language=python --input=python/log/$1_$2_eval.log --bmodel=$2"
+  echo "==================="
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 function eval_cpp()
@@ -253,47 +253,49 @@ function eval_cpp()
 
   echo "Evaluating..."
   res=$(python3 ../../tools/eval_psnr.py --left_results ../../results/images_onnx --right_results results/images 2>&1 | tee log/$1_$2_$3_eval.log)
-  echo -e "$res"
-  psnr=$(echo "$res" | grep -oP 'average_psnr:\s+\K[0-9.]+')
-  echo -e "$psnr"
-  compare_res $psnr $4
-  judge_ret $? "$2_$3_cpp_result: Precision compare!" log/$1_$2_$3_eval.log
-  
+  echo "==================="
+  echo "Comparing acc..."
+  python3 ../../tools/compare_acc.py --target=$TARGET --platform=${MODE%_*} --program=real_esrgan_$2.$1 --language=cpp --input=log/$1_$2_$3_eval.log --bmodel=$3 2>&1
+  judge_ret $? "python3 ../../tools/compare_acc.py --target=$TARGET --platform=${MODE%_*} --program=real_esrgan_$2.$1 --language=cpp --input=log/$1_$2_$3_eval.log --bmodel=$3"
+  echo "==================="
   popd
   echo -e "########################\nCase End: eval cpp\n########################\n"
 }
 if test $MODE = "compile_mlir"
 then
-  download
+  download onnx
   compile_mlir
-elif test $MODE = "pcie_test"
+elif test $MODE = "pcie_build"
 then
   build_pcie bmcv
-  download
-  pip3 install onnxruntime==1.14.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
-  if test $TARGET = "BM1684X"
-  then
-    #performence test
-    eval_python opencv real_esrgan_fp32_1b.bmodel 79.39919963297913
-    eval_python opencv real_esrgan_fp16_1b.bmodel 51.58411009845114
-    eval_python opencv real_esrgan_int8_1b.bmodel 36.62011081880808
-    eval_python opencv real_esrgan_int8_4b.bmodel 36.62011081880808
-    eval_python bmcv real_esrgan_fp32_1b.bmodel 45.517305468646484
-    eval_python bmcv real_esrgan_fp16_1b.bmodel 45.568800619928
-    eval_python bmcv real_esrgan_int8_1b.bmodel 36.41790996020899
-    eval_python bmcv real_esrgan_int8_4b.bmodel 36.41790996020899
-
-    eval_cpp pcie bmcv real_esrgan_fp32_1b.bmodel 38.56451536398317
-    eval_cpp pcie bmcv real_esrgan_fp16_1b.bmodel 38.56165460548448
-    eval_cpp pcie bmcv real_esrgan_int8_1b.bmodel 34.98144302652623
-    eval_cpp pcie bmcv real_esrgan_int8_4b.bmodel 34.98144626156269
+elif test $MODE = "pcie_test"
+then
+  download $TARGET
+  pip3 install onnxruntime==1.14.1 opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
+  for pre in fp32_1b fp16_1b int8_1b int8_4b; do
+    eval_python opencv real_esrgan_${pre}.bmodel
+  done
+  if test $TARGET = "BM1688"; then
+    eval_python opencv real_esrgan_int8_4b_2core.bmodel
+  fi
+  for pre in fp32_1b fp16_1b int8_1b int8_4b; do
+    eval_python bmcv real_esrgan_${pre}.bmodel
+  done
+  if test $TARGET = "BM1688"; then
+    eval_python bmcv real_esrgan_int8_4b_2core.bmodel
+  fi
+  for pre in fp32_1b fp16_1b int8_1b int8_4b; do
+    eval_cpp pcie bmcv real_esrgan_${pre}.bmodel
+  done
+  if test $TARGET = "BM1688"; then
+    eval_cpp pcie bmcv real_esrgan_int8_4b_2core.bmodel
   fi
 elif test $MODE = "soc_build"
 then
   build_soc bmcv
 elif test $MODE = "soc_test"
 then
-  download
+  download $TARGET
   if [ ! -d results ];then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Real-ESRGAN/onnx_results/images_onnx.tgz
     mkdir results/
@@ -303,68 +305,24 @@ then
     rm images_onnx.tgz
     cd ..
   fi
-  pip3 install onnxruntime==1.14.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
-  if test $TARGET = "BM1684X"
-  then
-    eval_python opencv real_esrgan_fp32_1b.bmodel 69.39919963297913
-    eval_python opencv real_esrgan_fp16_1b.bmodel 50.671151256486894
-    eval_python opencv real_esrgan_int8_1b.bmodel 36.34181152305623
-    eval_python opencv real_esrgan_int8_4b.bmodel 36.34178228546011
-    eval_python bmcv real_esrgan_fp32_1b.bmodel 60.06186290140536
-    eval_python bmcv real_esrgan_fp16_1b.bmodel 48.97027618435168
-    eval_python bmcv real_esrgan_int8_1b.bmodel 36.28425859330598
-    eval_python bmcv real_esrgan_int8_4b.bmodel 36.28404703197349
-
-    eval_cpp soc bmcv real_esrgan_fp32_1b.bmodel 54.39043047276539
-    eval_cpp soc bmcv real_esrgan_fp16_1b.bmodel 43.42556432129197
-    eval_cpp soc bmcv real_esrgan_int8_1b.bmodel 34.97213125435497
-    eval_cpp soc bmcv real_esrgan_int8_4b.bmodel 34.97247218881823
-
-
-  elif test $TARGET = "CV186X"
-  then
-    eval_python opencv real_esrgan_fp32_1b.bmodel 38.21234165784764
-    eval_python opencv real_esrgan_fp16_1b.bmodel 38.19603977835498
-    eval_python opencv real_esrgan_int8_1b.bmodel 34.8606226865489
-    eval_python opencv real_esrgan_int8_4b.bmodel 34.86062277835418
-    eval_python bmcv real_esrgan_fp32_1b.bmodel 38.011214928712
-    eval_python bmcv real_esrgan_fp16_1b.bmodel 38.016766744559426 
-    eval_python bmcv real_esrgan_int8_1b.bmodel 35.27665138547572
-    eval_python bmcv real_esrgan_int8_4b.bmodel 35.27665138547572
- 
-    eval_cpp soc bmcv real_esrgan_fp32_1b.bmodel 36.866299903695754
-    eval_cpp soc bmcv real_esrgan_fp16_1b.bmodel 36.87021558528665
-    eval_cpp soc bmcv real_esrgan_int8_1b.bmodel 34.204974878521384
-    eval_cpp soc bmcv real_esrgan_int8_4b.bmodel 34.204992390796136
-
-  elif test $TARGET = "BM1688"
-  then
-    eval_python opencv real_esrgan_fp32_1b.bmodel 38.69009343067908
-    eval_python opencv real_esrgan_fp16_1b.bmodel 38.687814169107746
-    eval_python opencv real_esrgan_int8_1b.bmodel 35.00328975700205
-    eval_python opencv real_esrgan_int8_4b.bmodel 35.00329141383019
-    eval_python bmcv real_esrgan_fp32_1b.bmodel 38.50490162494463
-    eval_python bmcv real_esrgan_fp16_1b.bmodel 38.510411695441285
-    eval_python bmcv real_esrgan_int8_1b.bmodel 34.947925792681346
-    eval_python bmcv real_esrgan_int8_4b.bmodel 34.947907359621304
-    eval_cpp soc bmcv real_esrgan_fp32_1b.bmodel 36.66300072451568
-    eval_cpp soc bmcv real_esrgan_fp16_1b.bmodel 36.66722802560805
-    eval_cpp soc bmcv real_esrgan_int8_1b.bmodel 34.15577607485862
-    eval_cpp soc bmcv real_esrgan_int8_4b.bmodel 34.15580664236844
-
-    eval_python opencv real_esrgan_fp32_1b_2core.bmodel 38.69009557946511
-    eval_python opencv real_esrgan_fp16_1b_2core.bmodel 38.687814169107746
-    eval_python opencv real_esrgan_int8_1b_2core.bmodel 35.00328975700205
-    eval_python opencv real_esrgan_int8_4b_2core.bmodel 35.00329141383019
-    eval_python bmcv real_esrgan_fp32_1b_2core.bmodel 38.50490162494463 
-    eval_python bmcv real_esrgan_fp16_1b_2core.bmodel 38.510411695441285
-    eval_python bmcv real_esrgan_int8_1b_2core.bmodel 34.947925792681346 
-    eval_python bmcv real_esrgan_int8_4b_2core.bmodel 34.947907359621304 
-    eval_cpp soc bmcv real_esrgan_fp32_1b_2core.bmodel 36.66300072451568
-    eval_cpp soc bmcv real_esrgan_fp16_1b_2core.bmodel 36.66722802560805
-    eval_cpp soc bmcv real_esrgan_int8_1b_2core.bmodel 34.15577438139404
-    eval_cpp soc bmcv real_esrgan_int8_4b_2core.bmodel 34.155846699255996
-
+  pip3 install onnxruntime==1.14.1 opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
+  for pre in fp32_1b fp16_1b int8_1b int8_4b; do
+    eval_python opencv real_esrgan_${pre}.bmodel
+  done
+  if test $TARGET = "BM1688"; then
+    eval_python opencv real_esrgan_int8_4b_2core.bmodel
+  fi
+  for pre in fp32_1b fp16_1b int8_1b int8_4b; do
+    eval_python bmcv real_esrgan_${pre}.bmodel
+  done
+  if test $TARGET = "BM1688"; then
+    eval_python bmcv real_esrgan_int8_4b_2core.bmodel
+  fi
+  for pre in fp32_1b fp16_1b int8_1b int8_4b; do
+    eval_cpp soc bmcv real_esrgan_${pre}.bmodel
+  done
+  if test $TARGET = "BM1688"; then
+    eval_cpp soc bmcv real_esrgan_int8_4b_2core.bmodel
   fi
 fi
 
@@ -374,6 +332,8 @@ then
   bmrt_test_benchmark
   echo "--------real_esrgan performance-----------"
   cat tools/benchmark.txt
+  echo "--------real_esrgan acc-----------"
+  cat tools/acc.txt
 fi
 if [[ $ALL_PASS -eq 0 ]]
 then
