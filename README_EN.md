@@ -54,10 +54,10 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [YOLOX](./sample/YOLOX/README.md)                             | Object Detection                   | C++/Python | FP32/INT8      | BM1684/BM1684X/BM1688/CV186X |
 | [SSD](./sample/SSD/README.md)                                 | Object Detection                   | C++/Python | FP32/INT8      | BM1684/BM1684X               |
 | [YOLOv7](./sample/YOLOv7/README.md)                           | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [YOLOv8_plus_det](./sample/YOLOv8_plus_det/README.md)         | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
-| [YOLOv9_det](./sample/YOLOv8_plus_det/README.md)              | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
-| [YOLOv11_det](./sample/YOLOv8_plus_det/README.md)             | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
-| [YOLOv12_det](./sample/YOLOv8_plus_det/README.md)             | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
+| [YOLOv8_plus_det](./sample/YOLOv8_plus_det/README.md)         | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [YOLOv9_det](./sample/YOLOv8_plus_det/README.md)              | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [YOLOv11_det](./sample/YOLOv8_plus_det/README.md)             | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [YOLOv12_det](./sample/YOLOv8_plus_det/README.md)             | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv5_opt](./sample/YOLOv5_opt/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X                      |
 | [YOLOv5_fuse](./sample/YOLOv5_fuse/README.md)                 | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv10](./sample/YOLOv10/README.md)                         | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
