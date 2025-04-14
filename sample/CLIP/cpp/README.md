@@ -128,7 +128,7 @@ text_encode(ms): 9.12867
 
 中文版CLIP图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-./clip_opencv.pcie --image_path=../../datasets --text="流程图,狗,车" --dev_id=0 --image_model="../../models/BM1684X/cn_clip_image_vitb16_bm1684x_f16_1b.bmodel" --text_model="../../models/BM1684X/cn_clip_text_vitb16_bm1684x_f16_1b.bmodel" --text_projection="../../models/text_projection_512_512.npy"
+./clip_opencv.pcie --image_path=../../datasets --text="流程图,狗,车" --dev_id=0 --image_model="../../models/BM1684X/cn_clip_image_vitb16_bm1684x_f16_1b.bmodel" --text_model="../../models/BM1684X/cn_clip_text_vitb16_bm1684x_f16_1b.bmodel"
 ```
 程序运行结束后，会在命令行中打印信息，输出图片和文本的匹配度。
 

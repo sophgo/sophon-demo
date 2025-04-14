@@ -21,7 +21,7 @@
 
 class CLIP {
 public:
-    void init(const std::string& image_model, const std::string& text_model, const int &dev_id, const std::string& text_projection_path="../../models/text_projection_512_512.npy");
+    void init(const std::string& image_model, const std::string& text_model, const int &dev_id);
     void deinit();
     std::vector<float> preprocess(const cv::Mat& image);
     std::vector<float> encode_image(const std::vector<float>& image);
@@ -59,7 +59,6 @@ private:
     bm_net_info_t* text_net;
     std::vector<float> mean;
     std::vector<float> std;
-    std::vector<std::vector<float>> text_projection;
     void *p_bmrt_image;
     void *p_bmrt_text;
     const char **image_name;
