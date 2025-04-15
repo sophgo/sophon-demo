@@ -154,6 +154,7 @@ int main(int argc, char* argv[]) {
                 boxes.clear();
             }
         }
+        delete decoder;
         encoder.closeEnc();
     }
 
