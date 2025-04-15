@@ -206,7 +206,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out,
     int data_four_denominator = -1;
     int data_five_denominator = -1;
     int data_six_denominator = -1;
-    static int mem_flags = USEING_MEM_HEAP1;
+    static int mem_flags = USEING_MEM_HEAP2;
 
     switch (in->format) {
         case AV_PIX_FMT_RGB24:
@@ -289,12 +289,13 @@ bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out,
         input_addr[3] = bm_mem_from_device((unsigned long long)in->data[5], size);
         bm_image_attach(cmp_bmimg, input_addr);
         bm_image_create(handle, in->height, in->width, FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, out);
-        if (mem_flags == USEING_MEM_HEAP1 && bm_image_alloc_dev_mem_heap_mask(*out, mem_flags) != BM_SUCCESS) {
-            mem_flags = USEING_MEM_HEAP2;
-        }
         if (mem_flags == USEING_MEM_HEAP2 && bm_image_alloc_dev_mem_heap_mask(*out, mem_flags) != BM_SUCCESS) {
+            mem_flags = USEING_MEM_HEAP1;
+        }
+        if (mem_flags == USEING_MEM_HEAP1 && bm_image_alloc_dev_mem_heap_mask(*out, mem_flags) != BM_SUCCESS) {
             printf("bmcv allocate mem failed!!!");
         }
+
         bmcv_rect_t crop_rect = {0, 0, in->width, in->height};
         bmcv_image_vpp_convert(handle, 1, cmp_bmimg, out, &crop_rect);
         bm_image_destroy(cmp_bmimg);
@@ -315,10 +316,10 @@ bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out,
         bm_format = (bm_image_format_ext)map_avformat_to_bmformat(in->format);
         bm_image_create(handle, in->height, in->width, bm_format, DATA_TYPE_EXT_1N_BYTE, &tmp, stride);
         bm_image_create(handle, in->height, in->width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, out);
-        if (mem_flags == USEING_MEM_HEAP1 && bm_image_alloc_dev_mem_heap_mask(*out, mem_flags) != BM_SUCCESS) {
-            mem_flags = USEING_MEM_HEAP2;
-        }
         if (mem_flags == USEING_MEM_HEAP2 && bm_image_alloc_dev_mem_heap_mask(*out, mem_flags) != BM_SUCCESS) {
+            mem_flags = USEING_MEM_HEAP1;
+        }
+        if (mem_flags == USEING_MEM_HEAP1 && bm_image_alloc_dev_mem_heap_mask(*out, mem_flags) != BM_SUCCESS) {
             printf("bmcv allocate mem failed!!!");
         }
 
@@ -404,8 +405,8 @@ int VideoDecFFM::openDec(bm_handle_t* dec_handle, const char* input) {
     }
     av_log(video_dec_ctx, AV_LOG_INFO, "openDec video_stream_idx = %d, pix_fmt = %d\n", video_stream_idx, pix_fmt);
 
-    thread push(&VideoDecFFM::vidPushImage, this);
-    push.detach();
+    /* Create a thread and assign it to a member variable */
+    pushThread = std::thread(&VideoDecFFM::vidPushImage, this); 
 
     av_dict_free(&dict);
 
@@ -414,6 +415,16 @@ int VideoDecFFM::openDec(bm_handle_t* dec_handle, const char* input) {
 
 void VideoDecFFM::closeDec() {
     quit_flag = true;
+    /* Wait for the thread to finish */
+    try {
+        if (pushThread.joinable()) {
+            std::cout << "vidPushImage thread exiting..." << std::endl; // 添加日志输出
+            pushThread.join();
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Exception while joining thread: " << e.what() << std::endl;
+    }
+
     if (video_dec_ctx) {
         avcodec_free_context(&video_dec_ctx);
         video_dec_ctx = NULL;
@@ -575,7 +586,7 @@ AVFrame* VideoDecFFM::flushDecoder()
 
 void* VideoDecFFM::vidPushImage() {
     while (1) {
-        while (queue.size() == QUEUE_MAX_SIZE) {
+        while (queue.size() == QUEUE_MAX_SIZE && !quit_flag) {
             if (is_rtsp) {
                 std::lock_guard<std::mutex> my_lock_guard(lock);
                 bm_image* img = queue.front();
