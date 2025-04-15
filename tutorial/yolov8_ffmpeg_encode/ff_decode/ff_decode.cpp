@@ -405,8 +405,8 @@ int VideoDecFFM::openDec(bm_handle_t* dec_handle, const char* input) {
     }
     av_log(video_dec_ctx, AV_LOG_INFO, "openDec video_stream_idx = %d, pix_fmt = %d\n", video_stream_idx, pix_fmt);
 
-    thread push(&VideoDecFFM::vidPushImage, this);
-    push.detach();
+    /* Create a thread and assign it to a member variable */
+    pushThread = std::thread(&VideoDecFFM::vidPushImage, this); 
 
     av_dict_free(&dict);
 
@@ -415,6 +415,16 @@ int VideoDecFFM::openDec(bm_handle_t* dec_handle, const char* input) {
 
 void VideoDecFFM::closeDec() {
     quit_flag = true;
+    /* Wait for the thread to finish */
+    try {
+        if (pushThread.joinable()) {
+            std::cout << "vidPushImage thread exiting..." << std::endl; // 添加日志输出
+            pushThread.join();
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Exception while joining thread: " << e.what() << std::endl;
+    }
+
     if (video_dec_ctx) {
         avcodec_free_context(&video_dec_ctx);
         video_dec_ctx = NULL;
@@ -576,7 +586,7 @@ AVFrame* VideoDecFFM::flushDecoder()
 
 void* VideoDecFFM::vidPushImage() {
     while (1) {
-        while (queue.size() == QUEUE_MAX_SIZE) {
+        while (queue.size() == QUEUE_MAX_SIZE && !quit_flag) {
             if (is_rtsp) {
                 std::lock_guard<std::mutex> my_lock_guard(lock);
                 bm_image* img = queue.front();

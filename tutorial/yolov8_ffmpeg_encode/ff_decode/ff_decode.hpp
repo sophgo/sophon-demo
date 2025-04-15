@@ -9,6 +9,7 @@
 /*
  * This is a wrapper header of BMruntime & BMCV, aiming to simplify user's program.
  */
+#include <thread>
 #include <iostream>
 #include <queue>
 #include <mutex>
@@ -146,6 +147,9 @@ private:
     std::mutex lock;
     std::queue<bm_image *> queue;
 
+    /* Add a thread member variable */
+    std::thread pushThread; 
+    
     int openCodecContext(int *stream_idx, AVCodecContext **dec_ctx, AVFormatContext *fmt_ctx,
                          enum AVMediaType type, int sophon_idx);
 
