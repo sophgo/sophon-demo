@@ -205,7 +205,7 @@ def convert_vision_transformer():
     # make input
     x = torch.randn(max_pixels, 1176).to(dtype=torch.float32, device=device)
     position_ids = torch.randn(max_pixels, 2).to(dtype=torch.int32, device=device)
-    attention_mask = torch.zeros([1, 1, max_pixels, max_pixels], device=device, dtype=torch.float32)
+    attention_mask = torch.zeros([1,  max_pixels, max_pixels], device=device, dtype=torch.float32)
 
     # export onnx
     model = VisionTransformer()
@@ -373,7 +373,7 @@ def vit_launch(pixel_values, grid_thw):
     vit_infer = VisionTransformer()
     cu_seqlens = [h * w * i for i in range(t+1)]
     attention_mask = torch.full(
-        [1, 1, pixel_values.shape[0], pixel_values.shape[0]], -10000, device=device, dtype=torch.float32
+        [1, pixel_values.shape[0], pixel_values.shape[0]], -10000, device=device, dtype=torch.float32
     )
     for i in range(1, len(cu_seqlens)):
         attention_mask[..., cu_seqlens[i - 1] : cu_seqlens[i], cu_seqlens[i - 1] : cu_seqlens[i]] = 0
@@ -600,8 +600,8 @@ if __name__ == "__main__":
     print("\033[31m如果输入为图片时，注意resized_height与resized_width，避免resize导致图片质量损失 \033[0m")
 
 
-    # test_image(path = "./../python_demo/test.jpg", resized_height=280, resized_width=420)
-    # test_video(path = "./sample.mp4")
+    # test_image(path = "../datasets/images/panda.jpg", resized_height=280, resized_width=420)
+    # test_video(path = "../datasets/videos/carvana_video.mp4")
 
     # convert
     convert()
