@@ -11,15 +11,15 @@ scripts_dir=$(dirname $(readlink -f "$0"))
 pushd $scripts_dir
 
 # models
-if [ ! -d "../models/BM1684X" ]; 
+if [ ! -d "../models/BM1688" ]; 
 then
-    mkdir -p ../models/BM1684X
+    mkdir -p ../models/BM1688
     pushd ../models/BM1684X
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen2_5_VL/qwen2.5-vl-3b_bm1684x_w4bf16_seq2048.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen2_5_VL/qwen2.5-vl-3b_bm1688_w4bf16_seq2048.bmodel
     popd
     echo "models download!"
 else
-    echo "models/BM1684X folder exist! Remove it if you need to update."
+    echo "models/BM1688 folder exist! Remove it if you need to update."
 fi
 
 popd

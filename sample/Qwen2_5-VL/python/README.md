@@ -18,6 +18,8 @@ Qwen2.5-vl能够输入单一图片/多张图/视频进行连续对话，python�
 |   1  | qwen2_5_vl.py      | 使用SAIL推理                     |
 
 ## 1. 环境准备
+> **注意：**
+> 无论哪个环境，都要求transformers>=4.49.0，该版本要求python版本大于3.10，若不满足的可以参考[Qwen2.5-VL](../README.md#4.2自行导出ONNX模型)中4.2里提到的方法安装python3.10。
 
 ### 1.1 x86/arm PCIe平台
 
@@ -102,7 +104,9 @@ usage: qwen2_5_vl.py [-h] [-m BMODEL_PATH] [-t TOKENIZER_PATH] [-p PROCESSOR_PAT
 --processor_path: 预处理参数文件路径；
 --config: 模型配置文件路径；
 --dev_id: 用于推理的tpu设备id；
---vision_inputs: json格式，输入图片、视频文件路径、视觉预处理参数，可接受多个图片输入，格式：[{"type":"video","video":path-to-video/list(path-to-frame image), ...},{"type":"video","video":path-to-video/list(path-to-frame image), ...},{"type":"image","image":path-to-image, ...},...]。其中字典里面的其他参数用于生成prompt的额外视觉预处理参数，例如可设置"resized_height"、"resized_width"、"min_pixels"、"max_pixels"等，与官方支持的输入一致，在内存不足时，可适当设置这些参数，支持的常用参数说明如下：
+--vision_inputs: json格式，输入图片、视频文件路径、视觉预处理参数，可接受多个图片输入，格式：[{"type":"video_url","video_url":path-to-video/list(path-to-frame image), ...},{"type":"video_url","video_url":path-to-video/list(path-to-frame image), ...},{"type":"video_url","image":path-to-image, ...},...]。其中字典里面的其他参数用于生成prompt的额外视觉预处理参数，例如可设置"resized_height"、"resized_width"、"min_pixels"、"max_pixels"等，与官方支持的输入一致，在内存不足时，可适当设置这些参数，支持的常用参数说明如下：
+    * --resize_type: 采样方法，支持INTER_NEAREST、INTER_LINEAR、INTER_BICUBIC、Origin，如果不传，默认为INTER_LINEAR，若需要保持原图大小，则需要传入Origin
+    * --max_side: 指定最大边的长度，保持纵横比缩放, 0时表示自适应缩小，-1时表示完全自适应，包含放大和缩小，其他值是表示缩放后最大边长的长度，如果不传，默认为0。
     * --resized_height: resize后的固定高度，会进行28对齐，即28的倍数；
     * --resized_width: resize后的固定宽度，会进行28对齐，即28的倍数；
     * --min_pixels: resize后的最小像素点数量，像素点数量是图片高度乘以宽度，若小于该像素数量会重新计算高宽的缩放比例，最终高度宽度也会进行28对齐，即28的倍数，若--resized_height和--resized_width设置，则该参数无效；
@@ -118,17 +122,17 @@ usage: qwen2_5_vl.py [-h] [-m BMODEL_PATH] [-t TOKENIZER_PATH] [-p PROCESSOR_PAT
 
 - 为了测试`../datasets/videos/carvana_video.mp4`输入，设置`resized_height`、`resized_width`参数到较小值，并设置`nframes`参数为处理2帧，可以使用如下命令
 ```bash
-python3 qwen2_5_vl.py --vision_inputs="[{\"type\":\"video\",\"video\":\"../datasets/videos/carvana_video.mp4\",\"resized_height\":420,\"resized_width\":630,\"nframes\":2}]"
+python3 qwen2_5_vl.py --vision_inputs="[{\"type\":\"video_url\",\"video_url\":{\"url\": \"../datasets/videos/carvana_video.mp4\"},\"resized_height\":420,\"resized_width\":630,\"nframes\":2}]"
 ```
 
 - 为了测试图片，可以参考执行如下命令
 ```bash
-python3 qwen2_5_vl.py --vision_inputs="[{\"type\":\"image\",\"image\":\"../datasets/images/panda.jpg\", \"resized_height\":280,\"resized_width\":420}]"
+python3 qwen2_5_vl.py --vision_inputs="[{\"type\":\"image_url\",\"image_url\":{\"url\": \"../datasets/images/panda.jpg\"}, \"max_side\":420}]"
 ```
 
 - 为了同时对图片和视频提问，可以参考执行如下命令
 ```bash
-python3 qwen2_5_vl.py --vision_inputs="[{\"type\":\"video\",\"video\":\"../datasets/videos/carvana_video.mp4\",\"resized_height\":420,\"resized_width\":630,\"nframes\":2},{\"type\":\"image\",\"image\":\"../datasets/images/panda.jpg\", \"resized_height\":280,\"resized_width\":420}]"
+python3 qwen2_5_vl.py --vision_inputs="[{\"type\":\"video_url\",\"video_url\":{\"url\": \"../datasets/videos/carvana_video.mp4\"},\"resized_height\":420,\"resized_width\":630,\"nframes\":2},{\"type\":\"image_url\",\"image_url\":{\"url\": \"../datasets/images/panda.jpg\"}, \"max_side\":840}]"
 ```
 
 - 为了纯文本对话，可以参考执行如下命令

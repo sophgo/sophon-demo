@@ -1,12 +1,13 @@
 #!/bin/bash
-#./compile.sh --name qwen2.5-vl-3b --seq_length 2048
+#./compile.sh --name qwen2.5-vl-3b --seq_length 2048 --chip bm1684x
 set -ex
 models=
 quantize_args=""
-name=""
+name="qwen2.5-vl-3b"
 num_layers=
 hidden_size=
 mode="w4bf16"
+chip="bm1684x"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 while [[ $# -gt 0 ]]; do
@@ -19,6 +20,10 @@ while [[ $# -gt 0 ]]; do
         ;;
     --seq_length)
         seq_length="$2"
+        shift 2
+        ;;
+    --chip)
+        chip="\$2"
         shift 2
         ;;
     *)
@@ -53,14 +58,12 @@ fi
 quantize_args="--quantize W4BF16 --q_group_size 128"
 half_quantize_args="--quantize BF16"
 
-timestamp=$(date "+%Y%m%d_%H%M%S")
-out_model=${name}_${mode}_seq${seq_length}_1dev_${timestamp}.bmodel
-TASK_FILE="task.txt"
+out_model=$name'_'$chip'_'$mode'_seq'$seq_length'.bmodel'
 
 
 MODEL_DIR=${DIR}/tmp/onnx
 COMPILE_DIR=${DIR}/tmp/$mode"_1dev"
-TASK_FILE=${COMPILE_DIR}/${TASK_FILE}
+TASK_FILE=${COMPILE_DIR}/task.txt
 
 
 embedding() {
@@ -73,8 +76,8 @@ embedding() {
         ${quantize_args} \
         --quant_input \
         --quant_output \
+        --chip ${chip} \
         --debug \
-        --chip bm1684x \
         --model embedding.bmodel \
         >> ${TASK_FILE}
 
@@ -89,8 +92,8 @@ embedding() {
         ${quantize_args} \
         --quant_input \
         --quant_output \
+        --chip ${chip} \
         --debug \
-        --chip bm1684x \
         --model embedding_cache.bmodel \
         >> ${TASK_FILE}
 
@@ -107,8 +110,8 @@ lm_head() {
         ${half_quantize_args} \
         --high_precision \
         --quant_input \
+        --chip ${chip} \
         --debug \
-        --chip bm1684x \
         --model lm_head.bmodel \
         >> ${TASK_FILE}
 
@@ -125,8 +128,8 @@ block() {
             --high_precision \
             --quant_input \
             --quant_output \
+            --chip ${chip} \
             --debug \
-            --chip bm1684x \
             --model block_$i.bmodel \
             >> ${TASK_FILE}
 
@@ -138,9 +141,9 @@ block() {
             --high_precision \
             --quant_input \
             --quant_output \
-            --debug \
-            --chip bm1684x \
+            --chip ${chip} \
             --addr_mode io_alone \
+            --debug \
             --model block_cache_$i.bmodel \
             >> ${TASK_FILE}
         
@@ -157,8 +160,8 @@ vision_transformer() {
         ${half_quantize_args} \
         --quant_output \
         --high_precision \
+        --chip ${chip} \
         --debug \
-        --chip bm1684x \
         --model vit.bmodel \
         >> ${TASK_FILE}
 
