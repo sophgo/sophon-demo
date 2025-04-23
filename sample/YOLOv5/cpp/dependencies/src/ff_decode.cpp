@@ -382,8 +382,11 @@ int VideoDecFFM::openDec(bm_handle_t* dec_handle, const char* input) {
     int ret = 0;
     AVDictionary* dict = NULL;
     av_dict_set(&dict, "rtsp_flags", "prefer_tcp", 0);
-    av_dict_set(&dict, "stimeout", "5*1000*1000", 0);
+#if LIBAVCODEC_VERSION_MAJOR > 58
     av_dict_set(&dict, "timeout", "5*1000*1000", 0);
+#else
+    av_dict_set(&dict, "stimeout", "5*1000*1000", 0);
+#endif
     ret = avformat_open_input(&ifmt_ctx, input, NULL, &dict);
     if (ret < 0) {
         av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
