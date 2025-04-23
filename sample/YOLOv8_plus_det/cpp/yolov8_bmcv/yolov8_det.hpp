@@ -121,6 +121,9 @@ public:
             if (shape.num_dims == 3) {
                 m_class_num = shape.dims[2] - 4;
             }
+            if (shape.dims[1] < shape.dims[2]) {
+                throw std::invalid_argument("Only support OPT model, please refer to the docs/YOLOv8_Export_Guide.md to export OPT model.");
+            }
         }
         if (m_class_num == -1) {
             throw std::runtime_error("Invalid model output shape.");

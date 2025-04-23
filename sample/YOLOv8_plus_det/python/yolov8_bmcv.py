@@ -45,7 +45,8 @@ class YOLOv8:
             output = sail.Tensor(self.handle, output_shape, output_dtype, True, True)
             self.output_tensors[output_name] = output
             self.output_scales[output_name] = output_scale
-
+            if(output_shape[1] < output_shape[2]):
+                raise ValueError('Only support OPT model, please refer to the docs/YOLOv8_Export_Guide.md to export OPT model.')
         # check batch size 
         self.batch_size = self.input_shape[0]
         suppoort_batch_size = [1, 2, 3, 4, 8, 16, 32, 64, 128, 256]
