@@ -31,6 +31,8 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 |---                                                            |---               |---         | ---            |---                            |
 | [LPRNet](./sample/LPRNet/README.md)                           | 车牌识别          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ResNet](./sample/ResNet/README.md)                           | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [Recognize-Anything](./sample/Recogize-Anything/README.md)    | 图像分类          | Python     | FP32/FP16      | BM1684X                      |
+| [YOLOv8_cls](./sample/YOLOv8_plus_cls/README.md)              | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [RetinaFace](./sample/RetinaFace/README.md)                   | 人脸检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
 | [SCRFD](./sample/SCRFD/README.md)                             | 人脸检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [segformer](./sample/segformer/README.md)                     | 语义分割          | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
@@ -85,6 +87,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | 多模态目标检测     | Python     | FP16           | BM1684X/BM1688/CV186X       |
 | [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | 大规模视觉语言模型 | Python     | FP16/INT8      | BM1684X                     |
 | [Qwen2-VL](./sample/Qwen2-VL/README.md)                       | 大规模视觉语言模型 | Python     | INT4            | BM1684X                     |
+| [Qwen2.5-VL](./sample/Qwen2_5-VL/README.md)                   | 大规模视觉语言模型 | Python     | INT4            | BM1684X/BM1688             |
 | [InternVL2](./sample/InternVL2/README.md)                     | 大规模视觉语言模型 | Python     | INT4           | BM1684X/BM1688              |
 | [Vila](./sample/Vila/README.md)                               | 大规模视觉语言模型 | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Llama3_2_Vision](./sample/Llama3_2_Vision/README.md)         | 大规模视觉语言模型 | Python     | INT8/INT4      | BM1684X                     |
