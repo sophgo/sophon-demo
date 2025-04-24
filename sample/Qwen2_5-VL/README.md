@@ -92,6 +92,13 @@ chmod -R +x scripts/
     ├── images                                                               # 测试图片目录
     └── videos                                                               # 测试视频目录
 ```
+此外我们也提供了编译好的7B模型，可以使用以下命令下载：
+```bash
+# 用于BM1684X的Qwen2.5-VL-7B的BModel，上下文长度为2k
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen2_5_VL/qwen2.5-vl-7b_bm1684x_w4bf16_seq2048.bmodel
+# 用于BM1688的Qwen2.5-VL-7B的BModel，上下文长度为2k
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen2_5_VL/qwen2.5-vl-7b_bm1688_w4bf16_seq2048.bmodel
+```
 ### 4.2 自行导出ONNX模型
 
 Qwen2.5-VL模型导出需要依赖[transformers官方仓库](https://github.com/huggingface/transformers)，目前只支持在x86主机进行模型导出。  
@@ -188,7 +195,7 @@ python3 performance_test.py
 |    测试平台   |               测试模型                   |preprocess + tokenize(s)|vision inference(s)| first token latency(s) |token per second(tokens/s)|
 | -----------  | -------------------------------------- | --------------------- | ----------------------- | -----------------------| -----------------------|
 |    SE7-32    | qwen2.5-vl-3b_bm1684x_w4bf16_2core_seq2048.bmodel   |          0.159s        |        0.837s            | 1.565s |12.165 |
-|    SE9-16    | qwen2.5-vl-3b_bm1688_w4bf16_2core_seq2048.bmodel |          0.222s        |            2.324s        | 11.771s | 7.124s |
+|    SE9-16    | qwen2.5-vl-3b_bm1688_w4bf16_2core_seq2048.bmodel |          0.247s        |            3.986s        | 10.334s | 6.304s |
 > **测试说明**：  
 >1. 性能测试结果具有一定的波动性，且与输入也有关，此处结果是对12张照片测试后取的平均值；
 >2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；

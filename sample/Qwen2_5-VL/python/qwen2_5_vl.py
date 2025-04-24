@@ -179,7 +179,8 @@ class Qwen2_5_VL():
         # devid
         self.dev_id = kwargs.get("dev_id", 0)
         self.handle = sail.Handle(self.dev_id)
-        self.net = sail.EngineLLM(kwargs["bmodel_path"], [self.dev_id])
+        # LLM bmodel inference on A2 may cause device memory increasing, which should be solved by set bmrt_set_flags(BM_RUNTIME_SHARE_MEM).
+        self.net = sail.EngineLLM(kwargs["bmodel_path"], sail.BmrtFlag.BM_RUNTIME_SHARE_MEM, [self.dev_id])
         self.logger.info(f"{Logger.file_lineno()} load model cost: {time.time() - st}")
         self.logger.info(f"{Logger.file_lineno()} model loaded!")
 
