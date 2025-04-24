@@ -31,6 +31,8 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 |---                                                            |---                                 |---         | ---            | ---                          |
 | [LPRNet](./sample/LPRNet/README.md)                           | License Plate Recognition          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ResNet](./sample/ResNet/README.md)                           | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [Recognize-Anything](./sample/Recogize-Anything/README.md)    | Image classification               | Python     | FP32/FP16      | BM1684X                      |
+| [YOLOv8_cls](./sample/YOLOv8_plus_cls/README.md)              | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [RetinaFace](./sample/RetinaFace/README.md)                   | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
 | [SCRFD](./sample/SCRFD/README.md)                             | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [segformer](./sample/segformer/README.md)                     | Semantic Segmentation              | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
@@ -85,6 +87,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [GroundingDINO](./sample/GroundingDINO/README.md)             | MultiModal Object Detection        | Python     | FP16           | BM1684X/BM1688/CV186X        |
 | [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | Large Vision Language Model        | Python     | FP16/INT8      | BM1684X                      |
 | [Qwen2-VL](./sample/Qwen2-VL/README.md)                       | Large Vision Language Model        | Python     | INT4           | BM1684X                      |
+| [Qwen2.5-VL](./sample/Qwen2_5-VL/README.md)                   | Large Vision Language Model        | Python     | INT4            | BM1684X/BM1688             |
 | [InternVL2](./sample/InternVL2/README.md)                     | Large Vision Language Model        | Python     | INT4           | BM1684X/BM1688               |
 | [Vila](./sample/Vila/README.md)                               | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Llama3_2_Vision](./sample/Llama3_2_Vision/README.md)         | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X                     |
