@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
         cout << "result saved in " << json_file << endl;
         ofstream(json_file) << std::setw(4) << results_json;
     } else {
-        cv::VideoCapture cap(input, cv::CAP_ANY, dev_id);
+        cv::VideoCapture cap(input, cv::CAP_FFMPEG, dev_id);
         if(!cap.isOpened()) {
             std::cout << "open video stream failed!" << std::endl;
             exit(1);
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
         std::cout << "resolution of input stream: " << h << ", " << w << std::endl;
         cv::VideoWriter writer;
         std::string output_path = "results/output.mp4";
-        auto output_fourcc = cv::VideoWriter::fourcc('M', 'J', 'P', 'G'); //use "H","2","6","4" for h264, "H","V","C","1" for h265.
+        auto output_fourcc = cv::VideoWriter::fourcc('H', '2', '6', '4'); //use "H","2","6","4" for h264, "H","V","C","1" for h265.
         writer.open(output_path, output_fourcc, frameRate, cv::Size(w, h));
         bool end_flag = false;
         vector<cv::Mat> batch_mats;

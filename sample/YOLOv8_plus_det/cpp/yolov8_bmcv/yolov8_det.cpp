@@ -307,26 +307,28 @@ int YoloV8_det::post_process(const std::vector<bm_image>& input_images,
         int frame_width = frame.width;
         int frame_height = frame.height;
 
-        int box_num = tensor_box.shape.dims[1];
-        int nout = tensor_box.shape.dims[2];
+        int box_num = is_output_transposed ? tensor_box.shape.dims[1] : tensor_box.shape.dims[2];
+        int nout = is_output_transposed ? tensor_box.shape.dims[2] : tensor_box.shape.dims[1];
         float* batch_data_box =  data_box + batch_idx * box_num * nout; //output_tensor: [bs, box_num, class_num + 5]
+        int offset = is_output_transposed ? 1 : box_num;
 
         // Candidates
         for (int i = 0; i < box_num; i++) {
-            int box_index = i * nout;
-            float* cls_conf = batch_data_box + box_index + 4; //output_tensor's last dim: [x, y, w, h, cls_conf0, ..., cls_conf14, rotate_angle]
+            int box_index = is_output_transposed ? i * nout : i;
+            //transposed output_tensor's last dim: [x, y, w, h, cls_conf0, ..., cls_conf14, rotate_angle]
+            float* cls_conf = batch_data_box + box_index + 4 * offset; 
 #if USE_MULTICLASS_NMS
             // multilabel
             for (int j = 0; j < m_class_num; j++) {
-                float cur_value = cls_conf[j];
+                float cur_value = cls_conf[j * offset];
                 if (cur_value > m_confThreshold) {
                     YoloV8Box box;
                     box.score = cur_value;
                     box.class_id = j;
                     float centerX = batch_data_box[box_index];
-                    float centerY = batch_data_box[box_index + 1];
-                    float width = batch_data_box[box_index + 2];
-                    float height = batch_data_box[box_index + 3];
+                    float centerY = batch_data_box[box_index + 1 * offset];
+                    float width = batch_data_box[box_index + 2 * offset];
+                    float height = batch_data_box[box_index + 3 * offset];
 
                     int c = agnostic ? 0 : box.class_id * max_wh;
                     box.x1 = centerX - width / 2 + c;
@@ -339,16 +341,31 @@ int YoloV8_det::post_process(const std::vector<bm_image>& input_images,
 #else
             // best class
             YoloV8Box box;
-            box.class_id = argmax(batch_data_box + box_index + 4, m_class_num);
-            box.score = batch_data_box[box_index + 4 + box.class_id];
+            if(is_output_transposed){
+                box.class_id = argmax(batch_data_box + box_index + 4, m_class_num);
+                box.score = batch_data_box[box_index + 4 + box.class_id];
+            }else {
+                float max_value = 0.0;
+                int max_index = 0;
+                for(int j = 0; j < m_class_num; j++){
+                    float cur_value = cls_conf[i + j * box_num];
+                    if(cur_value > max_value){
+                        max_value = cur_value;
+                        max_index = j;
+                    }
+                }
+                box.class_id = max_index;
+                box.score = max_value;
+            }
+
             if(box.score <= m_confThreshold){
                 continue;
             }
             int c = agnostic ? 0 : box.class_id * max_wh;
             float centerX = batch_data_box[box_index];
-            float centerY = batch_data_box[box_index + 1];
-            float width = batch_data_box[box_index + 2];
-            float height = batch_data_box[box_index + 3];
+            float centerY = batch_data_box[box_index + 1 * offset];
+            float width = batch_data_box[box_index + 2 * offset];
+            float height = batch_data_box[box_index + 3 * offset];
             box.x1 = centerX - width / 2 + c;
             box.y1 = centerY - height / 2 + c;
             box.x2 = box.x1 + width;
