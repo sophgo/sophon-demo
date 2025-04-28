@@ -46,6 +46,7 @@ class YoloV8_det {
     int max_wh = 7680;  // (pixels) maximum box width and height
     bmcv_convert_to_attr converto_attr;
     TimeStamp tmp_ts;
+    bool is_output_transposed = true;
 
 private:
     int pre_process(const std::vector<bm_image>& images, 
@@ -120,9 +121,11 @@ public:
             auto& shape = netinfo->stages[0].output_shapes[i];
             if (shape.num_dims == 3) {
                 m_class_num = shape.dims[2] - 4;
-            }
-            if (shape.dims[1] < shape.dims[2]) {
-                throw std::invalid_argument("Only support OPT model, please refer to the docs/YOLOv8_Export_Guide.md to export OPT model.");
+                if (shape.dims[1] < shape.dims[2]) {
+                    std::cout << "Your model's output is not efficient for cpp, please refer to the docs/YOLOv8_Export_Guide.md to export model which has transposed output." << std::endl;
+                    m_class_num = shape.dims[1] - 4;
+                    is_output_transposed = false;
+                }
             }
         }
         if (m_class_num == -1) {
