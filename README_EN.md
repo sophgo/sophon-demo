@@ -32,7 +32,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [LPRNet](./sample/LPRNet/README.md)                           | License Plate Recognition          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ResNet](./sample/ResNet/README.md)                           | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [Recognize-Anything](./sample/Recogize-Anything/README.md)    | Image classification               | Python     | FP32/FP16      | BM1684X                      |
-| [YOLOv8_cls](./sample/YOLOv8_plus_cls/README.md)              | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [YOLOv8_plus_cls](./sample/YOLOv8_plus_cls/README.md)              | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [RetinaFace](./sample/RetinaFace/README.md)                   | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
 | [SCRFD](./sample/SCRFD/README.md)                             | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [segformer](./sample/segformer/README.md)                     | Semantic Segmentation              | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
@@ -119,6 +119,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.3.0  | Fix documentation and other issues. The Qwen sample supports QWQ32B. Release new samples Recognize-Anything/YOLOv8_plus_cls. Optimize Real-ESRGAN postprocess and Qwen2.5-VL's preprocess, YOLOv8_plus_det supports models which's output not transposed。|
 | 0.2.10  | Fix documentation and other issues. Qwen supports C++, Release new samples including YOLOv12_det/YOLOv8_plus_seg_fuse/Janus/Qwen2.5-VL, new tutorial yolov8_ffmpeg_encode. |
 | 0.2.9  | Fix documentation and other issues. **The sample Qwen supports deepseek-r1-distill-qwen2-1.5b and deepseek-r1-distill-qwen2-7b**. Release new sample Llama3_2_Vision. Refactor YOLOv8_det/YOLOv9_det/YOLOv11_det to YOLOv8_det, YOLOv8_seg/YOLOv9_seg to YOLOv8_plus_seg. |
 | 0.2.8  | Fix documentation and other issues. Release new samples including MiniCPM3/LightStereo/Qwen2-VL/YOLO-world. |
@@ -146,6 +147,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
+| 0.3.0  | >=1.15      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.10 | >=1.15      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.9  | >=1.15      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.8  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -172,6 +174,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPH
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.0  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.10 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.9  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.8  | >=1.10      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
