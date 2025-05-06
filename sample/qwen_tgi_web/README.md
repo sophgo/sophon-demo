@@ -30,10 +30,12 @@ text-generation-launcher --model-id /data/Qwen2-7B-Instruct-GPTQ-Int4 --dtype bf
 ```bash
 pip3 install streamlit
 pip3 install text-generation
-streamlit run ./qwen_web_demo.py <server url>
+pip3 install tiktoken
+pip3 install openai
+streamlit run ./qwen_web_demo.py <server url> <MAX_CONTEXT_TOKENS>
 ```
 
-这里，启动web_demo时，默认的`server url`为`http://localhost:8090/v1`。如果上文中的容器与这里的web demo在同一台设备上，而且容器使用了宿主机的8090端口，那么不需要输入此参数。
+这里，启动web_demo时，默认的`server url`为`http://localhost:8090/v1`,默认的`MAX_CONTEXT_TOKENS`为2048。如果上文中的容器与这里的web demo在同一台设备上，而且容器使用了宿主机的8090端口，那么不需要输入此参数。
 
 运行后，会在终端看到类似下面的打印：
 
