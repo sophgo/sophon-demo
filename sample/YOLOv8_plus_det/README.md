@@ -198,7 +198,7 @@ models/
 然后，使用`tools`目录下的`eval_coco.py`脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出目标检测的评价指标，命令如下：
 ```bash
 # 安装pycocotools，若已安装请跳过
-pip3 install pycocotools
+pip3 install pycocotools==2.0.8
 # 请根据实际情况修改程序路径和json文件路径
 python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/yolov8s_fp32_1b.bmodel_val2017_1000_bmcv_python_result.json
 ```
