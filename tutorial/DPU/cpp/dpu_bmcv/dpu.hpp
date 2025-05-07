@@ -60,17 +60,11 @@ public:
                 bm_image& depth_img, DPUMode mode = DPUMode::ONLINE,
                 bmcv_dpu_sgbm_mode sgbm_mode = DPU_SGBM_MUX0,
                 bmcv_dpu_online_mode online_mode = DPU_ONLINE_MUX0);
-    
-    // 参数设置函数
-    void setSGBMParams(const bmcv_dpu_sgbm_attrs& params);
-    
-    // 参数获取函数
-    bmcv_dpu_sgbm_attrs getSGBMParams() const;
 
     // 保存图像
     bool save_image(bm_image& img, std::string& output_path);
 
-    // 时间戳
+    
     TimeStamp* m_ts;
 
 private:
