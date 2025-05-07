@@ -158,7 +158,7 @@ int DPU::pre_process(bm_image& image) {
     bm_image resized_img;
     
     // resize image letterbox
-    if(image.width <= m_net_w | image.height <= m_net_h){
+    if(image.width <= m_net_w || image.height <= m_net_h){
         ret = bm_image_create(handle_, m_net_h, m_net_w, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &resized_img);
         assert(BM_SUCCESS == ret);
         bmcv_copy_to_atrr_t copyToAttr;
@@ -328,17 +328,6 @@ int DPU::process(bm_image& left_img, bm_image& right_img,
     }
 
     return 0;
-}
-
-
-
-// 参数设置和获取函数实现
-void DPU::setSGBMParams(const bmcv_dpu_sgbm_attrs& params) {
-    sgbm_params_ = params;
-}
-
-bmcv_dpu_sgbm_attrs DPU::getSGBMParams() const {
-    return sgbm_params_;
 }
 
 
