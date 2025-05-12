@@ -12,7 +12,7 @@ Qwen模型导出需要依赖[Qwen官方仓库](https://huggingface.co/Qwen)。on
 
 ## 2. 主要步骤
 
-模型编译前需要安装TPU-MLIR。安装好后需在TPU-MLIR环境中进入例程目录。先导出onnx，然后使用TPU-MLIR将onnx模型编译为BModel。编译的具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
+模型编译前需要安装TPU-MLIR。安装好后需在TPU-MLIR环境中进入例程目录。对于Qwen3,Qwen2无需导出onnx；对于其他模型，需要先导出onnx，然后使用TPU-MLIR将onnx模型编译为BModel。编译的具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
 
 ### 2.1 TPU-MLIR环境搭建
 
@@ -248,3 +248,20 @@ python tools/model_export_BM1684X_DS_qwen.py --quantize w4bf16 --tpu_mlir_path /
 
 ### 2.3.2 BM1684X编译QwQ-32B
 请参考[LLM-TPU Qwen2_5](https://github.com/sophgo/LLM-TPU/tree/main/models/Qwen2_5/compile)
+
+### 2.3.3 编译Qwen3
+Qwen3无需导出onnx，可以使用llm_convert工具直接转换bmodel，可以参考文档[编译LLM模型](https://github.com/sophgo/tpu-mlir/blob/master/docs/quick_start/source_zh/10_llm_convert.rst)。首先需要在Huggingface下载Qwen3
+```bash
+# 下载模型
+git lfs install
+git clone git@hf.co:Qwen/Qwen3-4B
+# 如果是8B，则如下：
+git clone git@hf.co:Qwen/Qwen3-8B
+```
+在docker内编译模型生成bmodel
+```bash
+# bm1684x平台下执行：
+llm_convert.py -m /workspace/Qwen3-4B -s 512 --quantize w4bf16 -g 128 -c bm1684x --out_dir qwen3_4b
+# bm1688平台下执行：
+llm_convert.py -m /workspace/Qwen3-4B -s 512 --quantize w4bf16 -g 128 -c bm1688 --out_dir qwen3_4b
+```
