@@ -23,6 +23,8 @@ function download_bm1684x {
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen2.5/qwen2.5-1.5b_int4_seq512_1dev.bmodel
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen2.5/qwen2.5-1.5b_int4_seq1024_1dev.bmodel
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen2.5/qwen2.5-0.5b_int4_seq1024_1dev.bmodel 
+    elif [ x"$1" == x"qwen3" ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen3/qwen3-4b_int4_seq512_1dev.bmodel
     elif [ x"$1" == x"deepseek-r1-distill-qwen2" ]; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/deepseek-r1-distill-qwen2-1.5b.tar.gz
         tar xvf deepseek-r1-distill-qwen2-1.5b.tar.gz && rm deepseek-r1-distill-qwen2-1.5b.tar.gz
