@@ -181,5 +181,5 @@ if __name__ == "__main__":
     clients = {}
     for model in models_config:
         name = model["name"]
-        clients[name] = Qwen(model["bmodel_path"], model["dev_id"], model["token_path"])
+        clients[name] = Qwen(model)
     uvicorn.run(app, host='0.0.0.0', port=port, workers=1)
