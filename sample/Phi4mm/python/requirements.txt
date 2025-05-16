@@ -1,0 +1,7 @@
+accelerate
+transformers
+pillow
+torch
+torchvision
+scipy
+soundfile
