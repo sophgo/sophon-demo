@@ -211,7 +211,7 @@ classaps:  [72.2210693  61.68566016 61.76413838 72.79584505 90.74538823 48.91751
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
-> 3. 源模型在该数据集的精度结果为：0.512，对应的命令`yolo val obb data=DOTAv1.yaml device=cpu split=val save_json=True conf=0.25 iou=0.7`；
+> 3. 源模型在该数据集上使用该测试方法的map结果为：0.571，对应的命令`yolo val model=yolov8s-obb.pt data=DOTAv1.yaml device=cpu split=val conf=0.25 iou=0.7`，此命令会保存测试结果`runs/obb/val1/predictions_txt/Task1_{:s}.txt`，将`dota_evaluation_task1.py`中的`detpath`设置为此路径即可；
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
