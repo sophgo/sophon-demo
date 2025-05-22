@@ -23,13 +23,13 @@ if [ ! -d "../models" ];
 then
     mkdir ../models
     pushd ../models
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_obb/models/BM1684X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_obb/models/BM1684X.tar.gz
     tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_obb/models/BM1688.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_obb/models/BM1688.tar.gz
     tar xvf BM1688.tar.gz && rm BM1688.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_obb/models/CV186X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_obb/models/CV186X.tar.gz
     tar xvf CV186X.tar.gz && rm CV186X.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_obb/models/onnx.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_obb/models/onnx.tar.gz
     tar xvf onnx.tar.gz && rm onnx.tar.gz
     popd
     echo "models download!"

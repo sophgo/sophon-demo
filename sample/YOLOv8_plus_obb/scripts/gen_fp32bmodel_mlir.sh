@@ -13,36 +13,41 @@ outdir=../models/$target_dir
  
 function gen_mlir()
 {  
+    onnx_path=../models/onnx/yolov8s-obb.onnx
+    if test $model_name = "yolov8s-obb"; then
+        onnx_path=../models/onnx/yolov8s-obb.onnx
+    elif test $model_name = "yolov11s-obb"; then
+        onnx_path=../models/onnx/yolo11s-obb.onnx
+    fi
     model_transform.py \
-        --model_name yolov8s-obb \
-        --model_def ../models/onnx/yolov8s-obb.onnx \
+        --model_name $model_name \
+        --model_def $onnx_path \
         --input_shapes [[$1,3,1024,1024]] \
         --mean 0.0,0.0,0.0 \
         --scale 0.0039216,0.0039216,0.0039216 \
         --keep_aspect_ratio \
         --pixel_format rgb  \
-        --mlir yolov8s-obb_$1b.mlir
+        --mlir ${model_name}_$1b.mlir
 }
  
 function gen_fp32bmodel()
 {
     model_deploy.py \
-        --mlir yolov8s-obb_$1b.mlir \
+        --mlir ${model_name}_$1b.mlir \
         --quantize F32 \
         --chip $target \
-        --model yolov8s-obb_fp32_$1b.bmodel \
-         
+        --model ${model_name}_fp32_$1b.bmodel
  
-    mv yolov8s-obb_fp32_$1b.bmodel  $outdir/
+    mv ${model_name}_fp32_$1b.bmodel  $outdir/
     if test $target = "bm1688";then
         model_deploy.py \
-            --mlir yolov8s-obb_$1b.mlir \
+            --mlir ${model_name}_$1b.mlir \
             --quantize F32 \
             --chip $target \
-            --model yolov8s-obb_fp32_$1b_2core.bmodel \
+            --model ${model_name}_fp32_$1b_2core.bmodel \
             --num_core 2
    
-        mv yolov8s-obb_fp32_$1b_2core.bmodel $outdir/
+        mv ${model_name}_fp32_$1b_2core.bmodel $outdir/
     fi
 }
  
@@ -51,7 +56,12 @@ if [ ! -d $outdir ]; then
     mkdir -p $outdir
 fi
 # batch_size=1
+model_name=yolov8s-obb
 gen_mlir 1
 gen_fp32bmodel 1
- 
+
+model_name=yolov11s-obb
+gen_mlir 1
+gen_fp32bmodel 1
+
 popd
