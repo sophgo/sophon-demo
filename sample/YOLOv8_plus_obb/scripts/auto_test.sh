@@ -55,7 +55,6 @@ fi
 if [ -f "scripts/acc.txt" ]; then
     rm scripts/acc.txt
 fi
-echo "|   测试平台    |      测试程序     |              测试模型               |  map  |" >> scripts/acc.txt
 
 PLATFORM=$TARGET
 if test $MODE = "soc_test"; then
@@ -97,19 +96,30 @@ function bmrt_test_benchmark(){
    
     if test $TARGET = "BM1684"; then
       bmrt_test_case BM1684/yolov8s-obb_fp32_1b.bmodel
+      bmrt_test_case BM1684/yolov11s-obb_fp32_1b.bmodel
     elif test $TARGET = "BM1684X"; then
-      bmrt_test_case BM1684X/yolov8s-obb_fp32_1b.bmodel
-      bmrt_test_case BM1684X/yolov8s-obb_fp16_1b.bmodel
+      # bmrt_test_case BM1684X/yolov8s-obb_fp32_1b.bmodel
+      # bmrt_test_case BM1684X/yolov8s-obb_fp16_1b.bmodel
+      bmrt_test_case BM1684X/yolov11s-obb_fp32_1b.bmodel
+      bmrt_test_case BM1684X/yolov11s-obb_fp16_1b.bmodel
     elif test $TARGET = "BM1688"; then
-      bmrt_test_case BM1688/yolov8s-obb_fp32_1b.bmodel
-      bmrt_test_case BM1688/yolov8s-obb_fp16_1b.bmodel
+      # bmrt_test_case BM1688/yolov8s-obb_fp32_1b.bmodel
+      # bmrt_test_case BM1688/yolov8s-obb_fp16_1b.bmodel
+      # if test "$PLATFORM" = "SE9-16"; then 
+      #   bmrt_test_case BM1688/yolov8s-obb_fp32_1b_2core.bmodel
+      #   bmrt_test_case BM1688/yolov8s-obb_fp16_1b_2core.bmodel
+      # fi
+      bmrt_test_case BM1688/yolov11s-obb_fp32_1b.bmodel
+      bmrt_test_case BM1688/yolov11s-obb_fp16_1b.bmodel
       if test "$PLATFORM" = "SE9-16"; then 
-        bmrt_test_case BM1688/yolov8s-obb_fp32_1b_2core.bmodel
-        bmrt_test_case BM1688/yolov8s-obb_fp16_1b_2core.bmodel
+        bmrt_test_case BM1688/yolov11s-obb_fp32_1b_2core.bmodel
+        bmrt_test_case BM1688/yolov11s-obb_fp16_1b_2core.bmodel
       fi
     elif test $TARGET = "CV186X"; then
-      bmrt_test_case CV186X/yolov8s-obb_fp32_1b.bmodel
-      bmrt_test_case CV186X/yolov8s-obb_fp16_1b.bmodel
+      # bmrt_test_case CV186X/yolov8s-obb_fp32_1b.bmodel
+      # bmrt_test_case CV186X/yolov8s-obb_fp16_1b.bmodel
+      bmrt_test_case CV186X/yolov11s-obb_fp32_1b.bmodel
+      bmrt_test_case CV186X/yolov11s-obb_fp16_1b.bmodel
     fi
     popd
 }
@@ -234,14 +244,14 @@ function test_cpp()
         pushd tools/
         python3 eval_DOTA.py --result_json ../cpp/yolov8_$2/results/$3_val_$2_cpp_result.json
         pushd DOTA_devkit_soc/
-        res=$(python3 dota_evaluation_task1.py 2>&1 | tee ../../cpp/yolov8_$2/log/$1_$2_$3_eval.log)
-        echo -e "$res" | tail -n10
-        map=$(echo "$res" |grep "map"| awk '{print $2}')
-        compare_res $map $4
-        judge_ret $? "Precision compare!" ../../cpp/yolov8_$2/log/$1_$2_$3_eval.log
-        printf "| %-12s | %-18s | %-40s | %8.3f |\n" "$PLATFORM" "yolov8_$2.$1" "$3" "$(printf "%.3f" $map)">> ../../scripts/acc.txt
+        python3 dota_evaluation_task1.py 2>&1 | tee ../../cpp/yolov8_$2/log/$1_$2_$3_eval.log
         popd
         popd
+        echo "==================="
+        echo "Comparing acc..."
+        python3 tools/compare_acc.py --target=$TARGET --platform=${MODE%_*} --program=yolov8_$2.$1 --input=cpp/yolov8_$2/log/$1_$2_$3_eval.log --bmodel=$3 2>&1
+        judge_ret $? "python3 tools/compare_acc.py --target=$TARGET --platform=${MODE%_*} --program=yolov8_$2.$1 --input=cpp/yolov8_$2/log/$1_$2_$3_eval.log --bmodel=$3"
+        echo "==================="
     fi
 }
 
@@ -264,14 +274,14 @@ function test_python()
         pushd tools/
         python3 eval_DOTA.py --result_json ../results/$2_val_$1_python_result.json
         pushd DOTA_devkit_soc/
-        res=$(python3 dota_evaluation_task1.py 2>&1 | tee ../../log/$1_$2_eval.log)
-        echo -e "$res" | tail -n10
-        map=$(echo "$res" |grep "map"| awk '{print $2}')
-        compare_res $map $3
-        judge_ret $? "Precision compare!" ../../log/$1_$2_eval.log
-        printf "| %-12s | %-18s | %-40s | %8.3f |\n" "$PLATFORM" "yolov8_$1.py" "$2" "$(printf "%.3f" $map)">> ../../scripts/acc.txt
+        python3 dota_evaluation_task1.py 2>&1 | tee ../../log/$1_$2_eval.log
         popd
         popd
+        echo "==================="
+        echo "Comparing acc..."
+        python3 tools/compare_acc.py --target=$TARGET --platform=${MODE%_*} --program=yolov8_$1.py --input=log/$1_$2_eval.log --bmodel=$2 2>&1
+        judge_ret $? "python3 tools/compare_acc.py --target=$TARGET --platform=${MODE%_*} --program=yolov8_$1.py --input=log/$1_$2_eval.log --bmodel=$2"
+        echo "==================="
     fi
 }
 
@@ -292,10 +302,14 @@ then
         echo "Not support BM1684 yet."
     elif test $TARGET = "BM1684X"
     then
-        test_python opencv yolov8s-obb_fp32_1b.bmodel 0.562
-        test_python opencv yolov8s-obb_fp16_1b.bmodel 0.562
-        test_cpp pcie bmcv yolov8s-obb_fp32_1b.bmodel 0.550
-        test_cpp pcie bmcv yolov8s-obb_fp16_1b.bmodel 0.550
+        test_python opencv yolov8s-obb_fp32_1b.bmodel
+        test_python opencv yolov8s-obb_fp16_1b.bmodel
+        test_cpp pcie bmcv yolov8s-obb_fp32_1b.bmodel
+        test_cpp pcie bmcv yolov8s-obb_fp16_1b.bmodel
+        test_python opencv yolov11s-obb_fp32_1b.bmodel
+        test_python opencv yolov11s-obb_fp16_1b.bmodel
+        test_cpp pcie bmcv yolov11s-obb_fp32_1b.bmodel
+        test_cpp pcie bmcv yolov11s-obb_fp16_1b.bmodel
     fi
 elif test $MODE = "soc_build"
 then
@@ -309,28 +323,40 @@ then
         echo "Not support BM1684 yet."
     elif test $TARGET = "BM1684X"
     then
-        test_python opencv yolov8s-obb_fp32_1b.bmodel 0.562
-        test_python opencv yolov8s-obb_fp16_1b.bmodel 0.562
-        test_cpp soc bmcv yolov8s-obb_fp32_1b.bmodel  0.550
-        test_cpp soc bmcv yolov8s-obb_fp16_1b.bmodel  0.550
+        test_python opencv yolov8s-obb_fp32_1b.bmodel
+        test_python opencv yolov8s-obb_fp16_1b.bmodel
+        test_cpp soc bmcv yolov8s-obb_fp32_1b.bmodel 
+        test_cpp soc bmcv yolov8s-obb_fp16_1b.bmodel 
+        test_python opencv yolov11s-obb_fp32_1b.bmodel 
+        test_python opencv yolov11s-obb_fp16_1b.bmodel 
+        test_cpp soc bmcv yolov11s-obb_fp32_1b.bmodel  
+        test_cpp soc bmcv yolov11s-obb_fp16_1b.bmodel  
     elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
     then
-        test_python opencv yolov8s-obb_fp32_1b.bmodel 0.562
-        test_python opencv yolov8s-obb_fp16_1b.bmodel 0.562
-        test_cpp soc bmcv yolov8s-obb_fp32_1b.bmodel  0.551
-        test_cpp soc bmcv yolov8s-obb_fp16_1b.bmodel  0.551
+        test_python opencv yolov8s-obb_fp32_1b.bmodel
+        test_python opencv yolov8s-obb_fp16_1b.bmodel
+        test_cpp soc bmcv yolov8s-obb_fp32_1b.bmodel 
+        test_cpp soc bmcv yolov8s-obb_fp16_1b.bmodel 
+        test_python opencv yolov11s-obb_fp32_1b.bmodel 
+        test_python opencv yolov11s-obb_fp16_1b.bmodel 
+        test_cpp soc bmcv yolov11s-obb_fp32_1b.bmodel  
+        test_cpp soc bmcv yolov11s-obb_fp16_1b.bmodel  
         if test "$PLATFORM" = "SE9-16"; then
-            test_python opencv yolov8s-obb_fp32_1b_2core.bmodel 0.562
-            test_python opencv yolov8s-obb_fp16_1b_2core.bmodel 0.562
-            test_cpp soc bmcv yolov8s-obb_fp32_1b_2core.bmodel  0.551
-            test_cpp soc bmcv yolov8s-obb_fp16_1b_2core.bmodel  0.551
+            test_python opencv yolov8s-obb_fp32_1b_2core.bmodel
+            test_python opencv yolov8s-obb_fp16_1b_2core.bmodel
+            test_cpp soc bmcv yolov8s-obb_fp32_1b_2core.bmodel 
+            test_cpp soc bmcv yolov8s-obb_fp16_1b_2core.bmodel 
+            test_python opencv yolov11s-obb_fp32_1b_2core.bmodel
+            test_python opencv yolov11s-obb_fp16_1b_2core.bmodel
+            test_cpp soc bmcv yolov11s-obb_fp32_1b_2core.bmodel 
+            test_cpp soc bmcv yolov11s-obb_fp16_1b_2core.bmodel 
         fi
     fi
 fi
 
 if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
   echo "--------yolov8-obb mAP----------"
-  cat scripts/acc.txt
+  cat tools/acc.txt
   echo "--------bmrt_test performance-----------"
   bmrt_test_benchmark
   echo "--------yolov8-obb performance-----------"
