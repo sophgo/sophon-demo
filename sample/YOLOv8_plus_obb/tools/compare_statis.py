@@ -15,10 +15,14 @@ import sys
 baseline = """
 |    测试平台  |     测试程序      |        测试模型        |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ---------------------- | --------  | ---------    | ---------     | ---------      |
-|   SE7-32    | yolov8_opencv.py  |yolov8s-obb_fp32_1b.bmodel|     129.87      |      65.81      |      86.56      |      40.35      |
-|   SE7-32    | yolov8_opencv.py  |yolov8s-obb_fp16_1b.bmodel|     142.89      |      65.00      |      24.94      |      40.66      |
-|   SE7-32    |  yolov8_bmcv.soc  |yolov8s-obb_fp32_1b.bmodel|      50.94      |      10.12      |      76.71      |      8.66       |
-|   SE7-32    |  yolov8_bmcv.soc  |yolov8s-obb_fp16_1b.bmodel|      36.93      |      10.12      |      15.10      |      8.65       |
+|   SE7-32    | yolov8_opencv.py  |yolov8s-obb_fp32_1b.bmodel|      94.42      |      67.70      |      86.80      |      45.48      |
+|   SE7-32    | yolov8_opencv.py  |yolov8s-obb_fp16_1b.bmodel|      91.64      |      66.12      |      25.05      |      44.60      |
+|   SE7-32    |  yolov8_bmcv.soc  |yolov8s-obb_fp32_1b.bmodel|      21.29      |      10.34      |      76.83      |      8.64       |
+|   SE7-32    |  yolov8_bmcv.soc  |yolov8s-obb_fp16_1b.bmodel|      21.27      |      10.34      |      15.12      |      8.66       |
+|   SE7-32    | yolov8_opencv.py  |yolov11s-obb_fp32_1b.bmodel|      89.91      |      66.11      |      76.63      |      40.52      |
+|   SE7-32    | yolov8_opencv.py  |yolov11s-obb_fp16_1b.bmodel|      91.23      |      65.61      |      26.04      |      40.24      |
+|   SE7-32    |  yolov8_bmcv.soc  |yolov11s-obb_fp32_1b.bmodel|      21.27      |      10.33      |      66.71      |      8.60       |
+|   SE7-32    |  yolov8_bmcv.soc  |yolov11s-obb_fp16_1b.bmodel|      21.29      |      10.33      |      16.07      |      8.62       |
 |   SE9-16    | yolov8_opencv.py  |yolov8s-obb_fp32_1b.bmodel|     164.73      |      87.15      |     439.43      |      44.46      |
 |   SE9-16    | yolov8_opencv.py  |yolov8s-obb_fp16_1b.bmodel|     163.24      |      86.07      |     100.31      |      43.88      |
 |   SE9-16    |  yolov8_bmcv.soc  |yolov8s-obb_fp32_1b.bmodel|      40.23      |      28.32      |     427.11      |      12.21      |
@@ -27,11 +31,26 @@ baseline = """
 |   SE9-16    | yolov8_opencv.py  |yolov8s-obb_fp16_1b_2core.bmodel|     156.49      |      84.28      |      61.93      |      43.15      |
 |   SE9-16    |  yolov8_bmcv.soc  |yolov8s-obb_fp32_1b_2core.bmodel|      52.33      |      28.32      |     224.74      |      12.07      |
 |   SE9-16    |  yolov8_bmcv.soc  |yolov8s-obb_fp16_1b_2core.bmodel|      30.08      |      28.32      |      49.68      |      12.17      |
+|   SE9-16    | yolov8_opencv.py  |yolov11s-obb_fp32_1b.bmodel|     171.07      |      83.49      |     365.14      |      41.62      |
+|   SE9-16    | yolov8_opencv.py  |yolov11s-obb_fp16_1b.bmodel|     175.03      |      85.37      |      99.22      |      40.41      |
+|   SE9-16    |  yolov8_bmcv.soc  |yolov11s-obb_fp32_1b.bmodel|      61.63      |      28.33      |     352.56      |      12.02      |
+|   SE9-16    |  yolov8_bmcv.soc  |yolov11s-obb_fp16_1b.bmodel|      61.82      |      28.33      |      86.80      |      12.01      |
+|   SE9-16    | yolov8_opencv.py  |yolov11s-obb_fp32_1b_2core.bmodel|     168.50      |      83.80      |     198.87      |      39.72      |
+|   SE9-16    | yolov8_opencv.py  |yolov11s-obb_fp16_1b_2core.bmodel|     170.59      |      84.20      |      62.77      |      39.71      |
+|   SE9-16    |  yolov8_bmcv.soc  |yolov11s-obb_fp32_1b_2core.bmodel|      56.29      |      28.33      |     186.88      |      11.99      |
+|   SE9-16    |  yolov8_bmcv.soc  |yolov11s-obb_fp16_1b_2core.bmodel|      61.14      |      28.35      |      50.76      |      12.00      |
 |    SE9-8    | yolov8_opencv.py  |yolov8s-obb_fp32_1b.bmodel|     169.42      |      86.45      |     448.55      |      48.90      |
 |    SE9-8    | yolov8_opencv.py  |yolov8s-obb_fp16_1b.bmodel|     169.59      |      86.64      |     103.97      |      49.06      |
 |    SE9-8    |  yolov8_bmcv.soc  |yolov8s-obb_fp32_1b.bmodel|      46.39      |      29.67      |     436.68      |      12.16      |
 |    SE9-8    |  yolov8_bmcv.soc  |yolov8s-obb_fp16_1b.bmodel|      57.61      |      29.67      |      92.13      |      12.02      |
-"""
+|    SE9-8    | yolov8_opencv.py  |yolov11s-obb_fp32_1b.bmodel|     169.49      |      87.60      |     374.58      |      48.97      |
+|    SE9-8    | yolov8_opencv.py  |yolov11s-obb_fp16_1b.bmodel|     173.62      |      89.06      |     105.78      |      48.75      |
+|    SE9-8    |  yolov8_bmcv.soc  |yolov11s-obb_fp32_1b.bmodel|      62.25      |      28.37      |     361.62      |      12.01      |
+|    SE9-8    |  yolov8_bmcv.soc  |yolov11s-obb_fp16_1b.bmodel|      57.31      |      28.37      |      92.98      |      11.98      |
+|   SRM1-20   | yolov8_opencv.py  |yolov8s-obb_fp32_1b.bmodel|     193.16      |      72.35      |     128.59      |      181.55     |
+|   SRM1-20   | yolov8_opencv.py  |yolov8s-obb_fp16_1b.bmodel|     200.58      |      68.67      |      61.97      |      166.76     |
+|   SRM1-20   |  yolov8_bmcv.pcie |yolov8s-obb_fp32_1b.bmodel|      132.98     |       7.75      |      90.56      |      59.50      |
+|   SRM1-20   |  yolov8_bmcv.pcie |yolov8s-obb_fp16_1b.bmodel|      127.94     |       7.54      |      17.41      |      60.45      |"""
 table_data = {
     "platform": [],
     "program": [],
@@ -101,8 +120,6 @@ if __name__ == '__main__':
             platform = "SE5-16"
         elif args.target == "BM1688":
             platform = "SE9-16"
-            if multiprocessing.cpu_count() == 6:
-                platform = "SE9-8"
         elif args.target == "CV186X":
             platform = "SE9-8"
     else:
