@@ -185,7 +185,7 @@ models/
 
 ​上述脚本会在`models/BM1684X`等文件夹下生成转换好的INT8 BModel。
 
-注：这里用到了混合精度量化，需要将一些层设为敏感层，相应的qtable在此前`download.sh`下载的`models/onnx`文件夹里。如果您需要量化自己微调过的模型，可以参考[量化指南](../../docs/Calibration_Guide.md#13-特定模型优化技巧)中的方法，从我们提供的qtable倒推出自己模型需要的qtable。
+注：这里用到了混合精度量化，需要将一些层设为敏感层，相应的qtable在此前`download.sh`下载的`models/onnx`文件夹里。如果您需要量化自己微调过的模型，可以参考[量化指南](../../docs/Calibration_Guide.md#13-特定模型优化技巧)中的方法，从我们提供的qtable倒推出自己模型需要的qtable。BM1684不支持F16混合精度，如果您使用BM1684系列产品，您需要把qtable中的F16层更改为F32。
 
 ## 4. 例程测试
 - [C++例程](./cpp/README.md)
