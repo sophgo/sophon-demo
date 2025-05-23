@@ -15,6 +15,7 @@ if [ ! -d "../datasets" ];
 then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen2_5_VL/datasets.zip
     unzip datasets.zip -d ../
+    rm datasets.zip
     echo "datasets download!"
 else
     echo "datasets folder exist! Remove it if you need to update."
