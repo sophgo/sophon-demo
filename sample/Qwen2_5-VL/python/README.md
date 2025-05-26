@@ -19,7 +19,25 @@ Qwen2.5-vl能够输入单一图片/多张图/视频进行连续对话，python�
 
 ## 1. 环境准备
 > **注意：**
-> 无论哪个环境，都要求transformers>=4.49.0，该版本要求python版本大于3.10，若不满足的可以参考[Qwen2.5-VL](../README.md#4.2自行导出ONNX模型)中4.2里提到的方法安装python3.10。
+> 无论哪个环境，都要求transformers>=4.49.0，该版本要求python版本大于3.10。若不满足，请参考以下方法安装python3.10。
+
+```bash
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.10 python3.10-dev
+
+cd /data
+# 创建名为myenv的虚拟环境（不包含 pip）
+python3.10 -m venv --without-pip myenv
+
+# 进入虚拟环境
+source myenv/bin/activate
+
+# 手动安装 pip
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python get-pip.py
+rm get-pip.py
+```
 
 ### 1.1 x86/arm PCIe平台
 
@@ -120,12 +138,12 @@ usage: qwen2_5_vl.py [-h] [-m BMODEL_PATH] [-t TOKENIZER_PATH] [-p PROCESSOR_PAT
 
 ### 2.2 使用方式
 
-- 为了测试`../datasets/videos/carvana_video.mp4`输入，设置`resized_height`、`resized_width`参数到较小值，并设置`nframes`参数为处理2帧，可以使用如下命令
+- 为了测试`../datasets/videos/carvana_video.mp4`输入，设置`resized_height`、`resized_width`参数到合适的值，并设置`nframes`参数为处理2帧，可以使用如下命令
 ```bash
 python3 qwen2_5_vl.py --vision_inputs="[{\"type\":\"video_url\",\"video_url\":{\"url\": \"../datasets/videos/carvana_video.mp4\"},\"resized_height\":420,\"resized_width\":630,\"nframes\":2}]"
 ```
 
-- 为了测试图片，可以参考执行如下命令
+- 为了测试图片`../datasets/images/panda.jpg`，设置`max_side`参数到合适的值，可以参考执行如下命令
 ```bash
 python3 qwen2_5_vl.py --vision_inputs="[{\"type\":\"image_url\",\"image_url\":{\"url\": \"../datasets/images/panda.jpg\"}, \"max_side\":420}]"
 ```
@@ -145,3 +163,5 @@ python3 qwen2_5_vl.py --vision_inputs=""
 
 > **测试说明**：  
 > 1. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型；
+> 2. 图片尺寸不应超过`vision_length * 28 ** 2`；多图输入时总尺寸也不应超过`vision_length * 28 ** 2`；
+> 3. 视频的单帧尺寸不应超过`vision_length * 28 ** 2`；长视频可以分段推理，占用的上下文长度`(nframes // 2) * (height // 28) * (width // 28)`不应超过模型的`seq_length`。
