@@ -209,6 +209,8 @@ sudo reboot
 | SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev.bmodel          |    1.094              |    12.995                | 
 | SE9-16      | qwen.py           | qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel    |    0.701              |    14.858                |
 | SE9-16      | qwen.py           | qwen2.5-1.5b_int4_seq2048_bm1688_1dev_2core.bmodel   |    3.016              |    14.613                | 
+| SE9-16      | qwen.py           | qwen3-4b_w4bf16_seq512_bm1688_1core.bmodel            |   3.030              |    5.445                |
+| SE9-16      | qwen.py           | qwen3-4b_w4bf16_seq512_bm1688_2core.bmodel            |   1.691               |   6.801                 |
 | SE9-16      | qwen.py           | deepseek-r1-distill-qwen-1.5b_int4_seq1024_1688_2core.bmodel   |    1.485              |    14.865                | 
 | SE9-16      | qwen.py           | deepseek-r1-distill-qwen-7b_int4_seq1024_1688_2core.bmodel   |    10.565              |    5.286                |
 | SE9-8       | qwen.py           | qwen1.5-1.8b_int4_seq512_cv186x_1dev.bmodel          |    1.007              |    13.226                | 

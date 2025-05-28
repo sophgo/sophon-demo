@@ -56,6 +56,8 @@ function download_bm1688 {
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/tokenizer_deepseek_r1_distill_qwen2.tgz
     tar -xzvf tokenizer_deepseek_r1_distill_qwen2.tgz
     rm -f tokenizer_deepseek_r1_distill_qwen2.tgz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/qwen3-4b_w4bf16_seq512_bm1688_1core.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/qwen3-4b_w4bf16_seq512_bm1688_2core.bmodel
     popd
 }
 
