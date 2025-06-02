@@ -13,19 +13,20 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 
 | tutorial                                                                 | introduction                                                                   | supported hardware                                                            |
 | ----------------------------------------------------                     | ------------------------------------------------------------                   | ----------------                                                              |
-| [resize](./tutorial/resize/README.md)                                    | resize api usage, rescale image data.                                          | BM1684/BM1684X/BM1688/CV186H                                                  |
-| [crop](./tutorial/crop/README.md)                                        | crop api usage, crop the target area from input image.                         |BM1684/BM1684X/BM1688/CV186H                                                   |
-| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)  | crop target area from input image, and resize the crop, and padding in another image, fill the padding with a pix which can be customly set. | BM1684/BM1684X/BM1688/CV186H |
-| [ocv_jpgbasic](./tutorial/ocv_jpubasic/README.md)                        | decoding and encoding jpgs using sophon-opencv which is hardware accelerated.                                 | BM1684/BM1684X/BM1688/CV186H                   |
-| [ocv_vidbasic](./tutorial/ocv_vidbasic/README.md)                        | decoding video using sophon-opencv which is hardware accelerated, recording frames as jpgs or pngs.             | BM1684/BM1684X/BM1688/CV186H                 |
+| [resize](./tutorial/resize/README.md)                                    | resize api usage, rescale image data.                                          | BM1684/BM1684X/BM1688/CV186X                                                  |
+| [crop](./tutorial/crop/README.md)                                        | crop api usage, crop the target area from input image.                         |BM1684/BM1684X/BM1688/CV186X                                                   |
+| [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)  | crop target area from input image, and resize the crop, and padding in another image, fill the padding with a pix which can be customly set. | BM1684/BM1684X/BM1688/CV186X |
+| [ocv_jpgbasic](./tutorial/ocv_jpubasic/README.md)                        | decoding and encoding jpgs using sophon-opencv which is hardware accelerated.                                 | BM1684/BM1684X/BM1688/CV186X                   |
+| [ocv_vidbasic](./tutorial/ocv_vidbasic/README.md)                        | decoding video using sophon-opencv which is hardware accelerated, recording frames as jpgs or pngs.             | BM1684/BM1684X/BM1688/CV186X                 |
 | [blend](./tutorial/blend/README.md)                                      | blend two pictures.                                                  | BM1688/CV186X                                                                           |
-| [stitch](./tutorial/stitch/README.md)                                    | stitch two pictures.                                                  | BM1684X/BM1688/CV186H                                                                  |
+| [stitch](./tutorial/stitch/README.md)                                    | stitch two pictures.                                                  | BM1684X/BM1688/CV186X                                                                  |
 | [avframe_ocv](./tutorial/avframe_ocv/README.md)                          | from avframe to cv::Mat.                                                  | BM1684/BM1684X                                                                     |
-| [ocv_avframe](./tutorial/ocv_avframe/README.md)                          | from bgr cv::mat to yuv420p avframe.                                      | BM1684/BM1684X/BM1688/CV186H                                                       |
+| [ocv_avframe](./tutorial/ocv_avframe/README.md)                          | from bgr cv::mat to yuv420p avframe.                                      | BM1684/BM1684X/BM1688/CV186X                                                       |
 | [bm1688_2core2task_yolov5](./tutorial/bm1688_2core2task_yolov5/README.md)| yolov5 deployment using the 2core-2task feature of bm1688.                | BM1688                                                                             |
-| [mmap](./tutorial/mmap/README.md)                                        | mmap api, map TPU memory to CPU.                                          | BM1684X/BM1688/CV186H                                                              |
-| [video_encode](./tutorial/video_encode/README.md)                        | video encode and stream push.                                             | BM1684/BM1684X/BM1688/CV186H                                                       |
+| [mmap](./tutorial/mmap/README.md)                                        | mmap api, map TPU memory to CPU.                                          | BM1684X/BM1688/CV186X                                                              |
+| [video_encode](./tutorial/video_encode/README.md)                        | video encode and stream push.                                             | BM1684/BM1684X/BM1688/CV186X                                                       |
 | [yolov8_ffmpeg_encode](./tutorial/yolov8_ffmpeg_encode/README.md)        | ffmpeg decode + yolov8 inference + bmcv rectangle + ffmpeg encode         | BM1684X |
+| [DPU](./tutorial/DPU/README.md)                                          | 1688 DPU API test case                                                    | BM1688/CV186X |
 
 | contents                                                      | category                           | code       |  BModel        | supported hardware           |
 |---                                                            |---                                 |---         | ---            | ---                          |
@@ -56,7 +57,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [YOLOX](./sample/YOLOX/README.md)                             | Object Detection                   | C++/Python | FP32/INT8      | BM1684/BM1684X/BM1688/CV186X |
 | [SSD](./sample/SSD/README.md)                                 | Object Detection                   | C++/Python | FP32/INT8      | BM1684/BM1684X               |
 | [YOLOv7](./sample/YOLOv7/README.md)                           | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [YOLOv8_plus_det](./sample/YOLOv8_plus_det/README.md)         | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [YOLOv8_det](./sample/YOLOv8_plus_det/README.md)              | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv9_det](./sample/YOLOv8_plus_det/README.md)              | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv11_det](./sample/YOLOv8_plus_det/README.md)             | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv12_det](./sample/YOLOv8_plus_det/README.md)             | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
@@ -66,7 +67,8 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
 | [YOLO-world](./sample/YOLO_world/README.md)                   | Object Detection                   | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
-| [YOLOv8_obb](./sample/YOLOv8_obb/README.md)                   | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [YOLOv8_obb](./sample/YOLOv8_plus_obb/README.md)              | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [YOLOv11_obb](./sample/YOLOv8_plus_obb/README.md)             | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
 | [Whisper](./sample/Whisper/README.md)                         | Speech Recognition                 | Python     | FP16           | BM1684X                      |
 | [Seamless](./sample/Seamless/README.md)                       | Speech Recognition                 | Python     | FP32/FP16      | BM1684X/BM1688               |
@@ -91,6 +93,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [InternVL2](./sample/InternVL2/README.md)                     | Large Vision Language Model        | Python     | INT4           | BM1684X/BM1688               |
 | [Vila](./sample/Vila/README.md)                               | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Llama3_2_Vision](./sample/Llama3_2_Vision/README.md)         | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X                     |
+| [Phi4mm](./sample/Llama3_2_Vision/README.md)                  | Speech-Vision-Language Model       | Python     | INT4            | BM1684X                     |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | C++/Python | FP16           | BM1684X/BM1688/CV186X        |
@@ -119,6 +122,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.3.1  | Fix documentation and other issues. The Qwen sample newly supports Qwen3, Qwen2.5-VL newly supports AWQ-quantization model and penalty_sample head. Release new samples YOLOv11_obb/Phi4mm, new tutorial DPU。|
 | 0.3.0  | Fix documentation and other issues. The Qwen sample supports QWQ32B. Release new samples Recognize-Anything/YOLOv8_plus_cls. Optimize Real-ESRGAN postprocess and Qwen2.5-VL's preprocess, YOLOv8_plus_det supports models which's output not transposed。|
 | 0.2.10  | Fix documentation and other issues. Qwen supports C++, Release new samples including YOLOv12_det/YOLOv8_plus_seg_fuse/Janus/Qwen2.5-VL, new tutorial yolov8_ffmpeg_encode. |
 | 0.2.9  | Fix documentation and other issues. **The sample Qwen supports deepseek-r1-distill-qwen2-1.5b and deepseek-r1-distill-qwen2-7b**. Release new sample Llama3_2_Vision. Refactor YOLOv8_det/YOLOv9_det/YOLOv11_det to YOLOv8_det, YOLOv8_seg/YOLOv9_seg to YOLOv8_plus_seg. |
@@ -144,36 +148,38 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | 0.1.0 | Provide LPRNet and other 10 samples, support BM1684X (x86 PCIe, SoC), BM1684 (x86 PCIe, SoC) |
 
 ## Environment dependencies
-SOPHON-DEMO mainly depends on TPU-MLIR, TPU-NNTC, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
-|SOPHON-DEMO|TPU-MLIR  |TPU-NNTC |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
-|-------- |------------| --------|---------|---------    |----------   | ------    | --------  |
-| 0.3.0  | >=1.15      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
-| 0.2.10 | >=1.15      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
-| 0.2.9  | >=1.15      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
-| 0.2.8  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
-| 0.2.7  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
-| 0.2.6  | >=1.10      | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
-| 0.2.5  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
-| 0.2.4  | >=1.9       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
-| 0.2.3  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
-| 0.2.2  | >=1.8       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v23.10.01|
-| 0.2.1  | >=1.7       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v23.10.01|
-| 0.2.0  | >=1.6       | >=3.1.7 | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v23.10.01|
-| 0.1.10 | >=1.2.2     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.7.0   | >=v23.07.01|
-| 0.1.9  | >=1.2.2     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.7.0   | >=v23.07.01|
-| 0.1.8  | >=1.2.2     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.6.0   | >=v23.07.01|
-| 0.1.7  | >=1.2.2     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.6.0   | >=v23.07.01|
-| 0.1.6  | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.4.0   | >=v23.05.01|
-| 0.1.5  | >=0.9.9     | >=3.1.7 | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.4.0   | >=v23.03.01|
-| 0.1.4  | >=0.7.1     | >=3.1.5 | >=0.4.4 | >=0.5.1     | >=0.5.1     | >=3.3.0   | >=v22.12.01|
-| 0.1.3  | >=0.7.1     | >=3.1.5 | >=0.4.4 | >=0.5.1     | >=0.5.1     | >=3.3.0   |    -      |
-| 0.1.2  | Not support | >=3.1.4 | >=0.4.3 | >=0.5.0     | >=0.5.0     | >=3.2.0   |    -      |
-| 0.1.1  | Not support | >=3.1.3 | >=0.4.2 | >=0.4.0     | >=0.4.0     | >=3.1.0   |    -      |
-| 0.1.0  | Not support | >=3.1.3 | >=0.3.0 | >=0.2.4     | >=0.2.4     | >=3.1.0   |    -      |
+SOPHON-DEMO mainly depends on TPU-MLIR, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
+|SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
+|-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.1  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
+| 0.3.0  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
+| 0.2.10 | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
+| 0.2.9  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
+| 0.2.8  | >=1.10      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
+| 0.2.7  | >=1.10      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
+| 0.2.6  | >=1.10      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
+| 0.2.5  | >=1.9       | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
+| 0.2.4  | >=1.9       | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
+| 0.2.3  | >=1.8       | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v24.04.01|
+| 0.2.2  | >=1.8       | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v23.10.01|
+| 0.2.1  | >=1.7       | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v23.10.01|
+| 0.2.0  | >=1.6       | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.7.0   | >=v23.10.01|
+| 0.1.10 | >=1.2.2     | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.7.0   | >=v23.07.01|
+| 0.1.9  | >=1.2.2     | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.7.0   | >=v23.07.01|
+| 0.1.8  | >=1.2.2     | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.6.0   | >=v23.07.01|
+| 0.1.7  | >=1.2.2     | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.6.0   | >=v23.07.01|
+| 0.1.6  | >=0.9.9     | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.4.0   | >=v23.05.01|
+| 0.1.5  | >=0.9.9     | >=0.4.6 | >=0.6.0     | >=0.6.0     | >=3.4.0   | >=v23.03.01|
+| 0.1.4  | >=0.7.1     | >=0.4.4 | >=0.5.1     | >=0.5.1     | >=3.3.0   | >=v22.12.01|
+| 0.1.3  | >=0.7.1     | >=0.4.4 | >=0.5.1     | >=0.5.1     | >=3.3.0   |    -      |
+| 0.1.2  | Not support | >=0.4.3 | >=0.5.0     | >=0.5.0     | >=3.2.0   |    -      |
+| 0.1.1  | Not support | >=0.4.2 | >=0.4.0     | >=0.4.0     | >=3.1.0   |    -      |
+| 0.1.0  | Not support | >=0.3.0 | >=0.2.4     | >=0.2.4     | >=3.1.0   |    -      |
 
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.1  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.0  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.10 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.9  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
