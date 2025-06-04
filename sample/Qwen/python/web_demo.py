@@ -22,7 +22,7 @@ with open(args.config, 'r') as f:
 st.title(config["title"])
 
 def get_client():
-    return Qwen(config)
+    return Qwen(config["bmodel_path"], config["dev_ids"], config["token_path"])
 
 # Initialize chat history
 if "messages" not in st.session_state:
