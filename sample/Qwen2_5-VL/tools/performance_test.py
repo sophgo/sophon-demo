@@ -35,7 +35,8 @@ def main(args):
         # preprocess text and images/video, get model inputs
         preprocess_start_time = time.time()
         inputs = model.preprocess(messages=messages)
-        token_len = inputs.input_ids.numel()
+        image_grid_thw = inputs.image_grid_thw
+        pixel_values_images = inputs.pixel_values
         preprocess_duration = time.time() - preprocess_start_time
         preprocess_duration_mean += preprocess_duration
 
@@ -45,18 +46,18 @@ def main(args):
         model.forward_embed(inputs.input_ids.numpy())
         vit_token_list = torch.where(inputs.input_ids == model.ID_IMAGE_PAD)[1].tolist()
         vit_offset = vit_token_list[0]
-        model.vit_process_image(inputs, vit_offset)
-        position_ids = model.get_rope_index(inputs.input_ids, inputs.image_grid_thw,
-                                            model.ID_IMAGE_PAD)
-        max_posid = int(position_ids.max())
-        position_ids = position_ids.numpy()
+        model.vit_process_image(vit_offset, image_grid_thw, pixel_values_images)
         vision_duration = time.time() - vision_start
         vision_duration_mean += vision_duration
         print(f"vision inference cost time(s): {time.time() - vision_start}")
 
         # Chat
         print("\nAnswer: ", end = '')
-        token = model.forward_first_new(position_ids)
+        position_ids = model.get_rope_index(inputs.input_ids, image_grid_thw,
+                                            model.ID_IMAGE_PAD)
+        max_posid = int(position_ids.max())
+        position_ids = position_ids.numpy()
+        token = model.forward_first(position_ids)
         first_end = time.time()
         tok_num = 0
         # Following tokens
@@ -77,7 +78,7 @@ def main(args):
                 full_word_tokens = []
             max_posid += 1
 
-            token = model.forward_next_new(max_posid)
+            token = model.forward_next(max_posid)
             tok_num += 1
         next_end = time.time()
         first_duration = first_end - first_start

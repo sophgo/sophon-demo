@@ -314,10 +314,58 @@ def _read_video_decord(
     video = torch.tensor(video).permute(0, 3, 1, 2)  # Convert to TCHW format
     return video
 
+def _read_video_pyav(
+    ele: dict,
+) -> torch.Tensor:
+    """读取视频并转换为张量
+
+    Args:
+        ele (dict): 视频配置字典
+            - video: 视频路径
+
+    Returns:
+        torch.Tensor: 视频张量 (T, C, H, W)
+    """
+    import av
+    video_path = ele["video"]
+    st = time.time()
+    
+    container = av.open(video_path)
+    video_stream = next(s for s in container.streams if s.type == 'video')
+    
+    total_frames = video_stream.frames
+    video_fps = float(video_stream.average_rate)
+    
+    nframes = smart_nframes(ele, total_frames=total_frames, video_fps=video_fps)
+    _cpu_memory_check(nframes * video_stream.width * video_stream.height * 3)
+    
+    frame_indices = torch.linspace(0, total_frames - 1, nframes).round().long().tolist()
+    
+    frames = []
+    for idx in frame_indices:
+        target_pts = int(idx / video_fps / video_stream.time_base)
+        
+        container.seek(target_pts, stream=video_stream)
+        
+        for frame in container.decode(video_stream):
+            frame_idx = int(frame.pts * video_stream.time_base * video_fps)
+            if frame_idx >= idx:
+                img = frame.to_image()
+                frames.append(np.array(img))
+                break
+    
+    video = torch.tensor(np.stack(frames)).permute(0, 3, 1, 2)  # TCHW
+    
+    logger.info(f"PyAV: {video_path=}, {total_frames=}, {video_fps=:.2f}, "
+                f"selected={nframes}frames, time={time.time()-st:.3f}s")
+    
+    return video
+
 
 VIDEO_READER_BACKENDS = {
     "decord": _read_video_decord,
     "torchvision": _read_video_torchvision,
+    "pyav": _read_video_pyav,
 }
 
 FORCE_QWENVL_VIDEO_READER = os.getenv("FORCE_QWENVL_VIDEO_READER", None)
