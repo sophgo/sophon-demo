@@ -3,6 +3,7 @@ import argparse
 from sophon import sail
 from transformers import AutoProcessor, AutoTokenizer, Qwen2_5_VLConfig, BatchFeature
 from transformers.models.qwen2_5_vl.processing_qwen2_5_vl import Qwen2_5_VLProcessorKwargs
+from vision_process import process_vision_info
 import json
 import torch
 import numpy as np
@@ -284,12 +285,16 @@ class Qwen2_5_VL():
         self.logger.info(f"{Logger.file_lineno()} init tokenizer and preprocessor cost: {time.time() - st}")
         self.logger.info(f"{Logger.file_lineno()} init tokenizer and preprocessor finish!")
 
+    def get_dev_id(self):
+        return self.dev_id
+
     def init_runtime_vals(self):
         self.step = 0
         self.token_pos_length = 0
         self.last_id = None
         self.logger.debug(f"{Logger.file_lineno()} clear runtime vals success!")
     
+
     def init_sail_tensor(self, name, tensor_idx, shape=None, is_input=True):
         """
         init a sail tensor of sail.engine.
@@ -394,7 +399,8 @@ class Qwen2_5_VL():
     def preprocess(
         self, 
         messages, 
-        media_type
+        image_grid_thw=None, 
+        video_grid_thw=None
     ):
         # init prompt
         texts = [
@@ -409,21 +415,32 @@ class Qwen2_5_VL():
         real_vision_max_input_shape = [*self.vit_hidden_states_input_shape]
         real_vision_max_input_shape[0] = min(real_vision_max_input_shape[0], vision_max_input_seq_length) # consider both llm and vision seq length
 
-        if media_type == "video":
-            from qwen_vl_utils import process_vision_info
-            image_inputs, video_inputs = process_vision_info(messages)
-        else:
-            from vision_process import process_vision_info
+        if image_grid_thw is None and video_grid_thw is None:
             image_inputs, video_inputs = process_vision_info(self.handle, messages, \
-                max_vision_shape=real_vision_max_input_shape, merge_size=self.spatial_merge_size, logger=self.logger)
+                max_vision_shape=real_vision_max_input_shape, merge_size=self.loaded_config.vision_config.spatial_merge_size, logger=self.logger)
+            inputs = self.processor(
+                text=texts,
+                images=image_inputs,
+                videos=video_inputs,
+                padding=True,
+                return_tensors="pt",
+            )
+        else:
+            inputs = self.processor(
+                text=texts,
+                images=None,
+                videos=None,
+                image_grid_thw = image_grid_thw,
+                video_grid_thw = video_grid_thw,
+                padding=True,
+                return_tensors="pt",
+            )
 
-        inputs = self.processor(
-            text=texts,
-            images=image_inputs,
-            videos=video_inputs,
-            padding=True,
-            return_tensors="pt",
-        )
+        if self.seq_len < inputs.input_ids.shape[-1]:
+            raise ValueError(
+                    f"The input_length must be shorter than model's seq_length (got `input_length`: {inputs.input_ids.shape[-1]}"
+                    f" and `seq_length`: {self.seq_len})."
+                )
 
         return inputs
 
@@ -459,6 +476,9 @@ class Qwen2_5_VL():
             attention_mask[..., cu_seqlens[i - 1]:cu_seqlens[i],
                            cu_seqlens[i - 1]:cu_seqlens[i]] = 0
         return attention_mask
+    
+    def get_current_step(self):
+        return self.step
 
     def forward_embed(self, tokens: np.ndarray, ):
         self.token_len = tokens.shape[1]
@@ -750,10 +770,8 @@ class Qwen2_5_VL():
             window_index_id += (grid_t * llm_grid_h * llm_grid_w).item()
         window_index = torch.cat(window_index, dim=0)
         return window_index, cu_window_seqlens
-    
-    def vit_process_image(self, inputs, vit_offset):
-        grid_thw = inputs.image_grid_thw
-        hidden_states = inputs.pixel_values
+
+    def vit_process_image(self,vit_offset, grid_thw, hidden_states):
         window_index, cu_window_seqlens = self.get_window_index(grid_thw)
         cu_window_seqlens = torch.tensor(cu_window_seqlens, dtype=torch.int32)
         cu_window_seqlens = torch.unique_consecutive(cu_window_seqlens)
@@ -787,8 +805,8 @@ class Qwen2_5_VL():
                         reverse_indices,
                         vit_offset)
 
-    def vit_process_video(self, inputs, vit_offset):
-        t, h, w = inputs.video_grid_thw.flatten().tolist()
+    def vit_process_video(self, vit_offset, video_grid_thw, pixel_values_videos):
+        t, h, w = video_grid_thw.flatten().tolist()
         per_t = self.vision_seq_len // (h * w)
         t_list = []
         if per_t >= t:
@@ -798,42 +816,28 @@ class Qwen2_5_VL():
         t_offset = 0
         for t_i in t_list:
             grid_thw = torch.tensor([[t_i, h, w]], dtype=torch.int32)
-            hidden_states = inputs.pixel_values_videos[(t_offset * h * w):((t_offset + t_i) * h *
+            hidden_states = pixel_values_videos[(t_offset * h * w):((t_offset + t_i) * h *
                                                                            w), :]
-            window_index, cu_window_seqlens = self.get_window_index(grid_thw)
-            cu_window_seqlens = torch.tensor(cu_window_seqlens, dtype=torch.int32)
-            cu_window_seqlens = torch.unique_consecutive(cu_window_seqlens)
+            self.vit_process_image(vit_offset, grid_thw, hidden_states)
             seq_len, _ = hidden_states.shape
-            # reorder hidden_states
-            hidden_states = hidden_states.reshape(seq_len // self.spatial_merge_unit,
-                                                  self.spatial_merge_unit, -1)
-            hidden_states = hidden_states[window_index, :, :]
-            hidden_states = hidden_states.reshape(seq_len, -1)
-            # reorder position_ids
-            position_ids = self.rot_pos(grid_thw)
-            position_ids = position_ids.reshape(seq_len // self.spatial_merge_unit,
-                                                self.spatial_merge_unit, -1)
-            position_ids = position_ids[window_index, :, :]
-            position_ids = position_ids.reshape(seq_len, -1)
-            # cu_seqlens
-            cu_seqlens = torch.repeat_interleave(grid_thw[:, 1] * grid_thw[:, 2],
-                                                 grid_thw[:, 0]).cumsum(
-                                                     dim=0,
-                                                     dtype=torch.int32,
-                                                 )
-            cu_seqlens = F.pad(cu_seqlens, (1, 0), value=0)
-            full_mask = self.get_attn_mask(seq_len, cu_seqlens)
-            window_mask = self.get_attn_mask(seq_len, cu_window_seqlens)
-            reverse_indices = torch.argsort(window_index)
-            self.forward_vit(hidden_states,
-                            position_ids,
-                            full_mask,
-                            window_mask,
-                            grid_thw,
-                            reverse_indices,
-                            vit_offset)
             vit_offset += seq_len // 4
             t_offset += t_i
+
+    def update_embeddings(self, inputs, vision_embeds, pad):
+        emb_buf = self.output_tensors[self.name_embed][0].asnumpy()
+        emb_np  = emb_buf.reshape(-1, self.hidden_size)
+
+        token_ids = inputs.input_ids.numpy().reshape(-1)
+        pad_pos   = np.where(token_ids == pad)[0]
+
+        mask = np.zeros((emb_np.shape[0],), dtype=bool)
+        mask[pad_pos] = True
+
+        vision_embeds = vision_embeds.reshape(-1, self.hidden_size)
+        emb_np[mask] = vision_embeds[mask]
+
+        new_buf = emb_np.reshape(emb_buf.shape)
+        self.output_tensors[self.name_embed][0].update_data(new_buf)
 
     def is_end_with_reason(self, token):
         return token in [self.ID_IM_END, self.ID_END
@@ -847,6 +851,11 @@ def main(args):
     model = Qwen2_5_VL(dev_id=args.dev_id, bmodel_path=args.bmodel_path, log_level=args.log_level, processor_path=args.processor_path, tokenizer_path=args.tokenizer_path, config=args.config)
     media_type = None
     vit_offset = None
+    vision_embeds = []
+    video_grid_thw = None
+    image_grid_thw = None
+    pixel_values_images = None
+    pixel_values_videos = None
     vision_inputs = args.vision_inputs
     if len(vision_inputs) > 0:
         vision_inputs = json.loads(vision_inputs)
@@ -858,7 +867,6 @@ def main(args):
             "\n1. If you want to quit, please enter one of [q]"
             "\n2. If you want to clear history, please enter one of [c]"
             "\n=================================================================")
-    
     while True:
         text = input("\nQuestion: ")
         if text == "q":
@@ -877,40 +885,53 @@ def main(args):
             messages, cur_media_type = model.generate_message(history_messages, cur_data, "user")
         else:
             messages, cur_media_type = model.generate_message(history_messages, text, "user")
-
-        media_type = cur_media_type if media_type == None else media_type
         messages = [messages]
+        media_type = cur_media_type if media_type == None else media_type
 
         # preprocess text and images/video, get model inputs
-        inputs = model.preprocess(messages, media_type)
+        inputs = model.preprocess(messages, image_grid_thw=image_grid_thw, video_grid_thw=video_grid_thw)
+        if image_grid_thw is None and video_grid_thw is None:
+            image_grid_thw = inputs.image_grid_thw if "image_grid_thw" in inputs else None
+            video_grid_thw = inputs.video_grid_thw if "video_grid_thw" in inputs else None
+            pixel_values_images = inputs.pixel_values if "pixel_values" in inputs else None
+            pixel_values_videos = inputs.pixel_values_videos if "pixel_values_videos" in inputs else None
+
         token_len = inputs.input_ids.numel()
         model.forward_embed(inputs.input_ids.numpy())
         position_ids = np.tile(np.arange(token_len), 3)
         max_posid = token_len - 1
 
         if media_type == "image":
-            if vit_offset == None:
+            if len(vision_embeds) == 0:
                 vit_token_list = torch.where(inputs.input_ids == model.ID_IMAGE_PAD)[1].tolist()
                 vit_offset = vit_token_list[0]
-                model.vit_process_image(inputs, vit_offset)
-            position_ids = model.get_rope_index(inputs.input_ids, inputs.image_grid_thw,
+                model.vit_process_image(vit_offset, image_grid_thw, pixel_values_images)
+                vision_embeds = model.output_tensors[model.name_embed][0].asnumpy()
+            position_ids = model.get_rope_index(inputs.input_ids, image_grid_thw,
                                                 model.ID_IMAGE_PAD)
             max_posid = int(position_ids.max())
             position_ids = position_ids.numpy()
+
+            # 把<|image_pad|>替换成缓存好的视觉embedding
+            model.update_embeddings(inputs, vision_embeds, model.ID_IMAGE_PAD)
         elif media_type == "video":
-            if vit_offset == None:
+            if len(vision_embeds) == 0:
                 vit_token_list = torch.where(inputs.input_ids == model.ID_VIDEO_PAD)[1].tolist()
                 vit_offset = vit_token_list[0]
-                model.vit_process_video(inputs, vit_offset)
-            position_ids = model.get_rope_index(inputs.input_ids, inputs.video_grid_thw,
+                model.vit_process_video(vit_offset, video_grid_thw, pixel_values_videos)
+                vision_embeds = model.output_tensors[model.name_embed][0].asnumpy()
+            position_ids = model.get_rope_index(inputs.input_ids, video_grid_thw,
                                                 model.ID_VIDEO_PAD)
             max_posid = int(position_ids.max())
             position_ids = position_ids.numpy()
 
+            # 把<|video_pad|>替换成缓存好的视觉embedding
+            model.update_embeddings(inputs, vision_embeds, model.ID_VIDEO_PAD)
+
         # Chat
         print("\nAnswer: ", end = '')
         token = model.forward_first(position_ids)
-
+        
         first_end = time.time()
         tok_num = 0
         # Following tokens

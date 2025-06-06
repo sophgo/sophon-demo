@@ -23,7 +23,7 @@ Qwen2.5-VL 是阿里巴巴推出的新一代多模态大语言模型（Multimoda
 * 支持INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持连续对话
-* 支持单一图片、多图片、视频输入
+* 支持单一图片、视频输入
 * 支持纯文本对话
 * 支持图像Resize
 * 支持视频抽帧
@@ -148,12 +148,12 @@ cd tools
 python3 performance_test.py
 ```
 
-|    测试平台   |               测试模型                        |preprocess + tokenize(s)|  vision inference(s)     | first token latency(s) |token per second(tokens/s)|
-| -----------  | --------------------------------------       | ---------------------   | -----------------------  | -----------------------| -----------------------|
-|    SE7-32    | qwen2.5-vl-3b_bm1684x_w4bf16_seq2048.bmodel  |          0.159          |        0.837             |        1.565           |        12.165          |
-|    SE7-32    | qwen2.5-vl-7b_bm1684x_w4bf16_seq2048.bmodel  |          0.171          |        0.830             |        3.034           |        7.243           |
-|    SE9-16    | qwen2.5-vl-3b_bm1688_w4bf16_seq2048.bmodel   |          0.247          |        3.986             |        10.334          |        6.304           |
-|    SE9-16    | qwen2.5-vl-7b_bm1688_w4bf16_seq2048.bmodel   |          0.213          |        4.011             |        32.179          |        3.480           |
+|    测试平台   |               测试模型                                          |preprocess + tokenize(s)|  vision inference(s)     | first token latency(s) |token per second(tokens/s)|
+| -----------  | ---------------------------------------------------------------| ---------------------   | -----------------------  | -----------------------| -----------------------|
+|    SE7-32    | qwen2.5-vl-3b-instruct-awq_w4bf16_seq2048_bm1684x_1dev.bmodel  |          0.192          |        1.128             |        3.791           |        15.467          |
+|    SE7-32    | qwen2.5-vl-7b-instruct-awq_w4bf16_seq2048_bm1684x_1dev.bmodel  |          0.195          |        1.200             |        5.343           |        8.016           |
+|    SE9-16    | qwen2.5-vl-3b-instruct-awq_w4bf16_seq2048_bm1688_2core.bmodel  |          0.266          |        3.298             |        11.254          |        7.412           |
+|    SE9-16    | qwen2.5-vl-7b-instruct-awq_w4bf16_seq2048_bm1688_2core.bmodel  |          0.248          |        3.370             |        26.407          |        4.443           |
 > **测试说明**：  
 >1. 性能测试结果具有一定的波动性，且与输入也有关，此处结果是对12张照片测试后取的平均值；
 >2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
