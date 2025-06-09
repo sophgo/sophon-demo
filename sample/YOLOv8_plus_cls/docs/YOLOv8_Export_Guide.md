@@ -7,14 +7,6 @@
 pip3 install ultralytics
 ```
 
-找到这个文件：~/.local/lib/python3.8/site-packages/ultralytics/nn/tasks.py。如果找不到，请通过pip3 show ultralytics查包的安装位置。
-找到这个函数：
-```python
-def _predict_once(self, x, profile=False, visualize=False, embed=None):
-    ...
-    return x
-```
-
 ## 2. 导出onnx模型
 如果使用tpu-mlir编译模型，则必须先将Pytorch模型导出为onnx模型。YOL0v8官方仓库提供了模型导出接口，可以直接使用它导出onnx模型：
 
