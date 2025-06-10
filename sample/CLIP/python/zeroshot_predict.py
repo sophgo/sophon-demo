@@ -59,14 +59,15 @@ def main(args):
 
 
     image_num = len(image_paths)
+    text_num = len(text)
     logging.info(("-------------------Image num {}, Preprocess average time ------------------------").format(image_num))
     logging.info("preprocess(ms): {:.2f}".format(model.preprocess_time / image_num * 1000))
 
     logging.info(("------------------ Image num {}, Image Encoding average time ----------------------").format(image_num))
     logging.info("image_encode(ms): {:.2f}".format(model.encode_image_time / image_num * 1000))
 
-    logging.info(("------------------ Image num {}, Text Encoding average time ----------------------").format(image_num))
-    logging.info("text_encode(ms): {:.2f}".format(model.encode_text_time / image_num * 1000))
+    logging.info(("------------------ Text num {}, Text Encoding average time ----------------------").format(text_num))
+    logging.info("text_encode(ms): {:.2f}".format(model.encode_text_time / text_num * 1000))
 
 
 

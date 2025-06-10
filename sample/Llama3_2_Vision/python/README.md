@@ -43,9 +43,9 @@ unzip sophon-sail.zip
 
 ```bash
 cd python
-python3 -m dfss --url=open@sophgo.com:sophon-demo/Llama3_2_Vision/token_configs.zip
-unzip token_configs.zip
-rm token_configs.zip
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Llama3_2_Vision/token_config.zip
+unzip token_config.zip
+rm token_config.zip
 ```
 
 ### 1.2 SoC平台
@@ -80,9 +80,9 @@ unzip sophon-sail.zip
 
 ```bash
 cd python
-python3 -m dfss --url=open@sophgo.com:sophon-demo/Llama3_2_Vision/token_configs.zip
-unzip token_configs.zip
-rm token_configs.zip
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Llama3_2_Vision/token_config.zip
+unzip token_config.zip
+rm token_config.zip
 ```
 
 ## 2. 推理测试
