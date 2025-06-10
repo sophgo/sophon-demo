@@ -120,16 +120,16 @@ bmrt_test --bmodel models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel
 > 3. SoC和PCIe的测试结果基本一致。
 
 ### 6.2 程序运行性能
-测试图片`/datasets/CLIP.png`，测试模型为clip_image_vitb32_\<target\>_f16_1b.bmodel，clip_text_vitb32_\<target\>_f16_1b.bmodel
+测试图片`/datasets/CLIP.png`，测试模型为`clip_image_vitb32_{target}_f16_1b.bmodel`，`clip_text_vitb32_{target}_f16_1b.bmodel`
 
 测试结果如下，测试结果有一定波动性，取稳定后的性能数据（时间单位为ms）：
 
 | 测试平台 | 测试程序            | Preprocess Time | Image Encoding Time | Text Encoding Time |
 | -------- | ------------------- | --------------- | ------------------- | ------------------ |
-| SE7-32   | zeroshot_predict.py | 12.17           | 9.63                | 18.90              |
-| SE9-16   | zeroshot_predict.py | 16.92           | 25.04               | 49.61              |
-| SE9-8    | zeroshot_predict.py | 17.09           | 30.59               | 59.56              |
-| SRM1-20  | zeroshot_predict.py | 17.07           | 11.46               | 39.29              |
+| SE7-32   | zeroshot_predict.py | 12.17           | 9.63                | 6.30               |
+| SE9-16   | zeroshot_predict.py | 16.92           | 25.04               | 16.54              |
+| SE9-8    | zeroshot_predict.py | 17.09           | 30.59               | 19.85              |
+| SRM1-20  | zeroshot_predict.py | 17.07           | 11.46               | 13.10              |
 
 
 > **测试说明**：
