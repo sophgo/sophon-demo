@@ -52,13 +52,6 @@ pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-- 您需要安装SILK2.Tools.logger：
-```bash
-python3 -m dfss --url=open@sophgo.com:tools/silk2/silk2.tools.logger-1.0.2-py3-none-any.whl
-pip3 install silk2.tools.logger-1.0.2-py3-none-any.whl --force-reinstall
-rm -f silk2.tools.logger-1.0.2-py3-none-any.whl
-```
-
 - 您还需要安装sophon-sail，由于本例程需要的sophon-sail版本较新，可以用如下命令安装sophon-sail。
 
 ```bash
