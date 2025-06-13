@@ -138,19 +138,17 @@ usage: qwen2_5_vl.py [-h] [-m BMODEL_PATH] [-t TOKENIZER_PATH] [-p PROCESSOR_PAT
 
 ### 2.2 使用方式
 
-- 为了测试`../datasets/videos/carvana_video.mp4`输入，设置`resized_height`、`resized_width`参数到合适的值，并设置`nframes`参数为处理2帧，可以使用如下命令
+- 为了测试视频`../datasets/videos/carvana_video.mp4`，设置`resized_height`、`resized_width`参数到合适的值，并设置`nframes`参数为处理2帧，可以使用如下命令
 ```bash
 python3 qwen2_5_vl.py --vision_inputs="[{\"type\":\"video_url\",\"video_url\":{\"url\": \"../datasets/videos/carvana_video.mp4\"},\"resized_height\":420,\"resized_width\":630,\"nframes\":2}]"
 ```
-
+- 在测试视频较大的时候，如果报错`available memory not suffice to load data`，可以考虑使用pyav库来读取视频，需要设置环境变量：
+```bash
+export FORCE_QWENVL_VIDEO_READER=pyav
+```
 - 为了测试图片`../datasets/images/panda.jpg`，设置`max_side`参数到合适的值，可以参考执行如下命令
 ```bash
 python3 qwen2_5_vl.py --vision_inputs="[{\"type\":\"image_url\",\"image_url\":{\"url\": \"../datasets/images/panda.jpg\"}, \"max_side\":420}]"
-```
-
-- 为了同时对图片和视频提问，可以参考执行如下命令
-```bash
-python3 qwen2_5_vl.py --vision_inputs="[{\"type\":\"video_url\",\"video_url\":{\"url\": \"../datasets/videos/carvana_video.mp4\"},\"resized_height\":420,\"resized_width\":630,\"nframes\":2},{\"type\":\"image_url\",\"image_url\":{\"url\": \"../datasets/images/panda.jpg\"}, \"max_side\":840}]"
 ```
 
 - 为了纯文本对话，可以参考执行如下命令
