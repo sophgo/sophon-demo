@@ -40,20 +40,12 @@ int main(int argc, char* argv[]) {
     std::string input = parser.get<std::string>("input");
     int dev_id = parser.get<int>("dev_id");
     int mode = parser.get<int>("mode");
-
+    bool debug = parser.get<bool>("debug");
     // 检查输入路径
     struct stat info;
     if (stat(input.c_str(), &info) != 0) {
         std::cout << "Cannot find input path." << std::endl;
         exit(1);
-    }
-
-    // 创建DPU实例
-    bool debug = parser.get<bool>("debug");
-    DPU dpu;
-    if (dpu.init(dev_id, debug) != 0) {
-        std::cerr << "Failed to initialize DPU" << std::endl;
-        return -1;
     }
 
     // 创建保存目录
@@ -73,11 +65,9 @@ int main(int argc, char* argv[]) {
     std::string input_dir = input.substr(0, index);
     std::ifstream file(input);
     std::string line;
-
-    // 时间戳
-    TimeStamp dpu_ts;
-    dpu.m_ts = &dpu_ts;
     
+    TimeStamp dpu_ts;
+
     if(file.is_open()) {
         while(std::getline(file, line)) {
             std::istringstream iss(line);
@@ -108,7 +98,7 @@ int main(int argc, char* argv[]) {
             }
 
             std::cout << "Processing, left: " << full_left_path << "; right: " << full_right_path << std::endl;
-            
+
             // sophon-opencv解码图像
             bm_image left_img, right_img;
             cv::Mat left_mat = cv::imread(full_left_path, cv::IMREAD_COLOR, dev_id);
@@ -127,34 +117,43 @@ int main(int argc, char* argv[]) {
             std::cout << "Left image size: " << left_img.width << "x" << left_img.height << std::endl;
             std::cout << "Right image size: " << right_img.width << "x" << right_img.height << std::endl;
     
-
             // 创建深度图
             bm_image depth_img;
-
-            // 使用对齐后的图像进行处理
-            if (dpu.process(left_img, right_img, depth_img, 
-                          static_cast<DPUMode>(mode),
-                          DPU_SGBM_MUX2,  
-                          DPU_ONLINE_MUX0) != 0) {
-                std::cerr << "Failed to process images" << std::endl;
-                continue; // 跳过当前图片
-            }
 
             // 生成输出文件名
             size_t name_index = left_path.rfind("/");
             std::string img_name = left_path.substr(name_index + 1);
             std::string output_path = "results/images/" + img_name;
             
-            // 保存结果
-            if (!dpu.save_image(depth_img, output_path)) {
-                std::cerr << "Failed to save image" << std::endl;
-                continue;
+            // 创建DPU实例
+            try{
+                DPU dpu(dev_id, debug, left_img.width, left_img.height);
+                // 时间戳
+
+                dpu.m_ts = &dpu_ts;
+
+                // 使用对齐后的图像进行处理
+                if (dpu.process(left_img, right_img, depth_img, 
+                                static_cast<DPUMode>(mode),
+                                DPU_SGBM_MUX2,  
+                                DPU_ONLINE_MUX0) != 0) {
+                    std::cerr << "Failed to process images" << std::endl;
+                    continue; // 跳过当前图片
+                }
+                // 保存结果
+                if (!dpu.save_image(depth_img, output_path)) {
+                    std::cerr << "Failed to save image" << std::endl;
+                    continue;
+                }
+            }catch(const std::runtime_error& e){
+                std::cerr << "Failed to initialize DPU" << std::endl;
+                return -1;
             }
+
             std::cout << "Saved result to: " << output_path << std::endl;
             
             bm_image_destroy(&left_img);
             bm_image_destroy(&right_img);
-            bm_image_destroy(&depth_img);
 
             // print speed
             time_stamp_t base_time = time_point_cast<microseconds>(steady_clock::now());

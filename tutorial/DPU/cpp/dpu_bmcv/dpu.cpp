@@ -12,8 +12,37 @@
 #include <bmlib_runtime.h>
 
 
-DPU::DPU() : initialized_(false) {
-    // 设置SGBM默认参数
+DPU::DPU(int dev_id, bool debug, int width, int height) 
+    : debug_(debug)
+{
+    // 1. 对齐宽高
+    width_ = (width < 64) ? 64 : ((width > 1920) ? 1920 : FFALIGN(width, align_to_width_));
+    height_ = (height < 64) ? 64 : ((height > 1080) ? 1080 : FFALIGN(height, align_to_height_));
+
+    // 2. 初始化handle
+    int ret = bm_dev_request(&handle_, dev_id);
+    if (ret != BM_SUCCESS) {
+        std::cerr << "Failed to request device" << std::endl;
+        assert(BM_SUCCESS == ret);
+    }
+    // 3. 初始化中间bm_image
+    ret = bm_image_create(handle_, height_, width_, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &aligned_left_);
+    assert(BM_SUCCESS == ret);
+    ret = bm_image_alloc_dev_mem(aligned_left_, 1);
+    assert(BM_SUCCESS == ret);
+
+    ret = bm_image_create(handle_, height_, width_, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &aligned_right_);
+    assert(BM_SUCCESS == ret);
+    ret = bm_image_alloc_dev_mem(aligned_right_, 1);
+    assert(BM_SUCCESS == ret);
+
+    // 4. 初始化深度图
+    ret = bm_image_create(handle_, height_, width_, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &depth_img_);
+    assert(BM_SUCCESS == ret);
+    ret = bm_image_alloc_dev_mem(depth_img_, 1);
+    assert(BM_SUCCESS == ret);
+
+    // 5. 设置SGBM默认参数
     sgbm_params_.bfw_mode_en = DPU_BFW_MODE_7x7;
     sgbm_params_.disp_range_en = BMCV_DPU_DISP_RANGE_128;
     sgbm_params_.disp_start_pos = 0;
@@ -26,36 +55,31 @@ DPU::DPU() : initialized_(false) {
     sgbm_params_.dpu_uniq_ratio = 0;
     sgbm_params_.dpu_disp_shift = 4;
 
-    // 设置FGS默认参数
+    // 6. 设置FGS默认参数
     fgs_params_.fgs_max_count = 19;           // 设置为3次
     fgs_params_.fgs_max_t = 3;               // 设置为3次迭代
     fgs_params_.fxbase_line = 864000;           // 设置基线值为120mm
     fgs_params_.depth_unit_en = BMCV_DPU_DEPTH_UNIT_MM;  // 使用毫米作为深度单位
+
+    initialized_ = true;
 }
 
 DPU::~DPU() {
+    release();
+}
+
+void DPU::release() noexcept {
     if (initialized_) {
+        bm_image_destroy(&aligned_left_);
+        bm_image_destroy(&aligned_right_);
+        bm_image_destroy(&depth_img_);
         bm_dev_free(handle_);
+        initialized_ = false;
+    }
+    else {
+        return;
     }
 }
-
-int DPU::init(int dev_id, bool debug) {
-    if (initialized_) {
-        return 0;
-    }
-
-    debug_ = debug;
-
-    int ret = bm_dev_request(&handle_, dev_id);
-    if (ret != BM_SUCCESS) {
-        std::cerr << "Failed to request device" << std::endl;
-        return -1;
-    }
-
-    initialized_ = true;
-    return 0;
-}
-
 
 bool DPU::validateImageFormat(const bm_image& img, bool is_input) const {
     // 检查图像格式
@@ -140,147 +164,62 @@ bool DPU::validateDisparityRange(const bm_image& right_img) const {
     return true;
 }
 
-int DPU::pre_process(bm_image& image) {
-    int ret = 0;
-    
+int DPU::pre_process(bm_image& input_image, bm_image& converted_img) {
+    int ret;
     // 打印原图宽、高、stride
     int stride[3];
-    bm_image_get_stride(image, stride);
-    std::cout << "Original image width: " << image.width << ", height: " << image.height << ", stride[0]: " << stride[0] << std::endl; 
-
-    // create bm_image
-    int m_net_h = image.height;
-    int m_net_w = image.width;
-    m_net_w = (m_net_w < 64) ? 64 : ((m_net_w > 1920) ? 1920 : FFALIGN(m_net_w, 64));
-    m_net_h = (m_net_h < 64) ? 64 : ((m_net_h > 1080) ? 1080 : FFALIGN(m_net_h, 2));
-
-    // 创建resize后的图像
-    bm_image resized_img;
+    bm_image_get_stride(input_image, stride);
+    std::cout << "DPU Original image width: " << input_image.width << ", height: " << input_image.height << ", stride[0]: " << stride[0] << std::endl; 
+    std::cout << "DPU Aligned image width: " << width_ << ", height: " << height_ << std::endl; 
     
-    // resize image letterbox
-    if(image.width <= m_net_w || image.height <= m_net_h){
-        ret = bm_image_create(handle_, m_net_h, m_net_w, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &resized_img);
-        assert(BM_SUCCESS == ret);
+    // 1. align image size and convert
+    if(input_image.width <= width_ || input_image.height <= height_){
         bmcv_copy_to_atrr_t copyToAttr;
         memset(&copyToAttr, 0, sizeof(copyToAttr));
         copyToAttr.start_x = 0;
-        copyToAttr.start_y = m_net_h - image.height;
+        copyToAttr.start_y = height_ - input_image.height;
         copyToAttr.if_padding = 1;
         copyToAttr.padding_r = 0;
         copyToAttr.padding_g = 0;
         copyToAttr.padding_b = 0;
-        ret = bmcv_image_copy_to(handle_, copyToAttr, image, resized_img);
+        ret = bmcv_image_copy_to(handle_, copyToAttr, input_image, converted_img);
         assert(BM_SUCCESS == ret);  
+    // 2. only convert image 
     }else{
-        bool need_copy = image.width & (64 - 1);
-        if (need_copy) {
-            int stride1[3], stride2[3];
-            bm_image_get_stride(image, stride1);
-            stride2[0] = FFALIGN(stride1[0], 64);
-            stride2[1] = FFALIGN(stride1[1], 64);
-            stride2[2] = FFALIGN(stride1[2], 64);
-            bm_image_create(handle_, image.height, image.width, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE,
-                            &resized_img, stride2);
-            bm_image_alloc_dev_mem(resized_img, BMCV_IMAGE_FOR_IN);
-            bmcv_copy_to_atrr_t copyToAttr;
-            memset(&copyToAttr, 0, sizeof(copyToAttr));
-            copyToAttr.start_x = 0;
-            copyToAttr.start_y = 0;
-            copyToAttr.if_padding = 1;
-            bmcv_image_copy_to(handle_, copyToAttr, image, resized_img);
-        } else {
-            return 0;
-        }
-    }
-
-    bm_image_destroy(&image);
-    ret = bm_image_create(handle_, m_net_h, m_net_w, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &image);
-    assert(BM_SUCCESS == ret);
-
-    // 将resize后的图像复制到目标图像
-    bmcv_copy_to_atrr_t copyToAttr;
-    memset(&copyToAttr, 0, sizeof(copyToAttr));
-    copyToAttr.start_x = 0;
-    copyToAttr.start_y = 0;
-    copyToAttr.if_padding = 1;
-    ret = bmcv_image_copy_to(handle_, copyToAttr, resized_img, image);
-    assert(BM_SUCCESS == ret);
-
-    // destroy bm_images
-    bm_image_destroy(&resized_img);
-
-    // debug
-    if (debug_) {
-        std::string debug_preprocess_path = "debug/preprocess_img.jpg";
-        if (!save_image(image, debug_preprocess_path)) {
-            std::cerr << "Failed to save preprocess image" << std::endl;
-            return -1;
-        }
+        bmcv_image_storage_convert(handle_, 1, &input_image, &converted_img);
     }
 
     return 0;
 }
 
 
-
 int DPU::process(bm_image& left_img, bm_image& right_img, 
                 bm_image& depth_img, DPUMode mode, bmcv_dpu_sgbm_mode sgbm_mode, bmcv_dpu_online_mode online_mode) {
+    int ret;
     if (!initialized_) {
         std::cerr << "DPU not initialized" << std::endl;
         return -1;
     }
-
     m_ts->save("dpu preprocess two images");
+
     // 1. 先进行预处理，得到对齐后的灰度图
-    if (pre_process(left_img) != 0 ||
-        pre_process(right_img) != 0) {
+    if (pre_process(left_img, aligned_left_) != 0 ||
+        pre_process(right_img, aligned_right_) != 0) {
         return -1;
     }
     m_ts->save("dpu preprocess two images");
 
     // 2. 参数验证（使用预处理后的图像）
-    if (!validateImageFormat(left_img, true) || 
-        !validateImageFormat(right_img, true)) {
+    if (!validateImageFormat(aligned_left_, true) || 
+        !validateImageFormat(aligned_right_, true)) {
         return -1;
     }
 
-    if (!validateImageSize(left_img, right_img)) {
+    if (!validateImageSize(aligned_left_, aligned_right_)) {
         return -1;
     }
 
-    if (mode == DPUMode::SGBM && !validateDisparityRange(right_img)) {
-        return -1;
-    }
-
-    // 3. 如果depth_img已经存在，先销毁
-    if (depth_img.width > 0) {
-        bm_image_destroy(&depth_img);
-    }
-
-    // debug
-    if (debug_) {
-        std::string debug_left_path = "debug/left_img.jpg";
-        std::string debug_right_path = "debug/right_img.jpg";
-        if (!save_image(left_img, debug_left_path)) {
-            std::cerr << "Failed to save left image" << std::endl;
-            return -1; 
-        }   
-        if (!save_image(right_img, debug_right_path)) {
-            std::cerr << "Failed to save right image" << std::endl;
-            return -1;
-        }
-        // 保存bin文件
-        bm_write_bin(left_img, "debug/left_img.bin");
-        bm_write_bin(right_img, "debug/right_img.bin");
-    }
-
-
-    // 4. 根据预处理后的图像大小创建深度图
-    bm_image_create(handle_, left_img.height, left_img.width, 
-                   FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &depth_img);
-    bm_status_t ret = bm_image_alloc_dev_mem(depth_img, 1);
-    if (ret != BM_SUCCESS) {
-        std::cerr << "Failed to allocate depth image memory" << std::endl;
+    if (mode == DPUMode::SGBM && !validateDisparityRange(aligned_right_)) {
         return -1;
     }
 
@@ -289,26 +228,28 @@ int DPU::process(bm_image& left_img, bm_image& right_img,
     switch (mode) {
         case DPUMode::SGBM:
             ret = bmcv_dpu_sgbm_disp(handle_, 
-                                   &left_img, 
-                                   &right_img, 
-                                   &depth_img, 
-                                   &sgbm_params_, 
-                                   sgbm_mode);
+                                    &aligned_left_, 
+                                    &aligned_right_, 
+                                    &depth_img_, 
+                                    &sgbm_params_, 
+                                    sgbm_mode);
             break;
         case DPUMode::ONLINE:
             ret = bmcv_dpu_online_disp(handle_, 
-                                     &left_img, 
-                                     &right_img, 
-                                     &depth_img, 
-                                     &sgbm_params_, 
-                                     &fgs_params_, 
-                                     online_mode);
+                                        &aligned_left_, 
+                                        &aligned_right_, 
+                                        &depth_img_, 
+                                        &sgbm_params_, 
+                                        &fgs_params_, 
+                                        online_mode);
             break;
         default:
             std::cerr << "Invalid DPU mode" << std::endl;
             return -1;
     }
     m_ts->save("dpu process");
+
+    depth_img = depth_img_;
 
     if (ret != BM_SUCCESS) {
         std::cerr << "Failed to process images" << std::endl;
@@ -317,14 +258,31 @@ int DPU::process(bm_image& left_img, bm_image& right_img,
 
     // debug
     if (debug_) {
-        bm_write_bin(left_img, "debug/left_img2.bin");
-        bm_write_bin(right_img, "debug/right_img2.bin");
-        bm_write_bin(depth_img, "debug/depth_img.bin");
-        std::string debug_depth_path = "debug/depth_img.jpg";
-        if (!save_image(depth_img, debug_depth_path)) {
+        if (!save_image(left_img, "debug/left_img.jpg")) {
+            std::cerr << "Failed to save left image" << std::endl;
+            return -1; 
+        }   
+        if (!save_image(right_img, "debug/right_img.jpg")) {
+            std::cerr << "Failed to save right image" << std::endl;
+            return -1;
+        }
+        if (!save_image(aligned_left_, "debug/preprocess_img_aligned_left.jpg")) {
+            std::cerr << "Failed to save preprocess image" << std::endl;
+            return -1;
+        }
+        if (!save_image(aligned_right_, "debug/preprocess_img_aligned_right.jpg")) {
+            std::cerr << "Failed to save preprocess image" << std::endl;
+            return -1;
+        }
+
+        if (!save_image(depth_img, "debug/depth_img.jpg")) {
             std::cerr << "Failed to save depth image" << std::endl;
             return -1;
         }
+        // // 保存bin文件
+        // bm_write_bin(left_img, "debug/left_img.bin");
+        // bm_write_bin(right_img, "debug/right_img.bin");
+        // bm_write_bin(depth_img, "debug/depth_img.bin");
     }
 
     return 0;
@@ -332,7 +290,7 @@ int DPU::process(bm_image& left_img, bm_image& right_img,
 
 
 // 保存图像
-bool DPU::save_image(bm_image& image, std::string& output_path) {
+bool DPU::save_image(bm_image& image, const std::string& output_path) {
     void* jpeg_data = nullptr;
 
     // 创建临时图像用于格式转换
@@ -341,14 +299,12 @@ bool DPU::save_image(bm_image& image, std::string& output_path) {
                                     FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, &temp_image);
 
     if (ret != BM_SUCCESS) {
-        bm_dev_free(handle_);
         return false;
     }
     
     ret = bm_image_alloc_dev_mem(temp_image, 1);
     if (ret != BM_SUCCESS) {
         bm_image_destroy(&temp_image);
-        bm_dev_free(handle_);
         return false;
     }
     
@@ -356,7 +312,6 @@ bool DPU::save_image(bm_image& image, std::string& output_path) {
     ret = bmcv_image_storage_convert(handle_, 1, &image, &temp_image);
     if (ret != BM_SUCCESS) {
         bm_image_destroy(&temp_image);
-        bm_dev_free(handle_);
         return false;
     }
 
