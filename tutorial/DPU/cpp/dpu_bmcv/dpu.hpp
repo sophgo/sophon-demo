@@ -46,14 +46,14 @@ enum class OnlineMode {
 class DPU {
 public:
     // 构造函数和析构函数
-    DPU();
+    DPU(int dev_id, bool debug, int width, int height);
     ~DPU();
 
-    // 初始化函数
-    int init(int dev_id = 0, bool debug = false);
-    
+    int align_to_width_ = 32; // 宽的stride需要对齐到32的倍数
+    int align_to_height_ = 2; // 高的stride需要对齐到2的倍数
+
     // 预处理函数
-    int pre_process(bm_image& image);
+    int pre_process(bm_image& input_image, bm_image& preprocessed_image);
     
     // 处理函数
     int process(bm_image& left_img, bm_image& right_img, 
@@ -62,9 +62,8 @@ public:
                 bmcv_dpu_online_mode online_mode = DPU_ONLINE_MUX0);
 
     // 保存图像
-    bool save_image(bm_image& img, std::string& output_path);
+    bool save_image(bm_image& img, const std::string& output_path);
 
-    
     TimeStamp* m_ts;
 
 private:
@@ -79,6 +78,14 @@ private:
     bmcv_dpu_fgs_attrs fgs_params_;
     bool initialized_;
     bool debug_;
+
+    int width_;
+    int height_;
+    bm_image aligned_left_;
+    bm_image aligned_right_;
+    bm_image depth_img_;
+
+    void release() noexcept;
 };
 
 #endif // DPU_H 
