@@ -21,7 +21,7 @@ import warnings
 from functools import lru_cache
 from subprocess import CalledProcessError, run, CalledProcessError
 import torch.nn.functional as F
-
+import torchaudio
 from .tokenizer import Tokenizer
 
 
@@ -56,8 +56,7 @@ N_SAMPLES_PER_TOKEN = HOP_LENGTH * 2  # the initial convolutions has stride 2
 FRAMES_PER_SECOND = exact_div(SAMPLE_RATE, HOP_LENGTH)  # 10ms per audio frame
 TOKENS_PER_SECOND = exact_div(SAMPLE_RATE, N_SAMPLES_PER_TOKEN)  # 20ms per audio token
 
-
-def load_audio(file: str, sr: int = SAMPLE_RATE):
+def load_audio(file: str, sr: int = SAMPLE_RATE) -> np.ndarray:
     """
     Open an audio file and read as mono waveform, resampling as necessary
 
@@ -65,38 +64,36 @@ def load_audio(file: str, sr: int = SAMPLE_RATE):
     ----------
     file: str
         The audio file to open
-
     sr: int
-        The sample rate to resample the audio if necessary
+        The target sample rate (default: 16000)
 
     Returns
     -------
-    A NumPy array containing the audio waveform, in float32 dtype.
+    A NumPy array containing the audio waveform in float32 dtype, normalized to [-1, 1]
     """
-
-    # This launches a subprocess to decode audio while down-mixing
-    # and resampling as necessary.  Requires the ffmpeg CLI in PATH.
-    # fmt: off
-    cmd = [
-        "ffmpeg",
-        "-nostdin",
-        "-threads", "0",
-        "-i", file,
-        "-f", "s16le",
-        "-ac", "1",
-        "-acodec", "pcm_s16le",
-        "-ar", str(sr),
-        "-"
-    ]
-    # fmt: on
     try:
-        out = run(cmd, capture_output=True, check=True).stdout
-    except CalledProcessError as e:
-        raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
-
-    return np.frombuffer(out, np.int16).flatten().astype(np.float32) / 32768.0
-
-
+        # Load audio file
+        waveform, sample_rate = torchaudio.load(file)
+        
+        # Convert to mono by averaging channels if needed
+        if waveform.shape[0] > 1:
+            waveform = waveform.mean(dim=0, keepdim=True)
+        
+        # Resample if needed
+        if sample_rate != sr:
+            resampler = torchaudio.transforms.Resample(
+                orig_freq=sample_rate,
+                new_freq=sr
+            )
+            waveform = resampler(waveform)
+        
+        # Convert to numpy array and normalize to [-1, 1]
+        waveform = waveform.squeeze().numpy().astype(np.float32)
+        return waveform / max(1.0, np.max(np.abs(waveform)))
+    
+    except Exception as e:
+        raise RuntimeError(f"Failed to load audio: {str(e)}") from e
+    
 def pad_or_trim(array, length: int = N_SAMPLES, *, axis: int = -1):
     """
     Pad or trim the audio array to N_SAMPLES, as expected by the encoder.
