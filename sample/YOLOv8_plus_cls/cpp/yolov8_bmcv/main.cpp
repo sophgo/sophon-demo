@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
                 auto ret = yolov8.Classfy(batch_imgs, results);
                 assert(0 == ret);
 
-                for (int i = 0; i < batch_size; i++) {
+                for (int i = 0; i < batch_imgs.size(); i++) {
                     img_name = batch_names[i];
                     cout << img_name << " pred: " << results[i].first << ", score:" << results[i].second << endl;
                     json res_json;
