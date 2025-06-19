@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
                 auto ret = yolov8.Detect(batch_imgs, boxes); 
                 assert(0 == ret);
 
-                for (int i = 0; i < batch_size; i++) {
+                for (int i = 0; i < batch_imgs.size(); i++) {
                     yolov8.drawPred(boxes[i], batch_mats[i]);
                     string img_file = "results/images/" + batch_names[i];
                     cv::imwrite(img_file, batch_mats[i]);

@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
                 auto ret = yolov8.Detect(batch_imgs, boxes);
                 assert(0 == ret);
 
-                for (int i = 0; i < batch_size; i++) {
+                for (int i = 0; i < batch_imgs.size(); i++) {
                     yolov8.draw_result(batch_mats[i], boxes[i]);
                     string img_file = "results/images/" + batch_names[i];
                     cv::imwrite(img_file, batch_mats[i]);
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
             if ((batch_imgs.size() == batch_size || end_flag) && !batch_imgs.empty()) {
                 // predict
                 CV_Assert(0 == yolov8.Detect(batch_imgs, boxes));
-                for (int i = 0; i < batch_size; i++) {
+                for (int i = 0; i < batch_imgs.size(); i++) {
                     static int id = 0;
                     id++;
                     cout << id << ", det_nums: " << boxes[i].size() << endl;
