@@ -29,38 +29,33 @@ if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH pcie)
 endif()
 
-if (${TARGET_ARCH} STREQUAL "pcie")
-    add_compile_definitions(CHIP_V5)
-    message( "${TARGET_ARCH} mode, starting......")
-    # set(lib_DIR /usr/lib/x84_64-linux-gnu)
-    # link_directories(${lib_DIR})
-    # use ffmpeg
-    set(FFMPEG_DIR  /opt/sophon/sophon-ffmpeg-latest/lib/cmake)
-    find_package(FFMPEG REQUIRED)
-    include_directories(${FFMPEG_INCLUDE_DIRS})
-    link_directories(${FFMPEG_LIB_DIRS})
-    # use opencv
-    set(OpenCV_DIR  /opt/sophon/sophon-opencv-latest/lib/cmake/opencv4)
-    find_package(OpenCV REQUIRED)
-    include_directories(${OpenCV_INCLUDE_DIRS})
-    link_directories(${OpenCV_LIB_DIRS})
-    # use bmcv
-    include_directories(/opt/sophon/libsophon-current/include)
-    link_directories(/opt/sophon/libsophon-current/lib)
+add_compile_definitions(CHIP_V5)
+message( "${TARGET_ARCH} mode, starting......")
+# set(lib_DIR /usr/lib/x84_64-linux-gnu)
+# link_directories(${lib_DIR})
+# use ffmpeg
+set(FFMPEG_DIR  /opt/sophon/sophon-ffmpeg-latest/lib/cmake)
+find_package(FFMPEG REQUIRED)
+include_directories(${FFMPEG_INCLUDE_DIRS})
+link_directories(${FFMPEG_LIB_DIRS})
+# use opencv
+set(OpenCV_DIR  /opt/sophon/sophon-opencv-latest/lib/cmake/opencv4)
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+link_directories(${OpenCV_LIB_DIRS})
+# use bmcv
+include_directories(/opt/sophon/libsophav-latest/include)
+link_directories(/opt/sophon/libsophav-latest/lib)
 
-    # use tpuv7-runtime
-    set(tpuv7_DIR /opt/tpuv7/tpuv7-current/data/)
-    find_package(tpuv7 REQUIRED)
-    include_directories(${TPUV7_INCLUDE_DIRS})
-    link_directories(${TPUV7_LIB_DIRS})
+# use tpuv7-runtime
+set(tpuv7_DIR /opt/tpuv7/tpuv7-current/data/)
+find_package(tpuv7 REQUIRED)
+include_directories(${TPUV7_INCLUDE_DIRS})
+link_directories(${TPUV7_LIB_DIRS})
 
-    include_directories("../dependencies/include/")
+include_directories("../dependencies/include/")
 
-    aux_source_directory(. SRC_FILES)
-    aux_source_directory(../dependencies/src/ SRC_FILES)
-    add_executable(yolov5_bmcv.pcie ${SRC_FILES})
-    target_link_libraries(yolov5_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} bmcv_host tpuv7_rt tpuv7_modelrt -lpthread)
-
-else ()
-    message( FATAL_ERROR  "not support mode, eg: pcie, cur: ${TARGET_ARCH}")
-endif ()
+aux_source_directory(. SRC_FILES)
+aux_source_directory(../dependencies/src/ SRC_FILES)
+add_executable(yolov5_bmcv ${SRC_FILES})
+target_link_libraries(yolov5_bmcv ${FFMPEG_LIBS} ${OpenCV_LIBS} bmcv tpuv7_rt tpuv7_modelrt -lpthread)

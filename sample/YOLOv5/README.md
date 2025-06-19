@@ -45,7 +45,7 @@
 ```
 
 ### 2.2 SDK特性
-* 支持BM1690(PCIe)
+* 支持BM1690(PCIe、SoC)
 * 支持FP32、FP16、INT8模型推理
 * 支持基于OpenCV的Python推理
 * 支持单batch和多batch模型推理
@@ -132,8 +132,11 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 |     BM1690 PCIe     | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
 |     BM1690 PCIe     | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.355 |    0.571 |
 |     BM1690 PCIe     | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.355 |    0.571 |
-|     BM1690 PCIe     | yolov5_bmcv.pcie   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.374 |    0.572 |
-|     BM1690 PCIe     | yolov5_bmcv.pcie   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.353 |    0.562 |
+|     BM1690 PCIe     | yolov5_bmcv   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.374 |    0.572 |
+|     BM1690 PCIe     | yolov5_bmcv   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.353 |    0.562 |
+|     BM1690 SoC      | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
+|     BM1690 SoC      | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.355 |    0.571 |
+|     BM1690 SoC      | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.355 |    0.571 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -173,8 +176,11 @@ tpu-model-rt --bmodel models/BM1690/yolov5s_v6.1_3output_fp32_1b.bmodel
 | BM1690 PCIe | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      1.23       |      2.36       |      14.30      |      5.81       |
 | BM1690 PCIe | yolov5_bmcv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      0.44       |      3.93       |      2.06      |      5.07       |
 | BM1690 PCIe | yolov5_bmcv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      0.44       |      4.08       |      17.36      |      5.58       |
-| BM1690 PCIe | yolov5_bmcv.pcie  |yolov5s_v6.1_3output_int8_1b.bmodel|      4.33       |      2.46       |      2.07       |      7.00       |
-| BM1690 PCIe | yolov5_bmcv.pcie  |yolov5s_v6.1_3output_fp32_1b.bmodel|      4.44       |      2.52       |      17.35      |      7.22       |
+| BM1690 PCIe | yolov5_bmcv  |yolov5s_v6.1_3output_int8_1b.bmodel|      4.33       |      2.46       |      2.07       |      7.00       |
+| BM1690 PCIe | yolov5_bmcv  |yolov5s_v6.1_3output_fp32_1b.bmodel|      4.44       |      2.52       |      17.35      |      7.22       |
+| BM1690 SoC  | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      12.59      |      39.25      |      75.28      |     231.72      |
+| BM1690 SoC  | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      12.17      |      29.15      |      68.38      |     219.84      |
+| BM1690 SoC  | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      12.44      |      39.44      |      92.51      |     219.85      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

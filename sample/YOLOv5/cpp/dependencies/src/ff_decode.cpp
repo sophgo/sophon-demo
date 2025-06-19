@@ -278,7 +278,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out,
         bm_image cmp_bmimg;
         bm_image_create(handle, coded_height, coded_width, FORMAT_COMPRESSED, DATA_TYPE_EXT_1N_BYTE, &cmp_bmimg);
 
-        bm_device_mem_t input_addr[4];
+        media_mem_t input_addr[4];
         int size = in->height * in->linesize[4];
         input_addr[0] = bm_mem_from_device((unsigned long long)in->data[6], size);
         size = (in->height / 2) * in->linesize[5];
@@ -303,7 +303,7 @@ bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out,
     } else {
         int stride[3];
         bm_image_format_ext bm_format;
-        bm_device_mem_t input_addr[3] = {0};
+        media_mem_t input_addr[3] = {0};
 
         data_on_device_mem ? stride[0] = in->linesize[4] : stride[0] = in->linesize[0];
 
@@ -382,16 +382,16 @@ bm_status_t avframe_to_bm_image(bm_handle_t& handle, AVFrame* in, bm_image* out,
         bm_image_destroy(&tmp);
         tpuRtStatus_t tpuret;
         if (!data_on_device_mem) {
-            void *data = reinterpret_cast<void *>(input_addr[0].u.device.device_addr);
+            void *data = reinterpret_cast<void *>(input_addr[0].phy_addr);
             tpuret = tpuRtFree(&data, 0);
             assert(tpuret == tpuRtSuccess);
             if (data_five_denominator != -1) {
-                void *data = reinterpret_cast<void *>(input_addr[1].u.device.device_addr);
+                void *data = reinterpret_cast<void *>(input_addr[1].phy_addr);
                 tpuret = tpuRtFree(&data, 0);
                 assert(tpuret == tpuRtSuccess);
             }
             if (data_six_denominator != -1) {
-                void *data = reinterpret_cast<void *>(input_addr[2].u.device.device_addr);
+                void *data = reinterpret_cast<void *>(input_addr[2].phy_addr);
                 tpuret = tpuRtFree(&data, 0);
                 assert(tpuret == tpuRtSuccess);
             }

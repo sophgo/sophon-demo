@@ -284,11 +284,11 @@ int YoloV5::pre_process(const std::vector<bm_image>& images) {
 
     // 3. attach to tensor
     if (image_n != max_batch) image_n = get_nearest_batch(batches, image_n);    
-    bm_device_mem_t input_dev_mem;
+    media_mem_t input_dev_mem;
     ret = bm_image_get_contiguous_device_mem(image_n, m_converto_imgs.data(),
                                        &input_dev_mem);
     assert(bmcvSuccess == ret);
-    input_tensor->data = reinterpret_cast<void*>(input_dev_mem.u.device.device_addr);
+    input_tensor->data = reinterpret_cast<void*>(input_dev_mem.phy_addr);
 
     // input_tensor->set_shape_by_dim(0, image_n);  // set real batch number
     return 0;

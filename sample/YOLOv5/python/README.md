@@ -7,7 +7,7 @@
 - [Python例程](#python例程)
   - [目录](#目录)
   - [1. 环境准备](#1-环境准备)
-    - [1.1 x86 PCIe平台](#11-x86-pcie平台)
+    - [1.1 x86 PCIe / riscv64 SoC平台](#11-x86-pcie--riscv64-Soc平台)
   - [2. 推理测试](#2-推理测试)
     - [2.1 参数说明](#21-参数说明)
     - [2.2 测试图片](#22-测试图片)
@@ -21,9 +21,9 @@ python目录下提供了一系列Python例程，具体情况如下：
 | 1    | yolov5_opencv.py | 使用OpenCV解码、OpenCV前处理、SAIL推理 |
 
 ## 1. 环境准备
-### 1.1 x86 PCIe平台
+### 1.1 x86 PCIe / riscv64 SoC平台
 
-目前仅支持在x86 PCIe平台测试本例程。除了安装tpuv7-driver、tpuv7-runtime和sophon-sail之外，您还需要配置opencv等其他第三方库：
+目前支持在x86 PCIe和riscv64 SoC平台测试本例程。除了安装tpuv7-driver、tpuv7-runtime和sophon-sail之外，您还需要配置opencv等其他第三方库：
 
 ```bash
 pip3 install opencv-python-headless
