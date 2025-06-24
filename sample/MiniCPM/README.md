@@ -40,7 +40,7 @@ MiniCPM 是面壁与清华大学自然语言处理实验室共同开源的系列
 ```bash
 cd /data/
 mkdir memedit && cd memedit
-wget -nd https://sophon-file.sophon.cn/sophon-prod-s3/drive/23/09/11/13/DeviceMemoryModificationKit.tgz
+wget -nd https://github.com/sophgo/sophon-tools/releases/download/v24.09.21/memory_edit_v2.10.tar.xz
 tar xvf DeviceMemoryModificationKit.tgz
 cd DeviceMemoryModificationKit
 tar xvf memory_edit_{vx.x}.tar.xz #vx.x是版本号
