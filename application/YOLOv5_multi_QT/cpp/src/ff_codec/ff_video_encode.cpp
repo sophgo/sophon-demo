@@ -107,6 +107,11 @@ int VideoEnc_FFMPEG::openEnc(const char* output_filename, const char* codec_name
 
     av_dict_set_int(&dict, "is_dma_buffer", 1 , 0);
 
+    // fix rtmp push stream error
+    enc_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+    av_dict_set(&dict, "global_header", "1", 0);
+
+
     /* Third parameter can be used to pass settings to encoder */
     ret = avcodec_open2(enc_ctx, encoder, &dict);
     if (ret < 0) {
