@@ -61,7 +61,7 @@ Audio_assistant
 ```bash
 cd /data/
 mkdir memedit && cd memedit
-wget -nd https://sophon-file.sophon.cn/sophon-prod-s3/drive/23/09/11/13/DeviceMemoryModificationKit.tgz
+wget -nd https://github.com/sophgo/sophon-tools/releases/download/v24.09.21/memory_edit_v2.10.tar.xz
 tar xvf DeviceMemoryModificationKit.tgz
 cd DeviceMemoryModificationKit
 tar xvf memory_edit_v2.9.tar.xz
