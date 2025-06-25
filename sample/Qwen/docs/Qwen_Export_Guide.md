@@ -254,9 +254,9 @@ Qwen3无需导出onnx，可以使用llm_convert工具直接转换bmodel，可以
 ```bash
 # 下载模型
 git lfs install
-git clone git@hf.co:Qwen/Qwen3-4B
+git clone git@hf.co:Qwen/Qwen3-4B-AWQ
 # 如果是8B，则如下：
-git clone git@hf.co:Qwen/Qwen3-8B
+git clone git@hf.co:Qwen/Qwen3-8B-AWQ
 ```
 在docker内编译模型生成bmodel
 ```bash
@@ -265,3 +265,7 @@ llm_convert.py -m /workspace/Qwen3-4B -s 512 --quantize w4bf16 -g 128 -c bm1684x
 # bm1688平台下执行：
 llm_convert.py -m /workspace/Qwen3-4B -s 512 --quantize w4bf16 -g 128 -c bm1688 --out_dir qwen3_4b
 ```
+
+> **注意**：
+> 1. Qwen2及之后的模型都可以使用此工具直接转换bmodel；
+> 2. 推荐下载AWQ量化版本的模型进行转换，可基本消除模型转换过程的精度损失。
