@@ -21,7 +21,7 @@ GroundingDINO是一种多模态的目标检测模型。
 本例程对[GroundingDINO官方开源仓库](https://github.com/IDEA-Research/GroundingDINO/tree/main)的模型和算法进行移植，使之能在SOPHON BM1684X上进行推理测试,移植过程中针对TPU的推理上对源代码进行了优化和提速。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)
+* 支持BM1684X(x86 PCIe、SoC)，BM1688(SoC)、CV186X(SoC)
 * 支持FP16模型编译和推理
 * 支持基于PIL的Python推理
 * 支持基于SOPHON-SAIL的C++推理
