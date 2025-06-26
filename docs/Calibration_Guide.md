@@ -12,8 +12,8 @@
 量化数据集的预处理应该和推理测试的预处理保持一致，否则会导致较大的精度损失。在mlir制作npz/npy数据集、nntc制作lmdb量化数据集时，应当预先完成数据的预处理。
 
 ### 1.3 特定模型优化技巧
-#### 1.3.1 YOLO系列模型
-由于yolo系列的输出既有分类又有回归，致使输出在统计学上的分布不均匀，所以通常不量化最后三个conv层及其之后的所有层，有时候最开始的几个conv层也不量化，具体效果如何需要实际操作下。
+#### 1.3.1 YOLOv5系列模型
+由于yolov5系列的输出分类和回归任务耦合在一起,致使输出在统计学上的分布不均匀，所以通常不量化最后三个conv层及其之后的所有层，有时候最开始的几个conv层也不量化，具体效果如何需要实际操作下。
 
 MLIR具体步骤如下：
 1. 可以先用mlir2onnx.py这个工具，将model_transform生成的mlir文件转化成onnx，然后通过netron查看onnx网络结构。
@@ -21,12 +21,12 @@ MLIR具体步骤如下：
    mlir2onnx.py -m xxx.mlir -o xxx.onnx
    ```
 2. 使用fp_forward.py生成qtable，--fpfwd_outputs、--fpfwd_inputs功能与以前nntc一样，指定层名即可将对应的所有层指定对应的fp_type。
-   ![Alt text](../pics/cali_guide_image0.png)
-   如上图所示，层名一般是该层在netron.app中对应的OUTPUTS name。参考如下命令生成qtable：
+   ![Alt text](../pics/cali_guide_image0.webp)
+   如上图所示，最后三个的卷积层的名称分别为390，416，442，因此使用以下fp_forward指令，生成qtable:
    ```bash
-   fp_forward.py xxx.mlir --fpfwd_outputs 357_Gather --chip bm1684 --fp_type F32 -o xxx_qtable 
+   fp_forward.py xxx.mlir --fpfwd_outputs 390,416,442 --chip bm1684 -o xxx_qtable 
    ```
-   使用上面的命令生成的qtable，357_Gather及之后的层都会被设置为F32。
+   将最后三个卷积以及后续所有的计算层采用float进行计算，可有效提高模型精度。
    
    **注意，在部分版本mlir中，--chip参数或许不支持bm1688/cv186x，您可以使用bm1684x代替，生成的qtable都是通用的，您也可以自由地更改qtable中每一层对应的的fp_type。**
 
@@ -36,6 +36,29 @@ NNTC具体步骤如下：
 1. 生成fp32 umodel的prototxt文件；
 2. 用Netron打开fp32 umodel的prototxt文件，选择后面三个branch（大目标，中目标，小目标）的conv层，记下名字；
 3. 在分步量化或一键量化中通过--fpfwd_outputs指定步骤2所获得的conv层。可通过--help查看具体方法或参考YOLOv5的量化脚本。
+
+#### 1.3.2 YOLOv8系列模型
+YOLOv8系列模型采用解耦头结构 (Decoupled-Head), 将分类和检测头分离，经验性地，对于改类，一般都需要从坐标回归分支的Conv层、概率预测分支的Sigmoid层开始，将它们设为浮点数计算。
+
+MLIR具体步骤如下：
+1. 可以先用mlir2onnx.py这个工具，将model_transform生成的mlir文件转化成onnx，然后通过netron查看onnx网络结构。
+   ```bash
+   mlir2onnx.py -m xxx.mlir -o xxx.onnx
+   ```
+2. 使用fp_forward.py生成qtable，--fpfwd_outputs、--fpfwd_inputs功能与以前nntc一样，指定层名即可将对应的所有层指定对应的fp_type。
+   ![Alt text](../pics/cali_guide_image1.webp)
+   如上图所示，层名一般是该层在netron.app中对应的OUTPUTS name。参考如下命令生成qtable：
+   ```bash
+   fp_forward.py xxx.mlir --fpfwd_outputs /model.22/dfl/conv/Conv_output_0_Conv --chip bm1684 -o xxx_qtable 
+   ```
+   **然后在qtable中直接添加Sigmoid层**，由于在之前的fp_forward过程中，卷积层已经包含了Sigmoid后续的操作，因此只需在量化表的最后一行加入
+   ```bash
+   /model.22/Sigmoid_output_0_Sigmoid F16。
+   ```
+   
+   **注意，在部分版本mlir中，--chip参数或许不支持bm1688/cv186x，您可以使用bm1684x代替，生成的qtable都是通用的，您也可以自由地更改qtable中每一层对应的的fp_type。**
+
+3. 生成的qtable传给model_deploy.py，配合加入test_input和test_reference来验证混精度策略是否有效。
 
 ## 2. 常见问题
 ### 2.1 量化后检测框偏移严重
