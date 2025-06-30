@@ -27,6 +27,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [video_encode](./tutorial/video_encode/README.md)                        | video encode and stream push.                                             | BM1684/BM1684X/BM1688/CV186X                                                       |
 | [yolov8_ffmpeg_encode](./tutorial/yolov8_ffmpeg_encode/README.md)        | ffmpeg decode + yolov8 inference + bmcv rectangle + ffmpeg encode         | BM1684X |
 | [DPU](./tutorial/DPU/README.md)                                          | 1688 DPU API test case                                                    | BM1688/CV186X |
+| [DWA](./tutorial/DWA/README.md)                                          | 1688 DWA API test case                                                    | BM1688/CV186X |
 
 | contents                                                      | category                           | code       |  BModel        | supported hardware           |
 |---                                                            |---                                 |---         | ---            | ---                          |
@@ -91,6 +92,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [Qwen2-VL](./sample/Qwen2-VL/README.md)                       | Large Vision Language Model        | Python     | INT4           | BM1684X                      |
 | [Qwen2.5-VL](./sample/Qwen2_5-VL/README.md)                   | Large Vision Language Model        | Python     | INT4            | BM1684X/BM1688             |
 | [InternVL2](./sample/InternVL2/README.md)                     | Large Vision Language Model        | Python     | INT4           | BM1684X/BM1688               |
+| [InternVL3](./sample/InternVL3/README.md)                     | Large Vision Language Model        | Python     | INT4           | BM1684X/BM1688               |
 | [Vila](./sample/Vila/README.md)                               | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Llama3_2_Vision](./sample/Llama3_2_Vision/README.md)         | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X                     |
 | [Phi4mm](./sample/Llama3_2_Vision/README.md)                  | Speech-Vision-Language Model       | Python     | INT4            | BM1684X                     |
@@ -122,6 +124,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.3.2  | Fix documentation and other issues. The Qwen sample newly supports deep-thinking switch and penalty_sample. Release new sample InternVL3, new tutorial DWA。|
 | 0.3.1  | Fix documentation and other issues. The Qwen sample newly supports Qwen3, Qwen2.5-VL newly supports AWQ-quantization model and penalty_sample head. Release new samples YOLOv11_obb/Phi4mm, new tutorial DPU。|
 | 0.3.0  | Fix documentation and other issues. The Qwen sample supports QWQ32B. Release new samples Recognize-Anything/YOLOv8_plus_cls. Optimize Real-ESRGAN postprocess and Qwen2.5-VL's preprocess, YOLOv8_plus_det supports models which's output not transposed。|
 | 0.2.10  | Fix documentation and other issues. Qwen supports C++, Release new samples including YOLOv12_det/YOLOv8_plus_seg_fuse/Janus/Qwen2.5-VL, new tutorial yolov8_ffmpeg_encode. |
@@ -151,6 +154,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.2  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.1  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.0  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.10 | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -179,6 +183,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV,
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.2  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.1  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.0  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.10 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
