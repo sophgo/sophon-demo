@@ -27,6 +27,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [video_encode](./tutorial/video_encode/README.md)                        | 视频编码和推流                                                              | BM1684/BM1684X/BM1688/CV186X |
 | [yolov8_ffmpeg_encode](./tutorial/yolov8_ffmpeg_encode/README.md)        | 解码+推理+画框+视频编码和推流                                                 | BM1684X |
 | [DPU](./tutorial/DPU/README.md)                                          | 1688 DPU接口用例                                                             | BM1688/CV186X |
+| [DWA](./tutorial/DWA/README.md)                                          | 1688 DWA接口用例                                                             | BM1688/CV186X |
 
 | sample                                                        | 算法类别          | 编程语言    | BModel         |支持硬件                     |
 |---                                                            |---               |---         | ---            |---                            |
@@ -91,6 +92,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [Qwen2-VL](./sample/Qwen2-VL/README.md)                       | 大规模视觉语言模型 | Python     | INT4            | BM1684X                     |
 | [Qwen2.5-VL](./sample/Qwen2_5-VL/README.md)                   | 大规模视觉语言模型 | Python     | INT4            | BM1684X/BM1688             |
 | [InternVL2](./sample/InternVL2/README.md)                     | 大规模视觉语言模型 | Python     | INT4           | BM1684X/BM1688              |
+| [InternVL3](./sample/InternVL3/README.md)                     | 大规模视觉语言模型 | Python     | INT4           | BM1684X/BM1688              |
 | [Vila](./sample/Vila/README.md)                               | 大规模视觉语言模型 | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Llama3_2_Vision](./sample/Llama3_2_Vision/README.md)         | 大规模视觉语言模型 | Python     | INT8/INT4      | BM1684X                     |
 | [Phi4mm](./sample/Phi4mm/README.md)                           | 音频视觉语言模型   | Python     | INT4           | BM1684X                     |
@@ -122,6 +124,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.3.2  | 完善和修复文档、代码问题，Qwen例程添加深度思考开关、penalty_sample，sample模块新增InternVL3，tutorial模块新增DWA接口用例。|
 | 0.3.1  | 完善和修复文档、代码问题，Qwen例程支持Qwen3，Qwen2.5-VL支持AWQ量化模型和penalty_sample head，sample模块新增YOLOv11_obb、Phi4mm，tutorial模块新增DPU接口用例。|
 | 0.3.0  | 完善和修复文档、代码问题，Qwen例程支持QwQ32B，sample模块新增Recognize-Anything、YOLOv8_plus_cls，Real-ESRGAN后处理优化，Qwen2.5-VL前处理优化，YOLOv8_plus_det支持输出未转置模型。|
 | 0.2.10  | 完善和修复文档、代码问题，Qwen例程支持C++，sample模块新增YOLOv12_det、YOLOv8_plus_seg_fuse、Janus、Qwen2.5-VL。tutorial模块新增yolov8_ffmpeg_encode。|
@@ -151,6 +154,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 SOPHON-DEMO主要依赖TPU-MLIR、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SOPHON-SAIL，对于BM1684/BM1684X SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.2  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.1  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.0  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.2.10 | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -179,6 +183,7 @@ SOPHON-DEMO主要依赖TPU-MLIR、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SO
 对于BM1688/CV186AH SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.2  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.1  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.0  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.2.10 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
