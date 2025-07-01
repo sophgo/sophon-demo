@@ -53,6 +53,7 @@ python3 -m dfss --install sail
 
 ```bash
 pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+sudo apt-get install libsndfile1
 ```
 
 ## 2. 推理测试
