@@ -1,6 +1,6 @@
 FlagEmbedding
 transformers
-numpy
+numpy<2.0.0
 torch
 faiss-cpu
 OpenAI
