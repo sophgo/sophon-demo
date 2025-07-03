@@ -1,12 +1,16 @@
 # ChatGLM4
 
 ## 目录
+- [ChatGLM4](#chatglm4)
+  - [目录](#目录)
   - [1. 简介](#1-简介)
   - [2. 特性](#2-特性)
   - [3. 运行环境准备](#3-运行环境准备)
   - [4. 准备模型](#4-准备模型)
+    - [4.1 使用提供的模型](#41-使用提供的模型)
+    - [4.2 自行编译模型](#42-自行编译模型)
   - [5. 例程测试](#5-例程测试)
-  - [3. 程序性能测试](#6-程序性能测试)
+  - [6. 程序性能测试](#6-程序性能测试)
 
 ## 1. 简介
 ChatGLM4-9B 是开源中英双语对话模型 ChatGLM 的第四代版本，关于它的特性，请前往源repo查看：https://huggingface.co/THUDM/glm-4-9b-chat。本例程对ChatGLM4-9B进行移植，使之能在SOPHON BM1684X上进行推理测试。
@@ -27,9 +31,7 @@ ChatGLM4-9B 是开源中英双语对话模型 ChatGLM 的第四代版本，关�
 cd /data/
 mkdir memedit && cd memedit
 wget -nd https://github.com/sophgo/sophon-tools/releases/download/v24.09.21/memory_edit_v2.10.tar.xz
-tar xvf DeviceMemoryModificationKit.tgz
-cd DeviceMemoryModificationKit
-tar xvf memory_edit_{vx.x}.tar.xz #vx.x是版本号
+tar xvf memory_edit_v2.10.tar.xz
 cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息
 ./memory_edit.sh -c -npu 7615 -vpu 3072 -vpp 3072 #npu也可以访问vpu和vpp的内存

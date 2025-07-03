@@ -1,7 +1,7 @@
 # Qwen2.5-VL
 
 ## 目录
-- [Qwen2.5-VL](#qwen2.5-vl)
+- [Qwen2.5-VL](#qwen25-vl)
   - [目录](#目录)
   - [1. 简介](#1-简介)
   - [2. 特性](#2-特性)
@@ -40,9 +40,7 @@ Qwen2.5-VL 是阿里巴巴推出的新一代多模态大语言模型（Multimoda
 cd /data/
 mkdir memedit && cd memedit
 wget -nd https://github.com/sophgo/sophon-tools/releases/download/v24.09.21/memory_edit_v2.10.tar.xz
-tar xvf DeviceMemoryModificationKit.tgz
-cd DeviceMemoryModificationKit
-tar xvf memory_edit_{vx.x}.tar.xz #vx.x是版本号
+tar xvf memory_edit_v2.10.tar.xz
 cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息
 ./memory_edit.sh -c -npu 7615 -vpu 2048 -vpp 2048 #如果是在1688平台上请修改为：./memory_edit.sh -c -npu 10240 -vpu 0 -vpp 3072

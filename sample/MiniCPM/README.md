@@ -5,12 +5,11 @@
 - [MiniCPM](#minicpm)
   - [目录](#目录)
   - [1. 简介](#1-简介)
-  - [2. 特性](#2-特性)
+  - [2.特性](#2特性)
   - [3. 运行环境准备](#3-运行环境准备)
   - [4. 准备模型和链接库](#4-准备模型和链接库)
     - [4.1 使用提供的模型](#41-使用提供的模型)
     - [4.2 自行编译模型](#42-自行编译模型)
-    - [4.3 编译模型](#43-编译模型)
   - [5. 例程测试](#5-例程测试)
   - [6. 程序性能测试](#6-程序性能测试)
 
@@ -41,9 +40,7 @@ MiniCPM 是面壁与清华大学自然语言处理实验室共同开源的系列
 cd /data/
 mkdir memedit && cd memedit
 wget -nd https://github.com/sophgo/sophon-tools/releases/download/v24.09.21/memory_edit_v2.10.tar.xz
-tar xvf DeviceMemoryModificationKit.tgz
-cd DeviceMemoryModificationKit
-tar xvf memory_edit_{vx.x}.tar.xz #vx.x是版本号
+tar xvf memory_edit_v2.10.tar.xz
 cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息
 ./memory_edit.sh -c -npu 1536 -vpu 0 -vpp 4096 #npu也可以访问vpu和vpp的内存

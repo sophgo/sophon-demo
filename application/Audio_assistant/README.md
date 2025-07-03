@@ -2,14 +2,14 @@
 
 ## 目录
 
-- [Audio_assistant 例程](#Audio_assistant-例程)
+- [Audio\_assistant 例程](#audio_assistant-例程)
   - [目录](#目录)
   - [简介](#简介)
   - [特性](#特性)
   - [1. 工程目录](#1-工程目录)
   - [2. 运行环境准备](#2-运行环境准备)
   - [3. 例程](#3-例程)
-  - [4. FAQ](#4-FAQ)
+  - [4. FAQ](#4-faq)
 
 
 ## 简介
@@ -62,9 +62,7 @@ Audio_assistant
 cd /data/
 mkdir memedit && cd memedit
 wget -nd https://github.com/sophgo/sophon-tools/releases/download/v24.09.21/memory_edit_v2.10.tar.xz
-tar xvf DeviceMemoryModificationKit.tgz
-cd DeviceMemoryModificationKit
-tar xvf memory_edit_v2.9.tar.xz
+tar xvf memory_edit_v2.10.tar.xz
 cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息
 ./memory_edit.sh -c -npu 6616 -vpu 512 -vpp 3072 #npu也可以访问vpu和vpp的内存
