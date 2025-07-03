@@ -2,12 +2,16 @@
 
 ## 目录
 
-- [1. 简介](#1-简介)
-- [2. 特性](#2-特性)
-- [3. 运行环境准备](#3-运行环境准备)
-- [4. 准备模型](#4-准备模型)
-- [5. 例程测试](#5-例程测试)
-- [6. 程序性能测试](#6-程序性能测试)
+- [FLUX.1](#flux1)
+	- [目录](#目录)
+	- [1. 简介](#1-简介)
+	- [2. 特性](#2-特性)
+	- [3. 运行环境准备](#3-运行环境准备)
+	- [4. 准备模型](#4-准备模型)
+		- [4.1 使用提供的模型](#41-使用提供的模型)
+		- [4.2 自行编译模型](#42-自行编译模型)
+	- [5. 例程测试](#5-例程测试)
+	- [6. 程序性能测试](#6-程序性能测试)
 
 ## 1. 简介
 
@@ -67,9 +71,7 @@ pip3 install sophon_arm-3.9.0-py3-none-any.whl --force-reinstall
 cd /data/
 mkdir memedit && cd memedit
 wget -nd https://github.com/sophgo/sophon-tools/releases/download/v24.09.21/memory_edit_v2.10.tar.xz
-tar xvf DeviceMemoryModificationKit.tgz
-cd DeviceMemoryModificationKit
-tar xvf memory_edit_{vx.x}.tar.xz #vx.x是版本号
+tar xvf memory_edit_v2.10.tar.xz
 cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息
 

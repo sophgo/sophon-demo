@@ -1,13 +1,23 @@
 # Python例程
 
 ## 目录 
-- [1. 环境准备](#1-环境准备)
-  - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
-  - [1.2 SoC平台](#12-soc平台)
-- [2. 启动服务](#2-启动服务)
-  - [2.1 参数说明](#21-参数说明)
-  - [2.2 使用方式](#22-使用方式)
-  - [2.3 操作说明](#23-使用方式)
+- [Python例程](#python例程)
+  - [目录](#目录)
+  - [1. 环境准备](#1-环境准备)
+    - [1.1 x86/arm PCIe平台](#11-x86arm-pcie平台)
+    - [1.2 SoC平台](#12-soc平台)
+  - [2. 启动服务](#2-启动服务)
+    - [2.1 参数说明](#21-参数说明)
+    - [2.2 使用方式](#22-使用方式)
+    - [2.3 操作说明](#23-操作说明)
+    - [界面简介](#界面简介)
+    - [上传文档](#上传文档)
+    - [持久化知识库](#持久化知识库)
+    - [导入知识库](#导入知识库)
+    - [删除知识库](#删除知识库)
+    - [重命名知识库](#重命名知识库)
+    - [清除聊天记录](#清除聊天记录)
+    - [移除选中文档](#移除选中文档)
 
 python目录下提供了Python例程，具体情况如下：
 
@@ -64,9 +74,7 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/sophon_arm-3.8.0-py3-none
 cd /data/
 mkdir memedit && cd memedit
 wget -nd https://github.com/sophgo/sophon-tools/releases/download/v24.09.21/memory_edit_v2.10.tar.xz
-tar xvf DeviceMemoryModificationKit.tgz
-cd DeviceMemoryModificationKit
-tar xvf memory_edit_{vx.x}.tar.xz #vx.x是版本号
+tar xvf memory_edit_v2.10.tar.xz
 cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息
 ./memory_edit.sh -c -npu 7615 -vpu 800 -vpp 800 #npu也可以访问vpu和vpp的内存
