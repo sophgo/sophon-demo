@@ -280,8 +280,7 @@ def main(args):
 
     # test images
     if os.path.isdir(args.input):
-        logging.error("Not support images dir now!")
-        return 0
+        functional = sail.cv.Functional(args.dev_id)
         img_list = []
         filename_list = []
         results_list = []
@@ -302,16 +301,17 @@ def main(args):
                 # decode
                 start_time = time.time()
                 opts: dict = {}
-                dec = sail.cv.Decoder(img_file, opts, args.dev_id)
-                src_img = sail.cv.Image()
-                ret = dec.read(src_img)
+                src_img = functional.imread(img_file)    
                 if src_img is None:
                     logging.error("{} imdecode is None.".format(img_file))
                     continue
+                bgr_img = sail.cv.Image(src_img.height(), src_img.width(), sail.cv.ImgFormat.FORMAT_BGR_PACKED, 
+                                        src_img.dtype(), args.dev_id)
+                ret = functional.format_convert(src_img, bgr_img, sail.cv.CscType.CSC_YPbPr2RGB_BT601)
                 # if len(src_img.shape) != 3:
                 #     src_img = cv2.cvtColor(src_img, cv2.COLOR_GRAY2BGR)
                 decode_time += time.time() - start_time
-                img_list.append(src_img)
+                img_list.append(bgr_img)
                 filename_list.append(filename)
                 if (len(img_list) == batch_size or cn == len(filenames)) and len(
                     img_list
@@ -332,7 +332,7 @@ def main(args):
                                     conf_scores=det[:, -1],
                                 )
                             else:
-                                res_img = img_list[i]
+                                res_img = img_list[i].asnumpy()
                         else:
                             if det.shape[0] >= 1:
                                 res_img = draw_numpy(
@@ -377,7 +377,7 @@ def main(args):
             os.path.split(args.bmodel)[-1]
             + "_"
             + os.path.split(args.input)[-1]
-            + "_opencv"
+            + "_bmcv"
             + "_python_result.json"
         )
         with open(os.path.join(output_dir, json_name), "w") as jf:

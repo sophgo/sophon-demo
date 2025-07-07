@@ -141,6 +141,10 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 |     BM1690 SoC      | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
 |     BM1690 SoC      | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.355 |    0.571 |
 |     BM1690 SoC      | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.355 |    0.571 |
+|     BM1690 SoC      | yolov5_bmcv   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.372 |    0.569 |
+|     BM1690 SoC      | yolov5_bmcv   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.347 |    0.550 |
+|     BM1690 SoC      | yolov5_bmcv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.373 |    0.573 |
+|     BM1690 SoC      | yolov5_bmcv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.352 |    0.561 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -185,6 +189,10 @@ tpu-model-rt --bmodel models/BM1690/yolov5s_v6.1_3output_fp32_1b.bmodel
 | BM1690 SoC  | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      12.59      |      39.25      |      75.28      |     231.72      |
 | BM1690 SoC  | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      12.17      |      29.15      |      68.38      |     219.84      |
 | BM1690 SoC  | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|      12.44      |      39.44      |      92.51      |     219.85      |
+| BM1690 SoC  | yolov5_bmcv  |yolov5s_v6.1_3output_int8_1b.bmodel|      8.11       |      1.21       |      0.07       |      35.06      |
+| BM1690 SoC  | yolov5_bmcv  |yolov5s_v6.1_3output_fp32_1b.bmodel|      8.08       |      1.22       |      0.07       |      37.91      |
+| BM1690 SoC  | yolov5_bmcv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|      3.93       |      1.84       |      19.82      |     225.18      |
+| BM1690 SoC  | yolov5_bmcv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|      4.10       |      1.81       |      4.90       |     228.61      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

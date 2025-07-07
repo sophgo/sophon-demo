@@ -131,8 +131,10 @@ inline tensorSizeType getTensorBytes(const tpuRtTensor_t& tensor) {
 inline char* get_cpu_data(std::shared_ptr<tpuRtTensor_t> tensor,
                    tpuRtStream_t& stream) {
     auto size = getTensorBytes(*tensor);
-    char* cpu_data = new char[size];  // bytes
-    auto ret = tpuRtMemcpyD2SAsync(cpu_data, tensor->data, size, stream);
+    char* cpu_data = nullptr;
+    auto ret = tpuRtMallocHost((void**)&cpu_data, size);
+    assert(ret == tpuRtSuccess);
+    ret = tpuRtMemcpyD2SAsync(cpu_data, tensor->data, size, stream);
     assert(ret == tpuRtSuccess);
     ret = tpuRtStreamSynchronize(stream);
     assert(ret == tpuRtSuccess);

@@ -378,7 +378,7 @@ int YoloV5::post_process(const std::vector<bm_image>& images,
       std::cout<<"             you can remove the redundant outputs to improve performance"<< std::endl;
       std::cout<<std::endl;
     }
-
+    char *cpu_data = nullptr;
     if(min_dim == 5){
       LOG_TS(m_ts, "post 1: get output and decode");
       // std::cout<<"--> Note: Decoding Boxes"<<std::endl;
@@ -404,7 +404,8 @@ int YoloV5::post_process(const std::vector<bm_image>& images,
         int area = feat_h * feat_w;
         assert(feat_c == anchor_num);
         int feature_size = feat_h*feat_w*nout;
-        float *tensor_data = (float*)get_cpu_data(output_tensor, stream) + batch_idx*feat_c*area*nout;
+        cpu_data = get_cpu_data(output_tensor, stream);
+        float *tensor_data = reinterpret_cast<float*>(cpu_data) + batch_idx*feat_c*area*nout;
         for (int anchor_idx = 0; anchor_idx < anchor_num; anchor_idx++)
         {
           float *ptr = tensor_data + anchor_idx*feature_size;
@@ -431,7 +432,8 @@ int YoloV5::post_process(const std::vector<bm_image>& images,
       LOG_TS(m_ts, "post 1: get output");
       assert(box_num == 0 || box_num == out_tensor->shape.dims[1]);
       box_num = out_tensor->shape.dims[1];
-      output_data = (float*)get_cpu_data(out_tensor, stream) + batch_idx*box_num*nout;
+      cpu_data = get_cpu_data(out_tensor, stream);
+      float *output_data = reinterpret_cast<float*>(cpu_data) + batch_idx*box_num*nout;
       LOG_TS(m_ts, "post 1: get output");
     }
 
@@ -518,6 +520,8 @@ int YoloV5::post_process(const std::vector<bm_image>& images,
     LOG_TS(m_ts, "post 3: nms");
 
     detected_boxes.push_back(yolobox_vec);
+    auto tpu_ret = tpuRtFreeHost(cpu_data);
+    assert(tpu_ret == tpuRtSuccess);
   }
 
   return 0;
@@ -588,7 +592,7 @@ int YoloV5::post_process_cpu_opt(const std::vector<bm_image>& images,
                       << std::endl;
             std::cout << std::endl;
         }
-
+        char *cpu_data = nullptr;
         if (min_dim == 5) {
             LOG_TS(m_ts, "post 1: get output and decode");
             // std::cout<<"--> Note: Decoding Boxes"<<std::endl;
@@ -615,8 +619,9 @@ int YoloV5::post_process_cpu_opt(const std::vector<bm_image>& images,
                 int area = feat_h * feat_w;
                 assert(feat_c == anchor_num);
                 int feature_size = feat_h * feat_w * nout;
-                float* tensor_data = reinterpret_cast<float*>(get_cpu_data(out_tensor, stream)) +
-                                     batch_idx * feat_c * area * nout;
+                cpu_data = get_cpu_data(out_tensor, stream);
+                float *tensor_data = reinterpret_cast<float*>(cpu_data) + 
+                                        batch_idx * feat_c * area * nout;
                 for (int anchor_idx = 0; anchor_idx < anchor_num;
                      anchor_idx++) {
                     float* ptr = tensor_data + anchor_idx * feature_size;
@@ -659,8 +664,9 @@ int YoloV5::post_process_cpu_opt(const std::vector<bm_image>& images,
             LOG_TS(m_ts, "post 1: get output");
             assert(box_num == 0 || box_num == out_tensor->shape.dims[1]);
             box_num = out_tensor->shape.dims[1];
-            output_data =
-                reinterpret_cast<float*>(get_cpu_data(out_tensor, stream)) + batch_idx * box_num * nout;
+            cpu_data = get_cpu_data(out_tensor, stream);
+            output_data = reinterpret_cast<float*>(cpu_data) + 
+                                                batch_idx * box_num * nout;
             LOG_TS(m_ts, "post 1: get output");
         }
 
@@ -754,6 +760,8 @@ int YoloV5::post_process_cpu_opt(const std::vector<bm_image>& images,
         LOG_TS(m_ts, "post 3: nms");
 
         detected_boxes.push_back(yolobox_vec);
+        auto tpu_ret = tpuRtFreeHost(cpu_data);
+        assert(tpu_ret == tpuRtSuccess);
     }
 
     return 0;
