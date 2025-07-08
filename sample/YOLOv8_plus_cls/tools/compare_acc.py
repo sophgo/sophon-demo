@@ -8,6 +8,14 @@ import multiprocessing
 baseline = """
 |   测试平台    |      测试程序     |      测试模型              | acc |
 | ------------ | ---------------- | ----------------------     | -----|
+|   SE7-32    |  yolov8_bmcv.py   |      yolov8s_fp32_1b.bmodel       | 71.80 |
+|   SE7-32    |  yolov8_bmcv.py   |      yolov8s_fp16_1b.bmodel       | 71.80 |
+|   SE7-32    |  yolov8_bmcv.py   |      yolov8s_int8_1b.bmodel       | 69.50 |
+|   SE7-32    |  yolov8_bmcv.py   |      yolov8s_int8_4b.bmodel       | 69.50 |
+|   SE7-32    |  yolov8_bmcv.soc  |      yolov8s_fp32_1b.bmodel       | 68.70 |
+|   SE7-32    |  yolov8_bmcv.soc  |      yolov8s_fp16_1b.bmodel       | 68.70 |
+|   SE7-32    |  yolov8_bmcv.soc  |      yolov8s_int8_1b.bmodel       | 63.00 |
+|   SE7-32    |  yolov8_bmcv.soc  |      yolov8s_int8_4b.bmodel       | 63.00 |
 |   SE9-16    |  yolov8_bmcv.py   |      yolov8s_fp32_1b.bmodel       |71.20 |
 |   SE9-16    |  yolov8_bmcv.py   |      yolov8s_fp16_1b.bmodel       |71.20 |
 |   SE9-16    |  yolov8_bmcv.py   |      yolov8s_int8_1b.bmodel       |69.70 |

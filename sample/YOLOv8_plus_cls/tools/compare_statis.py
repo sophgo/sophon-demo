@@ -8,6 +8,14 @@ import multiprocessing
 baseline = """
 |    测试平台  |     测试程序      |             测试模型                |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
+|   SE7-32    |  yolov8_bmcv.py   |      yolov8s_fp32_1b.bmodel       |      1.61       |      0.74       |      2.84       |      0.12       |
+|   SE7-32    |  yolov8_bmcv.py   |      yolov8s_fp16_1b.bmodel       |      1.57       |      0.74       |      1.19       |      0.12       |
+|   SE7-32    |  yolov8_bmcv.py   |      yolov8s_int8_1b.bmodel       |      1.56       |      0.74       |      0.98       |      0.12       |
+|   SE7-32    |  yolov8_bmcv.py   |      yolov8s_int8_4b.bmodel       |      1.34       |      0.63       |      0.39       |      0.03       |
+|   SE7-32    |  yolov8_bmcv.soc  |      yolov8s_fp32_1b.bmodel       |      1.03       |      0.53       |      2.25       |      0.11       |
+|   SE7-32    |  yolov8_bmcv.soc  |      yolov8s_fp16_1b.bmodel       |      1.04       |      0.52       |      0.60       |      0.11       |
+|   SE7-32    |  yolov8_bmcv.soc  |      yolov8s_int8_1b.bmodel       |      1.03       |      0.52       |      0.40       |      0.11       |
+|   SE7-32    |  yolov8_bmcv.soc  |      yolov8s_int8_4b.bmodel       |      1.02       |      0.49       |      0.24       |      0.10       |
 |   SE9-16    |  yolov8_bmcv.py   |      yolov8s_fp32_1b.bmodel       |      2.85       |      1.44       |      10.72      |      0.14       |
 |   SE9-16    |  yolov8_bmcv.py   |      yolov8s_fp16_1b.bmodel       |      2.84       |      1.45       |      3.40       |      0.14       |
 |   SE9-16    |  yolov8_bmcv.py   |      yolov8s_int8_1b.bmodel       |      2.82       |      1.43       |      1.60       |      0.14       |
