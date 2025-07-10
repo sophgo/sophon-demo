@@ -69,15 +69,19 @@ chmod -R +x scripts/
 下载的模型包括：
 ```
 ./models
-└── BM1690
-    ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1690的FP16 BModel，batch_size=1, num_core=1
-    ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1690的FP32 BModel，batch_size=1, num_core=1
-    ├── yolov5s_v6.1_3output_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1690的INT8 BModel，batch_size=1, num_core=1
-    ├── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1690的INT8 BModel，batch_size=1, num_core=1
-    ├── yolov5s_v6.1_3output_fp16_1b_8core.bmodel # 使用TPU-MLIR编译，用于BM1690的FP16 BModel，batch_size=1, num_core=8
-    ├── yolov5s_v6.1_3output_fp32_1b_8core.bmodel # 使用TPU-MLIR编译，用于BM1690的FP32 BModel，batch_size=1, num_core=8
-    ├── yolov5s_v6.1_3output_int8_1b_8core.bmodel # 使用TPU-MLIR编译，用于BM1690的INT8 BModel，batch_size=1, num_core=8
-    └── yolov5s_v6.1_3output_int8_4b_8core.bmodel # 使用TPU-MLIR编译，用于BM1690的INT8 BModel，batch_size=4, num_core=8
+├── BM1690
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1690的FP16 BModel，batch_size=1, num_core=1
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1690的FP32 BModel，batch_size=1, num_core=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1690的INT8 BModel，batch_size=1, num_core=1
+│   ├── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1690的INT8 BModel，batch_size=1, num_core=1
+│   ├── yolov5s_v6.1_3output_fp16_1b_8core.bmodel # 使用TPU-MLIR编译，用于BM1690的FP16 BModel，batch_size=1, num_core=8
+│   ├── yolov5s_v6.1_3output_fp32_1b_8core.bmodel # 使用TPU-MLIR编译，用于BM1690的FP32 BModel，batch_size=1, num_core=8
+│   ├── yolov5s_v6.1_3output_int8_1b_8core.bmodel # 使用TPU-MLIR编译，用于BM1690的INT8 BModel，batch_size=1, num_core=8
+│   └── yolov5s_v6.1_3output_int8_4b_8core.bmodel # 使用TPU-MLIR编译，用于BM1690的INT8 BModel，batch_size=4, num_core=8
+└── onnx
+    ├── yolov5m_v6.1_1output_1b.onnx          # 相关单输出模型，此处没有benchmark，用户自行使用。
+    ├── yolov5m_v6.1_1output_4b.onnx          # 相关单输出模型，此处没有benchmark，用户自行使用。
+    └── yolov5s_v6.1_3output.onnx             # 导出的onnx动态模型    
 ```
 下载的数据包括：
 ```

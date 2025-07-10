@@ -28,7 +28,9 @@ then
     mkdir ../models
     pushd ../models
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models_240924/BM1690.tar.gz
-    tar xvf BM1690.tar.gz && rm BM1690.tar.gz
+    tar xvf BM1690.tar.gz && rm BM1690.tar.gz    
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models/onnx.tar.gz
+    tar xvf onnx.tar.gz && rm onnx.tar.gz
     popd
     echo "models download!"
 else

@@ -23,10 +23,22 @@ python目录下提供了一系列Python例程，具体情况如下：
 ## 1. 环境准备
 ### 1.1 x86 PCIe / riscv64 SoC平台
 
-目前支持在x86 PCIe和riscv64 SoC平台测试本例程。除了安装tpuv7-driver、tpuv7-runtime和sophon-sail之外，您还需要配置opencv等其他第三方库：
+目前支持在x86 PCIe和riscv64 SoC平台测试本例程。除了安装tpuv7-driver、tpuv7-runtime和sophon-sail之外，您还需要配置opencv等其他第三方库。
+
+在x86 PCIe平台，您可以直接安装第三方库：
 
 ```bash
 pip3 install opencv-python-headless
+```
+
+而在riscv64平台，如果您使用的是openEuler或fedora系统，在安装opencv-python-headless第三方库之前，您还需要安装必要的构建工具：
+
+```bash
+sudo dnf install ninja-build
+sudo dnf groupinstall "Development Tools"
+sudo dnf install cmake automake autoconf libtool
+sudo dnf install openssl-devel
+pip3 install opencv-python-headless #尝试使用pip安装第三方包。
 ```
 
 ## 2. 推理测试
