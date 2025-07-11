@@ -71,8 +71,8 @@ cat online_wer | grep "Overall"
 在aishell数据集上，精度测试结果如下：
 |   测试平台    |    测试程序   |              测试模型                                 | WER    |
 | ------------ | ------------ | ----------------------------------------------------- | ------ |
-|   BM1690 PCIe | whisper.py   | bmwhisper_base_1690_f16_8core.bmodel                | 21.05% |
-|   BM1690 PCIe | whisper.py   | bmwhisper_small_1690_f16_8core.bmodel               | 13.63%  |
+|   BM1690 PCIe | whisper.py   | bmwhisper_base_1690_f16_8core.bmodel                | 16.40% |
+|   BM1690 PCIe | whisper.py   | bmwhisper_small_1690_f16_8core.bmodel               | 9.44%  |
 
 > **测试说明**：
 1. 在使用的模型相同的情况下，wer在不同的测试平台上是相同的。
