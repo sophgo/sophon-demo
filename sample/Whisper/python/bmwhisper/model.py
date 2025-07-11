@@ -108,7 +108,7 @@ class Whisper():
             kvcache_rearrange_input_tensors_map = self.kvcache_rearrange_input_tensors_map
             kvcache_rearrange_output_tensors_map = self.kvcache_rearrange_output_tensors_map
             
-            kvcache_rearrange_input_tensors_map[0] = self.decoder_main_output_tensors_map[i]
+            kvcache_rearrange_input_tensors_map[0] = self.decoder_main_output_tensors_map[i + 1]
 
             kvcache_rearrange_output_tensors_map[0] = kvcache_rearrange_input_tensors_map[0]
 
