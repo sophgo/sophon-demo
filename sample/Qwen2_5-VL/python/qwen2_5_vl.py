@@ -868,8 +868,11 @@ def main(args):
             "\n2. If you want to clear history, please enter one of [c]"
             "\n=================================================================")
     while True:
-        text = input("\nQuestion: ")
-        if text == "q":
+        text = input("\nQuestion: ").strip()
+        if len(text) == 0:
+            print("Please input content")
+            continue
+        elif text == "q":
             print("accept 'q', exit")
             break
         elif text == "c":

@@ -13,7 +13,7 @@ def main(args):
     model = Qwen2_5_VL(dev_id=args.dev_id, bmodel_path=args.bmodel_path, log_level=args.log_level, processor_path=args.processor_path, tokenizer_path=args.tokenizer_path, config=args.config)
     vision_inputs = [{"type":"image_url", "image_url":{}, \
                                     "max_side":-1}]
-    text = "请描述图片中的内容"
+    prompt = "请描述图片中的内容"
     file_paths = [os.path.join(args.vision_inputs, file_name) for file_name in os.listdir(args.vision_inputs)]
     message_duration_mean = 0
     preprocess_duration_mean = 0
@@ -25,7 +25,7 @@ def main(args):
         message_start_time = time.time()
         first_start = time.time()
         cur_data = copy.deepcopy(vision_inputs)
-        cur_data.append({"type": "text", "text": text})
+        cur_data.append({"type": "text", "text": prompt})
         cur_data[0]["image_url"]["url"] = file_path
         messages, _ = model.generate_message([], cur_data, "user")
         messages = [messages]
