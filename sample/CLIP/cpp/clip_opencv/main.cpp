@@ -18,9 +18,8 @@ using namespace std;
 
 #include "tokenizer/tokenizer.hpp"
 
-void get_text_features(CLIPTokenizer& tokenizer, std::string label, std::vector<int>& ids) {
-    size_t max_token_id = 77;
-    ids = tokenizer.tokenize(label, nullptr, max_token_id, true);
+void get_text_features(CLIPTokenizer& tokenizer, std::string label, std::vector<int>& ids, size_t max_token_len) {
+    ids = tokenizer.tokenize(label, nullptr, max_token_len, true);
 }
 
 void process_images(const std::vector<std::string>& image_paths, const std::vector<std::vector<int>> tokenlized_text,
@@ -180,9 +179,11 @@ int main(int argc, char *argv[]){
     // tokenizer;
     CLIPTokenizer tokenizer;
     std::vector<std::vector<int>> features_vector;
+    size_t max_token_len = clip.get_max_token_len();
+
     for (const auto& label : text_vector) {
         std::vector<int> text_vec_out; // 存储当前字符串的特征向量
-        get_text_features(tokenizer, label, text_vec_out);
+        get_text_features(tokenizer, label, text_vec_out, max_token_len);
         features_vector.push_back(text_vec_out); // 将特征向量添加到结果向量中
     }
     // predict

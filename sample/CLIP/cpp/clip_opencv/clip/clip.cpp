@@ -122,6 +122,13 @@ void CLIP::deinit() {
     preprocess_time = 0.0;
 }
 
+size_t CLIP::get_max_token_len() const {
+    if (text_net_input_shape == nullptr) {
+        return 77;
+    }
+    return text_net_input_shape->dims[1];
+}
+
 std::pair<std::vector<float>, std::vector<int>> CLIP::topk(const std::vector<float>& x, int k) {
     std::vector<int> indices(x.size());
     std::iota(indices.begin(), indices.end(), 0);

@@ -30,6 +30,7 @@ public:
                                         const std::vector<std::vector<float>>& text_features);
     std::pair<std::vector<float>, std::vector<int>> topk(const std::vector<float>& x, int k);
 
+    size_t get_max_token_len() const;
     double encode_image_time;
     double encode_text_time;
     double preprocess_time;

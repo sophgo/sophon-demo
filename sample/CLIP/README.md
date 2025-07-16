@@ -26,7 +26,7 @@ CLIP（Contrastive Language-Image Pre-Training）是一个在多种（图像，�
 
 ## 3. 准备数据与模型
 
-Pytorch模型在编译前要导出成onnx模型，具体可参考[CLIP模型导出](./docs/Clip_Export_Guide.md)。
+Pytorch模型在编译前要导出成onnx模型，具体可参考[CLIP模型导出](./docs/Clip_Export_Guide.md)，文档中还详细说明了通过修改源码实现性能优化的方法，以减少数据搬运并显著提升推理速度。
 ​
 本例程在`scripts`目录下提供了相关模型和数据集的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
