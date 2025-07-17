@@ -1,5 +1,5 @@
 # Clip模型的导出与编译
-
+## 1. 导出公版onnx模型
 
 需要通过源码来导出 onnx 文件，clip的变种很多，但是思想类似，以 openai 原始仓库[CLIP官方开源仓库](https://github.com/openai/CLIP)为例。
 
@@ -51,7 +51,7 @@ with torch.no_grad():
     )
 ```
 
-## 导出text_image部分
+## 导出encode_text部分
 
 同理，修改源码 CLIP/clip/model.py:358处；
 ```python
@@ -120,4 +120,147 @@ with torch.no_grad():
         output_names=['output'] # you can also set the output name(s) if necessary
     )
 ```
+
+## 2. 性能优化
+为避免不必要的数据搬运，导出onnx时按以下步骤修改，可显著缩短推理时间。
+导出text前在[1. 导出公版onnx模型](#1-导出公版onnx模型)
+的基础上还需要修改CLIP/clip/model.py文件里clip类下的encode_text函数
+
+```python
+def encode_text(self, text):
+    x = self.token_embedding(text).type(self.dtype)  # [batch_size, n_ctx, d_model]
+
+    x = x + self.positional_embedding.type(self.dtype)
+    # x = x.permute(1, 0, 2)  # NLD -> LND
+    x = self.transformer(x)
+    # x = x.permute(1, 0, 2)  # LND -> NLD
+    x = self.ln_final(x).type(self.dtype)
+
+    # x.shape = [batch_size, n_ctx, transformer.width]
+    # take features from the eot embedding (eot_token is the highest number in each sequence)
+    # x = x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
+    np.save('text_projection_512_512.npy', self.text_projection)
+
+    return x
+```
+
+导出image部分需要调整CLIP/clip/model.py文件中VisionTransformer类的forward函数
+
+```python
+def forward(self, x: torch.Tensor):
+    x = self.conv1(x)  # shape = [*, width, grid, grid]
+    x = x.reshape(x.shape[0], x.shape[1], -1)  # shape = [*, width, grid ** 2]
+    x = x.permute(0, 2, 1)  # shape = [*, grid ** 2, width]
+    x = torch.cat([
+        self.class_embedding.to(x.dtype) + torch.zeros(x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device),
+        x
+    ], dim=1)  # shape = [*, grid ** 2 + 1, width]
+    x = x + self.positional_embedding.to(x.dtype)
+    x = self.ln_pre(x)
+
+    # x = x.permute(1, 0, 2)  # NLD -> LND (optional)
+    x = self.transformer(x)
+    # x = x.permute(1, 0, 2)  # LND -> NLD (optional)
+
+    x = self.ln_post(x[:, 0, :])
+
+    if self.proj is not None:
+        x = x @ self.proj
+
+    return x
+```
+
+接着找到这个文件：~/.local/lib/python3.10/site-packages/torch/nn/functional.py。如果找不到，请通过pip3 show torch查包的安装位置。
+找到里面的multi_head_attention_forward函数，修改以下四处：
+
+step 1
+```python
+    # set up shape vars
+    # tgt_len, bsz, embed_dim = query.shape
+    # src_len, _, _ = key.shape
+    bsz, tgt_len, embed_dim = query.shape
+    _, src_len, _ = key.shape
+```
+
+step 2
+```python
+    #
+    # compute in-projection
+    #
+    if not use_separate_proj_weight:
+        assert (
+            in_proj_weight is not None
+        ), "use_separate_proj_weight is False but in_proj_weight is None"
+        # q, k, v = _in_projection_packed(query, key, value, in_proj_weight, in_proj_bias)
+        q_proj_weight, k_proj_weight, v_proj_weigh = in_proj_weight.chunk(3)
+        b_q, b_k, b_v = in_proj_bias.chunk(3)
+        q, k, v = _in_projection(
+            query,
+            key,
+            value,
+            q_proj_weight,
+            k_proj_weight,
+            v_proj_weigh,
+            b_q,
+            b_k,
+            b_v,
+        )
+```
+
+step 3
+```python
+    #
+    # reshape q, k, v for multihead attention and make them batch first
+    #
+    # q = q.view(tgt_len, bsz * num_heads, head_dim).transpose(0, 1)
+    q = q.view(bsz, tgt_len, num_heads, head_dim).transpose(1, 2)
+    if static_k is None:
+        # k = k.view(k.shape[0], bsz * num_heads, head_dim).transpose(0, 1)
+        k = k.view(bsz, tgt_len, num_heads, head_dim).transpose(1, 2)
+    else:
+        # TODO finish disentangling control flow so we don't do in-projections when statics are passed
+        assert (
+            static_k.size(0) == bsz * num_heads
+        ), f"expecting static_k.size(0) of {bsz * num_heads}, but got {static_k.size(0)}"
+        assert (
+            static_k.size(2) == head_dim
+        ), f"expecting static_k.size(2) of {head_dim}, but got {static_k.size(2)}"
+        k = static_k
+    if static_v is None:
+        # v = v.view(v.shape[0], bsz * num_heads, head_dim).transpose(0, 1)
+        v = v.view(bsz, tgt_len, num_heads, head_dim).transpose(1, 2)
+```
+
+step 4
+```python
+    else:
+        # attn_mask can be either (L,S) or (N*num_heads, L, S)
+        # if attn_mask's shape is (1, L, S) we need to unsqueeze to (1, 1, L, S)
+        # in order to match the input for SDPA of (N, num_heads, L, S)
+        if attn_mask is not None:
+            if attn_mask.size(0) == 1 and attn_mask.dim() == 3:
+                attn_mask = attn_mask.unsqueeze(0)
+            else:
+                attn_mask = attn_mask.view(bsz, num_heads, -1, src_len)
+
+        # q = q.view(bsz, num_heads, tgt_len, head_dim)
+        # k = k.view(bsz, num_heads, src_len, head_dim)
+        # v = v.view(bsz, num_heads, src_len, head_dim)
+
+        attn_output = scaled_dot_product_attention(
+            q, k, v, attn_mask, dropout_p, is_causal
+        )
+        attn_output = (
+            attn_output.permute(2, 0, 1, 3).contiguous().view(bsz * tgt_len, embed_dim)
+        )
+
+        attn_output = linear(attn_output, out_proj_weight, out_proj_bias)
+        # attn_output = attn_output.view(tgt_len, bsz, attn_output.size(1))
+        if not is_batched:
+            # squeeze the output if input was unbatched
+            attn_output = attn_output.squeeze(1)
+        return attn_output, None
+```
+修改完毕后导出onnx模型
+
 
