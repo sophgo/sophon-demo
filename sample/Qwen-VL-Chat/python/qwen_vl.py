@@ -18,6 +18,7 @@ import requests
 from torchvision import transforms
 from torchvision.transforms import InterpolationMode
 import torch
+import readline
 
 
 #convert sail_dtype to numpy dtype

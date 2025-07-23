@@ -11,6 +11,7 @@ import argparse
 import time
 import sentencepiece as spm
 import numpy as np
+import readline
 
 def type_convert(sail_dtype):
     if sail_dtype == sail.Dtype.BM_FLOAT32:

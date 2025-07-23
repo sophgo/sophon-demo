@@ -7,6 +7,7 @@ from transformers import AutoTokenizer
 from torchvision.transforms.functional import InterpolationMode
 import os
 import numpy as np
+import readline
 import sophon.sail as sail
 sail.set_loglevel(sail.LogLevel.ERROR)
 

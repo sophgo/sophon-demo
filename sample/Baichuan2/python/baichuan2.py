@@ -11,6 +11,7 @@ import argparse
 import time
 from transformers import AutoTokenizer
 import numpy as np
+import readline
 
 class Baichuan2:
 

@@ -97,11 +97,7 @@ bmodel_path: ../models/BM1684X/qwen2.5-7b_int4_seq512_1dev.bmodel   ## 用于推
 token_path: ./token_config    ## tokenizer目录路径；如果跑别的模型，需要使用相应的tokenizer
 dev_ids: 0   ## 用于推理的tpu设备id
 enable_thinking: True      ## 是否开启思考，目前仅qwen3和deepseek-r1-distill-qwen支持开启思考模式
-generation_mode: greedy    ## 采样头，仅用于BM1684X的单芯模型；可选"greedy"贪心策略、"sample"采样策略
-repeat_last_n: 32      ## 在最近的n个token中进行重复检测和惩罚。仅在sample策略下生效，下同
-temperature: 0.8       ## 温度参数。控制采样的随机性，数值越高，采样越随机
-top_p: 0.8             ## 将所有token按概率高低排序，只从累计概率达到top_p的token中采样
-repeat_penalty: 1.1    ## 重复惩罚系数，降低重复token的概率。数值越高，选中重复token的概率越低
+generation_mode: greedy    ## 采样头，可选"greedy"贪心策略、"sample"采样策略
 ```
 
 ### 2.2 使用方式
@@ -110,13 +106,15 @@ repeat_penalty: 1.1    ## 重复惩罚系数，降低重复token的概率。数�
 cd python
 python3 qwen.py --config ./config/qwen.yaml
 ```
-在读入模型后会显示"Question:"，然后输入就可以了。模型的回答会出现在"Answer"中。结束对话请输入"exit"。
+在读入模型后会显示"Question:"，然后输入就可以了。模型的回答会出现在"Answer"中。结束对话请输入"exit"，清除历史消息请输入"clear"。
 
 **注意：**
 >用户应根据需要自己选择或创建相应的配置文件，并正确填写配置文件中的参数(以下为特殊事例)。
 >1. 如果要加载deepseek-r1-distill-qwen2模型(BM1688)，./config/qwen.yaml 中 bmodel_path参数修改为 ../models/BM1688/deepseek-r1-distill-qwen-1.5b_int4_seq1024_1688_2core.bmodel，token_path 参数修改为 ../models/BM1688/tokenizer_deepseek_r1_distill_qwen2
 >2. 如果要加载deepseek-r1-distill-qwen2模型(BM1684X)，那么请将--config参数修改为 ./config/deepseek-r1-distill-qwen2.yaml
->3. 对于BM1684X的单芯模型，若回答出现大量重复内容，可将`generation_mode`设置为`sample`模式，并根据需要来调整`repeat_last_n`、`temperature`、`top_p`、`repeat_penalty`参数。另外，Web demo和api server也可以用同样的方法，在对应的`web.yaml`或`api.yaml`中配置采样策略参数。对于多芯模型或BM1688的模型，目前不支持`sample`模式。
+>3. 若需要回答内容多样化，可将`generation_mode`设置为`sample`模式，并在`token_config/generation_config.json`文件中设置`repeat_last_n`、`temperature`、`top_p`、`top_k`、`repeat_penalty`等参数。
+>4. `sample`模式需要bmodel带有`sample_head`或者`penalty_sample_head`采样头，可以使用model_tool工具确认；若使用llm_convert工具转换模型，需要加上`--do_sample`参数以支持采样策略。
+>5. Web demo和api server也可以用同样的方法，在对应的`web.yaml`或`api.yaml`中设置采样策略。
 
 ## 3. Web Demo
 我们提供了基于[streamlit](https://streamlit.io/)的web demo。
@@ -126,9 +124,11 @@ web_demo.py使用config/web.yaml配置文件进行参数配置。
 web.yaml内容如下
 ```yaml
 title: qwen2.5-7b  ## 标题
-bmodel_path: ../models/BM1684X/qwen2.5-7b_int4_seq512_1dev.bmodel  ## 用于推理的bmodel路径；
-token_path: ./token_config   ## tokenizer目录路径；
-dev_ids: 0   ## 用于推理的tpu设备id；
+bmodel_path: ../models/BM1684X/qwen2.5-7b_int4_seq512_1dev.bmodel  ## 用于推理的bmodel路径
+token_path: ./token_config   ## tokenizer目录路径
+dev_ids: 0   ## 用于推理的tpu设备id
+enable_thinking: True      ## 是否开启思考，目前仅qwen3和deepseek-r1-distill-qwen支持开启思考模式
+generation_mode: greedy    ## 采样头，可选"greedy"贪心策略、"sample"采样策略
 ```
 ### 3.2 程序流程图
 通过将同一个bmodel传入Qwen实例对象中，从而实现多会话同时推理的能力，具体流程如下：
@@ -173,6 +173,8 @@ models:                 ## 模型列表
     bmodel_path: ../models/BM1684X/qwen2.5-7b_int4_seq512_1dev.bmodel ## 用于推理的bmodel路径
     token_path: ./token_config ## tokenizer目录路径
     dev_id: 0  ## 用于推理的tpu设备id
+    enable_thinking: True      ## 是否开启思考，目前仅qwen3和deepseek-r1-distill-qwen支持开启思考模式
+    generation_mode: greedy    ## 采样头，可选"greedy"贪心策略、"sample"采样策略
 
 port: 18080   ## 服务端口
 ```

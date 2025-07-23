@@ -11,6 +11,7 @@ import time
 import argparse
 from transformers import AutoTokenizer
 import numpy as np
+import readline
 
 #convert sail_dtype to numpy dtype
 def type_convert(sail_dtype):

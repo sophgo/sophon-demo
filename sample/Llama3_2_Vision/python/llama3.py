@@ -15,6 +15,7 @@ import time
 import argparse
 from PIL import Image
 import torch
+import readline
 
 class Llama:
     def __init__(self, bmodel_path, dev_ids, tokenizer_path, image_path) -> None:
