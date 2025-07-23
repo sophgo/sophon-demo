@@ -13,7 +13,7 @@
   - [6. 程序性能测试](#6-程序性能测试)
 
 ## 1. 简介
-Qwen / Qwen1.5/ Qwen2/ Qwen2.5是开源中英双语对话模型，关于它的特性，请前往源repo查看：[Qwen](https://huggingface.co/Qwen)。 本例程对Qwen / Qwen1.5/ Qwen2/ Qwen2.5进行移植，使之能在SOPHON BM1684X、BM1688/CV186X（仅限Qwen1.5 1.8b、Qwen2.5 1.5b）上进行推理测试。
+Qwen / Qwen1.5/ Qwen2/ Qwen2.5/ Qwen3是开源中英双语对话模型，关于它的特性，请前往源repo查看：[Qwen](https://huggingface.co/Qwen)。 本例程对Qwen / Qwen1.5/ Qwen2/ Qwen2.5/ Qwen3进行移植，使之能在SOPHON BM1684X、BM1688/CV186X上进行推理测试。
 
 本例程还支持DeepSeek-R1-Distill-Qwen-1.5B/7B/14B，关于它们的特性，请前往源repo查看：[DeepSeek-R1-Distill-Qwen-1.5B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B)，[DeepSeek-R1-Distill-Qwen-7B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B)，[DeepSeek-R1-Distill-Qwen-14B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B)。本例程对这些模型进行移植，使之能在SOPHON BM1684X、BM1688/CV186X上进行推理测试。
 
@@ -25,8 +25,7 @@ Qwen / Qwen1.5/ Qwen2/ Qwen2.5是开源中英双语对话模型，关于它的�
 
 ## 2. 特性
 * 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
-* Qwen1.5 1.8b支持BM1688/CV186X(SoC)
-* Qwen2.5 1.5b支持BM1688/CV186X(SoC)
+* 支持BM1688/CV186X(SoC)
 * QwQ-32B支持BM1684X(SC7-224T)
 * 支持INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程

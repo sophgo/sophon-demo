@@ -10,6 +10,7 @@ import numpy as np
 import torch.nn.functional as F
 import copy
 import SILK2.Tools.logger as Logger
+import readline
 
 # Preprocess the images
 IMAGENET_MEAN = (0.485, 0.456, 0.406)

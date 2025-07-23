@@ -8,6 +8,7 @@ from torchvision.transforms.functional import InterpolationMode
 import os
 import soundfile
 import numpy as np
+import readline
 import sophon.sail as sail
 sail.set_loglevel(sail.LogLevel.ERROR)
 

@@ -18,6 +18,7 @@ import torch
 import torchvision.transforms as T
 from PIL import Image
 from transformers import AutoTokenizer
+import readline
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.abspath(os.path.join(current_dir, ".."))

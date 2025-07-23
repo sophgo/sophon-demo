@@ -13,6 +13,7 @@ import numpy as np
 import yaml
 import time
 import argparse
+import readline
 
 class MiniCPM:
     def __init__(self, bmodel_path, dev_ids, tokenizer_path) -> None:

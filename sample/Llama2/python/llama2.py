@@ -14,6 +14,7 @@ import yaml
 import time
 import os
 import argparse
+import readline
 sail.set_loglevel(sail.LogLevel.ERROR)
 
 class Llama2:

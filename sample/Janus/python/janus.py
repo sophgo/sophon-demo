@@ -15,6 +15,7 @@ import argparse
 from PIL import Image
 import torch
 from support.janus import VLChatProcessor
+import readline
 
 
 class Janus:

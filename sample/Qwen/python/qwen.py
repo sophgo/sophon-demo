@@ -8,7 +8,7 @@
 #===----------------------------------------------------------------------===#
 
 import sophon.sail as sail
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, GenerationConfig
 import numpy as np
 import yaml
 import time
@@ -25,10 +25,6 @@ class Qwen:
         dev_ids = config.get("dev_ids", 0)
         self.enable_thinking = config.get("enable_thinking", True)
         self.generation_mode = config.get("generation_mode", "greedy")
-        self.repeat_last_n = config.get("repeat_last_n", 32)
-        self.temperature = config.get("temperature", 0.8)
-        self.top_p = config.get("top_p", 0.8)
-        self.repeat_penalty = config.get("repeat_penalty", 1.1)
 
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, trust_remote_code=True)
         ID_IM_END = self.tokenizer.convert_tokens_to_ids("<|im_end|>")
@@ -38,6 +34,21 @@ class Qwen:
         self.dev_ids = [int(x) for x in str(dev_ids).split(',')]
         self.handles = {dev: sail.Handle(dev) for dev in self.dev_ids}
         self.target = sail.Handle(self.dev_ids[0]).get_target()
+
+        if self.generation_mode == "sample":
+            self.do_sample = True
+            gen_config = GenerationConfig.from_pretrained(tokenizer_path)
+            self.repeat_last_n = getattr(gen_config, "repeat_last_n", 32)
+            self.temperature = getattr(gen_config, "temperature", 0.8)
+            self.top_p = getattr(gen_config, "top_p", 0.8)
+            self.top_k = getattr(gen_config, "top_k", 50)
+            self.repeat_penalty = getattr(gen_config, "repeat_penalty", 1.1)
+            eos_token_id = getattr(gen_config, "eos_token_id", None)
+            if eos_token_id is not None:
+                if isinstance(eos_token_id, int):
+                    self.EOS.append(eos_token_id)
+                elif isinstance(eos_token_id, list):
+                    self.EOS.extend(eos_token_id)            
 
         # load bmodel
         if self.target in ["BM1688", "CV186AH"]:
@@ -85,11 +96,15 @@ class Qwen:
         self.name_blocks_cache = ["block_cache_"+str(i) for i in range(self.NUM_LAYERS)]
         self.name_lm = "lm_head"
         self.greedy = "greedy_head"
-        self.sample = "sample_head" if "sample_head" in self.graph_names else "penalty_sample_head"    # renamed by mlir
 
         if self.generation_mode == "greedy" and self.greedy in self.graph_names:
             print(f"Generation mode: {self.generation_mode}")
-        elif self.generation_mode == "sample" and self.sample in self.graph_names:
+        elif self.generation_mode == "sample" and "sample_head" in self.graph_names:
+            self.sample = "sample_head"
+            print(f"Generation mode: {self.generation_mode}")
+        elif self.generation_mode == "sample" and "penalty_sample_head" in self.graph_names:
+            self.sample = "penalty_sample_head"
+            self.generation_mode = "penalty_sample"
             print(f"Generation mode: {self.generation_mode}")
         else:
             print(f"Generation mode: lmhead_with_topk")
@@ -199,8 +214,8 @@ class Qwen:
 
         return input_ids, position_id, attention_mask
         
-    def sample_token(self, length):
-        # BM1688 or CV186AH or multi device: lmhead_with_topk( = lm_head + greedy_head )
+    def sample_token(self):
+        # lmhead_with_topk( = lm_head + greedy_head )
         if self.generation_mode is None:
             return int(np.squeeze(self.tensors[self.name_lm]["output"][0].asnumpy()))
         # lm_head + greedy_head 贪心策略
@@ -208,10 +223,10 @@ class Qwen:
             self.tensors[self.greedy]["input"][0] = self.tensors[self.name_lm]["output"][0]
             self.model.process(self.greedy, self.tensors[self.greedy]["input"], self.tensors[self.greedy]["output"])
             return int(self.tensors[self.greedy]["output"][0].asnumpy())
-        # lm_head + penalty_sample_head 重复惩罚策略
-        elif self.generation_mode == "sample":
+        # lm_head + penalty_sample_head 重复惩罚策略, 兼容旧版bmodel
+        elif self.generation_mode == "penalty_sample":
             self.tensors[self.sample]["input"][0] = self.tensors[self.name_lm]["output"][0]
-            generated_tokens = np.ones([1, length], self.type_convert(self.tensors[self.sample]["input"][1].dtype())) * self.tokens[-1]
+            generated_tokens = np.ones([1, self.SEQLEN], self.type_convert(self.tensors[self.sample]["input"][1].dtype())) * self.tokens[-1]
             repeat_last_n = min(self.repeat_last_n, self.token_length)
             generated_tokens[0, :repeat_last_n] = self.tokens[self.token_length - repeat_last_n : self.token_length]
             self.tensors[self.sample]["input"][1].update_data(generated_tokens)
@@ -222,6 +237,23 @@ class Qwen:
 
             probs = self.tensors[self.sample]["output"][0].asnumpy()[0]
             token_TopK = self.tensors[self.sample]["output"][1].asnumpy()[0]
+            return int(np.random.choice(token_TopK, p=probs / probs.sum()))
+        # lm_head + sample_head 重复惩罚策略, 由llm_convert生成的bmodel
+        elif self.generation_mode == "sample":
+            self.tensors[self.sample]["input"][0] = self.tensors[self.name_lm]["output"][0]
+            generated_tokens = np.zeros([1, self.SEQLEN], self.type_convert(self.tensors[self.sample]["input"][1].dtype()))
+            generated_tokens[0, :len(self.tokens)] = self.tokens
+            self.tensors[self.sample]["input"][1].update_data(generated_tokens)
+            self.tensors[self.sample]["input"][2].update_data([self.repeat_penalty])
+            self.tensors[self.sample]["input"][3].update_data([self.temperature])
+            top_k = np.ones([1], self.type_convert(self.tensors[self.sample]["input"][4].dtype())) * self.top_k
+            # top_k = np.array([self.top_k]).astype(self.type_convert(self.tensors[self.sample]["input"][4].dtype()))
+            self.tensors[self.sample]["input"][4].update_data(top_k)
+            self.tensors[self.sample]["input"][5].update_data([self.top_p])
+            self.model.process(self.sample, self.tensors[self.sample]["input"], self.tensors[self.sample]["output"])
+
+            probs = self.tensors[self.sample]["output"][0].asnumpy()[0, :self.top_k]
+            token_TopK = self.tensors[self.sample]["output"][1].asnumpy()[0, :self.top_k]
             return int(np.random.choice(token_TopK, p=probs / probs.sum()))
         else:
             raise ValueError("Invalid generation_mode parameter. Supported options are 'greedy' and 'sample'.")
@@ -271,7 +303,7 @@ class Qwen:
         self.model.process(self.name_lm, self.tensors[self.name_lm]["input"], self.tensors[self.name_lm]["output"])
         
         # sample
-        return self.sample_token(length)
+        return self.sample_token()
     
     def forward_next(self):
         self.token_length += 1
@@ -326,7 +358,7 @@ class Qwen:
         self.model.process(self.name_lm, self.tensors[self.name_lm]["input"], self.tensors[self.name_lm]["output"])
 
         # sample
-        return self.sample_token(self.SEQLEN)
+        return self.sample_token()
     
     def chat_stream(self, messages):
         text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, enable_thinking=self.enable_thinking)
