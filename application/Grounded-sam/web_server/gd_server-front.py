@@ -72,13 +72,16 @@ with tab1:
                 image_base64 = base64.b64encode(uploaded_file.read()).decode('utf-8')
             
             # 发送数据到后端
-            response = requests.post(f'{server_url}/push_data', data={
-                'id': id,
-                'image': image_base64,
-                "text_prompt": text_prompt,
-                "box_threshold": box_threshold,
-                "text_threshold": text_threshold
-            })
+            response = requests.post(
+                f'{server_url}/push_data',
+                json={
+                    'id': id,
+                    'image': image_base64,
+                    "text_prompt": text_prompt,
+                    "box_threshold": box_threshold,
+                    "text_threshold": text_threshold
+                }
+            )
 
             if response.status_code == 200:
                 submit_time = time.time()
