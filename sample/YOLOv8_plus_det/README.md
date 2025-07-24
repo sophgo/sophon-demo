@@ -326,56 +326,56 @@ bmrt_test --bmodel models/BM1684X/yolov8s_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|              测试模型           | calculate time(ms) |
-| -------------------------------| ----------------- |
-| BM1684X/yolov8s_fp32_1b.bmodel     |          29.29  |
-| BM1684X/yolov8s_fp16_1b.bmodel     |           5.59  |
-| BM1684X/yolov8s_int8_1b.bmodel     |           2.92  |
-| BM1684X/yolov8s_int8_4b.bmodel     |           2.80  |
-| BM1684X/yolov9s_fp32_1b.bmodel     |          33.51  |
-| BM1684X/yolov9s_fp16_1b.bmodel     |           7.41  |
-| BM1684X/yolov9s_int8_1b.bmodel     |           4.83  |
-| BM1684X/yolov9s_int8_4b.bmodel     |           4.59  |
-| BM1684X/yolov11s_fp32_1b.bmodel    |          24.62  |
-| BM1684X/yolov11s_fp16_1b.bmodel    |           5.88  |
-| BM1684X/yolov11s_int8_1b.bmodel    |           3.27  |
-| BM1684X/yolov11s_int8_4b.bmodel    |           3.01  |
-| BM1684X/yolov12s_fp32_1b.bmodel    |          54.50  |
-| BM1684X/yolov12s_fp16_1b.bmodel    |          26.90  |
-| BM1684X/yolov12s_int8_1b.bmodel    |          22.33  |
-| BM1684X/yolov12s_int8_4b.bmodel    |          21.56  |
-| BM1688/yolov8s_fp32_1b.bmodel      |         161.70  |
-| BM1688/yolov8s_fp16_1b.bmodel      |          34.63  |
-| BM1688/yolov8s_int8_1b.bmodel      |           7.68  |
-| BM1688/yolov8s_int8_4b.bmodel      |           7.54  |
-| BM1688/yolov8s_int8_4b_2core.bmodel|           4.81  |
-| BM1688/yolov9s_fp32_1b.bmodel      |         162.37  |
-| BM1688/yolov9s_fp16_1b.bmodel      |          41.21  |
-| BM1688/yolov9s_int8_1b.bmodel      |          18.03  |
-| BM1688/yolov9s_int8_4b.bmodel      |          17.78  |
-| BM1688/yolov9s_int8_4b_2core.bmodel|          10.11  |
-| BM1688/yolov11s_fp32_1b.bmodel     |         131.64  |
-| BM1688/yolov11s_fp16_1b.bmodel     |          33.87  |
-| BM1688/yolov11s_int8_1b.bmodel     |           8.37  |
-| BM1688/yolov11s_int8_4b.bmodel     |           7.98  |
-| BM1688/yolov11s_int8_4b_2core.bmodel|           5.32  |
-| BM1688/yolov12s_fp32_1b.bmodel     |         209.90  |
-| BM1688/yolov12s_fp16_1b.bmodel     |          68.92  |
-| BM1688/yolov12s_int8_1b.bmodel     |          59.99  |
-| BM1688/yolov12s_int8_4b.bmodel     |          60.16  |
-| BM1688/yolov12s_int8_4b_2core.bmodel|          37.70  |
-| CV186X/yolov8s_fp32_1b.bmodel      |         165.35  |
-| CV186X/yolov8s_fp16_1b.bmodel      |          36.80  |
-| CV186X/yolov8s_int8_1b.bmodel      |           9.21  |
-| CV186X/yolov8s_int8_4b.bmodel      |           9.14  |
-| CV186X/yolov11s_fp32_1b.bmodel     |         135.15  |
-| CV186X/yolov11s_fp16_1b.bmodel     |          36.22  |
-| CV186X/yolov11s_int8_1b.bmodel     |          10.60  |
-| CV186X/yolov11s_int8_4b.bmodel     |          10.10  |
-| CV186X/yolov12s_fp32_1b.bmodel     |         209.44  |
-| CV186X/yolov12s_fp16_1b.bmodel     |          68.68  |
-| CV186X/yolov12s_int8_1b.bmodel     |          59.78  |
-| CV186X/yolov12s_int8_4b.bmodel     |          59.96  |
+|    测试平台  |              测试模型           | calculate time(ms) |
+| ----------- | -------------------------------| ----------------- |
+|   SE7-32    | BM1684X/yolov8s_fp32_1b.bmodel     |          29.29  |
+|   SE7-32    | BM1684X/yolov8s_fp16_1b.bmodel     |           5.59  |
+|   SE7-32    | BM1684X/yolov8s_int8_1b.bmodel     |           2.92  |
+|   SE7-32    | BM1684X/yolov8s_int8_4b.bmodel     |           2.80  |
+|   SE7-32    | BM1684X/yolov9s_fp32_1b.bmodel     |          33.51  |
+|   SE7-32    | BM1684X/yolov9s_fp16_1b.bmodel     |           7.41  |
+|   SE7-32    | BM1684X/yolov9s_int8_1b.bmodel     |           4.83  |
+|   SE7-32    | BM1684X/yolov9s_int8_4b.bmodel     |           4.59  |
+|   SE7-32    | BM1684X/yolov11s_fp32_1b.bmodel    |          24.62  |
+|   SE7-32    | BM1684X/yolov11s_fp16_1b.bmodel    |           5.88  |
+|   SE7-32    | BM1684X/yolov11s_int8_1b.bmodel    |           3.27  |
+|   SE7-32    | BM1684X/yolov11s_int8_4b.bmodel    |           3.01  |
+|   SE7-32    | BM1684X/yolov12s_fp32_1b.bmodel    |          54.50  |
+|   SE7-32    | BM1684X/yolov12s_fp16_1b.bmodel    |          26.90  |
+|   SE7-32    | BM1684X/yolov12s_int8_1b.bmodel    |          22.33  |
+|   SE7-32    | BM1684X/yolov12s_int8_4b.bmodel    |          21.56  |
+|   SE9-16    | BM1688/yolov8s_fp32_1b.bmodel      |         161.70  |
+|   SE9-16    | BM1688/yolov8s_fp16_1b.bmodel      |          34.63  |
+|   SE9-16    | BM1688/yolov8s_int8_1b.bmodel      |           7.68  |
+|   SE9-16    | BM1688/yolov8s_int8_4b.bmodel      |           7.54  |
+|   SE9-16    | BM1688/yolov8s_int8_4b_2core.bmodel|           4.81  |
+|   SE9-16    | BM1688/yolov9s_fp32_1b.bmodel      |         162.37  |
+|   SE9-16    | BM1688/yolov9s_fp16_1b.bmodel      |          41.21  |
+|   SE9-16    | BM1688/yolov9s_int8_1b.bmodel      |          18.03  |
+|   SE9-16    | BM1688/yolov9s_int8_4b.bmodel      |          17.78  |
+|   SE9-16    | BM1688/yolov9s_int8_4b_2core.bmodel|          10.11  |
+|   SE9-16    | BM1688/yolov11s_fp32_1b.bmodel     |         131.64  |
+|   SE9-16    | BM1688/yolov11s_fp16_1b.bmodel     |          33.87  |
+|   SE9-16    | BM1688/yolov11s_int8_1b.bmodel     |           8.37  |
+|   SE9-16    | BM1688/yolov11s_int8_4b.bmodel     |           7.98  |
+|   SE9-16    | BM1688/yolov11s_int8_4b_2core.bmodel|           5.32  |
+|   SE9-16    | BM1688/yolov12s_fp32_1b.bmodel     |         209.90  |
+|   SE9-16    | BM1688/yolov12s_fp16_1b.bmodel     |          68.92  |
+|   SE9-16    | BM1688/yolov12s_int8_1b.bmodel     |          59.99  |
+|   SE9-16    | BM1688/yolov12s_int8_4b.bmodel     |          60.16  |
+|   SE9-16    | BM1688/yolov12s_int8_4b_2core.bmodel|          37.70  |
+|   SE9-8    | CV186X/yolov8s_fp32_1b.bmodel      |         165.35  |
+|   SE9-8    | CV186X/yolov8s_fp16_1b.bmodel      |          36.80  |
+|   SE9-8    | CV186X/yolov8s_int8_1b.bmodel      |           9.21  |
+|   SE9-8    | CV186X/yolov8s_int8_4b.bmodel      |           9.14  |
+|   SE9-8    | CV186X/yolov11s_fp32_1b.bmodel     |         135.15  |
+|   SE9-8    | CV186X/yolov11s_fp16_1b.bmodel     |          36.22  |
+|   SE9-8    | CV186X/yolov11s_int8_1b.bmodel     |          10.60  |
+|   SE9-8    | CV186X/yolov11s_int8_4b.bmodel     |          10.10  |
+|   SE9-8    | CV186X/yolov12s_fp32_1b.bmodel     |         209.44  |
+|   SE9-8    | CV186X/yolov12s_fp16_1b.bmodel     |          68.68  |
+|   SE9-8    | CV186X/yolov12s_int8_1b.bmodel     |          59.78  |
+|   SE9-8    | CV186X/yolov12s_int8_4b.bmodel     |          59.96  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

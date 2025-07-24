@@ -2,18 +2,20 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-* [5. 例程测试](#5-例程测试)
-* [6. 精度测试](#6-精度测试)
-  * [6.1 测试方法](#61-测试方法)
-  * [6.2 测试结果](#62-测试结果)
-* [7. 性能测试](#7-性能测试)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 程序运行性能](#72-程序运行性能)
-* [8. FAQ](#8-faq)
+- [DirectMHP](#directmhp)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
   
 ## 1. 简介
 ​​DirectMHP 是一种新颖的单级端到端网络，专注于全范围的多人头部姿势估计，通过联合回归位置和方向来直接预测图像中所有人类头部的姿势。本例程对[​DirectMHP官方开源仓库](https://github.com/hnuzhy/DirectMHP)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1688/CV186X上进行推理测试。
@@ -168,16 +170,16 @@ bmrt_test --bmodel models/BM1684X/directmhp_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|              测试模型                | calculate time(ms) |
-| ------------------------------------ | ----------------- |
-| BM1684X/directmhp_fp32_1b.bmodel     |         84.34     |
-| BM1684X/directmhp_fp16_1b.bmodel     |         23.48     |
-| BM1688/directmhp_fp32_1b.bmodel      |         407.81    |
-| BM1688/directmhp_fp16_1b.bmodel      |         107.39    |
-| BM1688/directmhp_fp32_1b_2core.bmodel|         215.63    |
-| BM1688/directmhp_fp16_1b_2core.bmodel|          62.98    |
-| CV186X/directmhp_fp32_1b.bmodel      |         420.19    |
-| CV186X/directmhp_fp16_1b.bmodel      |         115.67    |
+|    测试平台  |              测试模型                | calculate time(ms) |
+| ----------- | ------------------------------------ | ----------------- |
+|   SE7-32    | BM1684X/directmhp_fp32_1b.bmodel     |         84.34     |
+|   SE7-32    | BM1684X/directmhp_fp16_1b.bmodel     |         23.48     |
+|   SE9-16    | BM1688/directmhp_fp32_1b.bmodel      |         407.81    |
+|   SE9-16    | BM1688/directmhp_fp16_1b.bmodel      |         107.39    |
+|   SE9-16    | BM1688/directmhp_fp32_1b_2core.bmodel|         215.63    |
+|   SE9-16    | BM1688/directmhp_fp16_1b_2core.bmodel|          62.98    |
+|   SE9-8    | CV186X/directmhp_fp32_1b.bmodel      |         420.19    |
+|   SE9-8    | CV186X/directmhp_fp16_1b.bmodel      |         115.67    |
 
 
 

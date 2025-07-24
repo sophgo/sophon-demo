@@ -142,17 +142,17 @@ bmrt_test --bmodel models/BM1684X/
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-| 测试模型                               | calculate time(ms) |
-| ---------------------------------------| -------------------|
-| BM1684X/real_esrgan_fp32_1b.bmodel |         711.62  |
-| BM1684X/real_esrgan_fp16_1b.bmodel |          63.91  |
-| BM1684X/real_esrgan_int8_1b.bmodel |          32.52  |
-| BM1684X/real_esrgan_int8_4b.bmodel |          31.76  |
-| BM1688/real_esrgan_fp32_1b.bmodel  |        3729.99  |
-| BM1688/real_esrgan_fp16_1b.bmodel  |         438.48  |
-| BM1688/real_esrgan_int8_1b.bmodel  |         115.69  |
-| BM1688/real_esrgan_int8_4b.bmodel  |         114.72  |
-| BM1688/real_esrgan_int8_4b_2core.bmodel|          64.63  |
+|    测试平台  | 测试模型                               | calculate time(ms) |
+| ----------- | ---------------------------------------| -------------------|
+|   SE7-32    | BM1684X/real_esrgan_fp32_1b.bmodel |         711.62  |
+|   SE7-32    | BM1684X/real_esrgan_fp16_1b.bmodel |          63.91  |
+|   SE7-32    | BM1684X/real_esrgan_int8_1b.bmodel |          32.52  |
+|   SE7-32    | BM1684X/real_esrgan_int8_4b.bmodel |          31.76  |
+|   SE9-16    | BM1688/real_esrgan_fp32_1b.bmodel  |        3729.99  |
+|   SE9-16    | BM1688/real_esrgan_fp16_1b.bmodel  |         438.48  |
+|   SE9-16    | BM1688/real_esrgan_int8_1b.bmodel  |         115.69  |
+|   SE9-16    | BM1688/real_esrgan_int8_4b.bmodel  |         114.72  |
+|   SE9-16    | BM1688/real_esrgan_int8_4b_2core.bmodel|          64.63  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

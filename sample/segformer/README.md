@@ -162,17 +162,17 @@ python3 tools/segformer_eval.py --result_json cpp/segformer_bmcv/results/segform
 bmrt_test --bmodel models/BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
 ```
 在cityscapes测试各个模型的理论推理时间，结果如下：
-|                          测试模型                           | calculate time(ms) |
-| ---------------------------------------------------------- | -------------------|
-| SE5-16 /segformer.b0.512x1024.city.160k_fp32_1b.bmodel     | 365.63             |
-| SE7-32 /segformer.b0.512x1024.city.160k_fp32_1b.bmodel     | 288.866            |
-| SE7-32 /segformer.b0.512x1024.city.160k_fp16_1b.bmodel     | 54.229             |
-| SE9-16/segformer.b0.512x1024.city.160k_fp32_1b.bmodel      | 413.63             |
-| SE9-16/segformer.b0.512x1024.city.160k_fp16_1b.bmodel      | 119.02             |
-| SE9-16/segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel| 288.31             |
-| SE9-16/segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel| 104.02             |
-| SE9-8/segformer.b0.512x1024.city.160k_fp32_1b.bmodel       | 473.95             |
-| SE9-8/segformer.b0.512x1024.city.160k_fp16_1b.bmodel       | 157.45             |
+|    测试平台  |                          测试模型                           | calculate time(ms) |
+| ----------- | ---------------------------------------------------------- | -------------------|
+|   SE5-16    | BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel     | 365.63             |
+|   SE7-32    | BM1684X/segformer.b0.512x1024.city.160k_fp32_1b.bmodel     | 288.866            |
+|   SE7-32    | BM1684X/segformer.b0.512x1024.city.160k_fp16_1b.bmodel     | 54.229             |
+|   SE9-16    | BM1688/segformer.b0.512x1024.city.160k_fp32_1b.bmodel      | 413.63             |
+|   SE9-16    | BM1688/segformer.b0.512x1024.city.160k_fp16_1b.bmodel      | 119.02             |
+|   SE9-16    | BM1688/segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel| 288.31             |
+|   SE9-16    | BM1688/segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel| 104.02             |
+|   SE9-8    | CV186X/segformer.b0.512x1024.city.160k_fp32_1b.bmodel       | 473.95             |
+|   SE9-8    | CV186X/segformer.b0.512x1024.city.160k_fp16_1b.bmodel       | 157.45             |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

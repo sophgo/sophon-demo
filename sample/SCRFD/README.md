@@ -3,18 +3,20 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-* [5. 例程测试](#5-例程测试)
-* [6. 精度测试](#6-精度测试)
-  * [6.1 测试方法](#61-测试方法)
-  * [6.2 测试结果](#62-测试结果)
-* [7. 性能测试](#7-性能测试)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 程序运行性能](#72-程序运行性能)
-* [8. FAQ](#8-faq)
+- [人脸检测SCRFD](#人脸检测scrfd)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
 
 
 ## 1. 简介
@@ -258,28 +260,27 @@ bmrt_test --bmodel models/BM1684X/scrfd_10g_kps_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                测试模型                    |calculate time(ms)|
-| ------------------------------------------ | -----------------|
-| BM1684/scrfd_10g_kps_fp32_1b.bmodel        |           20.082 |
-| BM1684/scrfd_10g_kps_int8_1b.bmodel        |           16.265 |
-| BM1684/scrfd_10g_kps_int8_4b.bmodel        |            5.024 |
-| BM1684X/scrfd_10g_kps_fp16_1b.bmodel       |            3.791 |
-| BM1684X/scrfd_10g_kps_fp32_1b.bmodel       |           34.830 |
-| BM1684X/scrfd_10g_kps_int8_1b.bmodel       |            2.645 |
-| BM1684X/scrfd_10g_kps_int8_4b.bmodel       |            2.537 |
-| BM1688/scrfd_10g_kps_fp16_1b.bmodel        |           45.524 |
-| BM1688/scrfd_10g_kps_fp16_1b_2core.bmodel  |           31.586 |
-| BM1688/scrfd_10g_kps_fp32_1b.bmodel        |          323.095 |
-| BM1688/scrfd_10g_kps_fp32_1b_2core.bmodel  |          190.639 |
-| BM1688/scrfd_10g_kps_int8_1b.bmodel        |           13.398 |
-| BM1688/scrfd_10g_kps_int8_1b_2core.bmodel  |           11.044 |
-| BM1688/scrfd_10g_kps_int8_4b.bmodel        |           12.720 |
-| BM1688/scrfd_10g_kps_int8_4b_2core.bmodel  |            7.188 |
-| CV186X/scrfd_10g_kps_fp16_1b.bmodel        |           42.652 |
-| CV186X/scrfd_10g_kps_fp32_1b.bmodel        |          317.354 |
-| CV186X/scrfd_10g_kps_int8_1b.bmodel        |           13.034 |
-| CV186X/scrfd_10g_kps_int8_4b.bmodel        |           12.323 |
-
+|    测试平台  |                测试模型                    |calculate time(ms)|
+| ----------- | ------------------------------------------ | -----------------|
+|   SE5-16    | BM1684/scrfd_10g_kps_fp32_1b.bmodel        |           20.082 |
+|   SE5-16    | BM1684/scrfd_10g_kps_int8_1b.bmodel        |           16.265 |
+|   SE5-16    | BM1684/scrfd_10g_kps_int8_4b.bmodel        |            5.024 |
+|   SE7-32    | BM1684X/scrfd_10g_kps_fp16_1b.bmodel       |            3.791 |
+|   SE7-32    | BM1684X/scrfd_10g_kps_fp32_1b.bmodel       |           34.830 |
+|   SE7-32    | BM1684X/scrfd_10g_kps_int8_1b.bmodel       |            2.645 |
+|   SE7-32    | BM1684X/scrfd_10g_kps_int8_4b.bmodel       |            2.537 |
+|   SE9-16    | BM1688/scrfd_10g_kps_fp16_1b.bmodel        |           45.524 |
+|   SE9-16    | BM1688/scrfd_10g_kps_fp16_1b_2core.bmodel  |           31.586 |
+|   SE9-16    | BM1688/scrfd_10g_kps_fp32_1b.bmodel        |          323.095 |
+|   SE9-16    | BM1688/scrfd_10g_kps_fp32_1b_2core.bmodel  |          190.639 |
+|   SE9-16    | BM1688/scrfd_10g_kps_int8_1b.bmodel        |           13.398 |
+|   SE9-16    | BM1688/scrfd_10g_kps_int8_1b_2core.bmodel  |           11.044 |
+|   SE9-16    | BM1688/scrfd_10g_kps_int8_4b.bmodel        |           12.720 |
+|   SE9-16    | BM1688/scrfd_10g_kps_int8_4b_2core.bmodel  |            7.188 |
+|   SE9-8    | CV186X/scrfd_10g_kps_fp16_1b.bmodel        |           42.652 |
+|   SE9-8    | CV186X/scrfd_10g_kps_fp32_1b.bmodel        |          317.354 |
+|   SE9-8    | CV186X/scrfd_10g_kps_int8_1b.bmodel        |           13.034 |
+|   SE9-8    | CV186X/scrfd_10g_kps_int8_4b.bmodel        |           12.323 |
 
 > **测试说明**：  
 >

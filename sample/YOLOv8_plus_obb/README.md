@@ -230,24 +230,24 @@ bmrt_test --bmodel models/BM1684/yolov8s-obb_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                测试模型                  | calculate time(ms) |
-| ----------------------------------      | --------------- |
-| BM1684X/yolov8s-obb_fp32_1b.bmodel      | 76.6            |
-| BM1684X/yolov8s-obb_fp16_1b.bmodel      | 15.0            |
-| BM1684X/yolov11s-obb_fp32_1b.bmodel|          66.71  |
-| BM1684X/yolov11s-obb_fp16_1b.bmodel|          16.07  |
-| BM1688/yolov8s-obb_fp32_1b.bmodel  |         426.83  |
-| BM1688/yolov8s-obb_fp16_1b.bmodel  |          88.11  |
-| BM1688/yolov8s-obb_fp32_1b_2core.bmodel|         224.39  |
-| BM1688/yolov8s-obb_fp16_1b_2core.bmodel|          49.41  |
-| BM1688/yolov11s-obb_fp32_1b.bmodel |         352.06  |
-| BM1688/yolov11s-obb_fp16_1b.bmodel |          86.61  |
-| BM1688/yolov11s-obb_fp32_1b_2core.bmodel|         186.69  |
-| BM1688/yolov11s-obb_fp16_1b_2core.bmodel|          50.59  |
-| CV186X/yolov8s-obb_fp32_1b.bmodel  |         436.44  |
-| CV186X/yolov8s-obb_fp16_1b.bmodel  |          91.95  |
-| CV186X/yolov11s-obb_fp32_1b.bmodel |         361.45  |
-| CV186X/yolov11s-obb_fp16_1b.bmodel |          92.88  |
+|    测试平台  |                测试模型                  | calculate time(ms) |
+| ----------- | ----------------------------------      | --------------- |
+|   SE7-32    | BM1684X/yolov8s-obb_fp32_1b.bmodel      | 76.6            |
+|   SE7-32    | BM1684X/yolov8s-obb_fp16_1b.bmodel      | 15.0            |
+|   SE7-32    | BM1684X/yolov11s-obb_fp32_1b.bmodel|          66.71  |
+|   SE7-32    | BM1684X/yolov11s-obb_fp16_1b.bmodel|          16.07  |
+|   SE9-16    | BM1688/yolov8s-obb_fp32_1b.bmodel  |         426.83  |
+|   SE9-16    | BM1688/yolov8s-obb_fp16_1b.bmodel  |          88.11  |
+|   SE9-16    | BM1688/yolov8s-obb_fp32_1b_2core.bmodel|         224.39  |
+|   SE9-16    | BM1688/yolov8s-obb_fp16_1b_2core.bmodel|          49.41  |
+|   SE9-16    | BM1688/yolov11s-obb_fp32_1b.bmodel |         352.06  |
+|   SE9-16    | BM1688/yolov11s-obb_fp16_1b.bmodel |          86.61  |
+|   SE9-16    | BM1688/yolov11s-obb_fp32_1b_2core.bmodel|         186.69  |
+|   SE9-16    | BM1688/yolov11s-obb_fp16_1b_2core.bmodel|          50.59  |
+|   SE9-8    | CV186X/yolov8s-obb_fp32_1b.bmodel  |         436.44  |
+|   SE9-8    | CV186X/yolov8s-obb_fp16_1b.bmodel  |          91.95  |
+|   SE9-8    | CV186X/yolov11s-obb_fp32_1b.bmodel |         361.45  |
+|   SE9-8    | CV186X/yolov11s-obb_fp16_1b.bmodel |          92.88  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

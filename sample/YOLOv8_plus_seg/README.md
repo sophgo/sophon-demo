@@ -221,26 +221,26 @@ bmrt_test --bmodel models/BM1684X/yolov8s_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|              测试模型           | calculate time(ms) |
-| -------------------------------| ----------------- |
-| BM1684X/yolov8s_fp32_1b.bmodel     |          41.59  |
-| BM1684X/yolov8s_fp16_1b.bmodel     |           7.45  |
-| BM1684X/yolov8s_int8_1b.bmodel     |           3.97  |
-| BM1684X/yolov8s_int8_4b.bmodel     |           3.82  |
-| BM1684X/yolov9c_fp32_1b.bmodel     |         137.30  |
-| BM1684X/yolov9c_fp16_1b.bmodel     |          21.56  |
-| BM1684X/yolov9c_int8_1b.bmodel     |          10.00  |
-| BM1684X/yolov9c_int8_4b.bmodel     |           9.59  |
-| BM1688/yolov8s_fp32_1b.bmodel      |         232.65  |
-| BM1688/yolov8s_fp16_1b.bmodel      |          46.00  |
-| BM1688/yolov8s_int8_1b.bmodel      |          10.69  |
-| BM1688/yolov8s_int8_4b.bmodel      |          10.61  |
-| BM1688/yolov8s_int8_4b_2core.bmodel|           6.49  |
-| BM1688/yolov9c_fp32_1b.bmodel      |         781.42  |
-| BM1688/yolov9c_fp16_1b.bmodel      |         148.13  |
-| BM1688/yolov9c_int8_1b.bmodel      |          31.50  |
-| BM1688/yolov9c_int8_4b.bmodel      |          31.06  |
-| BM1688/yolov9c_int8_4b_2core.bmodel|          18.03  |
+|    测试平台  |              测试模型           | calculate time(ms) |
+| ----------- | -------------------------------| ----------------- |
+|   SE7-32    | BM1684X/yolov8s_fp32_1b.bmodel     |          41.59  |
+|   SE7-32    | BM1684X/yolov8s_fp16_1b.bmodel     |           7.45  |
+|   SE7-32    | BM1684X/yolov8s_int8_1b.bmodel     |           3.97  |
+|   SE7-32    | BM1684X/yolov8s_int8_4b.bmodel     |           3.82  |
+|   SE7-32    | BM1684X/yolov9c_fp32_1b.bmodel     |         137.30  |
+|   SE7-32    | BM1684X/yolov9c_fp16_1b.bmodel     |          21.56  |
+|   SE7-32    | BM1684X/yolov9c_int8_1b.bmodel     |          10.00  |
+|   SE7-32    | BM1684X/yolov9c_int8_4b.bmodel     |           9.59  |
+|   SE9-16    | BM1688/yolov8s_fp32_1b.bmodel      |         232.65  |
+|   SE9-16    | BM1688/yolov8s_fp16_1b.bmodel      |          46.00  |
+|   SE9-16    | BM1688/yolov8s_int8_1b.bmodel      |          10.69  |
+|   SE9-16    | BM1688/yolov8s_int8_4b.bmodel      |          10.61  |
+|   SE9-16    | BM1688/yolov8s_int8_4b_2core.bmodel|           6.49  |
+|   SE9-16    | BM1688/yolov9c_fp32_1b.bmodel      |         781.42  |
+|   SE9-16    | BM1688/yolov9c_fp16_1b.bmodel      |         148.13  |
+|   SE9-16    | BM1688/yolov9c_int8_1b.bmodel      |          31.50  |
+|   SE9-16    | BM1688/yolov9c_int8_4b.bmodel      |          31.06  |
+|   SE9-16    | BM1688/yolov9c_int8_4b_2core.bmodel|          18.03  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

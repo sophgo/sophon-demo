@@ -218,36 +218,36 @@ bmrt_test --bmodel models/BM1684X/extractor_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|           测试模型                    | calculate time(ms) |
-| -----------------------------         | ----------------- |
-| BM1684/extractor_fp32_1b.bmodel       |   2.26        |
-| BM1684/extractor_fp32_4b.bmodel       |   1.25        |
-| BM1684/extractor_int8_1b.bmodel       |   0.99        |
-| BM1684/extractor_int8_4b.bmodel       |   0.25        |
-| BM1684X/extractor_fp32_1b.bmodel      |   2.08        |
-| BM1684X/extractor_fp32_4b.bmodel      |   1.88        |
-| BM1684X/extractor_fp16_1b.bmodel      |   0.56        |
-| BM1684X/extractor_fp16_4b.bmodel      |   0.24        |
-| BM1684X/extractor_int8_1b.bmodel      |   0.33        |
-| BM1684X/extractor_int8_4b.bmodel      |   0.14        |
-| BM1688/extractor_fp32_1b.bmodel    |          12.38  |
-| BM1688/extractor_fp32_4b.bmodel    |          10.99  |
-| BM1688/extractor_fp16_1b.bmodel    |           2.21  |
-| BM1688/extractor_fp16_4b.bmodel    |           1.57  |
-| BM1688/extractor_int8_1b.bmodel    |           0.93  |
-| BM1688/extractor_int8_4b.bmodel    |           0.58  |
-| BM1688/extractor_fp32_1b_2core.bmodel|          12.38  |
-| BM1688/extractor_fp32_4b_2core.bmodel|           6.11  |
-| BM1688/extractor_fp16_1b_2core.bmodel|           2.22  |
-| BM1688/extractor_fp16_4b_2core.bmodel|           1.04  |
-| BM1688/extractor_int8_1b_2core.bmodel|           0.93  |
-| BM1688/extractor_int8_4b_2core.bmodel|           0.51  |
-| CV186X/extractor_fp32_1b.bmodel       |   11.13       |
-| CV186X/extractor_fp32_4b.bmodel       |   10.78       |
-| CV186X/extractor_fp16_1b.bmodel       |    2.57       |
-| CV186X/extractor_fp16_4b.bmodel       |    1.48       |
-| CV186X/extractor_int8_1b.bmodel       |    1.20       |
-| CV186X/extractor_int8_4b.bmodel       |    0.55       |
+|   测试平台  |           测试模型                    | calculate time(ms) |
+| -----------| -----------------------------         | ----------------- |
+|   SE5-16   | BM1684/extractor_fp32_1b.bmodel       |   2.26        |
+|   SE5-16   | BM1684/extractor_fp32_4b.bmodel       |   1.25        |
+|   SE5-16   | BM1684/extractor_int8_1b.bmodel       |   0.99        |
+|   SE5-16   | BM1684/extractor_int8_4b.bmodel       |   0.25        |
+|   SE7-32   | BM1684X/extractor_fp32_1b.bmodel      |   2.08        |
+|   SE7-32   | BM1684X/extractor_fp32_4b.bmodel      |   1.88        |
+|   SE7-32   | BM1684X/extractor_fp16_1b.bmodel      |   0.56        |
+|   SE7-32   | BM1684X/extractor_fp16_4b.bmodel      |   0.24        |
+|   SE7-32   | BM1684X/extractor_int8_1b.bmodel      |   0.33        |
+|   SE7-32   | BM1684X/extractor_int8_4b.bmodel      |   0.14        |
+|   SE9-16   | BM1688/extractor_fp32_1b.bmodel    |          12.38  |
+|   SE9-16   | BM1688/extractor_fp32_4b.bmodel    |          10.99  |
+|   SE9-16   | BM1688/extractor_fp16_1b.bmodel    |           2.21  |
+|   SE9-16   | BM1688/extractor_fp16_4b.bmodel    |           1.57  |
+|   SE9-16   | BM1688/extractor_int8_1b.bmodel    |           0.93  |
+|   SE9-16   | BM1688/extractor_int8_4b.bmodel    |           0.58  |
+|   SE9-16   | BM1688/extractor_fp32_1b_2core.bmodel|          12.38  |
+|   SE9-16   | BM1688/extractor_fp32_4b_2core.bmodel|           6.11  |
+|   SE9-16   | BM1688/extractor_fp16_1b_2core.bmodel|           2.22  |
+|   SE9-16   | BM1688/extractor_fp16_4b_2core.bmodel|           1.04  |
+|   SE9-16   | BM1688/extractor_int8_1b_2core.bmodel|           0.93  |
+|   SE9-16   | BM1688/extractor_int8_4b_2core.bmodel|           0.51  |
+|   SE9-8   | CV186X/extractor_fp32_1b.bmodel       |   11.13       |
+|   SE9-8   | CV186X/extractor_fp32_4b.bmodel       |   10.78       |
+|   SE9-8   | CV186X/extractor_fp16_1b.bmodel       |    2.57       |
+|   SE9-8   | CV186X/extractor_fp16_4b.bmodel       |    1.48       |
+|   SE9-8   | CV186X/extractor_int8_1b.bmodel       |    1.20       |
+|   SE9-8   | CV186X/extractor_int8_4b.bmodel       |    0.55       |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

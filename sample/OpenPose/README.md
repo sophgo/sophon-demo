@@ -237,23 +237,23 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|            测试模型               | calculate time(ms) |
-| -------------------------------  | ------------------ |
-| BM1684/pose_coco_fp32_1b.bmodel  |    125        |
-| BM1684/pose_coco_int8_1b.bmodel  |    63         |
-| BM1684/pose_coco_int8_4b.bmodel  |    16         |
-| BM1684X/pose_coco_fp32_1b.bmodel |    252        |
-| BM1684X/pose_coco_fp16_1b.bmodel |    19         |
-| BM1684X/pose_coco_int8_1b.bmodel |    9.4        |
-| BM1684X/pose_coco_int8_4b.bmodel |    9.2        |
-| BM1688/pose_coco_fp32_1b.bmodel  |    1321.5     |
-| BM1688/pose_coco_fp16_1b.bmodel |     158.6      |
-| BM1688/pose_coco_int8_1b.bmodel |     41.4       |
-| BM1688/pose_coco_int8_4b.bmodel |     40.6       |
-| BM1688/pose_coco_fp32_1b_2core.bmodel |  1262.8  |
-| BM1688/pose_coco_fp16_1b_2core.bmodel |  128.3   |
-| BM1688/pose_coco_int8_1b_2core.bmodel |  39.1    |
-| BM1688/pose_coco_int8_4b_2core.bmodel |  21.7    |
+|    测试平台  |            测试模型               | calculate time(ms) |
+| ----------- | -------------------------------  | ------------------ |
+|   SE5-16    | BM1684/pose_coco_fp32_1b.bmodel  |    125        |
+|   SE5-16    | BM1684/pose_coco_int8_1b.bmodel  |    63         |
+|   SE5-16    | BM1684/pose_coco_int8_4b.bmodel  |    16         |
+|   SE7-32    | BM1684X/pose_coco_fp32_1b.bmodel |    252        |
+|   SE7-32    | BM1684X/pose_coco_fp16_1b.bmodel |    19         |
+|   SE7-32    | BM1684X/pose_coco_int8_1b.bmodel |    9.4        |
+|   SE7-32    | BM1684X/pose_coco_int8_4b.bmodel |    9.2        |
+|   SE9-16    | BM1688/pose_coco_fp32_1b.bmodel  |    1321.5     |
+|   SE9-16    | BM1688/pose_coco_fp16_1b.bmodel |     158.6      |
+|   SE9-16    | BM1688/pose_coco_int8_1b.bmodel |     41.4       |
+|   SE9-16    | BM1688/pose_coco_int8_4b.bmodel |     40.6       |
+|   SE9-16    | BM1688/pose_coco_fp32_1b_2core.bmodel |  1262.8  |
+|   SE9-16    | BM1688/pose_coco_fp16_1b_2core.bmodel |  128.3   |
+|   SE9-16    | BM1688/pose_coco_int8_1b_2core.bmodel |  39.1    |
+|   SE9-16    | BM1688/pose_coco_int8_4b_2core.bmodel |  21.7    |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

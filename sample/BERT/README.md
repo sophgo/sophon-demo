@@ -2,20 +2,20 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-  * [4.1 TPU-NNTC编译BModel](#41-tpu-nntc编译bmodel)
-  * [4.2 TPU-MLIR编译BModel](#42-tpu-mlir编译bmodel)
-* [5. 例程测试](#5-例程测试)
-* [6. 精度测试](#6-精度测试)
-  * [6.1 测试方法](#61-测试方法)
-  * [6.2 测试结果](#62-测试结果)
-* [7. 性能测试](#7-性能测试)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 程序运行性能](#72-程序运行性能)
-* [8. FAQ](#8-faq)
+- [BERT](#bert)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
   
 ## 1. 简介
 ​BERT的全称为Bidirectional Encoder Representation from Transformers，是一个预训练的语言表征模型。它强调了不再像以往一样采用传统的单向语言模型或者把两个单向语言模型进行浅层拼接的方法进行预训练，而是采用新的masked language model（MLM），以致能生成深度的双向语言表征。BERT论文发表时提及在11个NLP（Natural Language Processing，自然语言处理）任务中获得了新的state-of-the-art的结果，令人惊叹。
@@ -186,26 +186,26 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每条文本的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                        | calculate time(ms) |
-| -------------------------------------------      | ----------------- |
-| BM1684/bert4torch_output_fp32_1b.bmodel          | 170.848           |
-| BM1684/bert4torch_output_fp32_8b.bmodel          | 146.653           |
-| BM1684X/bert4torch_output_fp32_1b.bmodel         | 91.473            |
-| BM1684X/bert4torch_output_fp16_1b.bmodel         | 8.643             |
-| BM1684X/bert4torch_output_fp32_8b.bmodel         | 87.478            |
-| BM1684X/bert4torch_output_fp16_8b.bmodel         | 5.726             |
-| BM1688/bert4torch_output_fp32_1b.bmodel          | 269.7             |
-| BM1688/bert4torch_output_fp16_1b.bmodel          | 40.0              |
-| BM1688/bert4torch_output_fp32_8b.bmodel          | 263.5             |
-| BM1688/bert4torch_output_fp16_8b.bmodel          | 34.1              |
-| BM1688/bert4torch_output_fp32_1b_2core.bmodel    | 184.3             |
-| BM1688/bert4torch_output_fp16_1b_2core.bmodel    | 30.2              |
-| BM1688/bert4torch_output_fp32_8b_2core.bmodel    | 156.8             |
-| BM1688/bert4torch_output_fp16_8b_2core.bmodel    | 18.5              |
-| CV186X/bert4torch_output_fp16_1b.bmodel|          39.14  |
-| CV186X/bert4torch_output_fp32_1b.bmodel|         270.40  |
-| CV186X/bert4torch_output_fp16_8b.bmodel|         33.03   |
-| CV186X/bert4torch_output_fp32_8b.bmodel|         264.05  |
+|    测试平台  |                  测试模型                        | calculate time(ms) |
+| ------------ | -------------------------------------------      | ----------------- |
+|   SE5-16    | BM1684/bert4torch_output_fp32_1b.bmodel          | 170.848           |
+|   SE5-16    | BM1684/bert4torch_output_fp32_8b.bmodel          | 146.653           |
+|   SE7-32    | BM1684X/bert4torch_output_fp32_1b.bmodel         | 91.473            |
+|   SE7-32    | BM1684X/bert4torch_output_fp16_1b.bmodel         | 8.643             |
+|   SE7-32    | BM1684X/bert4torch_output_fp32_8b.bmodel         | 87.478            |
+|   SE7-32    | BM1684X/bert4torch_output_fp16_8b.bmodel         | 5.726             |
+|   SE9-16    | BM1688/bert4torch_output_fp32_1b.bmodel          | 269.7             |
+|   SE9-16    | BM1688/bert4torch_output_fp16_1b.bmodel          | 40.0              |
+|   SE9-16    | BM1688/bert4torch_output_fp32_8b.bmodel          | 263.5             |
+|   SE9-16    | BM1688/bert4torch_output_fp16_8b.bmodel          | 34.1              |
+|   SE9-16    | BM1688/bert4torch_output_fp32_1b_2core.bmodel    | 184.3             |
+|   SE9-16    | BM1688/bert4torch_output_fp16_1b_2core.bmodel    | 30.2              |
+|   SE9-16    | BM1688/bert4torch_output_fp32_8b_2core.bmodel    | 156.8             |
+|   SE9-16    | BM1688/bert4torch_output_fp16_8b_2core.bmodel    | 18.5              |
+|   SE9-8    | CV186X/bert4torch_output_fp16_1b.bmodel           |          39.14  |
+|   SE9-8    | CV186X/bert4torch_output_fp32_1b.bmodel           |         270.40  |
+|   SE9-8    | CV186X/bert4torch_output_fp16_8b.bmodel           |         33.03   |
+|   SE9-8    | CV186X/bert4torch_output_fp32_8b.bmodel           |         264.05  |
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
 > 2. `calculate time`已折算为平均每条文本的推理时间；

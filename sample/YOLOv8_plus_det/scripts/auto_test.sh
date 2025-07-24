@@ -82,13 +82,13 @@ function bmrt_test_case(){
    fi
    for time in "${calculate_times[@]}"
    do
-     printf "| %-35s| % 15s |\n" "$1" "$time"
+     printf "| %-15s | %-35s| % 15s |\n" "$PLATFORM" "$1" "$time"
    done
 }
 function bmrt_test_benchmark(){
     pushd models
-    printf "| %-35s| % 15s |\n" "测试模型" "calculate time(ms)"
-    printf "| %-35s| % 15s |\n" "-------------------" "--------------"
+    printf "| %-15s | %-35s| % 15s |\n" "测试平台" "测试模型" "calculate time(ms)"
+    printf "| %-15s | %-35s| % 15s |\n" "-------" "-------------------" "--------------"
 
     for model in yolov8s yolov9s yolov11s yolov12s; do
       for pre in fp32_1b fp16_1b int8_1b int8_4b; do

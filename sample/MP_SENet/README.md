@@ -101,10 +101,10 @@ bmrt_test --bmodel models/BM1684X/mpsenet_vb_1b_bf16.bmodel
 测试结果中的`calculate time`就是模型推理的时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                         | calculate time(ms) |
-| -------------------------------------------       | ----------------- |
-| BM1684X/mpsenet_vb_1b_bf16.bmodel|          1397.35  |
-| BM1684X/mpsenet_vb_1b_fp32.bmodel|          2772.37  |
+|    测试平台   |                  测试模型                         | calculate time(ms) |
+| -----------  | -------------------------------------------       | ----------------- |
+|   SE7-32     | BM1684X/mpsenet_vb_1b_bf16.bmodel|          1397.35  |
+|   SE7-32     | BM1684X/mpsenet_vb_1b_fp32.bmodel|          2772.37  |
 
 - 测试说明
 1. 性能测试结果具有一定的波动性；

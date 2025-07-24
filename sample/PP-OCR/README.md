@@ -163,56 +163,56 @@ bmrt_test --bmodel models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel
 ```
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                  |stage| calculate time(ms) |
-| ----------------------------------        |  ---| ----------------- |
-| BM1684X/ch_PP-OCRv4_det_fp32.bmodel      |       0 |          15.50  |
-| ^                                        |       1 |          60.75  |
-| BM1684X/ch_PP-OCRv4_rec_fp32.bmodel      |       0 |           1.62  |
-| ^                                        |       1 |           2.88  |
-| ^                                        |       2 |           5.37  |
-| ^                                        |       3 |          10.78  |
-| BM1684X/ch_PP-OCRv4_det_fp16.bmodel      |       0 |           3.80  |
-| ^                                        |       1 |          14.38  |
-| BM1684X/ch_PP-OCRv4_rec_fp16.bmodel      |       0 |           0.60  |
-| ^                                        |       1 |           0.87  |
-| ^                                        |       2 |           1.61  |
-| ^                                        |       3 |           2.99  |
-| BM1688/ch_PP-OCRv4_det_fp32.bmodel       |       0 |          48.66  |
-| ^                                        |       1 |         196.37  |
-| BM1688/ch_PP-OCRv4_rec_fp32.bmodel       |       0 |           8.20  |
-| ^                                        |       1 |          16.48  |
-| ^                                        |       2 |          31.11  |
-| ^                                        |       3 |          62.05  |
-| BM1688/ch_PP-OCRv4_det_fp16.bmodel       |       0 |          12.12  |
-| ^                                        |       1 |          48.61  |
-| BM1688/ch_PP-OCRv4_rec_fp16.bmodel       |       0 |           2.07  |
-| ^                                        |       1 |           3.86  |
-| ^                                        |       2 |           6.95  |
-| ^                                        |       3 |          14.39  |
-| BM1688/ch_PP-OCRv4_det_fp32_2core.bmodel |       0 |          29.91  |
-| ^                                        |       1 |         106.49  |
-| BM1688/ch_PP-OCRv4_rec_fp32_2core.bmodel |       0 |           5.83  |
-| ^                                        |       1 |          10.06  |
-| ^                                        |       2 |          17.63  |
-| ^                                        |       3 |          34.48  |
-| BM1688/ch_PP-OCRv4_det_fp16_2core.bmodel |       0 |           8.22  |
-| ^                                        |       1 |          31.43  |
-| BM1688/ch_PP-OCRv4_rec_fp16_2core.bmodel |       0 |           2.07  |
-| ^                                        |       1 |           3.23  |
-| ^                                        |       2 |           4.46  |
-| ^                                        |       3 |           9.41  |
-| CV186X/ch_PP-OCRv4_det_fp32.bmodel       |       0 |          48.58  |
-| ^                                        |       1 |         196.22  |
-| CV186X/ch_PP-OCRv4_rec_fp32.bmodel       |       0 |           8.12  |
-| ^                                        |       1 |          16.48  |
-| ^                                        |       2 |          31.10  |
-| ^                                        |       3 |          61.96  |
-| CV186X/ch_PP-OCRv4_det_fp16.bmodel       |       0 |          12.04  |
-| ^                                        |       1 |          48.46  |
-| CV186X/ch_PP-OCRv4_rec_fp16.bmodel       |       0 |           2.00  |
-| ^                                        |       1 |           3.85  |
-| ^                                        |       2 |           6.96  |
-| ^                                        |       3 |          14.42  |
+|    测试平台  |                  测试模型                  |stage| calculate time(ms) |
+| ----------- | ----------------------------------        |  ---| ----------------- |
+|   SE7-32    | BM1684X/ch_PP-OCRv4_det_fp32.bmodel      |       0 |          15.50  |
+|   SE7-32    | ^                                        |       1 |          60.75  |
+|   SE7-32    | BM1684X/ch_PP-OCRv4_rec_fp32.bmodel      |       0 |           1.62  |
+|   SE7-32    | ^                                        |       1 |           2.88  |
+|   SE7-32    | ^                                        |       2 |           5.37  |
+|   SE7-32    | ^                                        |       3 |          10.78  |
+|   SE7-32    | BM1684X/ch_PP-OCRv4_det_fp16.bmodel      |       0 |           3.80  |
+|   SE7-32    | ^                                        |       1 |          14.38  |
+|   SE7-32    | BM1684X/ch_PP-OCRv4_rec_fp16.bmodel      |       0 |           0.60  |
+|   SE7-32    | ^                                        |       1 |           0.87  |
+|   SE7-32    | ^                                        |       2 |           1.61  |
+|   SE7-32    | ^                                        |       3 |           2.99  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_det_fp32.bmodel       |       0 |          48.66  |
+|   SE9-16    | ^                                        |       1 |         196.37  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_rec_fp32.bmodel       |       0 |           8.20  |
+|   SE9-16    | ^                                        |       1 |          16.48  |
+|   SE9-16    | ^                                        |       2 |          31.11  |
+|   SE9-16    | ^                                        |       3 |          62.05  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_det_fp16.bmodel       |       0 |          12.12  |
+|   SE9-16    | ^                                        |       1 |          48.61  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_rec_fp16.bmodel       |       0 |           2.07  |
+|   SE9-16    | ^                                        |       1 |           3.86  |
+|   SE9-16    | ^                                        |       2 |           6.95  |
+|   SE9-16    | ^                                        |       3 |          14.39  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_det_fp32_2core.bmodel |       0 |          29.91  |
+|   SE9-16    | ^                                        |       1 |         106.49  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_rec_fp32_2core.bmodel |       0 |           5.83  |
+|   SE9-16    | ^                                        |       1 |          10.06  |
+|   SE9-16    | ^                                        |       2 |          17.63  |
+|   SE9-16    | ^                                        |       3 |          34.48  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_det_fp16_2core.bmodel |       0 |           8.22  |
+|   SE9-16    | ^                                        |       1 |          31.43  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_rec_fp16_2core.bmodel |       0 |           2.07  |
+|   SE9-16    | ^                                        |       1 |           3.23  |
+|   SE9-16    | ^                                        |       2 |           4.46  |
+|   SE9-16    | ^                                        |       3 |           9.41  |
+|   SE9-8    | CV186X/ch_PP-OCRv4_det_fp32.bmodel       |       0 |          48.58  |
+|   SE9-8    | ^                                        |       1 |         196.22  |
+|   SE9-8    | CV186X/ch_PP-OCRv4_rec_fp32.bmodel       |       0 |           8.12  |
+|   SE9-8    | ^                                        |       1 |          16.48  |
+|   SE9-8    | ^                                        |       2 |          31.10  |
+|   SE9-8    | ^                                        |       3 |          61.96  |
+|   SE9-8    | CV186X/ch_PP-OCRv4_det_fp16.bmodel       |       0 |          12.04  |
+|   SE9-8    | ^                                        |       1 |          48.46  |
+|   SE9-8    | CV186X/ch_PP-OCRv4_rec_fp16.bmodel       |       0 |           2.00  |
+|   SE9-8    | ^                                        |       1 |           3.85  |
+|   SE9-8    | ^                                        |       2 |           6.96  |
+|   SE9-8    | ^                                        |       3 |          14.42  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

@@ -99,20 +99,19 @@ bmrt_test --bmodel models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-| 测试clip_image_vitb32模型                           | calculate time(ms) |
-| --------------------------------------------------- | ------------------ |
-| BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel     | 6.70               |
-| BM1688/clip_image_vitb32_bm1688_f16_1b.bmodel       | 13.67              |
-| BM1688/clip_image_vitb32_bm1688_f16_1b_2core.bmodel | 18.82              |
-| CV186X/clip_image_vitb32_cv186x_f16_1b.bmodel       | 25.79              |
+|   测试平台  | 测试clip_image_vitb32模型                           | calculate time(ms) |
+| ----------- | --------------------------------------------------- | ------------------ |
+|   SE7-32    | BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel     | 6.70               |
+|   SE9-16    | BM1688/clip_image_vitb32_bm1688_f16_1b.bmodel       | 13.67              |
+|   SE9-16    | BM1688/clip_image_vitb32_bm1688_f16_1b_2core.bmodel | 18.82              |
+|   SE9-8     | CV186X/clip_image_vitb32_cv186x_f16_1b.bmodel       | 25.79              |
 
-| 测试clip_text_vitb32模型                           | calculate time(ms) |
-| -------------------------------------------------- | ------------------ |
-| BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel     | 4.92               |
-| BM1688/clip_text_vitb32_bm1688_f16_1b.bmodel       | 13.71              |
-| BM1688/clip_text_vitb32_bm1688_f16_1b_2core.bmodel | 14.08              |
-| CV186X/clip_text_vitb32_cv186x_f16_1b.bmodel       | 17.61              |
-
+|   测试平台  | 测试clip_text_vitb32模型                           | calculate time(ms) |
+| ----------- | -------------------------------------------------- | ------------------ |
+|   SE7-32    | BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel     | 4.92               |
+|   SE9-16    | BM1688/clip_text_vitb32_bm1688_f16_1b.bmodel       | 13.71              |
+|   SE9-16    | BM1688/clip_text_vitb32_bm1688_f16_1b_2core.bmodel | 14.08              |
+|   SE9-8     | CV186X/clip_text_vitb32_cv186x_f16_1b.bmodel       | 17.61              |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性；

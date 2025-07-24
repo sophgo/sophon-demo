@@ -137,14 +137,14 @@ bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_decoder_fp32_1b.b
 
 测试各个模型的理论推理时间，结果如下：
 
-| 测试embedding/decode模型                     | calculate time(s) |
-| -------------------------------------------- | ----------------- |
-| SAM-ViT-B_embedding_fp16_1b.bmodel           | 0.303             |
-| SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  | 0.009             |
-| SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel  | 0.027             |
-| SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel | 0.005             |
-| SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel | 0.026             |
-| SAM-ViT-B_auto_decoder_fp32_1b.bmodel        | 1.503             |
+|  测试平台 | 测试embedding/decode模型                     | calculate time(s) |
+|  ------- | -------------------------------------------- | ----------------- |
+|   SE7-32 | SAM-ViT-B_embedding_fp16_1b.bmodel           | 0.303             |
+|   SE7-32 | SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  | 0.009             |
+|   SE7-32 | SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel  | 0.027             |
+|   SE7-32 | SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel | 0.005             |
+|   SE7-32 | SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel | 0.026             |
+|   SE7-32 | SAM-ViT-B_auto_decoder_fp32_1b.bmodel        | 1.503             |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -157,11 +157,11 @@ bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_decoder_fp32_1b.b
 测试`datasets/truck.jpg`单张图片性能测试结果如下（时间单位为ms），测试结果有一定波动性：
 | 测试平台    | 测试程序      | 测试模型                                                                        | decode_time | embedding_time | decode_mask_time | postprocess_time |
 | ----------- | ------------- | ------------------------------------------------------------------------------- | ----------- | -------------- | ---------------- | ---------------- |
-| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  | 11.0        | 416.0          | 15.5             | 16.2             |
-| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel  | 11.0        | 411.0          | 34.0             | 16.5             |
-| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel | 11.0        | 416.0          | 15.5             | 16.2             |
-| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel | 11.0        | 411.0          | 34.0             | 16.5             |
-| BM1684X SoC | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_auto_multi_decoder_fp32_1b.bmodel  | 37.39       | 512.61         | 28942.54         | 9403.08          |
+|  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  | 11.0        | 416.0          | 15.5             | 16.2             |
+|  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel  | 11.0        | 411.0          | 34.0             | 16.5             |
+|  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel | 11.0        | 416.0          | 15.5             | 16.2             |
+|  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel | 11.0        | 411.0          | 34.0             | 16.5             |
+|  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_auto_multi_decoder_fp32_1b.bmodel  | 37.39       | 512.61         | 28942.54         | 9403.08          |
 |   SRM1-20   | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  | 62.41       | 606.10         | 72.2             | 21.0             |
 |   SRM1-20   | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel  | 62.99       | 631.95         | 105.7            | 29.5             |
 |   SRM1-20   | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel | 62.39       | 604.78         | 36.4             | 5.9              |

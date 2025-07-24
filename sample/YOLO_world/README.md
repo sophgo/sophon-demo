@@ -183,20 +183,20 @@ bmrt_test --bmodel models/BM1684X/yoloworld_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|              测试模型               | calculate time(ms) |
-| ----------------------------------- | ----------------- |
-| BM1684X/yoloworld_fp32_1b.bmodel   |          35.69  |
-| BM1684X/yoloworld_fp16_1b.bmodel   |           7.50  |
-| BM1684X/yoloworld_int8_1b.bmodel   |           5.02  |
-| BM1688/yoloworld_fp32_1b.bmodel    |         184.76  |
-| BM1688/yoloworld_fp16_1b.bmodel    |          38.99  |
-| BM1688/yoloworld_int8_1b.bmodel    |          16.30  |
-| BM1688/yoloworld_fp32_1b_2core.bmodel|          99.15  |
-| BM1688/yoloworld_fp16_1b_2core.bmodel|          24.38  |
-| BM1688/yoloworld_int8_1b_2core.bmodel|          12.71  |
-| CV186X/yoloworld_fp32_1b.bmodel    |         184.80  |
-| CV186X/yoloworld_fp16_1b.bmodel    |          39.03  |
-| CV186X/yoloworld_int8_1b.bmodel    |          16.36  |
+|    测试平台  |              测试模型               | calculate time(ms) |
+| ----------- | ----------------------------------- | ----------------- |
+|   SE7-32    | BM1684X/yoloworld_fp32_1b.bmodel   |          35.69  |
+|   SE7-32    | BM1684X/yoloworld_fp16_1b.bmodel   |           7.50  |
+|   SE7-32    | BM1684X/yoloworld_int8_1b.bmodel   |           5.02  |
+|   SE9-16    | BM1688/yoloworld_fp32_1b.bmodel    |         184.76  |
+|   SE9-16    | BM1688/yoloworld_fp16_1b.bmodel    |          38.99  |
+|   SE9-16    | BM1688/yoloworld_int8_1b.bmodel    |          16.30  |
+|   SE9-16    | BM1688/yoloworld_fp32_1b_2core.bmodel|          99.15  |
+|   SE9-16    | BM1688/yoloworld_fp16_1b_2core.bmodel|          24.38  |
+|   SE9-16    | BM1688/yoloworld_int8_1b_2core.bmodel|          12.71  |
+|   SE9-8    | CV186X/yoloworld_fp32_1b.bmodel    |         184.80  |
+|   SE9-8    | CV186X/yoloworld_fp16_1b.bmodel    |          39.03  |
+|   SE9-8    | CV186X/yoloworld_int8_1b.bmodel    |          16.36  |
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间；

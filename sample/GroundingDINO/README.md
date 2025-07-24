@@ -122,11 +122,11 @@ bmrt_test --bmodel models/BM1684X/groundingdino_bm1684x_fp16.bmodel
 
 测试各个模型的理论推理时间，结果如下：
 
-|              测试模型                | calculate time(s)         |
-| ------------------------------------| --------------------------|
-| groundingdino_bm1684x_fp16.bmodel   | 0.532807                  |
-| groundingdino_bm1688_fp16.bmodel    | 1.256347                  |
-| groundingdino_cv186x_fp16.bmodel    | 1.662021                  |
+|    测试平台  |              测试模型                | calculate time(s)         |
+| -----------  | ------------------------------------| --------------------------|
+|   SE7-32    | groundingdino_bm1684x_fp16.bmodel   | 0.532807                  |
+|   SE9-16    | groundingdino_bm1688_fp16.bmodel    | 1.256347                  |
+|   SE9-8    | groundingdino_cv186x_fp16.bmodel    | 1.662021                  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
