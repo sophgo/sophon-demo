@@ -194,21 +194,21 @@ bmrt_test --bmodel models/BM1684X/yolov8s_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|              测试模型           | calculate time(ms) |
-| -------------------------------| ----------------- |
-| BM1684X/yolov8s_fp32_1b.bmodel     |           2.42  |
-| BM1684X/yolov8s_fp16_1b.bmodel     |           0.77  |
-| BM1684X/yolov8s_int8_1b.bmodel     |           0.56  |
-| BM1684X/yolov8s_int8_4b.bmodel     |           0.28  |
-| BM1688/yolov8s_fp32_1b.bmodel      |          10.01  |
-| BM1688/yolov8s_fp16_1b.bmodel      |           2.70  |
-| BM1688/yolov8s_int8_1b.bmodel      |           0.90  |
-| BM1688/yolov8s_int8_4b.bmodel      |           0.53  |
-| BM1688/yolov8s_int8_4b_2core.bmodel|           0.42  |
-| CV186X/yolov8s_fp32_1b.bmodel      |          11.37  |
-| CV186X/yolov8s_fp16_1b.bmodel      |           4.07  |
-| CV186X/yolov8s_int8_1b.bmodel      |           2.26  |
-| CV186X/yolov8s_int8_4b.bmodel      |           0.90  |
+|    测试平台  |              测试模型           | calculate time(ms) |
+| ----------- | -------------------------------| ----------------- |
+|   SE7-32    | BM1684X/yolov8s_fp32_1b.bmodel     |           2.42  |
+|   SE7-32    | BM1684X/yolov8s_fp16_1b.bmodel     |           0.77  |
+|   SE7-32    | BM1684X/yolov8s_int8_1b.bmodel     |           0.56  |
+|   SE7-32    | BM1684X/yolov8s_int8_4b.bmodel     |           0.28  |
+|   SE9-16    | BM1688/yolov8s_fp32_1b.bmodel      |          10.01  |
+|   SE9-16    | BM1688/yolov8s_fp16_1b.bmodel      |           2.70  |
+|   SE9-16    | BM1688/yolov8s_int8_1b.bmodel      |           0.90  |
+|   SE9-16    | BM1688/yolov8s_int8_4b.bmodel      |           0.53  |
+|   SE9-16    | BM1688/yolov8s_int8_4b_2core.bmodel|           0.42  |
+|   SE9-8    | CV186X/yolov8s_fp32_1b.bmodel      |          11.37  |
+|   SE9-8    | CV186X/yolov8s_fp16_1b.bmodel      |           4.07  |
+|   SE9-8    | CV186X/yolov8s_int8_1b.bmodel      |           2.26  |
+|   SE9-8    | CV186X/yolov8s_int8_4b.bmodel      |           0.90  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
