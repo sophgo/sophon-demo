@@ -4,14 +4,13 @@
 
 ## 目录
 
-- [HRNet_pose](#hrnet_pose)
+- [HRNet\_pose](#hrnet_pose)
   - [目录](#目录)
   - [1. 简介](#1-简介)
   - [2. 特性](#2-特性)
     - [2.1 目录结构说明](#21-目录结构说明)
     - [2.2 SDK特性](#22-sdk特性)
-    - [2.3 算法特性](#23-算法特性)
-  - [3. 数据准备与模型编译](#3-数据准备与模型编译)
+  - [3. 准备模型与数据](#3-准备模型与数据)
     - [3.1 数据准备](#31-数据准备)
     - [3.2 模型编译](#32-模型编译)
   - [4. 例程测试](#4-例程测试)
@@ -19,7 +18,7 @@
     - [5.1 测试方法](#51-测试方法)
     - [5.2 测试结果](#52-测试结果)
   - [6. 性能测试](#6-性能测试)
-    - [6.1 bmrt_test](#61-bmrt_test)
+    - [6.1 bmrt\_test](#61-bmrt_test)
     - [6.2 程序运行性能](#62-程序运行性能)
   
 
@@ -220,20 +219,20 @@ bmrt_test --bmodel models/BM1684X/hrnet_w32_256x192_f32.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                         | calculate time(ms) |
-| ------------------------------------------------- | ----------------- |
-| BM1684X/hrnet_w32_256x192_f32.bmodel        |            16.0 |
-| BM1684X/hrnet_w32_256x192_f16.bmodel        |            1.90 |
-| BM1684X/hrnet_w32_256x192_int8.bmodel       |            1.33 |
-| BM1688/hrnet_w32_256x192_f32.bmodel         |            76.4 |
-| BM1688/hrnet_w32_256x192_f16.bmodel         |            9.83 |
-| BM1688/hrnet_w32_256x192_int8.bmodel        |            3.32 |
-| BM1688/hrnet_w32_256x192_f32_2core.bmodel   |            58.9 |
-| BM1688/hrnet_w32_256x192_f16_2core.bmodel   |            9.59 |
-| BM1688/hrnet_w32_256x192_int8_2core.bmodel  |            3.20 |
-| CV186X/hrnet_w32_256x192_f32.bmodel         |            76.4 |
-| CV186X/hrnet_w32_256x192_f16.bmodel         |            9.92 |
-| CV186X/hrnet_w32_256x192_int8.bmodel        |            3.43 |
+|    测试平台  |                  测试模型                         | calculate time(ms) |
+| ----------- | ------------------------------------------------- | ----------------- |
+|   SE7-32    | BM1684X/hrnet_w32_256x192_f32.bmodel        |            16.0 |
+|   SE7-32    | BM1684X/hrnet_w32_256x192_f16.bmodel        |            1.90 |
+|   SE7-32    | BM1684X/hrnet_w32_256x192_int8.bmodel       |            1.33 |
+|   SE9-16    | BM1688/hrnet_w32_256x192_f32.bmodel         |            76.4 |
+|   SE9-16    | BM1688/hrnet_w32_256x192_f16.bmodel         |            9.83 |
+|   SE9-16    | BM1688/hrnet_w32_256x192_int8.bmodel        |            3.32 |
+|   SE9-16    | BM1688/hrnet_w32_256x192_f32_2core.bmodel   |            58.9 |
+|   SE9-16    | BM1688/hrnet_w32_256x192_f16_2core.bmodel   |            9.59 |
+|   SE9-16    | BM1688/hrnet_w32_256x192_int8_2core.bmodel  |            3.20 |
+|   SE9-8    | CV186X/hrnet_w32_256x192_f32.bmodel         |            76.4 |
+|   SE9-8    | CV186X/hrnet_w32_256x192_f16.bmodel         |            9.92 |
+|   SE9-8    | CV186X/hrnet_w32_256x192_int8.bmodel        |            3.43 |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

@@ -7,11 +7,14 @@
   - [1. 简介](#1-简介)
   - [2. 特性](#2-特性)
     - [2.1 目录结构说明](#21-目录结构说明)
-    - [2.2 SDK特性](#22-SDK特性)
-  - [3. 准备模型与数据](#3-准备模型与数据)
+    - [2.2 SDK特性](#22-sdk特性)
+  - [3. 数据准备与模型编译](#3-数据准备与模型编译)
     - [3.1 数据准备](#31-数据准备)
     - [3.2 模型编译](#32-模型编译)
+      - [3.2.1 图像分割模型编译](#321-图像分割模型编译)
+      - [3.2.2 视频分割模型编译](#322-视频分割模型编译)
   - [4. 例程测试](#4-例程测试)
+    - [Python例程](#python例程)
   - [5. 精度测试](#5-精度测试)
     - [5.1 测试方法](#51-测试方法)
     - [5.2 测试结果](#52-测试结果)
@@ -200,28 +203,28 @@ bmrt_test --bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel
 
 测试各个模型的理论推理时间，结果如下：
 
-| 测试模型                                                   | calculate time(ms) |
-| -----------------------------------------------------------|  ----------------- |
-| BM1684X/image_encoder/sam2_encoder_f16_1b.bmodel           |         100.25     |
-| BM1684X/image_encoder/sam2_encoder_f32_1b.bmodel           |         793.43     |
-| BM1684X/image_decoder/sam2_decoder_f16_1b.bmodel           |           4.28     |
-| BM1684X/image_decoder/sam2_decoder_f32_1b.bmodel           |          25.37     |
-| BM1684X/video/sam2_image_encoder_no_pos.bmodel             |          99.77     |
-| BM1684X/video/sam2_image_decoder.bmodel                    |           6.00     |
-| BM1684X/video/sam2_memory_attention_nomatmul.bmodel        |         761.08     |
-| BM1684X/video/sam2_memory_encoder.bmodel                   |           8.74     |
-| BM1688/image_encoder/sam2_encoder_f16_1b_1core.bmodel      |         373.71     |
-| BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel      |         225.64     |
-| BM1688/image_encoder/sam2_encoder_f32_1b_1core.bmodel      |        2248.32     |
-| BM1688/image_encoder/sam2_encoder_f32_1b_2core.bmodel      |        1319.28     |
-| BM1688/image_decoder/sam2_decoder_f16_1b_1core.bmodel      |          11.72     |
-| BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel      |           8.73     |
-| BM1688/image_decoder/sam2_decoder_f32_1b_1core.bmodel      |          47.90     |
-| BM1688/image_decoder/sam2_decoder_f32_1b_2core.bmodel      |          31.55     |
-| BM1688/video/sam2_image_encoder_no_pos.bmodel              |         383.29     |
-| BM1688/video/sam2_image_decoder.bmodel                     |          16.59     |
-| BM1688/video/sam2_memory_attention_nomatmul.bmodel         |        2468.28     |
-| BM1688/video/sam2_memory_encoder.bmodel                    |          26.29     |
+|    测试平台   | 测试模型                                                   | calculate time(ms) |
+| -----------   | -----------------------------------------------------------|  ----------------- |
+|   SE7-32      | BM1684X/image_encoder/sam2_encoder_f16_1b.bmodel           |         100.25     |
+|   SE7-32      | BM1684X/image_encoder/sam2_encoder_f32_1b.bmodel           |         793.43     |
+|   SE7-32      | BM1684X/image_decoder/sam2_decoder_f16_1b.bmodel           |           4.28     |
+|   SE7-32      | BM1684X/image_decoder/sam2_decoder_f32_1b.bmodel           |          25.37     |
+|   SE7-32      | BM1684X/video/sam2_image_encoder_no_pos.bmodel             |          99.77     |
+|   SE7-32      | BM1684X/video/sam2_image_decoder.bmodel                    |           6.00     |
+|   SE7-32      | BM1684X/video/sam2_memory_attention_nomatmul.bmodel        |         761.08     |
+|   SE7-32      | BM1684X/video/sam2_memory_encoder.bmodel                   |           8.74     |
+|   SE9-16      | BM1688/image_encoder/sam2_encoder_f16_1b_1core.bmodel      |         373.71     |
+|   SE9-16      | BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel      |         225.64     |
+|   SE9-16      | BM1688/image_encoder/sam2_encoder_f32_1b_1core.bmodel      |        2248.32     |
+|   SE9-16      | BM1688/image_encoder/sam2_encoder_f32_1b_2core.bmodel      |        1319.28     |
+|   SE9-16      | BM1688/image_decoder/sam2_decoder_f16_1b_1core.bmodel      |          11.72     |
+|   SE9-16      | BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel      |           8.73     |
+|   SE9-16      | BM1688/image_decoder/sam2_decoder_f32_1b_1core.bmodel      |          47.90     |
+|   SE9-16      | BM1688/image_decoder/sam2_decoder_f32_1b_2core.bmodel      |          31.55     |
+|   SE9-16      | BM1688/video/sam2_image_encoder_no_pos.bmodel              |         383.29     |
+|   SE9-16      | BM1688/video/sam2_image_decoder.bmodel                     |          16.59     |
+|   SE9-16      | BM1688/video/sam2_memory_attention_nomatmul.bmodel         |        2468.28     |
+|   SE9-16      | BM1688/video/sam2_memory_encoder.bmodel                    |          26.29     |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

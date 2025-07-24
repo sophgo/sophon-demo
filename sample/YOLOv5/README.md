@@ -310,27 +310,27 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                         | calculate time(ms) |
-| -------------------------------------------       | ----------------- |
-| BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel |          22.41  |
-| BM1684/yolov5s_v6.1_3output_int8_1b.bmodel |          11.26  |
-| BM1684/yolov5s_v6.1_3output_int8_4b.bmodel |           6.04  |
-| BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel|          21.66  |
-| BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel|           7.37  |
-| BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel|           3.51  |
-| BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel|           3.34  |
-| BM1688/yolov5s_v6.1_3output_fp32_1b.bmodel|         101.57  |
-| BM1688/yolov5s_v6.1_3output_fp16_1b.bmodel|          29.92  |
-| BM1688/yolov5s_v6.1_3output_int8_1b.bmodel|           9.33  |
-| BM1688/yolov5s_v6.1_3output_int8_4b.bmodel|           8.90  |
-| BM1688/yolov5s_v6.1_3output_fp32_1b_2core.bmodel|          66.89  |
-| BM1688/yolov5s_v6.1_3output_fp16_1b_2core.bmodel|          20.62  |
-| BM1688/yolov5s_v6.1_3output_int8_1b_2core.bmodel|           8.53  |
-| BM1688/yolov5s_v6.1_3output_int8_4b_2core.bmodel|           6.87  |
-| CV186X/yolov5s_v6.1_3output_fp32_1b.bmodel|         100.68  |
-| CV186X/yolov5s_v6.1_3output_fp16_1b.bmodel|          29.93  |
-| CV186X/yolov5s_v6.1_3output_int8_1b.bmodel|           8.18  |
-| CV186X/yolov5s_v6.1_3output_int8_4b.bmodel|           7.90  |
+|    测试平台  |                  测试模型                         | calculate time(ms) |
+| ----------- | -------------------------------------------       | ----------------- |
+|   SE5-16    | BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel |          22.41  |
+|   SE5-16    | BM1684/yolov5s_v6.1_3output_int8_1b.bmodel |          11.26  |
+|   SE5-16    | BM1684/yolov5s_v6.1_3output_int8_4b.bmodel |           6.04  |
+|   SE7-32    | BM1684X/yolov5s_v6.1_3output_fp32_1b.bmodel|          21.66  |
+|   SE7-32    | BM1684X/yolov5s_v6.1_3output_fp16_1b.bmodel|           7.37  |
+|   SE7-32    | BM1684X/yolov5s_v6.1_3output_int8_1b.bmodel|           3.51  |
+|   SE7-32    | BM1684X/yolov5s_v6.1_3output_int8_4b.bmodel|           3.34  |
+|   SE9-16    | BM1688/yolov5s_v6.1_3output_fp32_1b.bmodel|         101.57  |
+|   SE9-16    | BM1688/yolov5s_v6.1_3output_fp16_1b.bmodel|          29.92  |
+|   SE9-16    | BM1688/yolov5s_v6.1_3output_int8_1b.bmodel|           9.33  |
+|   SE9-16    | BM1688/yolov5s_v6.1_3output_int8_4b.bmodel|           8.90  |
+|   SE9-16    | BM1688/yolov5s_v6.1_3output_fp32_1b_2core.bmodel|          66.89  |
+|   SE9-16    | BM1688/yolov5s_v6.1_3output_fp16_1b_2core.bmodel|          20.62  |
+|   SE9-16    | BM1688/yolov5s_v6.1_3output_int8_1b_2core.bmodel|           8.53  |
+|   SE9-16    | BM1688/yolov5s_v6.1_3output_int8_4b_2core.bmodel|           6.87  |
+|   SE9-8     | CV186X/yolov5s_v6.1_3output_fp32_1b.bmodel|         100.68  |
+|   SE9-8     | CV186X/yolov5s_v6.1_3output_fp16_1b.bmodel|          29.93  |
+|   SE9-8     | CV186X/yolov5s_v6.1_3output_int8_1b.bmodel|           8.18  |
+|   SE9-8     | CV186X/yolov5s_v6.1_3output_int8_4b.bmodel|           7.90  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

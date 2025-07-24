@@ -192,17 +192,17 @@ bmrt_test --bmodel models/BM1684/ppyoloe_fp32_1b.bmodel
 测试结果中的`calculate time()`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-| 测试模型                       | calculate time(ms) |
-| -------------------                |  -------------- |
-| BM1684/ppyoloe_fp32_1b.bmodel      |          30.77  |
-| BM1684X/ppyoloe_fp32_1b.bmodel     |          27.38  |
-| BM1684X/ppyoloe_fp16_1b.bmodel     |           6.85  |
-| BM1688/ppyoloe_fp32_1b.bmodel      |         119.37  |
-| BM1688/ppyoloe_fp16_1b.bmodel      |          31.43  |
-| BM1688/ppyoloe_fp32_1b_2core.bmodel|          76.65  |
-| BM1688/ppyoloe_fp16_1b_2core.bmodel|          21.21  |
-| CV186X/ppyoloe_fp32_1b.bmodel      |         122.38  |
-| CV186X/ppyoloe_fp16_1b.bmodel      |          34.91  |
+|    测试平台  | 测试模型                       | calculate time(ms) |
+| ----------- | -------------------                |  -------------- |
+|   SE5-16    | BM1684/ppyoloe_fp32_1b.bmodel      |          30.77  |
+|   SE7-32    | BM1684X/ppyoloe_fp32_1b.bmodel     |          27.38  |
+|   SE7-32    | BM1684X/ppyoloe_fp16_1b.bmodel     |           6.85  |
+|   SE9-16    | BM1688/ppyoloe_fp32_1b.bmodel      |         119.37  |
+|   SE9-16    | BM1688/ppyoloe_fp16_1b.bmodel      |          31.43  |
+|   SE9-16    | BM1688/ppyoloe_fp32_1b_2core.bmodel|          76.65  |
+|   SE9-16    | BM1688/ppyoloe_fp16_1b_2core.bmodel|          21.21  |
+|   SE9-8     | CV186X/ppyoloe_fp32_1b.bmodel      |         122.38  |
+|   SE9-8     | CV186X/ppyoloe_fp16_1b.bmodel      |          34.91  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

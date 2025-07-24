@@ -2,18 +2,20 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-* [5. 例程测试](#5-例程测试)
-* [6. 精度测试](#6-精度测试)
-  * [6.1 测试方法](#61-测试方法)
-  * [6.2 测试结果](#62-测试结果)
-* [7. 性能测试](#7-性能测试)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 程序运行性能](#72-程序运行性能)
-* [8. FAQ](#8-faq)
+- [YOLOv8-pose](#yolov8-pose)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
   
 ## 1. 简介
 ​YOLOv8是YOLO系列的的一个重大更新版本，它抛弃了以往的YOLO系类模型使用的Anchor-Base，采用了Anchor-Free的思想。YOLOv8建立在YOLO系列成功的基础上，通过对网络结构的改造，进一步提升其性能和灵活性。本例程对[​YOLOv8官方开源仓库](https://github.com/ultralytics/ultralytics)的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X上进行推理测试。
@@ -228,27 +230,27 @@ bmrt_test --bmodel models/BM1684/yolov8s-pose_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                测试模型                  | calculate time(ms) |
-| ----------------------------------      | --------------- |
-| BM1684/yolov8s-pose_fp32_1b.bmodel      |          27.65  |
-| BM1684/yolov8s-pose_int8_1b.bmodel      |          16.12  |
-| BM1684/yolov8s-pose_int8_4b.bmodel      |           7.73  |
-| BM1684X/yolov8s-pose_fp32_1b.bmodel     |          31.02  |
-| BM1684X/yolov8s-pose_fp16_1b.bmodel     |           5.68  |
-| BM1684X/yolov8s-pose_int8_1b.bmodel     |           3.14  |
-| BM1684X/yolov8s-pose_int8_4b.bmodel     |           2.83  |
-| BM1688/yolov8s-pose_fp32_1b.bmodel      |         172.01  |
-| BM1688/yolov8s-pose_fp16_1b.bmodel      |          35.40  |
-| BM1688/yolov8s-pose_int8_1b.bmodel      |           7.83  |
-| BM1688/yolov8s-pose_int8_4b.bmodel      |           7.53  |
-| BM1688/yolov8s-pose_fp32_1b_2core.bmodel|          91.35  |
-| BM1688/yolov8s-pose_fp16_1b_2core.bmodel|          20.67  |
-| BM1688/yolov8s-pose_int8_1b_2core.bmodel|           6.93  |
-| BM1688/yolov8s-pose_int8_4b_2core.bmodel|           4.78  |
-| CV186X/yolov8s-pose_fp32_1b.bmodel      |         176.24  |
-| CV186X/yolov8s-pose_fp16_1b.bmodel      |          37.41  |
-| CV186X/yolov8s-pose_int8_1b.bmodel      |           9.36  |
-| CV186X/yolov8s-pose_int8_4b.bmodel      |           9.12  |
+|    测试平台  |                测试模型                  | calculate time(ms) |
+| ----------- | ----------------------------------      | --------------- |
+|   SE5-16    | BM1684/yolov8s-pose_fp32_1b.bmodel      |          27.65  |
+|   SE5-16    | BM1684/yolov8s-pose_int8_1b.bmodel      |          16.12  |
+|   SE5-16    | BM1684/yolov8s-pose_int8_4b.bmodel      |           7.73  |
+|   SE7-32    | BM1684X/yolov8s-pose_fp32_1b.bmodel     |          31.02  |
+|   SE7-32    | BM1684X/yolov8s-pose_fp16_1b.bmodel     |           5.68  |
+|   SE7-32    | BM1684X/yolov8s-pose_int8_1b.bmodel     |           3.14  |
+|   SE7-32    | BM1684X/yolov8s-pose_int8_4b.bmodel     |           2.83  |
+|   SE9-16    | BM1688/yolov8s-pose_fp32_1b.bmodel      |         172.01  |
+|   SE9-16    | BM1688/yolov8s-pose_fp16_1b.bmodel      |          35.40  |
+|   SE9-16    | BM1688/yolov8s-pose_int8_1b.bmodel      |           7.83  |
+|   SE9-16    | BM1688/yolov8s-pose_int8_4b.bmodel      |           7.53  |
+|   SE9-16    | BM1688/yolov8s-pose_fp32_1b_2core.bmodel|          91.35  |
+|   SE9-16    | BM1688/yolov8s-pose_fp16_1b_2core.bmodel|          20.67  |
+|   SE9-16    | BM1688/yolov8s-pose_int8_1b_2core.bmodel|           6.93  |
+|   SE9-16    | BM1688/yolov8s-pose_int8_4b_2core.bmodel|           4.78  |
+|   SE9-8     | CV186X/yolov8s-pose_fp32_1b.bmodel      |         176.24  |
+|   SE9-8     | CV186X/yolov8s-pose_fp16_1b.bmodel      |          37.41  |
+|   SE9-8     | CV186X/yolov8s-pose_int8_1b.bmodel      |           9.36  |
+|   SE9-8     | CV186X/yolov8s-pose_int8_4b.bmodel      |           9.12  |
 
 
 > **测试说明**：  

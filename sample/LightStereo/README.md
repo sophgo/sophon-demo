@@ -219,24 +219,24 @@ bmrt_test --bmodel models/BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                         | calculate time(ms) |
-| -------------------------------------------       | ----------------- |
-| BM1684X/LightStereo-S-SceneFlow_fp32_1b.bmodel|          86.91  |
-| BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel|          27.35  |
-| BM1684X/LightStereo-S-SceneFlow_int8_1b.bmodel|          21.46  |
-| BM1684X/LightStereo-S-SceneFlow_int8_4b.bmodel|          20.49  |
-| BM1688/LightStereo-S-SceneFlow_fp32_1b.bmodel|         321.78  |
-| BM1688/LightStereo-S-SceneFlow_fp16_1b.bmodel|          75.31  |
-| BM1688/LightStereo-S-SceneFlow_int8_1b.bmodel|          40.68  |
-| BM1688/LightStereo-S-SceneFlow_int8_4b.bmodel|          36.08  |
-| BM1688/LightStereo-S-SceneFlow_fp32_1b_2core.bmodel|         191.59  |
-| BM1688/LightStereo-S-SceneFlow_fp16_1b_2core.bmodel|          53.80  |
-| BM1688/LightStereo-S-SceneFlow_int8_1b_2core.bmodel|          32.51  |
-| BM1688/LightStereo-S-SceneFlow_int8_4b_2core.bmodel|          25.93  |
-| CV186X/LightStereo-S-SceneFlow_fp32_1b.bmodel|         354.74  |
-| CV186X/LightStereo-S-SceneFlow_fp16_1b.bmodel|          91.46  |
-| CV186X/LightStereo-S-SceneFlow_int8_1b.bmodel|          50.23  |
-| CV186X/LightStereo-S-SceneFlow_int8_4b.bmodel|          47.16  |
+|    测试平台  |                  测试模型                         | calculate time(ms) |
+| ----------- | -------------------------------------------       | ----------------- |
+|   SE7-32    | BM1684X/LightStereo-S-SceneFlow_fp32_1b.bmodel|          86.91  |
+|   SE7-32    | BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel|          27.35  |
+|   SE7-32    | BM1684X/LightStereo-S-SceneFlow_int8_1b.bmodel|          21.46  |
+|   SE7-32    | BM1684X/LightStereo-S-SceneFlow_int8_4b.bmodel|          20.49  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_fp32_1b.bmodel|         321.78  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_fp16_1b.bmodel|          75.31  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_1b.bmodel|          40.68  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_4b.bmodel|          36.08  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_fp32_1b_2core.bmodel|         191.59  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_fp16_1b_2core.bmodel|          53.80  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_1b_2core.bmodel|          32.51  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_4b_2core.bmodel|          25.93  |
+|   SE9-8    | CV186X/LightStereo-S-SceneFlow_fp32_1b.bmodel|         354.74  |
+|   SE9-8    | CV186X/LightStereo-S-SceneFlow_fp16_1b.bmodel|          91.46  |
+|   SE9-8    | CV186X/LightStereo-S-SceneFlow_int8_1b.bmodel|          50.23  |
+|   SE9-8    | CV186X/LightStereo-S-SceneFlow_int8_4b.bmodel|          47.16  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

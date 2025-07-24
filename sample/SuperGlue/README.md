@@ -152,20 +152,20 @@ bmrt_test --bmodel models/BM1684X/superpoint_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                         | calculate time(ms) |
-| -------------------------------------------       | ----------------- |
-| BM1684X/superpoint_fp32_1b.bmodel            |          51.46  |
-| BM1684X/superpoint_fp16_1b.bmodel            |          10.76  |
-| BM1684X/superglue_fp32_1b_iter20_1024.bmodel |         289.65  |
-| BM1684X/superglue_fp16_1b_iter20_1024.bmodel |          75.51  |
-| BM1688/superpoint_fp32_1b.bmodel   |         224.76  |
-| BM1688/superpoint_fp16_1b.bmodel   |          41.47  |
-| BM1688/superglue_fp32_1b_iter20_1024.bmodel|         670.28  |
-| BM1688/superglue_fp16_1b_iter20_1024.bmodel|         182.35  |
-| CV186X/superpoint_fp32_1b.bmodel   |         224.76  |
-| CV186X/superpoint_fp16_1b.bmodel   |          41.51  |
-| CV186X/superglue_fp32_1b_iter20_1024.bmodel|         667.09  |
-| CV186X/superglue_fp16_1b_iter20_1024.bmodel|         179.36  |
+|    测试平台  |                  测试模型                         | calculate time(ms) |
+| ----------- | -------------------------------------------       | ----------------- |
+|   SE7-32    | BM1684X/superpoint_fp32_1b.bmodel            |          51.46  |
+|   SE7-32    | BM1684X/superpoint_fp16_1b.bmodel            |          10.76  |
+|   SE7-32    | BM1684X/superglue_fp32_1b_iter20_1024.bmodel |         289.65  |
+|   SE7-32    | BM1684X/superglue_fp16_1b_iter20_1024.bmodel |          75.51  |
+|   SE9-16    | BM1688/superpoint_fp32_1b.bmodel   |         224.76  |
+|   SE9-16    | BM1688/superpoint_fp16_1b.bmodel   |          41.47  |
+|   SE9-16    | BM1688/superglue_fp32_1b_iter20_1024.bmodel|         670.28  |
+|   SE9-16    | BM1688/superglue_fp16_1b_iter20_1024.bmodel|         182.35  |
+|   SE9-38    | CV186X/superpoint_fp32_1b.bmodel   |         224.76  |
+|   SE9-38    | CV186X/superpoint_fp16_1b.bmodel   |          41.51  |
+|   SE9-38    | CV186X/superglue_fp32_1b_iter20_1024.bmodel|         667.09  |
+|   SE9-38    | CV186X/superglue_fp16_1b_iter20_1024.bmodel|         179.36  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

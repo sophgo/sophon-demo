@@ -4,19 +4,21 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-* [5. 例程测试](#5-例程测试)
-* [6. 精度测试](#6-精度测试)
-  * [6.1 测试方法](#61-测试方法)
-  * [6.2 测试结果](#62-测试结果)
-* [7. 性能测试](#7-性能测试)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 程序运行性能](#72-程序运行性能)
-* [8. FAQ](#8-faq)
-* [9. 致谢](#9-致谢)
+- [YOLOx](#yolox)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
+  - [9. 致谢](#9-致谢)
   
 ## 1. 简介
 YOLOx由旷世研究提出,是基于YOLO系列的改进，引入了解耦头和Anchor-free，提高算法整体的检测性能
@@ -227,30 +229,30 @@ bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|          测试模型 | calculate time(ms) |
-| ------------------------------      | ----------------- |
-| BM1684/yolox_s_fp32_1b.bmodel       |     26.01         |
-| BM1684/yolox_s_fp32_4b.bmodel       |     25.62         |
-| BM1684/yolox_s_int8_1b.bmodel       |     19.54         |
-| BM1684/yolox_s_int8_4b.bmodel       |     8.975         |
-| BM1684X/yolox_s_fp32_1b.bmodel      |     27.92         |
-| BM1684X/yolox_s_fp32_4b.bmodel      |     25.63         |
-| BM1684X/yolox_s_fp16_1b.bmodel      |     6.27          |
-| BM1684X/yolox_s_fp16_4b.bmodel      |     6.15          |
-| BM1684X/yolox_s_int8_1b.bmodel      |     4.55          |
-| BM1684X/yolox_s_int8_4b.bmodel      |     4.28          |
-| BM1688/yolox_s_fp32_1b.bmodel       |     155.60        |
-| BM1688/yolox_s_fp16_1b.bmodel       |     36.11         |
-| BM1688/yolox_s_int8_1b.bmodel       |     21.44         |
-| BM1688/yolox_s_int8_4b.bmodel       |     20.40         |
-| BM1688/yolox_s_fp32_1b_2core.bmodel |     104.13        |
-| BM1688/yolox_s_fp16_1b_2core.bmodel |     23.58         |
-| BM1688/yolox_s_int8_1b_2core.bmodel |     15.97         |
-| BM1688/yolox_s_int8_4b_2core.bmodel |     11.92         |
-| CV186X/yolox_s_int8_4b.bmodel       |     20.09         |
-| CV186X/yolox_s_int8_4b.bmodel       |     20.09         |
-| CV186X/yolox_s_fp16_1b.bmodel       |     34.80         |
-| CV186X/yolox_s_fp32_1b.bmodel       |     154.24        |
+|    测试平台  |          测试模型 | calculate time(ms) |
+| ----------- | ------------------------------      | ----------------- |
+|   SE5-16    | BM1684/yolox_s_fp32_1b.bmodel       |     26.01         |
+|   SE5-16    | BM1684/yolox_s_fp32_4b.bmodel       |     25.62         |
+|   SE5-16    | BM1684/yolox_s_int8_1b.bmodel       |     19.54         |
+|   SE5-16    | BM1684/yolox_s_int8_4b.bmodel       |     8.975         |
+|   SE7-32    | BM1684X/yolox_s_fp32_1b.bmodel      |     27.92         |
+|   SE7-32    | BM1684X/yolox_s_fp32_4b.bmodel      |     25.63         |
+|   SE7-32    | BM1684X/yolox_s_fp16_1b.bmodel      |     6.27          |
+|   SE7-32    | BM1684X/yolox_s_fp16_4b.bmodel      |     6.15          |
+|   SE7-32    | BM1684X/yolox_s_int8_1b.bmodel      |     4.55          |
+|   SE7-32    | BM1684X/yolox_s_int8_4b.bmodel      |     4.28          |
+|   SE9-16    | BM1688/yolox_s_fp32_1b.bmodel       |     155.60        |
+|   SE9-16    | BM1688/yolox_s_fp16_1b.bmodel       |     36.11         |
+|   SE9-16    | BM1688/yolox_s_int8_1b.bmodel       |     21.44         |
+|   SE9-16    | BM1688/yolox_s_int8_4b.bmodel       |     20.40         |
+|   SE9-16    | BM1688/yolox_s_fp32_1b_2core.bmodel |     104.13        |
+|   SE9-16    | BM1688/yolox_s_fp16_1b_2core.bmodel |     23.58         |
+|   SE9-16    | BM1688/yolox_s_int8_1b_2core.bmodel |     15.97         |
+|   SE9-16    | BM1688/yolox_s_int8_4b_2core.bmodel |     11.92         |
+|   SE9-8    | CV186X/yolox_s_int8_4b.bmodel       |     20.09         |
+|   SE9-8    | CV186X/yolox_s_int8_4b.bmodel       |     20.09         |
+|   SE9-8    | CV186X/yolox_s_fp16_1b.bmodel       |     34.80         |
+|   SE9-8    | CV186X/yolox_s_fp32_1b.bmodel       |     154.24        |
 
 
 > **测试说明**：  

@@ -223,27 +223,27 @@ bmrt_test --bmodel models/BM1684/p2pnet_bm1684_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                   | calculate time(ms) |
-| ------------------------------------------ | ------------------ |
-| BM1684/p2pnet_bm1684_fp32_1b.bmodel  		 | 92.4               |
-| BM1684/p2pnet_bm1684_int8_1b.bmodel  		 | 47.8               |
-| BM1684/p2pnet_bm1684_int8_4b.bmodel  		 | 			13.7      |
-| BM1684X/p2pnet_bm1684x_fp32_1b.bmodel 	 | 			158.5     |
-| BM1684X/p2pnet_bm1684x_fp16_1b.bmodel 	 | 			14.0      |
-| BM1684X/p2pnet_bm1684x_int8_1b.bmodel 	 | 			7.0       |
-| BM1684X/p2pnet_bm1684x_int8_4b.bmodel 	 | 			6.6       |
-| BM1688/p2pnet_bm1688_fp32_1b.bmodel 	     | 			937.3     |
-| BM1688/p2pnet_bm1688_fp16_1b.bmodel 	     | 			109.5     |
-| BM1688/p2pnet_bm1688_int8_1b.bmodel 	     | 			28.6      |
-| BM1688/p2pnet_bm1688_int8_4b.bmodel 	     | 			27.68     |
-| BM1688/p2pnet_fp32_1b_2core.bmodel         | 481.27             |
-| BM1688/p2pnet_fp16_1b_2core.bmodel         | 59.94              |
-| BM1688/p2pnet_int8_1b_2core.bmodel         | 22.46              |
-| BM1688/p2pnet_int8_4b_2core.bmodel         | 14.88              |
-| CV186X/p2pnet_cv186x_fp32_1b.bmodel  		 | 937.7              |
-| CV186X/p2pnet_cv186x_fp16_1b.bmodel  		 | 109.5              |
-| CV186X/p2pnet_cv186x_int8_1b.bmodel  		 | 28.6               |
-| CV186X/p2pnet_cv186x_int8_4b.bmodel  		 | 27.68              |
+|    测试平台  |                  测试模型                   | calculate time(ms) |
+| ----------- | ------------------------------------------ | ------------------ |
+|   SE5-16    | BM1684/p2pnet_bm1684_fp32_1b.bmodel  		 | 92.4               |
+|   SE5-16    | BM1684/p2pnet_bm1684_int8_1b.bmodel  		 | 47.8               |
+|   SE5-16    | BM1684/p2pnet_bm1684_int8_4b.bmodel  		 | 			13.7      |
+|   SE7-32    | BM1684X/p2pnet_bm1684x_fp32_1b.bmodel 	 | 			158.5     |
+|   SE7-32    | BM1684X/p2pnet_bm1684x_fp16_1b.bmodel 	 | 			14.0      |
+|   SE7-32    | BM1684X/p2pnet_bm1684x_int8_1b.bmodel 	 | 			7.0       |
+|   SE7-32    | BM1684X/p2pnet_bm1684x_int8_4b.bmodel 	 | 			6.6       |
+|   SE9-16    | BM1688/p2pnet_bm1688_fp32_1b.bmodel 	     | 			937.3     |
+|   SE9-16    | BM1688/p2pnet_bm1688_fp16_1b.bmodel 	     | 			109.5     |
+|   SE9-16    | BM1688/p2pnet_bm1688_int8_1b.bmodel 	     | 			28.6      |
+|   SE9-16    | BM1688/p2pnet_bm1688_int8_4b.bmodel 	     | 			27.68     |
+|   SE9-16    | BM1688/p2pnet_fp32_1b_2core.bmodel         | 481.27             |
+|   SE9-16    | BM1688/p2pnet_fp16_1b_2core.bmodel         | 59.94              |
+|   SE9-16    | BM1688/p2pnet_int8_1b_2core.bmodel         | 22.46              |
+|   SE9-16    | BM1688/p2pnet_int8_4b_2core.bmodel         | 14.88              |
+|   SE9-8    | CV186X/p2pnet_cv186x_fp32_1b.bmodel  		 | 937.7              |
+|   SE9-8    | CV186X/p2pnet_cv186x_fp16_1b.bmodel  		 | 109.5              |
+|   SE9-8    | CV186X/p2pnet_cv186x_int8_1b.bmodel  		 | 28.6               |
+|   SE9-8    | CV186X/p2pnet_cv186x_int8_4b.bmodel  		 | 27.68              |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性；

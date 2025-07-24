@@ -274,24 +274,24 @@ bmrt_test --bmodel models/BM1684X/yolov5s_v6.1_fuse_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型                         | calculate time(ms) |
-| -------------------------------------------       | ----------------- |
-| BM1684X/yolov5s_v6.1_fuse_fp32_1b.bmodel|          20.34  |
-| BM1684X/yolov5s_v6.1_fuse_fp16_1b.bmodel|           6.08  |
-| BM1684X/yolov5s_v6.1_fuse_int8_1b.bmodel|           3.09  |
-| BM1684X/yolov5s_v6.1_fuse_int8_4b.bmodel|           2.37  |
-| BM1688/yolov5s_v6.1_fuse_fp32_1b.bmodel|         100.85  |
-| BM1688/yolov5s_v6.1_fuse_fp16_1b.bmodel|          29.57  |
-| BM1688/yolov5s_v6.1_fuse_int8_1b.bmodel|           7.93  |
-| BM1688/yolov5s_v6.1_fuse_int8_4b.bmodel|           7.05  |
-| BM1688/yolov5s_v6.1_fuse_fp32_1b_2core.bmodel|          54.48  |
-| BM1688/yolov5s_v6.1_fuse_fp16_1b_2core.bmodel|          17.13  |
-| BM1688/yolov5s_v6.1_fuse_int8_1b_2core.bmodel|           6.45  |
-| BM1688/yolov5s_v6.1_fuse_int8_4b_2core.bmodel|           4.63  |
-| CV186X/yolov5s_v6.1_fuse_fp32_1b.bmodel|         100.20  |
-| CV186X/yolov5s_v6.1_fuse_fp16_1b.bmodel|          29.01  |
-| CV186X/yolov5s_v6.1_fuse_int8_1b.bmodel|           7.71  |
-| CV186X/yolov5s_v6.1_fuse_int8_4b.bmodel|           6.82  |
+|    测试平台  |                  测试模型                         | calculate time(ms) |
+| ----------- | -------------------------------------------       | ----------------- |
+|   SE7-32    | BM1684X/yolov5s_v6.1_fuse_fp32_1b.bmodel|          20.34  |
+|   SE7-32    | BM1684X/yolov5s_v6.1_fuse_fp16_1b.bmodel|           6.08  |
+|   SE7-32    | BM1684X/yolov5s_v6.1_fuse_int8_1b.bmodel|           3.09  |
+|   SE7-32    | BM1684X/yolov5s_v6.1_fuse_int8_4b.bmodel|           2.37  |
+|   SE9-16    | BM1688/yolov5s_v6.1_fuse_fp32_1b.bmodel|         100.85  |
+|   SE9-16    | BM1688/yolov5s_v6.1_fuse_fp16_1b.bmodel|          29.57  |
+|   SE9-16    | BM1688/yolov5s_v6.1_fuse_int8_1b.bmodel|           7.93  |
+|   SE9-16    | BM1688/yolov5s_v6.1_fuse_int8_4b.bmodel|           7.05  |
+|   SE9-16    | BM1688/yolov5s_v6.1_fuse_fp32_1b_2core.bmodel|          54.48  |
+|   SE9-16    | BM1688/yolov5s_v6.1_fuse_fp16_1b_2core.bmodel|          17.13  |
+|   SE9-16    | BM1688/yolov5s_v6.1_fuse_int8_1b_2core.bmodel|           6.45  |
+|   SE9-16    | BM1688/yolov5s_v6.1_fuse_int8_4b_2core.bmodel|           4.63  |
+|   SE9-8     | CV186X/yolov5s_v6.1_fuse_fp32_1b.bmodel|         100.20  |
+|   SE9-8     | CV186X/yolov5s_v6.1_fuse_fp16_1b.bmodel|          29.01  |
+|   SE9-8     | CV186X/yolov5s_v6.1_fuse_int8_1b.bmodel|           7.71  |
+|   SE9-8     | CV186X/yolov5s_v6.1_fuse_int8_4b.bmodel|           6.82  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

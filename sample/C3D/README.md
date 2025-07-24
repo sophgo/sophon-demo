@@ -246,36 +246,36 @@ bmrt_test --bmodel models/BM1684/c3d_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-| 测试模型                       | calculate time(ms) |
-| -------------------                |  -------------- |
-| BM1684/c3d_fp32_1b.bmodel          |          62.37  |
-| BM1684/c3d_fp32_4b.bmodel          |          50.10  |
-| BM1684/c3d_int8_1b.bmodel          |          28.25  |
-| BM1684/c3d_int8_4b.bmodel          |           7.39  |
-| BM1684X/c3d_fp32_1b.bmodel         |          79.05  |
-| BM1684X/c3d_fp32_4b.bmodel         |          73.64  |
-| BM1684X/c3d_fp16_1b.bmodel         |           9.50  |
-| BM1684X/c3d_fp16_4b.bmodel         |           7.11  |
-| BM1684X/c3d_int8_1b.bmodel         |           5.57  |
-| BM1684X/c3d_int8_4b.bmodel         |           4.41  |
-| BM1688/c3d_fp32_1b.bmodel          |         405.18  |
-| BM1688/c3d_fp32_4b.bmodel          |         387.96  |
-| BM1688/c3d_fp16_1b.bmodel          |          69.44  |
-| BM1688/c3d_fp16_4b.bmodel          |          62.81  |
-| BM1688/c3d_int8_1b.bmodel          |          25.90  |
-| BM1688/c3d_int8_4b.bmodel          |          22.57  |
-| BM1688/c3d_fp32_1b_2core.bmodel    |         404.29  |
-| BM1688/c3d_fp32_4b_2core.bmodel    |         389.69  |
-| BM1688/c3d_fp16_1b_2core.bmodel    |          55.28  |
-| BM1688/c3d_fp16_4b_2core.bmodel    |          48.73  |
-| BM1688/c3d_int8_1b_2core.bmodel    |          22.47  |
-| BM1688/c3d_int8_4b_2core.bmodel    |          19.40  |
-| CV186X/c3d_fp32_1b.bmodel          |         417.85  |
-| CV186X/c3d_fp32_4b.bmodel          |         394.11  |
-| CV186X/c3d_fp16_1b.bmodel          |          76.09  |
-| CV186X/c3d_fp16_4b.bmodel          |          65.99  |
-| CV186X/c3d_int8_1b.bmodel          |          32.57  |
-| CV186X/c3d_int8_4b.bmodel          |          27.78  |
+|    测试平台  | 测试模型                       | calculate time(ms) |
+| ----------- | -------------------                |  -------------- |
+|   SE5-16    | BM1684/c3d_fp32_1b.bmodel          |          62.37  |
+|   SE5-16    | BM1684/c3d_fp32_4b.bmodel          |          50.10  |
+|   SE5-16    | BM1684/c3d_int8_1b.bmodel          |          28.25  |
+|   SE5-16    | BM1684/c3d_int8_4b.bmodel          |           7.39  |
+|   SE7-32    | BM1684X/c3d_fp32_1b.bmodel         |          79.05  |
+|   SE7-32    | BM1684X/c3d_fp32_4b.bmodel         |          73.64  |
+|   SE7-32    | BM1684X/c3d_fp16_1b.bmodel         |           9.50  |
+|   SE7-32    | BM1684X/c3d_fp16_4b.bmodel         |           7.11  |
+|   SE7-32    | BM1684X/c3d_int8_1b.bmodel         |           5.57  |
+|   SE7-32    | BM1684X/c3d_int8_4b.bmodel         |           4.41  |
+|   SE9-16    | BM1688/c3d_fp32_1b.bmodel          |         405.18  |
+|   SE9-16    | BM1688/c3d_fp32_4b.bmodel          |         387.96  |
+|   SE9-16    | BM1688/c3d_fp16_1b.bmodel          |          69.44  |
+|   SE9-16    | BM1688/c3d_fp16_4b.bmodel          |          62.81  |
+|   SE9-16    | BM1688/c3d_int8_1b.bmodel          |          25.90  |
+|   SE9-16    | BM1688/c3d_int8_4b.bmodel          |          22.57  |
+|   SE9-16    | BM1688/c3d_fp32_1b_2core.bmodel    |         404.29  |
+|   SE9-16    | BM1688/c3d_fp32_4b_2core.bmodel    |         389.69  |
+|   SE9-16    | BM1688/c3d_fp16_1b_2core.bmodel    |          55.28  |
+|   SE9-16    | BM1688/c3d_fp16_4b_2core.bmodel    |          48.73  |
+|   SE9-16    | BM1688/c3d_int8_1b_2core.bmodel    |          22.47  |
+|   SE9-16    | BM1688/c3d_int8_4b_2core.bmodel    |          19.40  |
+|   SE9-8     | CV186X/c3d_fp32_1b.bmodel          |         417.85  |
+|   SE9-8     | CV186X/c3d_fp32_4b.bmodel          |         394.11  |
+|   SE9-8     | CV186X/c3d_fp16_1b.bmodel          |          76.09  |
+|   SE9-8     | CV186X/c3d_fp16_4b.bmodel          |          65.99  |
+|   SE9-8     | CV186X/c3d_int8_1b.bmodel          |          32.57  |
+|   SE9-8     | CV186X/c3d_int8_4b.bmodel          |          27.78  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

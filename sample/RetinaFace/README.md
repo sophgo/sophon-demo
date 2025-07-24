@@ -2,18 +2,18 @@
 
 ## 目录
 
-- [RetinaFace](#RetinaFace)
+- [RetinaFace](#retinaface)
   - [目录](#目录)
   - [1. 简介](#1-简介)
   - [2. 数据集](#2-数据集)
-  - [3. 准备环境与数据](#3-准备环境与数据)
+  - [3. 准备模型与数据](#3-准备模型与数据)
   - [4. 模型转换](#4-模型转换)
   - [5. 例程测试](#5-例程测试)
   - [6. 精度测试](#6-精度测试)
     - [6.1 测试方法](#61-测试方法)
     - [6.2 测试结果](#62-测试结果)
-  - [7. 性能测试](#6-性能测试)
-    - [7.1 bmrt_test](#71-bmrt_test)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
     - [7.2 程序运行性能](#72-程序运行性能)
 
 ## 1. 简介
@@ -223,23 +223,23 @@ bmrt_test --bmodel {path_of_bmodel}
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                      测试模型                          | calculate time(ms) |
-| ----------------------------------------------------- | ------------------ |
-| BM1684/retinaface_mobilenet0.25_fp32_1b.bmodel        | 6.31               |
-| BM1684/retinaface_mobilenet0.25_int8_1b.bmodel        | 7.40               |
-| BM1684/retinaface_mobilenet0.25_int8_4b.bmodel        | 4.75               |
-| BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel       | 3.81               |
-| BM1684X/retinaface_mobilenet0.25_fp16_1b.bmodel       | 1.35               |
-| BM1684X/retinaface_mobilenet0.25_int8_1b.bmodel       | 1.22               |
-| BM1684X/retinaface_mobilenet0.25_int8_4b.bmodel       | 1.05               |
-| BM1688/retinaface_mobilenet0.25_fp32_1b.bmodel        | 17.20              |
-| BM1688/retinaface_mobilenet0.25_fp16_1b.bmodel        | 5.60               |
-| BM1688/retinaface_mobilenet0.25_int8_1b.bmodel        | 4.37               |
-| BM1688/retinaface_mobilenet0.25_int8_4b.bmodel        | 3.17               |
-| BM1688/retinaface_mobilenet0.25_fp32_1b_2core.bmodel  | 12.13              |
-| BM1688/retinaface_mobilenet0.25_fp16_1b_2core.bmodel  | 4.74               |
-| BM1688/retinaface_mobilenet0.25_int8_1b_2core.bmodel  | 4.00               |
-| BM1688/retinaface_mobilenet0.25_int8_4b_2core.bmodel  | 2.08               |
+| 测试平台    |                      测试模型                          | calculate time(ms) |
+| ----------- | ----------------------------------------------------- | ------------------ |
+|   SE5-16    | BM1684/retinaface_mobilenet0.25_fp32_1b.bmodel        | 6.31               |
+|   SE5-16    | BM1684/retinaface_mobilenet0.25_int8_1b.bmodel        | 7.40               |
+|   SE5-16    | BM1684/retinaface_mobilenet0.25_int8_4b.bmodel        | 4.75               |
+|   SE7-32    | BM1684X/retinaface_mobilenet0.25_fp32_1b.bmodel       | 3.81               |
+|   SE7-32    | BM1684X/retinaface_mobilenet0.25_fp16_1b.bmodel       | 1.35               |
+|   SE7-32    | BM1684X/retinaface_mobilenet0.25_int8_1b.bmodel       | 1.22               |
+|   SE7-32    | BM1684X/retinaface_mobilenet0.25_int8_4b.bmodel       | 1.05               |
+|   SE9-16    | BM1688/retinaface_mobilenet0.25_fp32_1b.bmodel        | 17.20              |
+|   SE9-16    | BM1688/retinaface_mobilenet0.25_fp16_1b.bmodel        | 5.60               |
+|   SE9-16    | BM1688/retinaface_mobilenet0.25_int8_1b.bmodel        | 4.37               |
+|   SE9-16    | BM1688/retinaface_mobilenet0.25_int8_4b.bmodel        | 3.17               |
+|   SE9-16    | BM1688/retinaface_mobilenet0.25_fp32_1b_2core.bmodel  | 12.13              |
+|   SE9-16    | BM1688/retinaface_mobilenet0.25_fp16_1b_2core.bmodel  | 4.74               |
+|   SE9-16    | BM1688/retinaface_mobilenet0.25_int8_1b_2core.bmodel  | 4.00               |
+|   SE9-16    | BM1688/retinaface_mobilenet0.25_int8_4b_2core.bmodel  | 2.08               |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

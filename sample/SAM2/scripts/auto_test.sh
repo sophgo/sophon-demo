@@ -82,14 +82,14 @@ function bmrt_test_case(){
    fi
    for time in "${calculate_times[@]}"
    do
-     printf "| %-60s| % 15s |\n" "$1" "$time"
+     printf "| %-15s | %-60s| % 15s |\n" "$PLATFORM" "$1" "$time"
    done
 }
 
 function bmrt_test_benchmark(){
   pushd models
-  printf "| %-60s| % 15s |\n" "测试模型" "calculate time(ms)"
-  printf "| %-60s| % 15s |\n" "------------------------------------------------------------" "--------------"
+  printf "| %-15s | %-60s| % 15s |\n" "测试平台" "测试模型" "calculate time(ms)"
+  printf "| %-15s | %-60s| % 15s |\n" "-------" "-------------------" "--------------"
   if test $TARGET = "BM1684X"; then
     bmrt_test_case BM1684X/image_encoder/sam2_encoder_f16_1b.bmodel
     bmrt_test_case BM1684X/image_encoder/sam2_encoder_f32_1b.bmodel

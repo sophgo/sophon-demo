@@ -81,14 +81,14 @@ function bmrt_test_case(){
    fi
    for time in "${calculate_times[@]}"
    do
-     printf "| %-45s| % 20s |\n" "$1" "$time"
+     printf "| %-15s | %-45s| % 15s |\n" "$PLATFORM" "$1" "$time"
    done
 }
 function bmrt_test_benchmark(){
     pushd models
-    printf "| %-49s| % 20s |\n" "测试模型" "calculate time(ms)"
-    printf "| %-45s| % 20s |\n" "-------------------" "--------------"
-   
+    printf "| %-15s | %-45s| % 15s |\n" "测试平台" "测试模型" "calculate time(ms)"
+    printf "| %-15s | %-45s| % 15s |\n" "-------" "-------------------" "--------------"
+
     if test $TARGET = "BM1684"; then
       bmrt_test_case BM1684/scrfd_10g_kps_fp32_1b.bmodel
       bmrt_test_case BM1684/scrfd_10g_kps_int8_1b.bmodel

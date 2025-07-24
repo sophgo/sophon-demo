@@ -2,20 +2,20 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-  * [4.1 TPU-NNTC编译BModel](#41-tpu-nntc编译bmodel)
-  * [4.2 TPU-MLIR编译BModel](#42-tpu-mlir编译bmodel)
-* [5. 例程测试](#5-例程测试)
-* [6. 精度测试](#6-精度测试)
-  * [6.1 测试方法](#61-测试方法)
-  * [6.2 测试结果](#62-测试结果)
-* [7. 性能测试](#7-性能测试)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 程序运行性能](#72-程序运行性能)
-* [8. FAQ](#8-faq)
+- [CenterNet](#centernet)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
 
 ## 1. 简介
 
@@ -194,23 +194,23 @@ bmrt_test --bmodel models/BM1684/centernet_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|               测试模型                  | calculate time(ms) |
-| ---------------------------------------| ----------------- |
-| BM1684/centernet_fp32_1b.bmodel        | 46.2              |
-| BM1684/centernet_int8_1b.bmodel        | 22.5              |
-| BM1684/centernet_int8_4b.bmodel        | 8.1               |
-| BM1684X/centernet_fp32_1b.bmodel       | 55.1              |
-| BM1684X/centernet_fp16_1b.bmodel       | 9.2               |
-| BM1684X/centernet_int8_1b.bmodel       | 4.4               |
-| BM1684X/centernet_int8_4b.bmodel       | 4.0               |
-| BM1688/centernet_fp32_1b.bmodel        | 333.2             |
-| BM1688/centernet_fp16_1b.bmodel        | 48.5              |
-| BM1688/centernet_int8_1b.bmodel        | 21.9              |
-| BM1688/centernet_int8_4b.bmodel        | 20.5              |
-| BM1688/centernet_fp32_1b_2core.bmodel  | 248.8             |
-| BM1688/centernet_fp16_1b_2core.bmodel  | 32.9              |
-| BM1688/centernet_int8_1b_2core.bmodel  | 15.1              |
-| BM1688/centernet_int8_4b_2core.bmodel  | 11.5              |
+|    测试平台   |               测试模型                  | calculate time(ms) |
+| -----------  | ---------------------------------------| ----------------- |
+|   SE5-16     | BM1684/centernet_fp32_1b.bmodel        | 46.2              |
+|   SE5-16     | BM1684/centernet_int8_1b.bmodel        | 22.5              |
+|   SE5-16     | BM1684/centernet_int8_4b.bmodel        | 8.1               |
+|   SE7-32     | BM1684X/centernet_fp32_1b.bmodel       | 55.1              |
+|   SE7-32     | BM1684X/centernet_fp16_1b.bmodel       | 9.2               |
+|   SE7-32     | BM1684X/centernet_int8_1b.bmodel       | 4.4               |
+|   SE7-32     | BM1684X/centernet_int8_4b.bmodel       | 4.0               |
+|   SE9-16     | BM1688/centernet_fp32_1b.bmodel        | 333.2             |
+|   SE9-16     | BM1688/centernet_fp16_1b.bmodel        | 48.5              |
+|   SE9-16     | BM1688/centernet_int8_1b.bmodel        | 21.9              |
+|   SE9-16     | BM1688/centernet_int8_4b.bmodel        | 20.5              |
+|   SE9-16     | BM1688/centernet_fp32_1b_2core.bmodel  | 248.8             |
+|   SE9-16     | BM1688/centernet_fp16_1b_2core.bmodel  | 32.9              |
+|   SE9-16     | BM1688/centernet_int8_1b_2core.bmodel  | 15.1              |
+|   SE9-16     | BM1688/centernet_int8_4b_2core.bmodel  | 11.5              |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

@@ -85,16 +85,16 @@ function bmrt_test_case(){
    for time in "${calculate_times[@]}"
    do
      if test $stage = 0; then
-        printf "| %-41s| % 7s | % 15s |\n" "$1" "$stage" "$time"
+        printf "| %-15s | %-41s| % 7s | % 15s |\n" "$PLATFORM" "$1" "$stage" "$time"
      else
-        printf "| %-41s| % 7s | % 15s |\n" "^" "$stage" "$time"
+        printf "| %-15s | %-41s| % 7s | % 15s |\n" "$PLATFORM" "^" "$stage" "$time"
      fi
      stage=$(expr $stage + 1)
    done
 }
 function bmrt_test_benchmark(){
     pushd models
-    printf "| %-35s| % 7s | % 15s |\n" "测试模型" "stage" "calculate time(ms)"
+    printf "| %-15s | %-35s| % 7s | % 15s |\n" "$PLATFORM" "测试模型" "stage" "calculate time(ms)"
    
     if test $TARGET = "BM1684"; then
       bmrt_test_case BM1684/ch_PP-OCRv4_det_fp32.bmodel

@@ -75,13 +75,13 @@ function bmrt_test_case(){
    
    for time in "${calculate_times[@]}"
    do
-     printf "| %-35s| % 15s |\n" "$1" "$time"      
+     printf "| %-15s | %-60s| % 15s |\n" "$PLATFORM" "$1" "$time"
    done
 }
 function bmrt_test_benchmark(){
     pushd models
-    printf "| %-60s| % 15s |\n" "测试模型" "calculate time(ms)"            
-    printf "| %-60s| % 15s |\n" "-------------------" "--------------"   
+    printf "| %-15s | %-60s| % 15s |\n" "测试平台" "测试模型" "calculate time(ms)"
+    printf "| %-15s | %-60s| % 15s |\n" "-------" "-------------------" "--------------"
    
     if test $TARGET = "BM1684"; then
       bmrt_test_case BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel

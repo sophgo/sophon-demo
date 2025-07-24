@@ -2,18 +2,20 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-* [5. 例程测试](#5-例程测试)
-* [6. 精度测试](#6-精度测试)
-  * [6.1 测试方法](#61-测试方法)
-  * [6.2 测试结果](#62-测试结果)
-* [7. 性能测试](#7-性能测试)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 程序运行性能](#72-程序运行性能)
-* [8. FAQ](#8-faq)
+- [Resnet](#resnet)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
   
 ## 1. 简介
 本例程对[torchvision Resnet](https://pytorch.org/vision/stable/models.html)的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688\CV186X上进行推理测试。
@@ -247,27 +249,27 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|                  测试模型              | calculate time(ms) |
-| -----------------------------         | ----------------- |
-| BM1684/resnet50_fp32_1b.bmodel     |           6.36  |
-| BM1684/resnet50_int8_1b.bmodel     |           3.93  |
-| BM1684/resnet50_int8_4b.bmodel     |           1.24  |
-| BM1684X/resnet50_fp32_1b.bmodel    |           9.14  |
-| BM1684X/resnet50_fp16_1b.bmodel    |           1.62  |
-| BM1684X/resnet50_int8_1b.bmodel    |           1.10  |
-| BM1684X/resnet50_int8_4b.bmodel    |           0.82  |
-| BM1688/resnet50_fp32_1b.bmodel     |          46.90  |
-| BM1688/resnet50_fp16_1b.bmodel     |           8.26  |
-| BM1688/resnet50_int8_1b.bmodel     |           3.14  |
-| BM1688/resnet50_int8_4b.bmodel     |           2.48  |
-| BM1688/resnet50_fp32_1b_2core.bmodel|          34.87  |
-| BM1688/resnet50_fp16_1b_2core.bmodel|           7.55  |
-| BM1688/resnet50_int8_1b_2core.bmodel|           3.03  |
-| BM1688/resnet50_int8_4b_2core.bmodel|           1.92  |
-| CV186X/resnet50_fp32_1b.bmodel      |          42.90  |
-| CV186X/resnet50_fp16_1b.bmodel      |          6.89   |
-| CV186X/resnet50_int8_1b.bmodel      |          2.43   |
-| CV186X/resnet50_int8_4b.bmodel      |          1.82   |
+|   测试平台   |                  测试模型              | calculate time(ms) |
+| ----------- | -----------------------------         | ----------------- |
+|   SE5-16    | BM1684/resnet50_fp32_1b.bmodel     |           6.36  |
+|   SE5-16    | BM1684/resnet50_int8_1b.bmodel     |           3.93  |
+|   SE5-16    | BM1684/resnet50_int8_4b.bmodel     |           1.24  |
+|   SE7-32    | BM1684X/resnet50_fp32_1b.bmodel    |           9.14  |
+|   SE7-32    | BM1684X/resnet50_fp16_1b.bmodel    |           1.62  |
+|   SE7-32    | BM1684X/resnet50_int8_1b.bmodel    |           1.10  |
+|   SE7-32    | BM1684X/resnet50_int8_4b.bmodel    |           0.82  |
+|   SE9-16    | BM1688/resnet50_fp32_1b.bmodel     |          46.90  |
+|   SE9-16    | BM1688/resnet50_fp16_1b.bmodel     |           8.26  |
+|   SE9-16    | BM1688/resnet50_int8_1b.bmodel     |           3.14  |
+|   SE9-16    | BM1688/resnet50_int8_4b.bmodel     |           2.48  |
+|   SE9-16    | BM1688/resnet50_fp32_1b_2core.bmodel|          34.87  |
+|   SE9-16    | BM1688/resnet50_fp16_1b_2core.bmodel|           7.55  |
+|   SE9-16    | BM1688/resnet50_int8_1b_2core.bmodel|           3.03  |
+|   SE9-16    | BM1688/resnet50_int8_4b_2core.bmodel|           1.92  |
+|   SE9-8    | CV186X/resnet50_fp32_1b.bmodel      |          42.90  |
+|   SE9-8    | CV186X/resnet50_fp16_1b.bmodel      |          6.89   |
+|   SE9-8    | CV186X/resnet50_int8_1b.bmodel      |          2.43   |
+|   SE9-8    | CV186X/resnet50_int8_4b.bmodel      |          1.82   |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

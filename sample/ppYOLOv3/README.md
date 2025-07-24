@@ -2,18 +2,20 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-* [5. 例程测试](#5-例程测试)
-* [6. 精度测试](#6-精度测试)
-  * [6.1 测试方法](#61-测试方法)
-  * [6.2 测试结果](#62-测试结果)
-* [7. 性能测试](#7-性能测试)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 程序运行性能](#72-程序运行性能)
-* [8. FAQ](#8-faq)
+- [ppyolov3](#ppyolov3)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
 
 ## 1. 简介
 
@@ -224,22 +226,22 @@ bmrt_test --bmodel models/BM1684/ppyolov3_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|            测试模型             | calculate time(ms)|
-| ------------------------------- | ----------------- |
-| BM1684/ppyolov3_fp32_1b.bmodel     |          78.24  |
-| BM1684/ppyolov3_int8_1b.bmodel     |          51.70  |
-| BM1684X/ppyolov3_fp32_1b.bmodel    |         149.02  |
-| BM1684X/ppyolov3_fp16_1b.bmodel    |          14.38  |
-| BM1684X/ppyolov3_int8_1b.bmodel    |           7.24  |
-| BM1688/ppyolov3_fp32_1b.bmodel     |         735.06  |
-| BM1688/ppyolov3_fp16_1b.bmodel     |          90.44  |
-| BM1688/ppyolov3_int8_1b.bmodel     |          27.32  |
-| BM1688/ppyolov3_fp32_1b_2core.bmodel|         383.19  |
-| BM1688/ppyolov3_fp16_1b_2core.bmodel|          53.11  |
-| BM1688/ppyolov3_int8_1b_2core.bmodel|          20.16  |
-| CV186X/ppyolov3_fp32_1b.bmodel     |         744.30  |
-| CV186X/ppyolov3_fp16_1b.bmodel     |          97.62  |
-| CV186X/ppyolov3_int8_1b.bmodel     |          32.15  |
+|    测试平台  |            测试模型             | calculate time(ms)|
+| -----------  | ------------------------------- | ----------------- |
+|   SE5-16    | BM1684/ppyolov3_fp32_1b.bmodel     |          78.24  |
+|   SE5-16    | BM1684/ppyolov3_int8_1b.bmodel     |          51.70  |
+|   SE7-32    | BM1684X/ppyolov3_fp32_1b.bmodel    |         149.02  |
+|   SE7-32    | BM1684X/ppyolov3_fp16_1b.bmodel    |          14.38  |
+|   SE7-32    | BM1684X/ppyolov3_int8_1b.bmodel    |           7.24  |
+|   SE9-16    | BM1688/ppyolov3_fp32_1b.bmodel     |         735.06  |
+|   SE9-16    | BM1688/ppyolov3_fp16_1b.bmodel     |          90.44  |
+|   SE9-16    | BM1688/ppyolov3_int8_1b.bmodel     |          27.32  |
+|   SE9-16    | BM1688/ppyolov3_fp32_1b_2core.bmodel|         383.19  |
+|   SE9-16    | BM1688/ppyolov3_fp16_1b_2core.bmodel|          53.11  |
+|   SE9-16    | BM1688/ppyolov3_int8_1b_2core.bmodel|          20.16  |
+|   SE9-8    | CV186X/ppyolov3_fp32_1b.bmodel     |         744.30  |
+|   SE9-8    | CV186X/ppyolov3_fp16_1b.bmodel     |          97.62  |
+|   SE9-8    | CV186X/ppyolov3_int8_1b.bmodel     |          32.15  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

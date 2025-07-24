@@ -1,16 +1,17 @@
 # SlowFast
-- [1. 简介](#1-简介)
-- [2. 特性](#2-特性)
-- [3. 准备模型与数据](#3-准备模型与数据)
-- [4. 模型编译](#4-模型编译)
-- [5. 例程测试](#5-例程测试)
-- [6. 精度测试](#6-精度测试)
-  - [6.1 测试方法](#61-测试方法)
-  - [6.2 测试结果](#62-测试结果)
-- [7. 性能测试](#7-性能测试)
-  - [7.1 bmrt\_test](#71-bmrt_test)
-  - [7.2 程序运行性能](#72-程序运行性能)
-- [8. FAQ](#8-faq)
+- [SlowFast](#slowfast)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
 
 
 
@@ -201,26 +202,26 @@ bmrt_test --bmodel models/BM1684X/slowfast_bm1684x_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-| 测试模型                       | calculate time(ms) |
-| -------------------                |  -------------- |
-| BM1684X/slowafst_bm1684x_fp32_1b.bmodel         |         199.57  |
-| BM1684X/slowafst_bm1684x_fp32_4b.bmodel         |         193.86  |
-| BM1684X/slowafst_bm1684x_fp16_1b.bmodel         |          33.07  |
-| BM1684X/slowafst_bm1684x_fp16_4b.bmodel         |          31.86  |
-| BM1684X/slowafst_bm1684x_int8_1b.bmodel         |          24.28  |
-| BM1684X/slowafst_bm1684x_int8_4b.bmodel         |          23.84  |
-| BM1688/slowafst_bm1688_fp32_1b.bmodel          |        1155.96  |
-| BM1688/slowafst_bm1688_fp32_4b.bmodel          |        1142.72  |
-| BM1688/slowafst_bm1688_fp16_1b.bmodel          |         223.08  |
-| BM1688/slowafst_bm1688_fp16_4b.bmodel          |         217.67  |
-| BM1688/slowafst_bm1688_int8_1b.bmodel          |          70.06  |
-| BM1688/slowafst_bm1688_int8_4b.bmodel          |          66.22  |
-| BM1688/slowafst_bm1688_fp32_1b_2core.bmodel    |         999.86  |
-| BM1688/slowafst_bm1688_fp32_4b_2core.bmodel    |         984.33  |
-| BM1688/slowafst_bm1688_fp16_1b_2core.bmodel    |         198.07  |
-| BM1688/slowafst_bm1688_fp16_4b_2core.bmodel    |         193.83  |
-| BM1688/slowafst_bm1688_int8_1b_2core.bmodel    |          53.89  |
-| BM1688/slowafst_bm1688_int8_4b_2core.bmodel    |          50.96  |
+|    测试平台  | 测试模型                       | calculate time(ms) |
+| ----------- | -------------------                |  -------------- |
+|   SE7-32    | BM1684X/slowafst_bm1684x_fp32_1b.bmodel         |         199.57  |
+|   SE7-32    | BM1684X/slowafst_bm1684x_fp32_4b.bmodel         |         193.86  |
+|   SE7-32    | BM1684X/slowafst_bm1684x_fp16_1b.bmodel         |          33.07  |
+|   SE7-32    | BM1684X/slowafst_bm1684x_fp16_4b.bmodel         |          31.86  |
+|   SE7-32    | BM1684X/slowafst_bm1684x_int8_1b.bmodel         |          24.28  |
+|   SE7-32    | BM1684X/slowafst_bm1684x_int8_4b.bmodel         |          23.84  |
+|   SE9-16    | BM1688/slowafst_bm1688_fp32_1b.bmodel          |        1155.96  |
+|   SE9-16    | BM1688/slowafst_bm1688_fp32_4b.bmodel          |        1142.72  |
+|   SE9-16    | BM1688/slowafst_bm1688_fp16_1b.bmodel          |         223.08  |
+|   SE9-16    | BM1688/slowafst_bm1688_fp16_4b.bmodel          |         217.67  |
+|   SE9-16    | BM1688/slowafst_bm1688_int8_1b.bmodel          |          70.06  |
+|   SE9-16    | BM1688/slowafst_bm1688_int8_4b.bmodel          |          66.22  |
+|   SE9-16    | BM1688/slowafst_bm1688_fp32_1b_2core.bmodel    |         999.86  |
+|   SE9-16    | BM1688/slowafst_bm1688_fp32_4b_2core.bmodel    |         984.33  |
+|   SE9-16    | BM1688/slowafst_bm1688_fp16_1b_2core.bmodel    |         198.07  |
+|   SE9-16    | BM1688/slowafst_bm1688_fp16_4b_2core.bmodel    |         193.83  |
+|   SE9-16    | BM1688/slowafst_bm1688_int8_1b_2core.bmodel    |          53.89  |
+|   SE9-16    | BM1688/slowafst_bm1688_int8_4b_2core.bmodel    |          50.96  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

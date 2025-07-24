@@ -2,20 +2,22 @@
 
 ## 目录
 
-* [1. 简介](#1-简介)
-* [2. 特性](#2-特性)
-* [3. 准备模型与数据](#3-准备模型与数据)
-* [4. 模型编译](#4-模型编译)
-  * [4.1 TPU-MLIR编译BModel](#41-tpu-mlir编译bmodel)
-* [5. 例程测试](#5-例程测试)
-* [6. 精度测试](#6-精度测试)
-  * [6.1 测试方法](#61-测试方法)
-  * [6.2 测试结果](#62-测试结果)
-* [7. 性能测试](#7-性能测试)
-  * [7.1 bmrt_test](#71-bmrt_test)
-  * [7.2 程序运行性能](#72-程序运行性能)
-* [8. FAQ](#8-faq)
-* [9. WeNetSpeech适配](#9-WeNetSpeech适配)
+- [WeNet](#wenet)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+  - [3. 准备模型与数据](#3-准备模型与数据)
+  - [4. 模型编译](#4-模型编译)
+    - [4.1 TPU-MLIR编译BModel](#41-tpu-mlir编译bmodel)
+  - [5. 例程测试](#5-例程测试)
+  - [6. 精度测试](#6-精度测试)
+    - [6.1 测试方法](#61-测试方法)
+    - [6.2 测试结果](#62-测试结果)
+  - [7. 性能测试](#7-性能测试)
+    - [7.1 bmrt\_test](#71-bmrt_test)
+    - [7.2 程序运行性能](#72-程序运行性能)
+  - [8. FAQ](#8-faq)
+  - [9. WeNetSpeech适配](#9-wenetspeech适配)
 
 ## 1. 简介
 WeNet是一款面向工业落地应用的语音识别工具包，提供了从语音识别模型的训练到部署的一条龙服务。本例程对[WeNet官方开源仓库](https://github.com/wenet-e2e/wenet)中基于aishell的预训练模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X上进行推理测试。后处理用到的ctc decoder代码来自[Ctc Decoder](https://github.com/Kevindurant111/ctcdecode-cpp.git)。
@@ -225,29 +227,29 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 ```
 测试结果中的`calculate time`就是模型推理的时间。
 测试各个模型的理论推理时间，结果如下：
-|                  测试模型                   | calculate time(ms) |
-| ------------------------------------------- | -----------------|
-| BM1684/wenet_encoder_streaming_fp32.bmodel        |          23.63  |
-| BM1684/wenet_encoder_non_streaming_fp32.bmodel    |         138.78  |
-| BM1684/wenet_decoder_fp32.bmodel                  |         941.14  |
-| BM1684X/wenet_encoder_streaming_fp32.bmodel       |           9.79  |
-| BM1684X/wenet_encoder_non_streaming_fp32.bmodel   |          71.95  |
-| BM1684X/wenet_decoder_fp32.bmodel                 |         307.50  |
-| BM1684X/wenet_encoder_streaming_fp16.bmodel       |           3.43  |
-| BM1684X/wenet_encoder_non_streaming_fp16.bmodel   |          14.23  |
-| BM1684X/wenet_decoder_fp16.bmodel                 |          62.54  |
-| BM1688/wenet_encoder_streaming_fp32.bmodel        |          19.84  |
-| BM1688/wenet_encoder_non_streaming_fp32.bmodel    |         211.54  |
-| BM1688/wenet_decoder_fp32.bmodel                  |         722.56  |
-| BM1688/wenet_encoder_streaming_fp16.bmodel        |           6.71  |
-| BM1688/wenet_encoder_non_streaming_fp16.bmodel    |          44.37  |
-| BM1688/wenet_decoder_fp16.bmodel                  |         179.78  |
-| CV186X/wenet_encoder_streaming_fp32.bmodel        |          19.96  |
-| CV186X/wenet_encoder_non_streaming_fp32.bmodel    |         212.00  |
-| CV186X/wenet_decoder_fp32.bmodel                  |         722.76  |
-| CV186X/wenet_encoder_streaming_fp16.bmodel        |           6.87  |
-| CV186X/wenet_encoder_non_streaming_fp16.bmodel    |          44.21  |
-| CV186X/wenet_decoder_fp16.bmodel                  |         177.34  |
+|    测试平台  |                  测试模型                   | calculate time(ms) |
+| ----------- | ------------------------------------------- | -----------------|
+|   SE5-16    | BM1684/wenet_encoder_streaming_fp32.bmodel        |          23.63  |
+|   SE5-16    | BM1684/wenet_encoder_non_streaming_fp32.bmodel    |         138.78  |
+|   SE5-16    | BM1684/wenet_decoder_fp32.bmodel                  |         941.14  |
+|   SE7-32    | BM1684X/wenet_encoder_streaming_fp32.bmodel       |           9.79  |
+|   SE7-32    | BM1684X/wenet_encoder_non_streaming_fp32.bmodel   |          71.95  |
+|   SE7-32    | BM1684X/wenet_decoder_fp32.bmodel                 |         307.50  |
+|   SE7-32    | BM1684X/wenet_encoder_streaming_fp16.bmodel       |           3.43  |
+|   SE7-32    | BM1684X/wenet_encoder_non_streaming_fp16.bmodel   |          14.23  |
+|   SE7-32    | BM1684X/wenet_decoder_fp16.bmodel                 |          62.54  |
+|   SE9-16    | BM1688/wenet_encoder_streaming_fp32.bmodel        |          19.84  |
+|   SE9-16    | BM1688/wenet_encoder_non_streaming_fp32.bmodel    |         211.54  |
+|   SE9-16    | BM1688/wenet_decoder_fp32.bmodel                  |         722.56  |
+|   SE9-16    | BM1688/wenet_encoder_streaming_fp16.bmodel        |           6.71  |
+|   SE9-16    | BM1688/wenet_encoder_non_streaming_fp16.bmodel    |          44.37  |
+|   SE9-16    | BM1688/wenet_decoder_fp16.bmodel                  |         179.78  |
+|   SE9-8    | CV186X/wenet_encoder_streaming_fp32.bmodel        |          19.96  |
+|   SE9-8    | CV186X/wenet_encoder_non_streaming_fp32.bmodel    |         212.00  |
+|   SE9-8    | CV186X/wenet_decoder_fp32.bmodel                  |         722.76  |
+|   SE9-8    | CV186X/wenet_encoder_streaming_fp16.bmodel        |           6.87  |
+|   SE9-8    | CV186X/wenet_encoder_non_streaming_fp16.bmodel    |          44.21  |
+|   SE9-8    | CV186X/wenet_decoder_fp16.bmodel                  |         177.34  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；

@@ -255,28 +255,28 @@ bmrt_test --bmodel models/BM1684/yolov7_v0.1_3output_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-| 测试模型                                        | calculate time(ms) |
-| ----------------------------------------------- | ------------------ |
-| BM1684/yolov7_v0.1_3output_fp32_1b.bmodel       | 87.2               |
-| BM1684/yolov7_v0.1_3output_int8_1b.bmodel       | 48.9               |
-| BM1684/yolov7_v0.1_3output_int8_4b.bmodel       | 19.4               |
-| BM1684X/yolov7_v0.1_3output_fp32_1b.bmodel      | 97.8               |
-| BM1684X/yolov7_v0.1_3output_fp16_1b.bmodel      | 19.3               |
-| BM1684X/yolov7_v0.1_3output_fp16_4b.bmodel      | 18.4               |
-| BM1684X/yolov7_v0.1_3output_int8_1b.bmodel      | 9.1                |
-| BM1684X/yolov7_v0.1_3output_int8_4b.bmodel      | 8.4                |
-| BM1688/yolov7_v0.1_3output_fp32_1b.bmodel       | 582.54             |
-| BM1688/yolov7_v0.1_3output_fp16_1b.bmodel       | 129.02             |
-| BM1688/yolov7_v0.1_3output_int8_1b.bmodel       | 33.42              |
-| BM1688/yolov7_v0.1_3output_int8_4b.bmodel       | 32.90              |
-| BM1688/yolov7_v0.1_3output_fp32_1b_2core.bmodel | 318.84             |
-| BM1688/yolov7_v0.1_3output_fp16_1b_2core.bmodel | 87.91              |
-| BM1688/yolov7_v0.1_3output_int8_1b_2core.bmodel | 19.66              |
-| BM1688/yolov7_v0.1_3output_int8_4b_2core.bmodel | 16.78              |
-| CV186X/yolov7_v0.1_3output_fp32_1b.bmodel       | 577.94             |
-| CV186X/yolov7_v0.1_3output_fp16_1b.bmodel       | 123.22             |
-| CV186X/yolov7_v0.1_3output_int8_1b.bmodel       | 33.50              |
-| CV186X/yolov7_v0.1_3output_int8_4b.bmodel       | 33.01              |
+|    测试平台  | 测试模型                                        | calculate time(ms) |
+| ----------- | ----------------------------------------------- | ------------------ |
+|   SE5-16    | BM1684/yolov7_v0.1_3output_fp32_1b.bmodel       | 87.2               |
+|   SE5-16    | BM1684/yolov7_v0.1_3output_int8_1b.bmodel       | 48.9               |
+|   SE5-16    | BM1684/yolov7_v0.1_3output_int8_4b.bmodel       | 19.4               |
+|   SE7-32    | BM1684X/yolov7_v0.1_3output_fp32_1b.bmodel      | 97.8               |
+|   SE7-32    | BM1684X/yolov7_v0.1_3output_fp16_1b.bmodel      | 19.3               |
+|   SE7-32    | BM1684X/yolov7_v0.1_3output_fp16_4b.bmodel      | 18.4               |
+|   SE7-32    | BM1684X/yolov7_v0.1_3output_int8_1b.bmodel      | 9.1                |
+|   SE7-32    | BM1684X/yolov7_v0.1_3output_int8_4b.bmodel      | 8.4                |
+|   SE9-16    | BM1688/yolov7_v0.1_3output_fp32_1b.bmodel       | 582.54             |
+|   SE9-16    | BM1688/yolov7_v0.1_3output_fp16_1b.bmodel       | 129.02             |
+|   SE9-16    | BM1688/yolov7_v0.1_3output_int8_1b.bmodel       | 33.42              |
+|   SE9-16    | BM1688/yolov7_v0.1_3output_int8_4b.bmodel       | 32.90              |
+|   SE9-16    | BM1688/yolov7_v0.1_3output_fp32_1b_2core.bmodel | 318.84             |
+|   SE9-16    | BM1688/yolov7_v0.1_3output_fp16_1b_2core.bmodel | 87.91              |
+|   SE9-16    | BM1688/yolov7_v0.1_3output_int8_1b_2core.bmodel | 19.66              |
+|   SE9-16    | BM1688/yolov7_v0.1_3output_int8_4b_2core.bmodel | 16.78              |
+|   SE9-8     | CV186X/yolov7_v0.1_3output_fp32_1b.bmodel       | 577.94             |
+|   SE9-8     | CV186X/yolov7_v0.1_3output_fp16_1b.bmodel       | 123.22             |
+|   SE9-8     | CV186X/yolov7_v0.1_3output_int8_1b.bmodel       | 33.50              |
+|   SE9-8     | CV186X/yolov7_v0.1_3output_int8_4b.bmodel       | 33.01              |
 
 
 > **测试说明**：  

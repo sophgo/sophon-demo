@@ -124,10 +124,10 @@ bmrt_test --bmodel models/BM1684X/ram_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|              测试模型           | calculate time(ms) |
-| -------------------------------| ----------------- |
-| BM1684X/ram_fp32_1b.bmodel         |         588.41  |
-| BM1684X/ram_fp16_1b.bmodel         |          72.64  |
+|    测试平台  |              测试模型           | calculate time(ms) |
+| ----------- | -------------------------------| ----------------- |
+|   SE7-32    | BM1684X/ram_fp32_1b.bmodel         |         588.41  |
+|   SE7-32    | BM1684X/ram_fp16_1b.bmodel         |          72.64  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

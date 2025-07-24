@@ -246,27 +246,27 @@ bmrt_test --bmodel models/BM1684/lprnet_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-| 测试模型                           | calculate time(ms) |
-| ---------------------------------- | ------------------ |
-| BM1684/lprnet_fp32_1b.bmodel       | 1.144              |
-| BM1684/lprnet_int8_1b.bmodel       | 1.070              |
-| BM1684/lprnet_int8_4b.bmodel       | 0.304              |
-| BM1684X/lprnet_fp32_1b.bmodel      | 0.883              |
-| BM1684X/lprnet_fp16_1b.bmodel      | 0.585              |
-| BM1684X/lprnet_int8_1b.bmodel      | 0.507              |
-| BM1684X/lprnet_int8_4b.bmodel      | 0.259              |
-| BM1688/lprnet_fp32_1b.bmodel       | 2.287              |
-| BM1688/lprnet_fp32_1b_2core.bmodel | 2.275              |
-| BM1688/lprnet_fp16_1b.bmodel       | 0.839              |
-| BM1688/lprnet_fp16_1b_2core.bmodel | 0.839              |
-| BM1688/lprnet_int8_1b.bmodel       | 0.550              |
-| BM1688/lprnet_int8_1b_2core.bmodel | 0.536              |
-| BM1688/lprnet_int8_4b.bmodel       | 0.331              |
-| BM1688/lprnet_int8_4b_2core.bmodel | 0.330              |
-| CV186X/lprnet_fp32_1b.bmodel       | 2.60               |
-| CV186X/lprnet_fp16_1b.bmodel       | 1.10               |
-| CV186X/lprnet_int8_1b.bmodel       | 0.68               |
-| CV186X/lprnet_int8_4b.bmodel       | 0.45               |
+|    测试平台  | 测试模型                           | calculate time(ms) |
+| ----------- | ---------------------------------- | ------------------ |
+|   SE5-16    | BM1684/lprnet_fp32_1b.bmodel       | 1.144              |
+|   SE5-16    | BM1684/lprnet_int8_1b.bmodel       | 1.070              |
+|   SE5-16    | BM1684/lprnet_int8_4b.bmodel       | 0.304              |
+|   SE7-32    | BM1684X/lprnet_fp32_1b.bmodel      | 0.883              |
+|   SE7-32    | BM1684X/lprnet_fp16_1b.bmodel      | 0.585              |
+|   SE7-32    | BM1684X/lprnet_int8_1b.bmodel      | 0.507              |
+|   SE7-32    | BM1684X/lprnet_int8_4b.bmodel      | 0.259              |
+|   SE9-16    | BM1688/lprnet_fp32_1b.bmodel       | 2.287              |
+|   SE9-16    | BM1688/lprnet_fp32_1b_2core.bmodel | 2.275              |
+|   SE9-16    | BM1688/lprnet_fp16_1b.bmodel       | 0.839              |
+|   SE9-16    | BM1688/lprnet_fp16_1b_2core.bmodel | 0.839              |
+|   SE9-16    | BM1688/lprnet_int8_1b.bmodel       | 0.550              |
+|   SE9-16    | BM1688/lprnet_int8_1b_2core.bmodel | 0.536              |
+|   SE9-16    | BM1688/lprnet_int8_4b.bmodel       | 0.331              |
+|   SE9-16    | BM1688/lprnet_int8_4b_2core.bmodel | 0.330              |
+|   SE9-8     | CV186X/lprnet_fp32_1b.bmodel       | 2.60               |
+|   SE9-8     | CV186X/lprnet_fp16_1b.bmodel       | 1.10               |
+|   SE9-8     | CV186X/lprnet_int8_1b.bmodel       | 0.68               |
+|   SE9-8     | CV186X/lprnet_int8_4b.bmodel       | 0.45               |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

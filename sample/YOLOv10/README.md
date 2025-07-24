@@ -202,20 +202,20 @@ bmrt_test --bmodel models/BM1684X/yolov10s_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-| 测试模型                        | calculate time(ms) |
-| ------------------------------- | ------------------ |
-| BM1684X/yolov10s_fp32_1b.bmodel | 22.42              |
-| BM1684X/yolov10s_fp16_1b.bmodel | 6.52               |
-| BM1684X/yolov10s_int8_1b.bmodel | 3.86               |
-| BM1684X/yolov10s_int8_4b.bmodel | 3.28               |
-| BM1688/yolov10s_fp32_1b.bmodel  | 131.20             |
-| BM1688/yolov10s_fp16_1b.bmodel  | 35.65              |
-| BM1688/yolov10s_int8_1b.bmodel  | 10.23              |
-| BM1688/yolov10s_int8_4b.bmodel  | 9.18               |
-| CV186X/yolov10s_fp32_1b.bmodel  | 131.12             |
-| CV186X/yolov10s_fp16_1b.bmodel  | 35.65              |
-| CV186X/yolov10s_int8_1b.bmodel  | 10.25              |
-| CV186X/yolov10s_int8_4b.bmodel  | 9.15               |
+|    测试平台  | 测试模型                        | calculate time(ms) |
+| ----------- | ------------------------------- | ------------------ |
+|   SE7-32    | BM1684X/yolov10s_fp32_1b.bmodel | 22.42              |
+|   SE7-32    | BM1684X/yolov10s_fp16_1b.bmodel | 6.52               |
+|   SE7-32    | BM1684X/yolov10s_int8_1b.bmodel | 3.86               |
+|   SE7-32    | BM1684X/yolov10s_int8_4b.bmodel | 3.28               |
+|   SE9-16    | BM1688/yolov10s_fp32_1b.bmodel  | 131.20             |
+|   SE9-16    | BM1688/yolov10s_fp16_1b.bmodel  | 35.65              |
+|   SE9-16    | BM1688/yolov10s_int8_1b.bmodel  | 10.23              |
+|   SE9-16    | BM1688/yolov10s_int8_4b.bmodel  | 9.18               |
+|   SE9-8    | CV186X/yolov10s_fp32_1b.bmodel  | 131.12             |
+|   SE9-8    | CV186X/yolov10s_fp16_1b.bmodel  | 35.65              |
+|   SE9-8    | CV186X/yolov10s_int8_1b.bmodel  | 10.25              |
+|   SE9-8    | CV186X/yolov10s_int8_4b.bmodel  | 9.15               |
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间；
