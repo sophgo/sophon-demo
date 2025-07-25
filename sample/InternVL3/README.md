@@ -1,7 +1,7 @@
 # Intern-VL3
 
 ## 目录
-- [Intern-VL3](#Intern-VL3)
+- [Intern-VL3](#intern-vl3)
   - [目录](#目录)
   - [1. 简介](#1-简介)
   - [2. 特性](#2-特性)
@@ -9,9 +9,9 @@
     - [2.2 SDK特性](#22-sdk特性)
   - [3. 准备模型](#3-准备模型)
     - [3.1 使用提供的模型](#31-使用提供的模型)
-    - [3.2 自行编译模型](#42-自行编译模型)
-  - [4. 例程测试](#5-例程测试)
-  - [5. 程序性能测试](#6-程序性能测试)
+    - [3.2 自行编译模型](#32-自行编译模型)
+  - [4. 例程测试](#4-例程测试)
+  - [5. 程序性能测试](#5-程序性能测试)
 
 ## 1. 简介
 OpenGVLab推出了InternVL3，一款先进的多模态大语言模型（MLLM）系列，展现出卓越的整体性能。相比InternVL2.5，InternVL3在多模态感知和推理能力上表现更优，同时进一步扩展了多模态能力，涵盖工具使用、图形用户界面（GUI）代理、工业图像分析、三维视觉感知等更多领域。此外，OpenGVLab将InternVL3与Qwen2.5 Chat模型进行了对比，后者对应的预训练基础模型被用作InternVL3语言组件的初始化。得益于原生多模态预训练，InternVL3系列在整体文本性能上甚至优于Qwen2.5系列，原始仓库见[InternVL3-8B](https://huggingface.co/OpenGVLab/InternVL3-8B)，[InternVL3-2B](https://huggingface.co/OpenGVLab/InternVL3-2B)。
@@ -93,11 +93,11 @@ llm_convert.py -m /workspace/InternVL3-2B-AWQ -s 4096 -q w4bf16 -c bm1684x --out
 这里的测试输入为："介绍图片内容"，测试图片为`examples/image1.jpg`。
 |    测试平台   |               测试模型                   |first token latency(s)|token per second(tokens/s)| 
 | -----------  | -------------------------------------- | --------------------- | ----------------------- | 
-|    SE7-32    | internvl3-2b-awq_w4bf16_seq2048_bm1684x.bmodel  |   0.983               |       19.542             | 
+|    SE7-32    | internvl3-2b-awq_w4bf16_seq2048_bm1684x.bmodel  |   0.983               |       25.022             | 
 |    SE7-32    | internvl3-2b-awq_w4bf16_seq4096_bm1684x.bmodel  |   2.403               |       17.923             | 
 |    SE7-32    | internvl3-8b-awq_w4bf16_seq4096_bm1684x.bmodel  |   6.859               |       7.031             | 
-|    SE9-16    | internvl3-2b-awq_w4bf16_seq2048_bm1688.bmodel  |   3.875               |       10.535            | 
-|    SE9-16    | internvl3-2b-awq_w4bf16_seq4096_bm1688.bmodel  |   9.646               |       9.004            | 
+|    SE9-16    | internvl3-2b-awq_w4bf16_seq2048_bm1688.bmodel  |   3.875               |       12.894            | 
+|    SE9-16    | internvl3-2b-awq_w4bf16_seq4096_bm1688.bmodel  |   9.646               |       10.793            | 
  
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；

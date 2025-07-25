@@ -112,8 +112,8 @@ cd scripts
 | -----------  | -------------------------------------- | --------------------- | ----------------------- | 
 |    SE7-32    | internvl2-8b_bm1684x_int8_3072.bmodel  |   7.706               |       5.710             | 
 |    SE7-32    | internvl2-8b_bm1684x_int4_3072.bmodel  |   7.686               |       8.722             | 
-|    SE7-32    | internvl2-4b_bm1684x_int4_1core.bmodel |   0.573               |       15.692            | 
-|    SE9-16    | internvl2-2b_bm1688_int4_2core.bmodel  |   1.397               |       14.876            | 
+|    SE7-32    | internvl2-4b_bm1684x_int4_1core.bmodel |   0.573               |       19.794            | 
+|    SE9-16    | internvl2-2b_bm1688_int4_2core.bmodel  |   1.528               |       18.088            | 
  
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
