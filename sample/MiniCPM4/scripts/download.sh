@@ -32,13 +32,13 @@ function download_bm1688 {
     popd
 }
 
-function download_cv186x {
-    if [ ! -d "../models/CV186X" ]; then
-        mkdir -p ../models/CV186X
+function download_cv186ah {
+    if [ ! -d "../models/CV186AH" ]; then
+        mkdir -p ../models/CV186AH
     fi
-    pushd ../models/BCV186X
-        # minicpm4-0.5b cv186x 512
-        python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/minicpm4-0.5b-gptq_w4bf16_seq512_cv186x_1core_20250616_122126.bmodel
+    pushd ../models/CV186AH
+        # minicpm4-0.5b cv186ah 512
+        python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU_Lite/minicpm4-0.5b-gptq_w4bf16_seq512_cv186x_1core_20250616_122126.bmodel 
     popd
 
     pushd ../python/token_config
@@ -50,9 +50,9 @@ function download_cv186x {
 
 if [ "$1" == "bm1684x" ]; then
     download_bm1684x
-else if [ "$1" == "bm1688" ]; then
+elif [ "$1" == "bm1688" ]; then
     download_bm1688
-else if [ "$1" == "cv186ah" ]; then
+elif [ "$1" == "cv186ah" ]; then
     download_cv186ah
 else
     echo "Error Parameter"
