@@ -215,13 +215,13 @@ class MiniCPM4():
         
         self.model.process(self.name_lm, self.tensors[self.name_lm]["input"], self.tensors[self.name_lm]["output"])
         if self.generation_mode == "lmhead_with_greedy":
-            return_token = int(self.tensors[self.name_lm]["output"][0].asnumpy()[0])
+            return_token = int(self.tensors[self.name_lm]["output"][0].asnumpy().item())
             
         # greedy
         elif self.generation_mode == "greedy":
             self.tensors[self.greedy]["input"][0] = self.tensors[self.name_lm]["output"][0]
             self.model.process(self.greedy, self.tensors[self.greedy]["input"], self.tensors[self.greedy]["output"])
-            return_token = int(self.tensors[self.greedy]["output"][0].asnumpy()[0])
+            return_token = int(self.tensors[self.greedy]["output"][0].asnumpy().item())
         
         else:
             raise ValueError(f"Unsupported generation mode: {self.generation_mode}.")
@@ -274,11 +274,11 @@ class MiniCPM4():
         self.tensors[self.name_lm]["output"][0] = self.lm_output[0]
         self.model.process(self.name_lm, self.tensors[self.name_lm]["input"], self.tensors[self.name_lm]["output"])
         if self.generation_mode == "lmhead_with_greedy":
-            return_token = int(self.tensors[self.name_lm]["output"][0].asnumpy()[0])
+            return_token = int(self.tensors[self.name_lm]["output"][0].asnumpy().item())
         elif self.generation_mode == "greedy":
             self.tensors[self.greedy]["input"][0] = self.tensors[self.name_lm]["output"][0]
             self.model.process(self.greedy, self.tensors[self.greedy]["input"], self.tensors[self.greedy]["output"])
-            return_token = int(self.tensors[self.greedy]["output"][0].asnumpy()[0])
+            return_token = int(self.tensors[self.greedy]["output"][0].asnumpy().item())
         else:
             raise ValueError(f"Unsupported generation mode: {self.generation_mode}.")
         self.visited_tokens.append(return_token)
