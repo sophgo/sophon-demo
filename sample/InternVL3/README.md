@@ -94,7 +94,7 @@ llm_convert.py -m /workspace/InternVL3-2B-AWQ -s 4096 -q w4bf16 -c bm1684x --out
 |    测试平台   |               测试模型                   |first token latency(s)|token per second(tokens/s)| 
 | -----------  | -------------------------------------- | --------------------- | ----------------------- | 
 |    SE7-32    | internvl3-2b-awq_w4bf16_seq2048_bm1684x.bmodel  |   0.983               |       25.022             | 
-|    SE7-32    | internvl3-2b-awq_w4bf16_seq4096_bm1684x.bmodel  |   2.403               |       17.923             | 
+|    SE7-32    | internvl3-2b-awq_w4bf16_seq4096_bm1684x.bmodel  |   2.403               |       22.427             | 
 |    SE7-32    | internvl3-8b-awq_w4bf16_seq4096_bm1684x.bmodel  |   6.859               |       7.031             | 
 |    SE9-16    | internvl3-2b-awq_w4bf16_seq2048_bm1688.bmodel  |   3.875               |       12.894            | 
 |    SE9-16    | internvl3-2b-awq_w4bf16_seq4096_bm1688.bmodel  |   9.646               |       10.793            | 
