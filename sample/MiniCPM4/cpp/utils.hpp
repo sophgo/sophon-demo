@@ -1,3 +1,12 @@
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) 2025 Sophgo Technologies Inc.  All rights reserved.
+//
+// SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
+// third-party components.
+//
+//===----------------------------------------------------------------------===//
+
 #include "bmruntime_interface.h"
 
 void empty(bm_handle_t &bm_handle, bm_device_mem_t &mem) {
