@@ -346,8 +346,8 @@ class StableDiffusion3Pipeline:
             )
 
         # 2. process of t5
-        text_input_ids = text_input_ids.numpy().astype(np.int32)
-        text_input_ids_tensor = sail.nn.Tensor(text_input_ids, sail.DataType.TPU_INT32, self.device_ids[0])
+        text_input_ids = text_input_ids.numpy().astype(np.float32)
+        text_input_ids_tensor = sail.nn.Tensor(text_input_ids, sail.DataType.TPU_FLOAT32, self.device_ids[0])
         t5_head_inputs = {0: text_input_ids_tensor}
         hidden_states_shape = self.text_encoder_3.get_output_shapes("t5_head", 0)[0]
         hidden_states_tensor = sail.nn.Tensor(hidden_states_shape, sail.DataType.TPU_FLOAT32, self.device_ids[0])
@@ -982,11 +982,11 @@ class StableDiffusion3Pipeline:
             num_channels_latents,
             height,
             width,
-            prompt_embeds.dtype,
+            torch.float16,#prompt_embeds.dtype,
             device,
             generator,
             latents,
-        )
+        ).float()
 
         # 6. Denoising loop
         with self.progress_bar(total=num_inference_steps) as progress_bar:

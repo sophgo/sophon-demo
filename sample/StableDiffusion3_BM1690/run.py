@@ -85,7 +85,7 @@ if __name__ == "__main__":
     # negative prompt for t5
     parser.add_argument("--negative_prompt_3", type=str, default=None, help="negative prompt for t5")
     # num_inference_steps
-    parser.add_argument("--num_inference_steps", type=int, default=20, help="total denoising steps")
+    parser.add_argument("--num_inference_steps", type=int, default=28, help="total denoising steps")
     # guidance_scale
     parser.add_argument("--guidance_scale", type=float, default=7.0, help="guidance for each step, 2 batch when it greater than 1")
     # dev_ids
