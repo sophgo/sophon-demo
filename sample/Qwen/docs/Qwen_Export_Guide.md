@@ -82,7 +82,6 @@ git clone https://huggingface.co/Qwen/Qwen2.5-7B-Instruct
 git clone https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
 git clone https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
 git clone https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
-git clone https://huggingface.co/Qwen/Qwen2.5-0.5B
 ```
 如果git clone完代码之后出现卡住，可以尝试`ctrl+c`中断，然后进入仓库运行`git lfs pull`。
 
@@ -166,7 +165,6 @@ Qwen2.5
 ```bash
 # bm1684x 单芯
 python3 tools/export_onnx_qwen2_5.py --model_path /workspace/Qwen2.5-7B-Instruct --seq_length 512 
-python3 tools/export_onnx_qwen2_5.py --model_path /workspace/Qwen2.5-0.5B --seq_length 1024 
 
 # bm1688 单芯
 python3 tools/export_onnx_qwen2_5.py --model_path /workspace/Qwen2.5-1.5B-Instruct --seq_length 512 --lmhead_with_topk 1
@@ -224,7 +222,6 @@ Qwen2.5
 ```bash
 # bm1684x 单芯
 ./scripts/gen_bmodel.sh --target bm1684x --mode int4 --name qwen2.5-7b --seq_length 512 --addr_mode io_alone
-./scripts/gen_bmodel.sh --target bm1684x --mode int4 --name qwen2.5-0.5b --seq_length 1024 --addr_mode io_alone
 
 # bm1688 单芯
 ./scripts/gen_bmodel_qwen2_1688.sh --name qwen2.5-1.5b --seq_length 512 --mode int4 --addr_mode io_alone
