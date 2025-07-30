@@ -96,7 +96,7 @@ LLM性能
 |   测试平台   |     测试程序       |           测试模型              |first token latency(s) |token per second(tokens/s)| 
 | ----------- | ----------------  | ------------------------------| --------------------- | ------------------------ | 
 | SE7-32      | vila.py           | llama_int4_seq512.bmodel      |    0.377              |    24.2                | 
-| SE7-32      | vila.py           | llama_int4_seq2560.bmodel     |    1.8                |    17.79               | 
+| SE7-32      | vila.py           | llama_int4_seq2560.bmodel     |    1.8                |    18.85               | 
 | SE7-32      | vila.py           | llama_int4_seq4096.bmodel     |    3.4                |    14.98               | 
 | SE7-32      | vila_sail.soc     | llama_int4_seq2560.bmodel     |    1.7                |    19.9               | 
 
