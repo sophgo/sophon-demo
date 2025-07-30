@@ -68,6 +68,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
 | [YOLO-world](./sample/YOLO_world/README.md)                   | Object Detection                   | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [D-FINE](./sample/D-FINE/README.md)                           | Object Detection                   | Python     | FP16           | BM1684X/BM1688/CV186X        |
 | [YOLOv8_obb](./sample/YOLOv8_plus_obb/README.md)              | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [YOLOv11_obb](./sample/YOLOv8_plus_obb/README.md)             | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
@@ -84,6 +85,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [MiniCPM3](./sample/MiniCPM3/README.md)                       | Large Language Model               | Python     | INT8/INT4      | BM1684X        | 
 | [DeepSeek](./sample/DeepSeek/README.md)                       | Large Language Model               | Python     | INT4           | BM1684X/BM1688               |
 | [Janus](./sample/Janus/README.md)                             | Large Language Model               | Python     | INT4           | BM1684X/BM1688               |
+| [MiniCPM4](./sample/MiniCPM4/README.md)                       | Large Language Model               | C++/Python | INT4           | BM1684X/BM1688/CV186X        | 
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | Image Generation                   | Python     | FP32/FP16      | BM1684X                      |
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | Image Generation                   | Python     | FP32/FP16      | BM1684X                      |
 | [FLUX.1](./sample/FLUX.1/README.md)                           | Image Generation                   | Python     | FP32/INT4      | BM1684X                      |
@@ -95,7 +97,8 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [InternVL3](./sample/InternVL3/README.md)                     | Large Vision Language Model        | Python     | INT4           | BM1684X/BM1688               |
 | [Vila](./sample/Vila/README.md)                               | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Llama3_2_Vision](./sample/Llama3_2_Vision/README.md)         | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X                     |
-| [Phi4mm](./sample/Llama3_2_Vision/README.md)                  | Speech-Vision-Language Model       | Python     | INT4            | BM1684X                     |
+| [Phi4mm](./sample/Llama3_2_Vision/README.md)                  | Multimodal Large Language Model    | Python     | INT4           | BM1684X                     |
+| [VITA1_5](./sample/VITA1_5/README.md)                         | Multimodal Large Language Model    | Python     | INT4           | BM1684X                     |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | C++/Python | FP16           | BM1684X/BM1688/CV186X        |
@@ -124,9 +127,10 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
-| 0.3.2  | Fix documentation and other issues. The Qwen sample newly supports deep-thinking switch and penalty_sample. Release new sample InternVL3, new tutorial DWA。|
-| 0.3.1  | Fix documentation and other issues. The Qwen sample newly supports Qwen3, Qwen2.5-VL newly supports AWQ-quantization model and penalty_sample head. Release new samples YOLOv11_obb/Phi4mm, new tutorial DPU。|
-| 0.3.0  | Fix documentation and other issues. The Qwen sample supports QWQ32B. Release new samples Recognize-Anything/YOLOv8_plus_cls. Optimize Real-ESRGAN postprocess and Qwen2.5-VL's preprocess, YOLOv8_plus_det supports models which's output not transposed。|
+| 0.3.3  | Fix documentation and other issues. Release new sample D-FINE/MiniCPM4/VITA1_5. |
+| 0.3.2  | Fix documentation and other issues. The Qwen sample newly supports deep-thinking switch and penalty_sample. Release new sample InternVL3, new tutorial DWA.|
+| 0.3.1  | Fix documentation and other issues. The Qwen sample newly supports Qwen3, Qwen2.5-VL newly supports AWQ-quantization model and penalty_sample head. Release new samples YOLOv11_obb/Phi4mm, new tutorial DPU.|
+| 0.3.0  | Fix documentation and other issues. The Qwen sample supports QWQ32B. Release new samples Recognize-Anything/YOLOv8_plus_cls. Optimize Real-ESRGAN postprocess and Qwen2.5-VL's preprocess, YOLOv8_plus_det supports models which's output not transposed.|
 | 0.2.10  | Fix documentation and other issues. Qwen supports C++, Release new samples including YOLOv12_det/YOLOv8_plus_seg_fuse/Janus/Qwen2.5-VL, new tutorial yolov8_ffmpeg_encode. |
 | 0.2.9  | Fix documentation and other issues. **The sample Qwen supports deepseek-r1-distill-qwen2-1.5b and deepseek-r1-distill-qwen2-7b**. Release new sample Llama3_2_Vision. Refactor YOLOv8_det/YOLOv9_det/YOLOv11_det to YOLOv8_det, YOLOv8_seg/YOLOv9_seg to YOLOv8_plus_seg. |
 | 0.2.8  | Fix documentation and other issues. Release new samples including MiniCPM3/LightStereo/Qwen2-VL/YOLO-world. |
@@ -154,6 +158,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.3  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.2  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.1  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.0  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -183,6 +188,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV,
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.3  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.2  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.1  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.0  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
