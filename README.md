@@ -58,7 +58,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [YOLOX](./sample/YOLOX/README.md)                             | 目标检测          | C++/Python | FP32/INT8      | BM1684/BM1684X/BM1688/CV186X |
 | [SSD](./sample/SSD/README.md)                                 | 目标检测          | C++/Python | FP32/INT8      | BM1684/BM1684X               |
 | [YOLOv7](./sample/YOLOv7/README.md)                           | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [YOLOv8_det](./sample/YOLOv8_plus_det/README.md)         | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [YOLOv8_det](./sample/YOLOv8_plus_det/README.md)              | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [YOLOv9_det](./sample/YOLOv8_plus_det/README.md)              | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [YOLOv11_det](./sample/YOLOv8_plus_det/README.md)             | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
 | [YOLOv12_det](./sample/YOLOv8_plus_det/README.md)             | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
@@ -68,6 +68,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
 | [YOLO_world](./sample/YOLO_world/README.md)                   | 目标检测          | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [D-FINE](./sample/D-FINE/README.md)                           | 目标检测          | Python     | FP16           | BM1684X/BM1688/CV186X        |
 | [YOLOv8_obb](./sample/YOLOv8_plus_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
 | [YOLOv11_obb](./sample/YOLOv8_plus_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
 | [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
@@ -84,6 +85,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [MiniCPM3](./sample/MiniCPM3/README.md)                       | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
 | [DeepSeek](./sample/DeepSeek/README.md)                       | 大规模语言模型     | Python     | INT4           | BM1684X/BM1688               |
 | [Janus](./sample/Janus/README.md)                             | 大规模语言模型     | Python     | INT4           | BM1684X/BM1688               |
+| [MiniCPM4](./sample/MiniCPM4/README.md)                       | 大规模语言模型     | C++/Python | INT4           | BM1684X/BM1688/CV186X       |
 | [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | 图像生成          | Python     | FP32/FP16      | BM1684X                      |
 | [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | 图像生成          | Python     | FP32/FP16      | BM1684X                      |
 | [FLUX.1](./sample/FLUX.1/README.md)                           | 图像生成          | Python     | FP32/INT4      | BM1684X                      |
@@ -95,7 +97,8 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [InternVL3](./sample/InternVL3/README.md)                     | 大规模视觉语言模型 | Python     | INT4           | BM1684X/BM1688              |
 | [Vila](./sample/Vila/README.md)                               | 大规模视觉语言模型 | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Llama3_2_Vision](./sample/Llama3_2_Vision/README.md)         | 大规模视觉语言模型 | Python     | INT8/INT4      | BM1684X                     |
-| [Phi4mm](./sample/Phi4mm/README.md)                           | 音频视觉语言模型   | Python     | INT4           | BM1684X                     |
+| [Phi4mm](./sample/Phi4mm/README.md)                           | 多模态大语言模型   | Python     | INT4           | BM1684X                     |
+| [VITA1_5](./sample/VITA1_5/README.md)                         | 多模态大语言模型   | Python     | INT4           | BM1684X                     |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | 超分辨            | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [P2PNet](./sample/P2PNet/README.md)                           | 人群计数          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [CLIP](./sample/CLIP/README.md)                               | 图文匹配          | C++/Python | FP16           | BM1684X/BM1688/CV186X        |
@@ -124,6 +127,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.3.3  | 完善和修复文档、代码问题，sample模块新增D-FINE、VITA1_5、MiniCPM4。|
 | 0.3.2  | 完善和修复文档、代码问题，Qwen例程添加深度思考开关、penalty_sample，sample模块新增InternVL3，tutorial模块新增DWA接口用例。|
 | 0.3.1  | 完善和修复文档、代码问题，Qwen例程支持Qwen3，Qwen2.5-VL支持AWQ量化模型和penalty_sample head，sample模块新增YOLOv11_obb、Phi4mm，tutorial模块新增DPU接口用例。|
 | 0.3.0  | 完善和修复文档、代码问题，Qwen例程支持QwQ32B，sample模块新增Recognize-Anything、YOLOv8_plus_cls，Real-ESRGAN后处理优化，Qwen2.5-VL前处理优化，YOLOv8_plus_det支持输出未转置模型。|
@@ -154,6 +158,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 SOPHON-DEMO主要依赖TPU-MLIR、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SOPHON-SAIL，对于BM1684/BM1684X SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.3  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.2  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.1  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.0  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -183,6 +188,7 @@ SOPHON-DEMO主要依赖TPU-MLIR、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SO
 对于BM1688/CV186AH SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.3  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.2  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.1  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.0  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
