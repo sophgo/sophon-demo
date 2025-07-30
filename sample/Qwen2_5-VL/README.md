@@ -148,7 +148,7 @@ python3 performance_test.py
 
 |    测试平台   |               测试模型                                          |preprocess + tokenize(s)|  vision inference(s)     | first token latency(s) |token per second(tokens/s)|
 | -----------  | ---------------------------------------------------------------| ---------------------   | -----------------------  | -----------------------| -----------------------|
-|    SE7-32    | qwen2.5-vl-3b-instruct-awq_w4bf16_seq2048_bm1684x_1dev.bmodel  |          0.192          |        1.128             |        3.791           |        15.467          |
+|    SE7-32    | qwen2.5-vl-3b-instruct-awq_w4bf16_seq2048_bm1684x_1dev.bmodel  |          0.205          |        1.153             |        3.699           |        16.978          |
 |    SE7-32    | qwen2.5-vl-7b-instruct-awq_w4bf16_seq2048_bm1684x_1dev.bmodel  |          0.195          |        1.200             |        5.343           |        8.016           |
 |    SE9-16    | qwen2.5-vl-3b-instruct-awq_w4bf16_seq2048_bm1688_2core.bmodel  |          0.266          |        3.298             |        11.254          |        7.412           |
 |    SE9-16    | qwen2.5-vl-7b-instruct-awq_w4bf16_seq2048_bm1688_2core.bmodel  |          0.248          |        3.370             |        26.407          |        4.443           |
