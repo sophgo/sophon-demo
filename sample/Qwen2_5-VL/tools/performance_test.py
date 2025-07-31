@@ -10,7 +10,7 @@ import argparse
 
 
 def main(args):
-    model = Qwen2_5_VL(dev_id=args.dev_id, bmodel_path=args.bmodel_path, log_level=args.log_level, processor_path=args.processor_path, tokenizer_path=args.tokenizer_path, config=args.config)
+    model = Qwen2_5_VL(dev_id=args.dev_id, bmodel_path=args.bmodel_path, log_level=args.log_level, config_path=args.config_path, do_sample=args.do_sample)
     vision_inputs = [{"type":"image_url", "image_url":{}, \
                                     "max_side":-1}]
     prompt = "请描述图片中的内容"
@@ -111,20 +111,10 @@ if __name__ == "__main__":
                         type=str,
                         default="../models/BM1684X/qwen2.5-vl-3b-instruct-awq_w4bf16_seq2048_bm1684x_1dev_20250428_143625.bmodel",
                         help='path to the bmodel file')
-    parser.add_argument('-t',
-                        '--tokenizer_path',
-                        type=str,
-                        default="./configs/token_config",
-                        help='path to the tokenizer file')
-    parser.add_argument('-p',
-                        '--processor_path',
-                        type=str,
-                        default="./configs/processor_config",
-                        help='path to the processor file')
     parser.add_argument('-c',
-                        '--config',
+                        '--config_path',
                         type=str,
-                        default="./configs/config.json",
+                        default="./configs",
                         help='path to the model config file')
     parser.add_argument('-d', '--dev_id', type=int,
                         default=0, help='device ID to use')
@@ -139,5 +129,8 @@ if __name__ == "__main__":
                         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                         default="INFO",
                         help='log level, default: INFO, option[DEBUG, INFO, WARNING, ERROR]')
+    parser.add_argument('--do_sample', 
+                        action='store_true', 
+                        help="if set, generate tokens by sample parameters")
     args = parser.parse_args()
     main(args)
