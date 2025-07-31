@@ -219,7 +219,6 @@ class llm2TTS():
                     constant_values=0,
                 )
                 syn = self.vqvae(np.expand_dims(padded_token, -1), self.vqvae.global_tokens)
-                import pdb; pdb.set_trace()
                 rate = syn.shape[2] // padded_token.shape[1]
                 syn = syn[:,:,:token.shape[1] * rate]
                 syn = torch.tensor(syn[:, :, left_padding * codec_upsample_rate: -right_padding * codec_upsample_rate])
