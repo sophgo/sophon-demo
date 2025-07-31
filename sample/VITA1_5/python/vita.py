@@ -18,6 +18,7 @@ import torchaudio
 import torchaudio.compliance.kaldi as kaldi
 import numpy as np
 import yaml
+import readline
 import sophon.sail as sail
 from vita_tts.decoder.llm2tts import llm2TTS, split_into_sentences, remove_special_characters, replace_equation
 sail.set_loglevel(sail.LogLevel.ERROR)
@@ -152,7 +153,6 @@ class VITA():
         
         # load model
         self.tts_model = None
-        return
         start_time = time.time()
         self.model = sail.EngineLLM(args.model_path, self.dev_ids)
         self.graph_names = self.model.get_graph_names()
@@ -575,8 +575,8 @@ class VITA():
             print(f"TPS: {tps:.3f} token/s")
             
             if wav_path:
-                print("start loading tts models...")
                 if self.tts_model is None:
+                    print("start loading tts models...")
                     self.tts_model=llm2TTS(args)
                 print("start generating wav file...")
                 # tts
@@ -616,8 +616,8 @@ class VITA():
                 print("wav saved in: {}".format(wav_path))
 def main(args):
     model = VITA(args)
-    # model.chat()
-    model.tts_test()
+    model.chat()
+    # model.tts_test()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

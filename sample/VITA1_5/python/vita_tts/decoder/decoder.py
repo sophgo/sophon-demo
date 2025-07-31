@@ -261,8 +261,6 @@ class LLM2TTSCodecAR():
         #lm_head
         self.tensors[self.name_lm]["input"][0] = self.tts_embed_output[0]
         self.tensors[self.name_lm]["output"][0] = self.lm_output[0]
-        print("lm input:", np.average(self.tensors[self.name_lm]["input"][0].asnumpy()))
-        print("lm output:", np.average(self.tensors[self.name_lm]["output"][0].asnumpy()))
         self.model.process(self.name_lm, self.tensors[self.name_lm]["input"], self.tensors[self.name_lm]["output"])
         # sample
         self.tensors[self.greedy]["input"][0] = self.tensors[self.name_lm]["output"][0]
