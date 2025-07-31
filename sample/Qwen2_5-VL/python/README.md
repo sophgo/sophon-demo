@@ -108,12 +108,9 @@ python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测�
 ### 2.1 参数说明
 
 ```bash
-usage: qwen2_5_vl.py [-h] [-m BMODEL_PATH] [-t TOKENIZER_PATH] [-p PROCESSOR_PATH] [-c CONFIG] [-d DEV_ID] [-g {greedy,penalty_sample}] [-i INPUT_PATHS [INPUT_PATHS ...]] [-ity {image,video}]
-                   [-vc VISION_PREPROCESS_CONFIG]
+usage: qwen2_5_vl.py [-h] [-m BMODEL_PATH] [-c CONFIG_PATH] [-d DEV_ID] [-vi VISION_INPUTS [VISION_INPUTS ...]]  [-ll {DEBUG,INFO,WARNING,ERROR}] [--do_sample]
 --bmodel_path: 用于推理的bmodel路径；
---tokenizer_path: tokenizer目录路径；
---processor_path: 预处理参数文件路径；
---config: 模型配置文件路径；
+--config_path: 模型配置文件路径；
 --dev_id: 用于推理的tpu设备id；
 --vision_inputs: json格式，输入图片、视频文件路径、视觉预处理参数，可接受多个图片输入，格式：[{"type":"video_url","video_url":path-to-video/list(path-to-frame image), ...},{"type":"video_url","video_url":path-to-video/list(path-to-frame image), ...},{"type":"video_url","image":path-to-image, ...},...]。其中字典里面的其他参数用于生成prompt的额外视觉预处理参数，例如可设置"resized_height"、"resized_width"、"min_pixels"、"max_pixels"等，与官方支持的输入一致，在内存不足时，可适当设置这些参数，支持的常用参数说明如下：
     * --resize_type: 采样方法，支持INTER_NEAREST、INTER_LINEAR、INTER_BICUBIC、Origin，如果不传，默认为INTER_LINEAR，若需要保持原图大小，则需要传入Origin
@@ -127,6 +124,7 @@ usage: qwen2_5_vl.py [-h] [-m BMODEL_PATH] [-t TOKENIZER_PATH] [-p PROCESSOR_PAT
     * --video_start: 设置需要处理的视频起始帧；
     * --video_end: 设置需要处理的视频结束帧；
 --log_level: log等级，支持DEBUG、INFO、WARNING、ERROR，默认为INFO。
+--do_sample: 是否执行重复惩罚采样，默认为false。
 ```
 
 ### 2.2 使用方式
@@ -155,4 +153,5 @@ python3 qwen2_5_vl.py --vision_inputs=""
 > **测试说明**：  
 > 1. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型；
 > 2. 图片尺寸不应超过`vision_length * 28 ** 2`；多图输入时总尺寸也不应超过`vision_length * 28 ** 2`；
-> 3. 视频的单帧尺寸不应超过`vision_length * 28 ** 2`；长视频可以分段推理，占用的上下文长度`(nframes // 2) * (height // 28) * (width // 28)`不应超过模型的`seq_length`。
+> 3. 视频的单帧尺寸不应超过`vision_length * 28 ** 2`；长视频可以分段推理，占用的上下文长度`(nframes // 2) * (height // 28) * (width // 28)`不应超过模型的`seq_length`；
+> 4. 若测试发现回答内容重复，可参考文档[自行编译bmodel模型](../README.md#42-自行编译bmodel模型)，使用llm_convert.py工具时添加参数`--do_sample`，并且在运行`qwen2_5_vl.py`时也添加参数`--do_sample`。
