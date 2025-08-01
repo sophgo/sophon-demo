@@ -132,7 +132,8 @@ int main(int argc, char *argv[]){
         "{text_model | ../../models/BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel | path to the text model file}"
         "{text_projection | ../../models/text_projection_512_512.npy | path to the text projection data}"
         "{dev_id | 0 | TPU device ids (comma-separated list)}"
-        "{help | 0 | print help information.}";
+        "{help | 0 | print help information.}"
+        "{clip_type | open_clip | clip type, eg: open_clip, mobile_clip}";
     cv::CommandLineParser parser(argc, argv, keys);
     if (parser.get<bool>("help")) {
     parser.printMessage();
@@ -151,6 +152,7 @@ int main(int argc, char *argv[]){
     std::string text_model = parser.get<string>("text_model");
     std::string text_projection_path = parser.get<string>("text_projection");
     int dev_id = parser.get<int>("dev_id");
+    std::string clip_type = parser.get<string>("clip_type");
 
     // check params
     struct stat info;
@@ -174,7 +176,7 @@ int main(int argc, char *argv[]){
     //  Load bmodel
     CLIP clip;
     printf("Init Environment ...\n");
-    clip.init(image_model, text_model, dev_id, text_projection_path);
+    clip.init(image_model, text_model, dev_id, text_projection_path, clip_type);
     printf("==========================\n");
     // tokenizer;
     CLIPTokenizer tokenizer;

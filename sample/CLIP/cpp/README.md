@@ -77,6 +77,8 @@ usage: clip_opencv.pcie  [params]
                 text_model text_model path
         --text_projection (value:../../models/text_projection_512_512.npy)
                 path to the text projection data
+        --clip_type (value:open_clip | mobile_clip)
+                type of clip, only support open_clip and mobile_clip, default value is open_clip
         --help (value:true)
                 print help information.
 ```
@@ -86,6 +88,11 @@ usage: clip_opencv.pcie  [params]
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
 ./clip_opencv.pcie --image_path=../../datasets --text="a diagram, a dog, a car" --dev_id=0 --image_model="../../models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel" --text_model="../../models/BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel" --text_projection="../../models/text_projection_512_512.npy"
+
+#如果测试mobile clip，请加上--clip_type="mobile_clip"，以及通过 --text_projection 修改对应text projection npy文件路径
+#mobile clip b模型用的是text_projection是../../models/text_projection_b.npy，blt模型用的是../../models/text_projection_blt.npy
+./clip_opencv.pcie --image_path=../../datasets --text="a diagram, a dog, a car" --dev_id=0 --image_model="../../models/BM1684X/mobile_clip_image_b_bm1684x_f16_1b.bmodel" --text_model="../../models/BM1684X/mobile_clip_text_b_bm1684x_f16_1b.bmodel" --text_projection="../../models/text_projection_b.npy" --clip_type="mobile_clip"
+
 ```
 程序运行结束后，会在命令行中打印信息，输出图片和文本的匹配度。
 

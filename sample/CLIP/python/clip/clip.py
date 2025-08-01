@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 class CLIP:
-    def __init__(self, image_model, text_model, dev_id):
+    def __init__(self, image_model, text_model, dev_id, clip_type='open_clip', text_projection_path=None):
         # image bmodel
         self.image_net = sail.Engine(image_model, dev_id, sail.IOMode.SYSIO)
         logging.info("load {} success!".format(image_model))
@@ -40,6 +40,7 @@ class CLIP:
         self.text_net_output_name = self.text_net.get_output_names(self.text_net_graph_name)[0]
         self.text_net_input_shape = self.text_net.get_input_shape(self.text_net_graph_name, self.text_net_input_name)
         self.text_net_batch_size = self.text_net_input_shape[0]
+        self.clip_type = clip_type
 
         self.top_k = 5 # 前5个相似数据
         # 使用转onnx时保存的固定数据
@@ -47,7 +48,7 @@ class CLIP:
         script_path = os.path.abspath(__file__)
         # 获取当前脚本所在的目录
         script_dir = os.path.dirname(script_path)
-        self.text_projection = np.load(os.path.join(script_dir, '../../models/text_projection_512_512.npy'))
+        self.text_projection = np.load(os.path.join(script_dir, text_projection_path))
 
         # self.logit_scale = torch.tensor(4.605170249938965)
 
@@ -98,15 +99,17 @@ class CLIP:
         top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
         im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
-        return im, ratio, (dw, dh)
+        return im, ratio, (dw, dh)  
     
-
     def preprocess_cpu(self, image):
         # 此处resize和源码不一致，源码经过了center_crop
         image = cv2.resize(image, (self.image_resolution, self.image_resolution), interpolation=cv2.INTER_CUBIC)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype('float32')
-        image = (image/255-self.mean)/self.std
-        image = np.transpose(image, (2, 0, 1))
+        if self.clip_type == 'open_clip':
+            image = (image/255-self.mean)/self.std
+            image = np.transpose(image, (2, 0, 1))
+        elif self.clip_type == 'mobile_clip':
+            image = np.transpose(image, (2, 0, 1)) / 255.0
         return image
     
     def preprocess_cpu_letterbox(self, image):
@@ -129,9 +132,12 @@ class CLIP:
 
     def preprocess(self, image):
         start_time = time.time()
-        # 根据实际场景选择预处理方式
-        image = self.preprocess_cpu_letterbox(image)
-        # image = self.preprocess_cpu(image)
+        if self.clip_type == 'mobile_clip':
+            image = self.preprocess_cpu(image)
+        else:
+            # 根据实际场景选择预处理方式
+            image = self.preprocess_cpu_letterbox(image)
+            # image = self.preprocess_cpu(image)
         self.preprocess_time += time.time() - start_time
         return image
 

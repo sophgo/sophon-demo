@@ -24,7 +24,8 @@
 #include <string>
 #include <filesystem>
 
-void CLIP::init(const std::string& image_model, const std::string& text_model, const int &dev_id, const std::string& text_projection_path) {
+void CLIP::init(const std::string& image_model, const std::string& text_model, const int &dev_id, 
+                const std::string text_projection_path, const std::string clip_type_name) {
     bm_status_t status = bm_dev_request(&bm_handle, dev_id);
     assert(BM_SUCCESS == status);
     std::cout << "set device id: " << dev_id << std::endl;
@@ -70,6 +71,7 @@ void CLIP::init(const std::string& image_model, const std::string& text_model, c
     text_net_output_shape = text_net->stages[0].output_shapes;
     text_net_batch_size = text_net_input_shape->dims[0];
     top_k = 5;
+    clip_type = clip_type_name;
 
     // load text_projection
     std::ifstream file(text_projection_path, std::ios::binary);
@@ -222,9 +224,36 @@ cv::Mat CLIP::preprocess_cpu_letterbox(const cv::Mat& image) {
     return outputImage;
 }
 
+cv::Mat CLIP::mobile_clip_preprocess(const cv::Mat& image) {
+    cv::Size new_shape(image_resolution, image_resolution);
+    cv::Mat resized_image;
+    cv::resize(image, resized_image, new_shape, 0, 0, cv::INTER_CUBIC);
+   
+    // Convert to RGB and normalize
+    cv::Mat rgb_image;
+    cv::cvtColor(resized_image, rgb_image, cv::COLOR_BGR2RGB);
+    rgb_image.convertTo(rgb_image, CV_32F, 1.0 / 255.0); // Convert to float and scale to [0, 1]
+
+    cv::Mat blob;
+    cv::dnn::blobFromImage(rgb_image, blob);
+    int batchSize = blob.size[0];
+    int channels = blob.size[1];
+    int height = blob.size[2];
+    int width = blob.size[3];
+
+    // hwc -> chw
+    cv::Mat outputImage = blob.reshape(1, height);
+    outputImage = outputImage.reshape(channels, height);
+    return outputImage;
+}
+
 std::vector<float> CLIP::preprocess(const cv::Mat& image) {
     auto start_time = std::chrono::high_resolution_clock::now();
-    cv::Mat processed_image = preprocess_cpu_letterbox(image);
+    cv::Mat processed_image;
+    if(clip_type == "mobile_clip")
+        processed_image = mobile_clip_preprocess(image);
+    else
+        processed_image = preprocess_cpu_letterbox(image);
     std::vector<float> image_vector(bmrt_shape_count(image_net_input_shape));
     std::memcpy(image_vector.data(), processed_image.data, bmrt_shape_count(image_net_input_shape) * sizeof(float));
 

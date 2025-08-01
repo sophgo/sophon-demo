@@ -21,7 +21,9 @@
 
 class CLIP {
 public:
-    void init(const std::string& image_model, const std::string& text_model, const int &dev_id, const std::string& text_projection_path="../../models/text_projection_512_512.npy");
+    void init(const std::string& image_model, const std::string& text_model, const int &dev_id, 
+                const std::string text_projection_path,
+                std::string clip_type_name="open_clip");
     void deinit();
     std::vector<float> preprocess(const cv::Mat& image);
     std::vector<float> encode_image(const std::vector<float>& image);
@@ -38,6 +40,7 @@ public:
 
 private:
     cv::Mat preprocess_cpu_letterbox(const cv::Mat& image);
+    cv::Mat mobile_clip_preprocess(const cv::Mat& image);
     void letterbox(const cv::Mat& image, cv::Mat& outImage,
                 const cv::Size& newShape = cv::Size(224, 224),
                 const cv::Scalar& color = cv::Scalar(114, 114, 114),
@@ -70,6 +73,7 @@ private:
     bm_shape_t* image_net_output_shape;
     bm_shape_t* text_net_output_shape;
     bm_shape_t* text_net_input_shape;
+    std::string clip_type;
 };
 
 #endif // CLIP_HPP
