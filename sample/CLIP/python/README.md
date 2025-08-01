@@ -58,17 +58,24 @@ clip_server.py 是一个封装好的class，为网页后端提供接口调用服
 ```bash
 usage: zeroshot_predict.py  [--image_path IMAGE_PATH] [--text TEXT [TEXT ...]] [--image_model IMAGE_MODEL]         
                             [--text_model TEXT_MODEL] [--dev_id DEV_ID]
+                            [--clip_type CLIP_TYPE] [--text_projection_path TEXT_PROJECTION_PATH]
 --image_path: 测试图片路径，也可输入整个图片文件夹的路径；
 --text: 输入多段文本；
 --image_model 图片编码bmodel；
 --text_model 文本编码bmodel；
 --dev_id: 用于推理的tpu设备id；
+--clip_type：选择clip的类型，该参数只能填 open_clip 和 mobile_clip，用以区分 open_clip 和 mobile_clip ，默认值为 open_clip
+--text_projection_path 文本编码模型对应的clip的text_projection_path，默认值为 ../../models/text_projection_512_512.npy
 ```
 
 ### 2.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
 python3 python/zeroshot_predict.py --image_path datasets --text "a diagram" "a dog" "a cat" --image_model models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel --text_model models/BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel --dev_id 0
+
+#如果测试mobile clip，请加上--clip_type="mobile_clip"，以及通过 --text_projection 指定text projection npy文件路径
+#mobile clip b模型用的是text_projection是../../models/text_projection_b.npy，blt模型用的是../../models/text_projection_blt.npy
+python3 python/zeroshot_predict.py --image_path datasets --text "a diagram" "a dog" "a cat" --image_model models/BM1684X/mobile_clip_image_b_bm1684x_f16_1b.bmodel --text_model models/BM1684X/mobile_clip_text_b_bm1684x_f16_1b.bmodel --dev_id 0 --clip_type="mobile_clip" --text_projection="../../models/text_projection_b.npy"
 ```
 程序运行结束后，会在命令行中打印信息，输出图片和文本的匹配度。
 

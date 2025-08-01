@@ -37,7 +37,7 @@ if logger.hasHandlers():
 def main(args):
     # Load bmodel
     text = args.text
-    model, preprocess = clip.load(args.image_model, args.text_model, args.dev_id)
+    model, preprocess = clip.load(args.image_model, args.text_model, args.dev_id, clip_type=args.clip_type, text_projection_path=args.text_projection_path)
     
     # Tokenize 
     text_inputs = clip.tokenize(text)
@@ -78,6 +78,8 @@ def argsparser():
     parser.add_argument('--image_model', type=str, default='./models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel', help='path of image bmodel')
     parser.add_argument('--text_model', type=str, default='./models/BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel', help='path of text bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
+    parser.add_argument('--clip_type', type=str, default='open_clip', help='clip type, eg: open_clip, mobile_clip')
+    parser.add_argument('--text_projection_path', type=str, default="../../models/text_projection_512_512.npy", help='text projection path')
     args = parser.parse_args()
     return args
 
