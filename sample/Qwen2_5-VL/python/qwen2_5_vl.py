@@ -1,7 +1,7 @@
 import time
 import argparse
 from sophon import sail
-from transformers import AutoProcessor, AutoTokenizer, Qwen2_5_VLConfig, BatchFeature
+from transformers import AutoProcessor, AutoTokenizer, Qwen2_5_VLConfig, BatchFeature, GenerationConfig
 from transformers.models.qwen2_5_vl.processing_qwen2_5_vl import Qwen2_5_VLProcessorKwargs
 from vision_process import process_vision_info
 import json
@@ -207,6 +207,8 @@ class Qwen2_5_VL():
             self.past_kv_stride[dim_i] = self.net.get_input_shape("block_cache_0", 3)[dim_i + 1] * \
                                             self.past_kv_stride[dim_i + 1]
         self.vision_seq_max_ratio = 0.8 # apply auto resize
+        self.tokens = []
+        self.do_sample = kwargs.get("do_sample", False)
 
         # initialize net name
         self.name_embed = "embedding"
@@ -215,6 +217,17 @@ class Qwen2_5_VL():
         self.name_blocks = ["block_"+str(i) for i in range(self.num_layers)]
         self.name_blocks_cache = ["block_cache_"+str(i) for i in range(self.num_layers)]
         self.name_vit = "vit"
+        self.greedy = "greedy_head"
+        self.sample = "sample_head"
+        if kwargs.get("do_sample", False) and self.sample in self.graph_names:
+            self.generation_mode = "sample"
+            self.logger.info(f"{Logger.file_lineno()} Generation mode: sample")
+        elif self.greedy in self.graph_names:
+            self.generation_mode = "greedy"
+            self.logger.info(f"{Logger.file_lineno()} Generation mode: greedy")
+        else:
+            self.generation_mode = None
+            self.logger.info(f"{Logger.file_lineno()} Generation mode: lmhead_with_topk")
 
         # initialize vision tensors (inputs & outputs)
         self.input_tensors[self.name_vit] = self.net.create_max_input_tensors(self.name_vit)
@@ -254,20 +267,27 @@ class Qwen2_5_VL():
         self.output_tensors[self.name_lm] = self.net.create_max_output_tensors(self.name_lm)
 
         # sample tensors (inputs & outputs)
+        if self.generation_mode is not None:
+            self.input_tensors[self.greedy] = self.net.create_max_input_tensors(self.greedy)
+            self.output_tensors[self.greedy] = self.net.create_max_output_tensors(self.greedy)
+            self.input_tensors[self.sample] = self.net.create_max_input_tensors(self.sample)
+            self.output_tensors[self.sample] = self.net.create_max_output_tensors(self.sample)
+
         self.logger.info(f"{Logger.file_lineno()} tensor init cost: {time.time() - st}")
         self.logger.info(f"{Logger.file_lineno()} init input/output tensors finish!")
 
         self.logger.info(f"{Logger.file_lineno()} init tokenizer and preprocessor")
         st = time.time()
         # init preprocessor & tokenizer & configs
-        self.processor = Qwen2_5_VLInputProcessor(kwargs["processor_path"],
+        config_dir = kwargs["config_path"]
+        self.processor = Qwen2_5_VLInputProcessor(config_dir,
                                                        trust_remote_code=True,
                                                        max_pixels=self.vision_seq_len * 14 * 14,
                                                        min_pixels=256 * 28 * 28
                                                        )
-        self.tokenizer = AutoTokenizer.from_pretrained(kwargs["tokenizer_path"],
+        self.tokenizer = AutoTokenizer.from_pretrained(config_dir,
                                                        trust_remote_code=True)
-        with open(kwargs["config"], 'r') as f:
+        with open(str(config_dir + '/config.json'), 'r') as f:
             self.config = json.load(f)
         self.loaded_config = Qwen2_5_VLConfig(**self.config)
         self.ID_END = self.tokenizer.convert_tokens_to_ids("<|endoftext|>")
@@ -280,6 +300,13 @@ class Qwen2_5_VL():
         self.token_len = 0
         self.tokens_per_second = 2
         self.logger.debug(f"{Logger.file_lineno()} end token ids: {self.ID_IM_END}/{self.ID_END}, max step: {self.seq_len}")
+
+        if self.generation_mode == "sample":
+            gen_config = GenerationConfig.from_pretrained(config_dir)
+            self.temperature = getattr(gen_config, "temperature", 0.8)
+            self.top_p = getattr(gen_config, "top_p", 0.8)
+            self.top_k = getattr(gen_config, "top_k", 50)
+            self.repeat_penalty = getattr(gen_config, "repeat_penalty", 1.1)
 
         # init runtime val
         self.init_runtime_vals()
@@ -483,6 +510,7 @@ class Qwen2_5_VL():
 
     def forward_embed(self, tokens: np.ndarray, ):
         self.token_len = tokens.shape[1]
+        self.tokens = tokens[0].tolist()
 
         input_ids = np.zeros((tokens.shape[0], self.seq_len), dtype=type_convert(self.input_tensors[self.name_embed][0].dtype()))
         input_ids[:, :min(self.seq_len, tokens.shape[1])] = tokens
@@ -549,6 +577,37 @@ class Qwen2_5_VL():
 
         self.output_tensors[self.name_embed][0].update_data(token_embeds)
 
+    def sample_token(self):
+        # lmhead_with_topk( = lm_head + greedy_head )
+        if self.generation_mode is None:
+            token = int(self.output_tensors[self.name_lm][0].asnumpy().item())
+        # lm_head + greedy_head
+        elif self.generation_mode == "greedy":
+            self.input_tensors[self.greedy][0] = self.output_tensors[self.name_lm][0]
+            self.net.process(self.greedy, self.input_tensors[self.greedy], self.output_tensors[self.greedy])
+            token = int(self.output_tensors[self.greedy][0].asnumpy())
+        # lm_head + sample_head
+        elif self.generation_mode == "sample":
+            self.input_tensors[self.sample][0] = self.output_tensors[self.name_lm][0]
+            generated_tokens = np.zeros([1, self.seq_len], type_convert(self.input_tensors[self.sample][1].dtype()))
+            generated_tokens[0, :len(self.tokens)] = self.tokens
+            self.input_tensors[self.sample][1].update_data(generated_tokens)
+            self.input_tensors[self.sample][2].update_data([self.repeat_penalty])
+            self.input_tensors[self.sample][3].update_data([self.temperature])
+            top_k = np.ones([1], type_convert(self.input_tensors[self.sample][4].dtype())) * self.top_k
+            self.input_tensors[self.sample][4].update_data(top_k)
+            self.input_tensors[self.sample][5].update_data([self.top_p])
+            self.net.process(self.sample, self.input_tensors[self.sample], self.output_tensors[self.sample])
+
+            probs = self.output_tensors[self.sample][0].asnumpy()[0, :self.top_k]
+            token_TopK = self.output_tensors[self.sample][1].asnumpy()[0, :self.top_k]
+            token = int(np.random.choice(token_TopK, p=probs / probs.sum()))
+        else:
+            raise ValueError("Invalid generation_mode parameter. Supported options are 'greedy' and 'sample'.")
+        
+        self.tokens.append(token)
+        return token
+
     def forward_first(self, position_ids):
         self.token_pos_length = position_ids.max() + 1
         position_ids = position_ids.flatten()
@@ -599,7 +658,9 @@ class Qwen2_5_VL():
         )
 
         self.net.process(self.name_lm, self.input_tensors[self.name_lm], self.output_tensors[self.name_lm])
-        self.last_id = self.output_tensors[self.name_lm][0].asnumpy().item()
+
+        # sample
+        self.last_id = self.sample_token()
         self.logger.debug(f"{Logger.file_lineno()} get first inference results token id {self.last_id}")
 
         return self.last_id
@@ -669,7 +730,7 @@ class Qwen2_5_VL():
         self.net.process(self.name_lm, self.input_tensors[self.name_lm], self.output_tensors[self.name_lm])
 
         # sample
-        self.last_id = self.output_tensors[self.name_lm][0].asnumpy().item()
+        self.last_id = self.sample_token()
         self.logger.debug(f"{Logger.file_lineno()} get step {self.step} inference results token id {self.last_id}")
 
         return self.last_id
@@ -849,7 +910,7 @@ class Qwen2_5_VL():
 
 def main(args):
     history_messages = []
-    model = Qwen2_5_VL(dev_id=args.dev_id, bmodel_path=args.bmodel_path, log_level=args.log_level, processor_path=args.processor_path, tokenizer_path=args.tokenizer_path, config=args.config)
+    model = Qwen2_5_VL(dev_id=args.dev_id, bmodel_path=args.bmodel_path, log_level=args.log_level, config_path=args.config_path, do_sample=args.do_sample)
     media_type = None
     vit_offset = None
     vision_embeds = []
@@ -977,27 +1038,17 @@ if __name__ == "__main__":
                         type=str,
                         default="../models/BM1684X/qwen2.5-vl-3b-instruct-awq_w4bf16_seq2048_bm1684x_1dev_20250428_143625.bmodel",
                         help='path to the bmodel file')
-    parser.add_argument('-t',
-                        '--tokenizer_path',
-                        type=str,
-                        default="./configs/token_config",
-                        help='path to the tokenizer file')
-    parser.add_argument('-p',
-                        '--processor_path',
-                        type=str,
-                        default="./configs/processor_config",
-                        help='path to the processor file')
     parser.add_argument('-c',
-                        '--config',
+                        '--config_path',
                         type=str,
-                        default="./configs/config.json",
+                        default="./configs",
                         help='path to the model config file')
     parser.add_argument('-d', '--dev_id', type=int,
                         default=0, help='device ID to use')
     parser.add_argument('-vi',
                         '--vision_inputs',
                         type=str,
-                        default="[{\"type\":\"image_url\", \"image_url\":{\"url\":\"../datasets/images/panda.jpg\"}, \
+                        default="[{\"type\":\"image_url\", \"image_url\":{\"url\":\"../datasets/images/bookstore_17_02_flickr.jpg\"}, \
                                     \"max_side\":420, \"resize_type\": \"INTER_LINEAR\"}]",
                         help='path to the video or images and preprocess params, json format') 
     parser.add_argument('-ll',
@@ -1006,5 +1057,8 @@ if __name__ == "__main__":
                         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                         default="INFO",
                         help='log level, default: INFO, option[DEBUG, INFO, WARNING, ERROR]')
+    parser.add_argument('--do_sample', 
+                        action='store_true', 
+                        help="if set, generate tokens by sample parameters")
     args = parser.parse_args()
     main(args)
