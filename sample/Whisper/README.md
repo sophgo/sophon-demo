@@ -15,7 +15,7 @@
 Whisper 是一个开源的深度学习语音识别模型，由 OpenAI 开发，它能够实现实时、多语言的语音识别，并支持跨多种环境和设备的灵活部署。本例程对[Whisper官方开源仓库](https://github.com/openai/whisper)中的算法进行移植，使之能在SOPHON BM1690上进行推理。
 
 ## 2. 特性
-* 支持BM1690(x86 PCIe)
+* 支持BM1690(x86 PCIe, riscv64 SoC)
 * 支持FP16模型编译和推理
 * 支持基于SAIL推理的Python例程
 
@@ -73,6 +73,8 @@ cat online_wer | grep "Overall"
 | ------------ | ------------ | ----------------------------------------------------- | ------ |
 |   BM1690 PCIe | whisper.py   | bmwhisper_base_1690_f16_8core.bmodel                | 16.40% |
 |   BM1690 PCIe | whisper.py   | bmwhisper_small_1690_f16_8core.bmodel               | 9.44%  |
+|   BM1690 SoC  | whisper.py   | bmwhisper_base_1690_f16_8core.bmodel                | 16.18% |
+|   BM1690 SoC  | whisper.py   | bmwhisper_small_1690_f16_8core.bmodel               | 9.36%  |
 
 > **测试说明**：
 1. 在使用的模型相同的情况下，wer在不同的测试平台上是相同的。
@@ -84,6 +86,8 @@ cat online_wer | grep "Overall"
 | -----------  | ---------------- | -----------------------------------         | --------------------- | ----------------------- |
 |  BM1690 PCIe  | whisper.py       | bmwhisper_base_1690_f16_8core.bmodel       |    43.9             |    54.4             |
 |  BM1690 PCIe  | whisper.py       | bmwhisper_small_1690_f16_8core.bmodel      |    64.7             |       119.1        |
+|  BM1690 SoC   | whisper.py       | bmwhisper_base_1690_f16_8core.bmodel       |    1098.6           |       410.7         |
+|  BM1690 SoC   | whisper.py       | bmwhisper_small_1690_f16_8core.bmodel      |    2149.0           |       399.5         |
 
 > **测试说明**：
 > 1. 该性能使用datasets/aishell_S0764/音频进行测试，计算后得出平均每秒音频所需推理时间。

@@ -2,7 +2,7 @@
 
 ## 目录 <!-- omit in toc -->
 - [1. 环境准备](#1-环境准备)
-  - [1.1 x86 PCIe平台](#11-x86-pcie平台)
+  - [1.1 x86 PCIe / riscv64 SoC平台](#11-x86-pcie--riscv64-SoC平台)
 - [2. 推理测试](#2-推理测试)
   - [2.1 参数说明](#21-参数说明)
   - [2.2 使用方式](#22-使用方式)
@@ -15,9 +15,9 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 
 ## 1. 环境准备
-### 1.1 x86 PCIe平台
+### 1.1 x86 PCIe / riscv64 SoC平台
 
-目前仅支持在x86 PCIe平台测试本例程。除了安装tpuv7-driver、tpuv7-runtime和sophon-sail之外，您还需要配置其他第三方库：
+目前仅支持在x86 PCIe / riscv64 SoC平台测试本例程。除了安装tpuv7-driver、tpuv7-runtime和sophon-sail之外，您还需要配置其他第三方库：
 
 ```bash
 pip3 install -r requirements.txt

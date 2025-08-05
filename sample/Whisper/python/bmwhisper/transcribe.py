@@ -388,7 +388,8 @@ def transcribe(
 def cli():
     start_time = time.time()
     from . import available_models
-
+    total_preprocess_time = 0
+    total_inference_time = 0
     # fmt: off
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("audio", nargs="+", type=str, help="audio file(s) to transcribe")
@@ -486,15 +487,19 @@ def cli():
         writer(result, audio_path, writer_args)
         total_time = time.time() - audio_start_time
         preprocess_time = total_time - model.inference_time
+        total_preprocess_time += preprocess_time
+        total_inference_time += model.inference_time
         if loop_profile:
             model.print_cnt()
         print()
         print(f"Preprocess time: {preprocess_time}s")
         print(f"Inference time: {model.inference_time}s")
         print(f"Total time: {total_time}s")
-
+    audio_num = len(audio_list)
     print("{:=^100}".format(f" End "))
-    print("{:-^100}".format(f" {len(audio_list)} audio(s) total time: {time.time() - start_time} seconds "))
+    print("{:-^100}".format(f" {audio_num} audio(s) average preprocess time: {total_preprocess_time / audio_num} seconds "))
+    print("{:-^100}".format(f" {audio_num} audio(s) average inference time: {total_inference_time / audio_num} seconds "))
+    print("{:-^100}".format(f" {audio_num} audio(s) total time: {time.time() - start_time} seconds "))
 
 if __name__ == "__main__":
     cli()
