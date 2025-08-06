@@ -22,6 +22,10 @@ then
     tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/models/BM1688.tar.gz
     tar xvf BM1688.tar.gz && rm BM1688.tar.gz
+    pushd BM1688
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/models/2core.tar.gz
+    tar xvf 2core.tar.gz && rm 2core.tar.gz
+    popd
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/models/CV186X.tar.gz
     tar xvf CV186X.tar.gz && rm CV186X.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/models/onnx.tar.gz
