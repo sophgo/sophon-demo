@@ -46,7 +46,11 @@ chmod -R +x scripts/
 │   ├── superpoint_fp16_1b.bmodel            # 使用TPU-MLIR编译，用于BM1684X的superpoint FP16 BModel，batch_size=1
 │   └── superpoint_fp32_1b.bmodel            # 使用TPU-MLIR编译，用于BM1684X的superpoint FP32 BModel，batch_size=1
 ├── BM1688
-│   ├── superglue_fp16_1b_iter20_1024.bmodel # 使用TPU-MLIR编译，用于BM1688的superglue FP16 BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
+│   ├── 2core
+│   │   ├── superglue_fp16_1b_iter20_1024_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的superglue FP16 2core BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
+│   │   ├── superglue_fp16_qtable_2core       # superpoint编译fp16 2core bmodel所需的敏感层
+│   │   └── superpoint_fp16_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的superpoint FP16 2core BModel，batch_size=1 
+│   ├── superglue_fp16_1b_iter20_1024.bmodel # 使用TPU-MLIR编译，用于BM1688的superglue FP16 2core BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
 │   ├── superglue_fp32_1b_iter20_1024.bmodel # 使用TPU-MLIR编译，用于BM1688的superglue FP32 BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
 │   ├── superpoint_fp16_1b.bmodel            # 使用TPU-MLIR编译，用于BM1688的superpoint FP16 BModel，batch_size=1
 │   └── superpoint_fp32_1b.bmodel            # 使用TPU-MLIR编译，用于BM1688的superpoint FP32 BModel，batch_size=1
@@ -134,6 +138,8 @@ python3 eval.py --input_pairs ../datasets/scannet_sample_pairs_with_gt.txt --res
 | SE7-32       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.69 |
 | SE9-16       | superglue_bmcv.soc | superpoint_fp32_1b.bmodel | superglue_fp32_1b_iter20_1024.bmodel |    16.90 |
 | SE9-16       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.71 |
+| SE9-16       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024_2core.bmodel |    16.68 |
+| SE9-16       | superglue_bmcv.soc | superpoint_fp16_1b_2core.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.93 |
 | SE9-8        | superglue_bmcv.soc | superpoint_fp32_1b.bmodel | superglue_fp32_1b_iter20_1024.bmodel |    16.90 |
 | SE9-8        | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.71 |
 
@@ -152,7 +158,7 @@ bmrt_test --bmodel models/BM1684X/superpoint_fp32_1b.bmodel
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
 
-|    测试平台  |                  测试模型                         | calculate time(ms) |
+| 测试平台  |                  测试模型                         | calculate time(ms) |
 | ----------- | -------------------------------------------       | ----------------- |
 |   SE7-32    | BM1684X/superpoint_fp32_1b.bmodel            |          51.46  |
 |   SE7-32    | BM1684X/superpoint_fp16_1b.bmodel            |          10.76  |
@@ -160,12 +166,14 @@ bmrt_test --bmodel models/BM1684X/superpoint_fp32_1b.bmodel
 |   SE7-32    | BM1684X/superglue_fp16_1b_iter20_1024.bmodel |          75.51  |
 |   SE9-16    | BM1688/superpoint_fp32_1b.bmodel   |         224.76  |
 |   SE9-16    | BM1688/superpoint_fp16_1b.bmodel   |          41.47  |
+|   SE9-16    | BM1688/superpoint_fp16_1b_2core.bmodel   |          28.29    |
 |   SE9-16    | BM1688/superglue_fp32_1b_iter20_1024.bmodel|         670.28  |
 |   SE9-16    | BM1688/superglue_fp16_1b_iter20_1024.bmodel|         182.35  |
-|   SE9-38    | CV186X/superpoint_fp32_1b.bmodel   |         224.76  |
-|   SE9-38    | CV186X/superpoint_fp16_1b.bmodel   |          41.51  |
-|   SE9-38    | CV186X/superglue_fp32_1b_iter20_1024.bmodel|         667.09  |
-|   SE9-38    | CV186X/superglue_fp16_1b_iter20_1024.bmodel|         179.36  |
+|   SE9-16    | BM1688/superglue_fp16_1b_iter20_1024_2core.bmodel|   145.20  |
+|   SE9-8    | CV186X/superpoint_fp32_1b.bmodel   |         224.76  |
+|   SE9-8    | CV186X/superpoint_fp16_1b.bmodel   |          41.51  |
+|   SE9-8    | CV186X/superglue_fp32_1b_iter20_1024.bmodel|         667.09  |
+|   SE9-8    | CV186X/superglue_fp16_1b_iter20_1024.bmodel|         179.36  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
