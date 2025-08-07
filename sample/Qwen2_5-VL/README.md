@@ -28,6 +28,7 @@ Qwen2.5-VL 是阿里巴巴推出的新一代多模态大语言模型（Multimoda
 * 支持图像Resize
 * 支持视频抽帧
 * 支持历史信息存储与清理
+* 支持动态模型
 
 ## 3. 运行环境准备
 
@@ -87,12 +88,15 @@ chmod -R +x scripts/
     ├── images                                                               # 测试图片目录
     └── videos                                                               # 测试视频目录
 ```
-此外我们也提供了编译好的7B模型，可以使用以下命令下载：
+此外我们也提供了编译好的7B模型以及3B动态模型，可以使用以下命令下载：
 ```bash
 # 用于BM1684X的Qwen2.5-VL-7B的BModel，上下文长度为2k
 python3 -m dfss --url=open@sophgo.com:ext_model_information/LLM/LLM-TPU/qwen2.5-vl-7b-instruct-awq_w4bf16_seq2048_bm1684x_1dev_20250428_150810.bmodel
 # 用于BM1688的Qwen2.5-VL-7B的BModel，上下文长度为2k
 python3 -m dfss --url=open@sophgo.com:ext_model_information/LLM/LLM-TPU/qwen2.5-vl-7b-instruct-awq_w4bf16_seq2048_bm1688_2core_20250428_152052.bmodel
+
+# 用于BM1684的Qwen2.5-VL-3B的BModel，上下文长度为8K
+python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU/qwen2.5-vl-3b-instruct-awq_w4bf16_seq8192_bm1684x_1dev_dyn_20250722_203019.bmodel
 ```
 ### 4.2 自行编译BModel模型
 
@@ -130,7 +134,7 @@ git clone https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct-AWQ
 ```bash
 llm_convert.py --model_path Qwen2.5-VL-3B-Instruct-AWQ --seq_length 2048 --quantize w4bf16 --chip bm1684x --num_device 1 --out_dir ./models --max_pixels 672,896
 ```
-其中，视觉部分的长度`vision_length = max_pixels // 28 ** 2`，应保证其不超过`seq_length`。编译完成后生成的bmodel模型在当前目录的`models`文件夹。
+其中，视觉部分的长度`vision_length = max_pixels // 28 ** 2`，应保证其不超过`seq_length`。编译完成后生成的bmodel模型在当前目录的`models`文件夹。如果要使用动态模型需添加参数`--dynamic`
 
 
 ## 5. 例程测试
@@ -152,6 +156,7 @@ python3 performance_test.py
 |    SE7-32    | qwen2.5-vl-7b-instruct-awq_w4bf16_seq2048_bm1684x_1dev.bmodel  |          0.195          |        1.200             |        5.343           |        8.016           |
 |    SE9-16    | qwen2.5-vl-3b-instruct-awq_w4bf16_seq2048_bm1688_2core.bmodel  |          0.266          |        3.298             |        11.254          |        7.412           |
 |    SE9-16    | qwen2.5-vl-7b-instruct-awq_w4bf16_seq2048_bm1688_2core.bmodel  |          0.248          |        3.370             |        26.407          |        4.443           |
+|    SE7-32    | qwen2.5-vl-3b-instruct-awq_w4bf16_seq8192_bm1684x_1dev_dyn.bmodel  |          0.198          |       1.332             |        2.393          |        11.007           |
 > **测试说明**：  
 >1. 性能测试结果具有一定的波动性，且与输入也有关，此处结果是对12张照片测试后取的平均值；
 >2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
