@@ -209,7 +209,7 @@ class Qwen2_5_VL():
         self.vision_seq_max_ratio = 0.8 # apply auto resize
         self.tokens = []
         self.do_sample = kwargs.get("do_sample", False)
-
+        self.is_dynamic = self.net.get_is_dynamic("block_0")
         # initialize net name
         self.name_embed = "embedding"
         self.name_embed_cache = "embedding_cache"
@@ -613,23 +613,38 @@ class Qwen2_5_VL():
         position_ids = position_ids.flatten()
 
         ATTENTION_MASK = 0xC61C
-        attention_mask = [ATTENTION_MASK] * (self.seq_len * self.seq_len)
+        if self.is_dynamic:
+            attention_mask = [ATTENTION_MASK] * (self.token_len * self.token_len)
+            for i in range(self.token_len):
+                for j in range(i + 1):
+                    attention_mask[i * self.token_len + j] = 0
+            attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[self.name_blocks[0]][2].dtype())).reshape(1, 1, self.token_len, self.token_len)
+            position_ids_pad = np.array(position_ids, dtype=type_convert(self.input_tensors[self.name_blocks[0]][1].dtype())).reshape(3, self.token_len)
 
-        for i in range(self.token_len):
-            for j in range(self.token_len):
-                if j <= i:
-                    attention_mask[i * self.seq_len + j] = 0
-        attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[self.name_blocks[0]][2].dtype())).reshape(self.input_tensors[self.name_blocks[0]][2].asnumpy().shape)
+            self.input_tensors[self.name_blocks[0]][0].reshape([1, self.token_len, self.hidden_size])
+            self.input_tensors[self.name_blocks[0]][1].reshape([3, self.token_len])
+            self.input_tensors[self.name_blocks[0]][2].reshape([1, 1, self.token_len, self.token_len])
+            self.input_tensors[self.name_blocks[0]][0] = sail.Tensor(self.output_tensors[self.name_embed][0], [1, self.token_len, self.hidden_size], 0)
+        else:
+            attention_mask = [ATTENTION_MASK] * (self.seq_len * self.seq_len)
+            for i in range(self.token_len):
+                for j in range(self.token_len):
+                    if j <= i:
+                        attention_mask[i * self.seq_len + j] = 0
+            attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[self.name_blocks[0]][2].dtype())).reshape(self.input_tensors[self.name_blocks[0]][2].shape())
 
-        position_ids_pad = [0] * (3 * self.seq_len)
-        ori_length = len(position_ids) // 3
-        for i in range(3):
-            ori_offset = i * ori_length
-            dst_offset = i * self.seq_len
-            position_ids_pad[dst_offset : dst_offset + ori_length] = \
-                position_ids[ori_offset : ori_offset + ori_length]
-        position_ids_pad = np.array(position_ids_pad, dtype=type_convert(self.input_tensors[self.name_blocks[0]][1].dtype())).reshape(self.input_tensors[self.name_blocks[0]][1].asnumpy().shape)
-        self.input_tensors[self.name_blocks[0]][0].update_data(self.output_tensors[self.name_embed][0].asnumpy())
+            position_ids_pad = [0] * (3 * self.seq_len)
+            ori_length = len(position_ids) // 3
+            for i in range(3):
+                ori_offset = i * ori_length
+                dst_offset = i * self.seq_len
+                position_ids_pad[dst_offset : dst_offset + ori_length] = \
+                    position_ids[ori_offset : ori_offset + ori_length]
+            position_ids_pad = np.array(position_ids_pad, dtype=type_convert(self.input_tensors[self.name_blocks[0]][1].dtype())).reshape(self.input_tensors[self.name_blocks[0]][1].shape())
+            
+            self.input_tensors[self.name_blocks[0]][0] = self.output_tensors[self.name_embed][0]
+
+
         self.input_tensors[self.name_blocks[0]][1].update_data(position_ids_pad)
         self.input_tensors[self.name_blocks[0]][2].update_data(attention_mask)
 
@@ -640,16 +655,19 @@ class Qwen2_5_VL():
                 2: self.past_value_input[i], \
             }
             self.net.process(self.name_blocks[i], self.input_tensors[self.name_blocks[0]], block_output_tensors)
-            self.input_tensors[self.name_blocks[0]][0].sync_d2d( \
-                self.first_hidden_states_output, \
-                0, \
-                0, \
-                len(self.first_hidden_states_output), \
-            )
-        
+            if self.is_dynamic:
+                self.input_tensors[self.name_blocks[0]][0] = sail.Tensor(self.first_hidden_states_output, [1, self.token_len, self.hidden_size], 0)
+            else:
+                self.input_tensors[self.name_blocks[0]][0].sync_d2d( \
+                    self.first_hidden_states_output, \
+                    0, \
+                    0, \
+                    len(self.first_hidden_states_output), \
+                )
+
         # linear process
         self.step = self.token_len
-        offset_bytes = len(self.first_hidden_states_output.asnumpy().flatten()) // self.seq_len
+        offset_bytes = self.first_hidden_states_output.size() // self.seq_len
         self.token_pos_length = position_ids.max() + 1
         self.input_tensors[self.name_lm][0].sync_d2d(self.first_hidden_states_output, \
                     (self.token_len - 1) * offset_bytes, \
