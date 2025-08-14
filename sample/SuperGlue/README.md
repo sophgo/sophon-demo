@@ -31,6 +31,7 @@ SuperGlue是Magic Leap完成的CVPR 2020研究项目。SuperGlue网络是一个�
 ## 3. 准备模型、数据、依赖库
 
 ​本例程在`scripts`目录下提供了本例程所需的相关模型、数据、依赖库的下载脚本`download.sh`，您也可以自己准备模型和数据集。
+转int8 superglue的cali_tabel和需要设置为FP32的层文件qtable已经准备好，可以直接使用下述脚本下载。
 
 ```bash
 chmod -R +x scripts/
@@ -46,10 +47,19 @@ chmod -R +x scripts/
 │   ├── superpoint_fp16_1b.bmodel            # 使用TPU-MLIR编译，用于BM1684X的superpoint FP16 BModel，batch_size=1
 │   └── superpoint_fp32_1b.bmodel            # 使用TPU-MLIR编译，用于BM1684X的superpoint FP32 BModel，batch_size=1
 ├── BM1688
-│   ├── 2core
+│   ├── 2core_fp16
 │   │   ├── superglue_fp16_1b_iter20_1024_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的superglue FP16 2core BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
 │   │   ├── superglue_fp16_qtable_2core       # superpoint编译fp16 2core bmodel所需的敏感层
 │   │   └── superpoint_fp16_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的superpoint FP16 2core BModel，batch_size=1 
+|   ├── int8
+|   │   ├── qtable_superglue                # 使用TPU-MLIR编译，用于编译BM1688的superglue INT8 bmodel所需的敏感层
+|   │   ├── qtable_superpoint               # 使用TPU-MLIR编译，用于编译BM1688的superpoint INT8 bmodel所需的敏感层
+|   │   ├── superglue_cali_table            # 使用TPU-MLIR编译，用于编译BM1688的superglue INT8 bmodel所需的校准表 cali_table 
+|   │   ├── superglue_int8_1b_iter20_1024_2core.bmodel  #  使用TPU-MLIR编译， 用于BM1688的superglue 2core INT8 bmodel
+|   │   ├── superglue_int8_1b_iter20_1024.bmodel  #  使用TPU-MLIR编译， 用于BM1688的superglue  INT8 bmodel
+|   │   ├── superpoint_cali_table           # 使用TPU-MLIR编译，用于编译BM1688的superpoint INT8 bmodel所需的校准表 cali_table 
+|   │   ├── superpoint_int8_1b_2core.bmodel #  使用TPU-MLIR编译， 用于BM1688的superpoint 2core INT8 bmodel
+|   │   └── superpoint_int8_1b.bmodel        #  使用TPU-MLIR编译， 用于BM1688的superpoint  INT8 bmodel
 │   ├── superglue_fp16_1b_iter20_1024.bmodel # 使用TPU-MLIR编译，用于BM1688的superglue FP16 2core BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
 │   ├── superglue_fp32_1b_iter20_1024.bmodel # 使用TPU-MLIR编译，用于BM1688的superglue FP32 BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
 │   ├── superpoint_fp16_1b.bmodel            # 使用TPU-MLIR编译，用于BM1688的superpoint FP16 BModel，batch_size=1
@@ -138,8 +148,12 @@ python3 eval.py --input_pairs ../datasets/scannet_sample_pairs_with_gt.txt --res
 | SE7-32       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.69 |
 | SE9-16       | superglue_bmcv.soc | superpoint_fp32_1b.bmodel | superglue_fp32_1b_iter20_1024.bmodel |    16.90 |
 | SE9-16       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.71 |
-| SE9-16       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024_2core.bmodel |    16.68 |
 | SE9-16       | superglue_bmcv.soc | superpoint_fp16_1b_2core.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.93 |
+| SE9-16       | superglue_bmcv.soc | superpoint_int8_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.22 |
+| SE9-16       | superglue_bmcv.soc | superpoint_int8_1b_2core.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.22 |
+| SE9-16       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024_2core.bmodel |    16.68 |
+| SE9-16       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_int8_1b_iter20_1024.bmodel |    16.28 |
+| SE9-16       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_int8_1b_iter20_1024_2core.bmodel |    16.28 |
 | SE9-8        | superglue_bmcv.soc | superpoint_fp32_1b.bmodel | superglue_fp32_1b_iter20_1024.bmodel |    16.90 |
 | SE9-8        | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.71 |
 
@@ -167,9 +181,13 @@ bmrt_test --bmodel models/BM1684X/superpoint_fp32_1b.bmodel
 |   SE9-16    | BM1688/superpoint_fp32_1b.bmodel   |         224.76  |
 |   SE9-16    | BM1688/superpoint_fp16_1b.bmodel   |          41.47  |
 |   SE9-16    | BM1688/superpoint_fp16_1b_2core.bmodel   |          28.29    |
+|   SE9-16    | BM1688/superpoint_int8_1b.bmodel   |         23.28  |
+|   SE9-16    | BM1688/superpoint_int8_1b_2core.bmodel   |          19.58  |
 |   SE9-16    | BM1688/superglue_fp32_1b_iter20_1024.bmodel|         670.28  |
 |   SE9-16    | BM1688/superglue_fp16_1b_iter20_1024.bmodel|         182.35  |
 |   SE9-16    | BM1688/superglue_fp16_1b_iter20_1024_2core.bmodel|   145.20  |
+|   SE9-16    | BM1688/superglue_int8_1b_iter20_1024.bmodel|        135.31   |
+|   SE9-16    | BM1688/superglue_int8_1b_iter20_1024_2core.bmodel|        107.10   |
 |   SE9-8    | CV186X/superpoint_fp32_1b.bmodel   |         224.76  |
 |   SE9-8    | CV186X/superpoint_fp16_1b.bmodel   |          41.51  |
 |   SE9-8    | CV186X/superglue_fp32_1b_iter20_1024.bmodel|         667.09  |
