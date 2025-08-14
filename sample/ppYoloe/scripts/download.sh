@@ -1,56 +1,46 @@
 #!/bin/bash
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-
-res=$(which unzip)
-if [ $? != 0 ];
-then
-    echo "Please install unzip on your system!"
-    echo "To install, use the following command:"
-    echo "sudo apt install unzip"
-    exit
-fi
-res=$(which tar)
-if [ $? != 0 ];
-then
-    echo "Please install tar on your system!"
-    echo "To install, use the following command:"
-    echo "sudo apt install tar"
-    exit
-fi
-
 scripts_dir=$(dirname $(readlink -f "$0"))
-# echo $scripts_dir
 
 pushd $scripts_dir
-
 # datasets
-if [ ! -d "../datasets" ];
+if [ ! -d "../datasets" ]; 
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/datasets_0918/datasets.zip
-    unzip datasets.zip -d ../
-    rm datasets.zip
-
+    mkdir ../datasets
+    pushd ../datasets
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/common/test.tar.gz    #test pictures
+    tar xvf test.tar.gz && rm test.tar.gz                                   #in case `tar xvf xx` failed.
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/common/coco.names     #coco classnames
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/common/coco128.tar.gz #coco 128 pictures
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/coco128_npz.tar.gz #coco 128 pictures cali set
+    tar xvf coco128.tar.gz && rm coco128.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/common/coco_val2017_1000.tar.gz #coco 1000 pictures and json.
+    tar xvf coco_val2017_1000.tar.gz && rm coco_val2017_1000.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/common/test_car_person_1080P.mp4 #test video
+    popd
     echo "datasets download!"
 else
-    echo "datasets exist!"
+    echo "Datasets folder exist! Remove it if you need to update."
 fi
 
 # models
-if [ ! -d "../models" ];
+if [ ! -d "../models" ]; 
 then
-    mkdir -p ../models
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/models.zip
-    unzip models.zip -d ../models
-    rm models.zip
-    pushd ../models/
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/models_20240416/BM1688.tgz
-    tar xvf BM1688.tgz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/models_20240416/CV186X.tgz
-    tar xvf CV186X.tgz
-    rm -r *.tgz
+    mkdir ../models
+    pushd ../models
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/BM1684.tar.gz
+    tar xvf BM1684.tar.gz && rm BM1684.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/BM1684X.tar.gz
+    tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/BM1688.tar.gz
+    tar xvf BM1688.tar.gz && rm BM1688.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/CV186X.tar.gz
+    tar xvf CV186X.tar.gz && rm CV186X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/onnx.tar.gz
+    tar xvf onnx.tar.gz && rm onnx.tar.gz
     popd
     echo "models download!"
 else
-    echo "models exist!"
+    echo "Models folder exist! Remove it if you need to update."
 fi
 popd
