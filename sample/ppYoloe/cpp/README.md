@@ -12,10 +12,8 @@
   - [2. 程序编译](#2-程序编译)
     - [2.1 x86/arm/riscv PCIe平台](#21-x86armriscv-pcie平台)
       - [2.1.1 bmcv](#211-bmcv)
-      - [2.1.2 sail](#212-sail)
     - [2.2 SoC平台](#22-soc平台)
       - [2.2.1 bmcv](#221-bmcv)
-      - [2.2.2 sail](#222-sail)
   - [3. 推理测试](#3-推理测试)
     - [3.1 参数说明](#31-参数说明)
     - [3.2 测试图片](#32-测试图片)
@@ -25,7 +23,6 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 | 序号  | C++例程       | 说明                                 |
 | ---- | ------------- | ----------------------------------- |
 | 1    | ppyoloe_bmcv  | 使用FFmpeg解码、BMCV前处理、BMRT推理  |
-| 2    | ppyoloe_sail  | 使用SAIL解码、SAIL前处理、SAIL推理     |
 
 ## 1. 环境准备
 ### 1.1 x86/arm/riscv PCIe平台
@@ -49,17 +46,6 @@ cd ..
 ```
 编译完成后，会在ppyoloe_bmcv目录下生成ppyoloe_bmcv.pcie。
 
-#### 2.1.2 sail
-如果您使用sophon-sail接口，需要[编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#33-编译安装sophon-sail)，后进行如下步骤。
-```bash
-cd cpp/ppyoloe_sail
-mkdir build && cd build
-cmake ..
-make
-cd ..
-```
-编译完成后，会在ppyoloe_sail目录下生成ppyoloe_sail.pcie。
-
 ### 2.2 SoC平台
 通常在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
@@ -74,22 +60,11 @@ make
 ```
 编译完成后，会在ppyoloe_bmcv目录下生成ppyoloe_bmcv.soc。
 
-#### 2.2.2 sail
-如果您使用sophon-sail接口，需要参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)，给soc环境配置sophon-sail，然后进行如下步骤。
-```bash
-cd cpp/ppyoloe_sail
-mkdir build && cd build
-#请根据实际情况修改-DSDK和-DSAIL_PATH的路径，需使用绝对路径。
-cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk -DSAIL_PATH=/path_to_sail/sophon-sail/build_soc/sophon-sail ..
-make
-```
-编译完成后，会在ppyoloe_sail目录下生成ppyoloe_sail.soc。
-
 ## 3. 推理测试
 对于PCIe平台，可以直接在PCIe平台上推理测试；对于SoC平台，需将交叉编译生成的可执行文件及所需的模型、测试数据拷贝到SoC平台中测试。测试的参数及运行方式是一致的，下面主要以PCIe模式进行介绍。
 
 ### 3.1 参数说明
-可执行程序默认有一套参数，请注意根据实际情况进行传参，`ppyoloe_bmcv.pcie与ppyoloe_sail.pcie参数相同。`以ppyoloe_bmcv.pcie为例，具体参数说明如下：
+可执行程序默认有一套参数，请注意根据实际情况进行传参，以ppyoloe_bmcv.pcie为例，具体参数说明如下：
 ```bash
 Usage: ppyoloe_bmcv.pcie [params]
 
@@ -127,17 +102,3 @@ Usage: ppyoloe_bmcv.pcie [params]
 ./ppyoloe_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel=../../models/BM1684/ppyoloe_fp32_1b.bmodel --dev_id=0 --conf_thresh=0.5 --nms_thresh=0.6 --classnames=../../datasets/coco.names
 ```
 测试结束后，会将预测结果画在图片上并保存在`results/images`中，同时会打印预测结果、推理时间等信息。
-
-
->**注意：**
-
-1.cpp程序不会在图片上写字，如果希望在图片上写字，可以查阅bmcv_image_put_text接口文档使用bmcv写字，或者将bm_image转为cv::Mat使用opencv写字。
-
-2.若在SoC模式下执行报错:
-```bash
-./ppyoloe_sail.soc: error while loading shared libraries: libsail.so: cannot open shared object file: No such file or directory
-```
-请设置如下环境变量:
-```bash
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
-```

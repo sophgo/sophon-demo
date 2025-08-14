@@ -135,47 +135,30 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE5-16       | ppyoloe_opencv.py  | ppyoloe_fp32_1b.bmodel       |    0.377 |    0.508 |
 | SE5-16       | ppyoloe_bmcv.py    | ppyoloe_fp32_1b.bmodel       |    0.381 |    0.513 |
 | SE5-16       | ppyoloe_bmcv.soc   | ppyoloe_fp32_1b.bmodel       |    0.378 |    0.510 |
-| SE5-16       | ppyoloe_sail.soc   | ppyoloe_fp32_1b.bmodel       |    0.378 |    0.510 |
-| SE7-32       | ppyoloe_opencv.py  | ppyoloe_fp32_1b.bmodel       |    0.377 |    0.508 |
-| SE7-32       | ppyoloe_opencv.py  | ppyoloe_fp16_1b.bmodel       |    0.377 |    0.508 |
-| SE7-32       | ppyoloe_bmcv.py    | ppyoloe_fp32_1b.bmodel       |    0.380 |    0.513 |
-| SE7-32       | ppyoloe_bmcv.py    | ppyoloe_fp16_1b.bmodel       |    0.380 |    0.513 |
-| SE7-32       | ppyoloe_bmcv.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
-| SE7-32       | ppyoloe_bmcv.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
-| SE7-32       | ppyoloe_sail.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
-| SE7-32       | ppyoloe_sail.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
-| SE9-16       | ppyoloe_opencv.py  | ppyoloe_fp32_1b.bmodel       |    0.377 |    0.508 |
-| SE9-16       | ppyoloe_opencv.py  | ppyoloe_fp16_1b.bmodel       |    0.376 |    0.508 |
-| SE9-16       | ppyoloe_bmcv.py    | ppyoloe_fp32_1b.bmodel       |    0.381 |    0.513 |
-| SE9-16       | ppyoloe_bmcv.py    | ppyoloe_fp16_1b.bmodel       |    0.380 |    0.514 |
-| SE9-16       | ppyoloe_bmcv.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
-| SE9-16       | ppyoloe_bmcv.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
-| SE9-16       | ppyoloe_sail.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
-| SE9-16       | ppyoloe_sail.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
-| SE9-16       | ppyoloe_opencv.py  | ppyoloe_fp32_1b_2core.bmodel |    0.377 |    0.508 |
-| SE9-16       | ppyoloe_opencv.py  | ppyoloe_fp16_1b_2core.bmodel |    0.376 |    0.508 |
-| SE9-16       | ppyoloe_bmcv.py    | ppyoloe_fp32_1b_2core.bmodel |    0.381 |    0.513 |
-| SE9-16       | ppyoloe_bmcv.py    | ppyoloe_fp16_1b_2core.bmodel |    0.380 |    0.514 |
-| SE9-16       | ppyoloe_bmcv.soc   | ppyoloe_fp32_1b_2core.bmodel |    0.379 |    0.510 |
-| SE9-16       | ppyoloe_bmcv.soc   | ppyoloe_fp16_1b_2core.bmodel |    0.378 |    0.510 |
-| SE9-16       | ppyoloe_sail.soc   | ppyoloe_fp32_1b_2core.bmodel |    0.379 |    0.510 |
-| SE9-16       | ppyoloe_sail.soc   | ppyoloe_fp16_1b_2core.bmodel |    0.378 |    0.510 |
-| SE9-8        | ppyoloe_opencv.py  | ppyoloe_fp32_1b.bmodel       |    0.377 |    0.508 |
-| SE9-8        | ppyoloe_opencv.py  | ppyoloe_fp16_1b.bmodel       |    0.376 |    0.508 |
-| SE9-8        | ppyoloe_bmcv.py    | ppyoloe_fp32_1b.bmodel       |    0.381 |    0.513 |
-| SE9-8        | ppyoloe_bmcv.py    | ppyoloe_fp16_1b.bmodel       |    0.380 |    0.514 |
-| SE9-8        | ppyoloe_bmcv.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
-| SE9-8        | ppyoloe_bmcv.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
-| SE9-8        | ppyoloe_sail.soc   | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
-| SE9-8        | ppyoloe_sail.soc   | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
+|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       | 0.380 | 0.513 |
+|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       | 0.379 | 0.510 |
+|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       | 0.380 | 0.513 |
+|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       | 0.378 | 0.510 |
+|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       | 0.261 | 0.469 |
+|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       | 0.256 | 0.466 |
+|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       | 0.381 | 0.513 |
+|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       | 0.379 | 0.510 |
+|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       | 0.380 | 0.514 |
+|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       | 0.378 | 0.510 |
+|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       | 0.260 | 0.471 |
+|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       | 0.256 | 0.467 |
+|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       | 0.381 | 0.513 |
+|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       | 0.379 | 0.510 |
+|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       | 0.380 | 0.514 |
+|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       | 0.378 | 0.510 |
+|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       | 0.260 | 0.471 |
+|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       | 0.256 | 0.467 |
 | SRM1-20      | ppyoloe_opencv.py  | ppyoloe_fp32_1b.bmodel       |    0.377 |    0.508 |
 | SRM1-20      | ppyoloe_opencv.py  | ppyoloe_fp16_1b.bmodel       |    0.377 |    0.508 |
 | SRM1-20      | ppyoloe_bmcv.py    | ppyoloe_fp32_1b.bmodel       |    0.380 |    0.513 |
 | SRM1-20      | ppyoloe_bmcv.py    | ppyoloe_fp16_1b.bmodel       |    0.380 |    0.513 |
 | SRM1-20      | ppyoloe_bmcv.pcie  | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
 | SRM1-20      | ppyoloe_bmcv.pcie  | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
-| SRM1-20      | ppyoloe_sail.pcie  | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
-| SRM1-20      | ppyoloe_sail.pcie  | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -195,14 +178,16 @@ bmrt_test --bmodel models/BM1684/ppyoloe_fp32_1b.bmodel
 |    测试平台  | 测试模型                       | calculate time(ms) |
 | ----------- | -------------------                |  -------------- |
 |   SE5-16    | BM1684/ppyoloe_fp32_1b.bmodel      |          30.77  |
-|   SE7-32    | BM1684X/ppyoloe_fp32_1b.bmodel     |          27.38  |
-|   SE7-32    | BM1684X/ppyoloe_fp16_1b.bmodel     |           6.85  |
-|   SE9-16    | BM1688/ppyoloe_fp32_1b.bmodel      |         119.37  |
-|   SE9-16    | BM1688/ppyoloe_fp16_1b.bmodel      |          31.43  |
-|   SE9-16    | BM1688/ppyoloe_fp32_1b_2core.bmodel|          76.65  |
-|   SE9-16    | BM1688/ppyoloe_fp16_1b_2core.bmodel|          21.21  |
-|   SE9-8     | CV186X/ppyoloe_fp32_1b.bmodel      |         122.38  |
-|   SE9-8     | CV186X/ppyoloe_fp16_1b.bmodel      |          34.91  |
+| SE7-32          | BM1684X/ppyoloe_fp32_1b.bmodel     |          27.47  |
+| SE7-32          | BM1684X/ppyoloe_fp16_1b.bmodel     |           6.92  |
+| SE7-32          | BM1684X/ppyoloe_int8_1b.bmodel     |           3.79  |
+| SE9-16          | BM1688/ppyoloe_fp32_1b.bmodel      |         119.55  |
+| SE9-16          | BM1688/ppyoloe_fp16_1b.bmodel      |          31.60  |
+| SE9-16          | BM1688/ppyoloe_int8_1b.bmodel      |           7.31  |
+| SE9-16          | BM1688/ppyoloe_int8_1b_2core.bmodel|           5.70  |
+| SE9-8           | CV186X/ppyoloe_fp32_1b.bmodel      |         119.66  |
+| SE9-8           | CV186X/ppyoloe_fp16_1b.bmodel      |          32.51  |
+| SE9-8           | CV186X/ppyoloe_int8_1b.bmodel      |           7.20  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -219,39 +204,26 @@ bmrt_test --bmodel models/BM1684/ppyoloe_fp32_1b.bmodel
 |   SE5-16    | ppyoloe_opencv.py |      ppyoloe_fp32_1b.bmodel       |      15.02      |      43.29      |      45.16      |      12.46      |
 |   SE5-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      3.76       |      3.63       |      34.07      |      12.64      |
 |   SE5-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       |      4.84       |      1.08       |      30.71      |      8.57       |
-|   SE5-16    | ppyoloe_sail.soc  |      ppyoloe_fp32_1b.bmodel       |      3.21       |      4.14       |      31.11      |      7.99       |
-|   SE7-32    | ppyoloe_opencv.py |      ppyoloe_fp32_1b.bmodel       |      16.16      |      40.55      |      44.29      |      12.95      |
-|   SE7-32    | ppyoloe_opencv.py |      ppyoloe_fp16_1b.bmodel       |      15.13      |      40.54      |      23.72      |      12.88      |
-|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      3.30       |      2.81       |      30.95      |      13.42      |
-|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       |      3.26       |      2.79       |      10.40      |      13.44      |
-|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       |      4.34       |      0.99       |      27.35      |      8.70       |
-|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       |      4.35       |      0.99       |      6.79       |      8.72       |
-|   SE7-32    | ppyoloe_sail.soc  |      ppyoloe_fp32_1b.bmodel       |      2.71       |      3.33       |      27.76      |      8.10       |
-|   SE7-32    | ppyoloe_sail.soc  |      ppyoloe_fp16_1b.bmodel       |      2.71       |      3.33       |      7.22       |      8.11       |
-|   SE9-16    | ppyoloe_opencv.py |      ppyoloe_fp32_1b.bmodel       |      23.48      |      55.35      |     139.76      |      17.91      |
-|   SE9-16    | ppyoloe_opencv.py |      ppyoloe_fp16_1b.bmodel       |      19.24      |      55.54      |      51.71      |      17.77      |
-|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      4.59       |      5.44       |     124.17      |      17.67      |
-|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       |      4.61       |      5.41       |      36.18      |      17.95      |
-|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       |      5.75       |      2.24       |     119.31      |      12.15      |
-|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       |      5.80       |      2.23       |      31.36      |      12.14      |
-|   SE9-16    | ppyoloe_sail.soc  |      ppyoloe_fp32_1b.bmodel       |      3.80       |      6.12       |     120.29      |      11.33      |
-|   SE9-16    | ppyoloe_sail.soc  |      ppyoloe_fp16_1b.bmodel       |      3.75       |      6.11       |      32.33      |      11.32      |
-|   SE9-16    | ppyoloe_opencv.py |   ppyoloe_fp32_1b_2core.bmodel    |      19.29      |      55.28      |      96.96      |      17.91      |
-|   SE9-16    | ppyoloe_opencv.py |   ppyoloe_fp16_1b_2core.bmodel    |      19.16      |      55.66      |      41.51      |      17.78      |
-|   SE9-16    |  ppyoloe_bmcv.py  |   ppyoloe_fp32_1b_2core.bmodel    |      4.54       |      5.41       |      81.45      |      17.71      |
-|   SE9-16    |  ppyoloe_bmcv.py  |   ppyoloe_fp16_1b_2core.bmodel    |      4.54       |      5.39       |      25.95      |      17.74      |
-|   SE9-16    | ppyoloe_bmcv.soc  |   ppyoloe_fp32_1b_2core.bmodel    |      5.83       |      2.23       |      76.57      |      12.14      |
-|   SE9-16    | ppyoloe_bmcv.soc  |   ppyoloe_fp16_1b_2core.bmodel    |      5.80       |      2.23       |      21.16      |      12.15      |
-|   SE9-16    | ppyoloe_sail.soc  |   ppyoloe_fp32_1b_2core.bmodel    |      3.81       |      6.11       |      77.55      |      11.32      |
-|   SE9-16    | ppyoloe_sail.soc  |   ppyoloe_fp16_1b_2core.bmodel    |      3.77       |      6.10       |      22.11      |      11.33      |
-|    SE9-8    | ppyoloe_opencv.py |      ppyoloe_fp32_1b.bmodel       |      24.17      |      55.57      |     142.53      |      17.66      |
-|    SE9-8    | ppyoloe_opencv.py |      ppyoloe_fp16_1b.bmodel       |      20.70      |      55.99      |      55.20      |      17.54      |
-|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      7.66       |      5.63       |     127.22      |      17.71      |
-|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       |      4.45       |      5.59       |      39.63      |      17.73      |
-|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       |      5.61       |      2.59       |     122.30      |      12.15      |
-|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       |      5.64       |      2.59       |      34.85      |      12.14      |
-|    SE9-8    | ppyoloe_sail.soc  |      ppyoloe_fp32_1b.bmodel       |      3.67       |      6.34       |     123.30      |      11.33      |
-|    SE9-8    | ppyoloe_sail.soc  |      ppyoloe_fp16_1b.bmodel       |      3.64       |      6.32       |      35.81      |      11.33      |
+|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      3.09       |      2.51       |      30.25      |      13.39      |
+|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       |      4.37       |      1.00       |      27.37      |      8.99       |
+|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       |      2.89       |      2.50       |      9.67       |      13.50      |
+|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       |      4.41       |      0.98       |      6.82       |      9.02       |
+|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       |      2.89       |      2.50       |      6.54       |      13.67      |
+|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       |      4.38       |      0.98       |      3.72       |      9.00       |
+|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      4.04       |      4.60       |     123.36      |      18.40      |
+|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       |      5.68       |      2.20       |     119.48      |      12.25      |
+|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       |      4.04       |      4.61       |      35.33      |      18.19      |
+|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       |      5.66       |      2.19       |      31.52      |      12.24      |
+|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       |      4.01       |      4.61       |      10.94      |      18.39      |
+|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       |      5.70       |      2.20       |      7.12       |      12.28      |
+|   SE9-16    |  ppyoloe_bmcv.py  |   ppyoloe_int8_1b_2core.bmodel    |      4.01       |      4.60       |      9.30       |      18.40      |
+|   SE9-16    | ppyoloe_bmcv.soc  |   ppyoloe_int8_1b_2core.bmodel    |      5.68       |      2.20       |      5.51       |      12.28      |
+|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      9.12       |      9.64       |     130.23      |      20.94      |
+|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       |      6.38       |      7.70       |     122.91      |      13.45      |
+|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       |      4.34       |      7.24       |      40.24      |      20.68      |
+|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       |      6.39       |      4.43       |      33.66      |      13.73      |
+|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       |      4.25       |      6.82       |      13.71      |      19.94      |
+|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       |      6.29       |      3.09       |      7.99       |      13.30      |
 |   SRM1-20   | ppyoloe_opencv.py |      ppyoloe_fp32_1b.bmodel       |      13.23      |      66.43      |     109.16      |      8.64       |
 |   SRM1-20   | ppyoloe_opencv.py |      ppyoloe_fp16_1b.bmodel       |      13.39      |      66.59      |      83.91      |      8.74       |
 |   SRM1-20   |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       |      23.82      |      4.43       |      86.33      |      9.52       |
