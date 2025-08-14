@@ -61,7 +61,7 @@ if [ ! -d $outdir ]; then
 fi
 # batch_size=1
 gen_mlir 1
-# gen_cali_table 1
+gen_cali_table 1
 gen_int8bmodel 1
 
 popd
