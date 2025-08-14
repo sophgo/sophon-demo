@@ -25,7 +25,7 @@ function gen_mlir()
         --mean 123.675,116.28,103.53 \
         --scale 0.0171,0.0175,0.0174 \
         --pixel_format rgb  \
-        --output_names p2o.Div.1,p2o.Concat.29 \
+        --output_names p2o.Concat.29,p2o.Div.1 \
         --mlir ppyoloe_$1b.mlir
 }
 
