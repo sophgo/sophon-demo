@@ -137,6 +137,7 @@ class Yolov8PlusSegFuse:
                 break
             tensor = sail.Tensor(self.output_tensors[name], output_shape, 0)
             outputs_dict[name] = tensor
+            
         return outputs_dict
 
     def __call__(self, bmimg_list):
@@ -329,7 +330,7 @@ def main(args):
 def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--input', type=str, default='../datasets/test', help='path of input')
-    parser.add_argument('--bmodel', type=str, default='../models/BM1684X/yolov8s_fuse_seg_int8_1b.bmodel', help='path of bmodel')
+    parser.add_argument('--bmodel', type=str, default='../models/BM1684X/yolov8s_seg_fuse_int8_1b.bmodel', help='path of bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--draw_thresh', type=float, default=0.5, help='draw threshold')
     args = parser.parse_args()
