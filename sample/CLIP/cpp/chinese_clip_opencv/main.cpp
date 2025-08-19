@@ -130,6 +130,7 @@ int main(int argc, char *argv[]){
         "{image_model | ../../models/BM1684X/cn_clip_image_vitb16_bm1684x_f16_1b.bmodel | path to the image model file}"
         "{text_model | ../../models/BM1684X/cn_clip_text_vitb16_bm1684x_f16_1b.bmodel | path to the text model file}"
         "{dev_id | 0 | TPU device ids (comma-separated list)}"
+        "{vocab_path | ./tokenizer/vocab.txt | vocab.txt path}"
         "{help | 0 | print help information.}";
     cv::CommandLineParser parser(argc, argv, keys);
     if (parser.get<bool>("help")) {
@@ -148,6 +149,7 @@ int main(int argc, char *argv[]){
     std::string image_model = parser.get<string>("image_model");
     std::string text_model = parser.get<string>("text_model");
     int dev_id = parser.get<int>("dev_id");
+    std::string vocab_path = parser.get<string>("vocab_path");
 
     // check params
     struct stat info;
@@ -170,7 +172,7 @@ int main(int argc, char *argv[]){
     clip.init(image_model, text_model, dev_id);
     printf("==========================\n");
     // tokenizer;
-    BertTokenizer tokenizer;
+    BertTokenizer tokenizer(vocab_path);
     std::vector<std::vector<int>> features_vector;
     size_t max_token_len = clip.get_max_token_len();
 
