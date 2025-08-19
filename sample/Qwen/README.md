@@ -56,7 +56,7 @@ sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/boot.itb /boot/boo
 sudo reboot
 
 #如果是se9-8 4G版本设备，执行以下命令
-./memory_edit.sh -c -npu 2300 -vpu 0 -vpp 0 #npu也可以访问vpu和vpp的内存
+./memory_edit.sh -c -npu 2300 -vpu 0 -vpp 40 #npu也可以访问vpu和vpp的内存
 sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/boot.itb /boot/boot.itb && sync
 sudo reboot
 ```
