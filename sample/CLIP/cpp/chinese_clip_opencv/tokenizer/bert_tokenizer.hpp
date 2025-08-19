@@ -182,6 +182,9 @@ static std::shared_ptr<Vocab> loadVocab(const std::string& vocabFile) {
     std::shared_ptr<Vocab> vocab(new Vocab);
     size_t index = 0;
     std::ifstream ifs(vocabFile, std::ifstream::in);
+    if (!ifs.is_open()) {
+        throw std::runtime_error("Failed to open " + vocabFile);
+    }
     std::string line;
     while (getline(ifs, line)) {
         std::wstring token = convertToUnicode(line);
