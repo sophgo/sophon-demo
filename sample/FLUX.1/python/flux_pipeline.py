@@ -598,7 +598,7 @@ class FluxPipeline:
             )
 
         # 2. process of t5
-        text_input_ids = text_input_ids.numpy().astype(np.float32)
+        text_input_ids = text_input_ids.numpy().astype(np.int32)
         self.t5_head_inputs[0].update_data(text_input_ids)
         self.text_encoder_2.process("t5_head", self.t5_head_inputs, self.t5_head_outputs)
         for idx in range(self.T5_LAYER_NUM):

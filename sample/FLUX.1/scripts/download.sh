@@ -128,4 +128,5 @@ if [ "$chip_type" == "BM1684X" ]; then
 elif [ "$chip_type" == "BM1688" ]; then 
     python3 -m dfss --url=open@sophgo.com:/sophon-demo/FLUX_1/${chip_type}/ids_emb_512.pt
     mv ids_emb_512.pt ../models
+fi
 popd
