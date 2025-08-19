@@ -53,7 +53,6 @@ function gen_cali_table()
         --dataset ../datasets/coco128/ \
         --input_num 16 \
         -o ${model_name}_seg_cali_table
-    echo "yolo_seg_post_matmul1 1.0000000 0.0000000 1.0000000" >> ${model_name}_seg_cali_table
 }
 
 function gen_int8bmodel()
@@ -61,7 +60,6 @@ function gen_int8bmodel()
     gen_mlir $1
     fpfwd_outputs_layer_name='output1_Mul,output0_Concat,/model.22/dfl/conv/Conv_output_0_Conv'
     fp_forward ${model_name}_seg_fuse_$1b.mlir --fpfwd_outputs $fpfwd_outputs_layer_name --chip $target --fp_type F32 -o ${model_name}_seg_fuse_qtable
-    echo "yolo_seg_post_sigmoid1 INT8" >> ${model_name}_seg_fuse_qtable
     model_deploy.py \
         --mlir ${model_name}_seg_fuse_$1b.mlir \
         --quantize INT8 \
