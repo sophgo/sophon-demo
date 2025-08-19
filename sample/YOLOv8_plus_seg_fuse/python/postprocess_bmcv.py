@@ -170,24 +170,25 @@ class PostProcess:
         height = bottom - top
         
         # bmcv solution
-        mask_size = im1_shape[0] * im1_shape[1]
-        masks_resized = []
-        for i in range(masks.shape()[0]):
-            mask_tensor = sail.Tensor(masks, [1,1,im1_shape[1],im1_shape[0]], i * mask_size)
-            mask_bmimg = sail.BMImage(self.handle, im1_shape[1], im1_shape[0], sail.Format.FORMAT_GRAY, sail.ImgDtype.DATA_TYPE_EXT_1N_BYTE)
-            self.bmcv.tensor_to_bm_image(mask_tensor, mask_bmimg, sail.Format.FORMAT_GRAY)
-            mask_bmimg_resized = self.bmcv.crop_and_resize(mask_bmimg, left, top, width, height, im0_shape[1], im0_shape[0], sail.bmcv_resize_algorithm.BMCV_INTER_LINEAR)
-            mask_bmimg_resized.unalign()
-            mask_tensor_resized = self.bmcv.bm_image_to_tensor(mask_bmimg_resized)
-            masks_resized.append(mask_tensor_resized.asnumpy().squeeze())
-        return np.stack(masks_resized)
-    
-        # opencv solution
-        # masks = masks.asnumpy().transpose(1,2,0)
-        # print(masks.shape)
-        # masks = masks[top:bottom, left:right]
-        # masks = cv2.resize(masks, (im0_shape[1], im0_shape[0]))#,
-        #                    #interpolation=cv2.INTER_CUBIC)  # INTER_CUBIC would be better
-        # if len(masks.shape) == 2:
-        #     masks = masks[:, :, None]
-        # return masks.transpose(2, 0, 1)
+        if masks.dtype() == sail.Dtype.BM_UINT8:
+            mask_size = im1_shape[0] * im1_shape[1]
+            masks_resized = []
+            for i in range(masks.shape()[0]):
+                mask_tensor = sail.Tensor(masks, [1,1,im1_shape[1],im1_shape[0]], i * mask_size)
+                mask_bmimg = sail.BMImage(self.handle, im1_shape[1], im1_shape[0], sail.Format.FORMAT_GRAY, sail.ImgDtype.DATA_TYPE_EXT_1N_BYTE)
+                self.bmcv.tensor_to_bm_image(mask_tensor, mask_bmimg, sail.Format.FORMAT_GRAY)
+                mask_bmimg_resized = self.bmcv.crop_and_resize(mask_bmimg, left, top, width, height, im0_shape[1], im0_shape[0], sail.bmcv_resize_algorithm.BMCV_INTER_LINEAR)
+                mask_bmimg_resized.unalign()
+                mask_tensor_resized = self.bmcv.bm_image_to_tensor(mask_bmimg_resized)
+                masks_resized.append(mask_tensor_resized.asnumpy().squeeze())
+            return np.stack(masks_resized)
+        else:
+            # opencv solution
+            masks.sync_d2s()
+            masks = masks.asnumpy().transpose(1,2,0)
+            masks = masks[top:bottom, left:right]
+            masks = cv2.resize(masks, (im0_shape[1], im0_shape[0]))#,
+                            #interpolation=cv2.INTER_CUBIC)  # INTER_CUBIC would be better
+            if len(masks.shape) == 2:
+                masks = masks[:, :, None]
+            return 256 * masks.transpose(2, 0, 1)
