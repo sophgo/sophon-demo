@@ -29,12 +29,21 @@ def load_pipeline(args):
     return pipeline
 
 def run(pipeline, args):
+    if(args.chip_type == "bm1684x"):
+        height = 1024
+        width = 1024
+    else:
+        height = 512
+        width = 512
+
     result = pipeline(
         prompt = args.prompt,
         prompt_2 = None if args.prompt_2 == "" else args.prompt_2,
         num_inference_steps = args.num_inference_steps,
         guidance_scale = args.guidance_scale,
         seed = args.seed,
+        height = height,
+        width = width,
     )[0]
     return result
 
