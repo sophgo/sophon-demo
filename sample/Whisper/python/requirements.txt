@@ -6,4 +6,4 @@ tqdm
 more-itertools
 tiktoken==0.3.3
 onnx==1.14.0
-opencc
+opencc==1.1.1
