@@ -37,8 +37,8 @@ chmod -R +x scripts/
 ```
 ./models
 └── BM1690
-    ├── bmwhisper_base_1690_f16_8core.bmodel # whisper-medium模型，模型参数量为769 M
-    ├── bmwhisper_small_1690_f16_8core.bmodel # whisper-base模型，模型参数量为74 M
+    ├── bmwhisper_base_1690_f16_8core.bmodel # whisper-base模型，模型参数量为74 M
+    ├── bmwhisper_small_1690_f16_8core.bmodel # whisper-small模型，模型参数量为244 M
 ```
 
 下载的数据包括：
