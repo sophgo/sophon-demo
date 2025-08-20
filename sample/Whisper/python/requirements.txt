@@ -2,6 +2,6 @@ numba
 tqdm
 more-itertools
 tiktoken==0.3.3
-opencc==1.11.1
+opencc==1.1.1
 torch
 torchaudio
