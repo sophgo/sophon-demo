@@ -40,9 +40,9 @@ chmod -R +x scripts/
 ```
 ./models
 └── BM1684X
-    ├── bmwhisper_base_1684x_f16.bmodel # whisper-medium模型，模型参数量为769 M
+    ├── bmwhisper_base_1684x_f16.bmodel # whisper-base模型，模型参数量为74 M 
     ├── bmwhisper_medium_1684x_f16.bmodel # whisper-small模型，模型参数量为244 M
-    ├── bmwhisper_small_1684x_f16.bmodel # whisper-base模型，模型参数量为74 M
+    ├── bmwhisper_small_1684x_f16.bmodel # whisper-medium模型，模型参数量为769 M
     ├── bmwhisper_small.en_1684x_f16.bmodel # whisper-small.en模型
     └── bmwhisper_distil.small.en_1684x_f16.bmodel # whisper-distil.small.en模型
 ```
