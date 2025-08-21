@@ -75,8 +75,8 @@ int main(int argc, char* argv[]) {
 		cv::rectangle(cvmat, objects[i].box, cv::Scalar(0, 0, 255), 2);
 		std::string label = cv::format("%.2f", objects[i].prob);
 		label = objects[i].text + ":" + label;
-		cv::putText(cvmat, label, cv::Point(objects[i].box.x, objects[i].box.y), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0));
-	}
+		cv::putText(cvmat, label, cv::Point(objects[i].box.x, std::max(0, objects[i].box.y - 5)), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
+    }
 
 	imwrite("results/result.jpg", cvmat);
 
