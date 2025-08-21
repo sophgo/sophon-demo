@@ -55,7 +55,7 @@ echo "[Cmd] Running command: $onnx_export_cmd"
 eval "$onnx_export_cmd"
 
 if [ ! -d "../models/onnx" ]; then
-    mkdir "../models/onnx"
+    mkdir -p "../models/onnx"
     echo "[Cmd] mkdir ../models/onnx"
 fi
 
