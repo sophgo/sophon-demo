@@ -84,13 +84,12 @@ cat online_wer | grep "Overall"
 ## 7. 性能测试
 |    测试平台   |     测试程序      |           测试模型                           |  Preprocess time(ms) |    Inference time(ms)   |
 | -----------  | ---------------- | -----------------------------------         | --------------------- | ----------------------- |
-|  BM1690 PCIe  | whisper.py       | bmwhisper_base_1690_f16_8core.bmodel       |    43.9             |    54.4             |
-|  BM1690 PCIe  | whisper.py       | bmwhisper_small_1690_f16_8core.bmodel      |    64.7             |       119.1        |
+|  BM1690 PCIe  | whisper.py       | bmwhisper_base_1690_f16_8core.bmodel       |    55.6             |    74.4             |
+|  BM1690 PCIe  | whisper.py       | bmwhisper_small_1690_f16_8core.bmodel      |    109.2             |       168.2        |
 |  BM1690 SoC   | whisper.py       | bmwhisper_base_1690_f16_8core.bmodel       |    1098.6           |       410.7         |
 |  BM1690 SoC   | whisper.py       | bmwhisper_small_1690_f16_8core.bmodel      |    2149.0           |       399.5         |
 
 > **测试说明**：
 > 1. 该性能使用datasets/aishell_S0764/音频进行测试，计算后得出平均每秒音频所需推理时间。
 > 2. whisper模型的预处理主要包括加载语音，特征提取等，推理后的结果可直接转换为自然语言，时间可忽略不计，因此无后处理部分时间统计。
-> 3. 性能测试结果具有一定的波动性，实测结果与该表结果有误差属正常现象，建议多次测试取平均值。
-> 4. 性能测试受处理器影响。
+> 3. 本表中的PCIe平台使用的处理器是Intel(R) Core(TM) i9-14900K@3.2G，性能测试受处理器影响较大，如果用户的测试结果与本表相差较大，属正常现象。
