@@ -185,4 +185,4 @@ cd $bmodel_dir/
 
 model_tool --combine $models \
                      -o bmwhisper_${model}_1690_f16_${num_core}core.bmodel && rm $models
-chown 1000:1000 bmwhisper_${model}_1690_f16${num_core}.bmodel
+chown 1000:1000 bmwhisper_${model}_1690_f16_${num_core}core.bmodel
