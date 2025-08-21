@@ -15,7 +15,7 @@
 
 ## 1. 简介
 
-FLUX.1-dev/schnell是black-forest开源的文本生成图像模型(schnell版为少步数模型，迭代4步即可生成效果不错的图像，但不可用cfg参数控制；schnell建议至少迭代10步，可用cfg参数控制提示词强度)，关于flux的具体特性，可前往HuggingFace源repo查看：[FLUX.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev)和[FLUX.1-schnell](https://huggingface.co/black-forest-labs/FLUX.1-schnell)。本例程对FLUX.1-dev和FLUX.1-schnell进行移植，使之能在SOPHON BM1684X和BM1688上进行推理测试。
+FLUX.1-dev/schnell是black-forest开源的文本生成图像模型(schnell版为少步数模型，迭代4步即可生成效果不错的图像，但不可用cfg参数控制；dev建议至少迭代10步，可用cfg参数控制提示词强度)，关于flux的具体特性，可前往HuggingFace源repo查看：[FLUX.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev)和[FLUX.1-schnell](https://huggingface.co/black-forest-labs/FLUX.1-schnell)。本例程对FLUX.1-dev和FLUX.1-schnell进行移植，使之能在SOPHON BM1684X和BM1688上进行推理测试。
 
 对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，且需要安装较新的sophon-sail。可参考[运行环境准备](#3-运行环境准备)来安装本例程需要的sophon-sail版本。
 
@@ -49,18 +49,11 @@ tar xvf sophon-sail.tar.gz
 
 参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v24.04.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)编译不包含bmcv,sophon-ffmpeg,sophon-opencv的可被Python3接口调用的Wheel文件。
 
-若在**soc模式**运行本项目，且使用刷机后默认的`python3.8`运行本项目，可通过whl包方式直接安装sophon-sail:
+若在**soc模式**运行本项目，可直接安装sophon-sail:
 
 ```shell
-# 为BM1684X设备安装
 pip3 install dfss --upgrade #安装dfss依赖
-python3 -m dfss --url=open@sophgo.com:sophon-demo/FLUX_1/sophon_arm-3.9.0-py3-none-any.whl # for SE7 py38
-pip3 install sophon_arm-3.9.0-py3-none-any.whl --force-reinstall
-
-# 为BM1688设备安装
-pip3 install dfss --upgrade #安装dfss依赖
-python3 -m dfss --url=open@sophgo.com:sophon-demo/FLUX_1/BM1688/sophon_arm-3.9.0-py3-none-any.whl # for SE9 py38
-pip3 install sophon_arm-3.9.0-py3-none-any.whl --force-reinstall
+python3 -m dfss --install sail
 ```
 
 **修改soc模式下的内存**
