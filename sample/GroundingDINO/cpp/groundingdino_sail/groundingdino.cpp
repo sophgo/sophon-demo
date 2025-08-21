@@ -472,34 +472,87 @@ vector<Object> GroundingDINO::detect(sail::BMImage& srcimg, string text_prompt)
 			scores.push_back(max_data);
 		}
 	}
+    for (int i = 0; i < (int)filt_inds.size(); i++)
+    {
+        const int ind = filt_inds[i];
+        const int left_idx = 0, right_idx = 255;
 
-	for (int i = 0; i < filt_inds.size(); i++)
-	{
-		////get_phrases_from_posmap
-		const int ind = filt_inds[i];
-		const int left_idx = 0, right_idx = 255;
-		for (int j = left_idx+1; j < right_idx; j++)
-		{
-			float x = sigmoid(ptr_logits[ind*outw + j]);
-			if (x > this->text_threshold)
-			{
-				const int64 token_id = input_ids[j];
-				Object obj;
-				obj.text = this->tokenizer->tokenizer_idx2token[token_id];  
-				obj.prob = scores[i];
-				int xmin = int((ptr_boxes[ind * 4] - ptr_boxes[ind * 4 + 2] * 0.5)*srcw);
-				int ymin = int((ptr_boxes[ind * 4 + 1] - ptr_boxes[ind * 4 + 3] * 0.5)*srch);
-				///int xmax = int((ptr_boxes[ind * 4] + ptr_boxes[ind * 4 + 2] * 0.5)*srcw);
-				///int ymax = int((ptr_boxes[ind * 4 + 1] + ptr_boxes[ind * 4 + 3] * 0.5)*srch);
-				int w = int(ptr_boxes[ind * 4 + 2] * srcw);
-				int h = int(ptr_boxes[ind * 4 + 3] * srch);
-				obj.box = cv::Rect(xmin, ymin, w, h);
-				objects.push_back(obj);
+        const int allow_low_max = 1;
 
-				break; 
-			}
-		}
-	}
-	m_ts->save("groundingdino postprocess");
+        bool started = false;
+        int low_run = 0;
+        std::string phrase;
+
+        auto append_token = [&](std::string& s, const std::string& t) {
+            if (t.empty()) return;
+            bool leading_space = false;
+            std::string clean = t;
+
+            if (!t.empty() && (t[0] == 'Ġ' || t[0] == '▁')) {
+                leading_space = true;
+                clean = t.substr(1);
+            } else if (t.rfind("##", 0) == 0) {
+                clean = t.substr(2);
+            }
+
+            if (s.empty()) {
+                s += clean;
+            } else {
+                if (leading_space) {
+                    s += " " + clean;
+                } else if (std::isalnum((unsigned char)s.back()) && !clean.empty() &&
+                        std::isalnum((unsigned char)clean.front())) {
+                    s += " " + clean;
+                } else {
+                    s += clean;
+                }
+            }
+        };
+
+        auto emit_object = [&](const std::string& txt) {
+            if (txt.empty()) return;
+            Object obj;
+            obj.text = txt;
+            obj.prob = scores[i];
+            int xmin = int((ptr_boxes[ind * 4] - ptr_boxes[ind * 4 + 2] * 0.5f) * srcw);
+            int ymin = int((ptr_boxes[ind * 4 + 1] - ptr_boxes[ind * 4 + 3] * 0.5f) * srch);
+            int w = int(ptr_boxes[ind * 4 + 2] * srcw);
+            int h = int(ptr_boxes[ind * 4 + 3] * srch);
+            obj.box = cv::Rect(xmin, ymin, w, h);
+            objects.push_back(obj);
+        };
+
+        for (int j = left_idx + 1; j < right_idx; j++)
+        {
+            float s = sigmoid(ptr_logits[ind * outw + j]);
+            bool high = s > this->text_threshold;
+
+            if (high) {
+                const int64 token_id = input_ids[j];
+                const std::string& tok = this->tokenizer->tokenizer_idx2token[token_id];
+
+                if (!started) {
+                    started = true;
+                    low_run = 0;
+                    phrase.clear();
+                }
+                low_run = 0;
+                append_token(phrase, tok);
+            } else {
+                if (started) {
+                    if (low_run < allow_low_max) {
+                        low_run++;
+                        continue;
+                    }
+                    break;
+                }
+            }
+        }
+        if (!phrase.empty()) {
+            emit_object(phrase);
+        }
+    }
+
+    m_ts->save("groundingdino postprocess");
 	return objects;
 }

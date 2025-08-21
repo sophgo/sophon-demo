@@ -25,6 +25,27 @@ public:
 	std::map<int64, std::string> tokenizer_idx2token;
 };
 
+static inline std::string trim(const std::string& s) {
+    auto begin = s.begin();
+    auto end   = s.end();
+
+    while (begin != end && std::isspace(static_cast<unsigned char>(*begin))) ++begin;
+    if (begin == end) return std::string();
+
+    do { --end; } while (std::isspace(static_cast<unsigned char>(*end)));
+    ++end;
+    return std::string(begin, end);
+}
+
+static inline std::vector<std::string> split_by_space(const std::string& s) {
+    std::vector<std::string> out;
+    std::istringstream iss(s);
+    std::string w;
+    while (iss >> w) {
+        out.push_back(w);
+    }
+    return out;
+}
 class TokenizerClip : public TokenizerBase
 {
 protected:
@@ -42,22 +63,40 @@ protected:
 		return elems;
 	}
 
-	void tokenize(std::string token, std::vector<int64> &idx)
-	{
-		idx.push_back(101);
-		{
-			std::vector<std::string> tokens = stringSplit(token, '.');
-			for (auto t : tokens)
-			{
-				idx.push_back(tokenizer_token2idx[t]);
-				idx.push_back(tokenizer_token2idx["."]);
-			}
-		}
-		idx.push_back(102);
+	void tokenize(const std::string& text, std::vector<int64_t>& idx) {
+		constexpr int64_t CLS_ID = 101;
+		constexpr int64_t SEP_ID = 102;
 
-		// memset(feat, 0, sizeof(CLIP_TEXT_FEATURE_T));
-		// memcpy(feat->feature, idx.data(), idx.size() * sizeof(int));
+		const int64_t DOT_ID = tokenizer_token2idx.at(".");
+		const int64_t UNK_ID = tokenizer_token2idx.at("[UNK]");
+
+		idx.clear();
+		idx.push_back(CLS_ID);
+
+		std::vector<std::string> sentences = stringSplit(text, '.');
+
+		for (size_t i = 0; i < sentences.size(); ++i) {
+			std::string seg = trim(sentences[i]);
+			if (!seg.empty()) {
+				std::vector<std::string> words = split_by_space(seg);
+				for (const auto& w_raw : words) {
+					std::string w = trim(w_raw);
+					if (w.empty()) continue;
+
+					auto it = tokenizer_token2idx.find(w);
+					if (it != tokenizer_token2idx.end()) {
+						idx.push_back(it->second);
+					} else {
+						idx.push_back(UNK_ID);
+					}
+				}
+			}
+			idx.push_back(DOT_ID); // 1012
+		}
+
+		idx.push_back(SEP_ID);
 	}
+
 
 public:
 	bool load_tokenize(std::string vocab_path) override
