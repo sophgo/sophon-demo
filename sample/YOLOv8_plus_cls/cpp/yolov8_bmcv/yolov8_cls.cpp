@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 #include <cmath>
-#define USE_ASPECT_RATIO 1
+#define USE_ASPECT_RATIO 0
 
 int YoloV8_cls::Classfy(const std::vector<bm_image>& input_images, std::vector<std::pair<int, float>>& results) {
     assert(input_images.size() <= batch_size);
@@ -128,8 +128,6 @@ int YoloV8_cls::pre_process(const std::vector<bm_image>& images,
                                                   &padding_attr, &crop_rect);
 #else
         auto ret = bmcv_image_vpp_convert(handle, 1, images[i], &m_resized_imgs[i]);
-        txy_batch.push_back(std::make_pair(0, 0));
-        ratios_batch.push_back(std::make_pair((float)m_net_w/images[i].width,(float)m_net_h/images[i].height));
 #endif
         assert(BM_SUCCESS == ret);
         if (need_copy)
@@ -279,17 +277,12 @@ int YoloV8_cls::post_process(const std::vector<bm_image>& input_images,
   int class_num = output_tensor.shape.dims[1];
   for(unsigned int batch_idx = 0; batch_idx < input_images.size(); ++ batch_idx)
   {
-    float exp_sum = 0;
-    for (int j = 0; j < class_num; j++)
-    {
-      exp_sum += std::exp(*(output_data + batch_idx * class_num + j));
-    }
     int max_idx = -1;
     float max_score = -1;
     for (int j = 0; j < class_num; j++)
     {
       float score = 0;
-      score = std::exp(*(output_data + batch_idx * class_num + j) ) / exp_sum;
+      score = *(output_data + batch_idx * class_num + j);
       if (max_score < score)
       {
         max_score = score;
