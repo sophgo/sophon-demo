@@ -31,7 +31,7 @@ GroundingDINO是一种多模态的目标检测模型。
 ## 3. 准备模型与数据
 建议使用TPU-MLIR编译BModel，Pytorch模型在编译前要导出成onnx模型，其中Pytorch转onnx模型具体可参考[常见问题](./docs/GroundingDINO_Common_Problems.md)。
 
-​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，通过下载的mlir工具`tpu-mlir_v1.16.beta.0-30-gd1b8b38f1-20250314.tar.gz`，并参考[4. 模型编译](#4-模型编译)进行模型转换。
+​本例程在`scripts`目录下提供了相关模型和数据的下载脚本`download.sh`，您也可以自己准备模型和数据集，并参考[4. 模型编译](#4-模型编译)进行模型转换。
 
 ```bash
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
@@ -95,7 +95,11 @@ chmod -R +x scripts/
 ```
 
 ## 4. 模型编译
-导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。若需要自行编译BModel，需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中1、2、3(1)步骤。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
+导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。若需要自行编译BModel，需要下载特定版本TPU-MLIR:
+```bash
+python3 -m dfss open@sophgo.com:sophon-demo/GroundingDINO/tpu_mlir-1.21b0-py3-none-any.whl
+```
+具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中1、2、3(3)步骤。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
 - 生成FP16 BModel
 
@@ -130,9 +134,9 @@ bmrt_test --bmodel models/BM1684X/groundingdino_bm1684x_fp16.bmodel
 
 |    测试平台  |              测试模型                | calculate time(s)         |
 | -----------  | ------------------------------------| --------------------------|
-|   SE7-32    | groundingdino_bm1684x_fp16.bmodel   | 0.532807                  |
-|   SE9-16    | groundingdino_bm1688_fp16.bmodel    | 1.256347                  |
-|   SE9-8    | groundingdino_cv186x_fp16.bmodel    | 1.662021                  |
+|   SE7-32    | groundingdino_bm1684x_fp16.bmodel   | 0.285                  |
+|   SE9-16    | groundingdino_bm1688_fp16.bmodel    | 0.993                 |
+|   SE9-8    | groundingdino_cv186x_fp16.bmodel    | 1.248                  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -145,9 +149,9 @@ bmrt_test --bmodel models/BM1684X/groundingdino_bm1684x_fp16.bmodel
 测试`datasets/test/zidane.jpg`单张图片性能测试结果如下（时间单位为ms），测试结果有一定波动性：
 | 测试平台     |       测试程序         |               测试模型             | decode_time | preprocess_time | inference_time  |postprocess_time | 
 | ----------- | ------------------   | --------------------------------- | ----------- | --------------- | --------------- | ---------------- |
-| BM1684X SoC | groundingdino_pil.py | groundingdino_bm1684x_fp16.bmodel | 3.50        | 36.25           | 547.12          | 2.73                |
-| BM1688 SoC  | groundingdino_pil.py | groundingdino_bm1688_fp16.bmodel  | 46.94       | 274.95          | 1336.27         | 31.67             |
-| CV186X SoC  | groundingdino_pil.py | groundingdino_cv186x_fp16.bmodel  | 42.92       | 233.76          | 1719.74         | 35.34             |
+| BM1684X SoC | groundingdino_pil.py | groundingdino_bm1684x_fp16.bmodel | 17.02        | 152.76           | 321.77          | 8.72                |
+| BM1688 SoC  | groundingdino_pil.py | groundingdino_bm1688_fp16.bmodel  | 38.49       | 274.32          | 1072.98         | 12.30             |
+| CV186X SoC  | groundingdino_pil.py | groundingdino_cv186x_fp16.bmodel  | 27.19       | 255.60          | 1299.19         | 9.22             |
 | SRM1-20     | groundingdino_pil.py | groundingdino_bm1684x_fp16.bmodel | 32.09       | 200.05          | 641.01          | 10.22             |
 | BM1684X SoC | groundingdino_sail.soc | groundingdino_bm1684x_fp16.bmodel | 5.81      | 6.06            | 468.55          | 6.12              |
 | BM1688 SoC  | groundingdino_sail.soc | groundingdino_bm1688_fp16.bmodel  | 8.61      | 11.26           | 1295.12         | 8.61              |
