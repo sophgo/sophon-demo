@@ -295,5 +295,18 @@ int YoloV8_cls::post_process(const std::vector<bm_image>& input_images,
 #endif
     results.push_back({max_idx, max_score});
   }
+
+  if(misc_info.pcie_soc_mode == 1){ // soc
+    if(output_tensor.dtype != BM_FLOAT32){
+        delete [] output_data;
+    } else {
+        int tensor_size = bm_mem_get_device_size(output_tensor.device_mem);
+        bm_status_t ret = bm_mem_unmap_device_mem(handle, output_data, tensor_size);
+        assert(BM_SUCCESS == ret);
+    }
+    } else {
+        delete [] output_data;
+    }
+    bm_free_device(handle, output_tensor.device_mem);
   return 0;
 }
