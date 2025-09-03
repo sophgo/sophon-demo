@@ -32,6 +32,11 @@ if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH pcie)
 endif()
 
+# use Eigen
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIRS})
+link_directories(${EIGEN3_LIB_DIRS})
+
 if (${TARGET_ARCH} STREQUAL "pcie")
     message( "${TARGET_ARCH} mode, starting......")
     set(SRC_FILES main.cpp clip/clip.cpp)

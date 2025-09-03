@@ -24,9 +24,19 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 ### 1.1 x86/arm/riscv PCIe平台
 如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv（对应BM1684&BM1684x SDK>=v24.04.01，BM1688&CV186AH SDK>=v1.7.0），具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
 
+本C++例程依赖Eigen，您需要在编译c++程序的机器上运行如下命令安装：
+```bash
+sudo apt install libeigen3-dev
+```
+
 ### 1.2 SoC平台
 
 如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon运行库包。
+
+本C++例程依赖Eigen，您需要在编译c++程序的机器上运行如下命令安装：
+```bash
+sudo apt install libeigen3-dev
+```
 
 ## 2. 编译程序
 C++程序运行前需要编译可执行文件，下面以clip_opencv为例子。

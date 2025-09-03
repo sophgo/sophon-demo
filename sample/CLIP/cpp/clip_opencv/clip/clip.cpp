@@ -82,13 +82,13 @@ void CLIP::init(const std::string& image_model, const std::string& text_model, c
     file.seekg(header_length + 1, std::ios::beg);
 
     const size_t rows = 512, cols = 512;
-    text_projection.resize(rows, std::vector<float>(cols));
+    text_projection.resize(rows, cols);
 
     std::vector<float> flat_data(rows * cols);
     file.read(reinterpret_cast<char*>(flat_data.data()), flat_data.size() * sizeof(float));
     for (size_t i = 0; i < rows; ++i) {
         for (size_t j = 0; j < cols; ++j) {
-            text_projection[i][j] = flat_data[i * cols + j];
+            text_projection(i, j) = flat_data[i * cols + j];
         }
     }
 
@@ -107,7 +107,8 @@ void CLIP::deinit() {
         p_bmrt_image = nullptr;
     }
     bm_dev_free(bm_handle);
-    text_projection.clear();
+    // 替换 text_projection.clear(); 为调整维度为0×0
+    text_projection.resize(0, 0);
     
     if (image_name) {
         free(image_name);
@@ -288,32 +289,35 @@ std::vector<float> CLIP::encode_text(const std::vector<int>& text) {
     auto start_time = std::chrono::high_resolution_clock::now();
     auto &in0_mem = text_net->stages[0].input_mems[0];
     auto &out_mem = text_net->stages[0].output_mems[0];
-    uint64_t in_shape = bmrt_shape_count(text_net_input_shape);   
-    uint64_t out_shape = bmrt_shape_count(text_net_output_shape);   
+    uint64_t in_shape = bmrt_shape_count(text_net_input_shape);
+    uint64_t out_shape = bmrt_shape_count(text_net_output_shape);
 
     auto ret = bm_memcpy_s2d_partial(bm_handle, in0_mem, (void*)text.data(), text.size() * sizeof(int));
     assert(BM_SUCCESS == ret);
+
     net_launch(text_net, p_bmrt_text);
+
     std::vector<float> output_data(out_shape, 0);
     ret = bm_memcpy_d2s_partial(bm_handle, output_data.data(), out_mem, output_data.size() * sizeof(float));
     assert(BM_SUCCESS == ret);
+
     std::vector<float> result(embed_dim, 0.0f);
     auto maxIt = std::max_element(text.begin(), text.end());
     int max_index = std::distance(text.begin(), maxIt);
     int row_start_index = max_index * 512;
-    std::vector<float> extracted_row(output_data.begin() + row_start_index, output_data.begin() + row_start_index + 512);
+    std::vector<float> extracted_row(output_data.begin() + row_start_index, 
+                                    output_data.begin() + row_start_index + 512);
 
-    for (int i = 0; i < 512; ++i) {
-        for (int j = 0; j < 512; ++j) {
-            result[i] += extracted_row[j] * text_projection[j][i];
-        }
-    }
+    Eigen::Map<Eigen::RowVectorXf> extracted_row_eigen(extracted_row.data(), extracted_row.size());
+    Eigen::RowVectorXf result_eigen = extracted_row_eigen * text_projection;
+    std::copy(result_eigen.data(), result_eigen.data() + result_eigen.size(), result.data());
 
     normalize(result);
     encode_text_time += std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - start_time).count();
 
     return result;
 }
+
 
 void CLIP::normalize(std::vector<float>& features) {
     float norm = std::sqrt(std::inner_product(features.begin(), features.end(), features.begin(), 0.0f));
