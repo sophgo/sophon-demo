@@ -18,6 +18,8 @@
 #include <utility>
 #include <filesystem>
 #include "bmruntime_interface.h"
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 class CLIP {
 public:
@@ -63,7 +65,7 @@ private:
     bm_net_info_t* text_net;
     std::vector<float> mean;
     std::vector<float> std;
-    std::vector<std::vector<float>> text_projection;
+    Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> text_projection;
     void *p_bmrt_image;
     void *p_bmrt_text;
     const char **image_name;

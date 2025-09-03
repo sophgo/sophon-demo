@@ -251,7 +251,9 @@ step 4
             q, k, v, attn_mask, dropout_p, is_causal
         )
         attn_output = (
-            attn_output.permute(2, 0, 1, 3).contiguous().view(bsz * tgt_len, embed_dim)
+            # attn_output.permute(2, 0, 1, 3).contiguous().view(bsz * tgt_len, embed_dim)
+            attn_output.permute(2, 0, 1, 3).contiguous().view(bsz, tgt_len, embed_dim)
+
         )
 
         attn_output = linear(attn_output, out_proj_weight, out_proj_bias)

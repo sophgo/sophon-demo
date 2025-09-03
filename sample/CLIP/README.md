@@ -55,8 +55,8 @@ chmod -R +x scripts/
 │   ├── clip_text_vitb32_bm1688_f16_1b_2core.bmodel     # encode_text部分fp16 bmodel，num_core=2
 │   └── clip_text_vitb32_bm1688_f16_1b.bmodel           # encode_text部分fp16 bmodel
 ├── CV186X
-│   ├── clip_image_vitb32_cv186x_f16_1b.bmodel          # encode_image部分fp16 bmodel，num_core=2
-│   └── clip_text_vitb32_cv186x_f16_1b.bmodel           # encode_text部分fp16 bmodel，num_core=2
+│   ├── clip_image_vitb32_cv186x_f16_1b.bmodel          # encode_image部分fp16 bmodel
+│   └── clip_text_vitb32_cv186x_f16_1b.bmodel           # encode_text部分fp16 bmodel
 ├── onnx
 │   ├── clip_image_vitb32.onnx                          # encode_image部分onnx模型
 │   └── clip_text_vitb32.onnx                           # encode_text部分onnx模型
@@ -106,17 +106,17 @@ bmrt_test --bmodel models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel
 
 |   测试平台  | 测试clip_image_vitb32模型                           | calculate time(ms) |
 | ----------- | --------------------------------------------------- | ------------------ |
-|   SE7-32    | BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel     | 6.70               |
-|   SE9-16    | BM1688/clip_image_vitb32_bm1688_f16_1b.bmodel       | 13.67              |
-|   SE9-16    | BM1688/clip_image_vitb32_bm1688_f16_1b_2core.bmodel | 18.82              |
-|   SE9-8     | CV186X/clip_image_vitb32_cv186x_f16_1b.bmodel       | 25.79              |
+|   SE7-32    | BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel     | 4.13               |
+|   SE9-16    | BM1688/clip_image_vitb32_bm1688_f16_1b.bmodel       | 17.14              |
+|   SE9-16    | BM1688/clip_image_vitb32_bm1688_f16_1b_2core.bmodel | 15.50              |
+|   SE9-8     | CV186X/clip_image_vitb32_cv186x_f16_1b.bmodel       | 17.55              |
 
 |   测试平台  | 测试clip_text_vitb32模型                           | calculate time(ms) |
 | ----------- | -------------------------------------------------- | ------------------ |
-|   SE7-32    | BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel     | 4.92               |
-|   SE9-16    | BM1688/clip_text_vitb32_bm1688_f16_1b.bmodel       | 13.71              |
-|   SE9-16    | BM1688/clip_text_vitb32_bm1688_f16_1b_2core.bmodel | 14.08              |
-|   SE9-8     | CV186X/clip_text_vitb32_cv186x_f16_1b.bmodel       | 17.61              |
+|   SE7-32    | BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel     | 1.83               |
+|   SE9-16    | BM1688/clip_text_vitb32_bm1688_f16_1b.bmodel       | 6.91              |
+|   SE9-16    | BM1688/clip_text_vitb32_bm1688_f16_1b_2core.bmodel | 6.89              |
+|   SE9-8     | CV186X/clip_text_vitb32_cv186x_f16_1b.bmodel       | 7.61              |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性；
@@ -124,15 +124,18 @@ bmrt_test --bmodel models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel
 > 3. SoC和PCIe的测试结果基本一致。
 
 ### 6.2 程序运行性能
-测试图片`/datasets/CLIP.png`，测试模型为`clip_image_vitb32_{target}_f16_1b.bmodel`，`clip_text_vitb32_{target}_f16_1b.bmodel`
+测试图片`/datasets/CLIP.png`，测试文本为`a diagram,a dog,a cat`，测试模型为`clip_image_vitb32_{target}_f16_1b.bmodel`，`clip_text_vitb32_{target}_f16_1b.bmodel`,其中SE9-16使用双核模型。
 
 测试结果如下，测试结果有一定波动性，取稳定后的性能数据（时间单位为ms）：
 
 | 测试平台 | 测试程序            | Preprocess Time | Image Encoding Time | Text Encoding Time |
 | -------- | ------------------- | --------------- | ------------------- | ------------------ |
-| SE7-32   | zeroshot_predict.py | 12.17           | 9.63                | 6.30               |
-| SE9-16   | zeroshot_predict.py | 16.92           | 25.04               | 16.54              |
-| SE9-8    | zeroshot_predict.py | 17.09           | 30.59               | 19.85              |
+| SE7-32   | zeroshot_predict.py | 8.55           | 7.14                | 2.96               |
+| SE7-32   | clip_opencv.soc | 5.67           | 4.57                | 2.59               |
+| SE9-16   | zeroshot_predict.py | 13.05           | 20.02               | 9.73              |
+| SE9-16   | clip_opencv.soc | 9.27           | 16.08               | 8.90              |
+| SE9-8    | zeroshot_predict.py | 11.74           | 21.92               | 8.36              |
+| SE9-8    | clip_opencv.soc | 9.37           | 17.94               | 9.61             |
 | SRM1-20  | zeroshot_predict.py | 17.07           | 11.46               | 13.10              |
 
 
