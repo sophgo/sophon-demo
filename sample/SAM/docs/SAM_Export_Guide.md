@@ -97,7 +97,7 @@ def forward(
         upscaled_masks = self.model.postprocess_masks(masks, self.input_size, orig_im_size)
 
 ```
-然后只需将onnx_model_example.ipynb中的"point_coords"的size(1, 5, 2)修改为(64, 5, 2);"point_labels"中的size(1, 5)修改为(64, 5)和"mask_input"中的(1, 1)修改为(64, 1)并且onnx_model依然需要保持return_single_mask=True即可导出auto的decoder部分模型;
+然后只需将onnx_model_example.ipynb中的"point_coords"的size(1, 5, 2)修改为(64, 5, 2);"point_labels"中的size(1, 5)修改为(64, 5)和"mask_input"中的(1, 1)修改为(64, 1)并且onnx_model依然需要保持return_single_mask=False即可导出auto的decoder部分模型;
 
 - 导出embedding部分：
 需要您运行mata官方sam例程时，在实例化 `/segment-anything/segment_anything/build_sam.py` 中的`Class Sam()` 为`sam`后，直接导出`sam.image_encoder`。
@@ -110,4 +110,99 @@ def forward(
     model = self.model.image_encoder 
     input_image = torch.rand((1, 3, 1024, 1024)) # 初始化(1, 3, 1024, 1024)的输入，也可以直接输入真实图片数据
     torch.onnx.export(model, input_image,'embedding_model.onnx', verbose=True, opset_version=12) # 导出onnx
+```
+
+
+# MobileSAM导出
+
+## 1. 环境准备：
+
+```bash
+git clone https://github.com/ChaoningZhang/MobileSAM
+cd MobileSAM; pip install -e .
+```
+
+## 2. 导出embedding model onnx
+
+可以直接在MobileSAM根目录下运行如下python代码：
+
+```bash
+from mobile_sam import sam_model_registry, SamAutomaticMaskGenerator, SamPredictor
+import torch
+model_type = "vit_t"
+sam_checkpoint = "./weights/mobile_sam.pt"
+
+device = "cpu"
+
+mobile_sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
+mobile_sam.to(device=device)
+mobile_sam.eval()
+
+predictor = SamPredictor(mobile_sam)
+model = predictor.model.image_encoder 
+input_image = torch.rand((1, 3, 1024, 1024)) # 初始化(1, 3, 1024, 1024)的输入，也可以直接输入真实图片数据
+torch.onnx.export(model, input_image,'embedding_model_mobile.onnx', verbose=True, opset_version=13) # 导出onnx
+```
+
+## 3. 导出single mask decode model
+
+```bash
+python scripts/export_onnx_model.py --checkpoint ./weights/mobile_sam.pt --model-type vit_t --output ./decode_model_single_mask_mobile.onnx --return-single-mask
+```
+
+## 4. 导出multi mask decode model
+
+```bash
+python scripts/export_onnx_model.py --checkpoint ./weights/mobile_sam.pt --model-type vit_t --output ./decode_model_multi_mask_mobile.onnx
+```
+
+## 5. 导出auto mask decode model
+
+修改mobile_sam/utils/onnx.py中的SamOnnxModel部分：
+如下，将predict_masks方法注释掉，修改成masks, scores = self.model.mask_decoder......的形式。
+```python
+def forward(
+        self,
+        image_embeddings: torch.Tensor,
+        point_coords: torch.Tensor,
+        point_labels: torch.Tensor,
+        mask_input: torch.Tensor,
+        has_mask_input: torch.Tensor,
+        orig_im_size: torch.Tensor,
+    ):
+        sparse_embedding = self._embed_points(point_coords, point_labels)
+        dense_embedding = self._embed_masks(mask_input, has_mask_input)
+        
+        masks, scores = self.model.mask_decoder(
+            image_embeddings=image_embeddings,
+            image_pe=self.model.prompt_encoder.get_dense_pe(),
+            sparse_prompt_embeddings=sparse_embedding,
+            dense_prompt_embeddings=dense_embedding,
+            multimask_output=True,
+        )
+        
+        # masks, scores = self.model.mask_decoder.predict_masks(
+        #     image_embeddings=image_embeddings,
+        #     image_pe=self.model.prompt_encoder.get_dense_pe(),
+        #     sparse_prompt_embeddings=sparse_embedding,
+        #     dense_prompt_embeddings=dense_embedding,
+        # )
+        ...
+```
+然后只需将onnx_model_example.ipynb中的dummy_inputs修改为：
+
+```python
+    dummy_inputs = {
+        "image_embeddings": torch.randn(1, embed_dim, *embed_size, dtype=torch.float),
+        "point_coords": torch.randint(low=0, high=1024, size=(64, 5, 2), dtype=torch.float),
+        "point_labels": torch.randint(low=0, high=4, size=(64, 5), dtype=torch.float),
+        "mask_input": torch.randn(64, 1, *mask_input_size, dtype=torch.float),
+        "has_mask_input": torch.tensor([1], dtype=torch.float),
+        "orig_im_size": torch.tensor([1500, 2250], dtype=torch.float),
+    }
+```
+
+修改完成后，运行如下命令：
+```bash
+python scripts/export_onnx_model.py --checkpoint ./weights/mobile_sam.pt --model-type vit_t --output ./vit-t-auto-multi_mask.onnx
 ```
