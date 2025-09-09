@@ -51,7 +51,7 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM/tpu-mlir_v1.6.22-g62da924d
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
 sudo apt install unzip
 chmod -R +x scripts/
-./scripts/download.sh
+./scripts/download.sh SAM-ViT-B #使用SAM-ViT-T下载mobile模型。
 ```
 
 下载的模型包括：
@@ -86,7 +86,7 @@ chmod -R +x scripts/
 ## 4. 模型编译
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
-模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
+模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中的3(3)方法，注意要使用此前下载好的`tpu-mlir_v1.6.22-g62da924d-20231213.tar.gz`。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
 
 - 生成FP32 BModel
 
@@ -94,6 +94,11 @@ chmod -R +x scripts/
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
+```
+
+如果需要编译mobile_sam模型，您可以使用:
+```bash
+./scripts/gen_fp32bmodel_mlir.sh bm1684x SAM-ViT-T
 ```
 
 ​执行上述命令会在`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel`、`SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel`文件，即转换好的图像推理（mask_decoder）FP32 BModel。
@@ -107,6 +112,11 @@ chmod -R +x scripts/
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
 ```
 
+如果需要编译mobile_sam模型，您可以使用:
+```bash
+./scripts/gen_fp16bmodel_mlir.sh bm1684x SAM-ViT-T
+```
+
 ​执行上述命令会在`models/BM1684X/embedding_bmodel`下生成`SAM-ViT-B_embedding_fp16_1b.bmodel` 以及`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel`、`SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel`文件，即转换好的图像压缩（embedding）和图像推理（mask_decoder）FP16 BModel。
 
 - 生成auto mask FP32 BModel
@@ -115,6 +125,11 @@ chmod -R +x scripts/
 
 ```bash
 ./scripts/gen_auto_fp32bmodel_mlir.sh bm1684x
+```
+
+如果需要编译mobile_sam模型，您可以使用:
+```bash
+./scripts/gen_auto_fp32bmodel_mlir.sh bm1684x SAM-ViT-T
 ```
 
 执行上述命令会在`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_auto_decoder_fp32_1b.bmodel`文件，即转换好的自动图像推理（auto_mask_decoder）FP32 BModel。
