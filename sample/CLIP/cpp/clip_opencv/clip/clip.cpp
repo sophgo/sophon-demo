@@ -219,10 +219,7 @@ cv::Mat CLIP::preprocess_cpu_letterbox(const cv::Mat& image) {
     int height = blob.size[2];
     int width = blob.size[3];
 
-    // hwc -> chw
-    cv::Mat outputImage = blob.reshape(1, height);
-    outputImage = outputImage.reshape(channels, height);
-    return outputImage;
+    return blob;
 }
 
 cv::Mat CLIP::mobile_clip_preprocess(const cv::Mat& image) {
@@ -242,10 +239,7 @@ cv::Mat CLIP::mobile_clip_preprocess(const cv::Mat& image) {
     int height = blob.size[2];
     int width = blob.size[3];
 
-    // hwc -> chw
-    cv::Mat outputImage = blob.reshape(1, height);
-    outputImage = outputImage.reshape(channels, height);
-    return outputImage;
+    return blob;
 }
 
 std::vector<float> CLIP::preprocess(const cv::Mat& image) {
