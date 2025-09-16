@@ -21,7 +21,7 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 
 ## 1. 环境准备
 
-SE9系列刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
+SE、SM系列边缘设备刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。通常还需要一台x86主机作为开发环境，用于交叉编译C++程序。
 
 
 ## 2. 程序编译
@@ -29,7 +29,12 @@ C++程序运行前需要编译可执行文件。
 
 通常在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
-您还需要准备aarch64版本的qtbase依赖库，此前如果运行过下载脚本`download.sh`，会下载一份我们编译好的qtbase依赖库，在`cpp/install`目录下。
+- 请准备与设备架构匹配的 aarch64 Qt Base 依赖库。
+- 如果你已运行过 `download.sh`，脚本会自动下载我们编译好的 Qt Base。
+- 不同设备对应的依赖库路径：
+  - BM1684X：`cpp/qt_bm1684x/install`
+  - BM1688 / CV186：`cpp/qt_bm1688/install`
+- 使用时，请根据设备型号选择并指定对应目录中的 Qt 依赖库。
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件：
 
@@ -37,7 +42,7 @@ C++程序运行前需要编译可执行文件。
 cd cpp/yolov5_bmcv
 mkdir build && cd build
 # 请根据实际情况修改-DSDK的路径，需使用绝对路径。
-# 请根据实际情况修改-DQT_PATH的路径，需要用绝对路径:/your_workspace_path/sophon-demo/application/YOLOv5_fuse_multi_QT/cpp/install
+# 请根据实际情况修改-DQT_PATH的路径，需要用绝对路径:/your_workspace_path/sophon-demo/application/YOLOv5_fuse_multi_QT/cpp/qt_bm1684x/install
 cmake -DTARGET_ARCH=soc -DSDK=/path_to_sdk/soc-sdk ..  -DQT_PATH=/path_to_qtlib 
 make
 ```
@@ -108,15 +113,15 @@ make
 
 
 ### 3.2 运行程序
-将YOLOv5_fuse_multi_QT整个文件夹放到SE9-8上；如有修改视频地址的需求，可修改 YOLOv5_fuse_multi/cpp/yolov5_bmcv/config_se9-8.json 中的 url。
-在SE9-8/SE9-16上，YOLOv5_fuse_multi/cpp/目录下执行以下脚本：
+将YOLOv5_fuse_multi_QT整个文件夹放到设备上；如有修改视频地址的需求，可修改 YOLOv5_fuse_multi/cpp/yolov5_bmcv/config_yolov5_fuse_mluti_qt.json 中的 url。
+在YOLOv5_fuse_multi/cpp/目录下执行以下脚本：
 ```
 ./run_hdmi_show.sh
 ```
 
 如有需求，可在该脚本中的以下内容，按需修改可执行文件 yolov5_bmcv.soc 的路径、json 配置文件的路径：
 ```
-./yolov5_bmcv/yolov5_bmcv.soc --config=./yolov5_bmcv/config_se9-8.json
+./yolov5_bmcv/yolov5_bmcv.soc --config=./yolov5_bmcv/config_yolov5_fuse_mluti_qt.json
 ```
 
 为了测试时延，程序中加了一些时间打印，这里是相关打印的说明：
