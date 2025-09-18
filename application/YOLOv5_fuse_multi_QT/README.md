@@ -5,15 +5,14 @@
 YOLOv5_fuse_multi_QT 是在例程 [YOLOv5_multi](../YOLOv5_multi/README.md) 实现 pipeline 的基础上，进一步适配了 [YOLOv5_fuse](../../sample/YOLOv5_fuse/README.md) 模型，并接入 QT 显示模块（显示模块参考了例程 [YOLOv5_multi_QT](../YOLOv5_multi_QT/README.md)），从而在算能SE9系列上实现了低延时的视频流解码+QT显示功能。
 
 ## 2. 特性
-* 支持 SE9-16/SE9-8
+* 支持 SE7、SE9-16/SE9-8
 * 全流程实现方式针对低延时做了特殊优化
 * 支持FP32、FP16、INT8模型编译和推理
 * 解码、前处理、推理、后处理通过pipeline的形式实现
-* SDK 版本 V1.8
  
 ## 3. 准备模型和依赖库
 
-​本例程在`scripts`目录下提供了相关模型、数据集以及公版QT库（5.14.2）的下载脚本`download.sh`。
+​本例程在`scripts`目录下提供了相关模型、数据集以及公版QT库的下载脚本`download.sh`。
 
 您也可以自己准备模型和数据集，具体转模型方法请参考 sophon-demo/sample 中例程 [YOLOv5_fuse](../../sample/YOLOv5_fuse/README.md#4-模型编译) 模型编译步骤。
 
@@ -39,7 +38,8 @@ chmod -R +x scripts/
 │   ├── coco.names                          # 类别名
 │   ├── test
 │   └── test_car_person_1080P.mp4           # 测试视频
-├── models                                  # BModel 模型
+├── models       
+│   ├── BM1684X                             # BModel 模型
 │   ├── BM1688
 │   └── CV186X
 ├── README.md                               # C++ BMCV 例程文档

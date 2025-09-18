@@ -6,7 +6,7 @@ then
     exit
 fi
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-scripts_dir=$(dirname $(readlink -f "$0"))
+scripts_dir=$(dirname $(readlink -f "\$0"))
 
 pushd $scripts_dir
 # datasets
@@ -25,6 +25,9 @@ fi
 if [ ! -d "../models" ]; 
 then
     mkdir -p ../models
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5_fuse/models_240611/BM1684X.zip
+    unzip BM1684X.zip -d ../models
+    rm -r BM1684X.zip
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5_fuse/models_240611/BM1688.zip
     unzip BM1688.zip -d ../models
     rm BM1688.zip
@@ -36,14 +39,29 @@ else
     echo "Models folder exist! Remove it if you need to update."
 fi
 
-if [ ! -d "../cpp/install" ];
+# qt
+if [ ! -d "../cpp/qt_bm1684x/install" ] || [ ! -d "../cpp/qt_bm1688/install" ];
 then
-    mkdir -p ../cpp/install
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/common/qtbase-5.12.8.tar
-    tar -xf qtbase-5.12.8.tar --strip-components=1 -C ../cpp/install
-    rm -r qtbase-5.12.8.tar
-    echo "qtbase download!"
+    if [ ! -d "../cpp/qt_bm1684x/install" ]; then
+        mkdir -p ../cpp/qt_bm1684x/install
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/MultiYolov5/qt-5.14-amd64-aarch64-fl2000fb_v1.1.0.tar.xz
+        tar -xf qt-5.14-amd64-aarch64-fl2000fb_v1.1.0.tar.xz --strip-components=1 -C ../cpp/qt_bm1684x/install
+        rm -r qt-5.14-amd64-aarch64-fl2000fb_v1.1.0.tar.xz
+        echo "Qt for BM1684X downloaded!"
+    else
+        echo "qt_bm1684x/install folder exists!"
+    fi
+
+    if [ ! -d "../cpp/qt_bm1688/install" ]; then
+        mkdir -p ../cpp/qt_bm1688/install
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/common/qtbase-5.12.8.tar
+        tar -xf qtbase-5.12.8.tar --strip-components=1 -C ../cpp/qt_bm1688/install
+        rm -r qtbase-5.12.8.tar
+        echo "Qt for BM1688 downloaded!"
+    else
+        echo "qt_bm1688/install folder exists!"
+    fi
 else
-    echo "cpp/install folder exist! Remove it if you need to update."
+    echo "Qt folders exist! Remove them if you need to update."
 fi
 popd
