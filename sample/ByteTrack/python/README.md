@@ -11,6 +11,7 @@
     - [2.1 参数说明](#21-参数说明)
     - [2.2 测试MOT数据集](#22-测试mot数据集)
     - [2.3 测试视频](#23-测试视频)
+    - [2.4 使用yolov5\_fuse\_bmcv检测器](#24-使用yolov5_fuse_bmcv检测器)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -39,18 +40,9 @@ cd python
 pip3 install -r requirements.txt
 ```
 
-> **注:**
->
-> 上述命令安装的是公版opencv，如果您希望使用sophon-opencv，可以设置如下环境变量：
-> ```bash
-> export PYTHONPATH=$PYTHONPATH:/opt/sophon/sophon-opencv-latest/opencv-python/
-> ```
-> **若使用sophon-opencv需要保证python版本小于等于3.8。**
-
 ## 2. 推理测试
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
 
-**注意**：本例程依赖YOLOv5例程，在SOC平台上测试时应保证sophon-demo代码仓完整。
 ### 2.1 参数说明
 ```bash
 usage: bytetrack_opencv.py [-h] [--input INPUT] [--bmodel_detector BMODEL_DETECTOR] [--bmodel_extractor BMODEL_EXTRACTOR] [--dev_id DEV_ID]
@@ -101,4 +93,12 @@ INFO:root:-------------------------------------------------------------------
 INFO:root:------------------ByteTrack Tracker Time Info ----------------------
 INFO:root:bytetrack_track_time(ms): 2.97    #bytetrack平均每帧更新tracker耗时
 INFO:root:-------------------------------------------------------------------
+```
+
+### 2.4 使用yolov5_fuse_bmcv检测器
+
+本例程提供了一个使用[YOLOv5_fuse](../../YOLOv5_fuse/python/README.md)检测器的方法，需要从YOLOv5_fuse例程中获取模型，运行示例如下：
+
+```bash
+python3 bytetrack_yolov5_fuse_bmcv.py --input ../datasets/test_car_person_1080P.mp4 --bmodel_detector ../models/BM1684X/yolov5s_fuse_int8_1b.bmodel --dev_id=0
 ```
