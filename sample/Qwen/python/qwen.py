@@ -233,8 +233,10 @@ class Qwen:
             self.tensors[self.sample]["input"][2].update_data([self.top_p])
             self.tensors[self.sample]["input"][3].update_data([self.temperature])
             self.tensors[self.sample]["input"][4].update_data([self.repeat_penalty])
+            [self.tensors[self.sample]["input"][i].sync_s2d() for i in range(1,5)]
             self.model.process(self.sample, self.tensors[self.sample]["input"], self.tensors[self.sample]["output"])
 
+            [self.tensors[self.sample]["output"][i].sync_d2s() for i in range(2)]
             probs = self.tensors[self.sample]["output"][0].asnumpy()[0]
             token_TopK = self.tensors[self.sample]["output"][1].asnumpy()[0]
             return int(np.random.choice(token_TopK, p=probs / probs.sum()))
@@ -250,8 +252,10 @@ class Qwen:
             # top_k = np.array([self.top_k]).astype(self.type_convert(self.tensors[self.sample]["input"][4].dtype()))
             self.tensors[self.sample]["input"][4].update_data(top_k)
             self.tensors[self.sample]["input"][5].update_data([self.top_p])
+            [self.tensors[self.sample]["input"][i].sync_s2d() for i in range(1,6)]
             self.model.process(self.sample, self.tensors[self.sample]["input"], self.tensors[self.sample]["output"])
 
+            [self.tensors[self.sample]["output"][i].sync_d2s() for i in range(2)]
             probs = self.tensors[self.sample]["output"][0].asnumpy()[0, :self.top_k]
             token_TopK = self.tensors[self.sample]["output"][1].asnumpy()[0, :self.top_k]
             return int(np.random.choice(token_TopK, p=probs / probs.sum()))
@@ -361,11 +365,7 @@ class Qwen:
         return self.sample_token()
     
     def chat_stream(self, messages):
-        text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, enable_thinking=self.enable_thinking)
-        self.tokens = self.tokenizer(text).input_ids
-        if (len(self.tokens) > self.SEQLEN - 5):
-            yield f"##reach max length, max token length is {self.SEQLEN}"
-            return
+        self.tokens = self.tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, enable_thinking=self.enable_thinking)
         first_start = time.time()
         token = self.forward_first()
         first_end = time.time()
@@ -373,6 +373,9 @@ class Qwen:
         full_word_tokens = []
         tok_num = 0
         while token not in self.EOS and self.token_length < self.SEQLEN:
+            if (len(self.tokens) > self.SEQLEN - 5):
+                yield f"\n##reach max length, max token length is {self.SEQLEN}"
+                break
             full_word_tokens.append(token)
             word = self.tokenizer.decode(full_word_tokens)
             if "�" in word:
@@ -392,18 +395,17 @@ class Qwen:
 
     def chat_stream_for_api(self, params):
         messages = [param.dict() for param in params]
-        text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, enable_thinking=self.enable_thinking)
-        self.tokens = self.tokenizer(text).input_ids
-        if (len(self.tokens) > self.SEQLEN - 5):
-            res_dict = {}
-            res_dict["finish_reason"] = "length"
-            res_dict["text"] = ""
-            yield res_dict
-            return
+        self.tokens = self.tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, enable_thinking=self.enable_thinking)
         token = self.forward_first()
         self.tokens.append(token)
         full_word_tokens = []
         while token not in self.EOS and self.token_length < self.SEQLEN:
+            if (len(self.tokens) > self.SEQLEN - 5):
+                res_dict = {}
+                res_dict["finish_reason"] = "length"
+                res_dict["text"] = f"\n##reach max length, max token length is {self.SEQLEN}"
+                yield res_dict
+                return
             full_word_tokens.append(token)
             text = self.tokenizer.decode(full_word_tokens)
             if "�" in text:
@@ -420,13 +422,7 @@ class Qwen:
 
     def chat_for_api(self, params):
         messages = [param.dict() for param in params]
-        input_text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, enable_thinking=self.enable_thinking)
-        self.tokens = self.tokenizer(input_text).input_ids
-        if (len(self.tokens) > self.SEQLEN - 5):
-            res_dict = {}
-            res_dict["finish_reason"] = "length"
-            res_dict["text"] = ""
-            return res_dict
+        self.tokens = self.tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, enable_thinking=self.enable_thinking)
         all_token = []
         token = self.forward_first()
         self.tokens.append(token)
@@ -437,6 +433,9 @@ class Qwen:
         text = self.tokenizer.decode(all_token)
         res_dict = {}
         res_dict["finish_reason"] = "stop"
+        if (len(self.tokens) > self.SEQLEN - 5):
+            res_dict["finish_reason"] = "length"
+            text += f"\n##reach max length, max token length is {self.SEQLEN}"
         res_dict["text"] = text
         return res_dict
 
@@ -470,3 +469,4 @@ if __name__ == "__main__":
             messages.append({"role": "assistant", "content": assistant_msg})
             if ("##reach max length" in assistant_msg):
                 messages = []
+                print('历史消息清除完毕')
