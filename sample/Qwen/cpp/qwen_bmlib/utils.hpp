@@ -1,8 +1,14 @@
 #include "bmruntime_interface.h"
+#include "bmlib_runtime.h"
 
 void empty(bm_handle_t &bm_handle, bm_device_mem_t &mem) {
   int value = 0;
-  auto ret = bm_memset_device_ext(bm_handle, &value, 1, mem);
+  int mode = 4;
+  auto data_size = bm_mem_get_device_size(mem);
+  if (data_size % mode != 0) {
+      mode = 1;
+  }
+  auto ret = bm_memset_device_ext(bm_handle, &value, mode, mem);
   assert(BM_SUCCESS == ret);
 }
 

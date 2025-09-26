@@ -20,7 +20,7 @@ function(check_and_replace_path ARG_NAME)
     endif()
 endfunction()
 
-# SET(CMAKE_BUILD_TYPE "Debug")
+#SET(CMAKE_BUILD_TYPE "Debug")
 # set(CMAKE_CXX_FLAGS "-O0")
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 message("cur dir: ${PROJECT_SOURCE_DIR}")

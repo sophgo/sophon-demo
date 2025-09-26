@@ -77,7 +77,7 @@ int Qwen::get_max_length() {
 }
 
 void Qwen::init(std::string bmodel_path, const std::vector<int> &dev_ids, std::string tokenizer_path) {
-  version = "1.1.1";
+  version = "1.1.2";
 
   // request bm_handle
   std::cout << "Device [ ";
@@ -101,6 +101,19 @@ void Qwen::init(std::string bmodel_path, const std::vector<int> &dev_ids, std::s
 #endif
   assert(NULL != p_bmrt);
 
+  // get target to recognize board.
+  char board_name_char[40]={0}; 
+  bm_status_t r_value = bm_get_board_name(bm_handle, board_name_char);
+  if(r_value == BM_SUCCESS){
+    std::string board_name = std::string(board_name_char);
+    if(board_name.find("1688") != std::string::npos 
+    || board_name.find("CV186") != std::string::npos 
+    || board_name.find("cv186") != std::string::npos
+    || board_name.find("Athena2") != std::string::npos){
+      bmrt_set_flags(p_bmrt, BM_RUNTIME_SHARE_MEM);
+    }
+  }
+  
   // load bmodel by file
   printf("Model[%s] loading ....\n", bmodel_path.c_str());
   bool ret = false;
@@ -114,11 +127,23 @@ void Qwen::init(std::string bmodel_path, const std::vector<int> &dev_ids, std::s
   net_lm = bmrt_get_network_info(p_bmrt, "lm_head");
   net_greedy_head = bmrt_get_network_info(p_bmrt, "greedy_head");
   net_penalty_sample_head = bmrt_get_network_info(p_bmrt, "penalty_sample_head");
+  net_sample_head = bmrt_get_network_info(p_bmrt, "sample_head");
   SEQLEN = net_embed->stages[0].input_shapes[0].dims[1]; // real seqlen
   auto num_nets = bmrt_get_network_number(p_bmrt);
-  NUM_LAYERS = (num_nets - 5) / 2;
-  generation_mode = "greedy";
-
+  NUM_LAYERS = (num_nets - 3) / 2;
+  if(net_greedy_head != NULL){
+    generation_mode = "greedy";
+    NUM_LAYERS -= 1;
+  }else if(net_penalty_sample_head != NULL){
+    generation_mode = "penalty_sample";
+    NUM_LAYERS -= 1;
+  }else if(net_sample_head != NULL){
+    generation_mode = "sample_head";
+    NUM_LAYERS -= 1;
+  }else{
+    generation_mode = "none";
+  }
+  std::cout << "using generation mode: " << generation_mode << std::endl;
   // resize
   visited_tokens.resize(SEQLEN);
 
@@ -305,6 +330,41 @@ int Qwen::penalty_sample(const bm_net_info_t *net, bm_device_mem_t &logits_mem) 
   return tokens[dist(sgen)];
 }
 
+int Qwen::sample_head(const bm_net_info_t *net, bm_device_mem_t &logits_mem) {
+  auto &in1_mem = net->stages[0].input_mems[1];
+  auto &in2_mem = net->stages[0].input_mems[2];
+  auto &in3_mem = net->stages[0].input_mems[3];
+  auto &in4_mem = net->stages[0].input_mems[4];
+  auto &in5_mem = net->stages[0].input_mems[5];
+  auto &out0_mem = net->stages[0].output_mems[0];
+  auto &out1_mem = net->stages[0].output_mems[1];
+
+  // repeat_penalty + top_p + top_k + temperature
+  std::vector<int> generated_tokens(SEQLEN, 0);
+  std::copy(visited_tokens.begin(), 
+            visited_tokens.begin() + token_length,
+            generated_tokens.begin());
+  bm_memcpy_s2d(bm_handle, in1_mem, (void *)generated_tokens.data());
+  bm_memcpy_s2d(bm_handle, in2_mem, (void *)&repeat_penalty);
+  bm_memcpy_s2d(bm_handle, in3_mem, (void *)&temperature);
+  bm_memcpy_s2d(bm_handle, in4_mem, (void *)&top_k);
+  bm_memcpy_s2d(bm_handle, in5_mem, (void *)&top_p);
+
+  // inference
+  head_launch(net, logits_mem);
+
+  // get logit & token
+  int candidate_num = net->stages[0].output_shapes[0].dims[1];
+  std::vector<float> probs(candidate_num);
+  bm_memcpy_d2s(bm_handle, probs.data(), out0_mem);
+  std::vector<int> tokens(candidate_num);
+  bm_memcpy_d2s(bm_handle, tokens.data(), out1_mem);
+
+  // penalty_sample
+  std::discrete_distribution<> dist(probs.begin(), probs.end());
+  return tokens[dist(sgen)];
+}
+
 int Qwen::forward_first(std::vector<int> &tokens) {
   std::vector<int> position_id(SEQLEN, 0);
   std::vector<uint16_t> attention_mask(SEQLEN * SEQLEN, ATTENTION_MASK);
@@ -380,6 +440,10 @@ int Qwen::forward_first(std::vector<int> &tokens) {
     token = greedy_search(net_greedy_head, lm_out_mem);
   } else if (generation_mode == "penalty_sample") {
     token = penalty_sample(net_penalty_sample_head, lm_out_mem);
+  } else if (generation_mode == "sample_head") {
+    token = sample_head(net_sample_head, lm_out_mem);
+  } else {
+    bm_memcpy_d2s(bm_handle, (void*)&token, lm_out_mem);
   }
 
   visited_tokens[token_length] = token;
@@ -441,6 +505,7 @@ int Qwen::forward_next() {
   auto &lm_in_mem = net_lm->stages[0].input_mems[0];
   auto &lm_out_mem = net_lm->stages[0].output_mems[0];
   d2d(lm_in_mem, out_mem);
+  
   net_launch(net_lm);
 
   int token = 0;
@@ -448,6 +513,10 @@ int Qwen::forward_next() {
     token = greedy_search(net_greedy_head, lm_out_mem);
   } else if (generation_mode == "penalty_sample") {
     token = penalty_sample(net_penalty_sample_head, lm_out_mem);
+  } else if (generation_mode == "sample_head") {
+    token = sample_head(net_sample_head, lm_out_mem);
+  } else {
+    bm_memcpy_d2s(bm_handle, (void*)&token, lm_out_mem);
   }
 
   visited_tokens[token_length] = token;
@@ -456,8 +525,8 @@ int Qwen::forward_next() {
 }
 
 void Qwen::answer(std::string input_str, std::vector<std::pair<std::string, std::string>>& history_vector) {
+  // std::string sentence_input = "<|im_start|>user\n你好<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n";
   std::string sentence_input = build_prompt(input_str, history_vector);
-
   int tok_num = 1;
   std::vector<int> tokens;
   encode_tokens(sentence_input, tokens);
