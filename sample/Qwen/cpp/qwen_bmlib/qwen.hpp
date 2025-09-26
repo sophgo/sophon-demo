@@ -67,6 +67,7 @@ private:
   void head_launch(const bm_net_info_t *net, bm_device_mem_t &logits_mem);
   int greedy_search(const bm_net_info_t *net, bm_device_mem_t &logits_mem);
   int penalty_sample(const bm_net_info_t *net, bm_device_mem_t &logits_mem);
+  int sample_head(const bm_net_info_t *net, bm_device_mem_t &logits_mem);
 
   void load_sentencepiece(std::string tokenizer_path);
 
@@ -84,9 +85,10 @@ public:
   std::vector<int> visited_tokens;
 
   // generation
-  float temperature;
-  float top_p;
-  float repeat_penalty;
+  float temperature = 0.8;
+  float top_p = 0.8;
+  float top_k = 50;
+  float repeat_penalty = 1.1;
   int repeat_last_n;
   int max_new_tokens;
   std::string generation_mode;
@@ -100,7 +102,7 @@ private:
   std::vector<const bm_net_info_t *> net_blocks_cache;
   const bm_net_info_t *net_embed;
   const bm_net_info_t *net_embed_cache;
-  const bm_net_info_t *net_lm, *net_greedy_head, *net_penalty_sample_head;
+  const bm_net_info_t *net_lm, *net_greedy_head, *net_penalty_sample_head, *net_sample_head;
   std::vector<bm_device_mem_t> past_key;
   std::vector<bm_device_mem_t> past_value;
 
