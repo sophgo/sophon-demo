@@ -25,15 +25,15 @@ fi
 if [ ! -d "../models" ]; 
 then
     mkdir -p ../models
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5_fuse/models_240611/BM1684X.zip
-    unzip BM1684X.zip -d ../models
-    rm -r BM1684X.zip
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5_fuse/models_240611/BM1688.zip
-    unzip BM1688.zip -d ../models
-    rm BM1688.zip
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5_fuse/models_240611/CV186X.zip
-    unzip CV186X.zip -d ../models
-    rm -r CV186X.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_det/BM1684X.tar.gz    
+    tar xvf BM1684X.tar.gz -C ../models
+    rm -r BM1684X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_det/BM1688.tar.gz
+    tar xvf BM1688.tar.gz -C ../models
+    rm BM1688.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_det/CV186X.tar.gz    
+    tar xvf CV186X.tar.gz -C ../models
+    rm CV186X.tar.gz
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
