@@ -14,7 +14,7 @@ import numpy as np
 import torch
 import tqdm
 import time
-
+import contextlib, wave
 from .utils import (
     FRAMES_PER_SECOND,
     HOP_LENGTH,
@@ -389,7 +389,9 @@ def transcribe(
 def cli():
     start_time = time.time()
     from . import available_models
-
+    total_preprocess_time = 0
+    total_inference_time = 0
+    total_audio_time = 0
     # fmt: off
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("audio", nargs="+", type=str, help="audio file(s) to transcribe")
@@ -476,6 +478,10 @@ def cli():
             all_files = [os.path.join(audio_path, f) for f in os.listdir(audio_path)]
             audio_list.extend(all_files)
             continue
+        with contextlib.closing(wave.open(audio_path, 'r')) as f:
+            frames = f.getnframes()
+            rate = f.getframerate()
+            total_audio_time += frames / float(rate)
         print()
         print("{:=^100}".format(f" Start "))
         print(f"### audio_path: {os.path.basename(audio_path)}")
@@ -486,15 +492,19 @@ def cli():
         writer(result, audio_path, writer_args)
         total_time = time.time() - audio_start_time
         preprocess_time = total_time - model.inference_time
+        total_preprocess_time += preprocess_time
+        total_inference_time += model.inference_time
         if loop_profile:
             model.print_cnt()
         print()
         print(f"Preprocess time: {preprocess_time}s")
         print(f"Inference time: {model.inference_time}s")
         print(f"Total time: {total_time}s")
-
+    audio_num = len(audio_list)
     print("{:=^100}".format(f" End "))
-    print("{:-^100}".format(f" {len(audio_list)} audio(s) total time: {time.time() - start_time} seconds "))
+    print("{:-^100}".format(f" {audio_num} audio(s) average preprocess time: {total_preprocess_time / total_audio_time} seconds "))
+    print("{:-^100}".format(f" {audio_num} audio(s) average inference time: {total_inference_time / total_audio_time} seconds "))
+    print("{:-^100}".format(f" {audio_num} audio(s) total time: {time.time() - start_time} seconds "))
 
 if __name__ == "__main__":
     cli()
