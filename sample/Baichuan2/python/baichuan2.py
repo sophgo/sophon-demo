@@ -30,7 +30,7 @@ class Baichuan2:
         self.NUM_LAYERS = 32
         self.MAX_LEN = 512
         self.ATTENTION_MASK = -1000.
-        _, _, self.HIDDEN_SIZE = self.net.get_input_shape("block_0", self.net.get_input_names("block_0")[0])
+        _, _, self.HIDDEN_SIZE = self.net.get_input_shape("block_0", 0)
         
         self.name_embed = "embedding"
         self.name_embed_cache = "embedding_cache"
@@ -110,13 +110,13 @@ class Baichuan2:
         tensor = {}
         if input_type:
             tensor["name"] = self.net.get_input_names(name)[input_idx]
-            tensor["shape"] = self.net.get_input_shape(name, tensor["name"]) if shape is None else shape
-            tensor["dtype"] = self.net.get_input_dtype(name, tensor["name"])
+            tensor["shape"] = self.net.get_input_shape(name, input_idx) if shape is None else shape
+            tensor["dtype"] = self.net.get_input_dtype(name, input_idx)
             tensor["data"] = sail.Tensor(self.handle, tensor["shape"], tensor["dtype"], False, True)
         else:
             tensor["name"] = self.net.get_output_names(name)[input_idx]
-            tensor["shape"] = self.net.get_output_shape(name, tensor["name"]) if shape is None else shape
-            tensor["dtype"] = self.net.get_output_dtype(name, tensor["name"])
+            tensor["shape"] = self.net.get_output_shape(name, input_idx) if shape is None else shape
+            tensor["dtype"] = self.net.get_output_dtype(name, input_idx)
             tensor["data"] = sail.Tensor(self.handle, tensor["shape"], tensor["dtype"], False, True) 
         return tensor
 
@@ -154,8 +154,8 @@ class Baichuan2:
         # embedding
         input_ids = input_ids.reshape(1, -1)
         self.first_embed_input["data"].update_data(input_ids)
-        input_embed_tensors = {(self.first_embed_input["name"], 0): self.first_embed_input["data"]}
-        output_embed_tensors = {(self.first_embed_output["name"], 0): self.first_embed_output["data"]}
+        input_embed_tensors = {0: self.first_embed_input["data"]}
+        output_embed_tensors = {0: self.first_embed_output["data"]}
         self.net.process(self.name_embed, input_embed_tensors, output_embed_tensors)
 
         # blocks
@@ -164,16 +164,16 @@ class Baichuan2:
         self.first_pid["data"].update_data(position_id.reshape(self.first_pid["shape"]))
         self.first_attention["data"].update_data(attention_mask.reshape(self.first_attention["shape"]))
 
-        input_blocks_tensors = {(self.first_hidden_input["name"], 0): self.first_hidden_tensor, 
-                                (self.first_pid["name"], 0): self.first_pid["data"], 
-                                (self.first_attention["name"], 0): self.first_attention["data"]}
+        input_blocks_tensors = {0: self.first_hidden_tensor, 
+                                1: self.first_pid["data"], 
+                                2: self.first_attention["data"]}
 
         for i in range(self.NUM_LAYERS):        
 
-            output_blocks_tensors = {(self.first_hidden_output["name"], 0): self.first_hidden_tensor,
-                                    (self.past_key_output[i]["name"], 0): self.past_key_output[i]["data"],
-                                    (self.past_value_output[i]["name"], 0): self.past_value_output[i]["data"]}
-            
+            output_blocks_tensors = {0: self.first_hidden_tensor,
+                                    1: self.past_key_output[i]["data"],
+                                    2: self.past_value_output[i]["data"]}
+
             self.net.process(self.name_blocks[i], input_blocks_tensors, output_blocks_tensors)
         
         # lm_head
@@ -181,8 +181,8 @@ class Baichuan2:
         copy_len = self.first_hidden_tensor.shape()[-1]
         self.lm_input["data"].sync_d2d(self.first_hidden_tensor, (self.token_length-1)* copy_len, 0, copy_len)
         
-        input_lm_tensors = {(self.lm_input["name"], 0): self.lm_input["data"]}
-        output_lm_tensors = {(self.lm_output["name"], 0): self.lm_output["data"]}
+        input_lm_tensors = {0: self.lm_input["data"]}
+        output_lm_tensors = {0: self.lm_output["data"]}
         self.net.process(self.name_lm, input_lm_tensors, output_lm_tensors)
         return int(self.lm_output["data"].asnumpy())
 
@@ -194,8 +194,8 @@ class Baichuan2:
         # embedding
         self.next_embed_input["data"] = self.lm_output["data"]
         self.next_embed_input["data"].reshape(self.next_embed_input["shape"])
-        input_embed_tensors = {(self.next_embed_input["name"], 0): self.next_embed_input["data"]}
-        output_embed_tensors = {(self.next_embed_output["name"], 0): self.next_embed_output["data"]}
+        input_embed_tensors = {0: self.next_embed_input["data"]}
+        output_embed_tensors = {0: self.next_embed_output["data"]}
         self.net.process(self.name_embed_cache, input_embed_tensors, output_embed_tensors)
 
         # blocks
@@ -206,14 +206,14 @@ class Baichuan2:
         self.next_hidden_tensor.reshape(self.next_hidden_input["shape"])
 
         for i in range(self.NUM_LAYERS):
-            inputs_block_cache_tensors = {(self.next_hidden_input["name"], 0): self.next_hidden_tensor, 
-                                        (self.next_pid["name"], 0): self.next_pid["data"], 
-                                        (self.next_attention["name"], 0): self.next_attention["data"], 
-                                        (self.cache_key_input[i]["name"], 0): self.past_key_output[i]["data"], 
-                                        (self.cache_value_input[i]["name"], 0): self.past_value_output[i]["data"]}
-            outputs_block_cache_tensors = {(self.next_hidden_output["name"], 0): self.next_hidden_tensor,
-                                        (self.cache_key_output[i]["name"], 0): self.present_key["data"],
-                                        (self.cache_value_output[i]["name"], 0): self.present_value["data"]}
+            inputs_block_cache_tensors = {0: self.next_hidden_tensor, 
+                                        1: self.next_pid["data"], 
+                                        2: self.next_attention["data"], 
+                                        3: self.past_key_output[i]["data"], 
+                                        4: self.past_value_output[i]["data"]}
+            outputs_block_cache_tensors = {0: self.next_hidden_tensor,
+                                        1: self.present_key["data"],
+                                        2: self.present_value["data"]}
             self.net.process(self.name_blocks_cache[i], inputs_block_cache_tensors, outputs_block_cache_tensors)
 
             # update kv_cache()
@@ -224,8 +224,8 @@ class Baichuan2:
         self.lm_input_tensor = self.next_hidden_tensor
         self.lm_input_tensor.reshape(self.lm_input["shape"])
         
-        input_lm_tensors = {(self.lm_input["name"], 0): self.lm_input_tensor}
-        output_lm_tensors = {(self.lm_output["name"], 0): self.lm_output["data"]}
+        input_lm_tensors = {0: self.lm_input_tensor}
+        output_lm_tensors = {0: self.lm_output["data"]}
         self.net.process(self.name_lm, input_lm_tensors, output_lm_tensors)
         return int(self.lm_output["data"].asnumpy())
 
