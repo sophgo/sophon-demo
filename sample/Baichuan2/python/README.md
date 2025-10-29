@@ -31,28 +31,29 @@ pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/sim
 
 如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv、sophon-ffmpeg，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)。
 
-其中，libsophon需要使用0.5.1版本，相关功能暂未发布，这里暂时提供一个可用的libsophon版本，您可以通过下面的命令下载：
-```bash
-pip3 install dfss  --upgrade -i https://pypi.tuna.tsinghua.edu.cn/simple  #安装dfss依赖
-python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/libsophon/libsophon.tar.gz  #下载libsophon软件包
-tar xvf libsophon.tar.gz
-```
-下载完libsophon后，可参考[libsophon用户手册3.](https://doc.sophgo.com/sdk-docs/v23.09.01-lts/docs_latest_release/docs/libsophon/guide/html/1_install.html#)，根据您的Linux发行版选择对应的方式进行安装。
+其中，libsophon需要使用0.5.1版本，请安装v24.04.01及以上版本的SDK。
 
-您还需要安装sophon-sail，由于本例程需要的sophon-sail版本为3.8.0，相关功能暂未发布，这里暂时提供一个可用的sophon-sail版本，x86 PCIe环境可以通过下面的命令下载：
+您还需要安装sophon-sail，x86环境可以通过如下命令安装sophon-sail：
 ```bash
-#x86 pcie, py38
-python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/sail/sophon-3.8.0-py3-none-any.whl
-pip3 install sophon-3.8.0-py3-none-any.whl --force-reinstall
+pip3 install dfss --upgrade
+python3 -m dfss --install sail
 ```
-如果您需要其他版本的sophon-sail，或者遇到glibc版本问题（pcie环境常见），可以通过以下命令下载源码，并参考[sophon-sail编译安装指南3.2.2.1](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#id4)自己编译sophon-sail。
+
+这里提供一个可用的sophon-sail源码，arm/riscv PCIe环境可以通过下面的命令下载：
 ```bash
-python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/sail/sophon-sail_3.8.0.tar.gz
-tar xvf sophon-sail_3.8.0.tar.gz
+pip3 install dfss --upgrade #安装dfss依赖
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/sophon-sail.tar.gz
+tar xvf sophon-sail.tar.gz
 ```
+下载完成后，参考[sophon-sail编译安装指南](https://doc.sophgo.com/sdk-docs/v24.04.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#)编译不包含bmcv,sophon-ffmpeg,sophon-opencv的可被Python3接口调用的Wheel文件。
 
 ### 1.2 SoC平台
-首先您需要安装第三方库：
+如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
+
+> **注意：**
+在SOC模式下1684X芯片建议使用包括 v24.04.01 之后版本。若预装的libsophon版本低于0.5.1，需要下载[新版SDK](https://developer.sophgo.com/site/index/material/all/all.html)，并参考[刷机文档](https://doc.sophgo.com/sdk-docs/v23.09.01-lts-sp5/docs_latest_release/docs/sophon-img/reference/html/1_BM1684X-software.html#sd)，使用SD卡刷机。
+
+然后，您需要安装第三方库：
 ```bash
 pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
@@ -63,33 +64,12 @@ pip3 install torch==2.1.2 --force-reinstall
 ```
 > 2. 若安装`xformers`时卡死，请查看cpu内存是否达到4096MB。内存不足可参考[SoC内存修改方法](../README.md#3-运行环境准备)降低tpu内存，待安装完python第三方库后再将tpu内存改至 所需大小。
 
-如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
-若预装的libsophon版本不是0.5.1，您还需要通过以下命令下载SD卡刷机包，并参考[BSP-软件更新](https://doc.sophgo.com/sdk-docs/v23.09.01-lts/docs_latest_release/docs/sophon-img/reference/html/1_BM1684X-software.html#id14)对设备进行刷机。刷机后libsophon版本即为0.5.1。
+另外，您还需要安装sophon-sail：
 ```bash
-#下载SD卡刷机包
-python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/libsophon/sdcard.tgz  
+pip3 install dfss --upgrade
+python3 -m dfss --install sail
 ```
-
-由于本例程需要的sophon-sail版本为3.8.0，这里提供一个可用的sophon-sail whl包，SoC环境可以通过下面的命令下载并安装：
-```bash
-pip3 install dfss  --upgrade -i https://pypi.tuna.tsinghua.edu.cn/simple
-python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/sail/sophon_arm-3.8.0-py3-none-any.whl #arm soc, py38
-pip3 install sophon_arm-3.8.0-py3-none-any.whl --force-reinstall
-```
-
-如果您需要其他版本的sophon-sail，或者遇到glibc版本问题，可以参考以下步骤，下载源码、交叉编译sophon-sail并安装：
-先下载交叉编译所需的libsophon软件包；
-```bash
-#libsophon交叉编译软件包
-python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/libsophon/libsophon_soc_0.5.1_aarch64.tar.gz
-tar xvf libsophon_soc_0.5.1_aarch64.tar.gz
-```
-然后再通过以下命令下载sophon-sail源码，并参考[sophon-sail编译安装指南3.2.3.2](https://doc.sophgo.com/sdk-docs/v23.07.01/docs_latest_release/docs/sophon-sail/docs/zh/html/1_build.html#id5)，交叉编译sophon-sail。
-```bash
-#sophon-sail源码
-python3 -m dfss --url=open@sophgo.com:sophon-demo/baichuan2/sail/sophon-sail_3.8.0.tar.gz
-tar xvf sophon-sail_3.8.0.tar.gz
-```
+如果whl包无法使用，也可以参考上一小节，下载源码自己编译。
 
 ## 2. 推理测试
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
