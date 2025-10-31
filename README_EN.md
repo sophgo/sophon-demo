@@ -97,6 +97,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [InternVL3](./sample/InternVL3/README.md)                     | Large Vision Language Model        | Python     | INT4           | BM1684X/BM1688               |
 | [Vila](./sample/Vila/README.md)                               | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Llama3_2_Vision](./sample/Llama3_2_Vision/README.md)         | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X                     |
+| [MiniCPMV](./sample/MiniCPMV/README.md)                       | Large Vision Language Model        | Python     | INT4            | BM1684X                     |
 | [Phi4mm](./sample/Llama3_2_Vision/README.md)                  | Multimodal Large Language Model    | Python     | INT4           | BM1684X                     |
 | [VITA1_5](./sample/VITA1_5/README.md)                         | Multimodal Large Language Model    | Python     | INT4           | BM1684X                     |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
@@ -120,6 +121,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [Grounded-sam](./application/Grounded-sam/README.md)                     | Automatic image detection and segmentation system | Python      | BM1684X                      | 
 | [cv-demo](./application/cv-demo/README.md)                               | Bilingual Fisheye and Wide-angle Stitching        | C++         | BM1688                       | 
 | [YOLOv5_fuse_multi_QT](./application/YOLOv5_fuse_multi_QT/README.md)     | Multi-streams Object Detection + QT_HDMI display  | C++         | BM1688/CV186X                | 
+| [YOLOv8_multi_QT](./application/YOLOv8_multi_QT/README.md)               | 多路目标检测+QT_HDMI显示    | C++         | BM1684X/BM1688/CV186X               |
 | [ChatDoc](./application/ChatDoc/README.md)                               | Extract contents from documents for Q&A           | Python      | BM1684X/BM1688              |
 | [LLM_api_server](./application/LLM_api_server/README.md)                 | Openai_api-like LLM Service                       | Python      | BM1684X/BM1688              |
 | [Audio_assistant](./application/Audio_assistant/README.md)               | Audio assistant                                   | C++/Python  | BM1684X/BM1688              |
@@ -127,6 +129,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.3.6  | Fix documentation and other issues. Release new sample MiniCPMV, new application YOLOv8_multi_QT.  |
 | 0.3.5  | Fix documentation and other issues. SAM supports mobilesam, ByteTrack supports yolov5_fuse as detector.  |
 | 0.3.4  | Fix documentation and other issues. CLIP supports mobileclip. Qwen2.5-VL supports sample_head and dynamic models. SuperGlue support int8 models. GroundingDINO support models with better performance  |
 | 0.3.3  | Fix documentation and other issues. Release new sample D-FINE/MiniCPM4/VITA1_5. |
@@ -160,6 +163,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.6  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.5  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.4  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.3  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -192,6 +196,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV,
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.6  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.5  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.4  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.3  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
