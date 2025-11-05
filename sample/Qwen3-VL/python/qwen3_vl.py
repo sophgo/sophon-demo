@@ -182,7 +182,7 @@ class Qwen3_VL():
         self.deepstack_buffers = []
         self.vit_run =False
         for i in range(self.num_deepstack):
-            self.deepstack_buffers.append(sail.Tensor(self.handle, [1,1024,2560], sail.Dtype.BM_BFLOAT16, False, True))
+            self.deepstack_buffers.append(sail.Tensor(self.handle, [1,1024,self.hidden_size], sail.Dtype.BM_BFLOAT16, False, True))
 
         with open(str(config_dir + '/config.json'), 'r') as f:
             self.config = json.load(f)
