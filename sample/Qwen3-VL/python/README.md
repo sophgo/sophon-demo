@@ -80,9 +80,9 @@ python3 -m dfss --install sail
 - 需要下载运行配置文件，执行如下命令
 
 ```bash
-python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen3_VL/configs.zip
-unzip configs.zip
-rm configs.zip
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen3_VL/config.zip
+unzip config.zip
+rm config.zip
 ```
 
 ## 2. 推理测试
