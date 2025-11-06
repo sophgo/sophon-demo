@@ -30,7 +30,7 @@ cd Python-3.10.0
 sudo make altinstall
 
 cd /data
-# 创建名为myenv的虚拟环境（不包含 pip）
+# 创建名为myenv的虚拟环境
 python3.10 -m venv myenv
 
 # 进入虚拟环境
