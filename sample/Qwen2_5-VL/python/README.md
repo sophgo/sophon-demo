@@ -19,23 +19,7 @@ Qwen2.5-vl能够输入单一图片/多张图/视频进行连续对话，python�
 
 ## 1. 环境准备
 > **注意：**
-> 无论哪个环境，都要求transformers>=4.49.0，该版本要求python版本大于3.10。若不满足，请参考以下方法安装python3.10。
-
-```bash
-sudo apt install -y build-essential checkinstall zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev curl
-wget https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz
-tar -xvf Python-3.10.0.tgz
-cd Python-3.10.0
-./configure --enable-optimizations
-sudo make altinstall
-
-cd /data
-# 创建名为myenv的虚拟环境
-python3.10 -m venv myenv
-
-# 进入虚拟环境
-source myenv/bin/activate
-```
+> 无论哪个环境，都要求transformers>=4.49.0，该版本要求python版本大于3.10。若不满足，请参考[python3.10安装](../../../docs/FAQ.md#13-se7安装python310)安装。
 
 ### 1.1 x86/arm PCIe平台
 

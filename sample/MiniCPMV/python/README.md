@@ -19,6 +19,9 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 
 ## 1. 环境准备
+> **注意：**
+> 无论哪个环境，都要求transformers>=4.49.0，该版本要求python版本大于3.10。若不满足，请参考[python3.10安装](../../../docs/FAQ.md#13-se7安装python310)安装。
+
 ### 1.1 x86/arm PCIe平台
 
 如果您在x86/arm平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon，但是不需要sophon-opencv、sophon-ffmpeg，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
@@ -26,11 +29,8 @@ python目录下提供了一系列Python例程，具体情况如下：
 此外您还需要安装其他第三方库：
 ```bash
 pip3 install -r python/requirements.txt
+pip3 install decord
 ```
-
-SE7还需要手动升级安装python3.10，具体请参考[手动升级安装python3.10](../docs/FAQ.md##SE7安装python3.10)
-
-您还需要手动编译安装decord库，具体请参考[手动编译decord](../docs/FAQ.md##手动编译decord)
 
 您还需要安装sophon-sail，可以通过下面的命令下载：
 ```bash
@@ -54,6 +54,8 @@ pip3 install dfss --upgrade #安装dfss依赖
 python3 -m dfss --install sail
 ```
 如果whl包无法使用，也可以参考上一小节，下载源码自己编译。
+
+您还需要手动编译安装decord库，具体请参考[手动编译decord](../docs/FAQ.md##手动编译decord)
 
 ## 2. 推理测试
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。

@@ -21,6 +21,22 @@ We have listed some common problems that users and developers will encounter dur
 ### 1.2 How Do I Use an SD Card to update Firmware in SoC Mode
 Download and decompress SophonSDK after v22.09.02, find sdcard swiping package in sophon-img folder, refer to [relative document](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/faq/html/devices/SOC/soc_firmware_update.html#id6) to refresh the firmware.
 
+### 1.3 Install python3.10 for SE7
+Since the new version of the transformer requires Python 3.10, and the default Python version on SE7 is 3.8, here we provide a method for installing Python 3.10 on SE7 for users' reference:
+```bash
+sudo apt update
+sudo apt install build-essential checkinstall zlib1g-dev libncurses5-dev libncursesw5-dev libsqlite3-dev liblzma-dev tk-dev uuid-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libbz2-dev wget curl -y
+wget https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz 
+tar -xaf Python-3.10.12.tgz
+cd Python-3.10.12/
+ls
+./configure --enable-optimizations --enable-shared --prefix=/usr 
+make -j4
+sudo make altinstall
+cd /data
+python3.10 -m venv py310env
+source py310env/bin/activate
+```
 
 ## 2 Model derived related problems
 ### 2.1 How to jit.trace the Pytorch Model
