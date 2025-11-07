@@ -17,6 +17,8 @@
   - [4. Openai API接口服务](#4-openai-api接口服务)
     - [4.1 参数说明](#41-参数说明)
     - [4.2 使用方式](#42-使用方式)
+  - [5. 执行录屏](#5-执行录屏)
+    - [5.1 SE7上推理Qwen3](#51-se7上推理qwen3)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -194,3 +196,11 @@ python3 openai_api_server.py --config ./config/api.yaml
 ```bash
 python3 openai_api_request.py 
 ```
+
+## 5. 执行录屏
+
+我们提供了执行该sample时的录屏
+
+### 5.1 SE7上推理Qwen3
+
+https://github.com/user-attachments/assets/b3b54ccc-f27a-42fd-8e32-b194eebe023b
