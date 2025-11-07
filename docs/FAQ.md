@@ -20,6 +20,23 @@
 ### 1.2 SoC模式下如何使用SD卡刷更新固件
 下载解压v22.09.02以后的SophonSDK，找到sophon-img文件夹下的sdcard刷机包，并参考[相关文档](https://doc.sophgo.com/docs/3.0.0/docs_latest_release/faq/html/devices/SOC/soc_firmware_update.html#id6)刷新固件。
 
+### 1.3 SE7安装python3.10
+由于新版本transformer需要python3.10才能支持，SE7上默认的python版本是3.8，这里提供一个在SE7安装python3.10的方法供用户参考：
+```bash
+sudo apt update
+sudo apt install build-essential checkinstall zlib1g-dev libncurses5-dev libncursesw5-dev libsqlite3-dev liblzma-dev tk-dev uuid-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libbz2-dev wget curl -y
+wget https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz 
+tar -xaf Python-3.10.12.tgz
+cd Python-3.10.12/
+ls
+./configure --enable-optimizations --enable-shared --prefix=/usr 
+make -j4
+sudo make altinstall
+cd /data
+python3.10 -m venv py310env
+source py310env/bin/activate
+```
+
 ## 2 模型导出相关问题
 
 ### 2.1 Pytorch模型如何进行jit.trace
