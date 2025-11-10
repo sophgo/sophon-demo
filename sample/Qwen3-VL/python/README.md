@@ -12,6 +12,8 @@
       - [一张图片占多少Token ?](#一张图片占多少token-)
       - [视频占多少Token ?](#视频占多少token-)
     - [2.2 使用方式](#22-使用方式)
+  - [3. 执行录屏](#3-执行录屏)
+    - [3.1 SE7上推理Qwen3-VL](#31-se7上推理qwen3-vl)
 
 Qwen3_VL能够输入单一图片/多张图/视频进行连续对话，python目录下提供了例程，具体情况如下：
 
@@ -137,3 +139,11 @@ python qwen3_vl.py -m /models/BM1684X/qwen3-vl-4b-instruct_w4bf16_seq2048_bm1684
 > **测试说明**：  
 > 1. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型；
 > 4. 若测试发现回答内容重复，可参考文档[自行编译bmodel模型](../README.md#42-自行编译bmodel模型)，使用llm_convert.py工具时添加参数`--do_sample`，并且在运行`qwen3_vl.py`时也添加参数`--do_sample`。
+
+## 3. 执行录屏
+
+我们提供了执行该sample时的录屏
+
+### 3.1 SE7上推理Qwen3-VL
+
+https://github.com/user-attachments/assets/478e3553-5383-47c3-8388-fe6f028506a3
