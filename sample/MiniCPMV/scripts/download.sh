@@ -21,7 +21,7 @@ function download_bm1684x {
     popd
 
     pushd ../python
-    if [! -d "token_config"]; then
+    if [ ! -d "token_config" ]; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPM/token_config.zip
         unzip token_config.zip -d .
         rm token_config.zip
@@ -38,7 +38,7 @@ function download_bm1688 {
     popd
 
     pushd ../python
-    if [! -d "token_config"]; then
+    if [ ! -d "token_config" ]; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPM/token_config.zip
         unzip token_config.zip -d .
         rm token_config.zip
@@ -55,7 +55,7 @@ function download_cv186ah {
     popd
 
     pushd ../python
-    if [! -d "token_config"]; then
+    if [ ! -d "token_config" ]; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPM/token_config.zip
         unzip token_config.zip -d .
         rm token_config.zip
