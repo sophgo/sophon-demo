@@ -22,7 +22,7 @@ function download_bm1684x {
 
     pushd ../python
     if [ ! -d "token_config" ]; then
-        python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPM/token_config.zip
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPMV/token_config.zip
         unzip token_config.zip -d .
         rm token_config.zip
     fi
@@ -39,7 +39,7 @@ function download_bm1688 {
 
     pushd ../python
     if [ ! -d "token_config" ]; then
-        python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPM/token_config.zip
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPMV/token_config.zip
         unzip token_config.zip -d .
         rm token_config.zip
     fi
@@ -56,14 +56,12 @@ function download_cv186ah {
 
     pushd ../python
     if [ ! -d "token_config" ]; then
-        python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPM/token_config.zip
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPMV/token_config.zip
         unzip token_config.zip -d .
         rm token_config.zip
     fi
     popd
 }
-
-
 
 if [ "$1" == "bm1684x" ]; then
     download_pics

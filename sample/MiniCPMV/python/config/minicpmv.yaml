@@ -1,4 +1,4 @@
 bmodel_path: ../models/BM1684X/minicpm-v-4-awq_w4bf16_seq2048_bm1684x_1dev_20250915_204204.bmodel
 tokenizer_path: ./token_config
 dev_ids: 0
-input_path: ../pics/test.jpg
+input_path: ../scripts/pics/test.jpg
