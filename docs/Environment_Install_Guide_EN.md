@@ -218,7 +218,14 @@ For more information on libsophon, please refer to "MULTIMEDIA User Manual", "Mu
 
 ### 3.3 Compilation and Installation of sophon-sail
 
-If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), under the directory `sophon-sail_{date}_{time}`, the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
+If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. 
+
+You can use dfss install **Python** sail directly：
+```bash
+pip3 install dfss && python3 -m dfss --install sail
+```
+
+If you cannot install sail by the command above, you should compile and install yourself. You need to download the [Compatible](../README_EN.md#environment-dependencies) SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), under the directory `sophon-sail_{date}_{time}`, the package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
 You can open the user manual provided in the sophon-sail compressed package (named sophon-sail_en.pdf), refer to the compilation and installation guide chapter, and select the mode you need (C++/Python, PCIE MODE) for installation. 
 
 ## 4 SoC Platform Development and Runtime Environment Construction
@@ -322,7 +329,14 @@ Here, the cross-compilation environment has been built, and then you can use the
 
 ### 4.2 Cross-compiling and sophon-sail Installation
 
-If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), enter sophon-sail_{date}_{time} directory, the sophon-sail source package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
+If the demo depends on sophon-sail, you need to compile and install sophon-sail, otherwise you can skip this section. 
+
+You can use dfss install **Python** sail directly：
+```bash
+pip3 install dfss && python3 -m dfss --install sail
+```
+
+If you cannot install sail by the command above, you should compile and install yourself. You need to download the [Compatible](../README_EN.md#environment-dependencies) package of SOPHONSDK from [the official website of Sophgo](https://developer.sophgo.com/site/index.html?categoryActive=material), enter sophon-sail_{date}_{time} directory, the sophon-sail source package is named in the format sophon-sail_x.y.z.tar.gz, where x.y.z indicates the version number.
 You can open the user manual provided in the same directory (named sophon-sail_en.pdf or SOPHON-SAIL_en.pdf). Refer to the compilation and installation guide chapter, and select the mode you need (C++/Python, SoC MODE) for installation. **Note that you need to select Contains the compilation methods of ffmpeg and opencv.**
 After you have followed the tutorial and copied the library files of Sophon Sail to the target SoC, you also need to set the following environment variables:
 ```bash
