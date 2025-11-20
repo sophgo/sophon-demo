@@ -7,11 +7,11 @@ pushd $scripts_dir
 function download_datasets {
     if [ ! -d "../datasets" ]; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen3_VL/datasets.zip
-        unzip datasets.zip -d .
+        unzip datasets.zip -d ..
         rm datasets.zip
     fi
     pushd ../python
-    if [! -d "config"]; then
+    if [ ! -d "config" ]; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen3_VL/config.zip
         unzip config.zip -d .
         rm config.zip
