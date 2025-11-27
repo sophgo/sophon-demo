@@ -1,0 +1,13 @@
+easydict
+ftfy
+dashscope
+imageio[ffmpeg]
+accelerate>=1.1.1
+diffusers>=0.31.0
+einops
+decord
+librosa
+opencv-python
+numpy>=1.23.5,<2
+opencv-python>=4.9.0.80
+peft
