@@ -7,7 +7,9 @@
 - [2. 推理测试](#2-推理测试)
   - [2.1 参数说明](#21-参数说明)
   - [2.2 使用方式](#22-使用方式)
-
+- [3. 执行录屏](#3-执行录屏)
+  - [3.1 SE7录屏](#31-se7录屏)
+      
 python目录下提供了一系列Python例程，具体情况如下：
 
 | 序号  |  Python例程       | 说明                            |
@@ -102,3 +104,11 @@ python3 whisper.py ../datasets/test/demo.wav --model base --bmodel_dir ../models
 ```bash
 python3 whisper.py ../datasets/aishell_S0764/ --model base --bmodel_dir ../models/BM1684X --dev_id 0  --output_dir ./result/ --output_format txt
 ```
+
+## 3. 执行录屏
+
+我们提供了执行该sample时的录屏
+
+### 3.1 SE7录屏
+
+https://github.com/user-attachments/assets/7714eae5-70f9-4363-a5fa-bc627f754551

@@ -14,6 +14,8 @@
     - [2.2 测试图片](#22-测试图片)
     - [2.3 测试视频](#23-测试视频)
     - [3. 流程图](#3-流程图)
+  - [3. 执行录屏](#3-执行录屏)
+    - [3.1 SE7录屏](#31-se7录屏)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -97,3 +99,11 @@ python3 python/yolov5_opencv.py --input datasets/test_car_person_1080P.mp4 --bmo
 `yolov5_bmcv.py`和`yolov5_opencv.py`中的处理流程，都遵循以下流程图：
 
 ![flowchart](../pics/Flowchart.png)
+
+## 3. 执行录屏
+
+我们提供了执行该sample时的录屏
+
+### 3.1 SE7录屏
+
+https://github.com/user-attachments/assets/48bf96ec-2fee-48a7-b2c5-efe6fb1c87c4
