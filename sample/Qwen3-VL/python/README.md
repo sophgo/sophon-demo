@@ -14,6 +14,7 @@
     - [2.2 使用方式](#22-使用方式)
   - [3. 执行录屏](#3-执行录屏)
     - [3.1 SE7上推理Qwen3-VL](#31-se7上推理qwen3-vl)
+    - [3.2 SE9录屏](#32-se9录屏)
 
 Qwen3_VL能够输入单一图片/多张图/视频进行连续对话，python目录下提供了例程，具体情况如下：
 
@@ -147,3 +148,7 @@ python qwen3_vl.py -m /models/BM1684X/qwen3-vl-4b-instruct_w4bf16_seq2048_bm1684
 ### 3.1 SE7上推理Qwen3-VL
 
 https://github.com/user-attachments/assets/478e3553-5383-47c3-8388-fe6f028506a3
+
+### 3.2 SE9录屏
+
+https://github.com/user-attachments/assets/0bc6a8a8-a07b-403c-9e5b-a54d22395e99

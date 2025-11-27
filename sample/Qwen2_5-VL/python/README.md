@@ -10,6 +10,8 @@
   - [2. 推理测试](#2-推理测试)
     - [2.1 参数说明](#21-参数说明)
     - [2.2 使用方式](#22-使用方式)
+  - [3. 执行录屏](#3-执行录屏)
+    - [3.1 SE7录屏](#31-se7录屏)
 
 Qwen2.5-vl能够输入单一图片/多张图/视频进行连续对话，python目录下提供了例程，具体情况如下：
 
@@ -137,3 +139,11 @@ python3 qwen2_5_vl.py --vision_inputs=""
 > 2. 图片尺寸不应超过`vision_length * 28 ** 2`；多图输入时总尺寸也不应超过`vision_length * 28 ** 2`；
 > 3. 视频的单帧尺寸不应超过`vision_length * 28 ** 2`；长视频可以分段推理，占用的上下文长度`(nframes // 2) * (height // 28) * (width // 28)`不应超过模型的`seq_length`；
 > 4. 若测试发现回答内容重复，可参考文档[自行编译bmodel模型](../README.md#42-自行编译bmodel模型)，使用llm_convert.py工具时添加参数`--do_sample`，并且在运行`qwen2_5_vl.py`时也添加参数`--do_sample`。
+
+## 3. 执行录屏
+
+我们提供了执行该sample时的录屏
+
+### 3.1 SE7录屏
+
+https://github.com/user-attachments/assets/ffeaf00a-e0fa-4b7a-99f3-b1deed36a53f

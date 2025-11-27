@@ -7,6 +7,8 @@
     - [2.1 参数说明](#21-参数说明)
     - [2.2 测试图片](#22-测试图片)
     - [2.3 测试视频](#23-测试视频)
+  - [3. 执行录屏](#3-执行录屏)
+    - [3.1 SE7录屏](#31-se7录屏)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -70,3 +72,11 @@ python3 python/yoloworld_opencv.py --input datasets/test --bmodel models/BM1684X
 python3 python/yoloworld_opencv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1684X/yoloworld_fp32_1b.bmodel --clip_bmodel models/BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel --class_names "person" "car" "dog" "cat" --dev_id 0 --conf_thresh 0.25 --nms_thresh 0.7
 ```
 测试结束后，`yoloworld_opencv.py`会将预测的结果画在`results/test_car_person_1080P.avi`中，同时会打印预测结果、推理时间等信息。`yoloworld_bmcv.py`会将预测结果画在图片上并保存在`results/images`中。
+
+## 3. 执行录屏
+
+我们提供了执行该sample时的录屏
+
+### 3.1 SE7录屏
+
+https://github.com/user-attachments/assets/34c1bd21-b9e7-439f-8510-529e91b1d90e

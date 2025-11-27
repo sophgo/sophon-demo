@@ -7,6 +7,8 @@
     - [2.1 参数说明](#21-参数说明)
     - [2.2 测试图片](#22-测试图片)
     - [2.3 测试视频](#23-测试视频)
+  - [3. 执行录屏](#3-执行录屏)
+    - [3.1 SE7录屏](#31-se7录屏)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -69,3 +71,11 @@ python3 python/yolov8_bmcv.py --input datasets/test --bmodel models/BM1688/yolov
 python3 python/yolov8_bmcv.py --input datasets/test_car_person_1080P.mp4 --bmodel models/BM1688/yolov8s_int8_1b.bmodel --dev_id 0 --conf_thresh 0.25 --nms_thresh 0.7
 ```
 测试结束后，同时会打印预测结果、推理时间等信息。`yolov8_bmcv.py`会将预测结果画在图片上并保存在`results/output.mp4`中。
+
+## 3. 执行录屏
+
+我们提供了执行该sample时的录屏
+
+### 3.1 SE7录屏
+
+https://github.com/user-attachments/assets/5b348408-9465-45cf-894e-1a46d5de7250

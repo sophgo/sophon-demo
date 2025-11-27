@@ -11,6 +11,8 @@
   - [2.1 文本检测推理测试：](#21-文本检测推理测试)
   - [2.2 文本识别推理测试：](#22-文本识别推理测试)
   - [2.3 全流程推理测试：](#23-全流程推理测试)
+  - [3. 执行录屏](#3-执行录屏)
+    - [3.1 SE7录屏](#31-se7录屏)
 
 python目录下提供了一系列Python例程，具体情况如下：
 
@@ -154,3 +156,11 @@ python3 ppocr_system_opencv.py --input=../datasets/train_full_images_0 \
 ```
 
 执行完成后，会打印预测的字段，同时会将预测的可视化结果保存在`results/inference_results`文件夹下，推理结果会保存在`results/ppocr_system_results_b4.json`下。
+
+## 3. 执行录屏
+
+我们提供了执行该sample时的录屏
+
+### 3.1 SE7录屏
+
+https://github.com/user-attachments/assets/03717799-7309-4ca3-8d9f-3874d731ff2b
