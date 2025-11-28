@@ -1,25 +1,11 @@
 # Copyright 2024-2025 The Alibaba Wan Team Authors. All rights reserved.
 import torch
 import torch_tpu
-import time
 
-try:
-    import flash_attn_interface
-    FLASH_ATTN_3_AVAILABLE = True
-except ModuleNotFoundError:
-    FLASH_ATTN_3_AVAILABLE = False
-
-try:
-    import flash_attn
-    FLASH_ATTN_2_AVAILABLE = True
-except ModuleNotFoundError:
-    FLASH_ATTN_2_AVAILABLE = False
-
+FLASH_ATTN_3_AVAILABLE = False
 FLASH_ATTN_2_AVAILABLE = True
 
 import warnings
-
-# from .flash_attn_varlen import flash_attn_varlen_func_pytorch
 
 __all__ = [
     'flash_attention',
@@ -62,29 +48,6 @@ def flash_attention(
     # params
     b, lq, lk, out_dtype = q.size(0), q.size(1), k.size(1), q.dtype
 
-    def half(x):
-        return x if x.dtype in half_dtypes else x.to(dtype)
-
-    # preprocess query
-    # if q_lens is None:
-    #     q = half(q.flatten(0, 1))
-    #     q_lens = torch.tensor(
-    #         [lq] * b, dtype=torch.int32).to(
-    #             device=q.device, non_blocking=True)
-    # else:
-    #     q = half(torch.cat([u[:v] for u, v in zip(q, q_lens)]))
-
-    # # preprocess key, value
-    # if k_lens is None:
-    #     k = half(k.flatten(0, 1))
-    #     v = half(v.flatten(0, 1))
-    #     k_lens = torch.tensor(
-    #         [lk] * b, dtype=torch.int32).to(
-    #             device=k.device, non_blocking=True)
-    # else:
-    #     k = half(torch.cat([u[:v] for u, v in zip(k, k_lens)]))
-    #     v = half(torch.cat([u[:v] for u, v in zip(v, k_lens)]))
-
     q = q.to(v.dtype)
     k = k.to(v.dtype)
 
@@ -97,66 +60,9 @@ def flash_attention(
         )
 
     # apply attention
-    if (version is None or version == 3) and FLASH_ATTN_3_AVAILABLE:
-        # Note: dropout_p, window_size are not supported in FA3 now.
-        x = flash_attn_interface.flash_attn_varlen_func(
-            q=q,
-            k=k,
-            v=v,
-            cu_seqlens_q=torch.cat([q_lens.new_zeros([1]), q_lens]).cumsum(
-                0, dtype=torch.int32).to(q.device, non_blocking=True),
-            cu_seqlens_k=torch.cat([k_lens.new_zeros([1]), k_lens]).cumsum(
-                0, dtype=torch.int32).to(q.device, non_blocking=True),
-            seqused_q=None,
-            seqused_k=None,
-            max_seqlen_q=lq,
-            max_seqlen_k=lk,
-            softmax_scale=softmax_scale,
-            causal=causal,
-            deterministic=deterministic)[0].unflatten(0, (b, lq))
-    else:
-        assert FLASH_ATTN_2_AVAILABLE
-        # x = flash_attn.flash_attn_varlen_func(
-        #     q=q,
-        #     k=k,
-        #     v=v,
-        #     cu_seqlens_q=torch.cat([q_lens.new_zeros([1]), q_lens]).cumsum(
-        #         0, dtype=torch.int32).to(q.device, non_blocking=True),
-        #     cu_seqlens_k=torch.cat([k_lens.new_zeros([1]), k_lens]).cumsum(
-        #         0, dtype=torch.int32).to(q.device, non_blocking=True),
-        #     max_seqlen_q=lq,
-        #     max_seqlen_k=lk,
-        #     dropout_p=dropout_p,
-        #     softmax_scale=softmax_scale,
-        #     causal=causal,
-        #     window_size=window_size,
-        #     deterministic=deterministic).unflatten(0, (b, lq))
-        scale = q.shape[-1]**-0.5
-        attn_output = torch.zeros(q.shape, dtype=q.dtype, device=q.device)
-        query_layer = q
-        key_layer = k
-        value_layer = v
-        idx = value_layer.device.index
-        torch_tpu.tpu.synchronize()
-        for idx in range(attn_output.shape[0]):         
-            torch.ops.my_ops.llava_attention(
-                attn_output[idx][None], query_layer[idx][None], key_layer[idx][None], value_layer[idx][None], None, None, None, scale
-            )
-        torch_tpu.tpu.synchronize()
-        x = attn_output
-        # x = flash_attn_varlen_func_pytorch(
-        #     q=q,
-        #     k=k,
-        #     v=v,
-        #     cu_seqlens_q=torch.cat([q_lens.new_zeros([1]), q_lens]).cumsum(
-        #         0, dtype=torch.int32).to(q.device, non_blocking=True),
-        #     cu_seqlens_k=torch.cat([k_lens.new_zeros([1]), k_lens]).cumsum(
-        #         0, dtype=torch.int32).to(q.device, non_blocking=True),
-        #     max_seqlen_q=lq,
-        #     max_seqlen_k=lk,
-        #     dropout_p=dropout_p,
-        #     softmax_scale=softmax_scale,
-        #     causal=causal).unflatten(0, (b, lq))
+    scale = q.shape[-1]**-0.5
+    x = torch.zeros_like(q)
+    torch.ops.my_ops.llava_attention(x, q, k, v, None, None, None, scale)
 
     # output
     return x.type(out_dtype)

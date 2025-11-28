@@ -12,6 +12,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import accelerate
 
 from .tokenizers import HuggingfaceTokenizer
 
@@ -253,7 +254,6 @@ def _t5(name,
         return_tokenizer=False,
         tokenizer_kwargs={},
         dtype=torch.float32,
-        device='cpu',
         **kwargs):
     # sanity check
 
@@ -261,11 +261,7 @@ def _t5(name,
     model_cls = T5Encoder
 
     # init model
-    with torch.device(device):
-        model = model_cls(**kwargs)
-
-    # set device
-    model = model.to(dtype=dtype, device=device)
+    model = model_cls(**kwargs).to(dtype=dtype)
 
     # init tokenizer
     if return_tokenizer:
@@ -297,7 +293,7 @@ class T5EncoderModel:
         self,
         text_len,
         dtype=torch.bfloat16,
-        device= torch.device("cpu"),
+        device=torch.tpu.current_device(),
         checkpoint_path=None,
         tokenizer_path=None,
         shard_fn=None,
@@ -309,13 +305,14 @@ class T5EncoderModel:
         self.tokenizer_path = tokenizer_path
 
         # init model
-        model = umt5_xxl(
-            encoder_only=True,
-            return_tokenizer=False,
-            dtype=dtype,
-            device=device).eval().requires_grad_(False)
+        with accelerate.init_empty_weights():
+            model = umt5_xxl(
+                encoder_only=True,
+                return_tokenizer=False,
+                    dtype=dtype)
         logging.info(f'loading {checkpoint_path}')
-        model.load_state_dict(torch.load(checkpoint_path, map_location='cpu'))
+        model.load_state_dict(torch.load(checkpoint_path, map_location='cpu'), assign=True)
+        model.eval().requires_grad_(False).to(device)
         self.model = model
         if shard_fn is not None:
             self.model = shard_fn(self.model, sync_module_states=False)

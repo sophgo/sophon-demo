@@ -59,21 +59,27 @@ modelscope download Wan-AI/Wan2.2-TI2V-5B --local_dir ./Wan2.2-TI2V-5B
 
 1. 单芯推理（以TI2V例程为例）
 
-```bash
-python3 generate.py --task ti2v-5B --size 1280*704 --ckpt_dir ./Wan2.2-TI2V-5B-BF16/ --convert_model_dtype --prompt "Two anthropomorphic cats in comfy boxing gear and bright gloves fight intensely on a spotlighted stage"
-```
+    ```bash
+    python3 generate.py --task ti2v-5B --size 1280*704 --ckpt_dir ./Wan2.2-TI2V-5B-BF16/ --convert_model_dtype --prompt "Two anthropomorphic cats in comfy boxing gear and bright gloves fight intensely on a spotlighted stage"
+    ```
 
-可在python指令前添加**CHIP_MAP**用于指定推理使用设备
+    可在python指令前添加**CHIP_MAP**用于指定推理使用设备
 
-参数部分与原Wan2.2例程保持一致
+    参数部分与原Wan2.2例程保持一致
 
 2. 多芯并行推理（以TI2V例程为例）
 
-```bash
-CHIP_MAP=0,1 CONV_SHARD=ic torchrun --nproc_per_node 2 --nnodes 1 generate.py --task ti2v-5B --size 1280*704 --ckpt_dir ./Wan2.2-TI2V-5B-BF16/ --convert_model_dtype --prompt "Two anthropomorphic cats in comfy boxing gear and bright gloves fight intensely on a spotlighted stage"
-```
+    SP 并行：
 
-**CHIP_MAP**用于指定多芯推理使用设备。
-**CONV_SHARD=ic**用于启动vae阶段TP并行，可不添加。
+    ```bash
+    CHIP_MAP=0,1 CONV_SHARD=ic torchrun --nproc_per_node 2 --nnodes 1 generate.py --task ti2v-5B --size 1280*704 --ckpt_dir ./Wan2.2-TI2V-5B-BF16/ --convert_model_dtype --ulysses_size 2 --prompt "Two anthropomorphic cats in comfy boxing gear and bright gloves fight intensely on a spotlighted stage"
+    ```
 
+    TP 并行：
 
+    ```bash
+    CHIP_MAP=0,1 CONV_SHARD=ic torchrun --nproc_per_node 2 --nnodes 1 generate.py --task ti2v-5B --size 1280*704 --ckpt_dir ./Wan2.2-TI2V-5B-BF16/ --convert_model_dtype --tp_size 2 --prompt "Two anthropomorphic cats in comfy boxing gear and bright gloves fight intensely on a spotlighted stage"
+    ```
+
+    **CHIP_MAP**用于指定多芯推理使用设备。
+    **CONV_SHARD=ic**用于启动vae阶段TP并行，可不添加。

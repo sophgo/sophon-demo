@@ -997,8 +997,8 @@ class Wan2_2_VAE:
     ):
 
         self.dtype = dtype
-        self._world_size = int(os.environ.get("WORLD_SIZE"))
-        self._rank = int(os.environ.get("RANK"))
+        self._world_size = int(os.environ.get("WORLD_SIZE", "1"))
+        self._rank = int(os.environ.get("RANK", "0"))
         self.device = torch.device(f"tpu:{self._rank}")
 
         mean = torch.tensor(

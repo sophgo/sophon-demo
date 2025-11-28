@@ -9,12 +9,10 @@ from datetime import datetime
 warnings.filterwarnings('ignore')
 
 import random
-
 import time
 
 import torch
 import torch_tpu
-import torch.nn as nn
 import torch.distributed as dist
 from PIL import Image
 
@@ -268,7 +266,15 @@ def _parse_args():
         default=80,
         help="Number of frames per clip, 48 or 80 or others (must be multiple of 4) for 14B s2v"
     )
+    parser.add_argument(
+        "--tp_size",
+        type=int,
+        default=1,
+        help="The size of the tensor parallelism in DiT."
+    )
+
     args = parser.parse_args()
+
     _validate_args(args)
 
     return args
@@ -278,10 +284,16 @@ def _init_logging(rank):
     # logging
     if rank == 0:
         # set format
-        logging.basicConfig(
-            level=logging.INFO,
-            format="[%(asctime)s] %(levelname)s: %(message)s",
-            handlers=[logging.StreamHandler(stream=sys.stdout)])
+        log_dir = os.path.join(os.path.dirname(__file__), 'logs')
+        os.makedirs(log_dir, exist_ok=True)
+        logging.getLogger().handlers.clear()
+        sh = logging.StreamHandler(stream=sys.stdout)
+        sh.setFormatter(logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s'))
+        sh.setLevel(logging.INFO)
+        fh = logging.FileHandler(os.path.join(log_dir, "generate.log"), mode="w")
+        fh.setFormatter(logging.Formatter('[%(asctime)s][%(levelname)s][%(filename)s:%(lineno)d] %(message)s'))
+        fh.setLevel(logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG, handlers=[sh, fh])
     else:
         logging.basicConfig(level=logging.ERROR)
 
@@ -300,29 +312,7 @@ def generate(args):
             f"offload_model is not specified, set to {args.offload_model}.")
     # DEVICE：change backend from nccl to sccl and init distributed group
     if world_size > 1:
-        # torch.cuda.set_device(local_rank)
-        # dist.init_process_group(
-        #     backend="nccl",
-        #     init_method="env://",
-        #     rank=rank,
-        #     world_size=world_size)
-        rank = int(os.environ.get("RANK"))
-        world_size = int(os.environ.get("WORLD_SIZE"))
-
-        options = torch_tpu.ProcessGroupSCCLOptions()
-        torch_tpu.tpu.set_chip_map(options, use_rank_table=False)
-
-        torch_tpu.tpu.set_device(rank)
-        device = torch.device(f"tpu:{rank}")
-
-
-        if not dist.is_initialized():
-            dist.init_process_group(
-                backend="sccl",
-                rank=rank,
-                world_size=world_size,
-                pg_options=options,
-            )
+        init_distributed_group()
     else:
         assert not (
             args.t5_fsdp or args.dit_fsdp
@@ -331,9 +321,11 @@ def generate(args):
             args.ulysses_size > 1
         ), f"sequence parallel are not supported in non-distributed environments."
 
+    assert not (args.ulysses_size > 1 and args.tp_size > 1)
     if args.ulysses_size > 1:
         assert args.ulysses_size == world_size, f"The number of ulysses_size should be equal to the world size."
-        init_distributed_group()
+    if args.tp_size > 1:
+        assert args.tp_size == world_size, f"The number of tp_size should be equal to the world size."
 
     if args.use_prompt_extend:
         if args.prompt_extend_method == "dashscope":
@@ -354,14 +346,17 @@ def generate(args):
     cfg = WAN_CONFIGS[args.task]
     if args.ulysses_size > 1:
         assert cfg.num_heads % args.ulysses_size == 0, f"`{cfg.num_heads=}` cannot be divided evenly by `{args.ulysses_size=}`."
+    if args.tp_size > 1:
+        assert cfg.num_heads % args.tp_size == 0, f"`{cfg.num_heads=}` cannot be divided evenly by `{args.tp_size=}`."
 
     logging.info(f"Generation job args: {args}")
     logging.info(f"Generation model config: {cfg}")
 
-    # if dist.is_initialized():
-    #     base_seed = [args.base_seed] if rank == 0 else [None]
-    #     dist.broadcast_object_list(base_seed, src=0)
-    #     args.base_seed = base_seed[0]
+    if dist.is_initialized():
+        base_seed = torch.tensor(args.base_seed).to(torch.device(f"tpu:{rank}"))
+        dist.broadcast(base_seed, src=0)
+        args.base_seed = base_seed.item()
+    logging.info(f'base_seed={args.base_seed}')
 
     logging.info(f"Input prompt: {args.prompt}")
     img = None
@@ -428,6 +423,7 @@ def generate(args):
             t5_fsdp=args.t5_fsdp,
             dit_fsdp=args.dit_fsdp,
             use_sp=(args.ulysses_size > 1),
+            use_tp=(args.tp_size > 1),
             t5_cpu=args.t5_cpu,
             convert_model_dtype=args.convert_model_dtype,
         )
@@ -506,6 +502,7 @@ def generate(args):
             offload_model=args.offload_model,
             init_first_frame=args.start_from_ref,
         )
+
     else:
         logging.info("Creating WanI2V pipeline.")
         wan_i2v = wan.WanI2V(
@@ -519,6 +516,7 @@ def generate(args):
             t5_cpu=args.t5_cpu,
             convert_model_dtype=args.convert_model_dtype,
         )
+
         logging.info("Generating video ...")
         video = wan_i2v.generate(
             args.prompt,
@@ -538,7 +536,7 @@ def generate(args):
             formatted_prompt = args.prompt.replace(" ", "_").replace("/",
                                                                      "_")[:50]
             suffix = '.mp4'
-            args.save_file = f"{args.task}_{args.size.replace('*','x') if sys.platform=='win32' else args.size}_{args.ulysses_size}_{formatted_prompt}_{formatted_time}" + suffix
+            args.save_file = f"{args.task}_{args.size.replace('*','x') if sys.platform=='win32' else args.size}_{args.ulysses_size}_{args.tp_size}_{formatted_prompt}_{formatted_time}" + suffix
 
         logging.info(f"Saving generated video to {args.save_file}")
         save_video(
@@ -554,6 +552,7 @@ def generate(args):
             else:
                 merge_video_audio(video_path=args.save_file, audio_path="tts.wav")
     del video
+
     torch.tpu.synchronize()
     if dist.is_initialized():
         dist.barrier()

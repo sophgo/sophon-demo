@@ -22,8 +22,7 @@ from .distributed.sequence_parallel import sp_attn_forward, sp_dit_forward
 from .distributed.tensor_parallel import TPWanModel
 from .distributed.util import get_world_size
 from .modules.model import WanModel
-# from .modules.t5 import T5EncoderModel
-from .modules.t5_tpu2 import T5EncoderModel
+from .modules.t5 import T5EncoderModel
 from .modules.vae2_2 import Wan2_2_VAE
 from .utils.fm_solvers import (
     FlowDPMSolverMultistepScheduler,
@@ -31,7 +30,7 @@ from .utils.fm_solvers import (
     retrieve_timesteps,
 )
 from .utils.fm_solvers_unipc import FlowUniPCMultistepScheduler
-from .utils.utils import best_output_size, masks_like
+from .utils.utils import best_output_size, masks_like, _debug, _toggle
 
 
 class WanTI2V:
@@ -313,15 +312,13 @@ class WanTI2V:
             self.text_encoder.model.to(self.device)
             context = self.text_encoder([input_prompt], self.device)
             context_null = self.text_encoder([n_prompt], self.device)
-            context = [t.to(self.device, torch.bfloat16) for t in context]
-            context_null = [t.to(self.device, torch.bfloat16) for t in context_null]
             if offload_model:
                 self.text_encoder.model.cpu()
         else:
             context = self.text_encoder([input_prompt], torch.device('cpu'))
             context_null = self.text_encoder([n_prompt], torch.device('cpu'))
-            context = [t.to(self.device, torch.bfloat16) for t in context]
-            context_null = [t.to(self.device, torch.bfloat16) for t in context_null]
+            context = [t.to(self.device) for t in context]
+            context_null = [t.to(self.device) for t in context_null]
 
         noise = [
             torch.randn(
@@ -333,6 +330,7 @@ class WanTI2V:
                 device='cpu',
                 generator=seed_g).to(self.device)
         ]
+        _debug(noise, 'noise')
 
         @contextmanager
         def noop_no_sync():
@@ -342,8 +340,6 @@ class WanTI2V:
 
         # evaluation mode
         with (
-                # DEVICE
-                # TODO: adapt autocast to BM1690
                 torch.amp.autocast('tpu', dtype=self.param_dtype),
                 torch.no_grad(),
                 no_sync(),
@@ -414,22 +410,18 @@ class WanTI2V:
                 self.model.cpu()
                 torch.tpu.synchronize()
                 torch.tpu.empty_cache()
-            
-            # DEVICE: Ensure that all devices participating in TP can obtain data.
-            # if self.rank == 0:
-            videos = self.vae.decode(x0)
+            if self.rank == 0:
+                videos = self.vae.decode(x0)
 
         del noise, latents
         del sample_scheduler
         if offload_model:
             gc.collect()
-            # torch.cuda.synchronize()
             torch.tpu.synchronize()
         if dist.is_initialized():
             dist.barrier()
 
         return videos[0] if self.rank == 0 else None
-        # return videos[0]
 
     def i2v(self,
             input_prompt,
@@ -540,8 +532,6 @@ class WanTI2V:
 
         # evaluation mode
         with (
-                # DEVICE
-                # TODO: adapt autocast to BM1690
                 torch.amp.autocast('tpu', dtype=self.param_dtype),
                 torch.no_grad(),
                 no_sync(),
@@ -585,7 +575,6 @@ class WanTI2V:
 
             if offload_model or self.init_on_cpu:
                 self.model.to(self.device)
-                # torch.cuda.empty_cache()
                 torch.tpu.empty_cache()
 
             for _, t in enumerate(tqdm(timesteps)):
@@ -629,9 +618,8 @@ class WanTI2V:
                 torch.tpu.synchronize()
                 torch.tpu.empty_cache()
 
-            # DEVICE: Ensure that all devices participating in TP can obtain data.
-            # if self.rank == 0:
-            videos = self.vae.decode(x0)
+            if self.rank == 0:
+                videos = self.vae.decode(x0)
 
         del noise, latent, x0
         del sample_scheduler
