@@ -182,14 +182,14 @@ python3 tools/eval.py --gt_path datasets/images/instances_val2017.json --res_pat
 
 |   测试平台    |       测试程序      |          encoder_bmodel         |           decoder_bmodel        |   mIoU   |
 |  ----------- |------------------- |--------------------------------- |-------------------------------- |-------- |
-| SE7-32       | sam2_image_opencv.py     | sam2_encoder_f32_1b.bmodel       | sam2_decoder_f32_1b.bmodel      |    0.48|
-| SE7-32       | sam2_image_opencv.py     | sam2_encoder_f16_1b.bmodel       | sam2_decoder_f16_1b.bmodel      |    0.48|
-| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f32_1b_1core.bmodel | sam2_decoder_f32_1b_1core.bmodel|    0.48|
-| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f32_1b_2core.bmodel | sam2_decoder_f32_1b_2core.bmodel|    0.48|
-| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f16_1b_1core.bmodel | sam2_decoder_f16_1b_1core.bmodel|    0.48|
-| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f16_1b_2core.bmodel | sam2_decoder_f16_1b_2core.bmodel|    0.48|
-| SRM1-20      | sam2_image_opencv.py     | sam2_encoder_f32_1b.bmodel       | sam2_decoder_f32_1b.bmodel      |    0.48|
-| SRM1-20      | sam2_image_opencv.py     | sam2_encoder_f16_1b.bmodel       | sam2_decoder_f16_1b.bmodel      |    0.49|
+| SE7-32       | sam2_image_opencv.py     | sam2_encoder_f32_1b.bmodel       | sam2_decoder_f32_1b.bmodel      |    0.44|
+| SE7-32       | sam2_image_opencv.py     | sam2_encoder_f16_1b.bmodel       | sam2_decoder_f16_1b.bmodel      |    0.44|
+| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f32_1b_1core.bmodel | sam2_decoder_f32_1b_1core.bmodel|    0.44|
+| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f32_1b_2core.bmodel | sam2_decoder_f32_1b_2core.bmodel|    0.44|
+| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f16_1b_1core.bmodel | sam2_decoder_f16_1b_1core.bmodel|    0.44|
+| SE9-16       | sam2_image_opencv.py     | sam2_encoder_f16_1b_2core.bmodel | sam2_decoder_f16_1b_2core.bmodel|    0.44|
+| SRM1-20      | sam2_image_opencv.py     | sam2_encoder_f32_1b.bmodel       | sam2_decoder_f32_1b.bmodel      |    0.44|
+| SRM1-20      | sam2_image_opencv.py     | sam2_encoder_f16_1b.bmodel       | sam2_decoder_f16_1b.bmodel      |    0.44|
 
 ## 6. 性能测试
 **以下性能测试仅针对图像分割进行测试**
