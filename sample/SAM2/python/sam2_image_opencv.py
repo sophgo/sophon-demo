@@ -36,9 +36,9 @@ class SAM2ImageFeatureExtractor:
     def __init__(self, encoder) -> None:
         self.encoder = encoder
         self.graph_name = self.encoder.get_graph_names()[0]
-        self.input_names = self.encoder.get_input_names(self.graph_name)[0]
+        self.input_name = self.encoder.get_input_names(self.graph_name)[0]
         self.input_shape = self.encoder.get_input_shape(
-            self.graph_name, self.input_names
+            self.graph_name, self.input_name
         )
         self.input_height = self.input_shape[2]
         self.input_width = self.input_shape[3]
@@ -69,7 +69,7 @@ class SAM2ImageFeatureExtractor:
         input_tensor = self.prepare_input(image)
         self.preprocess_time = time.time() - start
         start = time.time()
-        outputs = self.encoder.process(self.graph_name, {self.input_names: input_tensor})
+        outputs = self.encoder.process(self.graph_name, {self.input_name: input_tensor})
         self.encoder_time = time.time() - start
         return [output for output in outputs.values()]
 
@@ -79,6 +79,9 @@ class SAM2ImageMaskPredictor:
         self.decoder = decoder
         self.graph_name = self.decoder.get_graph_names()[0]
         self.input_names = self.decoder.get_input_names(self.graph_name)
+        self.points_shape = self.decoder.get_input_shape(
+            self.graph_name, "point_coords"
+        )
         self.orig_im_size = (
             orig_im_size if orig_im_size is not None else encoder_input_size
         )
@@ -109,8 +112,8 @@ class SAM2ImageMaskPredictor:
         )
 
     def prepare_points(self, point_coords, point_labels):
-        input_point_coords = point_coords[np.newaxis, ...]
-        input_point_labels = point_labels[np.newaxis, ...]
+        input_point_coords = point_coords
+        input_point_labels = point_labels
 
         input_point_coords[..., 0] = input_point_coords[..., 0] / self.orig_im_size[1] * self.encoder_input_size[1] # Normalize x
         input_point_coords[..., 1] = input_point_coords[..., 1] / self.orig_im_size[0] * self.encoder_input_size[0] # Normalize y
@@ -194,21 +197,23 @@ class SAM2Image:
         )
         self.reset_points()
 
-    def add_point(self, point_coords, label):
+    def add_point(self, point_coord, label):
+        labels = [label]
+        coords = [point_coord]
+        for i in range(1, self.sam2_decoder.points_shape[1]):
+            labels.append(-1)
+            coords.append([0.0, 0.0])
         self.image_info[str(self.point_nums)] = {
-            "label": label,
-            "coords": point_coords,
+            "label": labels,
+            "coords": coords,
         }
         self.point_nums += 1
 
     def add_box(self, box_coords, label):
-        # 将坐标框的中心点作为参考点，box的表示参照coco
-        point_coords = (
-            box_coords[0] + box_coords[2] / 2,
-            box_coords[1] + box_coords[3] / 2,
-        )
+        point_coords = np.array(box_coords).reshape(2, 2)
+        labels = [label, label]
         self.image_info[str(self.point_nums)] = {
-            "label": label,
+            "label": labels,
             "coords": point_coords,
             "origin": box_coords,
         }
