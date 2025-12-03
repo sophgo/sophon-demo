@@ -42,16 +42,7 @@ pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 - 您还需要安装sophon-sail，由于本例程需要的sophon-sail版本较新，可以用如下命令安装sophon-sail。
 
 ```bash
-pip3 install dfss --upgrade
 python3 -m dfss --install sail
-```
-
-- 需要下载运行配置文件，执行如下命令
-
-```bash
-python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen3_VL/config.zip
-unzip config.zip -d .
-rm config.zip
 ```
 
 ### 1.2 SoC平台
@@ -66,26 +57,10 @@ rm config.zip
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ``` 
-- 您需要安装SILK2.Tools.logger：
-```bash
-python3 -m dfss --url=open@sophgo.com:tools/silk2/silk2.tools.logger-1.0.2-py3-none-any.whl
-pip3 install silk2.tools.logger-1.0.2-py3-none-any.whl --force-reinstall
-rm -f silk2.tools.logger-1.0.2-py3-none-any.whl
-```
-
 - 本例程依赖sophon-sail，可直接安装sophon-sail，执行如下命令：
 
 ```bash
-pip3 install dfss --upgrade
 python3 -m dfss --install sail
-```
-
-- 需要下载运行配置文件，执行如下命令
-
-```bash
-python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen3_VL/config.zip
-unzip config.zip
-rm config.zip
 ```
 
 ## 2. 推理测试
@@ -131,7 +106,7 @@ options:
 
 输入`../datasets/images/test.jpg`测试图片，，测试问题为："请描述图片中的内容"，测试命令如下:
 ```bash
-python qwen3_vl.py -m /models/BM1684X/qwen3-vl-4b-instruct_w4bf16_seq2048_bm1684x_1dev_20251026_141347.bmodel -c config/ -d 0
+python qwen3_vl.py -m ../models/BM1684X/qwen3-vl-4b-instruct_w4bf16_seq2048_bm1684x_1dev_20251026_141347.bmodel -c config/ -d 0
 ```
 
 在Question: 处进行提问，例如：请描述图片中的内容。
