@@ -1,7 +1,7 @@
 # Qwen3-VL
 
 ## 目录
-- [Qwen3-VL](#Qwen3-VL)
+- [Qwen3-VL](#qwen3-vl)
   - [目录](#目录)
   - [1. 简介](#1-简介)
   - [2. 特性](#2-特性)
@@ -140,7 +140,7 @@ llm_convert.py -m /workspace/Qwen3-VL-4B-Instruct  -s 2048 --max_input_length 10
 
 ## 6. 程序性能测试
 
-输入`../datasets/images/test.jpg`测试图片，，测试问题为："请描述图片中的内容"，测试命令如下:
+输入`../datasets/images/test.jpg`测试图片，测试问题为："请描述图片中的内容"，测试命令如下:
 
 ```bash
 python qwen3_vl.py -m /models/BM1684X/qwen3-vl-4b-instruct_w4bf16_seq2048_bm1684x_1dev_20251026_141347.bmodel -c config/ -d 0
@@ -149,7 +149,7 @@ python qwen3_vl.py -m /models/BM1684X/qwen3-vl-4b-instruct_w4bf16_seq2048_bm1684
 
 |    测试平台   |               测试模型                                          | first token latency(s) |token per second(tokens/s)|
 | -----------  | ---------------------------------------------------------------| ---------------------   | -----------------------  |
-|    SE7-32    | qwen3-vl-8b-instruct_w4bf16_seq2048_bm1684x_1dev_20251026_145323.bmodel  |        1.711           |        6.643          |
+|    SE7-32    | qwen3-vl-8b-instruct_w4bf16_seq2048_bm1684x_1dev_20251026_145323.bmodel  |        2.642           |        6.643          |
 |    SE7-32    | qwen3-vl-4b-instruct_w4bf16_seq2048_bm1684x_1dev_20251026_141347.bmodel  |        1.645           |        10.718           |
 |    SE9-16    | qwen3-vl-4b-instruct_w4bf16_seq2048_bm1688_2core_20251026_141708.bmodel  |        5.411          |          5.486         |
 
