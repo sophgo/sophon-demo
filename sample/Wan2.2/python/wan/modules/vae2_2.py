@@ -24,6 +24,7 @@ class CausalConv3d(nn.Conv3d):
     """
     Causal 3d convolusion.
     """
+    
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -41,12 +42,17 @@ class CausalConv3d(nn.Conv3d):
             self._world_size = int(os.environ.get("WORLD_SIZE"))
             self._rank = int(os.environ.get("RANK"))
             self.device = torch.device(f"tpu:{self._rank}")
+            self.bc_flag = 0
+            self.wl_flag = 0
+            
+            in_channels = self.weight.size(1)
+            self.ic_start, self.ic_end, self.ic_local = self._slice_range(in_channels, self._rank, self._world_size)
         except (ValueError, TypeError):
             self._world_size = 1
             self._rank = 0
 
         self.debug_mode = os.environ.get("DEBUG_CAUSAL_CONV", "0") == "1"
-    
+
     # DEVICE: Confirm TP splitting position
     def _slice_range(self, total, rank, world_size):
         base = total // world_size
@@ -61,8 +67,7 @@ class CausalConv3d(nn.Conv3d):
         if cache_x is not None and self._padding[4] > 0:
             cache_x = cache_x.to(x.device)
             x = torch.cat([cache_x, x], dim=2)
-            # padding[4] -= cache_x.shape[2]
-            padding[4] = max(0, padding[4] - cache_x.shape[2])
+            padding[4] -= cache_x.shape[2]
         
         x = F.pad(x, padding)
 
@@ -70,50 +75,26 @@ class CausalConv3d(nn.Conv3d):
             out = super().forward(x)
             return out
 
-        in_channels = self.weight.size(1)
-        # ensure all tensor-parallel ranks operate on the SAME input tensor
-        # cheap checksum sample
-        if dist.is_available() and dist.is_initialized():
-            try:
-                sample = x[:, :1, :1, :1, :1].float().sum()
-            except Exception:
-                sample = x.float().view(-1)[:10].sum()
-            tmin = sample.clone()
-            tmax = sample.clone()
-            # compare across all ranks (or use tp_group if set)
-            tp_group = getattr(self, "_tp_group", None)
-            if tp_group is not None:
-                dist.all_reduce(tmin, op=dist.ReduceOp.MIN, group=tp_group)
-                dist.all_reduce(tmax, op=dist.ReduceOp.MAX, group=tp_group)
-            else:
-                dist.all_reduce(tmin, op=dist.ReduceOp.MIN)
-                dist.all_reduce(tmax, op=dist.ReduceOp.MAX)
-            if (tmax - tmin).abs() > 1e-6:
-                logging.warning("[CausalConv3d] input mismatch across TP ranks detected; broadcasting input from src=0")
-                if tp_group is not None:
-                    dist.broadcast(x, src=0, group=tp_group)
-                else:
-                    dist.broadcast(x, src=0)
+        if self.bc_flag == 0:
+            self.bc_flag = 1
+            dist.broadcast(x, src=0)
 
-        ic_start, ic_end, ic_local = self._slice_range(in_channels, self._rank, self._world_size)
-        x_local = x[:, ic_start:ic_end, ...].contiguous()
-        weight_local = self.weight[:, ic_start:ic_end, ...].to(x_local.device).contiguous()
+        x_local = x[:, self.ic_start:self.ic_end, ...].contiguous()
+        if self.wl_flag == 0:
+            self.wl_flag = 1
+            self.weight_local = self.weight[:, self.ic_start:self.ic_end, ...].to(x_local.device).contiguous()
 
-        partial = F.conv3d(x_local,weight_local,bias=None,stride=self.stride,padding=0,dilation=self.dilation,groups=self.groups,)
+        partial = F.conv3d(x_local,self.weight_local,bias=None,stride=self.stride,padding=0,dilation=self.dilation,groups=self.groups,)
 
         # reduce only within TP group if provided
         if dist.is_available() and dist.is_initialized():
-            if tp_group is not None:
-                dist.all_reduce(partial, op=dist.ReduceOp.SUM, group=tp_group)
-            else:
-                dist.all_reduce(partial, op=dist.ReduceOp.SUM)
+            dist.all_reduce(partial, op=dist.ReduceOp.SUM)
             dist.barrier()
 
         if self.bias is not None:
             partial = partial + self.bias.view(1, -1, 1, 1, 1).to(x_local.device)
         if self.debug_mode:
-            logging.info(f"[CausalConv3d] rank={self._rank} ic=({ic_start},{ic_end}) partial.sum={float(partial.float().sum()):.6f}")
-
+            logging.info(f"[CausalConv3d] rank={self._rank} ic=({self.ic_start},{self.ic_end}) partial.sum={float(partial.float().sum()):.6f}")
         return partial
 
 
