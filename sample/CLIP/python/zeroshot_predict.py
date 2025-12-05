@@ -40,7 +40,10 @@ def main(args):
     model, preprocess = clip.load(args.image_model, args.text_model, args.dev_id, clip_type=args.clip_type, text_projection_path=args.text_projection_path)
     
     # Tokenize 
-    text_inputs = clip.tokenize(text)
+    if args.clip_type == 'cn_clip':
+        text_inputs = clip.bert_tokenize(text)
+    else:
+        text_inputs = clip.tokenize(text)
 
     if os.path.isfile(args.image_path):
         image_paths = [args.image_path]
@@ -78,7 +81,7 @@ def argsparser():
     parser.add_argument('--image_model', type=str, default='./models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel', help='path of image bmodel')
     parser.add_argument('--text_model', type=str, default='./models/BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel', help='path of text bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
-    parser.add_argument('--clip_type', type=str, default='open_clip', help='clip type, eg: open_clip, mobile_clip')
+    parser.add_argument('--clip_type', type=str, default='open_clip', help='clip type, eg: open_clip, mobile_clip, cn_clip')
     parser.add_argument('--text_projection_path', type=str, default="../../models/text_projection_512_512.npy", help='text projection path')
     args = parser.parse_args()
     return args
