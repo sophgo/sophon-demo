@@ -197,7 +197,8 @@ class CLIP:
             processed_outputs.append(results)
 
         processed_outputs = np.concatenate(processed_outputs, axis=0)[:text_batch]  # Trim padding off the final output if it was padded
-        processed_outputs = np.dot(processed_outputs[np.arange(processed_outputs.shape[0]), text.argmax(axis=-1)], self.text_projection)
+        if self.clip_type != 'cn_clip':
+            processed_outputs = np.dot(processed_outputs[np.arange(processed_outputs.shape[0]), text.argmax(axis=-1)], self.text_projection)
         self.encode_text_time += time.time() - start_time
         return processed_outputs
 

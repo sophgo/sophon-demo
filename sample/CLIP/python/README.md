@@ -31,6 +31,7 @@ pip3 install ftfy
 pip3 install regex
 pip3 install torch
 pip3 install torchvision
+pip3 install six
 ```
 ### 1.2 SoC平台
 如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。您还需要交叉编译安装sophon-sail，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
@@ -40,6 +41,7 @@ pip3 install ftfy
 pip3 install regex
 pip3 install torch
 pip3 install torchvision
+pip3 install six
 ```
 
 若您使用sophon-opencv，需要设置环境变量，**使用sophon-opencv需要保证python版本小于等于3.8。**
@@ -76,6 +78,9 @@ python3 python/zeroshot_predict.py --image_path datasets --text "a diagram" "a d
 #如果测试mobile clip，请加上--clip_type="mobile_clip"，以及通过 --text_projection 指定text projection npy文件路径
 #mobile clip b模型用的是text_projection是../../models/text_projection_b.npy，blt模型用的是../../models/text_projection_blt.npy
 python3 python/zeroshot_predict.py --image_path datasets --text "a diagram" "a dog" "a cat" --image_model models/BM1684X/mobile_clip_image_b_bm1684x_f16_1b.bmodel --text_model models/BM1684X/mobile_clip_text_b_bm1684x_f16_1b.bmodel --dev_id 0 --clip_type="mobile_clip" --text_projection="../../models/text_projection_b.npy"
+
+# cn_clip
+python3 python/zeroshot_predict.py --image_path datasets --text "程序" "人" "车" --image_model models/BM1684X/cn_clip_image_vitb16_bm1684x_f16_1b.bmodel --text_model models/BM1684X/cn_clip_text_vitb16_bm1684x_f16_1b.bmodel --dev_id 0 --clip_type "cn_clip"
 ```
 程序运行结束后，会在命令行中打印信息，输出图片和文本的匹配度。
 

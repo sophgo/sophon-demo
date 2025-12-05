@@ -7,6 +7,7 @@
 #
 #===----------------------------------------------------------------------===#
 from .simple_tokenizer import tokenize
+from .bert_tokenizer import bert_tokenize
 from .clip import CLIP
 
 
