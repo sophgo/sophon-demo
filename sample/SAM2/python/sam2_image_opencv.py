@@ -171,6 +171,8 @@ class SAM2Image:
         self.sam2_decoder = None
         self.select_best = select_best
         self.image_info = {}
+        self.labels = []
+        self.coords = []
         self.res = {}
         self.point_nums = 0
         logging.info("SAM2Image init, encoder_path:{}, decoder_path:{}, select_best:{}".format(
@@ -202,7 +204,7 @@ class SAM2Image:
         coords = [point_coord]
         for i in range(1, self.sam2_decoder.points_shape[1]):
             labels.append(-1)
-            coords.append([0.0, 0.0])
+            coords.append([0, 0])
         self.image_info[str(self.point_nums)] = {
             "label": labels,
             "coords": coords,
@@ -211,7 +213,7 @@ class SAM2Image:
 
     def add_box(self, box_coords, label):
         point_coords = np.array(box_coords).reshape(2, 2)
-        labels = [label, label]
+        labels = [2, 3]
         self.image_info[str(self.point_nums)] = {
             "label": labels,
             "coords": point_coords,
@@ -222,7 +224,6 @@ class SAM2Image:
     def predict(self):
         # select_best为True时输出score最高的mask，否则输出多个mask
         high_res_feats_0, high_res_feats_1, image_embed = self.image_embeddings
-
         for point_id in self.image_info.keys():
             input_point = np.array([self.image_info[str(point_id)]["coords"]])
             input_label = np.array([self.image_info[str(point_id)]["label"]])
@@ -266,6 +267,11 @@ class SAM2Image:
         
 def pred(args):
     img = cv2.imread(args.img_path)
+    # import matplotlib.pyplot as plt
+    # plt.figure(figsize=(10,10))
+    # plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    # plt.savefig(args.output_dir+'/base_img.jpg', bbox_inches='tight', pad_inches=0)
+    
     sam2 = SAM2Image(args.encoder_bmodel, args.decoder_bmodel, args.select_best)
     sam2.set_image(img)
 
