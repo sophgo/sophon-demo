@@ -73,7 +73,7 @@ function gen_mlir_image_decoder()
     model_transform.py \
         --model_name sam2_decoder \
         --model_def ../models/onnx/image/sam2_hiera_tiny_decoder.onnx \
-        --input_shapes [[$1,256,64,64],[$1,32,256,256],[$1,64,128,128],[$1,2,2],[$1,2],[$1,1,256,256],[$1]] \
+        --input_shapes [[$1,256,64,64],[$1,32,256,256],[$1,64,128,128],[1,2,2],[1,2],[1,1,256,256],[$1]] \
         --mlir sam2_decoder.mlir
 }
 
