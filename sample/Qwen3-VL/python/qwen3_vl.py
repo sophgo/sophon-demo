@@ -57,14 +57,13 @@ class Qwen3_VL():
             if "block_cache_" in graph_name:
                 self.num_layers += 1
 
-        self.first_hidden_states_input_shape = self.net.get_input_shape("block_0", 0)
         self.vit_hidden_states_input_shape = self.net.get_input_shape("vit", 0)
         self.vit_pos_ids_input_shape = self.net.get_input_shape("vit", 1)
         self.pos_idx_input_shape = self.net.get_input_shape("vit", 2)
         self.pos_weight_input_shape = self.net.get_input_shape("vit", 3)
         self.vit_attention_mask_input_shape = self.net.get_input_shape("vit", 4)
 
-        _, self.seq_len, self.hidden_size = self.first_hidden_states_input_shape
+        self.seq_len = self.net.get_input_shape("block_cache_0", 3)[1]
         self.vision_seq_len = self.vit_hidden_states_input_shape[0]
         self.hidden_size = self.net.get_input_shape("lm_head", 0)[1]
         self.input_tensors = {}
@@ -182,7 +181,7 @@ class Qwen3_VL():
         self.deepstack_buffers = []
         self.vit_run =False
         for i in range(self.num_deepstack):
-            self.deepstack_buffers.append(sail.Tensor(self.handle, [1,1024,self.hidden_size], sail.Dtype.BM_BFLOAT16, False, True))
+            self.deepstack_buffers.append(sail.Tensor(self.handle, [1,self.MAX_INPUT_LENGTH,self.hidden_size], sail.Dtype.BM_BFLOAT16, False, True))
 
         with open(str(config_dir + '/config.json'), 'r') as f:
             self.config = json.load(f)
@@ -471,8 +470,8 @@ class Qwen3_VL():
         self.token_len = tokens.shape[1]
         self.tokens = tokens[0].tolist()
 
-        input_ids = np.zeros((tokens.shape[0], self.seq_len), dtype=type_convert(self.input_tensors[self.name_embed][0].dtype()))
-        input_ids[:, :min(self.seq_len, tokens.shape[1])] = tokens
+        input_ids = np.zeros((tokens.shape[0], self.MAX_INPUT_LENGTH), dtype=type_convert(self.input_tensors[self.name_embed][0].dtype()))
+        input_ids[:, :min(self.MAX_INPUT_LENGTH, tokens.shape[1])] = tokens
         self.input_tensors[self.name_embed][0].update_data(input_ids)
         self.net.process(self.name_embed, self.input_tensors[self.name_embed], self.output_tensors[self.name_embed])
         for i in range(self.num_deepstack):
@@ -572,7 +571,7 @@ class Qwen3_VL():
         # lm_head + sample_head
         elif self.generation_mode == "sample":
             self.input_tensors[self.sample][0] = self.output_tensors[self.name_lm][0]
-            generated_tokens = np.zeros([1, self.seq_len], type_convert(self.input_tensors[self.sample][1].dtype()))
+            generated_tokens = np.zeros([1, self.MAX_INPUT_LENGTH], type_convert(self.input_tensors[self.sample][1].dtype()))
             generated_tokens[0, :len(self.tokens)] = self.tokens
             self.input_tensors[self.sample][1].update_data(generated_tokens)
             self.input_tensors[self.sample][2].update_data([self.repeat_penalty])
@@ -609,18 +608,18 @@ class Qwen3_VL():
             self.input_tensors[self.name_blocks[0]][2].reshape([1, 1, self.token_len, self.token_len])
             self.input_tensors[self.name_blocks[0]][0] = sail.Tensor(self.output_tensors[self.name_embed][0], [1, self.token_len, self.hidden_size], 0)
         else:
-            attention_mask = [ATTENTION_MASK] * (self.seq_len * self.seq_len)
+            attention_mask = [ATTENTION_MASK] * (self.MAX_INPUT_LENGTH * self.MAX_INPUT_LENGTH)
             for i in range(self.token_len):
                 for j in range(self.token_len):
                     if j <= i:
-                        attention_mask[i * self.seq_len + j] = 0
+                        attention_mask[i * self.MAX_INPUT_LENGTH + j] = 0
             attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[self.name_blocks[0]][2].dtype())).reshape(self.input_tensors[self.name_blocks[0]][2].shape())
 
-            position_ids_pad = [0] * (3 * self.seq_len)
+            position_ids_pad = [0] * (3 * self.MAX_INPUT_LENGTH)
             ori_length = len(position_ids) // 3
             for i in range(3):
                 ori_offset = i * ori_length
-                dst_offset = i * self.seq_len
+                dst_offset = i * self.MAX_INPUT_LENGTH
                 position_ids_pad[dst_offset : dst_offset + ori_length] = \
                     position_ids[ori_offset : ori_offset + ori_length]
             position_ids_pad = np.array(position_ids_pad, dtype=type_convert(self.input_tensors[self.name_blocks[0]][1].dtype())).reshape(self.input_tensors[self.name_blocks[0]][1].shape())
@@ -647,7 +646,7 @@ class Qwen3_VL():
                     len(self.first_hidden_states_output), \
                 )
             if (self.vit_run and (i < self.num_deepstack)):
-                copy_size = self.seq_len * self.hidden_size
+                copy_size = self.MAX_INPUT_LENGTH * self.hidden_size
                 self.input_tensors[self.name_add][0].sync_d2d(self.first_hidden_states_output ,0 , 0, copy_size)
                 self.input_tensors[self.name_add][1].sync_d2d(self.deepstack_buffers[i] ,0 , 0, copy_size)
                 self.net.process(self.name_add, self.input_tensors[self.name_add], self.output_tensors[self.name_add])
@@ -657,7 +656,7 @@ class Qwen3_VL():
         
         # linear process
         self.step = self.token_len
-        offset_bytes = self.first_hidden_states_output.size() // self.seq_len
+        offset_bytes = self.first_hidden_states_output.size() // self.MAX_INPUT_LENGTH
         self.token_pos_length = position_ids.max() + 1
         self.input_tensors[self.name_lm][0].sync_d2d(self.first_hidden_states_output, \
                     (self.token_len - 1) * offset_bytes, \
