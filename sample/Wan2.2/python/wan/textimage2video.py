@@ -80,7 +80,8 @@ class WanTI2V:
         self.config = config
         self.rank = rank
         self.t5_cpu = t5_cpu
-        self.init_on_cpu = init_on_cpu
+        # self.init_on_cpu = init_on_cpu
+        self.init_on_cpu = False
 
         self.num_train_timesteps = config.num_train_timesteps
         self.param_dtype = config.param_dtype
@@ -113,7 +114,7 @@ class WanTI2V:
                 shard_fn=shard_fn,
                 convert_model_dtype=convert_model_dtype)
         else:
-            self.model = WanModel.from_pretrained(checkpoint_dir)
+            self.model = WanModel.from_pretrained(checkpoint_dir, low_cpu_mem_usage=False)
             self.model = self._configure_model(
                 model=self.model,
                 use_sp=use_sp,

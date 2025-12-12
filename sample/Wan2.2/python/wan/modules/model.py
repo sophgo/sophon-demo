@@ -7,8 +7,6 @@ import torch.nn as nn
 from diffusers.configuration_utils import ConfigMixin, register_to_config
 from diffusers.models.modeling_utils import ModelMixin
 
-from .attention import flash_attention
-
 __all__ = ['WanModel']
 
 
@@ -26,46 +24,68 @@ def sinusoidal_embedding_1d(dim, position):
 
 
 @torch.amp.autocast('tpu', enabled=False)
-def rope_params(max_seq_len, dim, theta=10000):
+def rope_params_real(max_seq_len, dim, theta=10000, dtype=torch.float32, device=None):
     assert dim % 2 == 0
-    freqs = torch.outer(
-        torch.arange(max_seq_len),
-        1.0 / torch.pow(theta,
-                        torch.arange(0, dim, 2).to(torch.float32).div(dim)))
-    cos, sin = torch.cos(freqs), torch.sin(freqs)
-    freqs = torch.stack((cos, sin), dim=-1)
-    return freqs
+    t = torch.arange(max_seq_len, dtype=dtype, device=device) # [L]
+    inv_freq = 1.0 / torch.pow(
+    torch.tensor(theta, dtype=dtype, device=device),
+    torch.arange(0, dim, 2, dtype=dtype, device=device) / dim
+    ) # [dim/2]
+    # 相位 [L, dim/2]
+    freqs = torch.outer(t, inv_freq)
+    # 预计算 cos/sin
+    cos = torch.cos(freqs) # [L, dim/2]
+    sin = torch.sin(freqs) # [L, dim/2]
+    return cos, sin
 
 
+# DEVICE: Modify the freqs generation method
 @torch.amp.autocast('tpu', enabled=False)
-def rope_apply(x, grid_sizes, freqs):
-    n, c = x.size(2), x.size(3) // 2
+def build_freqs_real(max_seq_len, dim, dtype=torch.float32, device=None):
+# 原来 d 被拆成: [d - 4*(d//6), 2*(d//6), 2*(d//6)]
+    c0 = dim - 4 * (dim // 6)
+    c1 = 2 * (dim // 6)
+    c2 = 2 * (dim // 6)
+    cos0, sin0 = rope_params_real(max_seq_len, c0, dtype=dtype, device=device)
+    cos1, sin1 = rope_params_real(max_seq_len, c1, dtype=dtype, device=device)
+    cos2, sin2 = rope_params_real(max_seq_len, c2, dtype=dtype, device=device)
+    # 返回三段，和原来 freqs.split(...) 对应
+    return (cos0, sin0), (cos1, sin1), (cos2, sin2)
 
-    # split freqs
-    freqs = freqs.split([c - 2 * (c // 3), c // 3, c // 3], dim=1)
 
-    # loop over samples
-    output = []
-    for i, (f, h, w) in enumerate(grid_sizes.tolist()):
-        seq_len = f * h * w
+def get_cos_sin(f, h, w, freqs):
+    (cos0, sin0), (cos1, sin1), (cos2, sin2) = freqs
+    c0 = cos0.size(1) * 2
+    c1 = cos1.size(1) * 2
+    c2 = cos2.size(1) * 2
+    seq_len = f * h * w
 
-        # precompute multipliers
-        x1 = x[i, :seq_len].reshape(seq_len, n, -1)
-        x2 = torch.stack((-x1[..., 1::2], x1[..., ::2]), dim=-1).reshape(seq_len, n, -1)
-        freqs_i = torch.cat([
-            freqs[0][:f].view(f, 1, 1, -1, 1, 2).expand(f, h, w, -1, 2, 2),
-            freqs[1][:h].view(1, h, 1, -1, 1, 2).expand(f, h, w, -1, 2, 2),
-            freqs[2][:w].view(1, 1, w, -1, 1, 2).expand(f, h, w, -1, 2, 2)
-        ],
-                            dim=3).reshape(seq_len, 1, -1, 2).to(x)
+    c0h = c0 // 2
+    c1h = c1 // 2
+    c2h = c2 // 2
+    cos = torch.cat([
+        cos0[:f].view(f, 1, 1, 1, c0h).expand(f, h, w, 2, c0h),
+        cos1[:h].view(1, h, 1, 1, c1h).expand(f, h, w, 2, c1h),
+        cos2[:w].view(1, 1, w, 1, c2h).expand(f, h, w, 2, c2h),
+    ], dim=-1).reshape(seq_len, 1, -1)
+    sin = torch.cat([
+        sin0[:f].view(f, 1, 1, 1, c0h).expand(f, h, w, 2, c0h),
+        sin1[:h].view(1, h, 1, 1, c1h).expand(f, h, w, 2, c1h),
+        sin2[:w].view(1, 1, w, 1, c2h).expand(f, h, w, 2, c2h),
+    ], dim=-1).reshape(seq_len, 1, -1)
 
-        # apply rotary embedding
-        y = x1 * freqs_i[..., 0] + x2 * freqs_i[..., 1]
-        y = torch.cat([y, x[i, seq_len:]])
+    return cos, sin
 
-        # append to collection
-        output.append(y)
-    return torch.stack(output)
+
+def padding_kv(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor):
+    pad_len = max(q.size(-3) - k.size(-3), 0)
+    mask = None
+    if pad_len != 0:
+        k = torch.nn.functional.pad(k, (0, 0, 0, 0, 0, pad_len), mode='constant', value=0.0)
+        v = torch.nn.functional.pad(v, (0, 0, 0, 0, 0, pad_len), mode='constant', value=0.0)
+        mask = torch.zeros(1, k.shape[1], k.shape[1]).to(k)
+        mask[..., -pad_len:] = -1e9
+    return k, v, mask
 
 
 class WanRMSNorm(nn.Module):
@@ -76,18 +96,23 @@ class WanRMSNorm(nn.Module):
         self.eps = eps
         self.weight = nn.Parameter(torch.ones(dim))
 
-    def forward(self, x):
-        r"""
-        Args:
-            x(Tensor): Shape [B, L, C]
-        """
-        # TODO: Compare the precision of bf16 and f32
-        # * 2.6% faster
-        return self._norm(x) * self.weight
-        # return self._norm(x.float()).type_as(x) * self.weight
+    # def forward(self, x):
+    #     r"""
+    #     Args:
+    #         x(Tensor): Shape [B, L, C]
+    #     """
+    #     # TODO: Compare the precision of bf16 and f32
+    #     # * 2.6% faster
+    #     return self._norm(x) * self.weight
+    #     # return self._norm(x.float()).type_as(x) * self.weight
 
-    def _norm(self, x):
-        return x * torch.rsqrt(x.pow(2).mean(dim=-1, keepdim=True) + self.eps)
+    # def _norm(self, x):
+    #     return x * torch.rsqrt(x.pow(2).mean(dim=-1, keepdim=True) + self.eps)
+
+    def forward(self, x):
+        y = torch.empty_like(x)
+        torch.ops.my_ops.rmsnorm_forward(x, self.weight, None, y, 2, self.eps)
+        return y
 
 
 class WanLayerNorm(nn.LayerNorm):
@@ -111,7 +136,8 @@ class WanSelfAttention(nn.Module):
                  num_heads,
                  window_size=(-1, -1),
                  qk_norm=True,
-                 eps=1e-6):
+                 eps=1e-6,
+                 block_id=0):
         assert dim % num_heads == 0
         super().__init__()
         self.dim = dim
@@ -120,6 +146,7 @@ class WanSelfAttention(nn.Module):
         self.window_size = window_size
         self.qk_norm = qk_norm
         self.eps = eps
+        self.block_id = block_id
 
         # layers
         self.q = nn.Linear(dim, dim)
@@ -128,6 +155,8 @@ class WanSelfAttention(nn.Module):
         self.o = nn.Linear(dim, dim)
         self.norm_q = WanRMSNorm(dim, eps=eps) if qk_norm else nn.Identity()
         self.norm_k = WanRMSNorm(dim, eps=eps) if qk_norm else nn.Identity()
+
+        self.iter = 0
 
     def forward(self, x, seq_lens, grid_sizes, freqs):
         r"""
@@ -148,22 +177,46 @@ class WanSelfAttention(nn.Module):
 
         q, k, v = qkv_fn(x)
 
-        x = flash_attention(
-            q=rope_apply(q, grid_sizes, freqs),
-            k=rope_apply(k, grid_sizes, freqs),
-            v=v,
-            k_lens=seq_lens,
-            window_size=self.window_size)
+        cos, sin = freqs
+        scale = q.shape[-1]**-0.5
+        x = torch.zeros_like(q)
+        torch.ops.my_ops.llava_attention(x, q, k, v, cos, sin, None, scale)
 
         # output
         x = x.flatten(2)
         x = self.o(x)
         return x
 
+    def _load_from_state_dict(self, state_dict, prefix, *args, **kwargs):
+        rearrange_params = [
+            ('q.weight', 0),
+            ('q.bias', 0),
+            ('k.weight', 0),
+            ('k.bias', 0),
+            ('norm_q.weight', 0),
+            ('norm_k.weight', 0),
+        ]
+
+        def _rearrange(x, dim, head_dim):
+            if dim != 0:
+                x = x.transpose(dim, 0)
+            x = x.view(-1, head_dim, *x.shape[1:])
+            out = torch.cat([x[:, ::2], x[:, 1::2]], dim=1)
+            out = out.view(-1, *x.shape[2:])
+            if dim != 0:
+                out = out.transpose(dim, 0).contiguous()
+            return out
+
+        for name, dim in rearrange_params:
+            k = prefix + name
+            if k in state_dict:
+                state_dict[k] = _rearrange(state_dict[k], dim, self.head_dim)
+        super()._load_from_state_dict(state_dict, prefix, *args, **kwargs)
+
 
 class WanCrossAttention(WanSelfAttention):
 
-    def forward(self, x, context, context_lens):
+    def forward(self, x, context, context_lens, cache=None):
         r"""
         Args:
             x(Tensor): Shape [B, L1, C]
@@ -172,17 +225,48 @@ class WanCrossAttention(WanSelfAttention):
         """
         b, n, d = x.size(0), self.num_heads, self.head_dim
 
-        # compute query, key, value
+        # compute query, key, value, mask
         q = self.norm_q(self.q(x)).view(b, -1, n, d)
-        k = self.norm_k(self.k(context)).view(b, -1, n, d)
-        v = self.v(context).view(b, -1, n, d)
+        scale = q.shape[-1]**-0.5
+        if False:
+            if cache is not None:
+                if self.iter < 2:
+                    k = self.norm_k(self.k(context)).view(b, -1, n, d)
+                    v = self.v(context).view(b, -1, n, d)
+                    k, v, mask = padding_kv(q, k, v)
+                    cache['cross_attn_k'].setdefault(self.iter%2, {})[self.block_id] = k
+                    cache['cross_attn_v'].setdefault(self.iter%2, {})[self.block_id] = v
+                    cache['cross_attn_mask'][self.iter%2] = mask
+                else:
+                    k = cache['cross_attn_k'][self.iter%2][self.block_id]
+                    v = cache['cross_attn_v'][self.iter%2][self.block_id]
+                    mask = cache['cross_attn_mask'][self.iter%2]
+            else:
+                k = self.norm_k(self.k(context)).view(b, -1, n, d)
+                v = self.v(context).view(b, -1, n, d)
+                k, v, mask = padding_kv(q, k, v)
+            x = torch.empty_like(q)
+            torch.ops.my_ops.llava_attention(x, q, k, v, None, None, mask, scale)
+        else:
+            if cache is not None:
+                if self.iter < 2:
+                    k = self.norm_k(self.k(context)).view(b, -1, n, d)
+                    v = self.v(context).view(b, -1, n, d)
+                    cache['cross_attn_k'].setdefault(self.iter%2, {})[self.block_id] = k
+                    cache['cross_attn_v'].setdefault(self.iter%2, {})[self.block_id] = v
+                else:
+                    k = cache['cross_attn_k'][self.iter%2][self.block_id]
+                    v = cache['cross_attn_v'][self.iter%2][self.block_id]
+            else:
+                k = self.norm_k(self.k(context)).view(b, -1, n, d)
+                v = self.v(context).view(b, -1, n, d)
+            x = torch.nn.functional.scaled_dot_product_attention(q.transpose(1,2), k.transpose(1,2), v.transpose(1,2), attn_mask=None).transpose(1,2)
 
-        # compute attention
-        # DEVICE: Change flash attention to scaled dot product attention
-        x = torch.nn.functional.scaled_dot_product_attention(q.transpose(1,2), k.transpose(1,2), v.transpose(1,2), attn_mask=None).transpose(1,2)
         # output
         x = x.flatten(2)
         x = self.o(x)
+
+        self.iter += 1
         return x
 
 
@@ -195,7 +279,8 @@ class WanAttentionBlock(nn.Module):
                  window_size=(-1, -1),
                  qk_norm=True,
                  cross_attn_norm=False,
-                 eps=1e-6):
+                 eps=1e-6,
+                 block_id=0):
         super().__init__()
         self.dim = dim
         self.ffn_dim = ffn_dim
@@ -208,12 +293,12 @@ class WanAttentionBlock(nn.Module):
         # layers
         self.norm1 = WanLayerNorm(dim, eps)
         self.self_attn = WanSelfAttention(dim, num_heads, window_size, qk_norm,
-                                          eps)
+                                          eps, block_id)
         self.norm3 = WanLayerNorm(
             dim, eps,
             elementwise_affine=True) if cross_attn_norm else nn.Identity()
         self.cross_attn = WanCrossAttention(dim, num_heads, (-1, -1), qk_norm,
-                                            eps)
+                                            eps, block_id)
         self.norm2 = WanLayerNorm(dim, eps)
         self.ffn = nn.Sequential(
             nn.Linear(dim, ffn_dim), nn.GELU(approximate='tanh'),
@@ -231,6 +316,7 @@ class WanAttentionBlock(nn.Module):
         freqs,
         context,
         context_lens,
+        cache=None,
     ):
         r"""
         Args:
@@ -260,7 +346,7 @@ class WanAttentionBlock(nn.Module):
 
         # cross-attention & ffn function
         def cross_attn_ffn(x, context, context_lens, e):
-            x = x + self.cross_attn(self.norm3(x), context, context_lens)
+            x = x + self.cross_attn(self.norm3(x), context, context_lens, cache)
             y = self.ffn(
                 self.norm2(x).to(torch.bfloat16) * (1 + e[4].squeeze(2)) + e[3].squeeze(2))
             with torch.amp.autocast('tpu', dtype=torch.bfloat16):
@@ -402,7 +488,7 @@ class WanModel(ModelMixin, ConfigMixin):
         # blocks
         self.blocks = nn.ModuleList([
             WanAttentionBlock(dim, ffn_dim, num_heads, window_size, qk_norm,
-                              cross_attn_norm, eps) for _ in range(num_layers)
+                              cross_attn_norm, eps, block_id) for block_id in range(num_layers)
         ])
 
         # head
@@ -411,12 +497,12 @@ class WanModel(ModelMixin, ConfigMixin):
         # buffers (don't use register_buffer otherwise dtype will be changed in to())
         assert (dim % num_heads) == 0 and (dim // num_heads) % 2 == 0
         d = dim // num_heads
-        self.freqs = torch.cat([
-            rope_params(1024, d - 4 * (d // 6)),
-            rope_params(1024, 2 * (d // 6)),
-            rope_params(1024, 2 * (d // 6))
-        ],
-                               dim=1)
+
+        # DEVICE: Modify the freqs generation method
+        self.freqs = None
+
+        self.iter = 0
+        self.cache = {k: {} for k in ['e', 'e0', 'context', 'cross_attn_k', 'cross_attn_v', 'cross_attn_mask']}
 
         # # initialize weights
         # self.init_weights()
@@ -450,8 +536,6 @@ class WanModel(ModelMixin, ConfigMixin):
         """
         if self.model_type == 'i2v':
             assert y is not None
-        # params
-        self.freqs = self.freqs.to(x[0])
 
         if y is not None:
             x = [torch.cat([u, v], dim=0) for u, v in zip(x, y)]
@@ -468,50 +552,69 @@ class WanModel(ModelMixin, ConfigMixin):
                       dim=1) for u in x
         ])
 
+        if self.iter == 0:
+            freqs = build_freqs_real(1024, self.dim // self.num_heads, dtype=torch.float32)
+            cos_full, sin_full = [], []
+            for (f, h, w) in grid_sizes.tolist():
+                cos, sin = get_cos_sin(f, h, w, freqs)
+                cos_full.append(cos)
+                sin_full.append(sin)
+            self.freqs = (torch.stack(cos_full).to(x), torch.stack(sin_full).to(x))
+
         # time embeddings
-        if t.dim() == 1:
-            t = t.expand(t.size(0), seq_len)
-        # with torch.amp.autocast('tpu', dtype=torch.float32):
-        # DEVICE: Change dtype from fp32 to bf16
-        with torch.amp.autocast('tpu', dtype=torch.bfloat16):
-            bt = t.size(0)
-            t = t.flatten()
-            e = self.time_embedding(
-                sinusoidal_embedding_1d(self.freq_dim,
-                                        t).unflatten(0, (bt, seq_len)).to(torch.bfloat16))
-            # e = self.time_embedding(
-            #     sinusoidal_embedding_1d(self.freq_dim,
-            #                             t).unflatten(0, (bt, seq_len)))
-            e0 = self.time_projection(e).unflatten(2, (6, self.dim))
-            # assert e.dtype == torch.float32 and e0.dtype == torch.float32
-            assert e.dtype == torch.bfloat16 and e0.dtype == torch.bfloat16
+        if self.iter % 2 == 0:
+            if t.dim() == 1:
+                t = t.expand(t.size(0), seq_len)
+            # with torch.amp.autocast('tpu', dtype=torch.float32):
+            # DEVICE: Change dtype from fp32 to bf16
+            with torch.amp.autocast('tpu', dtype=torch.bfloat16):
+                bt = t.size(0)
+                t = t.flatten()
+                e = self.time_embedding(
+                    sinusoidal_embedding_1d(self.freq_dim,
+                                            t).unflatten(0, (bt, seq_len)).to(torch.bfloat16))
+                # e = self.time_embedding(
+                #     sinusoidal_embedding_1d(self.freq_dim,
+                #                             t).unflatten(0, (bt, seq_len)))
+                e0 = self.time_projection(e).unflatten(2, (6, self.dim))
+                # assert e.dtype == torch.float32 and e0.dtype == torch.float32
+                assert e.dtype == torch.bfloat16 and e0.dtype == torch.bfloat16
+                self.cache['e'].clear()
+                self.cache['e0'].clear()
+                self.cache['e'][self.iter] = e
+                self.cache['e0'][self.iter] = e0
 
         # context
         context_lens = None
-        context = self.text_embedding(
-            torch.stack([
-                torch.cat(
-                    [u, u.new_zeros(self.text_len - u.size(0), u.size(1))])
-                for u in context
-            ]))
+        if self.iter < 2:
+            context = self.text_embedding(
+                torch.stack([
+                    torch.cat(
+                        [u, u.new_zeros(self.text_len - u.size(0), u.size(1))])
+                    for u in context
+                ]))
+            self.cache['context'][self.iter] = context
 
         # arguments
         kwargs = dict(
-            e=e0,
+            e=self.cache['e0'][self.iter//2*2],
             seq_lens=seq_lens,
             grid_sizes=grid_sizes,
             freqs=self.freqs,
-            context=context,
-            context_lens=context_lens)
+            context=self.cache['context'][self.iter%2],
+            context_lens=context_lens,
+            cache=self.cache)
 
         for block in self.blocks:
             x = block(x, **kwargs)
 
         # head
-        x = self.head(x, e)
+        x = self.head(x, self.cache['e'][self.iter//2*2])
 
         # unpatchify
         x = self.unpatchify(x, grid_sizes)
+
+        self.iter += 1
         return [u.to(torch.bfloat16) for u in x]
 
     def unpatchify(self, x, grid_sizes):

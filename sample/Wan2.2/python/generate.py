@@ -307,7 +307,8 @@ def generate(args):
     _init_logging(rank)
 
     if args.offload_model is None:
-        args.offload_model = False if world_size > 1 else True
+        # args.offload_model = False if world_size > 1 else True
+        args.offload_model = False
         logging.info(
             f"offload_model is not specified, set to {args.offload_model}.")
     # DEVICE：change backend from nccl to sccl and init distributed group
@@ -536,7 +537,7 @@ def generate(args):
             formatted_prompt = args.prompt.replace(" ", "_").replace("/",
                                                                      "_")[:50]
             suffix = '.mp4'
-            args.save_file = f"{args.task}_{args.size.replace('*','x') if sys.platform=='win32' else args.size}_{args.ulysses_size}_{args.tp_size}_{formatted_prompt}_{formatted_time}" + suffix
+            args.save_file = f"{args.task}_{args.size.replace('*','x') if sys.platform=='win32' else args.size}_{args.frame_num}_{args.ulysses_size}_{args.tp_size}_{formatted_prompt}_{formatted_time}" + suffix
 
         logging.info(f"Saving generated video to {args.save_file}")
         save_video(

@@ -3,8 +3,7 @@ import torch.nn as nn
 import torch.distributed as dist
 import torch.nn.functional as F
 
-from ..modules.model import WanModel, WanAttentionBlock, WanLayerNorm, WanRMSNorm, WanSelfAttention, rope_apply
-from ..modules.attention import flash_attention
+from ..modules.model import WanModel, WanAttentionBlock, WanLayerNorm, WanRMSNorm, WanSelfAttention, padding_kv
 
 
 class TPWanRMSNorm(WanRMSNorm):
@@ -84,12 +83,10 @@ class TPWanSelfAttention(WanSelfAttention):
 
         q, k, v = qkv_fn(x)
 
-        x = flash_attention(
-            q=rope_apply(q, grid_sizes, freqs),
-            k=rope_apply(k, grid_sizes, freqs),
-            v=v,
-            k_lens=seq_lens,
-            window_size=self.window_size)
+        cos, sin = freqs
+        scale = q.shape[-1]**-0.5
+        x = torch.zeros_like(q)
+        torch.ops.my_ops.llava_attention(x, q, k, v, cos, sin, None, scale)
 
         # output
         x = x.flatten(2)
@@ -101,16 +98,45 @@ class TPWanSelfAttention(WanSelfAttention):
 
 class TPWanCrossAttention(TPWanSelfAttention):
 
-    def forward(self, x, context, context_lens):
+    def forward(self, x, context, context_lens, cache=None):
         b, n, d = x.size(0), self.num_heads // self.world_size, self.head_dim
 
-        # compute query, key, value
+        # compute query, key, value, mask
         q = self.norm_q(self.q(x)).view(b, -1, n, d)
-        k = self.norm_k(self.k(context)).view(b, -1, n, d)
-        v = self.v(context).view(b, -1, n, d)
-
-        # compute attention
-        x = torch.nn.functional.scaled_dot_product_attention(q.transpose(1,2), k.transpose(1,2), v.transpose(1,2), attn_mask=None).transpose(1,2)
+        scale = q.shape[-1]**-0.5
+        if False:
+            if cache is not None:
+                if self.iter < 2:
+                    k = self.norm_k(self.k(context)).view(b, -1, n, d)
+                    v = self.v(context).view(b, -1, n, d)
+                    k, v, mask = padding_kv(q, k, v)
+                    cache['cross_attn_k'].setdefault(self.iter%2, {})[self.block_id] = k
+                    cache['cross_attn_v'].setdefault(self.iter%2, {})[self.block_id] = v
+                    cache['cross_attn_mask'][self.iter%2] = mask
+                else:
+                    k = cache['cross_attn_k'][self.iter%2][self.block_id]
+                    v = cache['cross_attn_v'][self.iter%2][self.block_id]
+                    mask = cache['cross_attn_mask'][self.iter%2]
+            else:
+                k = self.norm_k(self.k(context)).view(b, -1, n, d)
+                v = self.v(context).view(b, -1, n, d)
+                k, v, mask = padding_kv(q, k, v)
+            x = torch.empty_like(q)
+            torch.ops.my_ops.llava_attention(x, q, k, v, None, None, mask, scale)
+        else:
+            if cache is not None:
+                if self.iter < 2:
+                    k = self.norm_k(self.k(context)).view(b, -1, n, d)
+                    v = self.v(context).view(b, -1, n, d)
+                    cache['cross_attn_k'].setdefault(self.iter%2, {})[self.block_id] = k
+                    cache['cross_attn_v'].setdefault(self.iter%2, {})[self.block_id] = v
+                else:
+                    k = cache['cross_attn_k'][self.iter%2][self.block_id]
+                    v = cache['cross_attn_v'][self.iter%2][self.block_id]
+            else:
+                k = self.norm_k(self.k(context)).view(b, -1, n, d)
+                v = self.v(context).view(b, -1, n, d)
+            x = torch.nn.functional.scaled_dot_product_attention(q.transpose(1,2), k.transpose(1,2), v.transpose(1,2), attn_mask=None).transpose(1,2)
 
         # output
         x = x.flatten(2)
@@ -200,6 +226,7 @@ class TPWanAttentionBlock(WanAttentionBlock):
         freqs,
         context,
         context_lens,
+        cache=None,
     ):
         assert e.dtype == torch.bfloat16
         with torch.amp.autocast('tpu', dtype=torch.float32):
@@ -215,7 +242,7 @@ class TPWanAttentionBlock(WanAttentionBlock):
 
         # cross-attention & ffn function
         def cross_attn_ffn(x, context, context_lens, e):
-            x = x + self.cross_attn(self.norm3(x), context, context_lens)
+            x = x + self.cross_attn(self.norm3(x), context, context_lens, cache)
             y = self.ffn(
                 self.norm2(x).to(torch.bfloat16) * (1 + e[4].squeeze(2)) + e[3].squeeze(2))
             dist.all_reduce(y, op=dist.ReduceOp.SUM)
