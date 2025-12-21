@@ -29,7 +29,13 @@ PP-OCRv4，是百度飞桨团队开源的超轻量OCR系列模型，包含文本
 * 支持图片数据集测试
 
 ## 3. 准备模型与数据
-建议使用TPU-MLIR编译BModel，Paddle模型在编译前要导出成onnx模型。具体可参考[Paddle部署模型导出](https://www.paddlepaddle.org.cn/documentation/docs/zh/guides/beginner/model_save_load_cn.html)和[Paddle2ONNX文档](https://www.paddlepaddle.org.cn/documentation/docs/zh/guides/advanced/model_to_onnx_cn.html)
+建议使用TPU-MLIR编译BModel，Paddle模型在编译前要导出成onnx模型，您可以从[model_list](https://github.com/PaddlePaddle/PaddleOCR/blob/main/docs/version3.x/model_list.md)获取相关模型的推理版本。
+
+然后运行类似如下命令导出onnx模型：
+```bash
+pip3 install paddlepaddle paddle2onnx
+paddle2onnx --model_dir {official_inference_model} --params_filename inference.pdiparams --model_filename inference.json --save_file {official_inference_model}.onnx
+```
 
 同时，您需要准备用于测试的数据集，如果量化模型，还要准备用于量化的数据集。
 
@@ -80,6 +86,26 @@ chmod -R +x scripts/
 ├── ppocr_keys_v1.txt # 汉字集合
 ├── train_full_images_0 # ICDAR-2019训练集
 └── train_full_images_0.json # ICDAR-2019 ground truth文件
+```
+
+您可以通过这个脚本下载ppocrv5相关数据。
+```bash
+./scripts/download_v5.sh 
+```
+
+下载的模型和数据包括：
+```bash
+datasets
+├── ppocrv5_dict.txt # ppocrv5汉字集合
+models
+│   BM1688      
+│   ├── ch_PP-OCRv5_det_fp16.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
+│   ├── ch_PP-OCRv5_rec_fp16.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
+│   ├── ch_PP-OCRv5_det_fp16_2core.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
+│   ├── ch_PP-OCRv5_rec_fp16_2core.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
+├── CV186X      
+│   ├── ch_PP-OCRv5_det_fp16.bmodel       # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
+│   ├── ch_PP-OCRv5_rec_fp16.bmodel       # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
 ```
 
 ## 4. 模型编译
