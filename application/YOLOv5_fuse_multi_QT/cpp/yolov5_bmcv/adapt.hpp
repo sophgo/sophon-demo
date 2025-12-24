@@ -18,9 +18,6 @@ static inline bm_status_t bm_image_destroy(bm_image& image){
   return bm_image_destroy(&image);
 }
 typedef bmcv_padding_attr_t bmcv_padding_atrr_t;
-static inline bm_status_t bm_image_dettach_contiguous_mem(int image_num, bm_image *images){
-  return bm_image_detach_contiguous_mem(image_num, images);
-}
 #endif
 
 #endif
