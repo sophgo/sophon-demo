@@ -84,7 +84,7 @@ class CausalConv3d(nn.Conv3d):
             self.wl_flag = 1
             self.weight_local = self.weight[:, self.ic_start:self.ic_end, ...].to(x_local.device).contiguous()
 
-        partial = F.conv3d(x_local,self.weight_local,bias=None,stride=self.stride,padding=0,dilation=self.dilation,groups=self.groups,)
+        partial = F.conv3d(x_local,self.weight_local,bias=None)
 
         # reduce only within TP group if provided
         if dist.is_available() and dist.is_initialized():
@@ -109,10 +109,22 @@ class RMS_norm(nn.Module):
         self.scale = dim**0.5
         self.gamma = nn.Parameter(torch.ones(shape))
         self.bias = nn.Parameter(torch.zeros(shape)) if bias else 0.0
+        self.eps = 1e-12
 
     def forward(self, x):
-        out = (F.normalize(x, dim=(1 if self.channel_first else -1)) *
-                self.scale * self.gamma + self.bias)
+        dim = x.dim()
+        # TODO: fix the bug of rmsnorm ops
+        if dim == 5:
+            x = x.permute(0,2,3,4,1).contiguous()
+        else:
+            x = x.permute(0,2,3,1).contiguous()
+        output = torch.empty(x.shape, dtype=x.dtype, device=x.device)
+        torch.ops.my_ops.rmsnorm_forward(x, None, None, output, dim - 1, self.eps)
+        if dim == 5:
+            output = output.permute(0,4,1,2,3).contiguous()
+        else:
+            output = output.permute(0,3,1,2).contiguous()
+        out = output * self.gamma + self.bias
         return out
 
 
@@ -322,11 +334,14 @@ class AttentionBlock(nn.Module):
                                                2).contiguous().chunk(3, dim=-1))
 
         # apply attention
-        x = F.scaled_dot_product_attention(
-            q,
-            k,
-            v,
-        )
+        # x = F.scaled_dot_product_attention(
+        #     q,
+        #     k,
+        #     v,
+        # )
+        scale = q.shape[-1]**-0.5
+        x = torch.zeros_like(q)
+        torch.ops.my_ops.llava_attention(x, q, k, v, None, None, None, scale)
         x = x.squeeze(1).permute(0, 2, 1).reshape(b * t, c, h, w).contiguous()
 
         # output

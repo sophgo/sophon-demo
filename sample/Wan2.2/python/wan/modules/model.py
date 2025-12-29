@@ -7,6 +7,8 @@ import torch.nn as nn
 from diffusers.configuration_utils import ConfigMixin, register_to_config
 from diffusers.models.modeling_utils import ModelMixin
 
+from .attention import flash_attention
+
 __all__ = ['WanModel']
 
 
@@ -86,6 +88,10 @@ def padding_kv(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor):
         mask = torch.zeros(1, k.shape[1], k.shape[1]).to(k)
         mask[..., -pad_len:] = -1e9
     return k, v, mask
+
+def rope_apply(x):
+    # TODO: need to rewrite attention.py file to keep
+    return
 
 
 class WanRMSNorm(nn.Module):
@@ -228,7 +234,7 @@ class WanCrossAttention(WanSelfAttention):
         # compute query, key, value, mask
         q = self.norm_q(self.q(x)).view(b, -1, n, d)
         scale = q.shape[-1]**-0.5
-        if False:
+        if True:
             if cache is not None:
                 if self.iter < 2:
                     k = self.norm_k(self.k(context)).view(b, -1, n, d)

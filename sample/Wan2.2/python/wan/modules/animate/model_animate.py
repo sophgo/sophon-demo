@@ -28,7 +28,7 @@ from ..model import (
     WanModel,
     WanSelfAttention,
     flash_attention,
-    rope_params,
+    rope_params_real,
     sinusoidal_embedding_1d,
     rope_apply
 )

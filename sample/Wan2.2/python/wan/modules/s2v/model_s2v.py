@@ -24,7 +24,7 @@ from ..model import (
     WanModel,
     WanSelfAttention,
     flash_attention,
-    rope_params,
+    rope_params_real,
     sinusoidal_embedding_1d,
 )
 from .audio_utils import AudioInjector_WAN, CausalAudioEncoder

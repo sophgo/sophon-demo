@@ -3,6 +3,7 @@ import torch
 
 from ..modules.model import sinusoidal_embedding_1d, build_freqs_real, get_cos_sin
 from .util import all_to_all, gather_forward, get_rank, get_world_size
+from .ulysses import distributed_attention
 
 
 def sp_dit_forward(
