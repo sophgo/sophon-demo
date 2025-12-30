@@ -40,7 +40,7 @@
 ```bash
 pip install "huggingface_hub[cli]"
 huggingface-cli download Wan-AI/Wan2.2-T2V-A14B --local-dir ./Wan2.2-T2V-A14B
-huggingface-cli download Wan-AI/Wan2.2-TI2V-5B --local-dir ./Wan2.2-TI2V-5B
+huggingface-cli download Wan-AI/Wan2.2-TI2V-5B-BF16 --local-dir ./Wan2.2-TI2V-5B-BF16
 ```
 
 使用modelscope-cli下载模型：
@@ -48,7 +48,7 @@ huggingface-cli download Wan-AI/Wan2.2-TI2V-5B --local-dir ./Wan2.2-TI2V-5B
 ```bash
 pip install modelscope
 modelscope download Wan-AI/Wan2.2-T2V-A14B --local_dir ./Wan2.2-T2V-A14B
-modelscope download Wan-AI/Wan2.2-TI2V-5B --local_dir ./Wan2.2-TI2V-5B
+modelscope download Wan-AI/Wan2.2-TI2V-5B-BF16 --local_dir ./Wan2.2-TI2V-5B-BF16
 ```
 
 ## 5. 测试环境准备
