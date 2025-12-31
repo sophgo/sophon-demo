@@ -258,18 +258,19 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 |   SE7-32    | BM1684X/resnet50_fp16_1b.bmodel    |           1.62  |
 |   SE7-32    | BM1684X/resnet50_int8_1b.bmodel    |           1.10  |
 |   SE7-32    | BM1684X/resnet50_int8_4b.bmodel    |           0.82  |
-|   SE9-16    | BM1688/resnet50_fp32_1b.bmodel     |          46.90  |
-|   SE9-16    | BM1688/resnet50_fp16_1b.bmodel     |           8.26  |
-|   SE9-16    | BM1688/resnet50_int8_1b.bmodel     |           3.14  |
-|   SE9-16    | BM1688/resnet50_int8_4b.bmodel     |           2.48  |
-|   SE9-16    | BM1688/resnet50_fp32_1b_2core.bmodel|          34.87  |
-|   SE9-16    | BM1688/resnet50_fp16_1b_2core.bmodel|           7.55  |
-|   SE9-16    | BM1688/resnet50_int8_1b_2core.bmodel|           3.03  |
-|   SE9-16    | BM1688/resnet50_int8_4b_2core.bmodel|           1.92  |
-|   SE9-8    | CV186X/resnet50_fp32_1b.bmodel      |          42.90  |
-|   SE9-8    | CV186X/resnet50_fp16_1b.bmodel      |          6.89   |
-|   SE9-8    | CV186X/resnet50_int8_1b.bmodel      |          2.43   |
-|   SE9-8    | CV186X/resnet50_int8_4b.bmodel      |          1.82   |
+| SE9-16          | BM1688/resnet50_fp32_1b.bmodel     |          43.42  |
+| SE9-16          | BM1688/resnet50_fp16_1b.bmodel     |           7.19  |
+| SE9-16          | BM1688/resnet50_int8_1b.bmodel     |           2.58  |
+| SE9-16          | BM1688/resnet50_int8_4b.bmodel     |           2.01  |
+| SE9-16          | BM1688/resnet50_fp32_1b_2core.bmodel|          31.96  |
+| SE9-16          | BM1688/resnet50_fp16_1b_2core.bmodel|           6.49  |
+| SE9-16          | BM1688/resnet50_int8_1b_2core.bmodel|           2.45  |
+| SE9-16          | BM1688/resnet50_int8_4b_2core.bmodel|           1.45  |
+| SE9-8           | CV186X/resnet50_fp32_1b.bmodel     |          42.98  |
+| SE9-8           | CV186X/resnet50_fp16_1b.bmodel     |           6.94  |
+| SE9-8           | CV186X/resnet50_int8_1b.bmodel     |           2.47  |
+| SE9-8           | CV186X/resnet50_int8_4b.bmodel     |           1.84  |
+
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
