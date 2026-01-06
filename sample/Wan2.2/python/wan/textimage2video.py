@@ -496,7 +496,7 @@ class WanTI2V:
         assert img.width == ow and img.height == oh
 
         # to tensor
-        img = TF.to_tensor(img).sub_(0.5).div_(0.5).to(self.device).unsqueeze(1)
+        img = TF.to_tensor(img).sub_(0.5).div_(0.5).to(self.device).unsqueeze(1).to(torch.bfloat16)
 
         F = frame_num
         seq_len = ((F - 1) // self.vae_stride[0] + 1) * (
@@ -547,7 +547,7 @@ class WanTI2V:
                 torch.no_grad(),
                 no_sync(),
         ):
-
+            
             if sample_solver == 'unipc':
                 sample_scheduler = FlowUniPCMultistepScheduler(
                     num_train_timesteps=self.num_train_timesteps,
@@ -572,7 +572,7 @@ class WanTI2V:
             # sample videos
             latent = noise
             mask1, mask2 = masks_like([noise], zero=True)
-            latent = (1. - mask2[0]) * z[0] + mask2[0] * latent
+            latent = ((1. - mask2[0]) * z[0] + mask2[0] * latent).to(self.device).to(torch.bfloat16)
 
             arg_c = {
                 'context': [context[0]],
@@ -590,7 +590,8 @@ class WanTI2V:
                 torch.tpu.empty_cache()
 
             for _, t in enumerate(tqdm(timesteps)):
-                latent_model_input = [latent.to(self.device)]
+                
+                latent_model_input = [latent.to(self.device).to(torch.bfloat16)]
                 timestep = [t]
 
                 timestep = torch.stack(timestep).to(self.device)
@@ -622,7 +623,7 @@ class WanTI2V:
                 latent = temp_x0.squeeze(0)
                 latent = (1. - mask2[0]) * z[0] + mask2[0] * latent
 
-                x0 = [latent]
+                x0 = [latent.to(torch.bfloat16)]
                 del latent_model_input, timestep
 
             if offload_model:

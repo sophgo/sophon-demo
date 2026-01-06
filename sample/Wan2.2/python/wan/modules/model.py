@@ -544,7 +544,7 @@ class WanModel(ModelMixin, ConfigMixin):
             assert y is not None
 
         if y is not None:
-            x = [torch.cat([u, v], dim=0) for u, v in zip(x, y)]
+            x = [torch.cat([u, v], dim=0).to(torch.bfloat16) for u, v in zip(x, y)]
 
         # embeddings
         x = [self.patch_embedding(u.unsqueeze(0)) for u in x]

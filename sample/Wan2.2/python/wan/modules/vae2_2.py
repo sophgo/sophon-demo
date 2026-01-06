@@ -108,23 +108,12 @@ class RMS_norm(nn.Module):
         self.channel_first = channel_first
         self.scale = dim**0.5
         self.gamma = nn.Parameter(torch.ones(shape))
-        self.bias = nn.Parameter(torch.zeros(shape)) if bias else 0.0
+        self.bias = nn.Parameter(torch.zeros(shape)) if bias else None
         self.eps = 1e-12
 
     def forward(self, x):
-        dim = x.dim()
-        # TODO: fix the bug of rmsnorm ops
-        if dim == 5:
-            x = x.permute(0,2,3,4,1).contiguous()
-        else:
-            x = x.permute(0,2,3,1).contiguous()
-        output = torch.empty(x.shape, dtype=x.dtype, device=x.device)
-        torch.ops.my_ops.rmsnorm_forward(x, None, None, output, dim - 1, self.eps)
-        if dim == 5:
-            output = output.permute(0,4,1,2,3).contiguous()
-        else:
-            output = output.permute(0,3,1,2).contiguous()
-        out = output * self.gamma + self.bias
+        out = torch.empty_like(x)
+        torch.ops.my_ops.rmsnorm_forward(x, self.gamma, self.bias, out, 1 if self.channel_first else x.dim()-1, self.eps)
         return out
 
 
@@ -302,7 +291,8 @@ class ResidualBlock(nn.Module):
                 feat_idx[0] += 1
             else:
                 x = layer(x)
-        return x + h
+        out = x + h
+        return out
 
 
 class AttentionBlock(nn.Module):
@@ -409,34 +399,46 @@ class AvgDown3D(nn.Module):
         pad_t = (self.factor_t - x.shape[2] % self.factor_t) % self.factor_t
         pad = (0, 0, 0, 0, pad_t, 0)
         x = F.pad(x, pad)
+
         B, C, T, H, W = x.shape
-        x = x.view(
-            B,
-            C,
-            T // self.factor_t,
-            self.factor_t,
-            H // self.factor_s,
-            self.factor_s,
-            W // self.factor_s,
-            self.factor_s,
-        )
-        x = x.permute(0, 1, 3, 5, 7, 2, 4, 6).contiguous()
-        x = x.view(
-            B,
-            C * self.factor,
-            T // self.factor_t,
-            H // self.factor_s,
-            W // self.factor_s,
-        )
-        x = x.view(
-            B,
-            self.out_channels,
-            self.group_size,
-            T // self.factor_t,
-            H // self.factor_s,
-            W // self.factor_s,
-        )
-        x = x.mean(dim=2)
+        ft = self.factor_t
+        fs = self.factor_s
+        factor = self.factor
+
+        # require divisibility (pad handled temporal)
+        assert T % ft == 0 and H % fs == 0 and W % fs == 0
+
+        T_low = T // ft
+        H_low = H // fs
+        W_low = W // fs
+
+        # split spatial factors without using an 8-length permute:
+        # start: (B, C, T, H_low, fs, W_low, fs)
+        x = x.view(B, C, T, H_low, fs, W_low, fs)
+
+        # swap axes to bring small-factor dims together: -> (B, C, T, H_low, W_low, fs, fs)
+        # this is a 7-dim permute (supported) achieved by transpose via permute call
+        x = x.permute(0, 1, 2, 3, 5, 4, 6).contiguous()
+
+        # reshape time into (T_low, ft) and merge H_low*W_low, fs*fs: -> (B, C, T_low, ft, H_low*W_low, fs*fs)
+        x = x.view(B, C, T_low, ft, H_low * W_low, fs * fs)
+        # apply the inverse of the DupUp3D short-permute (6-dim inverse)
+        # inv of (0,1,4,2,5,3) is (0,1,3,5,2,4)
+        # result -> (B, C, ft, fs*fs, T_low, H_low*W_low)
+        x = x.permute(0, 1, 3, 5, 2, 4).contiguous()
+        # merge ft and fs*fs into channel dimension -> (B, C * factor, T_low, H_low * W_low)
+        x = x.view(B, C * factor, T_low, H_low * W_low)
+        # split back H_low and W_low -> (B, C*factor, T_low, H_low, W_low)
+        x = x.view(B, C * factor, T_low, H_low, W_low)
+
+        # final grouping + average to get out_channels
+        x = x.view(B, self.out_channels, self.group_size, T_low, H_low, W_low)
+
+        # TPU/XLA reductions require reducing a prefix/suffix dim.
+        # Move group dim to the last axis, reduce, result has shape (B, out, T_low, H_low, W_low)
+        x = x.contiguous()
+        x = x.permute(0, 1, 3, 4, 5, 2).contiguous()  # (B, out, T_low, H_low, W_low, group)
+        x = x.mean(dim=-1)
         return x
 
 
@@ -540,7 +542,6 @@ class Down_ResidualBlock(nn.Module):
         x_copy = x.clone()
         for module in self.downsamples:
             x = module(x, feat_cache, feat_idx)
-
         return x + self.avg_shortcut(x_copy)
 
 
@@ -651,7 +652,6 @@ class Encoder3d(nn.Module):
         )
 
     def forward(self, x, feat_cache=None, feat_idx=[0]):
-
         if feat_cache is not None:
             idx = feat_idx[0]
             cache_x = x[:, :, -CACHE_T:, :, :].clone()
@@ -669,21 +669,19 @@ class Encoder3d(nn.Module):
             feat_idx[0] += 1
         else:
             x = self.conv1(x)
-
         ## downsamples
         for layer in self.downsamples:
             if feat_cache is not None:
                 x = layer(x, feat_cache, feat_idx)
             else:
                 x = layer(x)
-
         ## middle
         for layer in self.middle:
             if isinstance(layer, ResidualBlock) and feat_cache is not None:
                 x = layer(x, feat_cache, feat_idx)
             else:
                 x = layer(x)
-
+        
         ## head
         for layer in self.head:
             if isinstance(layer, CausalConv3d) and feat_cache is not None:

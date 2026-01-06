@@ -104,7 +104,7 @@ class TPWanCrossAttention(TPWanSelfAttention):
         # compute query, key, value, mask
         q = self.norm_q(self.q(x)).view(b, -1, n, d)
         scale = q.shape[-1]**-0.5
-        if False:
+        if True:
             if cache is not None:
                 if self.iter < 2:
                     k = self.norm_k(self.k(context)).view(b, -1, n, d)
