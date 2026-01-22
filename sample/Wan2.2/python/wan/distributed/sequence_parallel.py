@@ -1,4 +1,5 @@
 # Copyright 2024-2025 The Alibaba Wan Team Authors. All rights reserved.
+import time
 import torch
 
 from ..modules.model import sinusoidal_embedding_1d, build_freqs_real, get_cos_sin
@@ -23,7 +24,7 @@ def sp_dit_forward(
         assert y is not None
 
     if y is not None:
-        x = [torch.cat([u, v], dim=0) for u, v in zip(x, y)]
+        x = [torch.cat([u, v], dim=0).to(torch.bfloat16) for u, v in zip(x, y)]
 
     # embeddings
     x = [self.patch_embedding(u.unsqueeze(0)) for u in x]
@@ -133,4 +134,5 @@ def sp_attn_forward(self, x, seq_lens, grid_sizes, freqs):
     # output
     x = x.flatten(2)
     x = self.o(x)
+    
     return x

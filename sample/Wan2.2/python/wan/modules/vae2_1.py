@@ -1,11 +1,15 @@
 # Copyright 2024-2025 The Alibaba Wan Team Authors. All rights reserved.
 import logging
+import os
 
 import torch
+import torch_tpu
 import torch.cuda.amp as amp
 import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
+
+import torch.distributed as dist
 
 __all__ = [
     'Wan2_1_VAE',
@@ -18,22 +22,117 @@ class CausalConv3d(nn.Conv3d):
     """
     Causal 3d convolusion.
     """
+    
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._padding = (self.padding[2], self.padding[2], self.padding[1],
-                         self.padding[1], 2 * self.padding[0], 0)
+        self._padding = (
+            self.padding[2],
+            self.padding[2],
+            self.padding[1],
+            self.padding[1],
+            2 * self.padding[0],
+            0,
+        )
         self.padding = (0, 0, 0)
+        self._conv_shard = os.environ.get("CONV_SHARD", "none").lower()
 
+        try:
+            self._world_size = int(os.environ.get("WORLD_SIZE"))
+            self._rank = int(os.environ.get("RANK"))
+            self.device = torch.device(f"tpu:{self._rank}")
+            self.bc_flag = 0
+            self.wl_flag = 0
+            self.oc_wl_flag = 0
+            
+            in_channels = self.weight.size(1)
+            out_channels = self.weight.size(0)
+            if in_channels % self._world_size != 0:
+                self.ic_flag = 0
+            else:
+                self.ic_flag = 1
+                self.ic_start, self.ic_end, self.ic_local = self._slice_range(in_channels, self._rank, self._world_size)
+            if out_channels % self._world_size != 0:
+                self.oc_flag = 0
+            else:
+                self.oc_flag = 1
+                self.oc_start, self.oc_end, self.oc_local = self._slice_range(out_channels, self._rank, self._world_size)
+        except (ValueError, TypeError):
+            self._world_size = 1
+            self._rank = 0
+
+        self.debug_mode = os.environ.get("DEBUG_CAUSAL_CONV", "0") == "1"
+
+    # DEVICE: Confirm TP splitting position
+    def _slice_range(self, total, rank, world_size):
+        base = total // world_size
+        rem = total % world_size
+        start = rank * base + min(rank, rem)
+        size = base + (1 if rank < rem else 0)
+        return start, start + size, size
+
+    # DEVICE: Support TP for conv3d
     def forward(self, x, cache_x=None):
         padding = list(self._padding)
         if cache_x is not None and self._padding[4] > 0:
             cache_x = cache_x.to(x.device)
             x = torch.cat([cache_x, x], dim=2)
             padding[4] -= cache_x.shape[2]
+        
         x = F.pad(x, padding)
 
-        return super().forward(x)
+        if self._conv_shard != "ic" or self._world_size <= 1 or not dist.is_available() or not dist.is_initialized() or self.ic_flag == 0:
+            out = super().forward(x)
+            return out
+        
+        if self._conv_shard == "oc" and self._world_size > 1 and dist.is_available() and dist.is_initialized() and getattr(self, 'oc_flag', 0) == 1:
+            # ensure input is available on all ranks
+            if self.bc_flag == 0:
+                self.bc_flag = 1
+                dist.broadcast(x, src=0)
+
+            if getattr(self, 'oc_wl_flag', 0) == 0:
+                self.oc_wl_flag = 1
+                self.oc_weight_local = self.weight[self.oc_start:self.oc_end, ...].to(x.device).contiguous()
+
+            partial = F.conv3d(x, self.oc_weight_local, bias=None, stride=self.stride)
+
+            if self.bias is not None:
+                bias_local = self.bias[self.oc_start:self.oc_end].to(x.device)
+                partial = partial + bias_local.view(1, -1, 1, 1, 1)
+
+            if dist.is_available() and dist.is_initialized():
+                gathered = [torch.empty_like(partial) for _ in range(self._world_size)]
+                dist.all_gather(gathered, partial)
+                out = torch.cat(gathered, dim=1)
+                dist.barrier()
+            else:
+                out = partial
+
+            if self.debug_mode:
+                logging.info(f"[CausalConv3d][oc] rank={self._rank} oc=({self.oc_start},{self.oc_end}) partial.sum={float(partial.float().sum()):.6f}")
+            return out
+
+        if self.bc_flag == 0:
+            self.bc_flag = 1
+            dist.broadcast(x, src=0)
+
+        
+        x_local = x[:, self.ic_start:self.ic_end, ...].contiguous()
+        if self.wl_flag == 0:
+            self.wl_flag = 1
+            self.weight_local = self.weight[:, self.ic_start:self.ic_end, ...].to(x_local.device).contiguous()
+        partial = F.conv3d(x_local,self.weight_local,bias=None, stride=self.stride)
+        # reduce only within TP group if provided
+        if dist.is_available() and dist.is_initialized():
+            dist.all_reduce(partial, op=dist.ReduceOp.SUM)
+            dist.barrier()
+
+        if self.bias is not None:
+            partial = partial + self.bias.view(1, -1, 1, 1, 1).to(x_local.device)
+        if self.debug_mode:
+            logging.info(f"[CausalConv3d] rank={self._rank} ic=({self.ic_start},{self.ic_end}) partial.sum={float(partial.float().sum()):.6f}")
+        return partial
 
 
 class RMS_norm(nn.Module):
@@ -46,12 +145,26 @@ class RMS_norm(nn.Module):
         self.channel_first = channel_first
         self.scale = dim**0.5
         self.gamma = nn.Parameter(torch.ones(shape))
-        self.bias = nn.Parameter(torch.zeros(shape)) if bias else 0.
+        self.bias = nn.Parameter(torch.zeros(shape)) if bias else 0.0
+        self.eps = 1e-12
 
     def forward(self, x):
-        return F.normalize(
-            x, dim=(1 if self.channel_first else
-                    -1)) * self.scale * self.gamma + self.bias
+        # out = torch.empty_like(x)
+        # torch.ops.my_ops.rmsnorm_forward(x, self.gamma, self.bias, out, 1 if self.channel_first else x.dim()-1, self.eps)
+        # 这里在ti2v中不会报错，但在i2v中会报错，暂时加上contiguous规避
+        dim = x.dim()
+        if dim == 5:
+            x = x.permute(0,2,3,4,1).contiguous()
+        else:
+            x = x.permute(0,2,3,1).contiguous()
+        output = torch.empty(x.shape, dtype=x.dtype, device=x.device)
+        torch.ops.my_ops.rmsnorm_forward(x, None, None, output, dim - 1, self.eps)
+        if dim == 5:
+            output = output.permute(0,4,1,2,3).contiguous()
+        else:
+            output = output.permute(0,3,1,2).contiguous()
+        out = output * self.gamma + self.bias
+        return out.contiguous()
 
 
 class Upsample(nn.Upsample):
@@ -60,7 +173,8 @@ class Upsample(nn.Upsample):
         """
         Fix bfloat16 support for nearest neighbor interpolation.
         """
-        return super().forward(x.float()).type_as(x)
+        out = super().forward(x.to(torch.bfloat16)).type_as(x)
+        return out
 
 
 class Resample(nn.Module):
@@ -75,11 +189,11 @@ class Resample(nn.Module):
         # layers
         if mode == 'upsample2d':
             self.resample = nn.Sequential(
-                Upsample(scale_factor=(2., 2.), mode='nearest-exact'),
+                Upsample(scale_factor=(2., 2.), mode='nearest'),
                 nn.Conv2d(dim, dim // 2, 3, padding=1))
         elif mode == 'upsample3d':
             self.resample = nn.Sequential(
-                Upsample(scale_factor=(2., 2.), mode='nearest-exact'),
+                Upsample(scale_factor=(2., 2.), mode='nearest'),
                 nn.Conv2d(dim, dim // 2, 3, padding=1))
             self.time_conv = CausalConv3d(
                 dim, dim * 2, (3, 1, 1), padding=(1, 0, 0))
@@ -139,7 +253,6 @@ class Resample(nn.Module):
         x = rearrange(x, 'b c t h w -> (b t) c h w')
         x = self.resample(x)
         x = rearrange(x, '(b t) c h w -> b c t h w', t=t)
-
         if self.mode == 'downsample3d':
             if feat_cache is not None:
                 idx = feat_idx[0]
@@ -147,12 +260,10 @@ class Resample(nn.Module):
                     feat_cache[idx] = x.clone()
                     feat_idx[0] += 1
                 else:
-
                     cache_x = x[:, :, -1:, :, :].clone()
                     # if cache_x.shape[2] < 2 and feat_cache[idx] is not None and feat_cache[idx]!='Rep':
                     #     # cache last frame of last two chunk
                     #     cache_x = torch.cat([feat_cache[idx][:, :, -1, :, :].unsqueeze(2).to(cache_x.device), cache_x], dim=2)
-
                     x = self.time_conv(
                         torch.cat([feat_cache[idx][:, :, -1:, :, :], x], 2))
                     feat_cache[idx] = cache_x
@@ -160,7 +271,7 @@ class Resample(nn.Module):
         return x
 
     def init_weight(self, conv):
-        conv_weight = conv.weight
+        conv_weight = conv.weight.detach().clone()
         nn.init.zeros_(conv_weight)
         c1, c2, t, h, w = conv_weight.size()
         one_matrix = torch.eye(c1, c2)
@@ -172,7 +283,7 @@ class Resample(nn.Module):
         nn.init.zeros_(conv.bias.data)
 
     def init_weight2(self, conv):
-        conv_weight = conv.weight.data
+        conv_weight = conv.weight.data.detach().clone()
         nn.init.zeros_(conv_weight)
         c1, c2, t, h, w = conv_weight.size()
         init_matrix = torch.eye(c1 // 2, c2)
@@ -240,7 +351,7 @@ class AttentionBlock(nn.Module):
     def forward(self, x):
         identity = x
         b, c, t, h, w = x.size()
-        x = rearrange(x, 'b c t h w -> (b t) c h w')
+        x = rearrange(x, 'b c t h w -> (b t) c h w').contiguous()
         x = self.norm(x)
         # compute query, key, value
         q, k, v = self.to_qkv(x).reshape(b * t, 1, c * 3,
@@ -249,16 +360,18 @@ class AttentionBlock(nn.Module):
                                                          3, dim=-1)
 
         # apply attention
-        x = F.scaled_dot_product_attention(
-            q,
-            k,
-            v,
-        )
-        x = x.squeeze(1).permute(0, 2, 1).reshape(b * t, c, h, w)
-
+        # x = F.scaled_dot_product_attention(
+        #     q,
+        #     k,
+        #     v,
+        # )
+        scale = q.shape[-1]**-0.5
+        x = torch.zeros_like(q)
+        torch.ops.my_ops.llava_attention(x, q, k, v, None, None, None, scale)
+        x = x.squeeze(1).permute(0, 2, 1).reshape(b * t, c, h, w).contiguous()
         # output
         x = self.proj(x)
-        x = rearrange(x, '(b t) c h w-> b c t h w', t=t)
+        x = rearrange(x, '(b t) c h w-> b c t h w', t=t).contiguous()
         return x + identity
 
 
@@ -331,21 +444,18 @@ class Encoder3d(nn.Module):
             feat_idx[0] += 1
         else:
             x = self.conv1(x)
-
         ## downsamples
         for layer in self.downsamples:
             if feat_cache is not None:
                 x = layer(x, feat_cache, feat_idx)
             else:
                 x = layer(x)
-
         ## middle
         for layer in self.middle:
             if isinstance(layer, ResidualBlock) and feat_cache is not None:
                 x = layer(x, feat_cache, feat_idx)
             else:
                 x = layer(x)
-
         ## head
         for layer in self.head:
             if isinstance(layer, CausalConv3d) and feat_cache is not None:
@@ -514,6 +624,7 @@ class WanVAE_(nn.Module):
         return x_recon, mu, log_var
 
     def encode(self, x, scale):
+        
         self.clear_cache()
         ## cache
         t = x.shape[2]
@@ -539,6 +650,7 @@ class WanVAE_(nn.Module):
         else:
             mu = (mu - scale[0]) * scale[1]
         self.clear_cache()
+        
         return mu
 
     def decode(self, z, scale):
@@ -621,10 +733,13 @@ class Wan2_1_VAE:
     def __init__(self,
                  z_dim=16,
                  vae_pth='cache/vae_step_411000.pth',
-                 dtype=torch.float,
-                 device="cuda"):
+                 dtype=torch.bfloat16,
+                 device="cpu"):
         self.dtype = dtype
-        self.device = device
+        # self.device = device
+        self._world_size = int(os.environ.get("WORLD_SIZE", "1"))
+        self._rank = int(os.environ.get("RANK", "0"))
+        self.device = torch.device(f"tpu:{self._rank}")
 
         mean = [
             -0.7571, -0.7089, -0.9113, 0.1075, -0.1745, 0.9653, -0.1517, 1.5508,
@@ -634,30 +749,30 @@ class Wan2_1_VAE:
             2.8184, 1.4541, 2.3275, 2.6558, 1.2196, 1.7708, 2.6052, 2.0743,
             3.2687, 2.1526, 2.8652, 1.5579, 1.6382, 1.1253, 2.8251, 1.9160
         ]
-        self.mean = torch.tensor(mean, dtype=dtype, device=device)
-        self.std = torch.tensor(std, dtype=dtype, device=device)
+        self.mean = torch.tensor(mean, dtype=dtype, device=self.device)
+        self.std = torch.tensor(std, dtype=dtype, device=self.device)
         self.scale = [self.mean, 1.0 / self.std]
 
         # init model
         self.model = _video_vae(
             pretrained_path=vae_pth,
             z_dim=z_dim,
-        ).eval().requires_grad_(False).to(device)
+        ).eval().requires_grad_(False).to(torch.bfloat16).to(self.device)
 
     def encode(self, videos):
         """
         videos: A list of videos each with shape [C, T, H, W].
         """
-        with amp.autocast(dtype=self.dtype):
+        with amp.autocast(dtype=torch.bfloat16):
             return [
-                self.model.encode(u.unsqueeze(0), self.scale).float().squeeze(0)
+                self.model.encode(u.unsqueeze(0), self.scale).to(torch.bfloat16).squeeze(0)
                 for u in videos
             ]
 
     def decode(self, zs):
-        with amp.autocast(dtype=self.dtype):
+        with amp.autocast(dtype=torch.bfloat16):
             return [
                 self.model.decode(u.unsqueeze(0),
-                                  self.scale).float().clamp_(-1, 1).squeeze(0)
+                                  self.scale).to(torch.bfloat16).clamp_(-1, 1).squeeze(0)
                 for u in zs
             ]

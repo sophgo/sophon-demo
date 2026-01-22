@@ -5,6 +5,7 @@ import math
 import os
 import random
 import sys
+import time
 import types
 from contextlib import contextmanager
 from functools import partial
@@ -20,7 +21,8 @@ from .distributed.fsdp import shard_model
 from .distributed.sequence_parallel import sp_attn_forward, sp_dit_forward
 from .distributed.util import get_world_size
 from .modules.model import WanModel
-from .modules.t5 import T5EncoderModel
+# from .modules.t5 import T5EncoderModel
+from .modules.t5_tpu2 import T5EncoderModel
 from .modules.vae2_1 import Wan2_1_VAE
 from .utils.fm_solvers import (
     FlowDPMSolverMultistepScheduler,
@@ -71,11 +73,12 @@ class WanI2V:
                 Convert DiT model parameters dtype to 'config.param_dtype'.
                 Only works without FSDP.
         """
-        self.device = torch.device(f"cuda:{device_id}")
+        self.device = torch.device(f"tpu:{device_id}")
         self.config = config
         self.rank = rank
         self.t5_cpu = t5_cpu
-        self.init_on_cpu = init_on_cpu
+        # self.init_on_cpu = init_on_cpu
+        self.init_on_cpu = False
 
         self.num_train_timesteps = config.num_train_timesteps
         self.boundary = config.boundary
@@ -88,7 +91,7 @@ class WanI2V:
         self.text_encoder = T5EncoderModel(
             text_len=config.text_len,
             dtype=config.t5_dtype,
-            device=torch.device('cpu'),
+            device=self.device,
             checkpoint_path=os.path.join(checkpoint_dir, config.t5_checkpoint),
             tokenizer_path=os.path.join(checkpoint_dir, config.t5_tokenizer),
             shard_fn=shard_fn if t5_fsdp else None,
@@ -118,6 +121,7 @@ class WanI2V:
             dit_fsdp=dit_fsdp,
             shard_fn=shard_fn,
             convert_model_dtype=convert_model_dtype)
+        
         if use_sp:
             self.sp_size = get_world_size()
         else:
@@ -273,7 +277,6 @@ class WanI2V:
         max_seq_len = ((F - 1) // self.vae_stride[0] + 1) * lat_h * lat_w // (
             self.patch_size[1] * self.patch_size[2])
         max_seq_len = int(math.ceil(max_seq_len / self.sp_size)) * self.sp_size
-
         seed = seed if seed >= 0 else random.randint(0, sys.maxsize)
         seed_g = torch.Generator(device=self.device)
         seed_g.manual_seed(seed)
@@ -285,7 +288,6 @@ class WanI2V:
             dtype=torch.float32,
             generator=seed_g,
             device=self.device)
-
         msk = torch.ones(1, F, lat_h, lat_w, device=self.device)
         msk[:, 1:] = 0
         msk = torch.concat([
@@ -297,7 +299,6 @@ class WanI2V:
 
         if n_prompt == "":
             n_prompt = self.sample_neg_prompt
-
         # preprocess
         if not self.t5_cpu:
             self.text_encoder.model.to(self.device)
@@ -310,7 +311,6 @@ class WanI2V:
             context_null = self.text_encoder([n_prompt], torch.device('cpu'))
             context = [t.to(self.device) for t in context]
             context_null = [t.to(self.device) for t in context_null]
-
         y = self.vae.encode([
             torch.concat([
                 torch.nn.functional.interpolate(
@@ -318,10 +318,9 @@ class WanI2V:
                         0, 1),
                 torch.zeros(3, F - 1, h, w)
             ],
-                         dim=1).to(self.device)
+                         dim=1).to(self.device).to(torch.bfloat16)
         ])[0]
         y = torch.concat([msk, y])
-
         @contextmanager
         def noop_no_sync():
             yield
@@ -330,7 +329,6 @@ class WanI2V:
                                     noop_no_sync)
         no_sync_high_noise = getattr(self.high_noise_model, 'no_sync',
                                      noop_no_sync)
-
         # evaluation mode
         with (
                 torch.amp.autocast('cuda', dtype=self.param_dtype),
@@ -389,7 +387,6 @@ class WanI2V:
                     t, boundary, offload_model)
                 sample_guide_scale = guide_scale[1] if t.item(
                 ) >= boundary else guide_scale[0]
-
                 noise_pred_cond = model(
                     latent_model_input, t=timestep, **arg_c)[0]
                 if offload_model:
@@ -409,7 +406,7 @@ class WanI2V:
                     generator=seed_g)[0]
                 latent = temp_x0.squeeze(0)
 
-                x0 = [latent]
+                x0 = [latent.to(torch.bfloat16)]
                 del latent_model_input, timestep
 
             if offload_model:
@@ -417,8 +414,8 @@ class WanI2V:
                 self.high_noise_model.cpu()
                 torch.cuda.empty_cache()
 
-            if self.rank == 0:
-                videos = self.vae.decode(x0)
+            # if self.rank == 0:
+            videos = self.vae.decode(x0)
 
         del noise, latent, x0
         del sample_scheduler
