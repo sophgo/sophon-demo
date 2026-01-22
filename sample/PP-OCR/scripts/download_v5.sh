@@ -23,7 +23,7 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_v5/BM1688.tar.gz
 tar xvf BM1688.tar.gz && rm BM1688.tar.gz
 python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_v5/CV186X.tar.gz
 tar xvf CV186X.tar.gz && rm CV186X.tar.gz
-python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_v5/sophon-demo/PP-OCR/models_v5/ppocrv5_dict.txt
+python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_v5/ppocrv5_dict.txt
 mv ppocrv5_dict.txt ../datasets/
 popd
 
