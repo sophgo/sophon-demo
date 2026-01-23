@@ -97,7 +97,7 @@ chmod -R +x scripts/
 ## 4. 模型编译
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。若需要自行编译BModel，需要下载特定版本TPU-MLIR:
 ```bash
-python3 -m dfss open@sophgo.com:sophon-demo/GroundingDINO/tpu_mlir-1.21b0-py3-none-any.whl
+python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/tpu_mlir-1.21b0-py3-none-any.whl
 ```
 具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中1、2、3(3)步骤。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 
