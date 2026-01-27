@@ -330,8 +330,8 @@ class WanTI2V:
                 target_shape[1],
                 target_shape[2],
                 target_shape[3],
-                dtype=torch.float32,
-                device='cpu',
+                dtype=torch.bfloat16,
+                device=self.device,
                 generator=seed_g).to(self.device)
         ]
 

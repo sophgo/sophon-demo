@@ -285,7 +285,7 @@ class WanI2V:
             (F - 1) // self.vae_stride[0] + 1,
             lat_h,
             lat_w,
-            dtype=torch.float32,
+            dtype=torch.bfloat16,
             generator=seed_g,
             device=self.device)
         msk = torch.ones(1, F, lat_h, lat_w, device=self.device)

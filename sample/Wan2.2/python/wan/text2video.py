@@ -18,7 +18,8 @@ from .distributed.fsdp import shard_model
 from .distributed.sequence_parallel import sp_attn_forward, sp_dit_forward
 from .distributed.util import get_world_size
 from .modules.model import WanModel
-from .modules.t5 import T5EncoderModel
+# from .modules.t5 import T5EncoderModel
+from .modules.t5_tpu2 import T5EncoderModel
 from .modules.vae2_1 import Wan2_1_VAE
 from .utils.fm_solvers import (
     FlowDPMSolverMultistepScheduler,
@@ -69,7 +70,7 @@ class WanT2V:
                 Convert DiT model parameters dtype to 'config.param_dtype'.
                 Only works without FSDP.
         """
-        self.device = torch.device(f"cuda:{device_id}")
+        self.device = torch.device(f"tpu:{device_id}")
         self.config = config
         self.rank = rank
         self.t5_cpu = t5_cpu
@@ -86,7 +87,7 @@ class WanT2V:
         self.text_encoder = T5EncoderModel(
             text_len=config.text_len,
             dtype=config.t5_dtype,
-            device=torch.device('cpu'),
+            device=self.device,
             checkpoint_path=os.path.join(checkpoint_dir, config.t5_checkpoint),
             tokenizer_path=os.path.join(checkpoint_dir, config.t5_tokenizer),
             shard_fn=shard_fn if t5_fsdp else None)
@@ -282,7 +283,7 @@ class WanT2V:
                 target_shape[1],
                 target_shape[2],
                 target_shape[3],
-                dtype=torch.float32,
+                dtype=torch.bfloat16,
                 device=self.device,
                 generator=seed_g)
         ]
@@ -298,7 +299,7 @@ class WanT2V:
 
         # evaluation mode
         with (
-                torch.amp.autocast('cuda', dtype=self.param_dtype),
+                torch.amp.autocast('tpu', dtype=self.param_dtype),
                 torch.no_grad(),
                 no_sync_low_noise(),
                 no_sync_high_noise(),
@@ -364,8 +365,9 @@ class WanT2V:
                 self.low_noise_model.cpu()
                 self.high_noise_model.cpu()
                 torch.cuda.empty_cache()
-            if self.rank == 0:
-                videos = self.vae.decode(x0)
+            # DEVICE: Ensure that all devices participating in TP can obtain data.
+            # if self.rank == 0:
+            videos = self.vae.decode(x0)
 
         del noise, latents
         del sample_scheduler
