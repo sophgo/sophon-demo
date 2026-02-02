@@ -16,13 +16,15 @@ class GeneratorConfig:
 @dataclass
 class DocConfig:
     embedding_model: str
-    embedding_model_path: str
-    split_method: str
-    chunk_length: int
-    overlap: int
-    database_method: str
-    dimension: int
-    topk: int
+    embedding_model_path: Optional[str] = None
+    api_url: Optional[str] = None
+    api_key: Optional[str] = None
+    split_method: str = "FixedLength"
+    chunk_length: int = 256
+    overlap: int = 50
+    database_method: str = "Faiss"
+    dimension: int = 1024
+    topk: int = 5
 
 
 @dataclass

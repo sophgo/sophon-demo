@@ -78,7 +78,7 @@ class DocProcessor:
     def __init__(self, config: DocConfig):
         # Dict[filename, Dict[chunk id, text]]
         self.doc_chunk_map: Dict[str, Dict[int, str]] = {}
-        self.embedder = Embedder(config)
+        self.embedder = Embedder.create(config)
         self.splitter = DocSplitterBase.from_config(config)
         self.vector_store = Database.from_config(config)
 

@@ -5,5 +5,6 @@ torch
 faiss-cpu
 OpenAI
 pdfplumber
-docx<=0.8.11 # for windows, where max_version is 0.2.x
+# docx<=0.8.11 # for windows, where max_version is 0.2.x
+python-docx
 streamlit

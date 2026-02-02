@@ -1,0 +1,18 @@
+{
+    "llm_config": {
+        "model": "tgi",
+        "api_url": "http://172.26.167.48:8080/v1",
+        "api_key": ""
+    },
+    "doc_config": {
+        "embedding_model": "bge",
+        "api_url": "http://172.26.167.48:8081/v1",
+        "api_key": "",
+        "split_method": "FixedLength",
+        "chunk_length": 256,
+        "overlap": 50,
+        "database_method": "Faiss",
+        "dimension": 1024,
+        "topk": 5
+    }
+}

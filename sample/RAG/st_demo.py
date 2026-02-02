@@ -1,13 +1,25 @@
+import argparse
 import os
 import sys
 
 import streamlit as st
 from app.utils.logger import setup_logging
 
+def parse():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--config', '-c',
+        default='./app/config/config.json',
+        help='Path to the configuration file.'
+    )
+    args = parser.parse_args()
+    return args
+
+args = parse()
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-JSON_DIR = os.path.join(BASE_DIR, "app/config")
-RAG_ENGINE_CONFIG_PATH = os.path.join(JSON_DIR, "config.json")
-RAG_LOGGER_CONFIG_PATH = os.path.join(JSON_DIR, "logging.json")
+RAG_ENGINE_CONFIG_PATH = os.path.realpath(args.config)
+RAG_LOGGER_CONFIG_PATH = os.path.join(BASE_DIR, "app/config/logging.json")
 sys.path.append(BASE_DIR)
 
 setup_logging(RAG_LOGGER_CONFIG_PATH)
