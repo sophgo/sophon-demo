@@ -277,6 +277,9 @@ class Qwen3_VL():
         self.past_key_input = []
         self.past_value_input = []
         self.step = 0
+        for _ in range(self.num_layers): 
+            self.past_key_input.append(self.init_sail_tensor(self.name_blocks_cache[0], 3))
+            self.past_value_input.append(self.init_sail_tensor(self.name_blocks_cache[0], 4))
 
     def get_media_type(self, file_path):
         image_exts = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}
