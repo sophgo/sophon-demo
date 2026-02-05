@@ -330,8 +330,8 @@ class WanTI2V:
                 target_shape[1],
                 target_shape[2],
                 target_shape[3],
-                dtype=torch.bfloat16,
-                device=self.device,
+                dtype=torch.float32,
+                device='cpu',
                 generator=seed_g).to(self.device)
         ]
 
@@ -496,7 +496,7 @@ class WanTI2V:
         assert img.width == ow and img.height == oh
 
         # to tensor
-        img = TF.to_tensor(img).sub_(0.5).div_(0.5).to(self.device).unsqueeze(1).to(torch.bfloat16)
+        img = TF.to_tensor(img).sub_(0.5).div_(0.5).to(self.device).unsqueeze(1)
 
         F = frame_num
         seq_len = ((F - 1) // self.vae_stride[0] + 1) * (
@@ -505,7 +505,7 @@ class WanTI2V:
         seq_len = int(math.ceil(seq_len / self.sp_size)) * self.sp_size
 
         seed = seed if seed >= 0 else random.randint(0, sys.maxsize)
-        seed_g = torch.Generator(device=self.device)
+        seed_g = torch.Generator()
         seed_g.manual_seed(seed)
         noise = torch.randn(
             self.vae.model.z_dim, (F - 1) // self.vae_stride[0] + 1,
@@ -513,7 +513,7 @@ class WanTI2V:
             ow // self.vae_stride[2],
             dtype=torch.float32,
             generator=seed_g,
-            device=self.device)
+            device="cpu").to(self.device)
 
         if n_prompt == "":
             n_prompt = self.sample_neg_prompt
@@ -531,7 +531,7 @@ class WanTI2V:
             context = [t.to(self.device) for t in context]
             context_null = [t.to(self.device) for t in context_null]
 
-        z = self.vae.encode([img])
+        z = self.vae.encode([img.to(torch.bfloat16)])
 
         @contextmanager
         def noop_no_sync():
@@ -547,7 +547,7 @@ class WanTI2V:
                 torch.no_grad(),
                 no_sync(),
         ):
-            
+
             if sample_solver == 'unipc':
                 sample_scheduler = FlowUniPCMultistepScheduler(
                     num_train_timesteps=self.num_train_timesteps,
@@ -572,7 +572,7 @@ class WanTI2V:
             # sample videos
             latent = noise
             mask1, mask2 = masks_like([noise], zero=True)
-            latent = ((1. - mask2[0]) * z[0] + mask2[0] * latent).to(self.device).to(torch.bfloat16)
+            latent = (1. - mask2[0]) * z[0] + mask2[0] * latent
 
             arg_c = {
                 'context': [context[0]],
@@ -590,17 +590,16 @@ class WanTI2V:
                 torch.tpu.empty_cache()
 
             for _, t in enumerate(tqdm(timesteps)):
-                
                 latent_model_input = [latent.to(self.device).to(torch.bfloat16)]
                 timestep = [t]
 
                 timestep = torch.stack(timestep).to(self.device)
 
                 temp_ts = (mask2[0][0][:, ::2, ::2] * timestep).flatten()
-                # temp_ts = torch.cat([
-                #     temp_ts,
-                #     temp_ts.new_ones(seq_len - temp_ts.size(0)) * timestep
-                # ])
+                temp_ts = torch.cat([
+                    temp_ts,
+                    temp_ts.new_ones(seq_len - temp_ts.size(0)) * timestep
+                ])
                 timestep = temp_ts.unsqueeze(0)
 
                 noise_pred_cond = self.model(

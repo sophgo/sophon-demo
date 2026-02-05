@@ -108,12 +108,25 @@ class RMS_norm(nn.Module):
         self.channel_first = channel_first
         self.scale = dim**0.5
         self.gamma = nn.Parameter(torch.ones(shape))
-        self.bias = nn.Parameter(torch.zeros(shape)) if bias else None
+        # self.bias = nn.Parameter(torch.zeros(shape)) if bias else None
+        self.bias = nn.Parameter(torch.zeros(shape)) if bias else 0.0
         self.eps = 1e-12
 
     def forward(self, x):
-        out = torch.empty_like(x)
-        torch.ops.my_ops.rmsnorm_forward(x, self.gamma, self.bias, out, 1 if self.channel_first else x.dim()-1, self.eps)
+        # out = torch.empty_like(x)
+        # torch.ops.my_ops.rmsnorm_forward(x, self.gamma, self.bias, out, 1 if self.channel_first else x.dim()-1, self.eps)
+        dim = x.dim()
+        if dim == 5:
+            x = x.permute(0,2,3,4,1).contiguous()
+        else:
+            x = x.permute(0,2,3,1).contiguous()
+        output = torch.empty(x.shape, dtype=x.dtype, device=x.device)
+        torch.ops.my_ops.rmsnorm_forward(x, None, None, output, dim - 1, self.eps)
+        if dim == 5:
+            output = output.permute(0,4,1,2,3).contiguous()
+        else:
+            output = output.permute(0,3,1,2).contiguous()
+        out = output * self.gamma + self.bias
         return out
 
 
