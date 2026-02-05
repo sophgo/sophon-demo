@@ -236,36 +236,36 @@ class WanCrossAttention(WanSelfAttention):
         q = self.norm_q(self.q(x)).view(b, -1, n, d)
         scale = q.shape[-1]**-0.5
         if True:
-            # if cache is not None:
-            #     if self.iter < 2:
-            #         k = self.norm_k(self.k(context)).view(b, -1, n, d)
-            #         v = self.v(context).view(b, -1, n, d)
-            #         k, v, mask = padding_kv(q, k, v)
-            #         cache['cross_attn_k'].setdefault(self.iter%2, {})[self.block_id] = k
-            #         cache['cross_attn_v'].setdefault(self.iter%2, {})[self.block_id] = v
-            #         cache['cross_attn_mask'][self.iter%2] = mask
-            #     else:
-            #         k = cache['cross_attn_k'][self.iter%2][self.block_id]
-            #         v = cache['cross_attn_v'][self.iter%2][self.block_id]
-            #         mask = cache['cross_attn_mask'][self.iter%2]
-            # else:
-            #     k = self.norm_k(self.k(context)).view(b, -1, n, d)
-            #     v = self.v(context).view(b, -1, n, d)
-            #     k, v, mask = padding_kv(q, k, v)
             if cache is not None:
                 if self.iter < 2:
                     k = self.norm_k(self.k(context)).view(b, -1, n, d)
                     v = self.v(context).view(b, -1, n, d)
+                    k, v, mask = padding_kv(q, k, v)
                     cache['cross_attn_k'].setdefault(self.iter%2, {})[self.block_id] = k
                     cache['cross_attn_v'].setdefault(self.iter%2, {})[self.block_id] = v
+                    cache['cross_attn_mask'][self.iter%2] = mask
                 else:
                     k = cache['cross_attn_k'][self.iter%2][self.block_id]
                     v = cache['cross_attn_v'][self.iter%2][self.block_id]
+                    mask = cache['cross_attn_mask'][self.iter%2]
             else:
                 k = self.norm_k(self.k(context)).view(b, -1, n, d)
                 v = self.v(context).view(b, -1, n, d)
+                k, v, mask = padding_kv(q, k, v)
+            # if cache is not None:
+            #     if self.iter < 2:
+            #         k = self.norm_k(self.k(context)).view(b, -1, n, d)
+            #         v = self.v(context).view(b, -1, n, d)
+            #         cache['cross_attn_k'].setdefault(self.iter%2, {})[self.block_id] = k
+            #         cache['cross_attn_v'].setdefault(self.iter%2, {})[self.block_id] = v
+            #     else:
+            #         k = cache['cross_attn_k'][self.iter%2][self.block_id]
+            #         v = cache['cross_attn_v'][self.iter%2][self.block_id]
+            # else:
+            #     k = self.norm_k(self.k(context)).view(b, -1, n, d)
+            #     v = self.v(context).view(b, -1, n, d)
             x = torch.empty_like(q)
-            torch.ops.my_ops.llava_attention(x, q, k, v, None, None, None, scale)
+            torch.ops.my_ops.llava_attention(x, q, k, v, None, None, mask, scale)
         else:
             if cache is not None:
                 if self.iter < 2:

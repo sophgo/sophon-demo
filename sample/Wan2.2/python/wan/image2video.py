@@ -278,16 +278,16 @@ class WanI2V:
             self.patch_size[1] * self.patch_size[2])
         max_seq_len = int(math.ceil(max_seq_len / self.sp_size)) * self.sp_size
         seed = seed if seed >= 0 else random.randint(0, sys.maxsize)
-        seed_g = torch.Generator(device=self.device)
+        seed_g = torch.Generator()
         seed_g.manual_seed(seed)
         noise = torch.randn(
             16,
             (F - 1) // self.vae_stride[0] + 1,
             lat_h,
             lat_w,
-            dtype=torch.bfloat16,
+            dtype=torch.float32,
             generator=seed_g,
-            device=self.device)
+            device="cpu").to(self.device)
         msk = torch.ones(1, F, lat_h, lat_w, device=self.device)
         msk[:, 1:] = 0
         msk = torch.concat([
