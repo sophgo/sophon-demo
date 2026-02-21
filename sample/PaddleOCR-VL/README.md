@@ -101,4 +101,4 @@ llm_convert.py --model_path /workspace/open-source/PaddleOCR-VL/ -q bf16 -g 64 -
 
 |    测试平台   |               测试模型                                          | first token latency(s) |token per second(tokens/s)|
 | -----------  | ---------------------------------------------------------------| ---------------------   | -----------------------  |
-|    SE9-16    | ../../paddleocr-vl_bf16_seq2048_bm1688_1core_20260207_125123.bmodel  |        34.321          |          22.7494         |
+|    SE9-16    | ../../paddleocr-vl_bf16_seq2048_bm1688_1core_static_20260221_195626.bmodel  |        6.499          |          22.7494         |

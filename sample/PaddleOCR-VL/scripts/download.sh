@@ -43,7 +43,7 @@ then
     mkdir ../models
     pushd ../models
     python3 -m dfss --url=open@sophgo.com:sophon-demo/PaddleOCR-VL/paddleocr-vl-0.9B/paddleocr-vl_bf16_seq2048_bm1684x_1dev_20260206_230325.bmodel
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/PaddleOCR-VL/paddleocr-vl-0.9B/paddleocr-vl_bf16_seq2048_bm1688_1core_20260207_125123.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PaddleOCR-VL/paddleocr-vl-0.9B/paddleocr-vl_bf16_seq2048_bm1688_1core_static_20260221_195626.bmodel
     popd
     echo "models download!"
 else
