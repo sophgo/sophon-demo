@@ -51,7 +51,7 @@ Usage:
 
 需要在`cpp/build`目录下执行程序，测试实例如下。
 ```bash
- ./pipeline --model ../../models/paddleocr-vl_bf16_seq2048_bm1684x_1dev_20260206_230325.bmodel --config ../../config/ --devid 0
+ ./pipeline --model ../../models/paddleocr-vl_bf16_seq2048_bm1688_1core_static_20260221_195626.bmodel --config ../../config/ --devid 0
 ```
 运行此命令，进入对话后，需要输入mode、image path，然后模型会给出回答。
 
