@@ -44,6 +44,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [YOLOv8_plus_seg](./sample/YOLOv8_plus_seg/README.md)         | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688        |
 | [YOLOv8_plus_seg_fuse](./sample/YOLOv8_plus_seg_fuse/README.md)| Instance Segmentation(TPU Postprocess) | C++/Python | INT8      | BM1684X/BM1688        |
 | [YOLOv9_seg](./sample/YOLOv8_plus_seg/README.md)              | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688        |
+| [YOLO26_seg](./sample/YOLO26_seg/README.md)                   | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688        |
 | [PP-OCR](./sample/PP-OCR/README.md)                           | OCR                                | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
 | [OpenPose](./sample/OpenPose/README.md)                       | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
 | [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
@@ -62,6 +63,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [YOLOv9_det](./sample/YOLOv8_plus_det/README.md)              | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv11_det](./sample/YOLOv8_plus_det/README.md)             | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv12_det](./sample/YOLOv8_plus_det/README.md)             | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [YOLO26_det](./sample/YOLO26/README.md)                       | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv5_opt](./sample/YOLOv5_opt/README.md)                   | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X                      |
 | [YOLOv5_fuse](./sample/YOLOv5_fuse/README.md)                 | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv10](./sample/YOLOv10/README.md)                         | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
@@ -71,6 +73,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [D-FINE](./sample/D-FINE/README.md)                           | Object Detection                   | Python     | FP16           | BM1684X/BM1688/CV186X        |
 | [YOLOv8_obb](./sample/YOLOv8_plus_obb/README.md)              | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [YOLOv11_obb](./sample/YOLOv8_plus_obb/README.md)             | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [YOLO26_obb](./sample/YOLOv8_plus_obb/README.md)              | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
 | [Whisper](./sample/Whisper/README.md)                         | Speech Recognition                 | Python     | FP16           | BM1684X                      |
 | [Seamless](./sample/Seamless/README.md)                       | Speech Recognition                 | Python     | FP32/FP16      | BM1684X/BM1688               |
@@ -99,6 +102,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [Vila](./sample/Vila/README.md)                               | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Llama3_2_Vision](./sample/Llama3_2_Vision/README.md)         | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X                     |
 | [MiniCPMV](./sample/MiniCPMV/README.md)                       | Large Vision Language Model        | Python     | INT4            | BM1684X                     |
+| [PaddleOCR-VL](./sample/PaddleOCR-VL/README.md)               | Large Vision Language Model        | C++        | BF16            | BM1684X                     |
 | [Phi4mm](./sample/Llama3_2_Vision/README.md)                  | Multimodal Large Language Model    | Python     | INT4           | BM1684X                     |
 | [VITA1_5](./sample/VITA1_5/README.md)                         | Multimodal Large Language Model    | Python     | INT4           | BM1684X                     |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
@@ -130,6 +134,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.3.9  | Fix documentation and other issues. Release new samples YOLO26/YOLO26_seg/YOLO26_obb/PaddleOCR-VL. |
 | 0.3.8  | Fix documentation and other issues. PP-OCR supports ppocr-v5. |
 | 0.3.7  | Fix documentation and other issues. Release new sample Qwen3-VL. A few samples add example test video for watch. SAM2 supports box labeling. |
 | 0.3.6  | Fix documentation and other issues. Release new sample MiniCPMV, new application YOLOv8_multi_QT.  |
@@ -166,6 +171,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.9  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.8  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.7  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.6  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -201,6 +207,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV,
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.9  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.8  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.7  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.6  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
