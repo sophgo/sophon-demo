@@ -19,7 +19,7 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-YOLOv8_plus​_seg_fuse例程将[YOLOv8_plus_seg例程](../YOLOv8_plus_seg/README.md)的部分后处理使用TPU来计算，大大提高了后处理速度，目前支持使用BM1684X/BM1688的INT8模型推理。
+YOLOv8_plus​_seg_fuse例程将[YOLOv8_plus_seg例程](../YOLOv8_plus_seg/README.md)的部分前处理和后处理使用TPU来计算，大大提高了处理速度，目前支持使用BM1684X/BM1688的INT8模型推理。
 
 ## 2. 特性
 
