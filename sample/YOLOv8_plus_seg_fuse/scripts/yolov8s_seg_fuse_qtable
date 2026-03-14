@@ -1,78 +1,214 @@
-/model.22/Mul_5_output_0_Mul F32
-output0_Concat F32
-/model.22/Add_10_output_0_Add F32
-/model.22/Div_1_output_0_Div F32
-/model.22/Sub_1_output_0_Sub F32
-/model.22/Add_11_output_0_Add F32
-/model.22/Sub_output_0_Sub F32
-/model.22/Slice_output_0_Slice F32
-/model.22/Slice_1_output_0_Slice F32
-/model.22/Concat_28_output_0_Concat F32
-/model.22/dfl/Reshape_1_output_0_Reshape F32
+# model.22.proto.cv1.conv.weight F16
+# model.22.proto.cv1.conv.bias F16
+# /model.22/proto/cv1/conv/Conv_output_0_Conv F16
+# /model.22/proto/cv1/act/Mul_output_0_Mul F16
+# model.22.proto.upsample.weight F16
+# model.22.proto.upsample.bias F16
+# /model.22/proto/upsample/ConvTranspose_output_0_ConvTranspose F16
+# model.22.proto.cv2.conv.weight F16
+# model.22.proto.cv2.conv.bias F16
+# /model.22/proto/cv2/conv/Conv_output_0_Conv F16
+# /model.22/proto/cv2/act/Mul_output_0_Mul F16
+# model.22.proto.cv3.conv.weight F16
+# model.22.proto.cv3.conv.bias F16
+# /model.22/proto/cv3/conv/Conv_output_0_Conv F16
+# model.22.cv4.0.0.conv.weight F16
+# model.22.cv4.0.0.conv.bias F16
+# /model.22/cv4.0/cv4.0.0/conv/Conv_output_0_Conv F16
+# /model.22/cv4.0/cv4.0.0/act/Mul_output_0_Mul F16
+# model.22.cv4.0.1.conv.weight F16
+# model.22.cv4.0.1.conv.bias F16
+# /model.22/cv4.0/cv4.0.1/conv/Conv_output_0_Conv F16
+# /model.22/cv4.0/cv4.0.1/act/Mul_output_0_Mul F16
+# model.22.cv4.0.2.weight F16
+# model.22.cv4.0.2.bias F16
+# /model.22/cv4.0/cv4.0.2/Conv_output_0_Conv F16
+# /model.22/Reshape_output_0_Reshape F16
+# model.22.cv4.1.0.conv.weight F16
+# model.22.cv4.1.0.conv.bias F16
+# /model.22/cv4.1/cv4.1.0/conv/Conv_output_0_Conv F16
+# /model.22/cv4.1/cv4.1.0/act/Mul_output_0_Mul F16
+# model.22.cv4.1.1.conv.weight F16
+# model.22.cv4.1.1.conv.bias F16
+# /model.22/cv4.1/cv4.1.1/conv/Conv_output_0_Conv F16
+# /model.22/cv4.1/cv4.1.1/act/Mul_output_0_Mul F16
+# model.22.cv4.1.2.weight F16
+# model.22.cv4.1.2.bias F16
+# /model.22/cv4.1/cv4.1.2/Conv_output_0_Conv F16
+# /model.22/Reshape_1_output_0_Reshape F16
+# model.22.cv4.2.0.conv.weight F16
+# model.22.cv4.2.0.conv.bias F16
+# /model.22/cv4.2/cv4.2.0/conv/Conv_output_0_Conv F16
+# /model.22/cv4.2/cv4.2.0/act/Mul_output_0_Mul F16
+# model.22.cv4.2.1.conv.weight F16
+# model.22.cv4.2.1.conv.bias F16
+# /model.22/cv4.2/cv4.2.1/conv/Conv_output_0_Conv F16
+# /model.22/cv4.2/cv4.2.1/act/Mul_output_0_Mul F16
+# model.22.cv4.2.2.weight F16
+# model.22.cv4.2.2.bias F16
+# /model.22/cv4.2/cv4.2.2/Conv_output_0_Conv F16
+# /model.22/Reshape_2_output_0_Reshape F16
+# /model.22/Concat_3_output_0_Concat F16
+# model.22.cv2.0.0.conv.weight F16
+# model.22.cv2.0.0.conv.bias F16
+# /model.22/cv2.0/cv2.0.0/conv/Conv_output_0_Conv F16
+# /model.22/cv2.0/cv2.0.0/act/Mul_output_0_Mul F16
+# model.22.cv2.0.1.conv.weight F16
+# model.22.cv2.0.1.conv.bias F16
+# /model.22/cv2.0/cv2.0.1/conv/Conv_output_0_Conv F16
+# /model.22/cv2.0/cv2.0.1/act/Mul_output_0_Mul F16
+# model.22.cv2.0.2.weight F16
+# model.22.cv2.0.2.bias F16
+# /model.22/cv2.0/cv2.0.2/Conv_output_0_Conv F16
+# model.22.cv3.0.0.conv.weight F16
+# model.22.cv3.0.0.conv.bias F16
+# /model.22/cv3.0/cv3.0.0/conv/Conv_output_0_Conv F16
+# /model.22/cv3.0/cv3.0.0/act/Mul_output_0_Mul F16
+# model.22.cv3.0.1.conv.weight F16
+# model.22.cv3.0.1.conv.bias F16
+# /model.22/cv3.0/cv3.0.1/conv/Conv_output_0_Conv F16
+# /model.22/cv3.0/cv3.0.1/act/Mul_output_0_Mul F16
+# model.22.cv3.0.2.weight F16
+# model.22.cv3.0.2.bias F16
+# /model.22/cv3.0/cv3.0.2/Conv_output_0_Conv F16
+# /model.22/Concat_4_output_0_Concat F16
+# model.22.cv2.1.0.conv.weight F16
+# model.22.cv2.1.0.conv.bias F16
+# /model.22/cv2.1/cv2.1.0/conv/Conv_output_0_Conv F16
+# /model.22/cv2.1/cv2.1.0/act/Mul_output_0_Mul F16
+# model.22.cv2.1.1.conv.weight F16
+# model.22.cv2.1.1.conv.bias F16
+# /model.22/cv2.1/cv2.1.1/conv/Conv_output_0_Conv F16
+# /model.22/cv2.1/cv2.1.1/act/Mul_output_0_Mul F16
+# model.22.cv2.1.2.weight F16
+# model.22.cv2.1.2.bias F16
+# /model.22/cv2.1/cv2.1.2/Conv_output_0_Conv F16
+# model.22.cv3.1.0.conv.weight F16
+# model.22.cv3.1.0.conv.bias F16
+# /model.22/cv3.1/cv3.1.0/conv/Conv_output_0_Conv F16
+# /model.22/cv3.1/cv3.1.0/act/Mul_output_0_Mul F16
+# model.22.cv3.1.1.conv.weight F16
+# model.22.cv3.1.1.conv.bias F16
+# /model.22/cv3.1/cv3.1.1/conv/Conv_output_0_Conv F16
+# /model.22/cv3.1/cv3.1.1/act/Mul_output_0_Mul F16
+# model.22.cv3.1.2.weight F16
+# model.22.cv3.1.2.bias F16
+# /model.22/cv3.1/cv3.1.2/Conv_output_0_Conv F16
+# /model.22/Concat_5_output_0_Concat F16
+# model.22.cv2.2.0.conv.weight F16
+# model.22.cv2.2.0.conv.bias F16
+# /model.22/cv2.2/cv2.2.0/conv/Conv_output_0_Conv F16
+# /model.22/cv2.2/cv2.2.0/act/Mul_output_0_Mul F16
+# model.22.cv2.2.1.conv.weight F16
+# model.22.cv2.2.1.conv.bias F16
+# /model.22/cv2.2/cv2.2.1/conv/Conv_output_0_Conv F16
+# /model.22/cv2.2/cv2.2.1/act/Mul_output_0_Mul F16
+# model.22.cv2.2.2.weight F16
+# model.22.cv2.2.2.bias F16
+# /model.22/cv2.2/cv2.2.2/Conv_output_0_Conv F16
+# model.22.cv3.2.0.conv.weight F16
+# model.22.cv3.2.0.conv.bias F16
+# /model.22/cv3.2/cv3.2.0/conv/Conv_output_0_Conv F16
+# /model.22/cv3.2/cv3.2.0/act/Mul_output_0_Mul F16
+# model.22.cv3.2.1.conv.weight F16
+# model.22.cv3.2.1.conv.bias F16
+# /model.22/cv3.2/cv3.2.1/conv/Conv_output_0_Conv F16
+# /model.22/cv3.2/cv3.2.1/act/Mul_output_0_Mul F16
+# model.22.cv3.2.2.weight F16
+# model.22.cv3.2.2.bias F16
+# /model.22/cv3.2/cv3.2.2/Conv_output_0_Conv F16
+# /model.22/Concat_6_output_0_Concat F16
+# /model.22/Reshape_3_output_0_Reshape F16
+# /model.22/Reshape_4_output_0_Reshape F16
+# /model.22/Reshape_5_output_0_Reshape F16
+# /model.22/Concat_10_output_0_Concat F16
+# /model.22/Split_1_output_0_Split F16
+# /model.22/Split_1_output_1_Split F16
+# /model.22/dfl/Reshape_output_0_Reshape F16
+# /model.22/dfl/Transpose_output_0_Transpose F16
+# /model.22/dfl/Softmax_output_0_Softmax F16
+# model.22.dfl.conv.weight F16
+# /model.22/dfl/conv/Conv_output_0_Conv F16
+# /model.22/dfl/Reshape_1_output_0_Reshape F16
+# /model.22/Slice_output_0_Slice F16
+# /model.22/Slice_1_output_0_Slice F16
+# /model.22/Unsqueeze_15_output_0_1 F16
+# /model.22/Unsqueeze_15_output_0_0 F16
+# /model.22/Sub_output_0_Sub F16
+# /model.22/Add_10_output_0_Add F16
+# /model.22/Add_11_output_0_Add F16
+# /model.22/Div_1_output_0_Div F16
+# /model.22/Sub_1_output_0_Sub F16
+# /model.22/Concat_28_output_0_Concat F16
+# /model.22/Transpose_1_output_0 F16
+# /model.22/Mul_5_output_0_Mul F16
+# /model.22/Sigmoid_output_0_Sigmoid F16
+output0_Concat F16
+output1_Mul F16
 
-yolo_seg_post_slice1_weight_p4_plus_op1 F32
-yolo_seg_post_slice1_weight_c1_plus_op1 F32
-yolo_seg_post_slice1 F32
-yolo_seg_post_p4 F32
-yolo_seg_post_reduce_max1 F32
-yolo_seg_post_compare_1 F32
-yolo_seg_post_permute_1 F32
-yolo_seg_post_slice3 F32
-yolo_seg_post_xywh2xyxy_slice1 F32
-yolo_seg_post_xywh2xyxy_squeeze1 F32
-yolo_seg_post_xywh2xyxy_mulconst1 F32
-yolo_seg_post_xywh2xyxy_slice2 F32
-yolo_seg_post_xywh2xyxy_squeeze2 F32
-yolo_seg_post_xywh2xyxy_mulconst2 F32
-yolo_seg_post_xywh2xyxy_slice3 F32
-yolo_seg_post_xywh2xyxy_squeeze3 F32
-yolo_seg_post_xywh2xyxy_sub1 F32
-yolo_seg_post_xywh2xyxy_slice4 F32
-yolo_seg_post_xywh2xyxy_squeeze4 F32
-yolo_seg_post_xywh2xyxy_sub2 F32
-yolo_seg_post_xywh2xyxy_add1 F32
-yolo_seg_post_xywh2xyxy_add2 F32
-yolo_seg_post_xywh2xyxy_unsqueeze1 F32
-yolo_seg_post_xywh2xyxy_unsqueeze2 F32
-yolo_seg_post_xywh2xyxy_unsqueeze3 F32
-yolo_seg_post_xywh2xyxy_unsqueeze4 F32
-yolo_seg_post_concat1 F32
-yolo_seg_post_squeeze5 F32
-yolo_seg_post_squeeze6 F32
-yolo_seg_post_nonzero1 F32
-yolo_seg_post_GatherND1 F32
-yolo_seg_post_boxes_origin F32
-yolo_seg_post_clses_origin F32
-yolo_seg_post_masks_origin F32
-yolo_seg_post_cls_argmax F32
-yolo_seg_post_clses_origin_values F32
-yolo_seg_post_concat2 F32
-yolo_seg_post_squeeze7 F32
-yolo_seg_post_c1_slice F32
-yolo_seg_post_c1_plus_concat F32
-yolo_seg_post_compare_2 F32
-yolo_seg_post_nonzero2 F32
-yolo_seg_post_GatherND2 F32
-yolo_seg_post_slice4 F32
-yolo_seg_post_slice5 F32
-yolo_seg_post_slice6 F32
-yolo_seg_post_mulconst3 F32
-yolo_seg_post_add3 F32
-yolo_seg_post_unsqueeze6 F32
-yolo_seg_post_conf_squeeze F32
-yolo_seg_post_conf_unsqueeze1 F32
-yolo_seg_post_conf_unsqueeze2_weight1 F32
-yolo_seg_post_conf_unsqueeze2_weight2 F32
-yolo_seg_post_conf_unsqueeze2_weight3 F32
-yolo_seg_post_conf_unsqueeze2 F32
-yolo_seg_post_nms F32
-yolo_seg_post_slice7 F32
-yolo_seg_post_squeeze8 F32
-yolo_seg_post_gather1 F32
-yolo_seg_post_reshape1 F32
-yolo_seg_post_slice9 F32
-yolo_seg_post_matmul1 F32
-yolo_seg_post_sigmoid1 F32
+yolo_seg_post_slice1_weight_p4_plus_op1 F16
+yolo_seg_post_slice1_weight_c1_plus_op1 F16
+yolo_seg_post_slice1 F16
+yolo_seg_post_p4 F16
+yolo_seg_post_reduce_max1 F16
+yolo_seg_post_compare_1 F16
+yolo_seg_post_permute_1 F16
+yolo_seg_post_slice3 F16
+yolo_seg_post_xywh2xyxy_slice1 F16
+yolo_seg_post_xywh2xyxy_squeeze1 F16
+yolo_seg_post_xywh2xyxy_mulconst1 F16
+yolo_seg_post_xywh2xyxy_slice2 F16
+yolo_seg_post_xywh2xyxy_squeeze2 F16
+yolo_seg_post_xywh2xyxy_mulconst2 F16
+yolo_seg_post_xywh2xyxy_slice3 F16
+yolo_seg_post_xywh2xyxy_squeeze3 F16
+yolo_seg_post_xywh2xyxy_sub1 F16
+yolo_seg_post_xywh2xyxy_slice4 F16
+yolo_seg_post_xywh2xyxy_squeeze4 F16
+yolo_seg_post_xywh2xyxy_sub2 F16
+yolo_seg_post_xywh2xyxy_add1 F16
+yolo_seg_post_xywh2xyxy_add2 F16
+yolo_seg_post_xywh2xyxy_unsqueeze1 F16
+yolo_seg_post_xywh2xyxy_unsqueeze2 F16
+yolo_seg_post_xywh2xyxy_unsqueeze3 F16
+yolo_seg_post_xywh2xyxy_unsqueeze4 F16
+yolo_seg_post_concat1 F16
+yolo_seg_post_squeeze5 F16
+yolo_seg_post_squeeze6 F16
+yolo_seg_post_nonzero1 F16
+yolo_seg_post_GatherND1 F16
+yolo_seg_post_boxes_origin F16
+yolo_seg_post_clses_origin F16
+yolo_seg_post_masks_origin F16
+yolo_seg_post_cls_argmax F16
+yolo_seg_post_clses_origin_values F16
+yolo_seg_post_concat2 F16
+yolo_seg_post_squeeze7 F16
+yolo_seg_post_c1_slice F16
+yolo_seg_post_c1_plus_concat F16
+yolo_seg_post_compare_2 F16
+yolo_seg_post_nonzero2 F16
+yolo_seg_post_GatherND2 F16
+yolo_seg_post_slice4 F16
+yolo_seg_post_slice5 F16
+yolo_seg_post_slice6 F16
+yolo_seg_post_mulconst3 F16
+yolo_seg_post_add3 F16
+yolo_seg_post_unsqueeze6 F16
+yolo_seg_post_conf_squeeze F16
+yolo_seg_post_conf_unsqueeze1 F16
+yolo_seg_post_conf_unsqueeze2_weight1 F16
+yolo_seg_post_conf_unsqueeze2_weight2 F16
+yolo_seg_post_conf_unsqueeze2_weight3 F16
+yolo_seg_post_conf_unsqueeze2 F16
+yolo_seg_post_nms F16
+yolo_seg_post_slice7 F16
+yolo_seg_post_squeeze8 F16
+yolo_seg_post_gather1 F16
+yolo_seg_post_reshape1 F16
+yolo_seg_post_slice9 F16
+yolo_seg_post_matmul1 F16
+yolo_seg_post_sigmoid1 F16
 yolo_seg_post_mulconst4 INT8
-masks_uncrop_uncompare INT8
+masks_uncrop_uncompare  INT8
 seg_out F32
