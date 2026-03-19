@@ -43,6 +43,7 @@ void BYTETracker::update(STracks& output_stracks,
   STracks unconfirmed;
   STracks strack_pool;
   STracks r_tracked_stracks;
+  int max_limit = 100;
 
   if (objects.size() > 0) {
     for (int i = 0; i < objects.size(); i++) {
@@ -216,6 +217,11 @@ void BYTETracker::update(STracks& output_stracks,
         this->tracked_stracks[i]->tlwh[2] * this->tracked_stracks[i]->tlwh[3] >
             this->min_box_area)
       output_stracks.push_back(this->tracked_stracks[i]);
+  }
+  // keep max_limit removed stracks
+  if (this->removed_stracks.size() > max_limit) {
+    this->removed_stracks.erase(this->removed_stracks.begin(), 
+		                this->removed_stracks.end() - max_limit);
   }
 }
 
