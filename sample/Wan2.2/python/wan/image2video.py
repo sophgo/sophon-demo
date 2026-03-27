@@ -12,7 +12,7 @@ from functools import partial
 
 import numpy as np
 import torch
-import torch.cuda.amp as amp
+import torch.tpu.amp as amp
 import torch.distributed as dist
 import torchvision.transforms.functional as TF
 from tqdm import tqdm
@@ -105,7 +105,7 @@ class WanI2V:
 
         logging.info(f"Creating WanModel from {checkpoint_dir}")
         self.low_noise_model = WanModel.from_pretrained(
-            checkpoint_dir, subfolder=config.low_noise_checkpoint)
+            checkpoint_dir, subfolder=config.low_noise_checkpoint, low_cpu_mem_usage=False)
         self.low_noise_model = self._configure_model(
             model=self.low_noise_model,
             use_sp=use_sp,
@@ -114,7 +114,7 @@ class WanI2V:
             convert_model_dtype=convert_model_dtype)
 
         self.high_noise_model = WanModel.from_pretrained(
-            checkpoint_dir, subfolder=config.high_noise_checkpoint)
+            checkpoint_dir, subfolder=config.high_noise_checkpoint, low_cpu_mem_usage=False)
         self.high_noise_model = self._configure_model(
             model=self.high_noise_model,
             use_sp=use_sp,
@@ -199,7 +199,7 @@ class WanI2V:
         if offload_model or self.init_on_cpu:
             if next(getattr(
                     self,
-                    offload_model_name).parameters()).device.type == 'cuda':
+                    offload_model_name).parameters()).device.type == 'tpu':
                 getattr(self, offload_model_name).to('cpu')
             if next(getattr(
                     self,
@@ -331,7 +331,7 @@ class WanI2V:
                                      noop_no_sync)
         # evaluation mode
         with (
-                torch.amp.autocast('cuda', dtype=self.param_dtype),
+                torch.amp.autocast('tpu', dtype=self.param_dtype),
                 torch.no_grad(),
                 no_sync_low_noise(),
                 no_sync_high_noise(),
@@ -375,7 +375,7 @@ class WanI2V:
             }
 
             if offload_model:
-                torch.cuda.empty_cache()
+                torch.tpu.empty_cache()
 
             for _, t in enumerate(tqdm(timesteps)):
                 latent_model_input = [latent.to(self.device)]
@@ -390,11 +390,11 @@ class WanI2V:
                 noise_pred_cond = model(
                     latent_model_input, t=timestep, **arg_c)[0]
                 if offload_model:
-                    torch.cuda.empty_cache()
+                    torch.tpu.empty_cache()
                 noise_pred_uncond = model(
                     latent_model_input, t=timestep, **arg_null)[0]
                 if offload_model:
-                    torch.cuda.empty_cache()
+                    torch.tpu.empty_cache()
                 noise_pred = noise_pred_uncond + sample_guide_scale * (
                     noise_pred_cond - noise_pred_uncond)
 
@@ -412,16 +412,38 @@ class WanI2V:
             if offload_model:
                 self.low_noise_model.cpu()
                 self.high_noise_model.cpu()
-                torch.cuda.empty_cache()
+                torch.tpu.empty_cache()
 
             # if self.rank == 0:
-            videos = self.vae.decode(x0)
+            # videos = self.vae.decode(x0)
 
+            z_full = x0[0]
+            z_cpu = z_full.to('cpu')
+            del z_full
+            torch.tpu.synchronize()
+            torch.tpu.empty_cache()
+            gc.collect()
+
+            chunk_size = getattr(self, 'decode_chunk_size', 8)
+            videos_chunks = []
+            Tz = z_cpu.shape[1]
+            for i in range(0, Tz, chunk_size):
+                z_chunk = z_cpu[:, i:i + chunk_size, :, :].to(self.vae.device)
+                dec_list = self.vae.decode([z_chunk])
+                dec = dec_list[0]
+                dec_cpu = dec.to('cpu')
+                videos_chunks.append(dec_cpu)
+                del z_chunk, dec, dec_cpu, dec_list
+                torch.tpu.synchronize()
+                torch.tpu.empty_cache()
+                gc.collect()
+
+            videos = [torch.cat(videos_chunks, dim=1)]
         del noise, latent, x0
         del sample_scheduler
         if offload_model:
             gc.collect()
-            torch.cuda.synchronize()
+            torch.tpu.synchronize()
         if dist.is_initialized():
             dist.barrier()
 

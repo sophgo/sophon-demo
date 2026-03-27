@@ -9,7 +9,8 @@ import torch.tpu.amp as amp
 import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
-import os 
+import os
+import math
 
 import torch.distributed as dist
 
@@ -44,9 +45,20 @@ class CausalConv3d(nn.Conv3d):
             self.device = torch.device(f"tpu:{self._rank}")
             self.bc_flag = 0
             self.wl_flag = 0
+            self.oc_wl_flag = 0
             
             in_channels = self.weight.size(1)
-            self.ic_start, self.ic_end, self.ic_local = self._slice_range(in_channels, self._rank, self._world_size)
+            out_channels = self.weight.size(0)
+            if in_channels % self._world_size != 0:
+                self.ic_flag = 0
+            else:
+                self.ic_flag = 1
+                self.ic_start, self.ic_end, self.ic_local = self._slice_range(in_channels, self._rank, self._world_size)
+            if out_channels % self._world_size != 0:
+                self.oc_flag = 0
+            else:
+                self.oc_flag = 1
+                self.oc_start, self.oc_end, self.oc_local = self._slice_range(out_channels, self._rank, self._world_size)
         except (ValueError, TypeError):
             self._world_size = 1
             self._rank = 0
@@ -71,10 +83,43 @@ class CausalConv3d(nn.Conv3d):
         
         x = F.pad(x, padding)
 
-        if self._conv_shard != "ic" or self._world_size <= 1 or not dist.is_available() or not dist.is_initialized():
+        if (self._conv_shard != "ic" and self._conv_shard != "oc")or self._world_size <= 1 or not dist.is_available() or not dist.is_initialized() or self.ic_flag == 0:
             out = super().forward(x)
             return out
+        
+        if self._conv_shard == "oc" and self._world_size > 1 and dist.is_available() and dist.is_initialized() and getattr(self, 'oc_flag', 0) == 1:
+            # ensure input is available on all ranks
+            if self.bc_flag == 0:
+                self.bc_flag = 1
+                dist.broadcast(x, src=0)
 
+            if getattr(self, 'oc_wl_flag', 0) == 0:
+                self.oc_wl_flag = 1
+                self.oc_weight_local = self.weight[self.oc_start:self.oc_end, ...].to(x.device).contiguous()
+
+            partial = F.conv3d(x, self.oc_weight_local, bias=None, stride=self.stride)
+
+            if self.bias is not None:
+                bias_local = self.bias[self.oc_start:self.oc_end].to(x.device)
+                partial = partial + bias_local.view(1, -1, 1, 1, 1)
+
+            if dist.is_available() and dist.is_initialized():
+                gathered = [torch.empty_like(partial) for _ in range(self._world_size)]
+                dist.all_gather(gathered, partial)
+                out = torch.cat(gathered, dim=1)
+                dist.barrier()
+            else:
+                out = partial
+
+            if self.debug_mode:
+                logging.info(f"[CausalConv3d][oc] rank={self._rank} oc=({self.oc_start},{self.oc_end}) partial.sum={float(partial.float().sum()):.6f}")
+            return out
+
+        if self.bc_flag == 0:
+            self.bc_flag = 1
+            dist.broadcast(x, src=0)
+
+        
         if self.bc_flag == 0:
             self.bc_flag = 1
             dist.broadcast(x, src=0)
@@ -83,9 +128,7 @@ class CausalConv3d(nn.Conv3d):
         if self.wl_flag == 0:
             self.wl_flag = 1
             self.weight_local = self.weight[:, self.ic_start:self.ic_end, ...].to(x_local.device).contiguous()
-
-        partial = F.conv3d(x_local,self.weight_local,bias=None)
-
+        partial = F.conv3d(x_local,self.weight_local,bias=None, stride=self.stride)
         # reduce only within TP group if provided
         if dist.is_available() and dist.is_initialized():
             dist.all_reduce(partial, op=dist.ReduceOp.SUM)
@@ -108,25 +151,12 @@ class RMS_norm(nn.Module):
         self.channel_first = channel_first
         self.scale = dim**0.5
         self.gamma = nn.Parameter(torch.ones(shape))
-        # self.bias = nn.Parameter(torch.zeros(shape)) if bias else None
-        self.bias = nn.Parameter(torch.zeros(shape)) if bias else 0.0
+        self.bias = nn.Parameter(torch.zeros(shape)) if bias else None
         self.eps = 1e-12
 
     def forward(self, x):
-        # out = torch.empty_like(x)
-        # torch.ops.my_ops.rmsnorm_forward(x, self.gamma, self.bias, out, 1 if self.channel_first else x.dim()-1, self.eps)
-        dim = x.dim()
-        if dim == 5:
-            x = x.permute(0,2,3,4,1).contiguous()
-        else:
-            x = x.permute(0,2,3,1).contiguous()
-        output = torch.empty(x.shape, dtype=x.dtype, device=x.device)
-        torch.ops.my_ops.rmsnorm_forward(x, None, None, output, dim - 1, self.eps)
-        if dim == 5:
-            output = output.permute(0,4,1,2,3).contiguous()
-        else:
-            output = output.permute(0,3,1,2).contiguous()
-        out = output * self.gamma + self.bias
+        out = torch.empty_like(x)
+        torch.ops.my_ops.rmsnorm_forward(x, self.gamma, self.bias, out, 1 if self.channel_first else x.dim()-1, self.eps)
         return out
 
 
@@ -325,6 +355,32 @@ class AttentionBlock(nn.Module):
         # zero out the last layer params
         nn.init.zeros_(self.proj.weight)
 
+    def scaled_dot_product_attention(self, query, key, value, attn_mask=None, dropout_p=0.0,
+        is_causal=False, scale=None, enable_gqa=False) -> torch.Tensor:
+        L, S = query.size(-2), key.size(-2)
+        scale_factor = 1 / math.sqrt(query.size(-1)) if scale is None else scale
+        attn_bias = torch.zeros(L, S, dtype=query.dtype, device=query.device)
+        if is_causal:
+            assert attn_mask is None
+            temp_mask = torch.ones(L, S, dtype=torch.bool).tril(diagonal=0)
+            attn_bias.masked_fill_(temp_mask.logical_not(), float("-inf"))
+
+        if attn_mask is not None:
+            if attn_mask.dtype == torch.bool:
+                attn_bias.masked_fill_(attn_mask.logical_not(), float("-inf"))
+            else:
+                attn_bias = attn_mask + attn_bias
+
+        if enable_gqa:
+            key = key.repeat_interleave(query.size(-3)//key.size(-3), -3)
+            value = value.repeat_interleave(query.size(-3)//value.size(-3), -3)
+
+        attn_weight = query @ key.transpose(-2, -1) * scale_factor
+        attn_weight += attn_bias
+        attn_weight = torch.softmax(attn_weight, dim=-1)
+        attn_weight = torch.dropout(attn_weight, dropout_p, train=True)
+        return attn_weight @ value
+
     def forward(self, x):
         identity = x
         b, c, t, h, w = x.size()
@@ -337,14 +393,14 @@ class AttentionBlock(nn.Module):
                                                2).contiguous().chunk(3, dim=-1))
 
         # apply attention
-        # x = F.scaled_dot_product_attention(
-        #     q,
-        #     k,
-        #     v,
-        # )
-        scale = q.shape[-1]**-0.5
-        x = torch.zeros_like(q)
-        torch.ops.my_ops.llava_attention(x, q, k, v, None, None, None, scale)
+        x = self.scaled_dot_product_attention(
+            q,
+            k,
+            v,
+        )
+        # scale = q.shape[-1]**-0.5
+        # x = torch.zeros_like(q)
+        # torch.ops.my_ops.llava_attention(x, q, k, v, None, None, None, scale)
         x = x.squeeze(1).permute(0, 2, 1).reshape(b * t, c, h, w).contiguous()
 
         # output
