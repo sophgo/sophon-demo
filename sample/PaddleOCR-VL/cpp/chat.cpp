@@ -104,6 +104,7 @@ void PaddleOCR_VL::net_launch(const bm_net_info_t *net,
                                    net->input_num, out_tensors.data(),
                                    net->output_num, true, false);
   assert(ret);
+  bm_thread_sync(bm_handle);
 }
 
 void PaddleOCR_VL::net_launch_decode(int idx, int kv_offset,
