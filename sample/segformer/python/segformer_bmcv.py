@@ -217,7 +217,7 @@ class SegFormer(object):
             self.inference_time += time.time() - start_time
 
         else:
-            BMImageArray = eval('sail.BMImageArray{}D'.format(self.batch_size))
+            BMImageArray = getattr(sail, 'BMImageArray{}D'.format(self.batch_size))
             bmimgs = BMImageArray()
             for i in range(img_num):
                 start_time = time.time()

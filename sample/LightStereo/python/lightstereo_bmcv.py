@@ -151,7 +151,7 @@ class LightStereoInfer:
             self.bmcv.bm_image_to_tensor(preprocessed_left_img, input_tensor_left)
             self.bmcv.bm_image_to_tensor(preprocessed_right_img, input_tensor_right)
         else:
-            BMImageArray = eval('sail.BMImageArray{}D'.format(self.batch_size))
+            BMImageArray = getattr(sail, 'BMImageArray{}D'.format(self.batch_size))
             left_bmimgs = BMImageArray()
             right_bmimgs = BMImageArray()
             i = 0
