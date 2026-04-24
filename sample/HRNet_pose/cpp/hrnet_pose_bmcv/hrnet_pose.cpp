@@ -16,6 +16,7 @@
 #include "hrnet_pose.hpp"
 #include "opencv2/opencv.hpp"
 #include "../dependencies/include/yolov5.hpp"
+#include <stdexcept>
 
 #define DUMP_FILE 0
 using namespace std;
@@ -118,7 +119,9 @@ int HRNetPose::Init(bool flip, const string& coco_names_file) {
     int strides[3] = {aligned_net_w, aligned_net_w, aligned_net_w}; 
     for(int i = 0; i < max_batch; i++){
         ret= bm_image_create(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &m_resized_imgs[i], strides);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     ret = bm_image_alloc_contiguous_mem(max_batch, m_resized_imgs.data());
 
@@ -127,7 +130,9 @@ int HRNetPose::Init(bool flip, const string& coco_names_file) {
         img_dtype = DATA_TYPE_EXT_1N_BYTE_SIGNED; 
     }
     ret = bm_image_create_batch(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, img_dtype, m_converto_imgs.data(), max_batch);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     linear_trans_param_.alpha_0 = scale_[0] / 255.0;
     linear_trans_param_.alpha_1 = scale_[1] / 255.0;
@@ -604,5 +609,4 @@ int HRNetPose::poseEstimate(const bm_image& image, YoloV5Box& box, vector<cv::Po
 
     return ret;
 }
-
 

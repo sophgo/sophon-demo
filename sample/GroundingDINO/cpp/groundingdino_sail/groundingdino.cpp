@@ -9,6 +9,7 @@
 #define RESIZE_STRATEGY BMCV_INTER_LINEAR
 #include "groundingdino.hpp"
 #include <fstream>
+#include <stdexcept>
 
 #define LEFTSTRIP 0
 #define RIGHTSTRIP 1
@@ -257,7 +258,9 @@ void GroundingDINO::bmcv_preprocess(const bm_image& image)
 		image_aligned = image1;
 	}
     ret = bmcv_image_vpp_convert(bm_ctx->handle(), 1, image_aligned, &m_resized_imgs[i]);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     if(need_copy) bm_image_destroy(image_aligned);
   
 	//2. converto

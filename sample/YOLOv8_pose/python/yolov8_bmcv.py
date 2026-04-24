@@ -12,7 +12,6 @@ import time
 import argparse
 import numpy as np
 import sophon.sail as sail
-from utils import *
 import logging
 logging.basicConfig(level=logging.INFO)
 

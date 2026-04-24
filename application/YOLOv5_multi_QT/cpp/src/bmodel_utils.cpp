@@ -8,6 +8,7 @@
 // ===----------------------------------------------------------------------===
 
 #include "bmodel_utils.h"
+#include <stdexcept>
 
 BModelNetwork::BModelNetwork(void *bmrt, const std::string& name):m_bmrt(bmrt) {
     m_handle = static_cast<bm_handle_t>(bmrt_get_bm_handle(bmrt));
@@ -30,7 +31,9 @@ BModelNetwork::BModelNetwork(void *bmrt, const std::string& name):m_bmrt(bmrt) {
 
     struct bm_misc_info misc_info;
     bm_status_t ret = bm_get_misc_info(m_handle, &misc_info);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     is_soc = misc_info.pcie_soc_mode == 1;
 
     printf("*** Run in %s mode ***\n", is_soc?"SOC": "PCIE");

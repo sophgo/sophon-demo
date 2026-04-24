@@ -9,6 +9,7 @@
 #include <string>
 
 #include "ppocr_cls.hpp"
+#include <stdexcept>
 
 PPOCR_Cls::PPOCR_Cls(std::shared_ptr<BMNNContext> context):m_bmContext(context)
 {
@@ -67,7 +68,9 @@ int PPOCR_Cls::Init(int batch_size)
             FORMAT_BGR_PLANAR,
             DATA_TYPE_EXT_1N_BYTE,
             &resize_bmcv_[i], strides);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
         ret = bm_image_create(m_bmContext->handle(),
                                 net_h_,
@@ -75,7 +78,9 @@ int PPOCR_Cls::Init(int batch_size)
                                 FORMAT_BGR_PLANAR,
                                 data_type,
                                 &linear_trans_bmcv_[i]);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
         ret = bm_image_create(m_bmContext->handle(),
                                 net_h_,
@@ -83,7 +88,9 @@ int PPOCR_Cls::Init(int batch_size)
                                 FORMAT_BGR_PLANAR,
                                 data_type,
                                 &padding_bmcv_[i]);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
 
     bm_image_alloc_contiguous_mem (max_batch, padding_bmcv_.data());
@@ -250,4 +257,3 @@ int PPOCR_Cls::get_cls_thresh()
 {
     return cls_thresh;
 };
-

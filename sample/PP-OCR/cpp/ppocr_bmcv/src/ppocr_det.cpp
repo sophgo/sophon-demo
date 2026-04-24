@@ -10,6 +10,7 @@
 // #include "cnpy.h" //only for debug, and only x86.
 #include "ppocr_det.hpp"
 #include "postprocess.hpp"
+#include <stdexcept>
 #define USE_ZERO_PADDING 0 //Only 1684
 using namespace std;
 
@@ -105,7 +106,9 @@ int PPOCR_Detector::Init()
             DATA_TYPE_EXT_1N_BYTE,
             &resize_bmcv_[i], strides);
 
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
         ret = bm_image_create(m_bmContext->handle(),
                             net_h_,
@@ -113,7 +116,9 @@ int PPOCR_Detector::Init()
                             FORMAT_BGR_PLANAR,
                             data_type,
                             &linear_trans_bmcv_[i]);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     #if USE_ZERO_PADDING
         ret = bm_image_create(m_bmContext->handle(),
                                 net_h_,
@@ -121,7 +126,9 @@ int PPOCR_Detector::Init()
                                 FORMAT_BGR_PLANAR,
                                 data_type,
                                 &padding_bmcv_[i]);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     #endif
     }
 
@@ -202,29 +209,39 @@ std::vector<std::vector<int>> PPOCR_Detector::preprocess_bmcv(const std::vector<
         if(need_copy){
             int stride1[3], stride2[3];
             ret = bm_image_get_stride(image1, stride1);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             stride2[0] = FFALIGN(stride1[0], 64);
             stride2[1] = FFALIGN(stride1[1], 64);
             stride2[2] = FFALIGN(stride1[2], 64);
             ret = bm_image_create(m_bmContext->handle(), image1.height, image1.width,
                 image1.image_format, image1.data_type, &image_aligned, stride2);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             ret = bm_image_alloc_dev_mem(image_aligned, BMCV_IMAGE_FOR_IN);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             bmcv_copy_to_atrr_t copyToAttr;
             memset(&copyToAttr, 0, sizeof(copyToAttr));
             copyToAttr.start_x = 0;
             copyToAttr.start_y = 0;
             copyToAttr.if_padding = 1;
             ret = bmcv_image_copy_to(m_bmContext->handle(), copyToAttr, image1, image_aligned);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         } else {
             image_aligned = image1;
         }
 
         resize_vector.push_back(resize_padding_op_(image_aligned, resize_bmcv_[i], det_limit_len_));
         ret = bmcv_image_convert_to(m_bmContext->handle(), 1, linear_trans_param_, &resize_bmcv_[i], &linear_trans_bmcv_[i]);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     #if USE_ZERO_PADDING
         bmcv_rect_t rect_t = {0,0,resize_vector[i][1], resize_vector[i][0]};
         bmcv_copy_to_atrr_t  atrr_t = {0, 0, 0, 0, 0, 1};
@@ -234,11 +251,17 @@ std::vector<std::vector<int>> PPOCR_Detector::preprocess_bmcv(const std::vector<
                                     FORMAT_BGR_PLANAR,
                                     DATA_TYPE_EXT_FLOAT32,
                                     &crop_bmcv_[i]);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         ret = bmcv_image_crop(m_bmContext->handle(), 1, &rect_t, linear_trans_bmcv_[i], &crop_bmcv_[i]);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         ret = bmcv_image_copy_to(m_bmContext->handle(), atrr_t, crop_bmcv_[i], padding_bmcv_[i]);
-        assert(BM_SUCCESS == ret);    
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }    
         bm_image_destroy(crop_bmcv_[i]);
     #endif
         if(need_copy){
@@ -259,10 +282,14 @@ std::vector<std::vector<int>> PPOCR_Detector::preprocess_bmcv(const std::vector<
 
     #if USE_ZERO_PADDING
         ret = bm_image_get_contiguous_device_mem(input.size(), padding_bmcv_.data(), &input_dev_mem);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     #else
         ret = bm_image_get_contiguous_device_mem(input.size(), linear_trans_bmcv_.data(), &input_dev_mem);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     #endif
 
     input_tensor->set_device_mem(&input_dev_mem);
@@ -304,7 +331,9 @@ std::vector<int> PPOCR_Detector::resize_padding_op_(bm_image src_img, bm_image &
     padding_attr.if_memset = 1;
     bmcv_rect_t crop_rect{0, 0, src_img.width, src_img.height};
     auto ret = bmcv_image_vpp_convert_padding(m_bmContext->handle(), 1, src_img, &dst_img, &padding_attr, &crop_rect);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     return resize_hw;
 }
 
@@ -380,4 +409,3 @@ int PPOCR_Detector::postForward(const std::vector<bm_image> &batch_input_bmimg, 
     m_ts->save("(per image)Det postprocess", batch_input_bmimg.size()); 
     return 0;
 }
-

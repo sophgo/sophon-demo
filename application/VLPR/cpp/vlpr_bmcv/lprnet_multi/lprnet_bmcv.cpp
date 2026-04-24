@@ -7,6 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 #include "lprnet_bmcv.hpp"
+#include <stdexcept>
 
 // rec class
 static char const* arr_chars[] = {
@@ -50,7 +51,9 @@ LPRNet::LPRNet(int dev_id, std::string bmodel_path, int pre_thread_num,
   // context
   m_ctx = std::make_unique<bmruntime::Context>(dev_id);
   auto ret = m_ctx->load_bmodel(bmodel_path.c_str());
-  assert(BM_SUCCESS == ret);
+  if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
   // network
   std::vector<const char*> net_names;
@@ -67,7 +70,9 @@ LPRNet::LPRNet(int dev_id, std::string bmodel_path, int pre_thread_num,
   m_netinfo = m_ctx->get_network_info(net_names[0]);
   struct bm_misc_info misc_info;
   ret = bm_get_misc_info(m_handle, &misc_info);
-  assert(BM_SUCCESS == ret);
+  if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
   is_soc = misc_info.pcie_soc_mode == 1;
 
   // preprocess interval variables
@@ -81,7 +86,9 @@ LPRNet::LPRNet(int dev_id, std::string bmodel_path, int pre_thread_num,
       ret = bm_image_create(m_handle, m_net_h, m_net_w, FORMAT_BGR_PLANAR,
                                  DATA_TYPE_EXT_1N_BYTE, &m_resized_imgs[i][j],
                                  strides);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     bm_image_alloc_contiguous_mem(batch_size, m_resized_imgs[i].data());
   }
@@ -160,7 +167,9 @@ void LPRNet::preprocess(int process_id) {
       }
       auto ret = bmcv_image_vpp_convert(m_handle, 1, image_aligned,
                                         &m_resized_imgs[process_id][batch_idx]);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       batch_idx++;
 
       cur_tensor->channel_ids.push_back(in->channel_id);
@@ -178,7 +187,9 @@ void LPRNet::preprocess(int process_id) {
       bm_image_create(m_handle, m_net_h, m_net_w, FORMAT_BGR_PLANAR, img_dtype,
                       &m_converto_imgs[i]);
     auto ret = bm_image_alloc_contiguous_mem(batch_size, m_converto_imgs);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     CV_Assert(0 == bmcv_image_convert_to(m_handle, batch_size, converto_attr,
                                          m_resized_imgs[process_id].data(),
                                          m_converto_imgs));
@@ -193,7 +204,9 @@ void LPRNet::preprocess(int process_id) {
     cur_tensor->bmtensor.reset(
         new bm_tensor_t(), [this, m_converto_imgs](bm_tensor_t* p) {
           auto ret = bm_image_free_contiguous_mem(this->batch_size, m_converto_imgs);
-          assert(BM_SUCCESS == ret);
+          if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
           for (int i = 0; i < this->batch_size; i++)
             bm_image_destroy(m_converto_imgs[i]);
 
@@ -244,7 +257,9 @@ void LPRNet::inference() {
 
     // malloc output dev mem
     auto ret = bm_malloc_device_byte(m_handle, &(out_tensor->device_mem), output_size);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     cur_tensor->bmtensor.reset(out_tensor, [this](bm_tensor_t* p) {
       if (p->device_mem.u.device.device_addr != 0) {
         bm_free_device(this->get_handle(), p->device_mem);
@@ -259,7 +274,9 @@ void LPRNet::inference() {
 
     // forward
     ret = m_net->Forward(true);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     // push data
     m_queue_infer.push_back(cur_tensor);
@@ -319,17 +336,25 @@ std::shared_ptr<float> LPRNet::get_cpu_data(
     if (m_tensor->dtype == BM_FLOAT32) {
       unsigned long long addr;
       ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       ret = bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       pFP32 = (float*)addr;
     } else if (BM_INT8 == m_tensor->dtype) {
       int8_t* pI8 = nullptr;
       unsigned long long addr;
       ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       ret = bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       pI8 = (int8_t*)addr;
 
       // dtype convert
@@ -340,14 +365,20 @@ std::shared_ptr<float> LPRNet::get_cpu_data(
       }
       ret = bm_mem_unmap_device_mem(
           m_handle, pI8, bm_mem_get_device_size(m_tensor->device_mem));
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     } else if (m_tensor->dtype == BM_INT32) {
       int32_t* pI32 = nullptr;
       unsigned long long addr;
       ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       ret = bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       pI32 = (int32_t*)addr;
       // dtype convert
       pFP32 = new float[count];
@@ -357,7 +388,9 @@ std::shared_ptr<float> LPRNet::get_cpu_data(
       }
       ret = bm_mem_unmap_device_mem(
           m_handle, pI32, bm_mem_get_device_size(m_tensor->device_mem));
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     } else {
       std::cout << "NOT support dtype=" << m_tensor->dtype << std::endl;
     }
@@ -368,7 +401,9 @@ std::shared_ptr<float> LPRNet::get_cpu_data(
       assert(pFP32 != nullptr);
       ret = bm_memcpy_d2s_partial(m_handle, pFP32, m_tensor->device_mem,
                                   count * sizeof(float));
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     } else if (BM_INT8 == m_tensor->dtype) {
       int8_t* pI8 = nullptr;
       int tensor_size = bmrt_tensor_bytesize(m_tensor.get());
@@ -380,7 +415,9 @@ std::shared_ptr<float> LPRNet::get_cpu_data(
       assert(pFP32 != nullptr);
       ret = bm_memcpy_d2s_partial(m_handle, pI8, m_tensor->device_mem,
                                   tensor_size);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       for (int i = 0; i < count; ++i) {
         pFP32[i] = pI8[i] * output_scale;
       }
@@ -396,7 +433,9 @@ std::shared_ptr<float> LPRNet::get_cpu_data(
       assert(pFP32 != nullptr);
       ret = bm_memcpy_d2s_partial(m_handle, pI32, m_tensor->device_mem,
                                   tensor_size);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       for (int i = 0; i < count; ++i) {
         pFP32[i] = pI32[i] * output_scale;
       }
@@ -416,7 +455,9 @@ std::shared_ptr<float> LPRNet::get_cpu_data(
     } else {
       bm_status_t ret = bm_mem_unmap_device_mem(
           this->m_handle, p, bmrt_tensor_bytesize(m_tensor.get()));
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
   });
 

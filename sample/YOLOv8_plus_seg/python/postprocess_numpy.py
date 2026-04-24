@@ -12,7 +12,7 @@ import time
 import cv2
 import numpy as np
 from pycocotools.mask import encode
-from utils import *
+from utils import colors, class_names
 
 class PostProcess:
 

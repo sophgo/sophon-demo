@@ -10,6 +10,7 @@
 #include <cstring>
 #include <bmcv_api_ext.h>
 #include <bmlib_runtime.h>
+#include <stdexcept>
 
 
 DPU::DPU(int dev_id, bool debug, int width, int height) 
@@ -23,24 +24,38 @@ DPU::DPU(int dev_id, bool debug, int width, int height)
     int ret = bm_dev_request(&handle_, dev_id);
     if (ret != BM_SUCCESS) {
         std::cerr << "Failed to request device" << std::endl;
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     // 3. 初始化中间bm_image
     ret = bm_image_create(handle_, height_, width_, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &aligned_left_);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     ret = bm_image_alloc_dev_mem(aligned_left_, 1);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     ret = bm_image_create(handle_, height_, width_, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &aligned_right_);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     ret = bm_image_alloc_dev_mem(aligned_right_, 1);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     // 4. 初始化深度图
     ret = bm_image_create(handle_, height_, width_, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &depth_img_);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     ret = bm_image_alloc_dev_mem(depth_img_, 1);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     // 5. 设置SGBM默认参数
     sgbm_params_.bfw_mode_en = DPU_BFW_MODE_7x7;
@@ -183,7 +198,9 @@ int DPU::pre_process(bm_image& input_image, bm_image& converted_img) {
         copyToAttr.padding_g = 0;
         copyToAttr.padding_b = 0;
         ret = bmcv_image_copy_to(handle_, copyToAttr, input_image, converted_img);
-        assert(BM_SUCCESS == ret);  
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }  
     // 2. only convert image 
     }else{
         bmcv_image_storage_convert(handle_, 1, &input_image, &converted_img);

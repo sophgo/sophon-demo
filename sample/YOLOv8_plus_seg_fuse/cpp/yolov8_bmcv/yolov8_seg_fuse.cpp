@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <stdexcept>
 #define USE_ASPECT_RATIO 1
 #define DUMP_FILE 0
 
@@ -71,13 +72,17 @@ int YoloV8SegFuse::pre_process(const std::vector<bm_image>& images,
 
     //create bm_images
     ret = bm_image_create_batch(handle, m_net_h, m_net_w, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, m_resized_imgs.data(), batch_size, NULL, -1, false);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     // create tensor for model input
     ret = bmrt_tensor(&input_tensor, bmrt, netinfo->input_dtypes[0], netinfo->stages[0].input_shapes[0]);
     assert(true == ret);
     ret = bm_image_attach_contiguous_mem(batch_size, m_resized_imgs.data(), input_tensor.device_mem);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     int image_n = images.size();
     // 1. resize image letterbox
@@ -141,16 +146,22 @@ int YoloV8SegFuse::pre_process(const std::vector<bm_image>& images,
         txy_batch.push_back(std::make_pair(0, 0));
         ratios_batch.push_back(std::make_pair((float)m_net_w/images[i].width,(float)m_net_h/images[i].height));
 #endif
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         if (need_copy)
             bm_image_destroy(image_aligned);
     }
 
     // destroy bm_images
     ret = bm_image_dettach_contiguous_mem(batch_size, m_resized_imgs.data());
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     ret = bm_image_destroy_batch(m_resized_imgs.data(), batch_size, false);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     return ret;
 }
 
@@ -166,7 +177,9 @@ int YoloV8SegFuse::forward(bm_tensor_t& input_tensor, std::vector<bm_tensor_t>& 
                     output_tensors.data(), netinfo->output_num);
     assert(ok == true);
     auto ret = bm_thread_sync(handle);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     bm_free_device(handle, input_tensor.device_mem);
     return ret;
 }
@@ -187,17 +200,25 @@ float* YoloV8SegFuse::get_cpu_data(bm_tensor_t* tensor, float scale){
         if (tensor->dtype == BM_FLOAT32) {
             unsigned long long addr;
             ret = bm_mem_mmap_device_mem(handle, &tensor->device_mem, &addr);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             ret = bm_mem_invalidate_device_mem(handle, &tensor->device_mem);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             pFP32 = (float*)addr;
         } else if (BM_INT8 == tensor->dtype) {
             int8_t * pI8 = nullptr;
             unsigned long long  addr;
             ret = bm_mem_mmap_device_mem(handle, &tensor->device_mem, &addr);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             ret = bm_mem_invalidate_device_mem(handle, &tensor->device_mem);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             pI8 = (int8_t*)addr;
             // dtype convert
             pFP32 = new float[count];
@@ -206,14 +227,20 @@ float* YoloV8SegFuse::get_cpu_data(bm_tensor_t* tensor, float scale){
                 pFP32[i] = pI8[i] * scale;
             }
             ret = bm_mem_unmap_device_mem(handle, pI8, bm_mem_get_device_size(tensor->device_mem));
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         }  else if (BM_UINT8 == tensor->dtype) {
             uint8_t * pUI8 = nullptr;
             unsigned long long  addr;
             ret = bm_mem_mmap_device_mem(handle, &tensor->device_mem, &addr);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             ret = bm_mem_invalidate_device_mem(handle, &tensor->device_mem);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             pUI8 = (uint8_t*)addr;
             // dtype convert
             pFP32 = new float[count];
@@ -222,7 +249,9 @@ float* YoloV8SegFuse::get_cpu_data(bm_tensor_t* tensor, float scale){
                 pFP32[i] = pUI8[i] * scale;
             }
             ret = bm_mem_unmap_device_mem(handle, pUI8, bm_mem_get_device_size(tensor->device_mem));
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         } else{
             std::cerr << "unsupport dtype: " << tensor->dtype << std::endl;
         }
@@ -361,7 +390,9 @@ int YoloV8SegFuse::post_process(const std::vector<bm_image>& input_images,
                 } else {
                     int tensor_size = bm_mem_get_device_size(output_tensors[i].device_mem);
                     bm_status_t ret = bm_mem_unmap_device_mem(handle, tensor_data, tensor_size);
-                    assert(BM_SUCCESS == ret);
+                    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
                 }
             } else {
                 delete [] tensor_data;

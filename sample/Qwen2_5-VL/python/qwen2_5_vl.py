@@ -969,7 +969,7 @@ def main(args):
         else:
             messages, cur_media_type = model.generate_message(history_messages, text, "user")
         messages = [messages]
-        media_type = cur_media_type if media_type == None else media_type
+        media_type = cur_media_type if media_type is None else media_type
 
         # preprocess text and images/video, get model inputs
         inputs = model.preprocess(messages, image_grid_thw=image_grid_thw, video_grid_thw=video_grid_thw)

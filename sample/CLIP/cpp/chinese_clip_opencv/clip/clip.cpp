@@ -22,6 +22,7 @@
 #include <getopt.h>
 #include <fstream>
 #include <string>
+#include <stdexcept>
 
 void CLIP::init(const std::string& image_model, const std::string& text_model, const int &dev_id) {
     bm_status_t status = bm_dev_request(&bm_handle, dev_id);
@@ -218,14 +219,18 @@ std::vector<float> CLIP::encode_image(const std::vector<float>& image) {
     uint64_t out_shape = bmrt_shape_count(image_net_output_shape);
     
     auto ret =  bm_memcpy_s2d_partial(bm_handle, in0_mem, (void*)image.data(), in_shape * sizeof(float));
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     net_launch(image_net, p_bmrt_image);
     size_t batch_size = 1;
     size_t total_size = out_shape * batch_size;
 
     std::vector<float> output_data(out_shape, 0);
     ret =  bm_memcpy_d2s_partial(bm_handle, output_data.data(), out_mem, output_data.size() * sizeof(float));
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     normalize(output_data);
     encode_image_time += std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - start_time).count();
     
@@ -240,11 +245,15 @@ std::vector<float> CLIP::encode_text(const std::vector<int>& text) {
     uint64_t out_shape = bmrt_shape_count(text_net_output_shape);   
 
     auto ret = bm_memcpy_s2d_partial(bm_handle, in0_mem, (void*)text.data(), text.size() * sizeof(int));
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     net_launch(text_net, p_bmrt_text);
     std::vector<float> result(embed_dim, 0.0f);
     ret = bm_memcpy_d2s_partial(bm_handle, result.data(), out_mem, result.size() * sizeof(float));
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     normalize(result);
     encode_text_time += std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - start_time).count();
 

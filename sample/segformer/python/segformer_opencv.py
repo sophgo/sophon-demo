@@ -72,7 +72,7 @@ class SegFormer(object):
     def _align(self, img, size_divisor, interpolation=None):
         align_h = int(np.ceil(img.shape[0] / size_divisor)) * size_divisor
         align_w = int(np.ceil(img.shape[1] / size_divisor)) * size_divisor
-        if interpolation == None:
+        if interpolation is None:
             img = cv2.resize(img, (align_w, align_h))
         else:
             img = cv2.resize(img, (align_w, align_h), interpolation=interpolation)

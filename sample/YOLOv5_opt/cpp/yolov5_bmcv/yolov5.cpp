@@ -11,6 +11,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <stdexcept>
 #define USE_ASPECT_RATIO 1
 #define DUMP_FILE 0
 
@@ -72,7 +73,9 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& tpu_kerne
   for (int i = 0; i < max_batch; i++) {
     auto ret = bm_image_create(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE,
                                &m_resized_imgs[i], strides);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
   }
   bm_image_alloc_contiguous_mem(max_batch, m_resized_imgs.data());
   bm_image_data_format_ext img_dtype = DATA_TYPE_EXT_FLOAT32;
@@ -81,7 +84,9 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& tpu_kerne
   }
   auto ret = bm_image_create_batch(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, img_dtype,
                                    m_converto_imgs.data(), max_batch);
-  assert(BM_SUCCESS == ret);
+  if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
   // 5.converto
   float input_scale = tensor->get_scale();
@@ -125,14 +130,24 @@ int YoloV5::Init(float confThresh, float nmsThresh, const std::string& tpu_kerne
   
   for(int i = 0; i < max_batch; i++){
     output_tensor[i] = new float[out_len_max];
+    if (output_tensor[i] == nullptr) {
+        std::cerr << "主机内存分配失败" << std::endl;
+        throw std::runtime_error("Failed to allocate host memory");
+    }
     for (int j = 0; j < input_num; j++) {
       api[i].bottom_addr[j] = bm_mem_get_device_addr(in_dev_mem[j]) + i * in_dev_mem[j].size / max_batch;
       api_v2[i].bottom_addr = bm_mem_get_device_addr(in_dev_mem[j]) + i * in_dev_mem[j].size / max_batch;
     }
     ret = bm_malloc_device_byte(handle, &out_dev_mem[i], out_len_max * sizeof(float));
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        std::cerr << "设备内存分配失败" << std::endl;
+        throw std::runtime_error("Failed to allocate device memory");
+    }
     ret = bm_malloc_device_byte(handle, &detect_num_mem[i], batch_num * sizeof(int32_t));
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        std::cerr << "设备内存分配失败" << std::endl;
+        throw std::runtime_error("Failed to allocate device memory");
+    }
 
     /*initialize api for tpu_kernel_api_yolov5_out*/
     api[i].top_addr = bm_mem_get_device_addr(out_dev_mem[i]);
@@ -267,7 +282,9 @@ int YoloV5::pre_process(const std::vector<bm_image>& images) {
 #else
     auto ret = bmcv_image_vpp_convert(m_bmContext->handle(), 1, images[i], &m_resized_imgs[i]);
 #endif
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
 #if DUMP_FILE
     cv::Mat resized_img;
