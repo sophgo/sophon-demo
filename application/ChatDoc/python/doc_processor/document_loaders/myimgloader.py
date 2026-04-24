@@ -21,6 +21,6 @@ class RapidOCRLoader(UnstructuredFileLoader):
 
 
 if __name__ == "__main__":
-    loader = RapidOCRLoader(file_path="/home/junqian/workspace/junqian_warehouse/test_text_splitter/pngtest.png")
+    loader = RapidOCRLoader(file_path="test.png")
     docs = loader.load()
     print(docs)
