@@ -15,7 +15,6 @@ import numpy as np
 import sophon.sail as sail
 import logging
 
-from utils import *
 logging.basicConfig(level=logging.INFO)
 
 class YOLOv8:

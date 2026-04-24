@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 #include "lprnet.hpp"
 #include <fstream>
+#include <stdexcept>
 // #define DEBUG
 using namespace std;
 
@@ -68,7 +69,9 @@ int LPRNET::Init() {
         auto ret = bm_image_create(m_bmContext->handle(), m_net_h, m_net_w,
                                    FORMAT_BGR_PLANAR, DATA_TYPE_EXT_1N_BYTE,
                                    &m_resized_imgs[i], strides);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     bm_image_alloc_contiguous_mem(max_batch, m_resized_imgs.data());
 
@@ -80,7 +83,9 @@ int LPRNET::Init() {
     auto ret = bm_image_create_batch(m_bmContext->handle(), m_net_h, m_net_w,
                                      FORMAT_BGR_PLANAR, img_dtype,
                                      m_converto_imgs.data(), max_batch);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     // 3.converto
     float input_scale = tensor->get_scale();
     input_scale = input_scale * 0.0078125;
@@ -170,7 +175,9 @@ int LPRNET::pre_process(const std::vector<bm_image>& images) {
         }
         auto ret = bmcv_image_vpp_convert(m_bmContext->handle(), 1,
                                           image_aligned, &m_resized_imgs[i]);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         bm_image_destroy(image1);
         if (need_copy)
             bm_image_destroy(image_aligned);

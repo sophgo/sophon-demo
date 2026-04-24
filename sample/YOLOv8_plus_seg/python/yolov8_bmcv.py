@@ -15,7 +15,6 @@ import sophon.sail as sail
 from postprocess_numpy import PostProcess
 from pycocotools.mask import encode
 
-from utils import *
 import logging
 logging.basicConfig(level=logging.INFO)
 

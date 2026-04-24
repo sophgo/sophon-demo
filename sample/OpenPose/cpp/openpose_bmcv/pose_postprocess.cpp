@@ -10,6 +10,7 @@
 
 #include "openpose.hpp"
 #include "pose_postprocess.hpp"
+#include <stdexcept>
 
 #define POSE_COLORS_RENDER_CPU \
 	255.f, 0.f, 0.f, \
@@ -214,9 +215,13 @@ void OpenPosePostProcess::kernel_part_nms(
 
     bm_device_mem_t output_data, output_num;
     auto ret = bm_malloc_device_byte(handle, &output_data, sizeof(float) * api.input_c * input_h * input_w);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     ret = bm_malloc_device_byte(handle, &output_num, sizeof(int) * api.input_c);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     api.input_data_addr = bm_mem_get_device_addr(input_data);
     api.output_data_addr = bm_mem_get_device_addr(output_data);
     api.num_output_data_addr = bm_mem_get_device_addr(output_num);
@@ -226,7 +231,9 @@ void OpenPosePostProcess::kernel_part_nms(
     api.max_peak_num = max_peak_num;
     api.nms_thresh = threshold;
     ret = tpu_kernel_launch(handle, func_id, &api, sizeof(api));
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     bm_thread_sync(handle);
 
     bm_memcpy_d2s_partial(handle, num_result, output_num,
@@ -1427,4 +1434,3 @@ void OpenPosePostProcess::getKeyPointsTPUKERNEL(
         delete[] coor_out_result;
     }
 }
-

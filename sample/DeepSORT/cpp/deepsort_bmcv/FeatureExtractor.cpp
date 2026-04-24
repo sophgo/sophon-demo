@@ -7,6 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 #include "FeatureExtractor.h"
+#include <stdexcept>
 extern int cnt;
 FeatureExtractor::FeatureExtractor(std::shared_ptr<BMNNContext> context) : m_bmContext(context) {
     std::cout << "FeatureExtractor ctor .." << std::endl;
@@ -43,7 +44,9 @@ void FeatureExtractor::Init() {
     for (int i = 0; i < max_batch; i++) {
         auto ret = bm_image_create(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE,
                                    &m_resized_imgs[i], strides);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     bm_image_alloc_contiguous_mem(max_batch, m_resized_imgs.data());
     bm_image_data_format_ext img_dtype = DATA_TYPE_EXT_FLOAT32;
@@ -52,7 +55,9 @@ void FeatureExtractor::Init() {
     }
     auto ret = bm_image_create_batch(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, img_dtype,
                                      m_converto_imgs.data(), max_batch);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     // 5.converto, RGB mean std.
     float input_scale = tensor->get_scale();
@@ -97,7 +102,9 @@ int FeatureExtractor::pre_process(const bm_image& image, std::vector<bmcv_rect_t
 #else
     ret = bmcv_image_vpp_convert(m_bmContext->handle(), image_n, image, m_resized_imgs.data(), crop_rects_batch.data());
 #endif
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 #if 0
     for(int i =0; i < m_resized_imgs.size(); i++){
         cv::Mat resized_img;

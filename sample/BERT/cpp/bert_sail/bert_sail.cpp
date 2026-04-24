@@ -17,6 +17,7 @@
 #include <string>
 #include <memory>
 #include "opencv2/opencv.hpp"
+#include <stdexcept>
 map<string, int> text2id;
 map<int, string> id2text;
 BERT::BERT(string model_path, string pre_train_path, int id) {
@@ -59,7 +60,9 @@ BERT::BERT(string model_path, string pre_train_path, int id) {
     id2label.push_back("I-ORG");
 
     bm_status_t ret = bm_get_misc_info(handle->data(), &misc_info);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 };
 
 void BERT::pre_process(std::vector<string> texts) { // pre_process

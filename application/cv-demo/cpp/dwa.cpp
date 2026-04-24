@@ -13,6 +13,7 @@
 #include <iostream>
 
 #include "json.hpp"
+#include <stdexcept>
 #define DEBUG 0
 //  const char* Dwa::CONFIG_INTERNAL_IS_GRAY_FILED = "is_gray";
 //    const char* Dwa::CONFIG_INTERNAL_IS_RESIZE_FILED = "is_resize";
@@ -315,7 +316,9 @@ int Dwa::dwa_gdc_work(std::shared_ptr<Frame>& mFrame) {
       bm_status_t ret = bmcv_image_vpp_convert_padding(
           mFrame->mHandle, 1, *mFrame->mSpData, resized_img.get(),
           &padding_attr, &crop_rect);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
       if (is_rot == true) {
         std::shared_ptr<bm_image> input_rot = nullptr;

@@ -11,6 +11,7 @@
 #include <numeric>
 
 #include "ppocr_rec.hpp"
+#include <stdexcept>
 PPOCR_Rec::PPOCR_Rec(std::shared_ptr<BMNNContext> context):m_bmContext(context)
 {
     std::cout << "PPOCR_Rec ..." << std::endl;
@@ -20,9 +21,13 @@ PPOCR_Rec::~PPOCR_Rec()
 {   
     for(auto& stage_size : img_size){
         auto ret = bm_image_destroy_batch(resize_bmcv_map[stage_size.w].data(), max_batch);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         ret = bm_image_destroy_batch(linear_trans_bmcv_map[stage_size.w].data(), max_batch);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
 }     
 
@@ -123,7 +128,9 @@ int PPOCR_Rec::Init(const std::string &label_path)
                                         data_type, 
                                         linear_trans_bmcv_map[stage_size.w].data(), 
                                         max_batch);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     linear_trans_param_.alpha_0 = 0.0078125;
     linear_trans_param_.alpha_1 = 0.0078125;

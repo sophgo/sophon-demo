@@ -14,7 +14,7 @@ from transformers import (
     AutoModel,
     AutoConfig,
 )
-from onnx_rebuilder import *
+from onnx_rebuilder import OnnxRebuilder, ModelMapper
 
 GREEN_COLOR = "\033[92m"  # ANSI escape code for green text
 RED_COLOR = "\033[91m"
