@@ -121,7 +121,7 @@ def call_clip_server_push_data():
 def call_clip_server_get_result():
     id = request.args.get('id')
     result = clip_server_instance.get_result()
-    if result == None:
+    if result is None:
         return jsonify({"error": "result is None,you should sent data first"}), 400
 
     print(result)

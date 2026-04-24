@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 #include <unistd.h>
 #include "vlpr_bmcv.hpp"
+#include <stdexcept>
 
 #define DET_VIS 0
 // print fps info during run, otherwise output fps info finally
@@ -28,7 +29,9 @@ VLPR::VLPR(demo_config& config)
   this->config = config;
   total_frame_num = 0;
   auto ret = bm_dev_request(&m_handle, config.dev_id);
-  assert(BM_SUCCESS == ret);
+  if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
   runtime_performance_info_thread_exit = false;
 
 #if DET_VIS
@@ -209,7 +212,9 @@ void VLPR::crop(int process_id) {
                                .crop_w = dilated_w,
                                .crop_h = dilated_h};
       auto ret = bmcv_image_vpp_convert(m_handle, 1, image_aligned, croped_bmimg->bmimg.get(), &crop_rect);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       lprnet->push_m_queue_decode(croped_bmimg);
 
 #if DET_VIS

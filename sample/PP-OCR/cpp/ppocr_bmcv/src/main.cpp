@@ -14,6 +14,7 @@
 #include "ppocr_cls.hpp"
 #include "ppocr_rec.hpp"
 #include "ff_decode.hpp"
+#include <stdexcept>
 using json = nlohmann::json;
 using namespace std;
 #define USE_ANGLE_CLS 0
@@ -83,7 +84,9 @@ cv::Mat GetRotateCropImage(const cv::Mat &srcimage,
     bm_image get_rotate_crop_image(bm_handle_t handle, bm_image input_bmimg_planar, OCRBox box) {
         cv::Mat cv_img;
         auto ret = cv::bmcv::toMAT(&input_bmimg_planar, cv_img);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
         std::vector<std::vector<int>> detectionBox;
         detectionBox.push_back({box.x1, box.y1});
@@ -93,10 +96,14 @@ cv::Mat GetRotateCropImage(const cv::Mat &srcimage,
         cv::Mat cv_crop = GetRotateCropImage(cv_img, detectionBox);
         bm_image crop_bmimg;
         ret = cv::bmcv::toBMI(cv_crop, &crop_bmimg);
-        assert(BM_SUCCESS == ret); //BGR_PACKED.
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    } //BGR_PACKED.
         int stride1[3], stride2[3];
         ret = bm_image_get_stride(crop_bmimg, stride1);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         stride2[0] = FFALIGN(stride1[0], 64);
         stride2[1] = FFALIGN(stride1[1], 64);
         stride2[2] = FFALIGN(stride1[2], 64);
@@ -132,7 +139,9 @@ cv::Mat GetRotateCropImage(const cv::Mat &srcimage,
         bm_image crop_bmimg;
         bm_image_create(handle, crop_height, crop_width, input_bmimg_planar.image_format, input_bmimg_planar.data_type, &crop_bmimg);
         auto ret = bmcv_image_warp_perspective_with_coordinate(handle, 1, &coord, &input_bmimg_planar, &crop_bmimg, 0);
-        assert(BM_SUCCESS == ret);//bilinear interpolation.
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }//bilinear interpolation.
 
         if ((float)crop_height / crop_width < 1.5) {
             return crop_bmimg;
@@ -154,7 +163,9 @@ cv::Mat GetRotateCropImage(const cv::Mat &srcimage,
             matrix_image.matrix->m[4] = rot_mat.at<double>(1, 1);
             matrix_image.matrix->m[5] = rot_mat.at<double>(1, 2) - crop_height / 2.0 + crop_width / 2.0;
             ret = bmcv_image_warp_affine(handle, 1, &matrix_image, &crop_bmimg, &rot_bmimg, 0);
-            assert(BM_SUCCESS == ret);//bilinear interpolation
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }//bilinear interpolation
             bm_image_destroy(crop_bmimg);
             return rot_bmimg;
         }

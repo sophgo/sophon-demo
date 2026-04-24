@@ -134,7 +134,7 @@ class SophonInference:
     def outputToList_numpy(self, output, real_num=None):
         results = list()
         for name in self.output_names:
-            if real_num == None:
+            if real_num is None:
                 results.append(output[name])
             else:
                 results.append(output[name][:real_num][:])
@@ -143,7 +143,7 @@ class SophonInference:
     def outputToList(self, output, real_num=None):
         results = list()
         for name in self.output_names:
-            if real_num == None:
+            if real_num is None:
                 results.append(output[name].asnumpy())
             else:
                 results.append(output[name][:real_num][:].asnumpy())

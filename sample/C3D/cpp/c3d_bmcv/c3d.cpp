@@ -7,6 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 #include "c3d.hpp"
+#include <stdexcept>
 
 
 template<class ForwardIterator>
@@ -78,7 +79,9 @@ void C3D::Init(){
                                     m_resized_input.data(),
                                     max_batch * m_clip_len,
                                     resize_strides);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     ret = bm_image_create_batch(m_bmContext->handle(), 
                                     m_net_h, m_net_w, 
                                     FORMAT_BGR_PLANAR, 
@@ -86,7 +89,9 @@ void C3D::Init(){
                                     m_croped_input.data(),
                                     max_batch * m_clip_len,
                                     strides);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     ret = bm_image_create_batch(m_bmContext->handle(), 
                                 m_net_h, m_net_w, 
@@ -94,7 +99,9 @@ void C3D::Init(){
                                 img_dtype, 
                                 m_converto_input.data(),
                                 max_batch * m_clip_len);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     
     // 5.Set vpp converto params.
     float input_scale = m_input_tensor->get_scale();
@@ -200,7 +207,9 @@ void C3D::decode_video(const std::string video_path, std::vector<bm_image> &deco
                                         1, 
                                         tmp, 
                                         &decoded_frames[channel_base + frame_count]);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         bm_image_destroy(tmp);
         frame_count++;
     }
@@ -255,7 +264,9 @@ int C3D::pre_process(const std::vector<bm_image> &decoded_frames){
                                             1, 
                                             image_aligned, 
                                             &m_resized_input[i]);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         bmcv_rect_t crop_rect = {30, 8, 112, 112}; //here is w, h
         ret = bmcv_image_vpp_convert(m_bmContext->handle(), 1, m_resized_input[i], &m_croped_input[i], &crop_rect);
 
@@ -271,7 +282,9 @@ int C3D::pre_process(const std::vector<bm_image> &decoded_frames){
                                         m_converto_attr, 
                                         m_croped_input.data(), 
                                         m_converto_input.data());
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     
     // m_ts->save("C3D realloc_time");
     //2. Attach to input tensor.

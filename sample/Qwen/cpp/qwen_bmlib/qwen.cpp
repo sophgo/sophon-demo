@@ -10,6 +10,7 @@
 #include "qwen.hpp"
 #include <fstream>
 #include "utils.hpp"
+#include <stdexcept>
 
 std::string LoadBytesFromFile(const std::string& path) {
   std::ifstream fs(path, std::ios::in | std::ios::binary);
@@ -175,10 +176,14 @@ void Qwen::init(std::string bmodel_path, const std::vector<int> &dev_ids, std::s
     } else {
       auto ret = bm_malloc_device_byte(bm_handle, &past_key[i],
                                        net_blocks_cache[i]->max_input_bytes[3]);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       ret = bm_malloc_device_byte(bm_handle, &past_value[i],
                                   net_blocks_cache[i]->max_input_bytes[4]);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
   }
 

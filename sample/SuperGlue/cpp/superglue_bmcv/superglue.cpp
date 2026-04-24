@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "superglue.hpp"
+#include <stdexcept>
 
 int SuperGlue::detect(torch::Tensor& keypoints0, torch::Tensor& scores0, torch::Tensor& descriptors0,
                 torch::Tensor& keypoints1, torch::Tensor& scores1, torch::Tensor& descriptors1,
@@ -51,9 +52,13 @@ int SuperGlue::preprocess(torch::Tensor& keypoints0, torch::Tensor& scores0, tor
     int keypoints1_size = MIN(keypoints1.size(0), keypoints_sizes[current_stage]);
 
     auto ret = bm_memcpy_s2d_partial_offset(handle, input_tensors[0].device_mem, (void*)keypoints0.data_ptr<float>(), keypoints0_size * 2 * sizeof(float), 0);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     ret = bm_memcpy_s2d_partial_offset(handle, input_tensors[1].device_mem, (void*)scores0.data_ptr<float>(), keypoints0_size * sizeof(float), 0);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     
     for(int i = 0; i < descriptors0.size(0); i++){
         float *desc = descriptors0[i].data_ptr<float>();
@@ -62,12 +67,18 @@ int SuperGlue::preprocess(torch::Tensor& keypoints0, torch::Tensor& scores0, tor
                                            (void*)desc, 
                                            keypoints0_size * sizeof(float), 
                                            i * keypoints_sizes[current_stage] * sizeof(float));
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     ret = bm_memcpy_s2d_partial_offset(handle, input_tensors[3].device_mem, (void*)keypoints1.data_ptr<float>(), keypoints1_size * 2 * sizeof(float), 0);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     ret = bm_memcpy_s2d_partial_offset(handle, input_tensors[4].device_mem, (void*)scores1.data_ptr<float>(), keypoints1_size * sizeof(float), 0);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     for(int i = 0; i < descriptors1.size(0); i++){
         float *desc = descriptors1[i].data_ptr<float>();
@@ -76,7 +87,9 @@ int SuperGlue::preprocess(torch::Tensor& keypoints0, torch::Tensor& scores0, tor
                                                          (void*)desc, 
                                                          keypoints1_size * sizeof(float), 
                                                          i * keypoints_sizes[current_stage] * sizeof(float));
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     return ret;
 }
@@ -88,7 +101,9 @@ int SuperGlue::forward(std::vector<bm_tensor_t>& input_tensors, std::vector<bm_t
                     output_tensors.data(), netinfo->output_num);
     assert(ok == true);
     auto ret = bm_thread_sync(handle);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     for(int i = 0; i < input_tensors.size(); i++){
         bm_free_device(handle, input_tensors[i].device_mem);

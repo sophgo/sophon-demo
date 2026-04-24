@@ -159,7 +159,7 @@ async def list_models():
 async def create_chat_completion(request: ChatCompletionRequest):
     global clients
     client = clients.get(request.model, None)
-    if client == None:
+    if client is None:
         raise HTTPException(status_code=404, detail=f"model {request.model} not Found")
     if len(request.messages) < 1 or request.messages[-1].role == "assistant":
         raise HTTPException(status_code=400, detail="Invalid request")

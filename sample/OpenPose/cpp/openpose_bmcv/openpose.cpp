@@ -9,6 +9,7 @@
 #include <fstream>
 #include "openpose.hpp"
 #include "pose_postprocess.hpp"
+#include <stdexcept>
 // #define DEBUG
 using namespace std;
 
@@ -65,7 +66,9 @@ int OpenPose::Init(bool use_tpu_kernel_post){
   int strides[3] = {aligned_net_w, aligned_net_w, aligned_net_w};
   for(int i=0; i<max_batch; i++){
     auto ret= bm_image_create(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_BGR_PLANAR, DATA_TYPE_EXT_1N_BYTE, &m_resized_imgs[i], strides);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
   }
   bm_image_alloc_contiguous_mem(max_batch, m_resized_imgs.data());
   bm_image_data_format_ext img_dtype = DATA_TYPE_EXT_FLOAT32;
@@ -73,7 +76,9 @@ int OpenPose::Init(bool use_tpu_kernel_post){
     img_dtype = DATA_TYPE_EXT_1N_BYTE_SIGNED;
   }
   auto ret = bm_image_create_batch(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_BGR_PLANAR, img_dtype, m_converto_imgs.data(), max_batch);
-  assert(BM_SUCCESS == ret);
+  if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
   // 5.converto
   float input_scale = tensor->get_scale();
   input_scale = input_scale * 1.0 / 255.f ;
@@ -163,7 +168,9 @@ int OpenPose::pre_process(const std::vector<bm_image>& images){
       image_aligned = image1;
     }
     auto ret = bmcv_image_vpp_convert(m_bmContext->handle(), 1, image_aligned, &m_resized_imgs[i]);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     // bm_image_destroy(image1);
     if(need_copy) bm_image_destroy(image_aligned);
   }
@@ -190,4 +197,3 @@ int OpenPose::post_process(const vector<bm_image> &images, vector<PoseKeyPoints>
     OpenPosePostProcess::getKeyPoints(out_tensor, images, vct_keypoints, m_model_type, nms_threshold);
   return 0;
 }
-

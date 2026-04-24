@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <thread>
 #include "yolov5.hpp"
+#include <stdexcept>
 
 int main(int argc, char* argv[]) {
     const char* keys =
@@ -62,9 +63,13 @@ int main(int argc, char* argv[]) {
     char board_name[50];
     bm_handle_t handle;
     auto ret = bm_dev_request(&handle, dev_id);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     ret = bm_get_board_name(handle, board_name);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     printf("########################\n");
     printf("board_name: %s\n", board_name);
     printf("########################\n");

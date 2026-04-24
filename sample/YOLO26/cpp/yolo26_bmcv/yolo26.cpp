@@ -13,6 +13,7 @@
 #include <vector>
 #if IS_SOC
 #include <arm_neon.h>
+#include <stdexcept>
 #endif
 #define USE_ASPECT_RATIO 1
 #define DUMP_FILE 0
@@ -76,7 +77,9 @@ int Yolo26::Init(float confThresh, const std::string& coco_names_file) {
     for (int i = 0; i < max_batch; i++) {
         auto ret = bm_image_create(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE,
                                    &m_resized_imgs[i], strides);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     bm_image_alloc_contiguous_mem(max_batch, m_resized_imgs.data());
     bm_image_data_format_ext img_dtype = DATA_TYPE_EXT_FLOAT32;
@@ -85,7 +88,9 @@ int Yolo26::Init(float confThresh, const std::string& coco_names_file) {
     }
     auto ret = bm_image_create_batch(m_bmContext->handle(), m_net_h, m_net_w, FORMAT_RGB_PLANAR, img_dtype,
                                      m_converto_imgs.data(), max_batch);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     // 5.converto
     float input_scale = tensor->get_scale();
@@ -192,7 +197,9 @@ int Yolo26::pre_process(const std::vector<bm_image>& images) {
 #else
         auto ret = bmcv_image_vpp_convert(m_bmContext->handle(), 1, images[i], &m_resized_imgs[i]);
 #endif
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         if (need_copy)
             bm_image_destroy(image_aligned);
     }
