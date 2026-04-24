@@ -283,8 +283,8 @@ async def record_microphone(mode, websocket):
     hotword_msg = ""
     if args.hotword.strip() != "":
         if os.path.exists(args.hotword):
-            f_scp = open(args.hotword)
-            hot_lines = f_scp.readlines()
+            with open(args.hotword) as f_scp:            
+                hot_lines = f_scp.readlines()
             for line in hot_lines:
                 words = line.strip().split(" ")
                 if len(words) < 2:
@@ -346,8 +346,8 @@ async def record_from_scp(mode, websocket, chunk_begin, chunk_size, web_id):
     global voices, voiced_frames
     is_finished = False
     if args.audio_in.endswith(".scp"):
-        f_scp = open(args.audio_in)
-        wavs = f_scp.readlines()
+        with open(args.audio_in) as f_scp:
+            wavs = f_scp.readlines()
     else:
         wavs = [args.audio_in]
 
@@ -356,8 +356,8 @@ async def record_from_scp(mode, websocket, chunk_begin, chunk_size, web_id):
     hotword_msg = ""
     if args.hotword.strip() != "":
         if os.path.exists(args.hotword):
-            f_scp = open(args.hotword)
-            hot_lines = f_scp.readlines()
+            with open(args.hotword) as f_scp:
+                hot_lines = f_scp.readlines()
             for line in hot_lines:
                 words = line.strip().split(" ")
                 if len(words) < 2:
@@ -572,7 +572,6 @@ async def message(id, websocket, web_id):
                 # offline_msg_done = True
             else:
                 raise ValueError("not support mode!")
-
     except Exception as e:
             print("Exception:", e)
             #traceback.print_exc()
@@ -646,8 +645,8 @@ if __name__ == '__main__':
     else:
         # calculate the number of wavs for each preocess
         if args.audio_in.endswith(".scp"):
-            f_scp = open(args.audio_in)
-            wavs = f_scp.readlines()
+            with open(args.audio_in) as f_scp:
+                wavs = f_scp.readlines()
         else:
             wavs = [args.audio_in]
         for wav in wavs:
