@@ -114,7 +114,7 @@ class YOLOv8:
                 self.inference_time += time.time() - start_time
                 
         else:
-            BMImageArray = eval('sail.BMImageArray{}D'.format(self.batch_size))
+            BMImageArray = getattr(sail, 'BMImageArray{}D'.format(self.batch_size))
             bmimgs = BMImageArray()
             for i in range(img_num):
                 output_bmimg = sail.BMImage(self.handle, self.net_h, self.net_w, \

@@ -188,7 +188,7 @@ class P2PNet:
             input_tensor = sail.Tensor(self.handle, self.input_shape, self.input_dtype,  False, False)
             self.bmcv.bm_image_to_tensor(preprocessed_img, input_tensor)
         else:
-            BMImageArray = eval('sail.BMImageArray{}D'.format(self.batch_size))
+            BMImageArray = getattr(sail, 'BMImageArray{}D'.format(self.batch_size))
             bmimgs = BMImageArray()
             for i in range(len(bmimg_list)):
                 start_time = time.time()

@@ -126,7 +126,7 @@ def inference(bmodel_path, input_path, conf_thre, tpu_id, results_path):
         decoder = sail.Decoder(input_path, True, tpu_id)
     frame_count = 0
     if batch_size == 4:
-        BMImageArray = eval('sail.BMImageArray{}D'.format(input_shape[0]))
+        BMImageArray = getattr(sail, 'BMImageArray{}D'.format(input_shape[0]))
         bmimage_array = BMImageArray()
     bmimg_list = []
     filename_list = []

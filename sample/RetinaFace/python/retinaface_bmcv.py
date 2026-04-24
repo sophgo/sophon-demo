@@ -428,7 +428,7 @@ class Retinaface_sophon(object):
                 outputs, resize_list
                 )
         else:
-            BMImageArray = eval('sail.BMImageArray{}D'.format(self.batch_size))
+            BMImageArray = getattr(sail, 'BMImageArray{}D'.format(self.batch_size))
             bmimgs = BMImageArray()
 
             for i in range(img_num):
