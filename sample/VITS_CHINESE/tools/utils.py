@@ -296,7 +296,8 @@ def check_git_hash(model_dir):
 
     path = os.path.join(model_dir, "githash")
     if os.path.exists(path):
-        saved_hash = open(path).read()
+        with open(path) as f:
+            saved_hash = f.read()
         if saved_hash != cur_hash:
             logger.warn(
                 "git hash values are different. {}(saved) != {}(current)".format(
@@ -304,7 +305,8 @@ def check_git_hash(model_dir):
                 )
             )
     else:
-        open(path, "w").write(cur_hash)
+        with open(path, "w") as f:
+            f.write(cur_hash)
 
 
 def get_logger(model_dir, filename="train.log"):
