@@ -185,7 +185,7 @@ class PPYOLO:
             self.bmcv.bm_image_to_tensor(preprocessed_bmimg, input_tensor)
                 
         else:
-            BMImageArray = eval('sail.BMImageArray{}D'.format(self.batch_size))
+            BMImageArray = getattr(sail, 'BMImageArray{}D'.format(self.batch_size))
             bmimgs = BMImageArray()
             for i in range(img_num):
                 ori_h, ori_w =  bmimg_list[i].height(), bmimg_list[i].width()

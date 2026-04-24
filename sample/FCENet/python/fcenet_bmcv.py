@@ -178,7 +178,7 @@ class FCENet(object):
             self.bmcv.bm_image_to_tensor(output_bmimg, input_tensor)
             shape_list.append(shape)
         else:
-            BMImageArray = eval('sail.BMImageArray{}D'.format(self.batch_size))
+            BMImageArray = getattr(sail, 'BMImageArray{}D'.format(self.batch_size))
             bmimgs = BMImageArray()
             for i in range(img_num):
                 output_bmimg = sail.BMImage(self.handle, self.net_h, self.net_w, sail.Format.FORMAT_BGR_PLANAR, self.img_dtype)
