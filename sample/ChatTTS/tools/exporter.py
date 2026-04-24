@@ -19,7 +19,7 @@ parser.add_argument("--gpt", action="store_true", help="trace gpt")
 parser.add_argument("--decoder", action="store_true", help="trace decoder")
 parser.add_argument("--vocos", action="store_true", help="trace vocos")
 parser.add_argument(
-    "--source_dir", default="/home/lihengfang/work/open-source/ChatTTS-ONNX/", type=str, help="path to the ChatTTS directory"
+    "--source_dir", default="/path/to/ChatTTS-ONNX/", type=str, help="path to the ChatTTS directory"
 )
 parser.add_argument(
     "--out_dir", default="./tmp", type=str, help="path to output directory"

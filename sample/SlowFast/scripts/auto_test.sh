@@ -6,7 +6,7 @@ pushd $top_dir
 #default config
 TARGET="BM1684X"
 MODE="pcie_test"
-SOCSDK="/home/lihengfang/work/sophonsdk/soc-sdk"
+SOCSDK="soc-sdk"
 TPUID=0
 ALL_PASS=1
 PYTEST="auto_test"

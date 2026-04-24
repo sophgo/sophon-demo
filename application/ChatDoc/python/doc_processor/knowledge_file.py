@@ -297,7 +297,7 @@ if __name__ == "__main__":
     from pprint import pprint
 
     kb_file = KnowledgeFile(
-        filename="/home/junqian/workspace/junqian_warehouse/ChatDoc-TPU/doc_processor/test_samples/SOPHON-SAIL_zh.pdf")
+        filename="ChatDoc-TPU/doc_processor/test_samples/SOPHON-SAIL_zh.pdf")
     # kb_file.text_splitter_name = "RecursiveCharacterTextSplitter"
     # docs = kb_file.file2docs()
     text = kb_file.file2text()
