@@ -71,6 +71,10 @@ int main(int argc, char *argv[]){
       DIR *pDir;
       struct dirent* ptr;
       pDir = opendir(input.c_str());
+      if (pDir == nullptr) {
+          std::cerr << "错误: 无法打开目录: " << input << std::endl;
+          return -1;
+      }
       while((ptr = readdir(pDir))!=0) {
           if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0){
               files_vector.push_back(input + "/" + ptr->d_name);
