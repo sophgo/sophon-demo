@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*- 
 import os
+import shutil
 import sys
 import time
 import cv2
@@ -246,7 +247,7 @@ def main(args):
     vis_img_dir = output_dir + '/vis_img'
     if vis:
         if os.path.exists(vis_img_dir):
-            os.system('rm -rf {}'.format(vis_img_dir))
+            shutil.rmtree(vis_img_dir)
         os.mkdir(vis_img_dir)
     for filename, res in res_dict.items(): 
         points = res['points']
