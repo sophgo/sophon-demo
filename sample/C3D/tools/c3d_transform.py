@@ -178,7 +178,7 @@ def pth_to_pt(input, checkpoint, pt_path):
     print("Exporting .pth model to torchscript model has been successful!")
     
 if __name__ == '__main__':
-    checkpoint = '/home/lihengfang/work/open-source/c3d_sports1m_16x1x1_45e_ucf101_rgb_20201021-26655025.pth'
+    checkpoint = 'c3d_sports1m_16x1x1_45e_ucf101_rgb_20201021-26655025.pth'
     onnx_path = '../models/onnx/c3d_ucf101.onnx'
     pt_path = '../models/torch/c3d_ucf101.pt'
     
