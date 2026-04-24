@@ -3,8 +3,8 @@ import time
 from flask import make_response
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from sam_opencv import *
-from sam_encoder import *
+from sam_opencv import SAM_b, Sam, save_image_point
+from sam_encoder import SamEncoder
 
 app = Flask(__name__)
 CORS(app)  # 启用CORS，允许所有来源的请求

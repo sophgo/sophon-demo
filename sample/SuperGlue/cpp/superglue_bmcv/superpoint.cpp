@@ -9,6 +9,7 @@
 
 #include "superpoint.hpp"
 #include <fstream>
+#include <stdexcept>
 
 int SuperPoint::detect(const bm_image& image, torch::Tensor& keypoints, torch::Tensor& scores,
                       torch::Tensor& descriptors){
@@ -88,7 +89,9 @@ int SuperPoint::preprocess(const std::vector<bm_image>& images, bm_tensor_t& inp
     int aligned_net_w = FFALIGN(m_net_w, 64);
     int strides[3] = {aligned_net_w, aligned_net_w, aligned_net_w};
     ret = bm_image_create_batch(handle, m_net_h, m_net_w, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, m_resized_imgs.data(), batch_size, strides);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     
     bm_image_data_format_ext img_dtype = DATA_TYPE_EXT_FLOAT32;
     if (netinfo->input_dtypes[0] == BM_INT8){
@@ -97,7 +100,9 @@ int SuperPoint::preprocess(const std::vector<bm_image>& images, bm_tensor_t& inp
         img_dtype = DATA_TYPE_EXT_1N_BYTE;
     }
     ret = bm_image_create_batch(handle, m_net_h, m_net_w, FORMAT_GRAY, img_dtype, m_converto_imgs.data(), batch_size, NULL, -1, false);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     // resize
     for(int i = 0; i < images.size(); ++i) {
@@ -110,7 +115,9 @@ int SuperPoint::preprocess(const std::vector<bm_image>& images, bm_tensor_t& inp
             image_aligned = image1;
         }
         auto ret = bmcv_image_vpp_convert(handle, 1, images[i], &m_resized_imgs[i]);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         
     #if 0
         cv::Mat resized_img;
@@ -156,7 +163,9 @@ int SuperPoint::forward(bm_tensor_t& input_tensor, std::vector<bm_tensor_t>& out
     bool ok = bmrt_launch_tensor(bmrt, netinfo->name, &input_tensor, netinfo->input_num,
                     output_tensors.data(), netinfo->output_num);
     auto ret = bm_thread_sync(handle);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     bm_free_device(handle, input_tensor.device_mem);
     return ret;
 }
@@ -177,17 +186,25 @@ float* SuperPoint::get_cpu_data(bm_tensor_t* tensor, float scale){
         if (tensor->dtype == BM_FLOAT32) {
             unsigned long long addr;
             ret = bm_mem_mmap_device_mem(handle, &tensor->device_mem, &addr);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             ret = bm_mem_invalidate_device_mem(handle, &tensor->device_mem);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             pFP32 = (float*)addr;
         } else if (BM_INT8 == tensor->dtype) {
             int8_t * pI8 = nullptr;
             unsigned long long  addr;
             ret = bm_mem_mmap_device_mem(handle, &tensor->device_mem, &addr);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             ret = bm_mem_invalidate_device_mem(handle, &tensor->device_mem);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             pI8 = (int8_t*)addr;
             // dtype convert
             pFP32 = new float[count];
@@ -196,14 +213,20 @@ float* SuperPoint::get_cpu_data(bm_tensor_t* tensor, float scale){
                 pFP32[i] = pI8[i] * scale;
             }
             ret = bm_mem_unmap_device_mem(handle, pI8, bm_mem_get_device_size(tensor->device_mem));
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         }  else if (BM_UINT8 == tensor->dtype) {
             uint8_t * pUI8 = nullptr;
             unsigned long long  addr;
             ret = bm_mem_mmap_device_mem(handle, &tensor->device_mem, &addr);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             ret = bm_mem_invalidate_device_mem(handle, &tensor->device_mem);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             pUI8 = (uint8_t*)addr;
             // dtype convert
             pFP32 = new float[count];
@@ -212,7 +235,9 @@ float* SuperPoint::get_cpu_data(bm_tensor_t* tensor, float scale){
                 pFP32[i] = pUI8[i] * scale;
             }
             ret = bm_mem_unmap_device_mem(handle, pUI8, bm_mem_get_device_size(tensor->device_mem));
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         } else{
             std::cerr << "unsupport dtype: " << tensor->dtype << std::endl;
         }
@@ -366,14 +391,18 @@ int SuperPoint::postprocess(std::vector<bm_tensor_t>& output_tensors, torch::Ten
         } else {
             int tensor_size = bm_mem_get_device_size(output_tensors_map["descriptors"].device_mem);
             bm_status_t ret = bm_mem_unmap_device_mem(handle, desc, tensor_size);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         }
         if(output_tensors_map["scores"].dtype != BM_FLOAT32){
             delete [] prob;
         } else {
             int tensor_size = bm_mem_get_device_size(output_tensors_map["scores"].device_mem);
             bm_status_t ret = bm_mem_unmap_device_mem(handle, prob, tensor_size);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         }
     } else {
         delete [] desc;

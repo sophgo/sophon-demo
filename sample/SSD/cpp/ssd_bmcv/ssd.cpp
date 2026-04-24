@@ -7,6 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 #include "ssd.hpp"
+#include <stdexcept>
 extern bool IS_DIR;
 extern bool CONFIDENCE;
 extern bool NMS;
@@ -103,7 +104,9 @@ void SSD::Init(){
             FORMAT_RGB_PLANAR,
             DATA_TYPE_EXT_1N_BYTE,
             &m_resized_imgs[i], strides);
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     bm_image_alloc_contiguous_mem(max_batch, m_resized_imgs.data());
 
@@ -117,7 +120,9 @@ void SSD::Init(){
                                     FORMAT_RGB_PLANAR,
                                     img_dtype,
                                     m_converto_imgs.data(), max_batch);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 }
 
 int SSD::batch_size(){
@@ -235,7 +240,9 @@ int SSD::pre_process(const std::vector<cv::Mat> &images){
             auto ret = bmcv_image_vpp_convert(m_bmContext->handle(), 1, image_aligned, &m_resized_imgs[i], nullptr, BMCV_INTER_LINEAR);
         #endif
 
-        assert(BM_SUCCESS == ret);
+        if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         bm_image_destroy(image1);
         if(need_copy) bm_image_destroy(image_aligned);
     }

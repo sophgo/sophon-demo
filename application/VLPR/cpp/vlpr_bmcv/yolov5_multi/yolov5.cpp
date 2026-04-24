@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 #include "yolov5.hpp"
 #include <fstream>
+#include <stdexcept>
 
 
 #define USE_MULTICLASS_NMS 1  // 后处理nms方式
@@ -69,7 +70,9 @@ YOLOv5::YOLOv5(int dev_id,
   // is soc?
   struct bm_misc_info misc_info;
   bm_status_t ret = bm_get_misc_info(m_handle, &misc_info);
-  assert(BM_SUCCESS == ret);
+  if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
   can_mmap = misc_info.pcie_soc_mode == 1;
   
   // input attr
@@ -125,10 +128,14 @@ YOLOv5::YOLOv5(int dev_id,
     int strides[3] = {aligned_net_w, aligned_net_w, aligned_net_w};
     for (int i = 0; i < m_batch_size; i++){
       auto ret = bm_image_create(m_handle, m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized_bmimgs[i], strides);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     auto ret = bm_image_alloc_contiguous_mem(m_batch_size, resized_bmimgs.data(), VPP_HEAP_ID);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     m_vec_resized_bmimgs.emplace_back(resized_bmimgs);
   }
 
@@ -469,7 +476,9 @@ void YOLOv5::preprocess(std::vector<std::shared_ptr<DataDec>> &dec_images,
     auto ret = bmcv_image_vpp_convert_padding(m_handle, 1, bmimg_aligned, &resized_bmimgs[i],
         &padding_attr, &crop_rect, BMCV_INTER_NEAREST);
 
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
 
     if (need_copy){
@@ -493,7 +502,9 @@ void YOLOv5::preprocess(std::vector<std::shared_ptr<DataDec>> &dec_images,
   bm_image_attach_contiguous_mem(m_batch_size, converto_bmimgs.data(), tensor_mem);
 
   auto ret = bmcv_image_convert_to(m_handle, m_batch_size, converto_attr, resized_bmimgs.data(), converto_bmimgs.data());
-  assert(BM_SUCCESS == ret);
+  if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
   bm_image_dettach_contiguous_mem(m_batch_size, converto_bmimgs.data());
 
@@ -526,7 +537,9 @@ void YOLOv5::inference(std::shared_ptr<DataInfer> input_data, std::shared_ptr<Da
     auto out_size = bmruntime::ByteSize(*m_outputs[i]);
     bm_device_mem_t out_mem;
     auto ret = bm_malloc_device_byte_heap(m_handle, &out_mem, 0, out_size);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     bm_tensor_t tensor;
     tensor.device_mem = out_mem;
@@ -539,7 +552,9 @@ void YOLOv5::inference(std::shared_ptr<DataInfer> input_data, std::shared_ptr<Da
 
   m_inputs[0]->Reshape(m_net->info()->stages[0].input_shapes[0]);
   auto ret = m_net->Forward();
-  assert(BM_SUCCESS == ret);
+  if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
   bm_free_device(m_handle, input_data->tensors[0].device_mem);
   
@@ -806,7 +821,9 @@ void YOLOv5::postprocess(std::shared_ptr<DataInfer> output_infer, std::vector<st
     if (can_mmap && BM_FLOAT32 == output_tensors[i].dtype){
       int tensor_size = bm_mem_get_device_size(output_tensors[i].device_mem);
       bm_status_t ret = bm_mem_unmap_device_mem(m_handle, tensor_datas[i], tensor_size);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }else{
       delete tensor_datas[i];
     }
@@ -873,17 +890,25 @@ float *YOLOv5::get_cpu_data(bm_tensor_t &tensor, int out_idx) {
     if (tensor.dtype == BM_FLOAT32) {
       unsigned long long  addr;
       ret = bm_mem_mmap_device_mem(m_handle, &tensor.device_mem, &addr);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       ret = bm_mem_invalidate_device_mem(m_handle, &tensor.device_mem);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       pFP32 = (float*)addr;
     } else if (BM_INT8 == tensor.dtype) {
       int8_t * pI8 = nullptr;
       unsigned long long  addr;
       ret = bm_mem_mmap_device_mem(m_handle, &tensor.device_mem, &addr);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       ret = bm_mem_invalidate_device_mem(m_handle, &tensor.device_mem);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       pI8 = (int8_t*)addr;
 
       // dtype convert
@@ -893,14 +918,20 @@ float *YOLOv5::get_cpu_data(bm_tensor_t &tensor, int out_idx) {
         pFP32[i] = pI8[i] * m_output_scales[out_idx];
       }
       ret = bm_mem_unmap_device_mem(m_handle, pI8, bm_mem_get_device_size(tensor.device_mem));
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }else if (tensor.dtype == BM_INT32) {
       int32_t * pI32 = nullptr;
       unsigned long long  addr;
       ret = bm_mem_mmap_device_mem(m_handle, &tensor.device_mem, &addr);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       ret = bm_mem_invalidate_device_mem(m_handle, &tensor.device_mem);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       pI32 = (int32_t*)addr;
       // dtype convert
       pFP32 = new float[count];
@@ -909,7 +940,9 @@ float *YOLOv5::get_cpu_data(bm_tensor_t &tensor, int out_idx) {
         pFP32[i] = pI32[i] * m_output_scales[out_idx];
       }
       ret = bm_mem_unmap_device_mem(m_handle, pI32, bm_mem_get_device_size(tensor.device_mem));
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     } else{
       std::cout << "NOT support dtype=" << tensor.dtype << std::endl;
     }
@@ -1019,6 +1052,5 @@ void YOLOv5::NMS(YoloV5BoxVec &dets, float nmsConfidence)
     index--;
   }
 }
-
 
 

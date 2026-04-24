@@ -22,6 +22,7 @@
 #include <inttypes.h>
 #include <random>
 #include <numeric>
+#include <stdexcept>
 
 static const uint16_t ATTENTION_MASK = 0xF0E2;
 
@@ -163,10 +164,14 @@ void Llama3::init(const std::vector<int> &devices, std::string model_path) {
     } else {
       auto ret = bm_malloc_device_byte(bm_handle, &past_key[i],
                                        net_blocks_cache[i]->max_input_bytes[3]);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
       ret = bm_malloc_device_byte(bm_handle, &past_value[i],
                                   net_blocks_cache[i]->max_input_bytes[4]);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
   }
 }

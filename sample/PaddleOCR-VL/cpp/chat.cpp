@@ -11,13 +11,16 @@
 #include "json.hpp"
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 //===------------------------------------------------------------===//
 // Empty Func
 //===------------------------------------------------------------===//
 void empty(bm_handle_t &bm_handle, bm_device_mem_t &mem) {
   int value = 0;
   auto ret = bm_memset_device_ext(bm_handle, &value, 1, mem);
-  assert(BM_SUCCESS == ret);
+  if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 }
 
 void empty_net(bm_handle_t &bm_handle, const bm_net_info_t *net,

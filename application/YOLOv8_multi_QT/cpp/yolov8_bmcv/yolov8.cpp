@@ -11,6 +11,7 @@
 #include "yolov8.hpp"
 #include <cstdio>
 #include <fstream>
+#include <stdexcept>
 
 
 #define USE_MULTICLASS_NMS 1  // 后处理nms方式
@@ -54,11 +55,15 @@ YOLOv8::YOLOv8(int dev_id,
 
   // get handle
   auto ret = bm_dev_request(&m_handle, dev_id);
-  assert(BM_SUCCESS == ret);
+  if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
   // judge now is pcie or soc
   ret = bm_get_misc_info(m_handle, &misc_info);
-  assert(BM_SUCCESS == ret);
+  if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
   
   // create bmrt
   // void *bmrt = NULL;
@@ -172,10 +177,14 @@ YOLOv8::YOLOv8(int dev_id,
     int strides[3] = {aligned_net_w, aligned_net_w, aligned_net_w};
     for (int i = 0; i < m_batch_size; i++){
       auto ret = bm_image_create(m_handle, m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized_bmimgs[i], strides);
-      assert(BM_SUCCESS == ret);
+      if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     }
     auto ret = bm_image_alloc_contiguous_mem(m_batch_size, resized_bmimgs.data());
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     m_vec_resized_bmimgs.emplace_back(resized_bmimgs);
   }
 
@@ -573,7 +582,9 @@ void YOLOv8::preprocess(std::vector<std::shared_ptr<DataDec>> &dec_images,
     bmcv_rect_t crop_rect{0, 0, bmimg.width, bmimg.height};
     auto ret = bmcv_image_vpp_convert_padding(m_handle, 1, bmimg_aligned, 
         &resized_bmimgs[i], &padding_attr, &crop_rect);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
 
     if (need_copy){
       bm_image_destroy(bmimg_aligned);
@@ -628,7 +639,9 @@ void YOLOv8::inference(std::shared_ptr<DataInfer> input_data,
                                netinfo->output_num);
     assert(ok == true);
     auto ret = bm_thread_sync(m_handle);
-    assert(BM_SUCCESS == ret);
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
     bm_free_device(m_handle, input_data->tensors[0].device_mem);
 }
 
@@ -762,7 +775,9 @@ int YOLOv8::postprocess(std::shared_ptr<DataInfer> output_infer,
             } else {
                 int tensor_size = bm_mem_get_device_size(output_tensors[i].device_mem);
                 bm_status_t ret = bm_mem_unmap_device_mem(m_handle, tensor_data, tensor_size);
-                assert(BM_SUCCESS == ret);
+                if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             }
         } else {
             delete [] tensor_data;
@@ -828,17 +843,25 @@ float* YOLOv8::get_cpu_data(bm_tensor_t& tensor, int out_idx) {
         if (tensor.dtype == BM_FLOAT32) {
             unsigned long long addr;
             ret = bm_mem_mmap_device_mem(m_handle, &tensor.device_mem, &addr);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             ret = bm_mem_invalidate_device_mem(m_handle, &tensor.device_mem);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             pFP32 = (float*)addr;
         } else if (BM_INT8 == tensor.dtype) {
             int8_t *pI8 = nullptr;
             unsigned long long addr;
             ret = bm_mem_mmap_device_mem(m_handle, &tensor.device_mem, &addr);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             ret = bm_mem_invalidate_device_mem(m_handle, &tensor.device_mem);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             pI8 = (int8_t*)addr;
 
             pFP32 = new float[count];
@@ -847,14 +870,20 @@ float* YOLOv8::get_cpu_data(bm_tensor_t& tensor, int out_idx) {
                 pFP32[i] = pI8[i] * m_output_scales[out_idx];
             }
             ret = bm_mem_unmap_device_mem(m_handle, pI8, bm_mem_get_device_size(tensor.device_mem));
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         } else if (tensor.dtype == BM_INT32) {
             int32_t *pI32 = nullptr;
             unsigned long long addr;
             ret = bm_mem_mmap_device_mem(m_handle, &tensor.device_mem, &addr);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             ret = bm_mem_invalidate_device_mem(m_handle, &tensor.device_mem);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             pI32 = (int32_t*)addr;
 
             pFP32 = new float[count];
@@ -863,7 +892,9 @@ float* YOLOv8::get_cpu_data(bm_tensor_t& tensor, int out_idx) {
                 pFP32[i] = pI32[i] * m_output_scales[out_idx];
             }
             ret = bm_mem_unmap_device_mem(m_handle, pI32, bm_mem_get_device_size(tensor.device_mem));
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         } else {
             std::cout << "NOT support dtype=" << tensor.dtype << std::endl;
         }
@@ -872,7 +903,9 @@ float* YOLOv8::get_cpu_data(bm_tensor_t& tensor, int out_idx) {
             pFP32 = new float[count];
             assert(pFP32 != nullptr);
             ret = bm_memcpy_d2s_partial(m_handle, pFP32, tensor.device_mem, count * sizeof(float));
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         } else if (BM_INT8 == tensor.dtype) {
             int8_t *pI8 = nullptr;
             int tensor_size = bmrt_tensor_bytesize(&tensor);
@@ -882,7 +915,9 @@ float* YOLOv8::get_cpu_data(bm_tensor_t& tensor, int out_idx) {
             pFP32 = new float[count];
             assert(pFP32 != nullptr);
             ret = bm_memcpy_d2s_partial(m_handle, pI8, tensor.device_mem, tensor_size);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             for(int i = 0; i < count; ++i) {
                 pFP32[i] = pI8[i] * m_output_scales[out_idx];
             }
@@ -896,7 +931,9 @@ float* YOLOv8::get_cpu_data(bm_tensor_t& tensor, int out_idx) {
             pFP32 = new float[count];
             assert(pFP32 != nullptr);
             ret = bm_memcpy_d2s_partial(m_handle, pI32, tensor.device_mem, tensor_size);
-            assert(BM_SUCCESS == ret);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
             for(int i = 0; i < count; ++i) {
                 pFP32[i] = pI32[i] * m_output_scales[out_idx];
             }
@@ -978,5 +1015,4 @@ void YOLOv8::worker_pressure(){
   }
   
 }
-
 

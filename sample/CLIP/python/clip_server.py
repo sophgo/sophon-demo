@@ -10,7 +10,6 @@ import numpy as np
 from queue import Queue
 
 import clip
-from zeroshot_predict import *
 import threading
 
 
