@@ -104,6 +104,8 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1684X/`文件夹下生成转换好的FP16 BModel。
 
+注：这里用到了混合精度编译，需要将一些层设为敏感层，相应的qtable在此前`download.sh`下载的`models/onnx`文件夹里。如果您需要编译自己微调过的模型，可以参考[量化指南](../YOLO26/docs/YOLO26_Calibration_Guide.md#13-生成qtable)中的方法，直接使用`run_calibration.py`生成的shape_pattern_qtable作为qtable。
+
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
