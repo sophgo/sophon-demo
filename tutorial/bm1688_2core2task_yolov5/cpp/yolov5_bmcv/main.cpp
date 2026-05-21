@@ -6,8 +6,20 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <thread>
+#include <pthread.h>
 #include "yolov5.hpp"
 #include <stdexcept>
+
+static void set_thread_affinity(int cpu_core) {
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(cpu_core, &cpuset);
+    int rc = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+    if (rc != 0) {
+        std::cerr << "Warning: set affinity to core " << cpu_core
+                  << " failed: " << strerror(rc) << std::endl;
+    }
+}
 
 int main(int argc, char* argv[]) {
     const char* keys =
@@ -78,9 +90,14 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+    // CPU core mapping: skip core 0 for system, spread threads across cores 1..7
+    static const int CPU_CORE_MAP[] = {1, 2, 3, 4, 5, 6, 7};
+
     std::vector<std::thread*> m_threads;
     for (int i = 0; i < chan_num; i++) {
         std::thread* pth = new std::thread([&, i] {
+            set_thread_affinity(CPU_CORE_MAP[i % 7]);
+
             auto yolov5 = YOLOv5(dev_id, bmodel_file, conf_thresh, nms_thresh, coco_names);
             yolov5.set_core_id(i % 2);
             int batch_size = yolov5.get_batch_size();
