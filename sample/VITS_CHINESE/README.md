@@ -1,9 +1,13 @@
 # VITS_CHINESE
 
 ## 目录
+- [VITS\_CHINESE](#vits_chinese)
+  - [目录](#目录)
   - [1. 简介](#1-简介)
   - [2. 特性](#2-特性)
   - [3. 准备模型](#3-准备模型)
+    - [3.1 使用提供的模型](#31-使用提供的模型)
+    - [3.2 自行编译模型](#32-自行编译模型)
   - [4. 例程测试](#4-例程测试)
   - [5. 程序性能测试](#5-程序性能测试)
 
@@ -17,6 +21,7 @@ BM1688/CV186X系列：该例程支持V1.7及以上的SDK上运行，支持SE9-16
 * 支持BM1684X(x86 PCIe、SoC)、BM1688/CV186X(SoC)
 * 支持FP16模型编译和推理
 * 支持基于SAIL推理的Python例程
+* 支持基于BMRT推理的C++例程（包含文本前处理、BERT推理、VITS推理全流程）
 
 ## 3. 准备模型
 该模型目前支持在bm1684X、bm1688/cv186x上运行，已提供编译好的bmodel。
@@ -70,6 +75,19 @@ chmod -R +x scripts/
 │   │   ├── symbols.py
 │   │   └── symbols.pyc
 │   └── vits_infer_sail.py                # VITS_CHINESE python 推理脚本
+├── cpp
+│   ├── README.md                         # C++ 例程执行指南
+│   └── vits_infer_bmnn                   # C++ 例程
+│       ├── CMakeLists.txt
+│       ├── build
+│       ├── data
+│       │   └── pinyin_map.txt            # 汉字→拼音映射表
+│       ├── main.cpp
+│       ├── utils.hpp
+│       ├── vits_engine.cpp
+│       ├── vits_engine.hpp
+│       ├── vits_preprocess.cpp
+│       └── vits_preprocess.hpp
 ├── README.md                             # VITS_CHINESE 例程指南
 ├── scripts
 │   ├── auto_test.sh                      
@@ -91,15 +109,26 @@ chmod -R +x scripts/
 ## 4. 例程测试
 
 - [Python例程](./python/README.md)
+- [C++例程](./cpp/README.md)
 
 ## 5. 程序性能测试
-例程测试后能在终端看到前处理时间、推理时间、后处理时间，以及从数据载入到生成音频文件的总时间
+例程测试后能在终端看到前处理时间、推理时间、后处理时间，以及从数据载入到生成音频文件的总时间。
+
+C++例程：
+|    测试平台  |     测试程序           |             测试模型               |preprocess_time |inference_time   |postprocess_time|
+| ----------- | --------------------- | -----------------------------------| ---------------| --------------- | -------------- |
+|   SE7-32    | vits_infer_bmnn.soc   |      vits_chinese_f16.bmodel       |     4.20       |     77.63       |      0.47      |
+
+Python例程：
 |    测试平台  |     测试程序      |             测试模型               |preprocess_time |inference_time   |postprocess_time| 
 | ----------- | ---------------- | -----------------------------------| ---------------| --------------- | -------------- | 
 |   SE7-32    |vits_infer_sail.py|      vits_chinese_f16.bmodel       |     46.26      |     232.07      |      69.75     |
 |   SE9-16    |vits_infer_sail.py|      vits_chinese_f16.bmodel       |     89.15      |     1203.62     |     96.80      |
 |    SE9-8    |vits_infer_sail.py|      vits_chinese_f16.bmodel       |     87.28      |     1185.91     |     99.84      |
+
 - 测试说明
 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 2. SE7-32(BM1684X) SDK版本:V24.04.01；SE9-16(BM1688)和SE9-8(CV186X) SDK版本:V1.7；
 3. SE7-32的主控处理器为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+4. C++例程将文本前处理（拼音转换、BERT推理）也集成在程序中，preprocess_time为文本处理+BERT TPU推理耗时，inference_time为VITS TPU推理耗时，postprocess_time为CPU侧音频后处理耗时（截断+去静音）；
+5. C++例程的SRM-10 PCIe测试环境运行在x86主机上（Intel Xeon处理器），插有SC7加速卡。C++例程不需要libsndfile依赖（WAV文件使用原生实现）。
