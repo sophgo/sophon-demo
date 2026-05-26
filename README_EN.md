@@ -101,16 +101,17 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [InternVL3](./sample/InternVL3/README.md)                     | Large Vision Language Model        | Python     | INT4           | BM1684X/BM1688               |
 | [Vila](./sample/Vila/README.md)                               | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X/BM1688              |
 | [Llama3_2_Vision](./sample/Llama3_2_Vision/README.md)         | Large Vision Language Model        | Python     | INT8/INT4      | BM1684X                     |
+| [LFM2-VL](./sample/LFM2-VL/README.md)                         | Large Vision Language Model        | C++        | W4BF16         | BM1684X/BM1688              |
 | [MiniCPMV](./sample/MiniCPMV/README.md)                       | Large Vision Language Model        | Python     | INT4            | BM1684X                     |
-| [PaddleOCR-VL](./sample/PaddleOCR-VL/README.md)               | Large Vision Language Model        | C++        | BF16            | BM1684X                     |
-| [Phi4mm](./sample/Llama3_2_Vision/README.md)                  | Multimodal Large Language Model    | Python     | INT4           | BM1684X                     |
+| [PaddleOCR-VL](./sample/PaddleOCR-VL/README.md)               | Large Vision Language Model        | C++        | BF16            | BM1684X/BM1688              |
+| [Phi4mm](./sample/Phi4mm/README.md)                           | Multimodal Large Language Model    | Python     | INT4           | BM1684X                     |
 | [VITA1_5](./sample/VITA1_5/README.md)                         | Multimodal Large Language Model    | Python     | INT4           | BM1684X                     |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | C++/Python | FP16           | BM1684X/BM1688/CV186X        |
 | [BLIP](./sample/BLIP/README.md)                               | Large Image-Text Model             | Python     | FP32           | BM1684/BM1684X/BM1688        |
 | [SuperGlue](./sample/SuperGlue/README.md)                     | Keypoint Matching                  | C++        | FP32/FP16      | BM1684X/BM1688/CV186X        |
-| [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | Text To Speech                     | Python     | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | Text To Speech                     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [ChatTTS](./sample/ChatTTS/README.md)                         | Text To Speech                     | Python     | BF16/INT8/INT4 | BM1684X/BM1688        |
 | [DirectMHP](./sample/DirectMHP/README.md)                     | Head pose estimation               | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [CAM++](./sample/CAM++/README.md)                             | Speaker Recogition                 | C++/Python | FP32           | BM1684X/BM1688/CV186X        |
@@ -134,6 +135,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.3.10 | Fix documentation and other issues. Remove FCENet sample. Add C++ inference for VITS_CHINESE. Release new sample LFM2-VL. |
 | 0.3.9  | Fix documentation and other issues. Release new samples YOLO26/YOLO26_seg/YOLO26_obb/PaddleOCR-VL. |
 | 0.3.8  | Fix documentation and other issues. PP-OCR supports ppocr-v5. |
 | 0.3.7  | Fix documentation and other issues. Release new sample Qwen3-VL. A few samples add example test video for watch. SAM2 supports box labeling. |
@@ -171,6 +173,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 SOPHON-DEMO mainly depends on TPU-MLIR, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV, SOPHON-SAIL, for BM1684/BM1684X SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.10 | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.9  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.8  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.7  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -207,6 +210,7 @@ SOPHON-DEMO mainly depends on TPU-MLIR, LIBSOPHON, SOPHON-FFMPEG, SOPHON-OPENCV,
 For BM1688/CV186AH SOPHONSDK, version requirements are as follows:  
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.10 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.9  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.8  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.7  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
