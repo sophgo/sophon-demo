@@ -28,7 +28,7 @@
 ├── docs                  # 存放本例程专用文档，如ONNX导出、移植常见问题等
 ├── pics                  # 存放README等说明文档中用到的图片
 ├── python                # 存放Python例程及其README
-|   ├──README.md 
+|   ├──README.md
 |   ├──ram_pillow.py      # Python例程
 ├── README.md             # 本例程的中文指南
 ├── scripts               # 存放模型编译、数据下载、自动测试等shell脚本
@@ -37,7 +37,7 @@
 
 ### 2.2 SDK特性
 * 支持BM1684X(x86 PCIe、SoC)
-* 支持FP32、FP16模型编译和推理
+* 支持FP32、FP16、INT8模型编译和推理
 * 支持batch_size=1
 * 支持Python推理
 * 支持图片测试
@@ -66,6 +66,7 @@ models/
 ├── BM1684X # 在BM1684X上运行的模型
 │   ├── ram_fp16_1b.bmodel
 │   ├── ram_fp32_1b.bmodel
+│   ├── ram_int8_1b.bmodel
 ├── onnx
     ├── ram.onnx
 ```
@@ -106,6 +107,16 @@ models/
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成转换好的FP16 BModel。
 
+- 生成INT8 BModel
+
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+
+```bash
+./scripts/gen_int8bmodel_mlir.sh bm1684x
+```
+
+​执行上述命令会在`models/BM1684X/`等文件夹下生成转换好的INT8 BModel。
+
 ## 4. 例程测试
 - [C++例程](./cpp/README.md)
 - [Python例程](./python/README.md)
@@ -128,8 +139,9 @@ bmrt_test --bmodel models/BM1684X/ram_fp32_1b.bmodel
 | ----------- | -------------------------------| ----------------- |
 |   SE7-32    | BM1684X/ram_fp32_1b.bmodel         |         588.41  |
 |   SE7-32    | BM1684X/ram_fp16_1b.bmodel         |          72.64  |
+|   SE7-32    | BM1684X/ram_int8_1b.bmodel         |          45.43  |
 
-> **测试说明**：  
+> **测试说明**：
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间；
 3. SoC和PCIe的测试结果基本一致。
@@ -143,8 +155,9 @@ bmrt_test --bmodel models/BM1684X/ram_fp32_1b.bmodel
 | ----------- | ---------------- | ----------------------             | --------        | ---------      | --------- | --------- |
 |   SE7-32    |   ram_pillow.py   |        ram_fp32_1b.bmodel         |      7.39       |     290.23      |     591.03      |      0.76       |
 |   SE7-32    |   ram_pillow.py   |        ram_fp16_1b.bmodel         |      3.87       |     285.66      |      75.17      |      0.77       |
+|   SE7-32    |   ram_pillow.py   |        ram_int8_1b.bmodel         |      5.64       |     286.11      |      46.20      |      0.78       |
 
-> **测试说明**：  
+> **测试说明**：
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
