@@ -9,7 +9,7 @@ else
     target_dir=${target^^}
     if test $target = "bm1684"
     then
-        echo "bm1684 do not support fp16"
+        echo "bm1684 do not support fp16 which is required by mixed precision quantization"
         exit
     fi
 fi
@@ -23,18 +23,30 @@ function gen_mlir()
         --model_def $onnx_path \
         --input_shapes [[$1,3,384,384]] \
         --pixel_format rgb  \
+        --mean 123.675,116.28,103.53 \
+        --scale 0.017125,0.017507,0.017429 \
         --mlir ${model_name}_$1b.mlir
 }
 
-function gen_fp16bmodel()
+function gen_cali_table()
+{
+    run_calibration.py ${model_name}_$1b.mlir \
+    --dataset ../datasets/cali_set \
+    --input_num 100 \
+    --cali_method use_mse \
+    -o ${model_name}_cali_table
+}
+
+function gen_int8bmodel()
 {
     model_deploy.py \
         --mlir ${model_name}_$1b.mlir \
-        --quantize F16 \
+        --quantize INT8 \
         --chip $target \
-        --model ${model_name}_fp16_$1b.bmodel
-
-    mv ${model_name}_fp16_$1b.bmodel $outdir/
+        --calibration_table ${model_name}_cali_table \
+        --quantize_table ${model_name}_qtable \
+        --model ${model_name}_int8_$1b.bmodel
+    mv ${model_name}_int8_$1b.bmodel $outdir/
 }
 
 pushd $model_dir
@@ -44,5 +56,6 @@ fi
 # batch_size=1
 model_name=ram
 gen_mlir 1
-gen_fp16bmodel 1
+gen_cali_table 1
+gen_int8bmodel 1
 popd
