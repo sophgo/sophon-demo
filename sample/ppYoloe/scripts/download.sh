@@ -4,7 +4,7 @@ scripts_dir=$(dirname $(readlink -f "$0"))
 
 pushd $scripts_dir
 # datasets
-if [ ! -d "../datasets" ]; 
+if [ ! -d "../datasets" ];
 then
     mkdir ../datasets
     pushd ../datasets
@@ -14,6 +14,7 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/common/coco128.tar.gz #coco 128 pictures
     python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYoloe/coco128_npz.tar.gz #coco 128 pictures cali set
     tar xvf coco128.tar.gz && rm coco128.tar.gz
+    tar xvf coco128_npz.tar.gz && rm coco128_npz.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/common/coco_val2017_1000.tar.gz #coco 1000 pictures and json.
     tar xvf coco_val2017_1000.tar.gz && rm coco_val2017_1000.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/common/test_car_person_1080P.mp4 #test video
