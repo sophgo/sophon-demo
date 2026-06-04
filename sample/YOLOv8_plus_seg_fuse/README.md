@@ -119,7 +119,31 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_seg_fuse/tpu_mlir-
 - [Python例程](./python/README.md)
 
 ## 5. 精度测试
-敬请期待，目前暂不支持精度测试。
+### 5.1 测试方法
+
+首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的json文件。  
+然后，使用`tools`目录下的`eval_coco.py`脚本，将测试生成的json文件与测试集标签json文件进行对比，计算出实例分割的评价指标，命令如下：
+```bash
+# 安装pycocotools，若已安装请跳过
+pip3 install pycocotools
+# 请根据实际情况修改程序路径和json文件路径
+python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json --result_json results/yolov8s_seg_fuse_int8_1b.bmodel_val2017_1000_bmcv_python_result.json --ann_type=segm
+```
+
+> **注意：** seg_fuse模型的置信度阈值和NMS阈值已内置在TPU后处理中，Python和C++例程无需额外的`--conf_thresh`/`--nms_thresh`参数。
+
+### 5.2 测试结果
+在coco2017 val数据集上（1000张样本），精度测试结果如下：
+
+|   测试平台    |      测试程序     |      测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
+| ------------ | ---------------- | ---------------------- | ------------- | -------- |
+|   SE9-16     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.268 | 0.407 |
+|   SE9-16     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.264 | 0.405 |
+
+> **测试说明**：  
+> 1. 由于seg_fuse例程将部分后处理（包括置信度过滤和NMS）融合到TPU中计算，阈值由模型编译时确定，与[YOLOv8_plus_seg例程](../YOLOv8_plus_seg/README.md)使用外部阈值(conf_thresh=0.001, nms_thresh=0.7)的测试方式不同，因此AP值会有一定差异；
+> 2. AP@IoU=0.5:0.95为area=all对应的指标；
+> 3. Python和C++例程的精度基本一致，差异来自于后处理实现的微小不同。
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
@@ -128,7 +152,7 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_seg_fuse/tpu_mlir-
 ### 6.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
 
-在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.25，nms_thresh=0.7，性能测试结果如下：
+在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 |    测试平台  |     测试程序      |        测试模型        |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ---------------------- | -------- | --------- | --------- | --------- |
 |   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  |      9.15       |      3.23       |      19.33      |      25.84      |
@@ -140,7 +164,7 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_seg_fuse/tpu_mlir-
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
-> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异。
 
 
 ## 8. FAQ

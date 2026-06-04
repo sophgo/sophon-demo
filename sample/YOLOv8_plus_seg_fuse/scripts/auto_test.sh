@@ -162,8 +162,8 @@ function eval_python()
   if [ ! -d python/log ];then
     mkdir python/log
   fi
-  python3 python/yolov8_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.7 > python/log/$1_$2_debug.log 2>&1
-  judge_ret $? "python3 python/yolov8_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID --conf_thresh 0.001 --nms_thresh 0.7 > python/log/$1_$2_debug.log 2>&1" python/log/$1_$2_debug.log
+  python3 python/yolov8_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID > python/log/$1_$2_debug.log 2>&1
+  judge_ret $? "python3 python/yolov8_$1.py --input datasets/coco/val2017_1000 --bmodel models/$TARGET/$2 --dev_id $TPUID > python/log/$1_$2_debug.log 2>&1" python/log/$1_$2_debug.log
   tail -n 20 python/log/$1_$2_debug.log
 
   echo "Evaluating..."
@@ -203,12 +203,12 @@ function eval_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./yolov8_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.7  --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./yolov8_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --conf_thresh=0.001 --nms_thresh=0.7  --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
+  ./yolov8_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./yolov8_$2.$1 --input=../../datasets/coco/val2017_1000 --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
   tail -n 15 log/$1_$2_$3_debug.log
-  
+
   echo "Evaluating..."
-  python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/instances_val2017_1000.json --result_json results/$3_val2017_1000_$2_cpp_result.json --ann_type=segm 2>&1 | tee log/$1_$2_$3_eval.log
+  python3 ../../tools/eval_coco.py --gt_path ../../datasets/coco/instances_val2017_1000.json --result_json ../../cpp/yolov8_$2/results/$3_val2017_1000_$2_cpp_result.json --ann_type=segm 2>&1 | tee log/$1_$2_$3_eval.log
   echo "==================="
   echo "Comparing acc..."
   python3 ../../tools/compare_acc.py --target=$TARGET --platform=${MODE%_*} --program=yolov8_$2.$1 --language=cpp --input=log/$1_$2_$3_eval.log --bmodel=$3 2>&1
@@ -245,8 +245,8 @@ then
     test_cpp pcie bmcv yolov8s_seg_fuse_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_python bmcv yolov8s_seg_fuse_int8_1b.bmodel datasets/coco/val2017_1000
     test_cpp pcie bmcv yolov8s_seg_fuse_int8_1b.bmodel ../../datasets/coco/val2017_1000
-    # eval_python bmcv yolov8s_seg_fuse_int8_1b.bmodel
-    # eval_cpp pcie bmcv yolov8s_seg_fuse_int8_1b.bmodel
+    eval_python bmcv yolov8s_seg_fuse_int8_1b.bmodel
+    eval_cpp pcie bmcv yolov8s_seg_fuse_int8_1b.bmodel
   fi
 elif test $MODE = "soc_build"
 then
@@ -261,8 +261,8 @@ then
     test_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_python bmcv yolov8s_seg_fuse_int8_1b.bmodel datasets/coco/val2017_1000
     test_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel ../../datasets/coco/val2017_1000
-    # eval_python bmcv yolov8s_seg_fuse_int8_1b.bmodel
-    # eval_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel
+    eval_python bmcv yolov8s_seg_fuse_int8_1b.bmodel
+    eval_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel
 elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
     download $TARGET
@@ -270,15 +270,15 @@ elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
     test_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_python bmcv yolov8s_seg_fuse_int8_1b.bmodel datasets/coco/val2017_1000
     test_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel ../../datasets/coco/val2017_1000
-    # eval_python bmcv yolov8s_seg_fuse_int8_1b.bmodel
-    # eval_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel
+    eval_python bmcv yolov8s_seg_fuse_int8_1b.bmodel
+    eval_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel
     if [ "$TARGET" = "BM1688" ]; then
       test_python bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel datasets/test_car_person_1080P.mp4
       test_cpp soc bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel ../../datasets/test_car_person_1080P.mp4
       test_python bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel datasets/coco/val2017_1000
       test_cpp soc bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel ../../datasets/coco/val2017_1000
-      # eval_python bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel
-      # eval_cpp soc bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel
+      eval_python bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel
+      eval_cpp soc bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel
     fi
   fi
 fi

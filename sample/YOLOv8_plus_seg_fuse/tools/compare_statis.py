@@ -6,8 +6,10 @@ import sys
 import multiprocessing
 
 baseline = """
-|    测试平台  |     测试程序      |             测试模型                |decode_time|preprocess_time|inference_time|postprocess_time| 
+|    测试平台  |     测试程序      |             测试模型                |decode_time|preprocess_time|inference_time|postprocess_time|
 | ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
+|   SE9-16     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 3.97 | 2.78 | 18.90 | 21.33 |
+|   SE9-16     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 3.29 | 1.20 | 18.64 | 5.01 |
 """
 table_data = {
     "platform": [],
@@ -20,7 +22,7 @@ table_data = {
 }
 
 for line in baseline.strip().split("\n")[2:]:
-    match = re.search(r'\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|', line)
+    match = re.search(r'\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|', line)
     if match:
         table_data["platform"].append(match.group(1))
         table_data["program"].append(match.group(2))

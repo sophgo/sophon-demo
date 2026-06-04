@@ -8,6 +8,8 @@ import multiprocessing
 baseline = """
 |   测试平台    |      测试程序     |      测试模型          | AP@IoU=0.5:0.95 | AP@IoU=0.5 |
 | ------------ | ---------------- | ---------------------- | ------------- | -------- |
+|   SE9-16     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.268 | 0.407 |
+|   SE9-16     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.264 | 0.405 |
 """
 
 table_data = {
@@ -19,7 +21,7 @@ table_data = {
 }
 
 for line in baseline.strip().split("\n")[2:]:
-    match = re.search(r'\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|', line)
+    match = re.search(r'\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|', line)
     if match:
         table_data["platform"].append(match.group(1))
         table_data["program"].append(match.group(2))
