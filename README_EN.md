@@ -68,7 +68,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [YOLOv5_fuse](./sample/YOLOv5_fuse/README.md)                 | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [YOLOv10](./sample/YOLOv10/README.md)                         | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [YOLO-world](./sample/YOLO_world/README.md)                   | Object Detection                   | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [D-FINE](./sample/D-FINE/README.md)                           | Object Detection                   | Python     | FP16           | BM1684X/BM1688/CV186X        |
 | [YOLOv8_obb](./sample/YOLOv8_plus_obb/README.md)              | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |

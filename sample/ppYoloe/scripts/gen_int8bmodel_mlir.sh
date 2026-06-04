@@ -25,7 +25,8 @@ function gen_cali_table()
 {
     run_calibration.py ppyoloe_$1b.mlir \
         --dataset ../datasets/coco128_npz/ \
-        --input_num 16 \
+        --input_num 128 \
+        --cali_method use_percentile9999 \
         -o ppyoloe_cali_table
 }
 
@@ -36,6 +37,7 @@ function gen_int8bmodel()
         --quantize INT8 \
         --chip $target \
         --calibration_table ppyoloe_cali_table \
+        --quantize_table ppyoloe_qtable \
         --model ppyoloe_int8_$1b.bmodel
         # --test_input ../datasets/test/3.jpg \
         # --test_reference ppyoloe_top.npz
@@ -48,6 +50,7 @@ function gen_int8bmodel()
             --chip $target \
             --model ppyoloe_int8_$1b_2core.bmodel \
             --calibration_table ppyoloe_cali_table \
+            --quantize_table ppyoloe_qtable \
             --num_core 2
             # --test_input ../datasets/test/3.jpg \
             # --test_reference ppyoloe_top.npz \

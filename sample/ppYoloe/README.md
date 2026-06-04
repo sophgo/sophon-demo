@@ -28,7 +28,7 @@ ppyoloe是百度提出的基于PP-YOLOv2的卓越的单阶段Anchor-free模型�
 
 ## 2. 特性
 * 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)模型编译和推理
+* 支持FP32、FP16、INT8(BM1684X/BM1688/CV186X)模型编译和推理
 * 支持基于BMCV、sail预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -59,15 +59,19 @@ chmod -R +x scripts/
 │   └── ppyoloe_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，batch_size=1
 ├── BM1684X
 │   ├── ppyoloe_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
-│   └── ppyoloe_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── ppyoloe_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   └── ppyoloe_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 ├── BM1688
 │   ├── ppyoloe_fp32_1b.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
 │   ├── ppyoloe_fp16_1b.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
+│   ├── ppyoloe_int8_1b.bmodel        # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
 │   ├── ppyoloe_fp32_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
-│   └── ppyoloe_fp16_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+│   ├── ppyoloe_fp16_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+│   └── ppyoloe_int8_1b_2core.bmodel  # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
 ├── CV186X
 │   ├── ppyoloe_fp32_1b.bmodel        # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
-│   └── ppyoloe_fp16_1b.bmodel        # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   ├── ppyoloe_fp16_1b.bmodel        # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   └── ppyoloe_int8_1b.bmodel        # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
 └── onnx
     └── ppyoloe.onnx             # 导出的onnx动态模型
 ```
@@ -109,6 +113,15 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`ppyoloe_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
+- 生成INT8 BModel
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+
+```bash
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+```
+
+​执行上述命令会在`models/BM1684X/`文件夹下生成`ppyoloe_int8_1b.bmodel`文件，即转换好的INT8 BModel。
+
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
 - [Python例程](./python/README.md)
@@ -139,20 +152,20 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 |   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       | 0.379 | 0.510 |
 |   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       | 0.380 | 0.513 |
 |   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       | 0.378 | 0.510 |
-|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       | 0.261 | 0.469 |
-|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       | 0.256 | 0.466 |
+|   SE7-32    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       | 0.374 | 0.505 |
+|   SE7-32    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       | 0.372 | 0.502 |
 |   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       | 0.381 | 0.513 |
 |   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       | 0.379 | 0.510 |
 |   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       | 0.380 | 0.514 |
 |   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       | 0.378 | 0.510 |
-|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       | 0.260 | 0.471 |
-|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       | 0.256 | 0.467 |
+|   SE9-16    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       | 0.375 | 0.507 |
+|   SE9-16    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       | 0.375 | 0.505 |
 |    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_fp32_1b.bmodel       | 0.381 | 0.513 |
 |    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_fp32_1b.bmodel       | 0.379 | 0.510 |
 |    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_fp16_1b.bmodel       | 0.380 | 0.514 |
 |    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_fp16_1b.bmodel       | 0.378 | 0.510 |
-|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       | 0.260 | 0.471 |
-|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       | 0.256 | 0.467 |
+|    SE9-8    |  ppyoloe_bmcv.py  |      ppyoloe_int8_1b.bmodel       | 0.375 | 0.507 |
+|    SE9-8    | ppyoloe_bmcv.soc  |      ppyoloe_int8_1b.bmodel       | 0.375 | 0.505 |
 | SRM1-20      | ppyoloe_opencv.py  | ppyoloe_fp32_1b.bmodel       |    0.377 |    0.508 |
 | SRM1-20      | ppyoloe_opencv.py  | ppyoloe_fp16_1b.bmodel       |    0.377 |    0.508 |
 | SRM1-20      | ppyoloe_bmcv.py    | ppyoloe_fp32_1b.bmodel       |    0.380 |    0.513 |
@@ -160,7 +173,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SRM1-20      | ppyoloe_bmcv.pcie  | ppyoloe_fp32_1b.bmodel       |    0.379 |    0.510 |
 | SRM1-20      | ppyoloe_bmcv.pcie  | ppyoloe_fp16_1b.bmodel       |    0.378 |    0.510 |
 
-> **测试说明**：  
+> **测试说明**：
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标；
 > 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
