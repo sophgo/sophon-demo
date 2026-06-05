@@ -11,12 +11,12 @@ SOPHONSDK是算能科技基于其自主研发的深度学习处理器所定制�
 ## 目录结构与说明
 SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application`三个模块，`tutorial`模块存放一些基础接口的使用示例，`sample`模块存放一些经典算法在SOPHONSDK上的串行示例，`application`模块存放一些典型场景的典型应用。
 
-| tutorial                                                                 | 说明                                                                      |支持硬件                       |
-| ----------------------------------------------------                     | ------------------------------------------------------------              |--------------                |
+| tutorial                                                                 | 说明                                                                      | 支持硬件                      |
+| ---                                                                      | ---                                                                       | ---                           |
 | [resize](./tutorial/resize/README.md)                                    | resize接口。针对图像做缩放操作                                               | BM1684/BM1684X/BM1688/CV186X |
 | [crop](./tutorial/crop/README.md)                                        | crop接口，从输入图片中抠出需要用的图片区域                                    | BM1684/BM1684X/BM1688/CV186X |
 | [crop_and_resize_padding](./tutorial/crop_and_resize_padding/README.md)  | 将图片指定位置指定大小部分图片抠出，缩放后填充到大图中，空余部分填充指定像素数值  | BM1684/BM1684X/BM1688/CV186X |
-| [ocv_jpgbasic](./tutorial/ocv_jpubasic/README.md)                        | 使用sophon-opencv硬件加速实现图片编解码                                      | BM1684/BM1684X/BM1688/CV186X |
+| [ocv_jpubasic](./tutorial/ocv_jpubasic/README.md)                        | 使用sophon-opencv硬件加速实现图片编解码                                      | BM1684/BM1684X/BM1688/CV186X |
 | [ocv_vidbasic](./tutorial/ocv_vidbasic/README.md)                        | 使用sophon-opencv硬件加速实现视频解码，并将视频记录为png或jpg格式              | BM1684/BM1684X/BM1688/CV186X |
 | [blend](./tutorial/blend/README.md)                                      | 融合拼接两张图                                                              | BM1688/CV186X                |
 | [stitch](./tutorial/stitch/README.md)                                    | 拼接两张图片                                                                | BM1684X/BM1688/CV186X        |
@@ -33,7 +33,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 |---                                                            |---               |---         | ---            |---                            |
 | [LPRNet](./sample/LPRNet/README.md)                           | 车牌识别          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ResNet](./sample/ResNet/README.md)                           | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [Recognize-Anything](./sample/Recogize-Anything/README.md)    | 图像分类          | Python     | FP32/FP16      | BM1684X                      |
+| [Recognize-Anything](./sample/Recognize-Anything/README.md)    | 图像分类          | Python     | FP32/FP16      | BM1684X                      |
 | [YOLOv8_plus_cls](./sample/YOLOv8_plus_cls/README.md)         | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [RetinaFace](./sample/RetinaFace/README.md)                   | 人脸检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
 | [SCRFD](./sample/SCRFD/README.md)                             | 人脸检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
@@ -43,7 +43,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [yolact](./sample/yolact/README.md)                           | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
 | [YOLOv8_plus_seg](./sample/YOLOv8_plus_seg/README.md)         | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
 | [YOLOv8_plus_seg_fuse](./sample/YOLOv8_plus_seg_fuse/README.md)| 实例分割(TPU后处理) | C++/Python | INT8          | BM1684X/BM1688               |
-| [YOLOv9_seg](./sample/YOLOv8_plus_seg/README.md)              | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
+| [YOLOv9_seg](./sample/YOLOv9_seg/README.md)              | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
 | [YOLO26_seg](./sample/YOLO26_seg/README.md)                   | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
 | [PP-OCR](./sample/PP-OCR/README.md)                           | OCR              | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X  |
 | [OpenPose](./sample/OpenPose/README.md)                       | 人体关键点检测    | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
@@ -60,9 +60,9 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [SSD](./sample/SSD/README.md)                                 | 目标检测          | C++/Python | FP32/INT8      | BM1684/BM1684X               |
 | [YOLOv7](./sample/YOLOv7/README.md)                           | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [YOLOv8_det](./sample/YOLOv8_plus_det/README.md)              | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [YOLOv9_det](./sample/YOLOv8_plus_det/README.md)              | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [YOLOv11_det](./sample/YOLOv8_plus_det/README.md)             | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
-| [YOLOv12_det](./sample/YOLOv8_plus_det/README.md)             | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
+| [YOLOv9_det](./sample/YOLOv9_det/README.md)              | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [YOLOv11_det](./sample/YOLOv11_det/README.md)             | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
+| [YOLOv12_det](./sample/YOLOv12_det/README.md)             | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
 | [YOLO26_det](./sample/YOLO26/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
 | [YOLOv5_opt](./sample/YOLOv5_opt/README.md)                   | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X                      |
 | [YOLOv5_fuse](./sample/YOLOv5_fuse/README.md)                 | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
@@ -71,8 +71,8 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [YOLO_world](./sample/YOLO_world/README.md)                   | 目标检测          | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [D-FINE](./sample/D-FINE/README.md)                           | 目标检测          | Python     | FP16           | BM1684X/BM1688/CV186X        |
-| [YOLOv8_obb](./sample/YOLOv8_plus_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
-| [YOLOv11_obb](./sample/YOLOv8_plus_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
+| [YOLOv8_obb](./sample/YOLOv8_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
+| [YOLOv11_obb](./sample/YOLOv11_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
 | [YOLO26_obb](./sample/YOLO26_obb/README.md)                   | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
 | [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
 | [Whisper](./sample/Whisper/README.md)                         | 语音识别          | Python     | FP16           | BM1684X                      |
@@ -147,7 +147,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | 0.3.1  | 完善和修复文档、代码问题，Qwen例程支持Qwen3，Qwen2.5-VL支持AWQ量化模型和penalty_sample head，sample模块新增YOLOv11_obb、Phi4mm，tutorial模块新增DPU接口用例。|
 | 0.3.0  | 完善和修复文档、代码问题，Qwen例程支持QwQ32B，sample模块新增Recognize-Anything、YOLOv8_plus_cls，Real-ESRGAN后处理优化，Qwen2.5-VL前处理优化，YOLOv8_plus_det支持输出未转置模型。|
 | 0.2.10  | 完善和修复文档、代码问题，Qwen例程支持C++，sample模块新增YOLOv12_det、YOLOv8_plus_seg_fuse、Janus、Qwen2.5-VL。tutorial模块新增yolov8_ffmpeg_encode。|
-| 0.2.9  | 完善和修复文档、代码问题，**Qwen例程支持deepseek-r1-distill-qwen2-1.5b、deepseek-r1-distill-qwen2-7b**，sample模块新增Llama3_2_Vision，新增YOLOv8_plus_det代替YOLOv8_det、YOLOv9_det、YOLOv11_det，新增YOLOv8_plus_seg代替YOLOv8_seg、YOLOv9_seg。|
+| 0.2.9  | 完善和修复文档、代码问题，**Qwen例程支持DeepSeek-R1-Distill-Qwen2-1.5B、DeepSeek-R1-Distill-Qwen2-7B**，sample模块新增Llama3_2_Vision，新增YOLOv8_plus_det代替YOLOv8_det、YOLOv9_det、YOLOv11_det，新增YOLOv8_plus_seg代替YOLOv8_seg、YOLOv9_seg。|
 | 0.2.8  | 完善和修复文档、代码问题，sample模块新增MiniCPM3、LightStereo、Qwen2-VL、YOLO-world例程。|
 | 0.2.7  | 完善和修复文档、代码问题，sample模块新增CAM++、ChatTTS、FaceFormer、MP_SENet、Vila例程。application模块新增ChatDoc、LLM_api_server、Audio_assistant例程。|
 | 0.2.6  | 完善和修复文档、代码问题，sample模块新增YOLOv11_det、FLUX.1、SlowFast、YOLOv8_obb例程。 |

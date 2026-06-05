@@ -12,11 +12,11 @@
 MLIR具体步骤如下：
 1. 可以先用mlir2onnx.py这个工具，将model_transform生成的mlir文件转化成onnx，然后通过netron查看onnx网络结构。
    ```bash
-   mlir2onnx.py -m yolov26s_1b.mlir -o yolov26s_mlir.onnx
+   mlir2onnx.py -m yolo26s_1b.mlir -o yolo26s_mlir.onnx
    ```
 2. 使用fp_forward.py生成post.qtable，指定层名即可将对应的所有层指定对应的fp_type。
    ```bash
-   fp_forward.py --fpfwd_outputs /model.22/cv2/conv/Conv_output_0_Conv,/model.23/one2one_cv3.1/one2one_cv3.1.0/one2one_cv3.1.0.0/conv/Conv_output_0_Conv,/model.23/one2one_cv3.0/one2one_cv3.0.0/one2one_cv3.0.0.0/conv/Conv_output_0_Conv,/model.23/one2one_cv3.0/one2one_cv3.0.0/one2one_cv3.0.0.0/conv/Conv_output_0_Conv,/model.23/one2one_cv2.0/one2one_cv2.0.0/conv/Conv_output_0_Conv --chip bm1684x yolov26s_1b.mlir -o post.qtable
+   fp_forward.py --fpfwd_outputs /model.22/cv2/conv/Conv_output_0_Conv,/model.23/one2one_cv3.1/one2one_cv3.1.0/one2one_cv3.1.0.0/conv/Conv_output_0_Conv,/model.23/one2one_cv3.0/one2one_cv3.0.0/one2one_cv3.0.0.0/conv/Conv_output_0_Conv,/model.23/one2one_cv3.0/one2one_cv3.0.0/one2one_cv3.0.0.0/conv/Conv_output_0_Conv,/model.23/one2one_cv2.0/one2one_cv2.0.0/conv/Conv_output_0_Conv --chip bm1684x yolo26s_1b.mlir -o post.qtable
    ```
    **注意，在部分版本mlir中，--chip参数或许不支持bm1688/cv186x，您可以使用bm1684x代替，生成的qtable都是通用的，您也可以自由地更改qtable中每一层对应的的fp_type。**
 

@@ -49,9 +49,9 @@ class YOLO26:
 
         # check batch size 
         self.batch_size = self.input_shape[0]
-        suppoort_batch_size = [1, 2, 3, 4, 8, 16, 32, 64, 128, 256]
-        if self.batch_size not in suppoort_batch_size:
-            raise ValueError('batch_size must be {} for bmcv, but got {}'.format(suppoort_batch_size, self.batch_size))
+        support_batch_size = [1, 2, 3, 4, 8, 16, 32, 64, 128, 256]
+        if self.batch_size not in support_batch_size:
+            raise ValueError('batch_size must be {} for bmcv, but got {}'.format(support_batch_size, self.batch_size))
         self.net_h = self.input_shape[2]
         self.net_w = self.input_shape[3]
         

@@ -254,13 +254,12 @@ int Yolo26::post_process(const std::vector<bm_image>& images, std::vector<Yolo26
         auto out_tensor = outputTensors[min_idx];
         
         float* output_data = nullptr;
-        box_num = out_tensor->get_shape()->dims[1];
         int box_num = out_tensor->get_shape()->dims[1];
         int box_xysc = out_tensor->get_shape()->dims[2];
 
         LOG_TS(m_ts, "post 1: get output");
         output_data = (float*)out_tensor->get_cpu_data()+batch_idx*box_num*box_xysc;
-        LOG_TS(m_ts, "post 1: get output");
+        LOG_TS(m_ts, "post 1: get output done");
  
         LOG_TS(m_ts, "post 2: get detections matrix nx6 (xyxy, conf, cls)");
         for(int i=0;i<box_num;i++){
@@ -299,7 +298,7 @@ int Yolo26::post_process(const std::vector<bm_image>& images, std::vector<Yolo26
         clip_boxes(yolobox_vec, frame_width, frame_height);
 
         detected_boxes.push_back(yolobox_vec);
-        LOG_TS(m_ts, "post 2: get detections matrix nx6 (xyxy, conf, cls)");
+        LOG_TS(m_ts, "post 3: clip boxes and push results");
     }
 
     return 0;

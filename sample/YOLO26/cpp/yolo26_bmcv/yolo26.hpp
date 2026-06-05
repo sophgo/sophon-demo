@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef YOLOV8_H
-#define YOLOV8_H
+#ifndef YOLO26_H
+#define YOLO26_H
 
 #include <iostream>
 #include <vector>
@@ -73,4 +73,4 @@ class Yolo26 {
     void draw_bmcv(bm_handle_t &handle, int classId, float conf, int left, int top, int right, int bottom, bm_image& frame, bool put_text_flag=false);
 };
 
-#endif //!YOLOV8_H
+#endif //!YOLO26_H

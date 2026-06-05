@@ -52,7 +52,7 @@ if (${TARGET_ARCH} STREQUAL "pcie")
     aux_source_directory(. SRC_FILES)
     aux_source_directory(../dependencies/src/ SRC_FILES)
     add_executable(yolo26_bmcv.pcie ${SRC_FILES})
-    target_link_libraries(yolo26_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} ${the_libbmlib.so} ${the_libbmrt.so} ${the_libbmcv.so} -lpthread)
+    target_link_libraries(yolo26_bmcv.pcie ${FFMPEG_LIBS} ${OpenCV_LIBS} bmlib bmrt bmcv -lpthread)
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     message( "${TARGET_ARCH} mode, starting......")
