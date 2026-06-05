@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 scripts_dir=$(dirname $(readlink -f "$0"))
 
 download_bm1684x=0

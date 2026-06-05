@@ -4,7 +4,7 @@
     - [1.1 x86/arm/riscv PCIe平台](#11-x86armriscv-pcie平台)
     - [1.2 SoC平台](#12-soc平台)
   - [2. 程序编译](#2-程序编译)
-    - [2.1 x86/arm/ PCIe平台](#21-x86armriscv-pcie平台)
+    - [2.1 x86/arm/riscv PCIe平台](#21-x86armriscv-pcie平台)
     - [2.2 SoC平台](#22-soc平台)
   - [3. 推理测试](#3-推理测试)
     - [3.1 参数说明](#31-参数说明)
@@ -60,7 +60,7 @@ make
 ```bash
 Usage: yolo26_bmcv.pcie [params]
 
-        --bmodel (value:../../models/BM1684/yolo26s_fp32_1b.bmodel)
+        --bmodel (value:../../models/BM1684X/yolo26s_fp32_1b.bmodel)
                 bmodel file path
         --classnames (value:../../datasets/coco.names)
                 class names file path

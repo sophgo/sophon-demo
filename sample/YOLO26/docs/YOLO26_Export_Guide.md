@@ -1,6 +1,6 @@
 # YOLO26模型导出
 ## 1. 准备工作
-YOLO26模型导出是在Pytorch模型的生产环境下进行的，需提前根据[​YOLO26官方开源仓库](https://github.com/ultralytics/ultralytics)的要求安装好环境，准备好相应的代码和模型，并保证模型能够在Pytorch环境下正常推理运行。本例程导出环境版本为：`torch-2.9.1+cu128, onnx 1.18.0`。
+YOLO26模型导出是在Pytorch模型的生产环境下进行的，需提前根据[YOLO26官方开源仓库](https://github.com/ultralytics/ultralytics)的要求安装好环境，准备好相应的代码和模型，并保证模型能够在Pytorch环境下正常推理运行。本例程导出环境版本为：`torch-2.9.1+cu128, onnx 1.18.0`。
 
 
 ## 2. 导出onnx模型
