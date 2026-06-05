@@ -1,0 +1,155 @@
+# Skill 8: C++ 移植 (bmrt SDK)
+
+## 目标
+将 Python SAIL 推理代码移植为 C++ bmrt 原生推理程序，实现更高的部署效率。
+
+## 执行步骤
+
+### 8.1 准备 C++ 工程结构
+```
+cpp/seaco_paraformer_bmrt/
+├── CMakeLists.txt        # 构建配置
+├── main.cpp              # 入口，命令行参数解析
+├── seaco_paraformer.h    # 模型类声明
+├── seaco_paraformer.cpp  # 模型类实现 (推理逻辑)
+├── audio_process.h       # 音频预处理声明
+├── audio_process.cpp     # FBANK + LFR + CMVN 实现
+├── utils.hpp             # 工具函数 (TimeStamp 等)
+├── json.hpp              # nlohmann::json (header-only)
+└── build/                # 构建输出目录
+```
+
+### 8.2 CMakeLists.txt 配置
+```cmake
+project(seaco_paraformer_bmrt)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS "-O3")
+
+# PCIe 模式
+if(${TARGET_ARCH} STREQUAL "pcie")
+    find_package(libsophon REQUIRED)
+    find_package(Armadillo REQUIRED)
+    pkg_check_modules(SNDFILE REQUIRED sndfile)
+    # ... 标准链接
+endif()
+
+# SoC 模式 (交叉编译)
+if(${TARGET_ARCH} STREQUAL "soc")
+    set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
+    set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
+    # SDK 路径从 ${SDK} 环境变量获取
+endif()
+```
+
+### 8.3 核心 API 移植映射
+
+| Python (SAIL) | C++ (bmrt) |
+|---------------|-----------|
+| `sail.Engine(bmodel, dev_id, SYSIO)` | `bm_dev_request() + bmrt_create() + bmrt_load_bmodel()` |
+| `engine.process(graph, inputs)` | `bm_memcpy_s2d() + bmrt_launch_tensor_ex() + bm_thread_sync()` |
+| `numpy array` 输入输出 | `bm_tensor_t` + `bm_device_mem_t` |
+| `np.ascontiguousarray(arr)` | `std::vector<float>` 或直接填充设备内存 |
+
+### 8.4 动态 Shape 处理
+```cpp
+// C++ 动态 shape 推理核心流程：
+// 1. 分配 MAX shape 的设备内存 (预分配)
+// 2. 拷贝实际数据到设备内存
+// 3. bm_set_device_mem 缩小到实际大小
+// 4. 设置 tensor.shape.dims 为实际维度
+// 5. bmrt_launch_tensor_ex(user_mem=true) 启动推理
+
+struct DynamicDim {
+    int tensor_idx;   // 第几个输入 tensor
+    int dim_idx;      // 第几个维度
+    int actual_val;   // 实际值
+};
+
+// 示例: 将 batch=10,T=1000 的动态模型以 batch=1,T=75 运行
+std::vector<DynamicDim> dyn_dims = {
+    {0, 0, 1},       // 输入0 dim[0] batch=1
+    {0, 1, speech_len}, // 输入0 dim[1] T=75
+    {1, 0, 1},       // 输入1 dim[0] batch=1
+};
+```
+
+### 8.5 SoC Zero-Copy 优化
+```cpp
+// SoC 模式：直接 mmap 设备内存，避免拷贝
+if (misc_info_.pcie_soc_mode == 1) {  // SoC
+    unsigned long long addr;
+    bm_mem_mmap_device_mem(handle_, &tensor->device_mem, &addr);
+    bm_mem_invalidate_device_mem(handle_, &tensor->device_mem);
+    float* data = (float*)addr;  // 直接使用
+    // ... 使用 data ...
+    bm_mem_unmap_device_mem(handle_, data, size);
+} else {  // PCIe
+    float* data = new float[count];
+    bm_memcpy_d2s_partial(handle_, data, tensor->device_mem, count * sizeof(float));
+    // ... 使用 data ...
+    delete[] data;
+}
+```
+
+### 8.6 预处理移植
+```cpp
+// FBANK 特征提取: Python torchaudio → C++ Armadillo
+arma::fmat fbank(const arma::fmat& waveform, int n_mels,
+                  int frame_length, int frame_shift, int sample_rate,
+                  float dither, float energy_floor,
+                  bool htk_compat, bool use_log_fbank, bool use_power);
+
+// LFR: Python torch.as_strided → C++ 手动实现
+arma::fmat apply_lfr(const arma::fmat& inputs, int lfr_m, int lfr_n);
+
+// CMVN
+void apply_cmvn(arma::fmat& features, const CmvnConfig& cmvn);
+```
+
+### 8.7 构建与运行
+```bash
+# x86 PCIe 构建
+cd cpp/seaco_paraformer_bmrt
+mkdir build && cd build
+cmake .. -DTARGET_ARCH=pcie
+make -j4
+
+# SoC 交叉编译
+cmake .. -DTARGET_ARCH=soc -DSDK=/path/to/sophon-sdk
+make -j4
+
+# 运行
+./seaco_paraformer_bmrt.pcie --model_dir ../../models/BM1684X --input test.wav
+```
+
+## 常见移植问题
+
+### 1. 内存管理差异
+- Python: 自动 GC
+- C++: 手动管理设备内存，注意 bm_free_device_mem / delete[]
+
+### 2. 数据类型映射
+- Python int32 → C++ int32_t (注意不是 int)
+- Python float32 → C++ float
+- numpy (T, D) → C++ row-major: data[t * D + d]
+
+### 3. 动态 Shape 陷阱
+- 需要 `bm_set_device_mem` 缩小内存
+- tensor shape 要和实际数据大小一致
+- 输出 tensor 的 shape 可能和输入不同
+
+### 4. 预处理精度差异
+- Python torchaudio Kaldi fbank 有特定实现细节
+- C++ Armadillo 实现可能产生微小数值差异
+- 需要对比验证以确认差异不导致识别结果变化
+
+## 检查清单
+
+- [ ] C++ CMakeLists.txt 配置正确
+- [ ] PCIe 版本编译通过
+- [ ] SoC 版本交叉编译通过
+- [ ] C++ 推理结果与 Python 一致
+- [ ] 动态 shape 推理正常
+- [ ] SoC zero-copy 正常工作
+- [ ] 内存无泄漏 (valgrind 检查)
+- [ ] 各阶段计时器正常工作
