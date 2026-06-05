@@ -24,4 +24,18 @@ else
     echo "models folder exist! Remove it if you need to update."
 fi
 
+# cross_compile_module (from WeNet sample)
+if [ ! -d "../cpp/cross_compile_module" ];
+then
+    mkdir -p ../cpp/cross_compile_module
+    pushd ../cpp/cross_compile_module
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/soc/3rd_party.tar.gz
+    tar zxf 3rd_party.tar.gz
+    rm 3rd_party.tar.gz
+    popd
+    echo "cross_compile_module download!"
+else
+    echo "cross_compile_module exist, please remove it if you want to update."
+fi
+
 popd
