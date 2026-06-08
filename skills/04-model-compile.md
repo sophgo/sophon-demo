@@ -16,58 +16,58 @@ source envsetup.sh
 ```bash
 # FP32 模型
 model_transform.py \
-    --model_name seaco_encoder \
-    --model_def encoder.onnx \
+    --model_name model_sub1 \
+    --model_def 子模型1.onnx \
     --input_shapes [[1,100,560],[1]] \
     --input_types float32,int32 \
-    --mlir seaco_encoder.mlir
+    --mlir model_sub1.mlir
 ```
 
 ### 4.3 生成校准表 (仅 INT8 需要)
 ```bash
 # 准备校准数据集
 # 运行校准
-run_calibration.py seaco_encoder.mlir \
+run_calibration.py model_sub1.mlir \
     --dataset cali_data \
     --input_num 100 \
-    -o seaco_encoder_cali_table
+    -o model_sub1_cali_table
 ```
 
 ### 4.4 模型部署 (MLIR → BModel)
 ```bash
 # FP32 编译
 model_deploy.py \
-    --mlir seaco_encoder.mlir \
+    --mlir model_sub1.mlir \
     --quantize F32 \
     --chip bm1684x \
-    --model seaco_encoder_fp32_10b.bmodel \
+    --model model_sub1_fp32_10b.bmodel \
     --num_core 1 \
     --dynamic
 
 # INT8 编译
 model_deploy.py \
-    --mlir seaco_encoder.mlir \
+    --mlir model_sub1.mlir \
     --quantize INT8 \
-    --calibration_table seaco_encoder_cali_table \
+    --calibration_table model_sub1_cali_table \
     --chip bm1684x \
-    --model seaco_encoder_int8_10b.bmodel \
+    --model model_sub1_int8_10b.bmodel \
     --num_core 1 \
     --dynamic
 ```
 
 ### 4.5 批量编译脚本
 ```bash
-# encoder
-model_transform.py ... --mlir encoder.mlir
-model_deploy.py ... --model encoder_fp32_10b.bmodel
+# 子模型1
+model_transform.py ... --mlir 子模型1.mlir
+model_deploy.py ... --model submodel1_fp32.bmodel
 
-# decoder
-model_transform.py ... --mlir decoder.mlir
-model_deploy.py ... --model decoder_fp32_10b.bmodel
+# 子模型2
+model_transform.py ... --mlir 子模型2.mlir
+model_deploy.py ... --model submodel2_fp32.bmodel
 
-# predictor
-model_transform.py ... --mlir predictor.mlir
-model_deploy.py ... --model predictor_fp32_10b.bmodel
+# 子模型3
+model_transform.py ... --mlir 子模型3.mlir
+model_deploy.py ... --model submodel3_fp32.bmodel
 ```
 
 ## 关键参数说明

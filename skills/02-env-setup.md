@@ -20,15 +20,15 @@ bm-smi
 
 ### 安装 Python 依赖
 ```bash
-pip3 install sophon-sail numpy torch torchaudio soundfile scipy
+pip3 install sophon-sail numpy torch 框架预处理工具 soundfile scipy
 ```
 
 ### 安装 C++ 依赖 (如需 C++ 移植)
 ```bash
-# Armadillo (线性代数)
-sudo apt-get install libarmadillo-dev
-# libsndfile (音频读取)
-sudo apt-get install libsndfile1-dev
+# 数值计算库 (线性代数)
+sudo apt-get install numerical-lib-dev
+# 数据I/O库 (输入数据读取)
+sudo apt-get install data-io-dev
 ```
 
 ## SoC 平台 (SE7-32)
@@ -43,7 +43,7 @@ bm-smi  # (可能需要 source 环境)
 
 ### 安装额外依赖
 ```bash
-sudo apt-get install libsndfile1-dev libarmadillo-dev
+sudo apt-get install data-io-dev numerical-lib-dev
 ```
 
 ### 交叉编译环境 (在 PC 上)
@@ -58,10 +58,10 @@ export SDK=/path/to/sophon-sdk
 
 - [ ] bm-smi 能显示 TPU 设备
 - [ ] Python 能 import sophon.sail
-- [ ] Python 能 import torch, torchaudio
+- [ ] Python 能 import torch, 框架预处理工具
 - [ ] bmrt_test 可用 (在 SDK 中)
 - [ ] C++ 编译器可用 (gcc/g++)
-- [ ] libsndfile 和 armadillo 已安装
+- [ ] 数据I/O库 和 numerical_lib 已安装
 - [ ] SoC 设备可通过 SSH 访问
 
 ## 常见问题

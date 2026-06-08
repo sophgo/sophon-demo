@@ -9,18 +9,18 @@
 
 #### 精度测试结果
 ```
-| 测试平台  | 测试程序          | 测试模型                       | CER   | WER   |
+| 测试平台  | 测试程序          | 测试模型                       | 推理误差   | 推理误差   |
 |-----------|-------------------|-------------------------------|-------|-------|
-| x86 PCIE  | eval_accuracy.py  | encoder/decoder/predictor FP32 | 0.00% | 0.00% |
+| x86 PCIE  | eval_accuracy.py  | 子模型1/子模型2/子模型3 FP32 | 0.00% | 0.00% |
 ```
 
 #### 性能测试结果
 ```
-| 测试平台  | 测试程序                    | preprocess(s) | encoder(s) | decoder(s) | total(s) | RTF   |
+| 测试平台  | 测试程序                    | preprocess(s) | 子模型1(s) | 子模型2(s) | total(s) | 延迟/吞吐指标   |
 |-----------|----------------------------|--------------|------------|------------|----------|-------|
-| x86 PCIE  | seaco_paraformer.py        | 1.307        | 0.106      | 0.031      | 1.462    | 0.323 |
-| SE7-32    | seaco_paraformer.py        | 4.046        | 0.113      | 0.051      | 4.234    | 0.937 |
-| SE7-32    | seaco_paraformer_bmrt.soc  | 5.338        | 0.136      | 0.058      | 5.562    | 1.230 |
+| x86 PCIE  | model_inference.py        | 1.307        | 0.106      | 0.031      | 1.462    | 0.323 |
+| SE7-32    | model_inference.py        | 4.046        | 0.113      | 0.051      | 4.234    | 0.937 |
+| SE7-32    | model_inference_bmrt.soc  | 5.338        | 0.136      | 0.058      | 5.562    | 1.230 |
 ```
 
 ### 10.2 更新 README 各节
@@ -42,43 +42,43 @@
 
 ### 6.2 测试结果
 
-在SeACoParaformer的FunASR源码模型上，精度测试结果如下：
-|   测试平台  |    测试程序               |              测试模型              | CER | WER |
+在目标模型的原始推理框架源码模型上，精度测试结果如下：
+|   测试平台  |    测试程序               |              测试模型              | 推理误差 | 推理误差 |
 | ---------- | ----------------------- | --------------------------------- | --- | --- |
-| x86 PCIE   | eval_accuracy.py         | encoder/decoder/predictor FP32     | 0.00% | 0.00% |
-| SE7-32     | seaco_paraformer.py     | encoder/decoder/predictor FP32     | TBD | TBD |
+| x86 PCIE   | eval_accuracy.py         | 子模型1/子模型2/子模型3 FP32     | 0.00% | 0.00% |
+| SE7-32     | model_inference.py     | 子模型1/子模型2/子模型3 FP32     | TBD | TBD |
 
 > **测试说明**：
-> 1. CER/WER使用FunASR PyTorch模型在CPU上的推理结果作为参考；
-> 2. 测试使用公开测试集（如AISHELL-1 test）进行评估；
+> 1. 推理误差指标使用原始推理框架 PyTorch模型在CPU上的推理结果作为参考；
+> 2. 测试使用公开测试集（如标准测试集 test）进行评估；
 > 3. FP32精度应与PyTorch参考模型完全一致；
 
 ## 7. 性能测试
 
 ### 7.2 程序运行性能
 
-|    测试平台  |     测试程序               | preprocess(s) | encoder(s) | decoder(s) | total(s) | RTF   |
+|    测试平台  |     测试程序               | preprocess(s) | 子模型1(s) | 子模型2(s) | total(s) | 延迟/吞吐指标   |
 | ----------- | ------------------------- | ------------- | ---------- | ---------- | -------- | ----- |
-|   SE7-32    | seaco_paraformer.py       |  4.046       |  0.113     |  0.051     |  4.234   | 0.937 |
-|   SE7-32    | seaco_paraformer_bmrt.soc |  5.338       |  0.136     |  0.058     |  5.562   | 1.230 |
-|   x86 PCIE  | seaco_paraformer.py       |  1.307       |  0.106     |  0.031     |  1.462   | 0.323 |
+|   SE7-32    | model_inference.py       |  4.046       |  0.113     |  0.051     |  4.234   | 0.937 |
+|   SE7-32    | model_inference_bmrt.soc |  5.338       |  0.136     |  0.058     |  5.562   | 1.230 |
+|   x86 PCIE  | model_inference.py       |  1.307       |  0.106     |  0.031     |  1.462   | 0.323 |
 
 > **测试说明**：
-> 1. RTF = total_time / audio_duration；
+> 1. 延迟/吞吐指标 = total_time / input_data_duration；
 > 2. 5次测试取平均值；
-> 3. 测试音频：4.52秒，16kHz单声道WAV；
+> 3. 测试输入数据：典型输入文件；
 ```
 
 ### 10.4 Git 提交
 
 ```bash
 # 1. 暂存更改
-git add sample/SeAcoParaformer/README.md
+git add sample/ModelName/README.md
 
 # 2. 提交（amend 到上次提交或新建提交）
 git commit --amend --no-edit  # 合并到上一个 commit
 # 或
-git commit -m "docs(SeAcoParaformer): update accuracy and performance test results"
+git commit -m "docs(ModelName): update accuracy and performance test results"
 
 # 3. Rebase（如果远程有新提交）
 git fetch origin developer
@@ -135,7 +135,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
 ## 示例提交记录
 
 ```
-df81ccd2 feat(SeAcoParaformer): add SeACoParaformer ASR sample with SAIL inference
+abc123 feat(ModelName): add model sample with SAIL inference
 0792fa94 feat(FearTracker): add visual tracking sample with Python SAIL inference
 b3985794 feat(Silero): add VAD sample with C++ bmrt and Python SAIL
 ```
