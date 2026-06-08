@@ -12,12 +12,12 @@
 
 ### 1.2 确认推理 pipeline
 ```
-音频 → 预处理 → 编码器(TPU) → CIF(CPU) → 解码器(TPU) → 预测器(TPU) → 解码(CPU) → 文本
+输入数据 → 预处理 → 编码器(TPU) → 中间处理(CPU) → 解码器(TPU) → 预测器(TPU) → 解码(CPU) → 文本
 ```
 
 ### 1.3 确认测试要求
-- 精度测试：参考模型（FunASR PyTorch）、测试集（AISHELL-1）、指标（CER/WER）
-- 性能测试：bmrt_test 理论性能 + 程序运行 RTF
+- 精度测试：参考模型（原始推理框架 PyTorch）、测试集（标准测试集）、指标（推理误差指标）
+- 性能测试：bmrt_test 理论性能 + 程序运行 延迟/吞吐指标
 
 ### 1.4 确认文件结构
 - `models/BM1684X/` — BModel 文件
@@ -27,21 +27,21 @@
 
 ## 检查清单
 
-- [ ] 理解模型架构（encoder/decoder/predictor 结构）
-- [ ] 确认输入格式（16kHz 单声道 WAV, FBANK 80维, LFR m=7 n=6）
-- [ ] 确认输出格式（文本 + 词级别时间戳）
-- [ ] 确认依赖（libsophon, sophon-sail, torch, torchaudio, numpy）
+- [ ] 理解模型架构（子模型1/子模型2/子模型3 结构）
+- [ ] 确认输入格式（模型要求的输入格式, 适配模型输入的特征参数）
+- [ ] 确认输出格式（文本 + 词级别辅助输出）
+- [ ] 确认依赖（libsophon, sophon-sail, torch, 框架预处理工具, numpy）
 - [ ] 理解精度/性能测试方法
 - [ ] 确认目标平台（BM1684X, x86 PCIe / SE7-32 SoC）
 
-## 示例: SeACoParaformer
+## 示例: 目标模型
 
 ```
-输入: 16kHz WAV → FBANK(80) → LFR(7,6) → CMVN → [1, T, 560]
-编码器: [1, T, 560] → enc_out[1, T, 512], hidden[1, T+1, 512], alphas[1, T+1], token_num[1]
-CIF: hidden + alphas → pre_acoustic_embeds[1, N, 512]
-解码器: [enc_out, pre_embeds] → logits[1, N, 8404]
-预测器: enc_out → us_alphas[1, T*3], pred_token_num[1]
-解码: argmax(logits) → token_ids → tokens → text
-输出: text + [start_ms, end_ms, token] 时间戳列表
+输入: 模型要求的输入格式 → 特征提取(特定参数) → 降采样 → 归一化 → [1, T, 560]
+编码器: [1, T, 560] → submodel1_out[1, T, 512], hidden_state[1, T+1, 512], intermediate_values[1, T+1], output_length[1]
+中间处理: hidden_state + intermediate_values → intermediate_embeds[1, N, 512]
+解码器: [submodel1_out, intermediate_embeds] → logits[1, N, 8404]
+预测器: submodel1_out → aux_data[1, T*3], submodel3_output_length[1]
+解码: argmax(logits) → output_ids → results → final_output
+输出: text + [start_ms, end_ms, token] 辅助输出列表
 ```

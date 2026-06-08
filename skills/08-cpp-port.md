@@ -7,13 +7,13 @@
 
 ### 8.1 准备 C++ 工程结构
 ```
-cpp/seaco_paraformer_bmrt/
+cpp/model_inference_bmrt/
 ├── CMakeLists.txt        # 构建配置
 ├── main.cpp              # 入口，命令行参数解析
-├── seaco_paraformer.h    # 模型类声明
-├── seaco_paraformer.cpp  # 模型类实现 (推理逻辑)
-├── audio_process.h       # 音频预处理声明
-├── audio_process.cpp     # FBANK + LFR + CMVN 实现
+├── model_inference.h    # 模型类声明
+├── model_inference.cpp  # 模型类实现 (推理逻辑)
+├── input_data_process.h       # 输入数据预处理声明
+├── input_data_process.cpp     # 特征提取 + 归一化 实现
 ├── utils.hpp             # 工具函数 (TimeStamp 等)
 ├── json.hpp              # nlohmann::json (header-only)
 └── build/                # 构建输出目录
@@ -21,15 +21,15 @@ cpp/seaco_paraformer_bmrt/
 
 ### 8.2 CMakeLists.txt 配置
 ```cmake
-project(seaco_paraformer_bmrt)
+project(model_inference_bmrt)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-O3")
 
 # PCIe 模式
 if(${TARGET_ARCH} STREQUAL "pcie")
     find_package(libsophon REQUIRED)
-    find_package(Armadillo REQUIRED)
-    pkg_check_modules(SNDFILE REQUIRED sndfile)
+    find_package(数值计算库 REQUIRED)
+    pkg_check_modules(DATA_IO REQUIRED data_io)
     # ... 标准链接
 endif()
 
@@ -68,7 +68,7 @@ struct DynamicDim {
 // 示例: 将 batch=10,T=1000 的动态模型以 batch=1,T=75 运行
 std::vector<DynamicDim> dyn_dims = {
     {0, 0, 1},       // 输入0 dim[0] batch=1
-    {0, 1, speech_len}, // 输入0 dim[1] T=75
+    {0, 1, input_len}, // 输入0 dim[1] seq_len=75
     {1, 0, 1},       // 输入1 dim[0] batch=1
 };
 ```
@@ -93,23 +93,23 @@ if (misc_info_.pcie_soc_mode == 1) {  // SoC
 
 ### 8.6 预处理移植
 ```cpp
-// FBANK 特征提取: Python torchaudio → C++ Armadillo
-arma::fmat fbank(const arma::fmat& waveform, int n_mels,
+// 特征提取 特征提取: Python 框架预处理工具 → C++ 数值计算库
+features_type features(const input_type& input_data, int n_features,
                   int frame_length, int frame_shift, int sample_rate,
                   float dither, float energy_floor,
-                  bool htk_compat, bool use_log_fbank, bool use_power);
+                  bool param1, bool param2, bool param3);
 
-// LFR: Python torch.as_strided → C++ 手动实现
-arma::fmat apply_lfr(const arma::fmat& inputs, int lfr_m, int lfr_n);
+// 降采样: Python torch.as_strided → C++ 手动实现
+auto apply_postprocess(const features_type& inputs, int param1, int param2);
 
-// CMVN
-void apply_cmvn(arma::fmat& features, const CmvnConfig& cmvn);
+// 归一化
+void apply_normalize(features_type& features, const NormConfig& config);
 ```
 
 ### 8.7 构建与运行
 ```bash
 # x86 PCIe 构建
-cd cpp/seaco_paraformer_bmrt
+cd cpp/model_inference_bmrt
 mkdir build && cd build
 cmake .. -DTARGET_ARCH=pcie
 make -j4
@@ -119,7 +119,7 @@ cmake .. -DTARGET_ARCH=soc -DSDK=/path/to/sophon-sdk
 make -j4
 
 # 运行
-./seaco_paraformer_bmrt.pcie --model_dir ../../models/BM1684X --input test.wav
+./model_inference_bmrt.pcie --model_dir ../../models/BM1684X --input test_input
 ```
 
 ## 常见移植问题
@@ -139,8 +139,8 @@ make -j4
 - 输出 tensor 的 shape 可能和输入不同
 
 ### 4. 预处理精度差异
-- Python torchaudio Kaldi fbank 有特定实现细节
-- C++ Armadillo 实现可能产生微小数值差异
+- Python 框架预处理工具中的特征提取有特定实现细节
+- C++ 数值计算库 实现可能产生微小数值差异
 - 需要对比验证以确认差异不导致识别结果变化
 
 ## 检查清单

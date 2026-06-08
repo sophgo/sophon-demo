@@ -7,7 +7,7 @@
 
 ### 3.1 加载 PyTorch 模型
 ```python
-from funasr import AutoModel
+from original_framework import AutoModel
 
 model = AutoModel(
     model="./model",
@@ -16,31 +16,31 @@ model = AutoModel(
 ```
 
 ### 3.2 提取子模型
-SeACoParaformer 包含三个需要导出的子模型：
-- **Encoder** (SAN-M 编码器): speech → enc_out, hidden, alphas, token_num
-- **Decoder** (ParaformerSANM 解码器): enc_out + pre_embeds → logits
-- **Predictor** (CifPredictorV3): enc_out → us_alphas, pred_token_num
+目标模型 包含三个需要导出的子模型：
+- **子模型1** (编码组件): input_data → submodel1_out, hidden_state, intermediate_values, output_length
+- **子模型2** (解码组件): submodel1_out + intermediate_embeds → logits
+- **子模型3** (辅助预测组件): submodel1_out → aux_data, submodel3_output_length
 
 ### 3.3 导出 ONNX
 ```python
 import torch
 
-# 导出 encoder
-dummy_speech = torch.randn(1, 100, 560)  # [batch, T, feat_dim]
-dummy_speech_len = torch.tensor([100], dtype=torch.int32)
+# 导出 子模型1
+dummy_input = torch.randn(1, 100, 560)  # [batch, seq_len, feat_dim]
+dummy_input_len = torch.tensor([100], dtype=torch.int32)
 torch.onnx.export(
-    model.model.encoder,
-    (dummy_speech, dummy_speech_len),
-    "encoder.onnx",
-    input_names=["speech", "speech_lengths"],
-    output_names=["enc_out", "hidden", "alphas", "token_num"],
+    model.model.子模型1,
+    (dummy_input, dummy_input_len),
+    "子模型1.onnx",
+    input_names=["input_data", "input_lengths"],
+    output_names=["submodel1_out", "hidden_state", "intermediate_values", "output_length"],
     dynamic_axes={
-        "speech": {0: "batch", 1: "T"},
-        "speech_lengths": {0: "batch"},
-        "enc_out": {0: "batch", 1: "T"},
-        "hidden": {0: "batch", 1: "T_plus_1"},
-        "alphas": {0: "batch", 1: "T_plus_1"},
-        "token_num": {0: "batch"},
+        "input_data": {0: "batch", 1: "T"},
+        "input_lengths": {0: "batch"},
+        "submodel1_out": {0: "batch", 1: "T"},
+        "hidden_state": {0: "batch", 1: "T_plus_1"},
+        "intermediate_values": {0: "batch", 1: "T_plus_1"},
+        "output_length": {0: "batch"},
     },
     opset_version=13,
 )
@@ -52,19 +52,19 @@ import onnx
 import onnxruntime
 
 # 验证 ONNX 模型
-onnx_model = onnx.load("encoder.onnx")
+onnx_model = onnx.load("子模型1.onnx")
 onnx.checker.check_model(onnx_model)
 
 # 推理对比
-ort_session = onnxruntime.InferenceSession("encoder.onnx")
-ort_outputs = ort_session.run(None, {"speech": speech_np, "speech_lengths": len_np})
+ort_session = onnxruntime.InferenceSession("子模型1.onnx")
+ort_outputs = ort_session.run(None, {"input_data": input_np, "input_lengths": length_np})
 ```
 
 ## 关键注意事项
 
 ### 动态维度
 - `batch` 维度建议设为动态，以支持 batch=1 到 batch=10
-- `T` (时间维度) 必须为动态，因不同音频长度不同
+- `T` (时间维度) 必须为动态，因不同输入数据长度不同
 - 编译 BModel 时指定 `MAX_T` (如 1000)
 
 ### 算子兼容性
