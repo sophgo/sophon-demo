@@ -194,7 +194,7 @@ def main(args):
                         })
                         logging.info("  {}: embedding shape={}, norm={:.4f}".format(
                             filename, embedding.shape, np.linalg.norm(embedding)))
-
+                        logging.info("Embedding[:5]: {}".format(embedding[:10]))
                     bmimg_list.clear()
                     filename_list.clear()
 

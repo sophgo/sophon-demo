@@ -67,26 +67,25 @@ int ArcFace::pre_process(const std::vector<bm_image>& images,
     int image_n = images.size();
     // 1. resize directly to 112x112 (no letterbox for ArcFace)
     for (int i = 0; i < image_n; ++i) {
-        bm_image image1 = images[i];
         bm_image image_aligned;
-        bool need_copy = image1.width & (64 - 1);
+        bool need_copy = images[i].width & (64 - 1);
         if (need_copy) {
             int stride1[3], stride2[3];
-            bm_image_get_stride(image1, stride1);
+            bm_image_get_stride(images[i], stride1);
             stride2[0] = FFALIGN(stride1[0], 64);
             stride2[1] = FFALIGN(stride1[1], 64);
             stride2[2] = FFALIGN(stride1[2], 64);
-            bm_image_create(handle, image1.height, image1.width,
-                            image1.image_format, image1.data_type, &image_aligned, stride2);
+            bm_image_create(handle, images[i].height, images[i].width,
+                            images[i].image_format, images[i].data_type, &image_aligned, stride2);
             bm_image_alloc_dev_mem(image_aligned, BMCV_IMAGE_FOR_IN);
             bmcv_copy_to_atrr_t copyToAttr;
             memset(&copyToAttr, 0, sizeof(copyToAttr));
             copyToAttr.start_x = 0;
             copyToAttr.start_y = 0;
             copyToAttr.if_padding = 1;
-            bmcv_image_copy_to(handle, copyToAttr, image1, image_aligned);
+            bmcv_image_copy_to(handle, copyToAttr, images[i], image_aligned);
         } else {
-            image_aligned = image1;
+            image_aligned = images[i];
         }
 
         auto ret = bmcv_image_vpp_convert(handle, 1, image_aligned, &m_resized_imgs[i]);
@@ -101,11 +100,11 @@ int ArcFace::pre_process(const std::vector<bm_image>& images,
     assert(true == ret);
     bm_image_attach_contiguous_mem(batch_size, m_converto_imgs.data(), input_tensor.device_mem);
 
-    // 2. convert to float32 (mean/scale handled by bmodel)
-    for (int i = 0; i < image_n; ++i) {
-        ret = bmcv_image_convert_to(handle, 1, converto_attr,
-                                    &m_resized_imgs[i], &m_converto_imgs[i]);
-        assert(ret == 0);
+    // 2. convert to model input dtype (mean/scale handled by bmodel)
+    ret = bmcv_image_convert_to(handle, image_n, converto_attr,
+                                m_resized_imgs.data(), m_converto_imgs.data());
+    if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime error in convert_to");
     }
 
     // destroy bm_images
