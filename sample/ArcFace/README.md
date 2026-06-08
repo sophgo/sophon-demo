@@ -2,21 +2,21 @@
 
 ## 目录
 
-- [1. 简介](#1-简介)
-- [2. 特性](#2-特性)
-  - [2.1 目录结构说明](#21-目录结构说明)
-  - [2.2 SDK特性](#22-sdk特性)
-- [3. 数据准备与模型编译](#3-数据准备与模型编译)
-  - [3.1 数据准备](#31-数据准备)
-  - [3.2 模型编译](#32-模型编译)
-- [4. 例程测试](#4-例程测试)
-- [5. 精度测试](#5-精度测试)
-  - [5.1 测试方法](#51-测试方法)
-  - [5.2 测试结果](#52-测试结果)
-- [6. 性能测试](#6-性能测试)
-  - [6.1 bmrt_test](#61-bmrt_test)
-  - [6.2 程序运行性能](#62-程序运行性能)
-- [7. FAQ](#7-faq)
+- [ArcFace](#arcface)
+  - [目录](#目录)
+  - [1. 简介](#1-简介)
+  - [2. 特性](#2-特性)
+    - [2.1 目录结构说明](#21-目录结构说明)
+    - [2.2 SDK特性](#22-sdk特性)
+  - [3. 数据准备与模型编译](#3-数据准备与模型编译)
+    - [3.1 数据准备](#31-数据准备)
+    - [3.2 模型编译](#32-模型编译)
+  - [4. 例程测试](#4-例程测试)
+  - [5. 精度测试](#5-精度测试)
+  - [6. 性能测试](#6-性能测试)
+    - [6.1 bmrt\_test](#61-bmrt_test)
+    - [6.2 程序运行性能](#62-程序运行性能)
+  - [7. FAQ](#7-faq)
 
 ## 1. 简介
 
@@ -133,27 +133,7 @@ models/
 - [Python例程](./python/README.md)
 
 ## 5. 精度测试
-### 5.1 测试方法
-
-首先，参考[C++例程](cpp/README.md#32-测试图片)或[Python例程](python/README.md#22-测试图片)推理要测试的数据集。然后，使用`tools`目录下的`eval_accuracy.py`脚本，将预测结果与参考输出进行比对，验证模型推理精度。具体的测试命令如下：
-```bash
-# 请根据实际情况修改文件路径
-python3 tools/eval_accuracy.py --input datasets/test --bmodel models/BM1684X/arcface_resnet50_fp32_1b.bmodel --dev_id 0
-```
-
-### 5.2 测试结果
-|   测试平台    |      测试程序       |      测试模型          | 备注 |
-| ------------ | ---------------- | ---------------------- | --- |
-|   SE7-32    |  arcface_bmcv.py  | arcface_resnet50_fp32_1b.bmodel | C++与Python输出一致（误差<1e-5） |
-|   SE7-32    |  arcface_bmcv.py  | arcface_resnet50_fp16_1b.bmodel | 与FP32余弦相似度>0.999 |
-|   SE7-32    |  arcface_bmcv.py  | arcface_resnet50_int8_1b.bmodel | - |
-|   SE7-32    |  arcface_bmcv.py  | arcface_resnet50_int8_4b.bmodel | - |
-|   SE7-32    | arcface_bmcv.soc  | arcface_resnet50_fp32_1b.bmodel | C++与Python输出一致（误差<1e-5） |
-
-> **测试说明**：
-> 1. FP32模型C++与Python输出完全一致，FP16/INT8模型存在可接受的精度损失；
-> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X；
-> 3. BM1684X的FP16/INT8与FP32嵌入向量保持高度一致（余弦相似度>0.999）。
+TBD
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
@@ -170,7 +150,7 @@ bmrt_test --bmodel models/BM1684X/arcface_resnet50_fp32_1b.bmodel
 |   SE7-32    | BM1684X/arcface_resnet50_fp32_1b.bmodel     |           14.180  |
 |   SE7-32    | BM1684X/arcface_resnet50_fp16_1b.bmodel     |           2.243   |
 |   SE7-32    | BM1684X/arcface_resnet50_int8_1b.bmodel     |           1.189   |
-|   SE7-32    | BM1684X/arcface_resnet50_int8_4b.bmodel     |           2.448 (4 images) |
+|   SE7-32    | BM1684X/arcface_resnet50_int8_4b.bmodel     |           0.499   |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性；
@@ -201,9 +181,9 @@ bmrt_test --bmodel models/BM1684X/arcface_resnet50_fp32_1b.bmodel
 ## 7. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。以下是ArcFace例程特定的FAQ：
 
-**Q: C++ INT8 4b模型为何前4张图片输出相同嵌入向量？**
+**Q: C++ INT8 4b模型输出是否正常？**
 
-A: 这是一个已知的C++批处理实现问题，bm_image/tensor内存布局在INT8 4batch模式下存在对齐差异。Python sail接口的INT8 4b工作正常，batch内各图像输出独立且正确。建议生产环境优先使用Python接口进行多batch推理。
+A: C++ INT8 4b模型使用批量`bmcv_image_convert_to`调用（参考YOLOv8_plus_cls实现），经测试batch内各图像输出独立且正确。如遇到异常，请检查libsophon版本与bmodel编译SDK版本是否兼容。
 
 **Q: 预处理参数是否需要手动设置？**
 
