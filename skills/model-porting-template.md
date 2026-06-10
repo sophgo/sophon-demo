@@ -133,32 +133,72 @@
 
 ## 7. 精度测试需求
 
-### 7.1 精度指标
+### 7.1 精度指标（根据算法类型选择）
 
-| 指标名称 | 计算方式 | 目标值 |
-|---------|---------|--------|
-| `【如 余弦相似度】` | `【如 与参考模型 embedding 的余弦距离】` | `【如 > 0.99 (FP32)】` |
-| `【如 Top-1 准确率】` | `【如 匹配正确数 / 总数】` | `【如 > 99% (FP32)】` |
+请根据算法类别选择对应的精度指标：
 
-### 7.2 测试数据
+| 算法类别 | 推荐指标 | 典型目标值 |
+|---------|---------|-----------|
+| 图像分类 | Top-1/Top-5 准确率 ACC(%) | FP32 与参考一致，INT8 diff<1% |
+| 目标检测 | COCO mAP (AP@IoU=0.5:0.95) | FP32 与参考一致，INT8 diff<1% |
+| 语义分割 | mIoU | FP32 与参考一致 |
+| 姿态估计 | COCO keypoints mAP | FP32 与参考一致 |
+| 人脸识别 | 余弦相似度 (Cosine Similarity) | > 0.99 (FP32), > 0.98 (INT8) |
+| 语音识别 | CER (字符错误率) / WER (词错误率) | FP32 与参考一致 (diff=0) |
+| OCR / 车牌识别 | 字符准确率 / F-score | FP32 与参考一致，INT8 diff<2% |
+| 立体匹配 | D1 (3-px error rate) / EPE | FP32 与参考一致 |
+| 超分辨率 | PSNR / SSIM | 越高越好 |
+| 多目标跟踪 | MOTA / MOTP / IDF1 | FP32 与参考一致 |
+| LLM / 图像生成 | 通常无正式指标，或使用 FID / PPL | — |
+
+### 7.2 精度指标详情
+
+| 指标名称 | `【填写: 如 余弦相似度 / CER+WER / COCO mAP】` |
+|---------|------|
+| 计算方式 | `【填写: 如 与参考模型 embedding 的余弦距离 / editdistance CER / pycocotools mAP】` |
+| 目标值 (FP32) | `【填写: 如 > 0.99 / CER=0.00% / mAP=0.377】` |
+| 目标值 (FP16) | `【填写: 如 > 0.99 / CER<0.5% / mAP diff<0.01】` |
+| 目标值 (INT8) | `【填写: 如 > 0.98 / CER<1% / mAP diff<1%】` |
+
+### 7.3 测试数据
 
 | 参数 | 值 |
 |------|-----|
+| 测试集名称 | `【填写: 如 ImageNet val / COCO val2017 / AISHELL-1 test / WiderFace val】` |
 | 测试集路径 | `【填写: 测试数据目录】` |
 | 测试样本数 | `【填写: 如 1000】` |
+| 标签文件路径 | `【填写: 如 datasets/coco/instances_val2017.json / datasets/test_label.json】` |
 | 参考模型 | `【填写: 用于对比的 PyTorch/ONNX 模型】` |
 | 参考推理环境 | `【填写: PyTorch CPU / PyTorch GPU / ONNX Runtime】` |
+| 评估脚本路径 | `【填写: 如 tools/eval_coco.py / tools/eval_aishell.py】` |
 
 ---
 
 ## 8. 性能测试需求
 
+### 8.1 性能指标（根据算法类型选择）
+
+请根据算法类别选择对应的性能指标：
+
+| 算法类别 | 推荐性能指标 | 阶段分解 |
+|---------|------------|---------|
+| 图像分类/检测/分割 | FPS 或 单帧耗时(ms) | decode + preprocess + inference + postprocess |
+| 人脸识别 | 单帧耗时(ms) 或 FPS | decode + preprocess + inference + postprocess |
+| 语音识别 | RTF (Real Time Factor) | preprocess + encoder + decoder + postprocess |
+| LLM 文本生成 | tokens/s (吞吐量) | prefill + decode_per_token |
+| OCR 级联模型 | 总耗时(ms) / FPS | 各子模型分别计时 |
+| 图像生成 | 单次生成耗时(s) | preprocess + 迭代推理 + postprocess |
+
+### 8.2 性能测试详情
+
 | 参数 | 值 |
 |------|-----|
-| 测试平台 | `【填写: x86 PCIE / SE7-32 / 两者都要】` |
-| 性能指标 | `【填写: 推理延迟(ms) / 吞吐量(FPS/QPS) / 延迟/吞吐指标】` |
+| 测试平台 | `【填写: x86 PCIE / SE7-32 / SE5-16 / SE9-16 / 全部】` |
+| 端到端性能指标 | `【填写: 如 FPS(帧/秒) / RTF(real-time factor) / tokens/s / 单帧耗时(ms)】` |
+| 阶段拆解方式 | `【填写: 如 decode→preprocess→inference→postprocess 或 encoder→decoder→...】` |
 | 测试次数 | `【填写: 如 5 次取平均】` |
-| 业务性能要求 | `【填写: 如 延迟 < 10ms, 或 FPS > 100】` |
+| 业务性能要求 | `【填写: 如 FPS > 100 / latency < 10ms / RTF < 0.5 / tokens/s > 50】` |
+| bmrt_test 理论性能 | `【填写: 是否已测试，记录 calculate time】` |
 
 ---
 
@@ -262,19 +302,22 @@
 
 ```
 模型名称:          【填写】
-模型类型:          【分类/检测/识别/分割/生成/其他】
-原始框架:          【PyTorch/TensorFlow/其他】
+算法类别:          【分类/目标检测/语义分割/姿态估计/人脸识别/语音识别/OCR/立体匹配/超分辨率/多目标跟踪/LLM/图像生成/其他】
+原始框架:          【PyTorch/TensorFlow/PaddlePaddle/其他】
 模型文件位置:       【本地路径或下载链接】
-输入尺寸:          【如 112x112 图像】
-输入通道数:         【如 3 (RGB)】
-输出规格:          【如 512维特征向量】
-预处理方式:         【如 Resize→Normalize: mean/std】
-目标芯片:          【BM1684X】
-需要精度:          【FP32/FP16/INT8】
-需要 batch:        【1b/4b】
+输入尺寸:          【如 112x112 图像 / 16kHz 音频】
+输入通道数:         【如 3 (RGB) / 80 (FBANK)】
+输出规格:          【如 512维特征向量 / [1,68,18] CTC输出 / [N,8404] token logits】
+预处理方式:         【如图像: Resize→Normalize: mean/std; 音频: FBANK特征提取→CMVN归一化】
+模型架构:          【单模型 / 编码器-解码器 / 级联多模型 / Transformer Decoder-Only】
+子模型个数:         【1 / 2 / 3 / 更多】
+目标芯片:          【BM1684 / BM1684X / BM1688 / CV186X】
+需要精度:          【FP32 / FP16 / INT8 / INT8_4b，多选用逗号分隔】
+需要 batch:        【1b / 4b / 10b】
 需要 Python:       【是/否】
 需要 C++:          【是/否】
-C++ 前后处理方式:   【bmcv/opencv】
+C++ 前后处理方式:   【bmcv / opencv / 自定义】
 测试数据集:         【路径或描述】
-精度指标:          【如 余弦相似度 > 0.99】
+精度指标:          【如 ACC(%) / COCO mAP / CER+WER(%) / 余弦相似度 / PSNR / D1 / MOTA】
+性能指标:          【如 FPS / RTF / tokens/s / 单帧耗时(ms)】
 ```
