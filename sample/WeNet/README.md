@@ -24,7 +24,7 @@ WeNet是一款面向工业落地应用的语音识别工具包，提供了从语
 
 ## 2. 特性
 * 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC)
-* 支持FP32、FP16(BM1688/BM1684X/CV186X)模型编译和推理
+* 支持FP32、FP16、INT8(BM1688/BM1684X/CV186X)模型编译和推理
 * 支持基于torchaudio的Python推理和基于Armadillo的C++推理
 * 支持单batch模型推理
 * 支持流式和非流式语音的测试
@@ -54,26 +54,35 @@ chmod -R +x scripts/
 │   ├── wenet_encoder_non_streaming_fp32.bmodel # 使用TPU-MLIR编译，用于BM1684的非流式FP32 Encoder BModel，batch_size=1
 │   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于BM1684的流式FP32 Encoder BModel，batch_size=1
 ├── BM1684X
-│   ├── wenet_decoder_fp16.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP16 Decoder BModel，batch_size=1     
-│   ├── wenet_decoder_fp32.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP32 Decoder BModel，batch_size=1     
+│   ├── wenet_decoder_int8.bmodel               # 使用TPU-MLIR编译，用于BM1684X的INT8 Decoder BModel，batch_size=1
+│   ├── wenet_decoder_fp16.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP16 Decoder BModel，batch_size=1
+│   ├── wenet_decoder_fp32.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP32 Decoder BModel，batch_size=1
+│   ├── wenet_encoder_non_streaming_int8.bmodel # 使用TPU-MLIR编译，用于BM1684X的非流式INT8 Encoder BModel，batch_size=1
 │   ├── wenet_encoder_non_streaming_fp16.bmodel # 使用TPU-MLIR编译，用于BM1684X的非流式FP16 Encoder BModel，batch_size=1
 │   ├── wenet_encoder_non_streaming_fp32.bmodel # 使用TPU-MLIR编译，用于BM1684X的非流式FP32 Encoder BModel，batch_size=1
-│   ├── wenet_encoder_streaming_fp16.bmodel     # 使用TPU-MLIR编译，用于BM1684X的流式FP16 Encoder BModel，batch_size=1  
-│   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于BM1684X的流式FP32 Encoder BModel，batch_size=1  
+│   ├── wenet_encoder_streaming_int8.bmodel     # 使用TPU-MLIR编译，用于BM1684X的流式INT8 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_streaming_fp16.bmodel     # 使用TPU-MLIR编译，用于BM1684X的流式FP16 Encoder BModel，batch_size=1
+│   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于BM1684X的流式FP32 Encoder BModel，batch_size=1
 ├── BM1688
-│   ├── wenet_decoder_fp16.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP16 Decoder BModel，batch_size=1     
-│   ├── wenet_decoder_fp32.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP32 Decoder BModel，batch_size=1   
+│   ├── wenet_decoder_int8.bmodel               # 使用TPU-MLIR编译，用于BM1688的INT8 Decoder BModel，batch_size=1
+│   ├── wenet_decoder_fp16.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP16 Decoder BModel，batch_size=1
+│   ├── wenet_decoder_fp32.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP32 Decoder BModel，batch_size=1
+│   ├── wenet_encoder_non_streaming_int8.bmodel # 使用TPU-MLIR编译，用于BM1688的非流式INT8 Encoder BModel，batch_size=1
 │   ├── wenet_encoder_non_streaming_fp16.bmodel # 使用TPU-MLIR编译，用于BM1688的非流式FP16 Encoder BModel，batch_size=1
 │   ├── wenet_encoder_non_streaming_fp32.bmodel # 使用TPU-MLIR编译，用于BM1688的非流式FP32 Encoder BModel，batch_size=1
-│   ├── wenet_encoder_streaming_fp16.bmodel     # 使用TPU-MLIR编译，用于BM1688的流式FP16 Encoder BModel，batch_size=1 
-│   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于BM1688的流式FP32 Encoder BModel，batch_size=1 
+│   ├── wenet_encoder_streaming_int8.bmodel     # 使用TPU-MLIR编译，用于BM1688的流式INT8 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_streaming_fp16.bmodel     # 使用TPU-MLIR编译，用于BM1688的流式FP16 Encoder BModel，batch_size=1
+│   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于BM1688的流式FP32 Encoder BModel，batch_size=1
 ├── CV186X
-│   ├── wenet_decoder_fp16.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP16 Decoder BModel，batch_size=1     
-│   ├── wenet_decoder_fp32.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP32 Decoder BModel，batch_size=1         
-│   ├── wenet_encoder_non_streaming_fp16.bmodel # 使用TPU-MLIR编译，用于CV186X的非流式FP16 Encoder BModel，batch_size=1    
-│   ├── wenet_encoder_non_streaming_fp32.bmodel # 使用TPU-MLIR编译，用于CV186X的非流式FP32 Encoder BModel，batch_size=1  
-│   ├── wenet_encoder_streaming_fp16.bmodel     # 使用TPU-MLIR编译，用于CV186X的流式FP16 Encoder BModel，batch_size=1 
-│   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于CV186X的流式FP32 Encoder BModel，batch_size=1 
+│   ├── wenet_decoder_int8.bmodel               # 使用TPU-MLIR编译，用于CV186X的INT8 Decoder BModel，batch_size=1
+│   ├── wenet_decoder_fp16.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP16 Decoder BModel，batch_size=1
+│   ├── wenet_decoder_fp32.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP32 Decoder BModel，batch_size=1
+│   ├── wenet_encoder_non_streaming_int8.bmodel # 使用TPU-MLIR编译，用于CV186X的非流式INT8 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_non_streaming_fp16.bmodel # 使用TPU-MLIR编译，用于CV186X的非流式FP16 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_non_streaming_fp32.bmodel # 使用TPU-MLIR编译，用于CV186X的非流式FP32 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_streaming_int8.bmodel     # 使用TPU-MLIR编译，用于CV186X的流式INT8 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_streaming_fp16.bmodel     # 使用TPU-MLIR编译，用于CV186X的流式FP16 Encoder BModel，batch_size=1
+│   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于CV186X的流式FP32 Encoder BModel，batch_size=1
 └── onnx
     ├── wenet_decoder.onnx                      # 导出的流式decoder onnx模型
     ├── wenet_decoder_qtable                    # 转fp16的decoder时，传给model_deploy的混精度敏感层
@@ -84,24 +93,24 @@ chmod -R +x scripts/
 下载的数据包括：
 ```
 ./datasets
-├── aishell_S0764                                      
+├── aishell_S0764
     ├── *.wav                                 # 从aishell数据集中抽取的用于测试的音频文件
     ├── aishell_S0764.list                    # 数据集的描述文件
-    └── ground_truth.txt                      # 数据集标签文件，用于计算精度评价指标  
+    └── ground_truth.txt                      # 数据集标签文件，用于计算精度评价指标
 ```
 
 下载的Python拓展模块包括：
 ```
 ./python/swig_decoders_x86_64                 # x86_64架构下编译好的swig_decoder模块
-├── EGG-INFO                                       
-├── _swig_decoders.py                              
-├── swig_decoders.py                               
-└── _swig_decoders.cpython-38-x86_64-linux-gnu.so               
+├── EGG-INFO
+├── _swig_decoders.py
+├── swig_decoders.py
+└── _swig_decoders.cpython-38-x86_64-linux-gnu.so
 ./python/swig_decoders_aarch64                # aarch64架构下编译好的swig_decoder模块
-├── EGG-INFO                                       
-├── _swig_decoders.py                                
-├── swig_decoders.py                               
-└── _swig_decoders.cpython-38-aarch64-linux-gnu.so       
+├── EGG-INFO
+├── _swig_decoders.py
+├── swig_decoders.py
+└── _swig_decoders.cpython-38-aarch64-linux-gnu.so
 
 下载的Cpp编译依赖包括：
 ./cpp/ctcdecode-cpp                           # x86架构下编译好的ctcdecode-cpp(基于ubuntu20.04, gcc9.4.0)
@@ -138,6 +147,15 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`wenet_encoder_fp16.bmodel`和`wenet_decoder_fp16.bmodel`等文件，即转换好的FP16 BModel。
 
+- 生成INT8 BModel
+
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+
+```bash
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+```
+
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`wenet_encoder_int8.bmodel`和`wenet_decoder_int8.bmodel`等文件，即转换好的INT8 BModel。
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
@@ -145,7 +163,7 @@ chmod -R +x scripts/
 
 ## 6. 精度测试
 ### 6.1 测试方法
-首先，参考[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的txt文件，注意修改数据集(datasets/aishell_S0764)和相关参数。  
+首先，参考[Python例程](python/README.md#22-测试图片)推理要测试的数据集，生成预测的txt文件，注意修改数据集(datasets/aishell_S0764)和相关参数。
 然后，使用`tools`目录下的`eval_aishell.py`脚本，将测试生成的txt文件与测试集标签txt文件进行对比，计算出语音识别的评价指标，命令如下：
 ```bash
 # 请根据实际情况修改程序路径和txt文件路径
@@ -170,51 +188,75 @@ cat online_wer | grep "Overall"
 | SE7-32       | wenet.soc          | wenet_encoder_streaming_fp32.bmodel                                    |    2.550% |
 | SE7-32       | wenet.soc          | wenet_encoder_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel        |    1.720% |
 | SE7-32       | wenet.py           | wenet_encoder_streaming_fp16.bmodel                                    |    2.700% |
-| SE7-32       | wenet.py           | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    3.300% |
+| SE7-32       | wenet.py           | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    1.800% |
 | SE7-32       | wenet.soc          | wenet_encoder_streaming_fp16.bmodel                                    |    2.550% |
-| SE7-32       | wenet.soc          | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    3.150% |
+| SE7-32       | wenet.soc          | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    1.950% |
+| SE7-32       | wenet.py           | wenet_encoder_streaming_int8.bmodel                                    |    2.700% |
+| SE7-32       | wenet.py           | wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel        |    1.870% |
+| SE7-32       | wenet.soc          | wenet_encoder_streaming_int8.bmodel                                    |    2.850% |
+| SE7-32       | wenet.soc          | wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel        |    1.950% |
 | SE7-32       | wenet.py           | wenet_encoder_non_streaming_fp32.bmodel                                |    2.020% |
 | SE7-32       | wenet.py           | wenet_encoder_non_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |    1.650% |
 | SE7-32       | wenet.soc          | wenet_encoder_non_streaming_fp32.bmodel                                |    2.020% |
 | SE7-32       | wenet.soc          | wenet_encoder_non_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |    1.650% |
 | SE7-32       | wenet.py           | wenet_encoder_non_streaming_fp16.bmodel                                |    2.020% |
-| SE7-32       | wenet.py           | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    2.620% |
+| SE7-32       | wenet.py           | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    1.720% |
 | SE7-32       | wenet.soc          | wenet_encoder_non_streaming_fp16.bmodel                                |    2.020% |
-| SE7-32       | wenet.soc          | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    2.620% |
+| SE7-32       | wenet.soc          | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    1.720% |
+| SE7-32       | wenet.py           | wenet_encoder_non_streaming_int8.bmodel                                |    2.020% |
+| SE7-32       | wenet.py           | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |    1.720% |
+| SE7-32       | wenet.soc          | wenet_encoder_non_streaming_int8.bmodel                                |    2.100% |
+| SE7-32       | wenet.soc          | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |    1.720% |
 | SE9-16       | wenet.py           | wenet_encoder_streaming_fp32.bmodel                                    |    2.770% |
 | SE9-16       | wenet.py           | wenet_encoder_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel        |    1.870% |
 | SE9-16       | wenet.soc          | wenet_encoder_streaming_fp32.bmodel                                    |    2.700% |
 | SE9-16       | wenet.soc          | wenet_encoder_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel        |    2.100% |
 | SE9-16       | wenet.py           | wenet_encoder_streaming_fp16.bmodel                                    |    2.700% |
-| SE9-16       | wenet.py           | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    3.750% |
+| SE9-16       | wenet.py           | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    1.800% |
 | SE9-16       | wenet.soc          | wenet_encoder_streaming_fp16.bmodel                                    |    2.550% |
-| SE9-16       | wenet.soc          | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    3.820% |
+| SE9-16       | wenet.soc          | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    1.720% |
+| SE9-16       | wenet.py           | wenet_encoder_streaming_int8.bmodel                                    |    2.770% |
+| SE9-16       | wenet.py           | wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel        |    1.800% |
+| SE9-16       | wenet.soc          | wenet_encoder_streaming_int8.bmodel                                    |    2.850% |
+| SE9-16       | wenet.soc          | wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel        |    1.800% |
 | SE9-16       | wenet.py           | wenet_encoder_non_streaming_fp32.bmodel                                |    2.100% |
 | SE9-16       | wenet.py           | wenet_encoder_non_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |    2.100% |
 | SE9-16       | wenet.soc          | wenet_encoder_non_streaming_fp32.bmodel                                |    2.100% |
 | SE9-16       | wenet.soc          | wenet_encoder_non_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |    2.100% |
 | SE9-16       | wenet.py           | wenet_encoder_non_streaming_fp16.bmodel                                |    2.020% |
-| SE9-16       | wenet.py           | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    2.770% |
+| SE9-16       | wenet.py           | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    1.650% |
 | SE9-16       | wenet.soc          | wenet_encoder_non_streaming_fp16.bmodel                                |    2.020% |
-| SE9-16       | wenet.soc          | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    2.770% |
+| SE9-16       | wenet.soc          | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    1.650% |
+| SE9-16       | wenet.py           | wenet_encoder_non_streaming_int8.bmodel                                |    2.100% |
+| SE9-16       | wenet.py           | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |    1.800% |
+| SE9-16       | wenet.soc          | wenet_encoder_non_streaming_int8.bmodel                                |    2.020% |
+| SE9-16       | wenet.soc          | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |    1.800% |
 | SE9-8        | wenet.py           | wenet_encoder_streaming_fp32.bmodel                                    |    2.770% |
 | SE9-8        | wenet.py           | wenet_encoder_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel        |    1.870% |
 | SE9-8        | wenet.soc          | wenet_encoder_streaming_fp32.bmodel                                    |    2.700% |
 | SE9-8        | wenet.soc          | wenet_encoder_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel        |    2.100% |
 | SE9-8        | wenet.py           | wenet_encoder_streaming_fp16.bmodel                                    |    2.700% |
-| SE9-8        | wenet.py           | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    3.750% |
+| SE9-8        | wenet.py           | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    1.800% |
 | SE9-8        | wenet.soc          | wenet_encoder_streaming_fp16.bmodel                                    |    2.550% |
-| SE9-8        | wenet.soc          | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    3.820% |
+| SE9-8        | wenet.soc          | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    1.720% |
+| SE9-8        | wenet.py           | wenet_encoder_streaming_int8.bmodel                                    |    2.770% |
+| SE9-8        | wenet.py           | wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel        |    1.800% |
+| SE9-8        | wenet.soc          | wenet_encoder_streaming_int8.bmodel                                    |    2.850% |
+| SE9-8        | wenet.soc          | wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel        |    1.800% |
 | SE9-8        | wenet.py           | wenet_encoder_non_streaming_fp32.bmodel                                |    2.100% |
 | SE9-8        | wenet.py           | wenet_encoder_non_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |    2.100% |
 | SE9-8        | wenet.soc          | wenet_encoder_non_streaming_fp32.bmodel                                |    2.100% |
 | SE9-8        | wenet.soc          | wenet_encoder_non_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |    2.100% |
 | SE9-8        | wenet.py           | wenet_encoder_non_streaming_fp16.bmodel                                |    2.020% |
-| SE9-8        | wenet.py           | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    2.770% |
+| SE9-8        | wenet.py           | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    1.650% |
 | SE9-8        | wenet.soc          | wenet_encoder_non_streaming_fp16.bmodel                                |    2.020% |
-| SE9-8        | wenet.soc          | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    2.770% |
+| SE9-8        | wenet.soc          | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    1.650% |
+| SE9-8        | wenet.py           | wenet_encoder_non_streaming_int8.bmodel                                |    2.100% |
+| SE9-8        | wenet.py           | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |    1.800% |
+| SE9-8        | wenet.soc          | wenet_encoder_non_streaming_int8.bmodel                                |    2.020% |
+| SE9-8        | wenet.soc          | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |    1.800% |
 
-> **测试说明**：  
+> **测试说明**：
 1. 在使用的模型相同的情况下，wer在不同的测试平台上是相同的。
 2. 由于SDK版本之间的差异，实测的wer与本表有1%以内的差值是正常的。
 
@@ -237,13 +279,19 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 |   SE7-32    | BM1684X/wenet_decoder_fp32.bmodel                 |         307.50  |
 |   SE7-32    | BM1684X/wenet_encoder_streaming_fp16.bmodel       |           3.43  |
 |   SE7-32    | BM1684X/wenet_encoder_non_streaming_fp16.bmodel   |          14.23  |
-|   SE7-32    | BM1684X/wenet_decoder_fp16.bmodel                 |          62.54  |
+|   SE7-32    | BM1684X/wenet_decoder_fp16.bmodel                 |          44.60  |
+|   SE7-32    | BM1684X/wenet_encoder_streaming_int8.bmodel       |           2.74  |
+|   SE7-32    | BM1684X/wenet_encoder_non_streaming_int8.bmodel   |          11.79  |
+|   SE7-32    | BM1684X/wenet_decoder_int8.bmodel                 |          37.19  |
 |   SE9-16    | BM1688/wenet_encoder_streaming_fp32.bmodel        |          19.84  |
 |   SE9-16    | BM1688/wenet_encoder_non_streaming_fp32.bmodel    |         211.54  |
 |   SE9-16    | BM1688/wenet_decoder_fp32.bmodel                  |         722.56  |
 |   SE9-16    | BM1688/wenet_encoder_streaming_fp16.bmodel        |           6.71  |
 |   SE9-16    | BM1688/wenet_encoder_non_streaming_fp16.bmodel    |          44.37  |
-|   SE9-16    | BM1688/wenet_decoder_fp16.bmodel                  |         179.78  |
+|   SE9-16    | BM1688/wenet_decoder_fp16.bmodel                  |         142.78  |
+|   SE9-16    | BM1688/wenet_encoder_streaming_int8.bmodel        |           4.36  |
+|   SE9-16    | BM1688/wenet_encoder_non_streaming_int8.bmodel    |          19.17  |
+|   SE9-16    | BM1688/wenet_decoder_int8.bmodel                  |         109.69  |
 |   SE9-8    | CV186X/wenet_encoder_streaming_fp32.bmodel        |          19.96  |
 |   SE9-8    | CV186X/wenet_encoder_non_streaming_fp32.bmodel    |         212.00  |
 |   SE9-8    | CV186X/wenet_decoder_fp32.bmodel                  |         722.76  |
@@ -251,7 +299,7 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 |   SE9-8    | CV186X/wenet_encoder_non_streaming_fp16.bmodel    |          44.21  |
 |   SE9-8    | CV186X/wenet_decoder_fp16.bmodel                  |         177.34  |
 
-> **测试说明**：  
+> **测试说明**：
 > 1. 性能测试结果具有一定的波动性；
 > 2. 流式encoder的特征长度为67，非流式encoder的特征长度为1200，decoder的特征长度为350。
 > 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
@@ -260,7 +308,7 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
 
 在不同的测试平台上，使用数据集`datasets/aishell_S0764/aishell_S0764.list`，测试不同的例程和模型，性能测试结果如下：
-|    测试平台  |  测试程序 |             测试模型                                   |preprocess_time|encoder_inference_time|decoder_inference_time|postprocess_time| 
+|    测试平台  |  测试程序 |             测试模型                                   |preprocess_time|encoder_inference_time|decoder_inference_time|postprocess_time|
 | ----------- | --------- | ----------------------------------------------------- | ------------- | -------------------- | -------------------- | ----------------- |
 |   SE5-16    |     wenet.py      |                 wenet_encoder_streaming_fp32.bmodel                  |      4.02       |      46.34      |      none       |      8.70       |
 |   SE5-16    |     wenet.py      |   wenet_encoder_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |      3.96       |      46.11      |     186.68      |      10.14      |
@@ -274,34 +322,50 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 |   SE7-32    |     wenet.py      |   wenet_encoder_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |      3.24       |      23.70      |      66.98      |      10.34      |
 |   SE7-32    |     wenet.soc     |                 wenet_encoder_streaming_fp32.bmodel                  |      25.73      |      15.64      |      none       |      0.99       |
 |   SE7-32    |     wenet.soc     |   wenet_encoder_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |      26.43      |      15.69      |      66.64      |      1.09       |
-|   SE7-32    |     wenet.py      |                 wenet_encoder_streaming_fp16.bmodel                  |      3.70       |      13.00      |      none       |      8.64       |
-|   SE7-32    |     wenet.py      |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      3.86       |      13.07      |      13.89      |      10.54      |
-|   SE7-32    |     wenet.soc     |                 wenet_encoder_streaming_fp16.bmodel                  |      25.73      |      5.13       |      none       |      1.00       |
-|   SE7-32    |     wenet.soc     |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      26.43      |      5.10       |      13.55      |      1.07       |
+|   SE7-32    |     wenet.py      |                 wenet_encoder_streaming_fp16.bmodel                  |      9.54       |      10.70      |      none       |      8.64       |
+|   SE7-32    |     wenet.py      |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      9.54       |      10.70      |      9.69       |      10.54      |
+|   SE7-32    |     wenet.soc     |                 wenet_encoder_streaming_fp16.bmodel                  |      25.73      |      4.88       |      none       |      1.06       |
+|   SE7-32    |     wenet.soc     |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      26.47      |      4.89       |      9.56       |      1.13       |
+|   SE7-32    |     wenet.py      |                 wenet_encoder_streaming_int8.bmodel                  |      12.26      |      9.50       |      none       |      8.60       |
+|   SE7-32    |     wenet.py      |   wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |      9.19       |      9.50       |      8.16       |      10.41      |
+|   SE7-32    |     wenet.soc     |                 wenet_encoder_streaming_int8.bmodel                  |      25.76      |      3.67       |      none       |      1.04       |
+|   SE7-32    |     wenet.soc     |   wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |      26.50      |      3.67       |      8.04       |      1.12       |
 |   SE7-32    |     wenet.py      |               wenet_encoder_non_streaming_fp32.bmodel                |      3.04       |      16.72      |      none       |      1.57       |
 |   SE7-32    |     wenet.py      | wenet_encoder_non_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel  |      3.14       |      16.71      |      66.97      |      3.39       |
 |   SE7-32    |     wenet.soc     |               wenet_encoder_non_streaming_fp32.bmodel                |      25.77      |      15.53      |      none       |      0.32       |
 |   SE7-32    |     wenet.soc     | wenet_encoder_non_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel  |      26.24      |      15.53      |      66.63      |      0.40       |
-|   SE7-32    |     wenet.py      |               wenet_encoder_non_streaming_fp16.bmodel                |      3.07       |      4.19       |      none       |      1.61       |
-|   SE7-32    |     wenet.py      | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      3.29       |      4.19       |      13.87      |      3.30       |
-|   SE7-32    |     wenet.soc     |               wenet_encoder_non_streaming_fp16.bmodel                |      25.76      |      3.03       |      none       |      0.51       |
-|   SE7-32    |     wenet.soc     | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      26.50      |      3.02       |      13.55      |      0.59       |
+|   SE7-32    |     wenet.py      |               wenet_encoder_non_streaming_fp16.bmodel                |      10.29      |      4.19       |      none       |      1.61       |
+|   SE7-32    |     wenet.py      | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      10.29      |      4.19       |      9.69       |      3.30       |
+|   SE7-32    |     wenet.soc     |               wenet_encoder_non_streaming_fp16.bmodel                |      25.76      |      2.97       |      none       |      0.54       |
+|   SE7-32    |     wenet.soc     | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      26.45      |      2.98       |      9.57       |      0.61       |
+|   SE7-32    |     wenet.py      |               wenet_encoder_non_streaming_int8.bmodel                |       9.91      |      3.41       |      none       |      1.62       |
+|   SE7-32    |     wenet.py      | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel  |      10.24      |      3.40       |      8.17       |      3.40       |
+|   SE7-32    |     wenet.soc     |               wenet_encoder_non_streaming_int8.bmodel                |      25.71      |      2.45       |      none       |      0.70       |
+|   SE7-32    |     wenet.soc     | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel  |      26.64      |      2.45       |      8.04       |      0.76       |
 |   SE9-16    |     wenet.py      |                 wenet_encoder_streaming_fp32.bmodel                  |      5.25       |      42.66      |      none       |      12.07      |
 |   SE9-16    |     wenet.py      |   wenet_encoder_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |      5.69       |      42.44      |     157.15      |      14.48      |
 |   SE9-16    |     wenet.soc     |                 wenet_encoder_streaming_fp32.bmodel                  |      35.87      |      32.08      |      none       |      1.82       |
 |   SE9-16    |     wenet.soc     |   wenet_encoder_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |      36.90      |      32.09      |     156.63      |      1.99       |
-|   SE9-16    |     wenet.py      |                 wenet_encoder_streaming_fp16.bmodel                  |      4.55       |      20.89      |      none       |      12.10      |
-|   SE9-16    |     wenet.py      |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      6.04       |      20.85      |      39.46      |      14.38      |
+|   SE9-16    |     wenet.py      |                 wenet_encoder_streaming_fp16.bmodel                  |      5.22       |      18.24      |      none       |      12.67      |
+|   SE9-16    |     wenet.py      |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      5.14       |      18.34      |      30.99      |      15.21      |
 |   SE9-16    |     wenet.soc     |                 wenet_encoder_streaming_fp16.bmodel                  |      35.87      |      10.46      |      none       |      1.55       |
-|   SE9-16    |     wenet.soc     |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      36.83      |      10.48      |      39.01      |      1.69       |
+|   SE9-16    |     wenet.soc     |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      36.96      |      10.54      |      30.69      |      1.93       |
+|   SE9-16    |     wenet.py      |                 wenet_encoder_streaming_int8.bmodel                  |      5.59       |      14.05      |      none       |      12.64      |
+|   SE9-16    |     wenet.py      |   wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |      5.21       |      13.89      |      23.90      |      15.10      |
+|   SE9-16    |     wenet.soc     |                 wenet_encoder_streaming_int8.bmodel                  |      35.93      |      6.24       |      none       |      1.74       |
+|   SE9-16    |     wenet.soc     |   wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |      36.91      |      6.24       |      23.67      |      1.84       |
 |   SE9-16    |     wenet.py      |               wenet_encoder_non_streaming_fp32.bmodel                |      5.59       |      47.30      |      none       |      2.19       |
 |   SE9-16    |     wenet.py      | wenet_encoder_non_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel  |      5.32       |      47.24      |     157.15      |      4.68       |
 |   SE9-16    |     wenet.soc     |               wenet_encoder_non_streaming_fp32.bmodel                |      35.97      |      45.74      |      none       |      0.62       |
 |   SE9-16    |     wenet.soc     | wenet_encoder_non_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel  |      36.77      |      45.74      |     156.65      |      0.75       |
 |   SE9-16    |     wenet.py      |               wenet_encoder_non_streaming_fp16.bmodel                |      4.47       |      11.12      |      none       |      2.17       |
-|   SE9-16    |     wenet.py      | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      4.38       |      11.03      |      39.48      |      4.63       |
+|   SE9-16    |     wenet.py      | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      4.32       |      10.84      |      30.97      |      5.11       |
 |   SE9-16    |     wenet.soc     |               wenet_encoder_non_streaming_fp16.bmodel                |      35.88      |      9.53       |      none       |      0.49       |
-|   SE9-16    |     wenet.soc     | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      36.65      |      9.53       |      39.01      |      0.61       |
+|   SE9-16    |     wenet.soc     | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      36.78      |      9.58       |      30.70      |      0.66       |
+|   SE9-16    |     wenet.py      |               wenet_encoder_non_streaming_int8.bmodel                |      4.33       |      5.39       |      none       |      2.40       |
+|   SE9-16    |     wenet.py      | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel  |      4.31       |      5.28       |      23.90      |      5.04       |
+|   SE9-16    |     wenet.soc     |               wenet_encoder_non_streaming_int8.bmodel                |      35.90      |      4.03       |      none       |      0.50       |
+|   SE9-16    |     wenet.soc     | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel  |      36.74      |      4.03       |      23.67      |      0.63       |
 |    SE9-8    |     wenet.py      |                 wenet_encoder_streaming_fp32.bmodel                  |      5.81       |      42.55      |      none       |      11.77      |
 |    SE9-8    |     wenet.py      |   wenet_encoder_streaming_fp32.bmodel + wenet_decoder_fp32.bmodel    |      5.46       |      42.47      |     157.13      |      14.16      |
 |    SE9-8    |     wenet.soc     |                 wenet_encoder_streaming_fp32.bmodel                  |      35.94      |      32.17      |      none       |      1.72       |
@@ -319,24 +383,24 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 |    SE9-8    |     wenet.soc     |               wenet_encoder_non_streaming_fp16.bmodel                |      35.91      |      9.48       |      none       |      0.49       |
 |    SE9-8    |     wenet.soc     | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      36.67      |      9.49       |      38.42      |      0.63       |
 
-> **测试说明**：  
+> **测试说明**：
 > 1. 时间单位均为毫秒(ms)，统计的时间均为1秒音频处理的时间(本例程用到的测试音频总时长442.955s)；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 
-## 8. FAQ  
-1. ImportError: xxxx/libstdc++.so.6: version `GLIBCXX_3.4.30' not found: 常出现在pcie模式下，原因是编译好的ctc decoder与本机的环境不适配。  
+## 8. FAQ
+1. ImportError: xxxx/libstdc++.so.6: version `GLIBCXX_3.4.30' not found: 常出现在pcie模式下，原因是编译好的ctc decoder与本机的环境不适配。
 解决方法：在要运行的主机上重新编译一份ctc decoder。
 ```bash
-git clone https://github.com/Slyne/ctc_decoder.git  
+git clone https://github.com/Slyne/ctc_decoder.git
 sudo apt-get update
 sudo apt-get install swig
-sudo apt-get install python3-dev 
+sudo apt-get install python3-dev
 cd ctc_decoder/swig
 sudo ./setup.sh
-```  
-2. bm_fft暂不支持1684x/1688，仅能在1684设备上使用。  
-3. encoder与decoder的shape暂时无法调整，仅能编译和使用固定shape的bmodel，因此目前C++和Python例程的某些参数为固定参数。  
+```
+2. bm_fft暂不支持1684x/1688，仅能在1684设备上使用。
+3. encoder与decoder的shape暂时无法调整，仅能编译和使用固定shape的bmodel，因此目前C++和Python例程的某些参数为固定参数。
 
 其他常见问题请参考[SOPHON-DEMO FAQ](../../docs/FAQ.md)。
 

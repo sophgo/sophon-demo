@@ -74,7 +74,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [YOLOv8_obb](./sample/YOLOv8_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
 | [YOLOv11_obb](./sample/YOLOv11_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
 | [YOLO26_obb](./sample/YOLO26_obb/README.md)                   | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
-| [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [Whisper](./sample/Whisper/README.md)                         | 语音识别          | Python     | FP16           | BM1684X                      |
 | [Seamless](./sample/Seamless/README.md)                       | 语音识别          | Python     | FP32/FP16      | BM1684X/BM1688               |
 | [BERT](./sample/BERT/README.md)                               | 语言模型          | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |

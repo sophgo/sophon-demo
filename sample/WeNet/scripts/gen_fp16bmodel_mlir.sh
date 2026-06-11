@@ -68,7 +68,7 @@ function gen_fp16bmodel_decoder()
         --chip $target \
         --model wenet_decoder_fp16.bmodel \
         --compare_all \
-        --quantize_table ../models/onnx/wenet_decoder_qtable \
+        --quantize_table wenet_decoder_qtable \
         --tolerance 0.99,0.99
         # --test_input wenet_decoder_input.npz \
         # --test_reference wenet_decoder_top.npz \
