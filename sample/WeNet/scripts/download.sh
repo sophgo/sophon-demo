@@ -17,7 +17,9 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/datasets/aishell_S0764.zip
     unzip aishell_S0764.zip -d ../datasets
     rm aishell_S0764.zip
-
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/WeNet/datasets/cali_npz.tar.gz
+    tar xvf cali_npz.tar.gz -C ../datasets/
+    rm cali_npz.tar.gz
     echo "datasets download!"
 else
     echo "Datasets folder exist! Remove it if you need to update."

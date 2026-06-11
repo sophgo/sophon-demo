@@ -19,9 +19,9 @@ import copy
 import logging
 import os
 import sys
-import subprocess  
-arch_output = subprocess.check_output(["arch"])  
-arch = arch_output.decode().strip()  
+import subprocess
+arch_output = subprocess.check_output(["arch"])
+arch = arch_output.decode().strip()
 sys.dont_write_bytecode = True
 sys.path.append(os.getcwd()+"/swig_decoders_"+arch)
 
@@ -53,7 +53,7 @@ def ctc_decoding(beam_log_probs, beam_log_probs_idx, encoder_out_lens, vocabular
     num_processes = min(multiprocessing.cpu_count(), batch_size)
     hyps = []
     score_hyps = []
-    
+
     if mode == 'ctc_greedy_search':
         if beam_size != 1:
             log_probs_idx = beam_log_probs_idx[:, :, 0]
@@ -87,12 +87,12 @@ def ctc_decoding(beam_log_probs, beam_log_probs_idx, encoder_out_lens, vocabular
                                                    beam_size,
                                                    num_processes,
                                                    0, -2, 0.99999)
-        if mode == 'ctc_prefix_beam_search': 
+        if mode == 'ctc_prefix_beam_search':
             for cand_hyps in score_hyps:
                 hyps.append(cand_hyps[0][1])
             hyps = map_batch(hyps, vocabulary, num_processes, False, 0)
     return hyps, score_hyps
-            
+
 def adjust_feature_length(feats, length, padding_value=0):
     # Adjust the length of the feature to a uniform length
     # feats: B*T*L tensor, where B is the batch size, T is the length of the feature, and L is the size of the feature
@@ -117,10 +117,10 @@ def calculate_total_time(data_list):
             rate = f.getframerate()
             total_time += frames / float(rate)
     return total_time
-    
+
 def get_args():
     parser = argparse.ArgumentParser(description='recognize with your model')
-    
+
     parser.add_argument('--input', default='../datasets/aishell_S0764/aishell_S0764.list', help='path of input')
     parser.add_argument('--encoder_bmodel', default='../models/BM1684/wenet_encoder_streaming_fp32.bmodel', help='path of encoder bmodel')
     parser.add_argument('--decoder_bmodel', default='', help='path of decoder bmodel')
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     context = 7
     decoding_chunk_size = 16
     num_decoding_left_chunks = 5
-    
+
     args = get_args()
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s %(message)s')
@@ -180,7 +180,7 @@ if __name__ == '__main__':
     test_conf['fbank_conf']['dither'] = 0.0
     test_conf['batch_conf']['batch_type'] = "static"
     test_conf['batch_conf']['batch_size'] = batch_size
-    
+
     start_time = time.time()
     test_dataset = Dataset(args.data_type,
                            args.input,
@@ -207,9 +207,9 @@ if __name__ == '__main__':
             char_dict[int(arr[1])] = arr[0]
             vocabulary.append(arr[0])
     eos = sos = len(char_dict) - 1
-    
+
     stride = subsampling * decoding_chunk_size
-    decoding_window = (decoding_chunk_size - 1) * subsampling + context        
+    decoding_window = (decoding_chunk_size - 1) * subsampling + context
     required_cache_size = decoding_chunk_size * num_decoding_left_chunks
 
     output_size = configs["encoder_conf"]["output_size"]
@@ -217,7 +217,7 @@ if __name__ == '__main__':
     cnn_module_kernel = configs["encoder_conf"].get("cnn_module_kernel", 1) - 1
     head = configs["encoder_conf"]["attention_heads"]
     d_k = configs["encoder_conf"]["output_size"] // head
-    
+
     encoder_inference_time = 0.0
     encoder_infenence_count = 0
     decoder_inference_time = 0.0
@@ -239,8 +239,8 @@ if __name__ == '__main__':
                 out_dict_ = encoder.infer_numpy_dict(encoder_input)
                 encoder_inference_time += time.time() - start_time
                 encoder_infenence_count += 1
-                out_dict = {  
-                    key[:-len("_f32")] if "_f32" in key else key: value for key, value in out_dict_.items()  
+                out_dict = {
+                    key[:-len("_f32")] if "_f32" in key else key: value for key, value in out_dict_.items()
                 }
 
                 encoder_out_lens = out_dict['/ReduceSum_output_0_ReduceSum'].astype(np.int32)
@@ -255,16 +255,16 @@ if __name__ == '__main__':
                 postprocess_time += time.time() - start_time
             else:
                 supplemental_batch_size = batch_size - feats.shape[0]
-                
+
                 att_cache = np.zeros((batch_size, num_layers, head, required_cache_size, d_k * 2), dtype=np.float32)
                 cnn_cache = np.zeros((batch_size, num_layers, output_size, cnn_module_kernel), dtype=np.float32)
                 cache_mask = np.zeros((batch_size, 1, required_cache_size), dtype=np.float32)
                 offset = np.zeros((batch_size, 1), dtype=np.int32)
-                
+
                 encoder_out = []
                 beam_log_probs = []
                 beam_log_probs_idx = []
-                
+
                 num_frames = feats.shape[1]
                 result = ""
                 preprocess_time += time.time() - start_enumerate
@@ -277,22 +277,25 @@ if __name__ == '__main__':
                         chunk_xs = chunk_xs.astype(np.float32)
                     chunk_lens = np.full(batch_size, fill_value=chunk_xs.shape[1], dtype=np.int32)
 
-                    encoder_input = {"chunk_lens": chunk_lens, "att_cache": att_cache, "cnn_cache": cnn_cache, 
+                    encoder_input = {"chunk_lens": chunk_lens, "att_cache": att_cache, "cnn_cache": cnn_cache,
                                     "chunk_xs": chunk_xs, "cache_mask": cache_mask, "offset": offset}
                     preprocess_time += time.time() - start_time
-                    
+
                     start_time = time.time()
                     out_dict_ = encoder.infer_numpy_dict(encoder_input)
                     encoder_inference_time += time.time() - start_time
                     encoder_infenence_count += 1
-                    out_dict = {  
-                        key[:-len("_f32")] if "_f32" in key else key: value for key, value in out_dict_.items()  
+                    out_dict = {
+                        key[:-len("_f32")] if "_f32" in key else key: value for key, value in out_dict_.items()
                     }
-                    
+
                     chunk_log_probs = out_dict["log_probs_TopK"]
                     chunk_log_probs_idx = out_dict["log_probs_idx_TopK"].astype(np.int32)
                     chunk_out = out_dict["chunk_out_LayerNormalization"]
-                    chunk_out_lens = out_dict['/Div_output_0_Div_floor'].astype(np.int32)
+                    try:
+                        chunk_out_lens = out_dict['/Div_output_0_Div_floor'].astype(np.int32)
+                    except KeyError:
+                        chunk_out_lens = out_dict['/Div_output_0_Div'].astype(np.int32)
                     offset = out_dict['r_offset_Unsqueeze'].astype(np.int32)
                     att_cache = out_dict['r_att_cache_Concat']
                     cnn_cache = out_dict['r_cnn_cache_Concat']
@@ -301,14 +304,14 @@ if __name__ == '__main__':
                     encoder_out.append(chunk_out)
                     beam_log_probs.append(chunk_log_probs)
                     beam_log_probs_idx.append(chunk_log_probs_idx)
-                    
+
                     # ctc decode
                     start_time = time.time()
                     chunk_hyps, _ = ctc_decoding(chunk_log_probs, chunk_log_probs_idx, chunk_out_lens, vocabulary)
                     postprocess_time += time.time() - start_time
                     # print(chunk_hyps)
                     result += chunk_hyps[0]
-            
+
                 encoder_out = np.concatenate(encoder_out, axis=1)
                 encoder_out_lens = np.full(batch_size, fill_value=encoder_out.shape[1], dtype=np.int32)
                 beam_log_probs = np.concatenate(beam_log_probs, axis=1)
@@ -359,11 +362,11 @@ if __name__ == '__main__':
                 out_dict_ = decoder.infer_numpy(decoder_input)
                 decoder_inference_time += time.time() - start_time
 
-                out_dict = {  
-                    key[:-len("_f32")] if "_f32" in key else key: value for key, value in out_dict_.items()  
+                out_dict = {
+                    key[:-len("_f32")] if "_f32" in key else key: value for key, value in out_dict_.items()
                 }
-                
-                start_time = time.time()  
+
+                start_time = time.time()
                 best_index = out_dict["best_index_ArgMax"].astype(np.int32)
                 best_sents = []
                 k = 0
@@ -373,7 +376,7 @@ if __name__ == '__main__':
                     k += beam_size
                 hyps = map_batch(best_sents, vocabulary, num_processes)
                 postprocess_time += time.time() - start_time
-            
+
             for i, key in enumerate(keys):
                 content = None
                 if args.mode == 'attention_rescoring':
@@ -383,8 +386,8 @@ if __name__ == '__main__':
                 logging.info('{} {}'.format(key, content))
                 fout.write('{} {}\n'.format(key, content))
             start_enumerate = time.time()
-                
-    
+
+
     total_data_time = calculate_total_time(args.input)
     logging.info("------------------ Predict Time Info ----------------------")
     logging.info("preprocess_time(ms): {:.4f}".format((preprocess_time / total_data_time) * 1000))
