@@ -13,7 +13,7 @@ SegFormer是一种用于语义分割的简单、高效和强大的方法。SegFo
 
 ## 2. 特性
 * 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1688/BM1684X/CV186X)模型编译和推理
+* 支持FP32、FP16、INT8(BM1688/BM1684X/CV186X)模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持图片和视频测试
@@ -40,15 +40,19 @@ chmod -R +x scripts/
 │   └── segformer.b0.512x1024.city.160k_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684的FP32 BModel， batch_size=1
 ├── BM1684X
 │   ├── segformer.b0.512x1024.city.160k_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
-│   └── segformer.b0.512x1024.city.160k_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── segformer.b0.512x1024.city.160k_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   └── segformer.b0.512x1024.city.160k_int8_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 ├── BM1688
 │   ├── segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
 │   ├── segformer.b0.512x1024.city.160k_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=1
 │   ├── segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
-│   └── segformer.b0.512x1024.city.160k_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=1
+│   ├── segformer.b0.512x1024.city.160k_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=1
+│   ├── segformer.b0.512x1024.city.160k_int8_1b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
+│   └── segformer.b0.512x1024.city.160k_int8_1b.bmodel               # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=1
 ├── CV186X
 │   ├── segformer.b0.512x1024.city.160k_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
 │   ├── segformer.b0.512x1024.city.160k_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   └── segformer.b0.512x1024.city.160k_int8_1b.bmodel               # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
 └── onnx
     └── segformer.b0.512x1024.city.160k.onnx                         # pt导出的onnx动态模型
 ```
@@ -93,7 +97,15 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1684X/`下生成`segformer.b0.512x1024.city.160k_fp16_1b.bmodel`等文件，即转换好的FP16 BModel。
 
+- 生成INT8 BModel
 
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+
+```bash
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+```
+
+​执行上述命令会在`models/BM1684X/`下生成`segformer.b0.512x1024.city.160k_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 ## 5. 推理测试
 * [C++例程](cpp/README.md)
@@ -127,28 +139,43 @@ python3 tools/segformer_eval.py --result_json cpp/segformer_bmcv/results/segform
 | SE7-32       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.02 |    76.53 |    94.68 |
 | SE7-32       | segformer_bmcv.pcie | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.35 |    76.96 |    94.75 |
 | SE7-32       | segformer_sail.pcie | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.34 |    76.96 |    94.75 |
+| SE7-32       | segformer_opencv.py | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    68.08 |    76.67 |    94.70 |
+| SE7-32       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    67.82 |    76.36 |    94.65 |
+| SE7-32       | segformer_bmcv.pcie | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    68.08 |    76.67 |    94.70 |
+| SE7-32       | segformer_sail.pcie | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    68.08 |    76.67 |    94.70 |
 | SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.35 |    76.96 |    94.75 |
-| SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.34 |    76.95 |    94.75 |
 | SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.17 |    76.70 |    94.70 |
-| SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.17 |    76.70 |    94.70 |
 | SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.33 |    76.94 |    94.75 |
-| SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.32 |    76.93 |    94.75 |
 | SE9-16       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.33 |    76.94 |    94.75 |
+| SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.34 |    76.95 |    94.75 |
+| SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.17 |    76.70 |    94.70 |
+| SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.32 |    76.93 |    94.75 |
 | SE9-16       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.32 |    76.93 |    94.75 |
+| SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    68.06 |    76.65 |    94.70 |
+| SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    67.84 |    76.37 |    94.64 |
+| SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    68.06 |    76.65 |    94.70 |
+| SE9-16       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    68.06 |    76.65 |    94.70 |
 | SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel |    68.35 |    76.96 |    94.75 |
-| SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel |    68.34 |    76.95 |    94.75 |
 | SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel |    68.17 |    76.70 |    94.70 |
-| SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel |    68.17 |    76.70 |    94.70 |
 | SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel |    68.33 |    76.94 |    94.75 |
-| SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel |    68.32 |    76.93 |    94.75 |
 | SE9-16       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel |    68.33 |    76.94 |    94.75 |
+| SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel |    68.34 |    76.95 |    94.75 |
+| SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel |    68.17 |    76.70 |    94.70 |
+| SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel |    68.32 |    76.93 |    94.75 |
 | SE9-16       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel |    68.32 |    76.93 |    94.75 |
+| SE9-16       | segformer_opencv.py | segformer.b0.512x1024.city.160k_int8_1b_2core.bmodel |    68.06 |    76.65 |    94.70 |
+| SE9-16       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_int8_1b_2core.bmodel |    67.84 |    76.37 |    94.60 |
+| SE9-16       | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_int8_1b_2core.bmodel |    68.06 |    76.65 |    94.70 |
+| SE9-16       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_int8_1b_2core.bmodel |    68.06 |    76.65 |    94.70 |
 | SE9-8        | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.35 |    76.96 |    94.75 |
-| SE9-8        | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.34 |    76.95 |    94.75 |
 | SE9-8        | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.17 |    76.70 |    94.70 |
-| SE9-8        | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.17 |    76.70 |    94.70 |
 | SE9-8        | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |    68.33 |    76.94 |    94.75 |
+| SE9-8        | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.34 |    76.95 |    94.75 |
+| SE9-8        | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.17 |    76.70 |    94.70 |
 | SE9-8        | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.32 |    76.93 |    94.75 |
+| SE9-8       | segformer_opencv.py | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    68.06 |    76.65 |    94.70 |
+| SE9-8       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    67.84 |    76.37 |    94.64 |
+| SE9-8       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    68.06 |    76.65 |    94.70 |
 
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
@@ -167,10 +194,13 @@ bmrt_test --bmodel models/BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
 |   SE5-16    | BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel     | 365.63             |
 |   SE7-32    | BM1684X/segformer.b0.512x1024.city.160k_fp32_1b.bmodel     | 288.866            |
 |   SE7-32    | BM1684X/segformer.b0.512x1024.city.160k_fp16_1b.bmodel     | 54.229             |
+|   SE7-32    | BM1684X/segformer.b0.512x1024.city.160k_int8_1b.bmodel     | 30.166             |
 |   SE9-16    | BM1688/segformer.b0.512x1024.city.160k_fp32_1b.bmodel      | 413.63             |
 |   SE9-16    | BM1688/segformer.b0.512x1024.city.160k_fp16_1b.bmodel      | 119.02             |
+|   SE9-16    | BM1688/segformer.b0.512x1024.city.160k_int8_1b.bmodel      |  65.43             |
 |   SE9-16    | BM1688/segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel| 288.31             |
 |   SE9-16    | BM1688/segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel| 104.02             |
+|   SE9-16    | BM1688/segformer.b0.512x1024.city.160k_int8_1b_2core.bmodel|  52.66             |
 |   SE9-8    | CV186X/segformer.b0.512x1024.city.160k_fp32_1b.bmodel       | 473.95             |
 |   SE9-8    | CV186X/segformer.b0.512x1024.city.160k_fp16_1b.bmodel       | 157.45             |
 
@@ -193,28 +223,40 @@ bmrt_test --bmodel models/BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
 |    SE5-16    | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   106.44  |      7.14     |     365.86    |     259.91     |
 |    SE7-32    |segformer_opencv.py  |segformer.b0.512x1024.city.160k_fp32_1b.bmodel  |   145.98  |      21.14    |     320.01    |     166.92     |
 |    SE7-32    |segformer_opencv.py  |segformer.b0.512x1024.city.160k_fp16_1b.bmodel  |   153.89  |      21.21    |      74.10    |     167.25     |
+|    SE7-32    |segformer_opencv.py  |segformer.b0.512x1024.city.160k_int8_1b.bmodel  |    91.77  |      21.07    |      49.07    |     167.02     |
 |    SE7-32    | segformer_bmcv.py   |segformer.b0.512x1024.city.160k_fp32_1b.bmodel  |   154.53  |      5.19     |     303.69    |     123.74     |
 |    SE7-32    | segformer_bmcv.py   |segformer.b0.512x1024.city.160k_fp16_1b.bmodel  |   146.50  |      5.15     |      57.59    |     123.58     |
+|    SE7-32    | segformer_bmcv.py   |segformer.b0.512x1024.city.160k_int8_1b.bmodel  |   106.06  |      4.92     |      34.42    |     144.09     |
 |    SE7-32    |segformer_bmcv.soc   |segformer.b0.512x1024.city.160k_fp32_1b.bmodel  |   161.21  |      1.54     |     300.34    |     249.28     |
 |    SE7-32    |segformer_bmcv.soc   |segformer.b0.512x1024.city.160k_fp16_1b.bmodel  |   148.56  |      1.54     |      54.27    |     249.03     |
+|    SE7-32    |segformer_bmcv.soc   |segformer.b0.512x1024.city.160k_int8_1b.bmodel  |   123.92  |      1.54     |      30.07    |     278.38     |
 |    SE7-32    |segformer_sail.soc   |segformer.b0.512x1024.city.160k_fp32_1b.bmodel  |   154.23  |      5.95     |     300.70    |     250.16     |
 |    SE7-32    |segformer_sail.soc   |segformer.b0.512x1024.city.160k_fp16_1b.bmodel  |   152.21  |      5.96     |      54.60    |     249.54     |
+|    SE7-32    |segformer_sail.soc   |segformer.b0.512x1024.city.160k_int8_1b.bmodel  |   105.80  |      5.91     |      30.50    |     277.60     |
 |    SE9-16    |segformer_opencv.py  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   156.92  |      27.17    |     447.52    |   248.12       |
 |    SE9-16    |segformer_opencv.py  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   162.62  |      27.15    |     153.11    |   250.05       |
+|    SE9-16    |segformer_opencv.py  | segformer.b0.512x1024.city.160k_int8_1b.bmodel |   137.18  |      27.25    |      89.70    |   244.21       |
 |    SE9-16    | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   183.98  |      12.02    |     419.88    |   194.48       |
 |    SE9-16    | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   185.24  |      12.03    |     125.12    |   194.61       |
+|    SE9-16    | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |   148.27  |      11.15    |      71.13    |   194.97       |
 |    SE9-16    |segformer_bmcv.soc   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   207.84  |      4.28     |     413.60    |     344.03     |
 |    SE9-16    |segformer_bmcv.soc   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   207.85  |      4.28     |     118.95    |     348.56     |
+|    SE9-16    |segformer_bmcv.soc   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |   224.54  |      4.22     |      65.47    |     390.03     |
 |    SE9-16    |segformer_sail.soc   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   179.58  |      13.25    |     414.41    |     338.35     |
 |    SE9-16    |segformer_sail.soc   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   181.23  |      13.22    |     119.71    |     338.43     |
+|    SE9-16    |segformer_sail.soc   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |   139.23  |      12.61    |      66.01    |     393.34     |
 |    SE9-16    |segformer_opencv.py  |segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel|   160.19    |    28.94    |   322.68    |   253.40     |
 |    SE9-16    |segformer_opencv.py  |segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel|   163.17    |    27.50    |   139.36    |   252.66     |
+|    SE9-16    |segformer_opencv.py  |segformer.b0.512x1024.city.160k_int8_1b_2core.bmodel|   135.34    |    27.03    |    75.99    |   226.46     |
 |    SE9-16    | segformer_bmcv.py   |segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel|   183.64    |    12.06    |   294.23    |   195.08     |
 |    SE9-16    | segformer_bmcv.py   |segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel|   184.64    |    12.06    |   110.32    |   194.97     |
+|    SE9-16    | segformer_bmcv.py   |segformer.b0.512x1024.city.160k_int8_1b_2core.bmodel|   141.78    |    11.14    |    58.79    |   195.80     |
 |    SE9-16    |segformer_bmcv.soc   |segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel|   206.37    |    4.28     |   288.10    |   347.99     |
 |    SE9-16    |segformer_bmcv.soc   |segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel|   206.85    |    4.28     |   104.27    |   345.63     |
+|    SE9-16    |segformer_bmcv.soc   |segformer.b0.512x1024.city.160k_int8_1b_2core.bmodel|   217.50    |    4.22     |    52.74    |   392.93     |
 |    SE9-16    |segformer_sail.soc   |segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel|   184.14    |    13.25    |   288.70    |   339.33     |
 |    SE9-16    |segformer_sail.soc   |segformer.b0.512x1024.city.160k_fp16_1b_2core.bmodel|   186.15    |    13.27    |   105.01    |   338.84     |
+|    SE9-16    |segformer_sail.soc   |segformer.b0.512x1024.city.160k_int8_1b_2core.bmodel|   127.34    |    12.61    |    53.32    |   393.43     |
 |    SE9-8     |segformer_opencv.py  | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   157.53  |      29.47    |     508.93    |   223.66       |
 |    SE9-8     |segformer_opencv.py  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   164.70  |      29.17    |     190.92    |   224.96       |
 |    SE9-8     | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   185.69  |      11.82    |     481.06    |   192.43       |
