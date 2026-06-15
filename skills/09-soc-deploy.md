@@ -3,6 +3,13 @@
 ## 目标
 将 C++ 程序部署到 SoC 设备 (SE7-32 / BM1684X) 上运行和测试。
 
+## 开发前准备
+
+> **重要**: 在部署到 SoC 前，先参考 sophon-demo 中已有类似 Sample 的部署方式。
+> - 参考其 README 中关于 SoC 部署的章节
+> - 参考其 `cpp/` 目录下 SoC 交叉编译的 CMakeLists.txt 配置
+> - 算法类别与推荐参考 Sample 的对应关系，见 `model-porting-template.md` 第 11.2 节
+
 ## 执行步骤
 
 ### 9.1 连接 SoC 设备

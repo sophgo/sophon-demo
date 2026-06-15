@@ -257,12 +257,80 @@
 【填写: 已知的 ONNX 导出问题、不支持的算子、精度敏感层等】
 ```
 
-### 11.2 参考已有 Sample
+### 11.2 参考已有 Sample（重要）
 
 ```
 【填写: sophon-demo 中类似模型的 sample 路径，作为参考模板】
 如: sample/RetinaFace, sample/SCRFD, sample/ResNet
 ```
+
+> **⚠️ 重要原则：开发新 Sample 时，务必参考 sophon-demo 中已有的类似 Sample。**
+>
+> 在开始任何开发工作前，请先执行以下步骤：
+>
+> **1. 找到最相似的已有 Sample**
+> - 根据算法类别找到同类的 sample（如目标检测 → 参考 `sample/YOLOv5`，人脸识别 → 参考 `sample/ArcFace`/`sample/RetinaFace`，ASR → 参考 `sample/WeNet`/`sample/SeAcoParaformer`）
+> - 根据模型架构找到最接近的 sample（单模型 → `sample/ResNet`，编码器-解码器 → `sample/WeNet`，级联多模型 → `sample/PP-OCR`）
+> - 如果存在多个候选，选择最新、最完善的 sample 作为主要参考
+>
+> **2. 参考已有 Sample 的以下内容：**
+>
+> | 需要开发的内容 | 参考已有 Sample 的什么 |
+> |--------------|---------------------|
+> | **README.md** | 整体结构、章节划分（简介/特性/准备模型与数据/模型编译/例程测试/精度测试/性能测试/FAQ）、表格格式、测试说明措辞 |
+> | **scripts/download.sh** | 下载脚本的结构、模型/数据集下载方式、目录组织方式 |
+> | **scripts/gen_*bmodel_mlir.sh** | 模型编译脚本的参数（model_transform/model_deploy 参数）、batch/精度组合 |
+> | **scripts/auto_test.sh** | 自动化测试流程、各精度/batch 的测试循环 |
+> | **python/*.py** | 推理代码结构、预处理/后处理实现、sophon.sail API 使用方式、命令行参数 |
+> | **cpp/\*\*/\*** | C++ 工程结构（CMakeLists.txt）、bmrt API 使用方式、预处理实现 |
+> | **tools/\*\*/\*** | 精度/性能评估脚本结构和实现 |
+> | **docs/\*\*/\*** | 模型导出文档、补充说明文档的结构 |
+>
+> **3. 适配而非照搬**
+> - 保留已有 Sample 的整体结构和风格一致
+> - 根据新模型的差异（输入尺寸、预处理方式、输出格式等）修改具体逻辑
+> - 变量名、函数名、文件名等使用与新模型匹配的命名
+>
+> **4. 算法类别 → 推荐参考 Sample 速查表：**
+>
+> | 算法类别 | 推荐参考 Sample |
+> |---------|---------------|
+> | 图像分类（单模型） | `sample/ResNet`, `sample/C3D` |
+> | 目标检测 | `sample/YOLOv5`, `sample/YOLOX` |
+> | 实例分割 | `sample/yolact`, `sample/YOLO26_seg` |
+> | 语义分割 | `sample/segformer`, `sample/Unet` |
+> | 姿态估计 | `sample/HRNet_pose`, `sample/OpenPose` |
+> | 人脸检测 | `sample/RetinaFace`, `sample/SCRFD` |
+> | 人脸识别 | `sample/ArcFace` |
+> | 语音识别 (Encoder-Only) | `sample/WeNet`, `sample/SeAcoParaformer` |
+> | 语音识别 (Encoder-Decoder) | `sample/Whisper`, `sample/SeAcoParaformer` |
+> | LLM / 文本生成 | `sample/Qwen`, `sample/ChatGLM4`, `sample/Llama2` |
+> | OCR（级联模型） | `sample/PP-OCR`, `sample/LPRNet` |
+> | 多目标跟踪 | `sample/ByteTrack`, `sample/DeepSORT` |
+> | 超分辨率 | `sample/Real-ESRGAN` |
+> | 立体匹配 | `sample/LightStereo` |
+> | 视觉语言模型 (VLM) | `sample/InternVL2`, `sample/Qwen2-VL` |
+> | 图像生成 | `sample/StableDiffusionV1_5`, `sample/StableDiffusionXL` |
+>
+> **5. 文件结构规范（所有 Sample 统一）**
+> ```
+> sample/NewModel/
+> ├── README.md              # 必须，参考同类 sample 的结构
+> ├── docs/                  # 可选，模型导出指南等补充文档
+> ├── models/                # 模型存放目录（BM1684/BM1684X/BM1688/CV186X/onnx/torch）
+> ├── python/                # Python 推理代码
+> ├── cpp/                   # C++ 推理代码（如有）
+> │   └── newmodel_bmcv/     # C++ 子目录以模型名+预处理方式命名
+> ├── scripts/               # 下载/编译/自动化测试脚本
+> │   ├── download.sh        # 模型和数据集下载脚本
+> │   ├── gen_fp32bmodel_mlir.sh  # FP32 模型编译脚本
+> │   ├── gen_fp16bmodel_mlir.sh  # FP16 模型编译脚本
+> │   ├── gen_int8bmodel_mlir.sh  # INT8 模型编译脚本
+> │   └── auto_test.sh       # 自动化测试脚本
+> ├── tools/                 # 精度/性能评估工具脚本
+> ├── datasets/              # 测试数据集
+> └── results/               # 测试结果输出
+> ```
 
 ### 11.3 额外需求
 

@@ -25,6 +25,16 @@
 - `cpp/` — C++ bmrt 推理代码
 - `scripts/` — 下载/编译脚本
 
+### 1.5 查找相似已有 Sample（重要）
+在开发新 Sample 之前，必须先找到 sophon-demo 中已有最相似的 Sample 作为参考：
+- **按算法类别查找**: 进入 `sample/` 目录，根据模型类型（分类/检测/ASR/OCR/人脸等）找到同类 sample
+- **按模型架构查找**: 确认是单模型/编码器-解码器/级联多模型，找到架构最接近的 sample
+- **阅读参考 Sample 的 README**：了解其章节结构、表格格式、测试说明写法
+- **阅读参考 Sample 的 scripts**：了解 download.sh、gen_*bmodel_mlir.sh、auto_test.sh 的脚本结构和参数模式
+- **阅读参考 Sample 的 python/cpp 代码**：了解推理代码结构、前后处理实现方式
+
+> 算法类别与推荐参考 Sample 的对应关系，见 `model-porting-template.md` 第 11.2 节。
+
 ## 检查清单
 
 - [ ] 理解模型架构（子模型1/子模型2/子模型3 结构）

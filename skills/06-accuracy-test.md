@@ -3,6 +3,14 @@
 ## 目标
 对比 TPU BModel 与参考框架（PyTorch/TensorFlow/ONNX Runtime）的推理结果，根据算法类型选择对应的评价指标，验证精度无损。
 
+## 开发前准备
+
+> **重要**: 在编写精度测试代码前，先找到 sophon-demo 中已有的类似 Sample 作为参考。
+> - 参考其 `tools/` 目录下的评估脚本实现（如 `tools/eval_coco.py`, `tools/eval_aishell.py`）
+> - 参考其精度测试的流程设计和结果保存格式
+> - 参考其 `README.md` 中精度测试结果的表格结构和措辞
+> - 算法类别与推荐参考 Sample 的对应关系，见 `model-porting-template.md` 第 11.2 节
+
 ## 精度指标速查表
 
 不同算法类型使用的精度指标差异很大，请根据模型类型选择对应的指标和评估方法：
