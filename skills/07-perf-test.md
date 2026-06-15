@@ -3,6 +3,14 @@
 ## 目标
 测试 BModel 在 TPU 上的理论性能（bmrt_test）和程序端到端性能，根据算法类型和模型架构分解各阶段耗时。
 
+## 开发前准备
+
+> **重要**: 在编写性能测试代码前，先找到 sophon-demo 中已有的类似 Sample 作为参考。
+> - 参考其推理程序中的各阶段计时方式（decode/preprocess/inference/postprocess 分解）
+> - 参考其 `README.md` 中性能测试结果的表格结构（列名、单位、测试说明措辞）
+> - 参考其 `auto_test.sh` 中多次测试取平均的实现方式
+> - 算法类别与推荐参考 Sample 的对应关系，见 `model-porting-template.md` 第 11.2 节
+
 ## 性能指标速查表
 
 不同算法类型的性能指标和吞吐量计算方式不同：

@@ -3,6 +3,14 @@
 ## 目标
 搭建 SOPHON TPU 开发和运行环境。
 
+## 开发前准备
+
+> **重要**: 在配置环境前，先参考 sophon-demo 中已有类似 Sample 的 README 中关于环境配置的章节。
+> - 确认类似 Sample 的依赖列表和版本要求
+> - 参考其 CMakeLists.txt 中的 find_package 配置（C++ 项目）
+> - 参考其 `docs/` 目录下的环境安装指南（如有）
+> - 算法类别与推荐参考 Sample 的对应关系，见 `model-porting-template.md` 第 11.2 节
+
 ## x86 PCIe 平台
 
 ### 安装 libsophon

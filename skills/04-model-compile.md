@@ -3,6 +3,15 @@
 ## 目标
 使用 TPU-MLIR 将 ONNX 模型编译为 BModel，使其能在 BM1684X TPU 上运行。
 
+## 开发前准备
+
+> **重要**: 在编写模型编译脚本前，先找到 sophon-demo 中已有的类似 Sample 作为参考。
+> - 参考其 `scripts/gen_*bmodel_mlir.sh` 的脚本结构、参数设置
+> - 参考其 model_transform/model_deploy 的参数组合（精度×batch×芯片）
+> - 参考其校准数据准备方式和 run_calibration 参数
+> - 保留脚本结构一致，根据新模型的实际需求调整参数
+> - 算法类别与推荐参考 Sample 的对应关系，见 `model-porting-template.md` 第 11.2 节
+
 ## 执行步骤
 
 ### 4.1 准备 TPU-MLIR 环境

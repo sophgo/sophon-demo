@@ -3,6 +3,14 @@
 ## 目标
 将 PyTorch 模型导出为 ONNX 格式，为 TPU-MLIR 编译做准备。
 
+## 开发前准备
+
+> **重要**: 在编写模型导出代码前，先找到 sophon-demo 中已有的类似 Sample 作为参考。
+> - 参考其 `docs/` 目录下的模型导出指南（如有）
+> - 参考 `scripts/` 目录下的 ONNX 导出部分
+> - 确认类似模型的 ONNX opset 版本和动态维度配置
+> - 算法类别与推荐参考 Sample 的对应关系，见 `model-porting-template.md` 第 11.2 节
+
 ## 执行步骤
 
 ### 3.1 加载 PyTorch 模型
