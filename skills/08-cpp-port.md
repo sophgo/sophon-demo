@@ -3,6 +3,16 @@
 ## 目标
 将 Python SAIL 推理代码移植为 C++ bmrt 原生推理程序，实现更高的部署效率。
 
+## 开发前准备
+
+> **重要**: 在编写 C++ 推理代码前，先找到 sophon-demo 中已有的类似 Sample 作为参考模板。
+> - 根据算法类别查找最相似的 sample，如果该 sample 有 C++ 实现则直接参考
+> - 参考其 `cpp/` 目录的工程结构（CMakeLists.txt、文件命名、目录组织）
+> - 参考其 bmrt API 使用方式、动态 shape 处理、SoC zero-copy 实现
+> - 保留参考代码的整体结构，根据新模型的输入输出规格修改具体逻辑
+> - 建议参考代码: 图像类模型参考 `sample/YOLOv5/cpp/yolov5_bmcv`，ASR 类参考 `sample/WeNet/cpp`，人脸类参考 `sample/RetinaFace/cpp`
+> - 算法类别与推荐参考 Sample 的对应关系，见 `model-porting-template.md` 第 11.2 节
+
 ## 执行步骤
 
 ### 8.1 准备 C++ 工程结构

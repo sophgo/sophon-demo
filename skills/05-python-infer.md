@@ -3,6 +3,15 @@
 ## 目标
 使用 sophon.sail 加载 BModel 进行 Python 推理，验证模型在 TPU 上能正常输出。
 
+## 开发前准备
+
+> **重要**: 在编写 Python 推理代码前，先找到 sophon-demo 中已有的类似 Sample 作为参考模板。
+> - 根据算法类别（分类/检测/ASR/OCR/人脸等）查找最相似的 sample
+> - 参考其 `python/` 目录下的代码结构、sophon.sail API 使用方式、命令行参数设计
+> - 参考其预处理和后处理实现
+> - 保留参考代码的整体结构，根据新模型的输入输出规格修改具体逻辑
+> - 算法类别与推荐参考 Sample 的对应关系，见 `model-porting-template.md` 第 11.2 节
+
 ## 执行步骤
 
 ### 5.1 加载 BModel
