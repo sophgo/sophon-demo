@@ -386,6 +386,8 @@
 需要 Python:       【是/否】
 需要 C++:          【是/否】
 C++ 前后处理方式:   【bmcv / opencv / 自定义】
+bm1684x soc-sdk路径：【绝对路径】
+bm1688/cv186x soc-sdk路径:  【绝对路径】 
 测试数据集:         【路径或描述】
 精度指标:          【如 ACC(%) / COCO mAP / CER+WER(%) / 余弦相似度 / PSNR / D1 / MOTA】
 性能指标:          【如 FPS / RTF / tokens/s / 单帧耗时(ms)】
