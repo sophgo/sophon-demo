@@ -125,7 +125,7 @@ cmake .. -DTARGET_ARCH=pcie
 make -j4
 
 # SoC 交叉编译
-cmake .. -DTARGET_ARCH=soc -DSDK=/path/to/sophon-sdk
+cmake .. -DTARGET_ARCH=soc -DSDK=/path/to/sophon-sdk #移植模板里有soc-sdk的路径
 make -j4
 
 # 运行

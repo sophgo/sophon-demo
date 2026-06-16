@@ -1,0 +1,141 @@
+import re
+import argparse
+import os
+import sys
+import multiprocessing
+
+baseline = """
+|   测试平台    |      测试程序                 |      测试模型                                    | acc   |
+| ------------ | ---------------------------- | ------------------------------------------------ | ----- |
+|   SE7-32     | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_fp32_1b.bmodel           | 78.50 |
+|   SE7-32     | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_fp16_1b.bmodel           | 78.50 |
+|   SE7-32     | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_int8_1b.bmodel           | 77.30 |
+|   SE7-32     | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_int8_4b.bmodel           | 77.30 |
+|   SE7-32     | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_fp32_1b.bmodel           | 78.50 |
+|   SE7-32     | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_fp16_1b.bmodel           | 78.50 |
+|   SE7-32     | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_int8_1b.bmodel           | 77.30 |
+|   SE7-32     | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_int8_4b.bmodel           | 77.30 |
+|   SE7-32     | mobilenetv4_bmcv.pcie        | mobilenetv4_conv_medium_fp32_1b.bmodel           | 78.50 |
+|   SE7-32     | mobilenetv4_bmcv.pcie        | mobilenetv4_conv_medium_fp16_1b.bmodel           | 78.50 |
+|   SE7-32     | mobilenetv4_bmcv.pcie        | mobilenetv4_conv_medium_int8_1b.bmodel           | 77.30 |
+|   SE7-32     | mobilenetv4_bmcv.pcie        | mobilenetv4_conv_medium_int8_4b.bmodel           | 77.30 |
+|   SE9-16     | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_fp32_1b.bmodel           | 78.50 |
+|   SE9-16     | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_fp16_1b.bmodel           | 78.50 |
+|   SE9-16     | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_int8_1b.bmodel           | 77.30 |
+|   SE9-16     | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_int8_4b.bmodel           | 77.30 |
+|   SE9-16     | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_fp32_1b.bmodel           | 78.50 |
+|   SE9-16     | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_fp16_1b.bmodel           | 78.50 |
+|   SE9-16     | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_int8_1b.bmodel           | 77.30 |
+|   SE9-16     | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_int8_4b.bmodel           | 77.30 |
+|   SE9-16     | mobilenetv4_bmcv.soc         | mobilenetv4_conv_medium_fp32_1b.bmodel           | 78.50 |
+|   SE9-16     | mobilenetv4_bmcv.soc         | mobilenetv4_conv_medium_fp16_1b.bmodel           | 78.50 |
+|   SE9-16     | mobilenetv4_bmcv.soc         | mobilenetv4_conv_medium_int8_1b.bmodel           | 77.30 |
+|   SE9-16     | mobilenetv4_bmcv.soc         | mobilenetv4_conv_medium_int8_4b.bmodel           | 77.30 |
+|   SE9-8      | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_fp32_1b.bmodel           | 78.50 |
+|   SE9-8      | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_fp16_1b.bmodel           | 78.50 |
+|   SE9-8      | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_int8_1b.bmodel           | 77.30 |
+|   SE9-8      | mobilenetv4_bmcv.py          | mobilenetv4_conv_medium_int8_4b.bmodel           | 77.30 |
+|   SE9-8      | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_fp32_1b.bmodel           | 78.50 |
+|   SE9-8      | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_fp16_1b.bmodel           | 78.50 |
+|   SE9-8      | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_int8_1b.bmodel           | 77.30 |
+|   SE9-8      | mobilenetv4_opencv.py        | mobilenetv4_conv_medium_int8_4b.bmodel           | 77.30 |
+|   SE9-8      | mobilenetv4_bmcv.soc         | mobilenetv4_conv_medium_fp32_1b.bmodel           | 78.50 |
+|   SE9-8      | mobilenetv4_bmcv.soc         | mobilenetv4_conv_medium_fp16_1b.bmodel           | 78.50 |
+|   SE9-8      | mobilenetv4_bmcv.soc         | mobilenetv4_conv_medium_int8_1b.bmodel           | 77.30 |
+|   SE9-8      | mobilenetv4_bmcv.soc         | mobilenetv4_conv_medium_int8_4b.bmodel           | 77.30 |
+"""
+
+table_data = {
+    "platform": [],
+    "program": [],
+    "bmodel": [],
+    "acc": [],
+}
+
+for line in baseline.strip().split("\n")[2:]:
+    match = re.search(r'\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|', line)
+    if match:
+        table_data["platform"].append(match.group(1).strip())
+        table_data["program"].append(match.group(2).strip())
+        table_data["bmodel"].append(match.group(3).strip())
+        table_data["acc"].append(float(match.group(4).strip()))
+
+patterns_eval = {
+    'acc': re.compile(r'INFO:root:ACC: (\d+\.\d+)%'),
+}
+
+def extract(text, patterns):
+    results = {}
+    for key, pattern in patterns.items():
+        match = pattern.search(text)
+        if match:
+            results[key] = round(float(match.group(1)), 3)
+    return results
+
+
+def argsparser():
+    parser = argparse.ArgumentParser(prog=__file__)
+    parser.add_argument('--target', type=str, default='BM1684X', help='target chip')
+    parser.add_argument('--platform', type=str, default='soc', help='platform type')
+    parser.add_argument('--bmodel', type=str, default='mobilenetv4_conv_medium_fp32_1b.bmodel')
+    parser.add_argument('--program', type=str, default='mobilenetv4_bmcv.py')
+    parser.add_argument('--language', type=str, default='python')
+    parser.add_argument('--input', type=str, default='../log/bmcv_mobilenetv4_conv_medium_fp32_1b.bmodel_python_eval.log')
+    args = parser.parse_args()
+    return args
+
+
+if __name__ == '__main__':
+    compare_pass = True
+    cnt_file_path = os.path.abspath(__file__)
+    current_dir = os.path.dirname(cnt_file_path)
+    benchmark_path = current_dir + "/acc.txt"
+    args = argsparser()
+    if args.platform == "soc":
+        if args.target == "BM1684X":
+            platform = "SE7-32"
+        elif args.target == "BM1684":
+            platform = "SE5-16"
+        elif args.target == "BM1688":
+            platform = "SE9-16"
+            if multiprocessing.cpu_count() == 6:
+                platform = "SE9-8"
+        elif args.target == "CV186X":
+            platform = "SE9-8"
+    else:
+        platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
+    min_width = 7
+
+    if not os.path.exists(benchmark_path):
+        with open(benchmark_path, "w") as f:
+            benchmark_str = "|{:^13}|{:^29}|{:^45}|{:^{width}}|\n".format(
+                "platform", "program", "bmodel", "acc", width=min_width)
+            f.write(benchmark_str)
+
+    with open(args.input, "r") as f:
+        data = f.read()
+    extracted_data = extract(data, patterns_eval)
+    match_index = -1
+    for i in range(0, len(table_data["platform"])):
+        if platform == table_data["platform"][i] and args.program == table_data["program"][i] and args.bmodel == table_data["bmodel"][i]:
+            match_index = i
+            break
+    baseline_data = {}
+    if match_index == -1:
+        print("Unmatched case.")
+    else:
+        baseline_data["acc"] = table_data["acc"][match_index]
+    for key, statis in baseline_data.items():
+        if abs(statis - extracted_data[key]) / statis > 0.01:
+            print("{:}, diff ratio > 0.01".format(key))
+            print("Baseline is:", statis)
+            print("Now is: ", extracted_data[key])
+            compare_pass = False
+    benchmark_str = "|{:^13}|{:^29}|{:^45}|{acc:^{width}.2f}|\n".format(
+        platform, args.program, args.bmodel, **extracted_data, width=min_width)
+
+    with open(benchmark_path, "a") as f:
+        f.write(benchmark_str)
+
+    if compare_pass == False:
+        sys.exit(1)
