@@ -33,7 +33,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 |---                                                            |---               |---         | ---            |---                            |
 | [LPRNet](./sample/LPRNet/README.md)                           | 车牌识别          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ResNet](./sample/ResNet/README.md)                           | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [Recognize-Anything](./sample/Recognize-Anything/README.md)    | 图像分类          | Python     | FP32/FP16      | BM1684X                      |
+| [Recognize-Anything](./sample/Recognize-Anything/README.md)   | 图像分类          | Python     | FP32/FP16/INT8 | BM1684X                      |
 | [YOLOv8_plus_cls](./sample/YOLOv8_plus_cls/README.md)         | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [RetinaFace](./sample/RetinaFace/README.md)                   | 人脸检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
 | [SCRFD](./sample/SCRFD/README.md)                             | 人脸检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
@@ -71,8 +71,8 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [YOLO_world](./sample/YOLO_world/README.md)                   | 目标检测          | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [D-FINE](./sample/D-FINE/README.md)                           | 目标检测          | Python     | FP16           | BM1684X/BM1688/CV186X        |
-| [YOLOv8_obb](./sample/YOLOv8_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
-| [YOLOv11_obb](./sample/YOLOv11_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
+| [YOLOv8_obb](./sample/YOLOv8_obb/README.md)                | 旋转框目标检测     | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X       |
+| [YOLOv11_obb](./sample/YOLOv11_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X       |
 | [YOLO26_obb](./sample/YOLO26_obb/README.md)                   | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X       |
 | [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [Whisper](./sample/Whisper/README.md)                         | 语音识别          | Python     | FP16           | BM1684X                      |

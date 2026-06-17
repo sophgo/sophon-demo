@@ -33,11 +33,11 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 |---                                                            |---                                 |---         | ---            | ---                          |
 | [LPRNet](./sample/LPRNet/README.md)                           | License Plate Recognition          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ResNet](./sample/ResNet/README.md)                           | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [Recognize-Anything](./sample/Recognize-Anything/README.md)    | Image classification               | Python     | FP32/FP16      | BM1684X                      |
+| [Recognize-Anything](./sample/Recognize-Anything/README.md)   | Image classification               | Python     | FP32/FP16/INT8 | BM1684X                      |
 | [YOLOv8_plus_cls](./sample/YOLOv8_plus_cls/README.md)              | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [RetinaFace](./sample/RetinaFace/README.md)                   | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
 | [SCRFD](./sample/SCRFD/README.md)                             | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [segformer](./sample/segformer/README.md)                     | Semantic Segmentation              | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [segformer](./sample/segformer/README.md)                     | Semantic Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [SAM](./sample/SAM/README.md)                                 | Semantic Segmentation              | Python     | FP32/FP16      | BM1684X                      |
 | [SAM2](./sample/SAM2/README.md)                               | Semantic Segmentation              | Python     | FP32/FP16      | BM1688                       |
 | [yolact](./sample/yolact/README.md)                           | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
@@ -71,10 +71,10 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [ppYoloe](./sample/ppYoloe/README.md)                         | Object Detection                   | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [YOLO-world](./sample/YOLO_world/README.md)                   | Object Detection                   | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [D-FINE](./sample/D-FINE/README.md)                           | Object Detection                   | Python     | FP16           | BM1684X/BM1688/CV186X        |
-| [YOLOv8_obb](./sample/YOLOv8_obb/README.md)              | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
-| [YOLOv11_obb](./sample/YOLOv11_obb/README.md)             | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [YOLOv8_obb](./sample/YOLOv8_obb/README.md)              | Oriented Object Detection          | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X        |
+| [YOLOv11_obb](./sample/YOLOv11_obb/README.md)            | Oriented Object Detection          | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X        |
 | [YOLO26_obb](./sample/YOLO26_obb/README.md)              | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
-| [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [Whisper](./sample/Whisper/README.md)                         | Speech Recognition                 | Python     | FP16           | BM1684X                      |
 | [Seamless](./sample/Seamless/README.md)                       | Speech Recognition                 | Python     | FP32/FP16      | BM1684X/BM1688               |
 | [BERT](./sample/BERT/README.md)                               | Language                           | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
