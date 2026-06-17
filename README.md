@@ -105,7 +105,8 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [MiniCPMV](./sample/MiniCPMV/README.md)                       | 大规模视觉语言模型 | Python     | INT4            | BM1684X                     |
 | [PaddleOCR-VL](./sample/PaddleOCR-VL/README.md)               | 大规模视觉语言模型 | C++        | BF16            | BM1684X/BM1688              |
 | [Phi4mm](./sample/Phi4mm/README.md)                           | 多模态大语言模型   | Python     | INT4           | BM1684X/BM1688               |
-| [VITA1_5](./sample/VITA1_5/README.md)                         | 多模态大语言模型   | Python     | INT4           | BM1684X                     |
+| [VITA1_5](./sample/VITA1_5/README.md)                         | 多模态大语言模型   | Python     | INT4           | BM1684X/BM1688                |
+| [Qwen3.5](./sample/Qwen3_5/README.md)                         | 多模态大语言模型 | Python     | INT4            | BM1684X/BM1688             |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | 超分辨            | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [P2PNet](./sample/P2PNet/README.md)                           | 人群计数          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [CLIP](./sample/CLIP/README.md)                               | 图文匹配          | C++/Python | FP16           | BM1684X/BM1688/CV186X        |
