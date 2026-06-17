@@ -104,8 +104,9 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [LFM2-VL](./sample/LFM2-VL/README.md)                         | Large Vision Language Model        | C++        | W4BF16         | BM1684X/BM1688              |
 | [MiniCPMV](./sample/MiniCPMV/README.md)                       | Large Vision Language Model        | Python     | INT4            | BM1684X                     |
 | [PaddleOCR-VL](./sample/PaddleOCR-VL/README.md)               | Large Vision Language Model        | C++        | BF16            | BM1684X/BM1688              |
-| [Phi4mm](./sample/Phi4mm/README.md)                           | Multimodal Large Language Model    | Python     | INT4           | BM1684X                     |
-| [VITA1_5](./sample/VITA1_5/README.md)                         | Multimodal Large Language Model    | Python     | INT4           | BM1684X                     |
+| [Phi4mm](./sample/Phi4mm/README.md)                           | Multimodal Large Language Model    | Python     | INT4           | BM1684X/BM1688              |
+| [VITA1_5](./sample/VITA1_5/README.md)                         | Multimodal Large Language Model    | Python     | INT4           | BM1684X/BM1688              |
+| [Qwen3.5](./sample/Qwen3_5/README.md)                         | Multimodal Large Language Model    | Python     | INT4            | BM1684X/BM1688             |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | C++/Python | FP16           | BM1684X/BM1688/CV186X        |
