@@ -45,25 +45,55 @@ function gen_mlir_image_encoder()
         --mlir sam2_encoder.mlir
 }
 
+function gen_cali_table_encoder()
+{
+    run_calibration.py sam2_encoder.mlir \
+        --dataset ../datasets/cali_npz_encoder/ \
+        --input_num 128 \
+        --cali_method use_mse \
+        -o sam2_encoder_cali_table
+}
+
 function gen_bmodel_image_encoder()
 {
-    model_deploy.py \
-        --mlir sam2_encoder.mlir \
-        $quantize_args \
-        --chip $target \
-        --model sam2_encoder_${mode}_${1}b.bmodel
+    if [ x$mode == x"int8" ]; then
+        model_deploy.py \
+            --mlir sam2_encoder.mlir \
+            $quantize_args \
+            --chip $target \
+            --calibration_table sam2_encoder_cali_table \
+            --quantize_table sam2_encoder_qtable \
+            --model sam2_encoder_${mode}_${1}b.bmodel
+    else
+        model_deploy.py \
+            --mlir sam2_encoder.mlir \
+            $quantize_args \
+            --chip $target \
+            --model sam2_encoder_${mode}_${1}b.bmodel
+    fi
 
     mv sam2_encoder_${mode}_${1}b.bmodel $outdir/image_encoder/
 }
 
 function gen_bmodel_image_encoder_1688()
 {
-    model_deploy.py \
-        --mlir sam2_encoder.mlir \
-        $quantize_args \
-        --chip $target \
-        --num_core $2 \
-        --model sam2_encoder_${mode}_${1}b_${2}core.bmodel
+    if [ x$mode == x"int8" ]; then
+        model_deploy.py \
+            --mlir sam2_encoder.mlir \
+            $quantize_args \
+            --chip $target \
+            --calibration_table sam2_encoder_cali_table \
+            --quantize_table sam2_encoder_qtable \
+            --num_core $2 \
+            --model sam2_encoder_${mode}_${1}b_${2}core.bmodel
+    else
+        model_deploy.py \
+            --mlir sam2_encoder.mlir \
+            $quantize_args \
+            --chip $target \
+            --num_core $2 \
+            --model sam2_encoder_${mode}_${1}b_${2}core.bmodel
+    fi
 
     mv sam2_encoder_${mode}_${1}b_${2}core.bmodel $outdir/image_encoder/
 }
@@ -77,25 +107,56 @@ function gen_mlir_image_decoder()
         --mlir sam2_decoder.mlir
 }
 
+function gen_cali_table_decoder()
+{
+    run_calibration.py sam2_decoder.mlir \
+        --dataset ../datasets/cali_npz_decoder/ \
+        --input_num 128 \
+        --cali_method use_mse \
+        -o sam2_decoder_cali_table
+}
+
 function gen_bmodel_image_decoder()
 {
-    model_deploy.py \
-        --mlir sam2_decoder.mlir \
-        $quantize_args \
-        --chip $target \
-        --model sam2_decoder_${mode}_${1}b.bmodel
+    if [ x$mode == x"int8" ]; then
+        model_deploy.py \
+            --mlir sam2_decoder.mlir \
+            $quantize_args \
+            --chip $target \
+            --calibration_table sam2_decoder_cali_table \
+            --quantize_table sam2_decoder_qtable \
+            --model sam2_decoder_${mode}_${1}b.bmodel
+    else
+        model_deploy.py \
+            --mlir sam2_decoder.mlir \
+            $quantize_args \
+            --chip $target \
+            --model sam2_decoder_${mode}_${1}b.bmodel
+    fi
 
     mv sam2_decoder_${mode}_${1}b.bmodel $outdir/image_decoder/
 }
 
 function gen_bmodel_image_decoder_1688()
 {
-    model_deploy.py \
-        --mlir sam2_decoder.mlir \
-        $quantize_args \
-        --chip $target \
-        --num_core $2 \
-        --model sam2_decoder_${mode}_${1}b_${2}core.bmodel
+    if [ x$mode == x"int8" ]; then
+        model_deploy.py \
+            --mlir sam2_decoder.mlir \
+            $quantize_args \
+            --chip $target \
+            --calibration_table sam2_decoder_cali_table \
+            --quantize_table sam2_decoder_qtable \
+            --opt $2 \
+            --num_core $2 \
+            --model sam2_decoder_${mode}_${1}b_${2}core.bmodel
+    else
+        model_deploy.py \
+            --mlir sam2_decoder.mlir \
+            $quantize_args \
+            --chip $target \
+            --num_core $2 \
+            --model sam2_decoder_${mode}_${1}b_${2}core.bmodel
+    fi
 
     mv sam2_decoder_${mode}_${1}b_${2}core.bmodel $outdir/image_decoder/
 }
@@ -117,14 +178,26 @@ fi
 
 if [ x$target == x"bm1684x" ]; then
     gen_mlir_image_encoder $batch_size
+    if [ x$mode == x"int8" ]; then
+        gen_cali_table_encoder
+    fi
     gen_bmodel_image_encoder $batch_size
     gen_mlir_image_decoder $batch_size
+    if [ x$mode == x"int8" ]; then
+        gen_cali_table_decoder
+    fi
     gen_bmodel_image_decoder $batch_size
 elif [ x$target == x"bm1688" ]; then
     gen_mlir_image_encoder $batch_size
+    if [ x$mode == x"int8" ]; then
+        gen_cali_table_encoder
+    fi
     gen_bmodel_image_encoder_1688 $batch_size 1
     gen_bmodel_image_encoder_1688 $batch_size 2
     gen_mlir_image_decoder $batch_size
+    if [ x$mode == x"int8" ]; then
+        gen_cali_table_decoder
+    fi
     gen_bmodel_image_decoder_1688 $batch_size 1
     gen_bmodel_image_decoder_1688 $batch_size 2
 else

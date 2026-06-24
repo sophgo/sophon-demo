@@ -16,6 +16,12 @@ then
     unzip datasets.zip -d ../datasets
     rm datasets.zip
 
+    pushd ../datasets
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/cali_npz.tar.gz
+    tar xvf cali_npz.tar.gz
+    rm cali_npz.tar.gz
+    popd
+
     echo "datasets download!"
 else
     echo "Datasets folder exist! Remove it if you need to update."
@@ -26,13 +32,15 @@ if [ ! -d "../models" ];
 then
     mkdir ../models
 
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/BM1684X.zip
-    unzip BM1684X.zip -d ../models
-    rm BM1684X.zip
+    pushd ../models
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/BM1684X.tar.gz
+    tar xvf BM1684X.tar.gz
+    rm BM1684X.tar.gz
 
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/BM1688.zip
-    unzip BM1688.zip -d ../models
-    rm BM1688.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/BM1688.tar.gz
+    tar xvf BM1688.tar.gz
+    rm BM1688.tar.gz
+    popd
 
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/onnx.zip
     unzip onnx.zip -d ../models
