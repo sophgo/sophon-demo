@@ -85,9 +85,11 @@ chmod -R +x scripts/
 ./models
 ├── BM1684X
 │   ├── image_decoder
+│   │   ├── sam2_decoder_int8_1b.bmodel                    # decoder部分int8 bmodel
 │   │   ├── sam2_decoder_f16_1b.bmodel                     # decoder部分fp16 bmodel
 │   │   └── sam2_decoder_f32_1b.bmodel                     # decoder部分fp32 bmodel
 │   ├── image_encoder
+│   │   ├── sam2_encoder_int8_1b.bmodel                    # encoder部分int8 bmodel
 │   │   ├── sam2_encoder_f16_1b.bmodel                     # encoder部分fp16 bmodel
 │   │   └── sam2_encoder_f32_1b.bmodel                     # encoder部分fp32 bmodel
 │   └── video
@@ -99,11 +101,15 @@ chmod -R +x scripts/
 |       └── maskmem_pos_enc.npz                            # memory encoder中的position encoding参数
 ├── BM1688
 |   ├── image_decoder
+|   |   ├── sam2_decoder_int8_1b_1core.bmodel              # decoder部分int8 1core bmodel
+|   |   ├── sam2_decoder_int8_1b_2core.bmodel              # decoder部分int8 2core bmodel
 |   |   ├── sam2_decoder_f16_1b_1core.bmodel               # decoder部分fp16 1core bmodel
 |   |   ├── sam2_decoder_f16_1b_2core.bmodel               # decoder部分fp16 2core bmodel
 |   |   ├── sam2_decoder_f32_1b_1core.bmodel               # decoder部分fp32 1core bmodel
 |   |   └── sam2_decoder_f32_1b_2core.bmodel               # decoder部分fp32 2core bmodel
 |   ├── image_encoder
+│   │   |── sam2_encoder_int8_1b_1core.bmodel              # encoder部分int8 1core bmodel
+│   │   |── sam2_encoder_int8_1b_2core.bmodel              # encoder部分int8 2core bmodel
 │   │   |── sam2_encoder_f16_1b_1core.bmodel               # encoder部分fp16 1core bmodel
 │   │   ├── sam2_encoder_f16_1b_2core.bmodel               # encoder部分fp16 2core bmodel
 │   │   ├── sam2_encoder_f32_1b_1core.bmodel               # encoder部分fp32 1core bmodel
@@ -131,6 +137,9 @@ chmod -R +x scripts/
 下载的数据包括：
 ```
 ./datasets
+├── cali_npz_encoder                                   # image encoder 校准数据
+├── cali_npz_decoder                                   # image decoder 校准数据
+├── video                                              # 测试视频图像帧
 ├── video                                              # 测试视频图像帧
 └── image
     ├── val2017                                        # 测试集图像
@@ -149,7 +158,7 @@ chmod -R +x scripts/
 #### 3.2.1 图像分割模型编译
 - 生成FP32/FP16 BModel
 
-​本例程在`scripts`目录下提供了使用TPU-MLIR编译FP32/FP16 BModel的脚本，请注意修改`gen_bmodel_image.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台和量化方式，如：
+​本例程在`scripts`目录下提供了使用TPU-MLIR编译FP32/FP16/INT8 BModel的脚本，请注意修改`gen_bmodel_image.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台和量化方式，如：
 
 ```bash
 ./scripts/gen_bmodel_image.sh --chip bm1688 --mode f32
@@ -184,10 +193,13 @@ python3 tools/eval.py --gt_path datasets/images/instances_val2017.json --res_pat
 |  ----------- |------------------- |--------------------------------- |-------------------------------- |-------- |
 | SE7-32       | sam2_image_opencv.py     | sam2_encoder_f32_1b.bmodel       | sam2_decoder_f32_1b.bmodel      |    0.44|
 | SE7-32       | sam2_image_opencv.py     | sam2_encoder_f16_1b.bmodel       | sam2_decoder_f16_1b.bmodel      |    0.44|
+| SE7-32       | sam2_image_opencv.py     | sam2_encoder_int8_1b.bmodel      | sam2_decoder_int8_1b.bmodel     |    0.44|
 | SE9-16       | sam2_image_opencv.py     | sam2_encoder_f32_1b_1core.bmodel | sam2_decoder_f32_1b_1core.bmodel|    0.44|
 | SE9-16       | sam2_image_opencv.py     | sam2_encoder_f32_1b_2core.bmodel | sam2_decoder_f32_1b_2core.bmodel|    0.44|
 | SE9-16       | sam2_image_opencv.py     | sam2_encoder_f16_1b_1core.bmodel | sam2_decoder_f16_1b_1core.bmodel|    0.44|
 | SE9-16       | sam2_image_opencv.py     | sam2_encoder_f16_1b_2core.bmodel | sam2_decoder_f16_1b_2core.bmodel|    0.44|
+| SE9-16       | sam2_image_opencv.py     | sam2_encoder_int8_1b_1core.bmodel| sam2_decoder_int8_1b_1core.bmodel|    0.44|
+| SE9-16       | sam2_image_opencv.py     | sam2_encoder_int8_1b_2core.bmodel| sam2_decoder_int8_1b_2core.bmodel|    0.44|
 | SRM1-20      | sam2_image_opencv.py     | sam2_encoder_f32_1b.bmodel       | sam2_decoder_f32_1b.bmodel      |    0.44|
 | SRM1-20      | sam2_image_opencv.py     | sam2_encoder_f16_1b.bmodel       | sam2_decoder_f16_1b.bmodel      |    0.44|
 
@@ -205,18 +217,24 @@ bmrt_test --bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel
 
 |    测试平台   | 测试模型                                                   | calculate time(ms) |
 | -----------   | -----------------------------------------------------------|  ----------------- |
+|   SE7-32      | BM1684X/image_encoder/sam2_encoder_int8_1b.bmodel          |          69.10     |
 |   SE7-32      | BM1684X/image_encoder/sam2_encoder_f16_1b.bmodel           |         100.25     |
 |   SE7-32      | BM1684X/image_encoder/sam2_encoder_f32_1b.bmodel           |         793.43     |
+|   SE7-32      | BM1684X/image_decoder/sam2_decoder_int8_1b.bmodel          |           3.22     |
 |   SE7-32      | BM1684X/image_decoder/sam2_decoder_f16_1b.bmodel           |           4.28     |
 |   SE7-32      | BM1684X/image_decoder/sam2_decoder_f32_1b.bmodel           |          25.37     |
 |   SE7-32      | BM1684X/video/sam2_image_encoder_no_pos.bmodel             |          99.77     |
 |   SE7-32      | BM1684X/video/sam2_image_decoder.bmodel                    |           6.00     |
 |   SE7-32      | BM1684X/video/sam2_memory_attention_nomatmul.bmodel        |         761.08     |
 |   SE7-32      | BM1684X/video/sam2_memory_encoder.bmodel                   |           8.74     |
+|   SE9-16      | BM1688/image_encoder/sam2_encoder_int8_1b_1core.bmodel     |         186.33     |
+|   SE9-16      | BM1688/image_encoder/sam2_encoder_int8_1b_2core.bmodel     |         131.86     |
 |   SE9-16      | BM1688/image_encoder/sam2_encoder_f16_1b_1core.bmodel      |         373.71     |
 |   SE9-16      | BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel      |         225.64     |
 |   SE9-16      | BM1688/image_encoder/sam2_encoder_f32_1b_1core.bmodel      |        2248.32     |
 |   SE9-16      | BM1688/image_encoder/sam2_encoder_f32_1b_2core.bmodel      |        1319.28     |
+|   SE9-16      | BM1688/image_decoder/sam2_decoder_int8_1b_1core.bmodel     |           6.99     |
+|   SE9-16      | BM1688/image_decoder/sam2_decoder_int8_1b_2core.bmodel     |           5.11     |
 |   SE9-16      | BM1688/image_decoder/sam2_decoder_f16_1b_1core.bmodel      |          11.72     |
 |   SE9-16      | BM1688/image_decoder/sam2_decoder_f16_1b_2core.bmodel      |           8.73     |
 |   SE9-16      | BM1688/image_decoder/sam2_decoder_f32_1b_1core.bmodel      |          47.90     |
@@ -239,10 +257,13 @@ bmrt_test --bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel
 |----------|----------|----------|----------|----------|----------|----------|----------|
 |   SE7-32    |  sam2_image_opencv.py   |    sam2_encoder_f32_1b.bmodel     |    sam2_decoder_f32_1b.bmodel     |      74.79      |     847.89      |      40.83      |      1.61       |
 |   SE7-32    |  sam2_image_opencv.py   |    sam2_encoder_f16_1b.bmodel     |    sam2_decoder_f16_1b.bmodel     |      69.86      |     149.04      |      20.79      |      1.54       |
+|   SE7-32    |  sam2_image_opencv.py   |    sam2_encoder_int8_1b.bmodel    |    sam2_decoder_int8_1b.bmodel    |      68.27      |     115.02      |      14.62      |      1.18       |
 |   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f32_1b_1core.bmodel  | sam2_decoder_f32_1b_1core.bmodel  |      95.91      |     2394.54     |      74.43      |      1.07       |
 |   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f32_1b_2core.bmodel  | sam2_decoder_f32_1b_2core.bmodel  |      99.32      |     1472.30     |      58.43      |      1.14       |
 |   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f16_1b_1core.bmodel  | sam2_decoder_f16_1b_1core.bmodel  |      96.10      |     457.77      |      37.05      |      2.77       |
 |   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_f16_1b_2core.bmodel  | sam2_decoder_f16_1b_2core.bmodel  |     100.79      |     311.52      |      34.60      |      1.11       |
+|   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_int8_1b_1core.bmodel  | sam2_decoder_int8_1b_1core.bmodel  |     88.03     |     242.67      |      21.45      |      1.38       |
+|   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_int8_1b_2core.bmodel  | sam2_decoder_int8_1b_2core.bmodel  |     88.34     |     188.08      |      19.73      |      1.35       |
 |   SRM1-20   |  sam2_image_opencv.py   |    sam2_encoder_f32_1b.bmodel     |    sam2_decoder_f32_1b.bmodel     |      240.09     |     1299.50     |      116.50     |      5.19       |
 |   SRM1-20   |  sam2_image_opencv.py   |    sam2_encoder_f16_1b.bmodel     |    sam2_decoder_f16_1b.bmodel     |      251.30     |     473.61      |      91.98      |      4.19       |
 
