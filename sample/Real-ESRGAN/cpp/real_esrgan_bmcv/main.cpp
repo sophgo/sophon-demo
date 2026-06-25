@@ -143,7 +143,7 @@ int main(int argc, char *argv[]){
         std::cout << "resolution of input stream: " << h << ", " << w << std::endl;
         cv::VideoWriter writer;
         std::string output_path = "results/output.mp4";
-        auto output_fourcc = cv::VideoWriter::fourcc('M', 'J', 'P', 'G'); //use "H","2","6","4" for h264, "H","V","C","1" for h265.
+        auto output_fourcc = cv::VideoWriter::fourcc('H', '2', '6', '4'); //use "H","2","6","4" for h264, "H","V","C","1" for h265.
         bool end_flag = false;
         vector<cv::Mat> batch_mats;
         vector<bm_image> batch_imgs;

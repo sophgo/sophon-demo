@@ -55,14 +55,18 @@ chmod -R +x scripts/
 ./models
 ├── BM1684X # 在BM1684X上运行的模型
 │   ├── yolo26s_fp32_1b.bmodel
-│   └── yolo26s_fp16_1b.bmodel 
+│   ├── yolo26s_fp16_1b.bmodel 
+│   └── yolo26s_int8_1b.bmodel 
 ├── BM1688 # 在BM1688上运行的模型
 │   ├── yolo26s_fp32_1b.bmodel
 │   ├── yolo26s_fp16_1b.bmodel
-│   └── yolo26s_fp16_1b_2core.bmodel
+│   ├── yolo26s_fp16_1b_2core.bmodel
+│   ├── yolo26s_int8_1b.bmodel
+│   └── yolo26s_int8_1b_2core.bmodel
 ├── CV186X # 在CV186X上运行的模型
 │   ├── yolo26s_fp32_1b.bmodel
-│   └── yolo26s_fp16_1b.bmodel
+│   ├── yolo26s_fp16_1b.bmodel
+│   └── yolo26s_int8_1b.bmodel
 └── onnx
     ├── yolo26s-obb.onnx         # 导出的onnx模型
     └── yolo26s_qtable_f16       # 编译F16 BModel需要混合精度的层
@@ -104,8 +108,15 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1684X/`文件夹下生成转换好的FP16 BModel。
 
-注：这里用到了混合精度编译，需要将一些层设为敏感层，相应的qtable在此前`download.sh`下载的`models/onnx`文件夹里。如果您需要编译自己微调过的模型，可以参考[量化指南](../YOLO26/docs/YOLO26_Calibration_Guide.md#13-生成qtable)中的方法，直接使用`run_calibration.py`生成的shape_pattern_qtable作为qtable。
+- 生成INT8 BModel
 
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+
+```bash
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+```
+
+​执行上述命令会在`models/BM1684X/`文件夹下生成转换好的INT8 BModel。
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
@@ -168,25 +179,37 @@ classaps:  [55.59535284 61.21494625 60.74666923 75.77703974 90.78787879 53.55143
 | -------- | ----------------- | ----------------------- | --------------- |
 |   SE7-32    | yolo26_opencv.py  |      yolo26s_fp32_1b.bmodel       | 0.610 |
 |   SE7-32    | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       | 0.610 |
+|   SE7-32    | yolo26_opencv.py  |      yolo26s_int8_1b.bmodel       | 0.600 |
 |   SE7-32    |  yolo26_bmcv.py   |      yolo26s_fp32_1b.bmodel       | 0.592 |
 |   SE7-32    |  yolo26_bmcv.py   |      yolo26s_fp16_1b.bmodel       | 0.593 |
+|   SE7-32    |  yolo26_bmcv.py   |      yolo26s_int8_1b.bmodel       | 0.584 |
 |   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_fp32_1b.bmodel       | 0.597 |
 |   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_fp16_1b.bmodel       | 0.598 |
+|   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_int8_1b.bmodel       | 0.585 |
 |   SE9-16    | yolo26_opencv.py  |      yolo26s_fp32_1b.bmodel       | 0.610 |
 |   SE9-16    | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       | 0.610 |
 |   SE9-16    | yolo26_opencv.py  |      yolo26s_fp16_1b_2core.bmodel | 0.610 |
+|   SE9-16    | yolo26_opencv.py  |      yolo26s_int8_1b.bmodel       | 0.600 |
+|   SE9-16    | yolo26_opencv.py  |      yolo26s_int8_1b_2core.bmodel | 0.600 |
 |   SE9-16    |  yolo26_bmcv.py   |      yolo26s_fp32_1b.bmodel       | 0.592 |
 |   SE9-16    |  yolo26_bmcv.py   |      yolo26s_fp16_1b.bmodel       | 0.592 |
 |   SE9-16    |  yolo26_bmcv.py   |      yolo26s_fp16_1b_2core.bmodel | 0.592 |
+|   SE9-16    |  yolo26_bmcv.py   |      yolo26s_int8_1b.bmodel       | 0.584 |
+|   SE9-16    |  yolo26_bmcv.py   |      yolo26s_int8_1b_2core.bmodel | 0.584 |
 |   SE9-16    |  yolo26_bmcv.soc  |      yolo26s_fp32_1b.bmodel       | 0.597 |
 |   SE9-16    |  yolo26_bmcv.soc  |      yolo26s_fp16_1b.bmodel       | 0.597 |
 |   SE9-16    |  yolo26_bmcv.soc  |      yolo26s_fp16_1b_2core.bmodel | 0.597 |
+|   SE9-16    |  yolo26_bmcv.soc  |      yolo26s_int8_1b.bmodel       | 0.585 |
+|   SE9-16    |  yolo26_bmcv.soc  |      yolo26s_int8_1b_2core.bmodel | 0.585 |
 |   SE9-8     | yolo26_opencv.py  |      yolo26s_fp32_1b.bmodel       | 0.610 |
 |   SE9-8     | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       | 0.610 |
+|   SE9-8     | yolo26_opencv.py  |      yolo26s_int8_1b.bmodel       | 0.600 |
 |   SE9-8     |  yolo26_bmcv.py   |      yolo26s_fp32_1b.bmodel       | 0.592 |
 |   SE9-8     |  yolo26_bmcv.py   |      yolo26s_fp16_1b.bmodel       | 0.592 |
+|   SE9-8     |  yolo26_bmcv.py   |      yolo26s_int8_1b.bmodel       | 0.584 |
 |   SE9-8     |  yolo26_bmcv.soc  |      yolo26s_fp32_1b.bmodel       | 0.597 |
 |   SE9-8     |  yolo26_bmcv.soc  |      yolo26s_fp16_1b.bmodel       | 0.597 |
+|   SE9-8     |  yolo26_bmcv.soc  |      yolo26s_int8_1b.bmodel       | 0.585 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -207,9 +230,12 @@ bmrt_test --bmodel models/BM1684X/yolo26s_fp32_1b.bmodel
 | ----------- | ------------------------------- | ------------------ |
 | SE7-32          | BM1684X/yolo26s_fp32_1b.bmodel     |          69.69  |
 | SE7-32          | BM1684X/yolo26s_fp16_1b.bmodel     |          17.24  |
+| SE7-32          | BM1684X/yolo26s_int8_1b.bmodel     |          10.54  |
 | SE9-16          | BM1688/yolo26s_fp32_1b.bmodel      |         354.76  |
 | SE9-16          | BM1688/yolo26s_fp16_1b.bmodel      |          89.71  |
 | SE9-16          | BM1688/yolo26s_fp16_1b_2core.bmodel|          51.63  |
+| SE9-16          | BM1688/yolo26s_int8_1b.bmodel      |          39.23  |
+| SE9-16          | BM1688/yolo26s_int8_1b_2core.bmodel|          24.27  |
 | SE9-8           | CV186X/yolo26s_fp32_1b.bmodel      |         352.09  |
 | SE9-8           | CV186X/yolo26s_fp16_1b.bmodel      |          89.57  |
 
@@ -228,19 +254,28 @@ bmrt_test --bmodel models/BM1684X/yolo26s_fp32_1b.bmodel
 | -------- | ----------------- | ----------------------- | ----------- | --------------- | -------------- | ---------------- |
 |   SE7-32    | yolo26_opencv.py  |      yolo26s_fp32_1b.bmodel       |      95.03      |      65.83      |      77.48      |      0.71                          |
 |   SE7-32    | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       |      93.17      |      66.96      |      25.18      |      0.71                          |
+|   SE7-32    | yolo26_opencv.py  |      yolo26s_int8_1b.bmodel       |      93.39      |      65.74      |      19.06      |      0.71                          |
 |   SE7-32    |  yolo26_bmcv.py   |      yolo26s_fp32_1b.bmodel       |      21.85      |      10.95      |      69.45      |      0.69                          |
 |   SE7-32    |  yolo26_bmcv.py   |      yolo26s_fp16_1b.bmodel       |      21.91      |      10.98      |      16.97      |      0.69                          |
+|   SE7-32    |  yolo26_bmcv.py   |      yolo26s_int8_1b.bmodel       |      21.91      |      10.95      |      10.96      |      0.69                          |
 |   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_fp32_1b.bmodel       |      21.30      |      10.20      |      69.11      |      0.15                          |
 |   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_fp16_1b.bmodel       |      21.31      |      10.21      |      16.65      |      0.15                          |
+|   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_int8_1b.bmodel       |      21.30      |      10.21      |      10.66      |      0.054                         |
 |   SE9-16    | yolo26_opencv.py  |      yolo26s_fp32_1b.bmodel       |     140.91      |      85.57      |     364.98      |      0.90       |
 |   SE9-16    | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       |     139.66      |      84.53      |      99.98      |      0.90       |
 |   SE9-16    | yolo26_opencv.py  |   yolo26s_fp16_1b_2core.bmodel    |     130.23      |      84.15      |      61.99      |      0.90       |
+|   SE9-16    | yolo26_opencv.py  |      yolo26s_int8_1b.bmodel       |     139.65      |      84.53      |      50.07      |      1.05       |
+|   SE9-16    | yolo26_opencv.py  |   yolo26s_int8_1b_2core.bmodel    |     134.62      |      84.46      |      35.32      |      1.05       |
 |   SE9-16    |  yolo26_bmcv.py   |      yolo26s_fp32_1b.bmodel       |      36.88      |      30.82      |     354.51      |      0.88       |
 |   SE9-16    |  yolo26_bmcv.py   |      yolo26s_fp16_1b.bmodel       |      39.12      |      30.84      |      89.77      |      0.87       |
 |   SE9-16    |  yolo26_bmcv.py   |   yolo26s_fp16_1b_2core.bmodel    |      31.32      |      30.83      |      51.68      |      0.87       |
+|   SE9-16    |  yolo26_bmcv.py   |      yolo26s_int8_1b.bmodel       |      44.27      |      30.93      |      40.01      |      1.00       |
+|   SE9-16    |  yolo26_bmcv.py   |   yolo26s_int8_1b_2core.bmodel    |      39.30      |      30.91      |      25.05      |      0.99       |
 |   SE9-16    |  yolo26_bmcv.soc  |      yolo26s_fp32_1b.bmodel       |      31.72      |      28.39      |     353.86      |      0.22       |
 |   SE9-16    |  yolo26_bmcv.soc  |      yolo26s_fp16_1b.bmodel       |      30.38      |      28.38      |      89.33      |      0.22       |
 |   SE9-16    |  yolo26_bmcv.soc  |   yolo26s_fp16_1b_2core.bmodel    |      31.46      |      28.38      |      51.24      |      0.22       |
+|   SE9-16    |  yolo26_bmcv.soc  |      yolo26s_int8_1b.bmodel       |      35.04      |      28.35      |      39.40      |      0.079      |
+|   SE9-16    |  yolo26_bmcv.soc  |   yolo26s_int8_1b_2core.bmodel    |      30.26      |      28.35      |      24.46      |      0.079      |
 |    SE9-8    | yolo26_opencv.py  |      yolo26s_fp32_1b.bmodel       |     154.26      |      89.15      |     362.32      |      0.90       |
 |    SE9-8    | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       |     160.87      |      87.05      |      99.77      |      0.89       |
 |    SE9-8    |  yolo26_bmcv.py   |      yolo26s_fp32_1b.bmodel       |      40.90      |      30.87      |     352.19      |      0.87       |

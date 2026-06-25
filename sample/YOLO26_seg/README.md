@@ -111,8 +111,6 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1684X/`文件夹下生成转换好的FP16 BModel。
 
-注：这里用到了混合精度编译，需要将一些层设为敏感层，相应的qtable在此前`download.sh`下载的`models/onnx`文件夹里。如果您需要编译自己微调过的模型，可以参考[量化指南](./docs/YOLO26_Calibration_Guide.md#13-生成qtable)中的方法，直接使用`run_calibration.py`生成的shape_pattern_qtable作为qtable。
-
 - 生成INT8 BModel
 
 ​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1688/CV186X**），如：

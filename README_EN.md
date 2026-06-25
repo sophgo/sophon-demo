@@ -73,7 +73,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [D-FINE](./sample/D-FINE/README.md)                           | Object Detection                   | Python     | FP16           | BM1684X/BM1688/CV186X        |
 | [YOLOv8_obb](./sample/YOLOv8_obb/README.md)              | Oriented Object Detection          | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X        |
 | [YOLOv11_obb](./sample/YOLOv11_obb/README.md)            | Oriented Object Detection          | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X        |
-| [YOLO26_obb](./sample/YOLO26_obb/README.md)              | Oriented Object Detection          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [YOLO26_obb](./sample/YOLO26_obb/README.md)              | Oriented Object Detection          | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X        |
 | [WeNet](./sample/WeNet/README.md)                             | Speech Recognition                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [Whisper](./sample/Whisper/README.md)                         | Speech Recognition                 | Python     | FP16           | BM1684X                      |
 | [Seamless](./sample/Seamless/README.md)                       | Speech Recognition                 | Python     | FP32/FP16      | BM1684X/BM1688               |

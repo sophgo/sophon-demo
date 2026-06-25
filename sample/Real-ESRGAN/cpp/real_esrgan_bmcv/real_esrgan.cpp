@@ -328,9 +328,7 @@ int Real_ESRGAN::post_process_bmcv(const std::vector<bm_image>& input_images,
         }
     #endif
         cv::Mat output_image;
-        output_image.create(cv::Size(output_w, output_h), m_input_format == FORMAT_GRAY ? CV_8UC1 : CV_8UC3, m_dev_id);
         cv::bmcv::toMAT(&raw_outputs[i], output_image);
-
         // 根据tx1和ty1裁剪图像
         if (tx1 != 0) {
             int tx = tx1 * upsample_scale; // 调整比例
@@ -427,8 +425,8 @@ int Real_ESRGAN::post_process_opencv(const std::vector<bm_image>& input_images,
             int tensor_size = bm_mem_get_device_size(output_tensor.device_mem);
             bm_status_t ret = bm_mem_unmap_device_mem(handle, output_data, tensor_size);
             if (ret != BM_SUCCESS) {
-                throw std::runtime_error("BMRuntime 操作失败");
-            }
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         }
     } else {
         delete [] output_data;
