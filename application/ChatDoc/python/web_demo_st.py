@@ -71,10 +71,18 @@ with st.sidebar:
         chatbot_st.llm = selected_model
 
     st.write("上传一个文档，然后与我对话.")
-    with st.form("Upload and Process", True):
-        uploaded_file = st.file_uploader("上传文档", type=["pdf", "txt", "docx", "pptx", 'png', 'jpg', 'jpeg', 'bmp'], accept_multiple_files=True, help = "目前支持多种文件格式，包括pdf、pptx、图片等")
-        print("uploaded_file:", uploaded_file)
 
+    # 将 file_uploader 移到表单外面，避免表单提交时文件状态丢失
+    uploaded_file = st.file_uploader("上传文档", type=["pdf", "txt", "docx", "pptx", 'png', 'jpg', 'jpeg', 'bmp'], accept_multiple_files=True, help="目前支持多种文件格式，包括pdf、pptx、图片等")
+
+    # 保存上传的文件到 session_state
+    if uploaded_file:
+        st.session_state['uploaded_file'] = uploaded_file
+
+    # 从 session_state 获取上传的文件
+    current_uploaded_file = st.session_state.get('uploaded_file', None)
+
+    with st.form("Upload and Process", True):
         option = st.selectbox(
             "选择已保存的知识库",
             chatbot_st.get_vector_db(),
@@ -85,9 +93,7 @@ with st.sidebar:
         with col1:
             import_repository = st.form_submit_button("导入知识库")
         with col2:
-            print("############################")
             add_repository = st.form_submit_button("添加知识库")
-            print("add_repository: ", add_repository)
         col3, col4 = st.columns(2)
         with col3:
             save_repository = st.form_submit_button("保存知识库")
@@ -115,12 +121,12 @@ with st.sidebar:
                     st.success("重命名成功。")
                     del st.session_state["renaming"]
                     time.sleep(0.1)
-                    st.experimental_rerun()
+                    st.rerun()
 
         if save_repository and 'files' not in st.session_state:
             st.error("先上传文件构建知识库，才能保存知识库。")
 
-        if not uploaded_file and add_repository:
+        if not current_uploaded_file and add_repository:
             st.error("请先上传文件，再点击构建知识库。")
 
         if import_repository and len([x for x in chatbot_st.get_vector_db()]) == 0:
@@ -136,13 +142,15 @@ with st.sidebar:
         if clear_file:
             if 'files' in st.session_state:
                 del st.session_state["files"]
+            if 'uploaded_file' in st.session_state:
+                del st.session_state["uploaded_file"]
             if 'messages' in st.session_state:
                 del st.session_state["messages"]
 
-        if uploaded_file and add_repository:
+        if current_uploaded_file and add_repository:
             with st.spinner("Initializing vector db..."):
                 files_name = []
-                for i, item in enumerate(uploaded_file):
+                for i, item in enumerate(current_uploaded_file):
                     ext_name = os.path.splitext(item.name)[-1]
                     file_name = f"""./data/uploaded/{item.name}"""
                     with open(file_name, "wb") as f:
@@ -156,6 +164,9 @@ with st.sidebar:
                         st.session_state['files'] = files_name
 
                     st.session_state["messages"] = [{"role": "assistant", "content": "嗨！"}]
+                    # 清除已处理的文件
+                    if 'uploaded_file' in st.session_state:
+                        del st.session_state["uploaded_file"]
                     st.success('知识库添加完成！', icon='🎉')
                     st.balloons()
                 else:
@@ -164,7 +175,7 @@ with st.sidebar:
         if save_repository and 'files' in st.session_state:
             chatbot_st.save_vector_db_to_local()
             st.success('知识库保存成功！', icon='🎉')
-            st.experimental_rerun()
+            st.rerun()
 
         if import_repository and option:
             chatbot_st.load_vector_db_from_local(option)
@@ -176,7 +187,7 @@ with st.sidebar:
         if del_repository and option:
             chatbot_st.del_vector_db(option)
             st.success('知识库删除完成！', icon='🎉')
-            st.experimental_rerun()
+            st.rerun()
 
     if 'files' in st.session_state:
         st.markdown("\n".join([str(i + 1) + ". " + x.split("/")[-1] for i, x in enumerate(st.session_state.files)]))
