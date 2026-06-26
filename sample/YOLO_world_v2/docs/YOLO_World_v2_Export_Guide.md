@@ -4,7 +4,7 @@
 用 ultralytics 导出 yolov8s-worldv2，展开 `model.predict(x, txt_feats)` 使文本嵌入为显式第二输入。
 
 ```bash
-# flh_mlir 容器内 (torch 2.0.1 + ultralytics 8.4.75)
+# TPU-MLIR 容器内 (torch 2.0.1 + ultralytics 8.4.75)
 pip install ultralytics  # 若未装
 cd tools
 python export_yoloworld_onnx.py --model_name yolov8s-worldv2 --img_size 640 --num_classes 80

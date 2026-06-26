@@ -74,7 +74,7 @@ chmod -R +x scripts/
 ## 4. 模型编译
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载/已编译好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
-本例程在`flh_mlir` Docker容器（基于`sophgo/tpuc_dev`）中编译，TPU-MLIR版本为`v1.0.0.dev-20260622`。进入容器后需`source /workspace/tpu-mlir/envsetup.sh`，然后在例程目录下使用`scripts`目录下的脚本编译，执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+本例程在 TPU-MLIR 容器中编译（环境搭建见 [Environment_Install_Guide.md](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)）。进入容器后，在例程目录下使用`scripts`目录下的脚本编译，执行时指定BModel运行的目标平台（**支持BM1684X**），如：
 
 - 生成FP32 BModel
 
@@ -92,7 +92,7 @@ chmod -R +x scripts/
 
 执行后会在`models/BM1684X/`下生成`yoloworld_v2_fp16_1b.bmodel`和`clip_text_vitb32_bm1684x_f16_1b.bmodel`。
 
-> ⚠️ 主检测模型编译**不要加** `--mean/--scale`：ONNX已期望[0,1]输入，若加`--scale 1/255`会与推理侧的`/255`双重归一化导致AP=0。脚本已使用`--keep_aspect_ratio --pixel_format rgb --output_names output`。
+> ℹ️ `--mean`/`--scale` 仅写入 mlir、用于 INT8 校准量化，**不烤入 bmodel 计算图**，对 FP32/FP16 推理无影响；推理侧 python 的 `/255` 是唯一归一化。脚本沿用 `--mean 0 --scale 1/255 --keep_aspect_ratio --pixel_format rgb --output_names output` 与 v1 一致。
 > ⚠️ CLIP文本编码ONNX必须用**torch 1.13**导出（torch 2.0+的MHA走SDPA，TPU-MLIR会误编译），详见[模型导出](./docs/YOLO_World_v2_Export_Guide.md)。
 
 ## 5. 例程测试
@@ -165,5 +165,5 @@ bmrt_test --bmodel models/BM1684X/yoloworld_v2_fp16_1b.bmodel --devid 0
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。另外本例程的常见问题：
 
-- **AP=0 / 检测全是某一类且分数极低**：检查bmodel是否误加了`--scale 1/255`（双重归一化），或CLIP文本嵌入是否正确（clip bmodel必须用torch 1.13导出）。
+- **AP=0 / 检测全是某一类且分数极低**：首选排查CLIP文本嵌入是否正确（clip bmodel必须用torch 1.13导出，嵌入与ultralytics/OpenAI的cos须>0.9999；错位会让score极低）。`--mean/--scale`不烤入bmodel，不是AP=0的原因。
 - **clip bmodel输出与onnx不一致**：torch 2.0+导出的CLIP MHA会被TPU-MLIR误编译成退化图，需用torch 1.13 venv重新导出，详见[模型导出](./docs/YOLO_World_v2_Export_Guide.md)。

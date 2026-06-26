@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==============================================================================
 # YOLO-World v2 FP32 BModel 编译 (TPU-MLIR)
-# 在 flh_mlir 容器内 source envsetup.sh 后运行: bash gen_fp32bmodel_mlir.sh [bm1684x]
+# 在 TPU-MLIR 容器内运行(参考 ../../docs/Environment_Install_Guide.md): bash gen_fp32bmodel_mlir.sh [bm1684x]
 # 产物: yoloworld_v2_fp32_1b.bmodel, clip_text_vitb32_${target}_f16_1b.bmodel
 # ==============================================================================
 model_dir=$(dirname $(readlink -f "$0"))
@@ -27,6 +27,8 @@ function gen_mlir()
         --model_name yoloworld_v2 \
         --model_def ../models/onnx/yoloworld_v2.onnx \
         --input_shapes [[$1,3,640,640],[1,80,512]] \
+        --mean 0.0,0.0,0.0 \
+        --scale 0.0039216,0.0039216,0.0039216 \
         --output_names output \
         --keep_aspect_ratio \
         --pixel_format rgb \
