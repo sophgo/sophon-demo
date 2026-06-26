@@ -59,3 +59,6 @@ description: 精度测试。对比 TPU BModel 与 PyTorch 基线精度，按算�
 | FP16 精度下降 | 模型中存在对 FP16 敏感的算子，考虑对该层用 FP32 |
 | INT8 精度大幅下降 | 增校准样本数 / 检查校准数据预处理是否与推理一致 / 调大量化阈值 |
 | 部分样本异常 | 逐样本对比 logit，定位是预处理还是推理阶段的问题 |
+| AP=0 / 检测全某一类且分数极低 | 按以下顺序隔离（YOLO_world_v2 实战）：① onnx 对吗——在容器用 onnxruntime 跑 onnx，与原始框架输出比 cos；② bmodel 对吗——在 SoC 用 sail 跑 bmodel，与 onnx 在**同一输入**下比输出（bmodel≠onnx 多为算子编译退化，回 03 重导出）；③ 预处理对吗——letterbox/归一化/通道顺序；④ 文本嵌入对吗——文本编码器子模型产出的嵌入与主模型训练时的编码器比 cos（须 >0.9999），错位会让 score 极低 |
+| 双子模型（检测+文本编码）开放词汇模型 | 文本嵌入错位是最隐蔽的 AP=0 原因。文本编码器 bmodel 必须用与训练一致的编码器导出（见 03 的 CLIP 节）；临时可预计算固定类集 txt_feats 存 npy 绕过文本 bmodel 验证主模型是否正确 |
+| bmcv 与 opencv 精度不一致 | BMCV convert_to 的 alpha/beta 与 opencv 归一化等价（alpha=input_scale/255），bmodel 无烤入 scale 时 input_scale=1.0；检查 resize 插值差异 |
