@@ -19,7 +19,7 @@ function gen_image_encode_mlir()
 {
     model_transform.py \
       --model_name mobile_clip_image_b \
-      --model_def ./mobile_clip_image_b.onnx \
+      --model_def ../models/onnx/mobile_clip_image_b.onnx \
       --input_shapes [[$1,3,224,224]] \
       --pixel_format rgb \
       --mlir mobile_clip_image_b_$1b.mlir
@@ -50,7 +50,7 @@ function gen_text_encoder_mlir()
 {
     model_transform.py \
       --model_name mobile_clip_text_b \
-      --model_def ./mobile_clip_text_b.onnx \
+      --model_def ../models/onnx/mobile_clip_text_b.onnx \
       --input_shapes [[$1,77]] \
       --pixel_format rgb \
       --mlir mobile_clip_text_b_$1b.mlir

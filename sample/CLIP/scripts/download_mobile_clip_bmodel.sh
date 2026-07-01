@@ -25,6 +25,18 @@ else
 
 fi
 
+if [ ! -e "../datasets/cali_npz" ];
+then
+    pushd ../datasets
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/CLIP/cali_npz.tar.gz
+    tar xvf cali_npz.tar.gz
+    rm cali_npz.tar.gz
+    popd
+    echo "Calibration datasets download!"
+else
+    echo "Calibration datasets folder exist! Remove it if you need to update."
+fi
+
 if [ ! -e "../models" ];
 then
     if [ "$target" = "all" ];

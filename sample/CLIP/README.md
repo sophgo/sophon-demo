@@ -19,7 +19,7 @@ CLIP（Contrastive Language-Image Pre-Training）是一个在多种（图像，�
 ## 2. 特性
 
 * 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)
-* 支持FP16(BM1684X/BM1688/CV186X)模型编译和推理
+* 支持FP16/INT8(BM1684X/BM1688/CV186X)模型编译和推理
 * 支持Python、C++例程
 * 支持单batch和多batch模型推理
 * 支持图片测试
@@ -48,15 +48,23 @@ chmod -R +x scripts/
 .models
 ├── BM1684X
 │   ├── clip_image_vitb32_bm1684x_f16_1b.bmodel         # encode_image部分fp16 bmodel
-│   └── clip_text_vitb32_bm1684x_f16_1b.bmodel          # encode_text部分fp16 bmodel
+│   ├── clip_image_vitb32_bm1684x_int8_1b.bmodel        # encode_image部分int8 bmodel
+│   ├── clip_text_vitb32_bm1684x_f16_1b.bmodel          # encode_text部分fp16 bmodel
+│   └── clip_text_vitb32_bm1684x_int8_1b.bmodel         # encode_text部分int8 bmodel
 ├── BM1688
 │   ├── clip_image_vitb32_bm1688_f16_1b_2core.bmodel    # encode_image部分fp16 bmodel，num_core=2
 │   ├── clip_image_vitb32_bm1688_f16_1b.bmodel          # encode_image部分fp16 bmodel
+│   ├── clip_image_vitb32_bm1688_int8_1b_2core.bmodel   # encode_image部分int8 bmodel，num_core=2
+│   ├── clip_image_vitb32_bm1688_int8_1b.bmodel         # encode_image部分int8 bmodel
 │   ├── clip_text_vitb32_bm1688_f16_1b_2core.bmodel     # encode_text部分fp16 bmodel，num_core=2
-│   └── clip_text_vitb32_bm1688_f16_1b.bmodel           # encode_text部分fp16 bmodel
+│   ├── clip_text_vitb32_bm1688_f16_1b.bmodel           # encode_text部分fp16 bmodel
+|   ├── clip_text_vitb32_bm1688_int8_1b_2core.bmodel    # encode_text部分int8 bmodel，num_core=2
+|   └── clip_text_vitb32_bm1688_int8_1b.bmodel          # encode_text部分int8 bmodel
 ├── CV186X
 │   ├── clip_image_vitb32_cv186x_f16_1b.bmodel          # encode_image部分fp16 bmodel
-│   └── clip_text_vitb32_cv186x_f16_1b.bmodel           # encode_text部分fp16 bmodel
+|   ├── clip_image_vitb32_cv186x_int8_1b.bmodel         # encode_image部分int8 bmodel
+│   ├── clip_text_vitb32_cv186x_f16_1b.bmodel           # encode_text部分fp16 bmodel
+|   └── clip_text_vitb32_cv186x_int8_1b.bmodel          # encode_text部分int8 bmodel
 ├── onnx
 │   ├── clip_image_vitb32.onnx                          # encode_image部分onnx模型
 │   └── clip_text_vitb32.onnx                           # encode_text部分onnx模型
@@ -86,6 +94,22 @@ chmod -R +x scripts/
 
 执行上述命令会在`models/BM1684X/`下生成`CLIP_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
+- 生成INT8 BModel
+
+本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+
+```bash
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+
+# 中文版CLIP
+./scripts/gen_chinese_int8bmodel_mlir.sh bm1684x #bm1688
+
+# Mobile CLIP
+./scripts/gen_mobile_clip_int8bmodel_mlir.sh bm1684x #bm1688
+```
+
+执行上述命令会在`models/BM1684X/`下生成`CLIP_int8_1b.bmodel`文件，即转换好的INT8 BModel。
+
 ## 5. 例程测试
 
 - [Python例程](./python/README.md)
@@ -107,15 +131,21 @@ bmrt_test --bmodel models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel
 |   测试平台  | 测试clip_image_vitb32模型                           | calculate time(ms) |
 | ----------- | --------------------------------------------------- | ------------------ |
 |   SE7-32    | BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel     | 4.13               |
+|   SE7-32    | BM1684X/clip_image_vitb32_bm1684x_int8_1b.bmodel    | 2.59               |
 |   SE9-16    | BM1688/clip_image_vitb32_bm1688_f16_1b.bmodel       | 17.14              |
+|   SE9-16    | BM1688/clip_image_vitb32_bm1688_int8_1b.bmodel      |  9.60              |
 |   SE9-16    | BM1688/clip_image_vitb32_bm1688_f16_1b_2core.bmodel | 15.50              |
+|   SE9-16    | BM1688/clip_image_vitb32_bm1688_int8_1b_2core.bmodel|  9.85              |
 |   SE9-8     | CV186X/clip_image_vitb32_cv186x_f16_1b.bmodel       | 17.55              |
 
 |   测试平台  | 测试clip_text_vitb32模型                           | calculate time(ms) |
 | ----------- | -------------------------------------------------- | ------------------ |
 |   SE7-32    | BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel     | 1.83               |
+|   SE7-32    | BM1684X/clip_text_vitb32_bm1684x_int8_1b.bmodel    | 0.98               |
 |   SE9-16    | BM1688/clip_text_vitb32_bm1688_f16_1b.bmodel       | 6.91              |
+|   SE9-16    | BM1688/clip_text_vitb32_bm1688_int8_1b.bmodel      | 2.56              |
 |   SE9-16    | BM1688/clip_text_vitb32_bm1688_f16_1b_2core.bmodel | 6.89              |
+|   SE9-16    | BM1688/clip_text_vitb32_bm1688_int8_1b_2core.bmodel| 3.46              |
 |   SE9-8     | CV186X/clip_text_vitb32_cv186x_f16_1b.bmodel       | 7.61              |
 
 > **测试说明**：

@@ -109,7 +109,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [Qwen3.5](./sample/Qwen3_5/README.md)                         | 多模态大语言模型 | Python     | INT4            | BM1684X/BM1688             |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | 超分辨            | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [P2PNet](./sample/P2PNet/README.md)                           | 人群计数          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [CLIP](./sample/CLIP/README.md)                               | 图文匹配          | C++/Python | FP16           | BM1684X/BM1688/CV186X        |
+| [CLIP](./sample/CLIP/README.md)                               | 图文匹配          | C++/Python | FP16/INT8      | BM1684X/BM1688/CV186X        |
 | [BLIP](./sample/BLIP/README.md)                               | 多模态图文模型     | Python     | FP32           | BM1684/BM1684X/BM1688       |
 | [SuperGlue](./sample/SuperGlue/README.md)                     | 特征匹配          | C++        | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | 语音生成          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |

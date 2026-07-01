@@ -109,7 +109,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [Qwen3.5](./sample/Qwen3_5/README.md)                         | Multimodal Large Language Model    | Python     | INT4            | BM1684X/BM1688             |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | C++/Python | FP16           | BM1684X/BM1688/CV186X        |
+| [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | C++/Python | FP16/INT8      | BM1684X/BM1688/CV186X        |
 | [BLIP](./sample/BLIP/README.md)                               | Large Image-Text Model             | Python     | FP32           | BM1684/BM1684X/BM1688        |
 | [SuperGlue](./sample/SuperGlue/README.md)                     | Keypoint Matching                  | C++        | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | Text To Speech                     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
