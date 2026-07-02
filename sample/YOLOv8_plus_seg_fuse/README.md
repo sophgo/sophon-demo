@@ -19,7 +19,7 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-YOLOv8_plus​_seg_fuse例程将[YOLOv8_plus_seg例程](../YOLOv8_plus_seg/README.md)的部分前处理和后处理使用TPU来计算，大大提高了处理速度，目前支持使用BM1684X/BM1688的INT8模型推理。
+YOLOv8_plus​_seg_fuse例程将[YOLOv8_plus_seg例程](../YOLOv8_plus_seg/README.md)的部分前处理和后处理使用TPU来计算，大大提高了处理速度，目前支持使用BM1684X/BM1688的INT8/FP16/FP32模型推理。
 
 ## 2. 特性
 
@@ -41,7 +41,7 @@ YOLOv8_plus​_seg_fuse例程将[YOLOv8_plus_seg例程](../YOLOv8_plus_seg/READM
 
 ### 2.2 SDK特性
 * 支持BM1688(SoC)和BM1684X(x86 PCIe、SoC、riscv PCIe)
-* 支持INT8模型编译和推理
+* 支持INT8/FP16/FP32模型编译和推理
 * 支持C++、Python推理
 * 支持图片和视频测试
 
@@ -69,6 +69,8 @@ chmod -R +x scripts/
 models/
 ├── BM1684X # 在BM1684X上运行的模型
 │   ├── yolov8s_int8_1b.bmodel
+│   ├── yolov8s_fp16_1b.bmodel
+│   ├── yolov8s_fp32_1b.bmodel
 ├── BM1688 # 在BM1688上运行的模型
 │   ├── yolov8s_int8_1b.bmodel
 │   ├── yolov8s_int8_1b_2core.bmodel
@@ -114,6 +116,22 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_seg_fuse/tpu_mlir-
 
 注：这里用到了混合精度量化，需要将一些层设为敏感层，相应的qtable在此前`download.sh`下载的`models/onnx`文件夹里。如果您需要量化自己微调过的模型，可以参考[量化指南](../../docs/Calibration_Guide.md#13-特定模型优化技巧)中的方法，从我们提供的qtable倒推出自己模型需要的qtable。
 
+- 生成FP32 BModel
+
+​本例程在`scripts`目录下提供了FP32 BModel的编译脚本`gen_fp32bmodel_mlir.sh`，执行时输入BModel的目标平台：
+
+```shell
+./scripts/gen_fp32bmodel_mlir.sh bm1684x
+```
+
+- 生成FP16 BModel
+
+​本例程在`scripts`目录下提供了FP16 BModel的编译脚本`gen_fp16bmodel_mlir.sh`：
+
+```shell
+./scripts/gen_fp16bmodel_mlir.sh bm1684x
+```
+
 ## 4. 例程测试
 - [C++例程](./cpp/README.md)
 - [Python例程](./python/README.md)
@@ -137,13 +155,20 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 
 |   测试平台    |      测试程序     |      测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ---------------- | ---------------------- | ------------- | -------- |
+|   SE7-32     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp32_1b.bmodel  | 0.330 | 0.507 |
+|   SE7-32     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp32_1b.bmodel  | 0.328 | 0.506 |
+|   SE7-32     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp16_1b.bmodel  | 0.329 | 0.507 |
+|   SE7-32     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp16_1b.bmodel  | 0.328 | 0.507 |
+|   SE7-32     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.324 | 0.497 |
+|   SE7-32     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.322 | 0.495 |
 |   SE9-16     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.268 | 0.407 |
 |   SE9-16     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.264 | 0.405 |
 
 > **测试说明**：  
 > 1. 由于seg_fuse例程将部分后处理（包括置信度过滤和NMS）融合到TPU中计算，阈值由模型编译时确定，与[YOLOv8_plus_seg例程](../YOLOv8_plus_seg/README.md)使用外部阈值(conf_thresh=0.001, nms_thresh=0.7)的测试方式不同，因此AP值会有一定差异；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标；
-> 3. Python和C++例程的精度基本一致，差异来自于后处理实现的微小不同。
+> 3. SE7-32与SE9-16的精度指标由于平台差异（libsophon版本、编译器版本等）有一定浮动；
+> 4. Python和C++例程的精度基本一致，差异来自于后处理实现的微小不同。
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
@@ -155,6 +180,12 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 |    测试平台  |     测试程序      |        测试模型        |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ---------------------- | -------- | --------- | --------- | --------- |
+|   SE7-32    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp32_1b.bmodel     |      3.08       |      1.17       |      44.72      |      75.52      |
+|   SE7-32    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp32_1b.bmodel     |      2.69       |      0.45       |      44.53      |      6.88       |
+|   SE7-32    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp16_1b.bmodel     |      3.03       |      1.17       |      9.87       |      74.77      |
+|   SE7-32    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp16_1b.bmodel     |      2.71       |      0.45       |      9.64       |      6.54       |
+|   SE7-32    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel     |      3.01       |      1.17       |      7.08       |      25.05      |
+|   SE7-32    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel     |      2.70       |      0.45       |      6.86       |      2.78       |
 |   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  |      9.15       |      3.23       |      19.33      |      25.84      |
 |   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  |      4.00       |      1.19       |      18.10      |      4.97       |
 |   SE9-16    |  yolov8_bmcv.py   |yolov8s_seg_fuse_int8_1b_2core.bmodel|      5.14       |      3.22       |      14.89      |      25.60      |

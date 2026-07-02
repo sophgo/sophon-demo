@@ -76,6 +76,10 @@ private:
                   const ImageInfo& para,
                   cv::Rect bound,
                   cv::Mat& mask_out);
+    void get_mask_fp32(float* mask_data, int mask_h, int mask_w,
+                       const ImageInfo& para,
+                       cv::Rect bound,
+                       cv::Mat& mask_out);
 public:
     int batch_size = -1;
     TimeStamp* m_ts = NULL;
@@ -127,12 +131,8 @@ public:
         m_net_h = netinfo->stages[0].input_shapes[0].dims[1];
         m_net_w = netinfo->stages[0].input_shapes[0].dims[2];
         
-        for (int i = 0; i < netinfo->output_num; i++) {
-            auto& shape = netinfo->stages[0].output_shapes[i];
-            if (shape.num_dims == 3 && netinfo->output_dtypes[i] != BM_UINT8) {
-                throw std::runtime_error("Mask output must be uint8.");
-            }
-        }
+        // Note: mask output can be uint8 (INT8 model) or float32 (FP32/FP16 model)
+        // Both are supported — see get_mask() for dtype handling
 
         // set temp timestamp
         m_ts = &tmp_ts;

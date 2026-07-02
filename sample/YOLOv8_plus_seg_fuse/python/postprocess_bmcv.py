@@ -191,4 +191,5 @@ class PostProcess:
                             #interpolation=cv2.INTER_CUBIC)  # INTER_CUBIC would be better
             if len(masks.shape) == 2:
                 masks = masks[:, :, None]
-            return 256 * masks.transpose(2, 0, 1)
+            # Note: TPU fuse model already outputs sigmoid*255, no need to scale again
+            return masks.transpose(2, 0, 1)

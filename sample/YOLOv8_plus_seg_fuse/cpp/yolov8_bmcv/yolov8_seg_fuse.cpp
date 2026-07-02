@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "yolov8_seg_fuse.hpp"
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <cmath>
@@ -356,26 +357,46 @@ int YoloV8SegFuse::post_process(const std::vector<bm_image>& input_images,
         
         ImageInfo para = {cv::Size(frame_width, frame_height), {ratio_x, ratio_y, tx1, ty1}};
         YoloV8BoxVec yolobox_vec_tmp;
+        int mask_h = tensor_mask.shape.dims[1];
+        int mask_w = tensor_mask.shape.dims[2];
+        int mask_pixels = mask_h * mask_w;
+        bool mask_is_fp32 = (tensor_mask.dtype == BM_FLOAT32);
+        float* mask_fp32_data = nullptr;
+        if (mask_is_fp32) {
+            // Get float32 mask data once for all boxes
+            mask_fp32_data = get_cpu_data(&tensor_mask, 1.0f);
+        }
         for (int i = 0; i < yolobox_vec.size(); i++) {
             if (yolobox_vec[i].x2 > yolobox_vec[i].x1 + 1 && yolobox_vec[i].y2 > yolobox_vec[i].y1 + 1) {
-                int mask_size = tensor_mask.shape.dims[1] * tensor_mask.shape.dims[2];
-                bm_image batch_mask;
-                bm_image_create(handle, tensor_mask.shape.dims[1], tensor_mask.shape.dims[2], FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &batch_mask);
-                bm_device_mem_t batch_mask_devmem = bm_mem_from_device(
-                                                        bm_mem_get_device_addr(tensor_mask.device_mem) + i * mask_size,
-                                                        mask_size);
-                bm_image_attach(batch_mask, &batch_mask_devmem);
-                get_mask(batch_mask, 
-                         para,
-                         cv::Rect{yolobox_vec[i].x1, 
-                                  yolobox_vec[i].y1, 
-                                  yolobox_vec[i].x2 - yolobox_vec[i].x1,
-                                  yolobox_vec[i].y2 - yolobox_vec[i].y1},
-                        yolobox_vec[i].mask_img);
+                cv::Rect bound = cv::Rect{yolobox_vec[i].x1,
+                                          yolobox_vec[i].y1,
+                                          yolobox_vec[i].x2 - yolobox_vec[i].x1,
+                                          yolobox_vec[i].y2 - yolobox_vec[i].y1};
+                if (mask_is_fp32) {
+                    // FP32 path: use OpenCV resize
+                    int mask_pixels = mask_h * mask_w;
+                    get_mask_fp32(mask_fp32_data + i * mask_pixels, mask_h, mask_w,
+                                 para, bound, yolobox_vec[i].mask_img);
+                } else {
+                    // UINT8 path: use BMImage hardware resize (fast)
+                    int mask_size = mask_pixels;
+                    bm_image batch_mask;
+                    bm_image_create(handle, mask_h, mask_w, FORMAT_GRAY, DATA_TYPE_EXT_1N_BYTE, &batch_mask);
+                    bm_device_mem_t batch_mask_devmem = bm_mem_from_device(
+                                                            bm_mem_get_device_addr(tensor_mask.device_mem) + i * mask_size,
+                                                            mask_size);
+                    bm_image_attach(batch_mask, &batch_mask_devmem);
+                    get_mask(batch_mask, para, bound, yolobox_vec[i].mask_img);
+                    bm_image_detach(batch_mask);
+                    bm_image_destroy(batch_mask);
+                }
                 yolobox_vec_tmp.push_back(yolobox_vec[i]);
-                bm_image_detach(batch_mask);
-                bm_image_destroy(batch_mask);
             }
+        }
+        if (mask_fp32_data) {
+            // get_cpu_data for FLOAT32 returns mmap'd pointer, need unmap
+            bm_mem_unmap_device_mem(handle, mask_fp32_data,
+                                    bm_mem_get_device_size(tensor_mask.device_mem));
         }
         detected_boxes.push_back(yolobox_vec_tmp);
     }
@@ -401,6 +422,43 @@ int YoloV8SegFuse::post_process(const std::vector<bm_image>& input_images,
         bm_free_device(handle, output_tensors[i].device_mem);
     }
     return 0;
+}
+
+void YoloV8SegFuse::get_mask_fp32(float* mask_data, int mask_h, int mask_w,
+                                   const ImageInfo& para,
+                                   cv::Rect bound,
+                                   cv::Mat& mask_out) {
+    // FP32 path: use OpenCV resize (matches Python postprocess_bmcv.py scale_mask else branch)
+    // The mask at model output size is cropped to remove letterbox padding, then resized to original image
+    int img_h = para.raw_size.height;
+    int img_w = para.raw_size.width;
+
+    // Calculate letterbox padding on mask (same as Python)
+    float gain = std::min((float)mask_h / img_h, (float)mask_w / img_w);
+    int pad_x = (int)round(((float)mask_w - img_w * gain) / 2.0 - 0.1);
+    int pad_y = (int)round(((float)mask_h - img_h * gain) / 2.0 - 0.1);
+
+    // Crop mask
+    int crop_w = mask_w - 2 * pad_x;
+    int crop_h = mask_h - 2 * pad_y;
+    crop_w = MAX(crop_w, 1);
+    crop_h = MAX(crop_h, 1);
+
+    cv::Mat mask_mat(mask_h, mask_w, CV_32FC1, mask_data);
+    cv::Mat mask_cropped = mask_mat(cv::Rect(pad_x, pad_y, crop_w, crop_h));
+    cv::Mat mask_resized;
+    cv::resize(mask_cropped, mask_resized, cv::Size(img_w, img_h), 0, 0, cv::INTER_LINEAR);
+
+    // Clamp bbox
+    bound.x = MAX(0, MIN(bound.x, img_w - 1));
+    bound.y = MAX(0, MIN(bound.y, img_h - 1));
+    bound.width = MIN(bound.width, img_w - bound.x);
+    bound.height = MIN(bound.height, img_h - bound.y);
+    if (bound.width <= 0) bound.width = 1;
+    if (bound.height <= 0) bound.height = 1;
+
+    cv::Mat mask_box = mask_resized(bound).clone();
+    mask_out = (mask_box > 127.5);
 }
 
 void YoloV8SegFuse::get_mask(bm_image& mask_data,

@@ -82,7 +82,7 @@ class Yolov8PlusSegFuse:
 
     def resize_bmcv(self, bmimg):
         """
-        resize for single sail.BMImage
+        resize for single sail.BMImage, aligned with non-fuse implementation
         :param bmimg:
         :return: a resize image of sail.BMImage
         """
@@ -91,30 +91,25 @@ class Yolov8PlusSegFuse:
         if self.use_resize_padding:
             r_w = self.net_w / img_w
             r_h = self.net_h / img_h
-            if r_h > r_w:
-                tw = self.net_w
-                th = int(r_w * img_h)
-                tx1 = tx2 = 0
-                ty1 = int((self.net_h - th) / 2)
-                ty2 = self.net_h - th - ty1
-            else:
-                tw = int(r_h * img_w)
-                th = self.net_h
-                tx1 = int((self.net_w - tw) / 2)
-                tx2 = self.net_w - tw - tx1
-                ty1 = ty2 = 0
+            r = min(r_w, r_h)
+            tw = int(round(r * img_w))
+            th = int(round(r * img_h))
+            tx1, ty1 = self.net_w - tw, self.net_h - th  # wh padding
 
-            ratio = (min(r_w, r_h), min(r_w, r_h))
+            tx1 /= 2  # divide padding into 2 sides
+            ty1 /= 2
+
+            ratio = (r, r)
             txy = (tx1, ty1)
             attr = sail.PaddingAtrr()
-            attr.set_stx(tx1)
-            attr.set_sty(ty1)
+            attr.set_stx(int(round(tx1 - 0.1)))
+            attr.set_sty(int(round(ty1 - 0.1)))
             attr.set_w(tw)
             attr.set_h(th)
             attr.set_r(114)
             attr.set_g(114)
             attr.set_b(114)
-            
+
             preprocess_fn = self.bmcv.vpp_crop_and_resize_padding if self.use_vpp else self.bmcv.crop_and_resize_padding
             resized_img_rgb = preprocess_fn(bmimg, 0, 0, img_w, img_h, self.net_w, self.net_h, attr, sail.bmcv_resize_algorithm.BMCV_INTER_LINEAR)
         else:
