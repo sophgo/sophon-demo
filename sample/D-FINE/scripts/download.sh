@@ -16,6 +16,8 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/common/coco_val2017_1000.tar.gz #coco 1000 pictures and json.
     tar xvf coco_val2017_1000.tar.gz && rm coco_val2017_1000.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/common/test_car_person_1080P.mp4 #test video
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/D-FINE/cali_npz.tar.gz #cali npz
+    tar xvf cali_npz.tar.gz && rm cali_npz.tar.gz
     popd
     echo "datasets download!"
 else

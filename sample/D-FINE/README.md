@@ -36,7 +36,7 @@ D-FINE 是一个强大的实时目标检测器，将 DETR 中的边界框回归�
 
 ### 2.2 SDK特性
 * 支持BM1688/CV186X(SoC)和BM1684X(x86 PCIe、SoC、riscv PCIe)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)
+* 支持FP32、FP16、INT8(BM1684X/BM1688/CV186X)
 * 支持Python推理
 * 支持图片和视频测试
 
@@ -56,12 +56,18 @@ chmod -R +x scripts/
 models/
 ├── BM1684X # 在BM1684X上运行的模型
 │   ├── dfine_n_coco_f16_1b.bmodel
-│   └── dfine_s_obj2coco_f16_1b.bmodel
+│   ├── dfine_s_obj2coco_f16_1b.bmodel
+│   ├── dfine_n_coco_int8_1b.bmodel
+│   └── dfine_s_obj2coco_int8_1b.bmodel
 ├── BM1688 # 在BM1688上运行的模型
 │   ├── dfine_n_coco_f16_1b.bmodel
 │   ├── dfine_n_coco_f16_2core.bmodel
+│   ├── dfine_n_coco_int8_1b.bmodel
+│   ├── dfine_n_coco_int8_2core.bmodel
 │   ├── dfine_s_obj2coco_f16_1b.bmodel
-│   └── dfine_s_obj2coco_f16_1b_2core.bmodel
+│   ├── dfine_s_obj2coco_f16_1b_2core.bmodel
+│   ├── dfine_s_obj2coco_int8_1b.bmodel
+│   └── dfine_s_obj2coco_int8_1b_2core.bmodel
 ├── onnx
     ├── dfine_n_coco.onnx
     └── dfine_s_obj2coco.onnx
@@ -95,6 +101,16 @@ models/
 
 注：这里用到了混合精度量化，需要将一些层设为敏感层，相应的qtable在此前`download.sh`下载的`models/onnx`文件夹里。如果您需要量化自己微调过的模型，可以参考[量化指南](../../docs/Calibration_Guide.md#13-特定模型优化技巧)中的方法，从我们提供的qtable倒推出自己模型需要的qtable。BM1684不支持F16混合精度，如果您使用BM1684系列产品，您需要把qtable中的F16层更改为F32。
 
+- 生成INT8 BModel
+
+本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
+
+```bash
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+``` 
+
+执行上述命令会在`models/BM1684X/`等文件夹下生成转换好的INT8 BModel。
+
 ## 4. 例程测试
 - [Python例程](./python/README.md)
 
@@ -114,8 +130,18 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 在coco2017 val数据集上，精度测试结果如下：
 |   测试平台    |      测试程序     |      测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
 | ------------ | ---------------- | ---------------------- | ------------- | -------- |
-|   SE7-32    |  dfine_bmcv.py   |      dfine_n_coco_f16_1b.bmodel       | 0.381 | 0.538 |
-|   SE7-32    |  dfine_bmcv.py  |      dfine_s_obj2coco_f16_1b.bmodel       | 0.450 | 0.616 |
+|   SE7-32    |  dfine_bmcv.py  |      dfine_n_coco_f16_1b.bmodel           | 0.367 | 0.513 |
+|   SE7-32    |  dfine_bmcv.py  |      dfine_n_coco_int8_1b.bmodel          | 0.365 | 0.514 |
+|   SE7-32    |  dfine_bmcv.py  |      dfine_s_obj2coco_f16_1b.bmodel       | 0.437 | 0.596 |
+|   SE7-32    |  dfine_bmcv.py  |      dfine_s_obj2coco_int8_1b.bmodel      | 0.437 | 0.596 |
+|   SE9-16    |  dfine_bmcv.py  |      dfine_n_coco_f16_1b.bmodel           | 0.367 | 0.513 |
+|   SE9-16    |  dfine_bmcv.py  |      dfine_n_coco_int8_1b.bmodel          | 0.364 | 0.514 |
+|   SE9-16    |  dfine_bmcv.py  |      dfine_n_coco_f16_1b_2core.bmodel     | 0.367 | 0.513 |
+|   SE9-16    |  dfine_bmcv.py  |      dfine_n_coco_int8_1b_2core.bmodel    | 0.364 | 0.514 |
+|   SE9-16    |  dfine_bmcv.py  |      dfine_s_obj2coco_f16_1b.bmodel       | 0.436 | 0.591 |
+|   SE9-16    |  dfine_bmcv.py  |      dfine_s_obj2coco_int8_1b.bmodel      | 0.439 | 0.603 |
+|   SE9-16    |  dfine_bmcv.py  |      dfine_s_obj2coco_f16_1b_2core.bmodel | 0.436 | 0.591 |
+|   SE9-16    |  dfine_bmcv.py  |      dfine_s_obj2coco_int8_1b_2core.bmodel| 0.439 | 0.603 |
 
 > **测试说明**：  
 > 1. 本次仅在SE7系列平台上进行了测试，SE9-16和SE9-8平台上运行相同模型和程序时，精度表现与SE7-32平台基本一致，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -129,13 +155,19 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 |    测试平台  |     测试程序      |        测试模型        |decode_time|preprocess_time|inference_time|postprocess_time| 
 | ----------- | ---------------- | ---------------------- | -------- | --------- | --------- | --------- |
-|   SE7-32    |  dfine_bmcv.py   |      dfine_n_coco_f16_1b.bmodel       |      3.48       |      2.34       |      9.28      |      0.24       |
-|   SE7-32    |  dfine_bmcv.py   |      dfine_s_obj2coco_f16_1b.bmodel       |      3.51       |      2.36       |      14.11      |      0.26       |
-|    SE9-16    |  dfine_bmcv.py   |      dfine_n_coco_f16_1b.bmodel       |      3.87       |      3.99       |     19.50      |      0.32       |
-|    SE9-16    |  dfine_bmcv.py   |      dfine_n_coco_f16_1b_2core.bmodel       |      3.89       |      3.99       |     16.07      |      0.32       |
-|    SE9-16    |  dfine_bmcv.py   |      dfine_s_obj2coco_f16_1b.bmodel       |      3.81       |      4.00       |     40.85      |      0.34       |
-|    SE9-16    |  dfine_bmcv.py   |      dfine_s_obj2coco_f16_1b_2core.bmodel       |      3.93       |      3.99       |     29.53      |      0.34       |
-|    SE9-8    |  dfine_bmcv.py   |      dfine_n_coco_f16_1b.bmodel       |      5.08       |      4.54       |     19.94      |      0.34       |
+|   SE7-32    |  dfine_bmcv.py   |      dfine_n_coco_f16_1b.bmodel           |      3.48       |      2.34       |      9.28      |      0.24       |
+|   SE7-32    |  dfine_bmcv.py   |      dfine_n_coco_int8_1b.bmodel          |      2.99       |      2.00       |      8.04      |      0.23       |
+|   SE7-32    |  dfine_bmcv.py   |      dfine_s_obj2coco_f16_1b.bmodel       |      3.51       |      2.36       |     14.11      |      0.26       |
+|   SE7-32    |  dfine_bmcv.py   |      dfine_s_obj2coco_int8_1b.bmodel      |      2.96       |      2.00       |     11.10      |      0.25       |
+|   SE9-16    |  dfine_bmcv.py   |      dfine_n_coco_f16_1b.bmodel           |      3.81       |      3.95       |     19.48      |      0.32       |
+|   SE9-16    |  dfine_bmcv.py   |      dfine_n_coco_int8_1b.bmodel          |      3.83       |      3.97       |     14.18      |      0.33       |
+|   SE9-16    |  dfine_bmcv.py   |      dfine_n_coco_f16_1b_2core.bmodel     |      3.89       |      3.99       |     16.07      |      0.32       |
+|   SE9-16    |  dfine_bmcv.py   |      dfine_n_coco_int8_1b_2core.bmodel    |      3.80       |      3.97       |     12.95      |      0.32       |
+|   SE9-16    |  dfine_bmcv.py   |      dfine_s_obj2coco_f16_1b.bmodel       |      3.81       |      4.00       |     40.85      |      0.34       |
+|   SE9-16    |  dfine_bmcv.py   |      dfine_s_obj2coco_int8_1b.bmodel      |      3.82       |      3.98       |     22.08      |      0.35       |
+|   SE9-16    |  dfine_bmcv.py   |      dfine_s_obj2coco_f16_1b_2core.bmodel |      3.93       |      3.99       |     29.53      |      0.34       |
+|   SE9-16    |  dfine_bmcv.py   |      dfine_s_obj2coco_int8_1b_2core.bmodel|      3.83       |      3.97       |     20.06      |      0.35       |
+|    SE9-8    |  dfine_bmcv.py   |      dfine_n_coco_f16_1b.bmodel           |      5.08       |      4.54       |     19.94      |      0.34       |
 |    SE9-8    |  dfine_bmcv.py   |      dfine_s_obj2coco_f16_1b.bmodel       |      4.83       |      4.51       |     41.26      |      0.36       |
 
 > **测试说明**：  
