@@ -35,11 +35,14 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [ResNet](./sample/ResNet/README.md)                           | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [Recognize-Anything](./sample/Recognize-Anything/README.md)   | 图像分类          | Python     | FP32/FP16/INT8 | BM1684X                      |
 | [YOLOv8_plus_cls](./sample/YOLOv8_plus_cls/README.md)         | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [MobileNetV4](./sample/MobileNetV4/README.md)                | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [RetinaFace](./sample/RetinaFace/README.md)                   | 人脸检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
 | [SCRFD](./sample/SCRFD/README.md)                             | 人脸检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [ArcFace](./sample/ArcFace/README.md)                       | 人脸识别          | C++/Python | FP32/FP16/INT8 | BM1684X                      |
 | [segformer](./sample/segformer/README.md)                     | 语义分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [SAM](./sample/SAM/README.md)                                 | 语义分割          | Python     | FP32/FP16      | BM1684X                      |
 | [SAM2](./sample/SAM2/README.md)                               | 语义分割          | Python     | FP32/FP16/INT8 | BM1684X/BM1688               |
+| [Unet](./sample/Unet/README.md)                             | 语义分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
 | [yolact](./sample/yolact/README.md)                           | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
 | [YOLOv8_plus_seg](./sample/YOLOv8_plus_seg/README.md)         | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
 | [YOLOv8_plus_seg_fuse](./sample/YOLOv8_plus_seg_fuse/README.md)| 实例分割(TPU后处理) | C++/Python | INT8          | BM1684X/BM1688               |
@@ -53,6 +56,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [SlowFast](./sample/SlowFast/README.md)                       | 视频动作识别      | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
 | [DeepSORT](./sample/DeepSORT/README.md)                       | 多目标跟踪        | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ByteTrack](./sample/ByteTrack/README.md)                     | 多目标跟踪        | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [FearTracker](./sample/FearTracker/README.md)               | 单目标跟踪        | Python     | FP16           | BM1684X/BM1688               |
 | [CenterNet](./sample/CenterNet/README.md)                     | 目标检测、姿态识别 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688       |
 | [YOLOv5](./sample/YOLOv5/README.md)                           | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [YOLOv34](./sample/YOLOv34/README.md)                         | 目标检测          | C++/Python | FP32/INT8      | BM1684/BM1684X/BM1688        |
@@ -70,6 +74,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [YOLO_world](./sample/YOLO_world/README.md)                   | 目标检测          | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [YOLO_world_v2](./sample/YOLO_world_v2/README.md)           | 开放词汇目标检测   | Python     | FP32/FP16      | BM1684X                      |
 | [D-FINE](./sample/D-FINE/README.md)                           | 目标检测          | Python     | FP16/INT8      | BM1684X/BM1688/CV186X        |
 | [YOLOv8_obb](./sample/YOLOv8_obb/README.md)                | 旋转框目标检测     | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X       |
 | [YOLOv11_obb](./sample/YOLOv11_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X       |
@@ -77,6 +82,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [Whisper](./sample/Whisper/README.md)                         | 语音识别          | Python     | FP16           | BM1684X                      |
 | [Seamless](./sample/Seamless/README.md)                       | 语音识别          | Python     | FP32/FP16      | BM1684X/BM1688               |
+| [SeACoParaformer](./sample/SeAcoParaformer/README.md)       | 语音识别          | C++/Python | FP32           | BM1684X                      |
 | [BERT](./sample/BERT/README.md)                               | 语言模型          | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
 | [ChatGLM2](./sample/ChatGLM2/README.md)                       | 大规模语言模型     | C++/Python | FP16/INT8/INT4 | BM1684X                     |
 | [Llama2](./sample/Llama2/README.md)                           | 大规模语言模型     | C++/Python | FP16/INT8/INT4 | BM1684X                     |
@@ -118,6 +124,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [CAM++](./sample/CAM++/README.md)                             | 说话人识别        | C++/Python | FP32           | BM1684X/BM1688/CV186X        |
 | [FaceFormer](./sample/FaceFormer/README.md)                   | 音频驱动口型      | Python     | FP32           | BM1684X        |
 | [MP_SENet](./sample/MP_SENet/README.md)                       | 语音降噪          | Python     | FP32/BF16      | BM1684X        |
+| [Silero](./sample/Silero/README.md)                         | 语音活动检测      | C++/Python | FP16           | BM1684X                      |
 | [LightStereo](./sample/LightStereo/README.md)                 | 立体匹配          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 
 | application                                                              | 应用场景                  | 编程语言    | 支持硬件                     |
@@ -132,10 +139,12 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [ChatDoc](./application/ChatDoc/README.md)                               | 快速提取文档内容并用于问答   | Python      | BM1684X/BM1688              |
 | [LLM_api_server](./application/LLM_api_server/README.md)                 | 类Openai_api的LLM服务      | Python      | BM1684X/BM1688              |
 | [Audio_assistant](./application/Audio_assistant/README.md)               | 语音助手                   | C++/Python  | BM1684X/BM1688              |
+| [meeting_summary](./application/meeting_summary/README.md)               | 会议纪要                   | Python      | BM1684X                      |
 
 ## 版本说明
 | 版本    | 说明 | 
 |---     |---   |
+| 0.3.11 | 完善和修复文档、代码问题，sample模块新增ArcFace、FearTracker、MobileNetV4、SeACoParaformer、Silero、Unet、YOLO_world_v2例程，application模块新增meeting_summary例程，部分sample新增int8 bmodel。|
 | 0.3.10 | 完善和修复文档、代码问题，移除FCENet例程，VITS_CHINESE新增C++例程，sample模块新增LFM2-VL例程。|
 | 0.3.9  | 完善和修复文档、代码问题，sample模块新增YOLO26、YOLO26_seg、YOLO26_obb、PaddleOCR-VL例程。|
 | 0.3.8  | 完善和修复文档、代码问题，sample模块PP-OCR新适配ppocr-v5。|
@@ -174,6 +183,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 SOPHON-DEMO主要依赖TPU-MLIR、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SOPHON-SAIL，对于BM1684/BM1684X SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.11  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.10  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.9  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.8  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -211,6 +221,7 @@ SOPHON-DEMO主要依赖TPU-MLIR、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SO
 对于BM1688/CV186AH SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.11 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.10 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.9  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.8  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
