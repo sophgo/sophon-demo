@@ -1,0 +1,23 @@
+# SAM3 Python inference dependencies
+# Sophon SDK environment:
+#   libsophon >= 0.5.3
+#   sophon-mw (sophon-opencv) >= 0.15.0
+#   sophon-sail >= 3.9.0
+#
+# SAM3 model dependencies:
+sam3>=0.1.0           # From https://github.com/facebookresearch/sam3
+torch>=2.0.0
+torchvision>=0.15.0
+timm>=1.0.0
+numpy>=1.24.0
+opencv-python>=4.8.0
+Pillow>=10.0.0
+huggingface_hub>=0.20.0  # For weight download
+
+# ONNX export:
+onnx>=1.14.0
+onnx-simplifier>=0.4.0
+onnxruntime>=1.15.0
+
+# For TPU-MLIR compilation (in Docker):
+# These are pre-installed in sophgo/tpuc_dev docker
