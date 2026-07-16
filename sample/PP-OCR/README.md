@@ -108,6 +108,46 @@ models
 │   ├── ch_PP-OCRv5_rec_fp16.bmodel       # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
 ```
 
+您可以通过这个脚本下载ppocrv6相关数据。PP-OCRv6提供tiny、small、medium三档模型，分别面向端侧/IoT、移动端/桌面端、服务端场景，其中small/medium单一模型统一支持50种语言。
+```bash
+./scripts/download_v6.sh
+```
+
+下载的模型和数据包括：
+```bash
+datasets
+├── ppocrv6_dict.txt       # ppocrv6 small/medium汉字集合
+├── ppocrv6_tiny_dict.txt  # ppocrv6 tiny汉字集合
+models
+│   BM1688
+│   ├── ch_PP-OCRv6_tiny_det_fp16.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
+│   ├── ch_PP-OCRv6_tiny_rec_fp16.bmodel        # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，由batch_size=1和batch_size=4、width=320和width=640且num_core=1的模型combine得到。
+│   ├── ch_PP-OCRv6_small_det_fp16.bmodel       # 同上，small尺寸检测模型
+│   ├── ch_PP-OCRv6_small_rec_fp16.bmodel       # 同上，small尺寸识别模型
+│   ├── ch_PP-OCRv6_medium_det_fp16.bmodel      # 同上，medium尺寸检测模型
+│   ├── ch_PP-OCRv6_medium_rec_fp16.bmodel      # 同上，medium尺寸识别模型
+│   ├── ch_PP-OCRv6_tiny_det_fp16_2core.bmodel  # 同上，num_core=2版本
+│   ├── ch_PP-OCRv6_tiny_rec_fp16_2core.bmodel
+│   ├── ch_PP-OCRv6_small_det_fp16_2core.bmodel
+│   ├── ch_PP-OCRv6_small_rec_fp16_2core.bmodel
+│   ├── ch_PP-OCRv6_medium_det_fp16_2core.bmodel
+│   └── ch_PP-OCRv6_medium_rec_fp16_2core.bmodel
+├── CV186X
+│   ├── ch_PP-OCRv6_tiny_det_fp16.bmodel        # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，combine方式同上
+│   ├── ch_PP-OCRv6_tiny_rec_fp16.bmodel
+│   ├── ch_PP-OCRv6_small_det_fp16.bmodel
+│   ├── ch_PP-OCRv6_small_rec_fp16.bmodel
+│   ├── ch_PP-OCRv6_medium_det_fp16.bmodel
+│   └── ch_PP-OCRv6_medium_rec_fp16.bmodel
+└── BM1684X
+    ├── ch_PP-OCRv6_tiny_det_fp16.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，combine方式同上
+    ├── ch_PP-OCRv6_tiny_rec_fp16.bmodel
+    ├── ch_PP-OCRv6_small_det_fp16.bmodel
+    ├── ch_PP-OCRv6_small_rec_fp16.bmodel
+    ├── ch_PP-OCRv6_medium_det_fp16.bmodel
+    └── ch_PP-OCRv6_medium_rec_fp16.bmodel
+```
+
 ## 4. 模型编译
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
