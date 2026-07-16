@@ -1,0 +1,8 @@
+# BModels + 大权重由 scripts/download.sh 拉取或自行编译，不进 git
+models/*
+!models/README.md
+# 测试图片由 scripts/download.sh 下载，不进 git
+datasets/*.png
+# Python 缓存
+python/__pycache__/
+*.pyc

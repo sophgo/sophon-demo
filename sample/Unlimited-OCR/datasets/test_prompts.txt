@@ -1,0 +1,17 @@
+# Unlimited-OCR 测试用例
+# 格式：每行一个 prompt（空行和 # 开头被忽略）
+# 当前 bmodel 为 LLM-only（视觉塔未接入），测试文本生成能力。
+# 视觉塔接入后可用同一图片跑图像 OCR。
+
+# === 英文通用 ===
+The capital of France is
+document parsing.
+Once upon a time
+Question: what is 2+2? Answer:
+List three primary colors:
+Translate to English: je suis un chat
+def fibonacci(n):
+
+# === 中文通用 ===
+你好，请介绍一下
+今天天气怎么样

@@ -1,0 +1,10 @@
+# Unlimited-OCR SAIL runtime dependencies (SoC / x86 PCIe)
+# Install sophon-sail separately (matches your libsophon SDK version), e.g.:
+#   pip3 install sophon-sail -f https://sophon.sophonedge.com/sdk/repo/.../sophon-sail/  (or the bundled .whl)
+transformers==4.57.1
+Pillow>=10.0.0
+PyMuPDF>=1.27.0
+numpy>=1.24
+addict
+easydict
+einops
