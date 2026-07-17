@@ -99,6 +99,8 @@ chmod -R +x scripts/
 
 **TPU-MLIR 环境准备**（可参考 [TPU-MLIR 环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)）：
 
+> **注意**：Unlimited-OCR 的 converter 尚未合入 tpu_mlir 主线（[相关 Gerrit 评审](https://gerrit-ai.sophgo.vip:8443/165605)），需额外安装 overlay wheel。
+
 ```bash
 # 假设 tpu-mlir 和 sophon-demo 在同一父目录
 docker run -d --name unlimited_ocr_mlir --shm-size=64g \
@@ -106,15 +108,16 @@ docker run -d --name unlimited_ocr_mlir --shm-size=64g \
   sophgo/tpuc_dev:latest tail -f /dev/null
 docker exec -it unlimited_ocr_mlir bash
 
-# 容器内：安装基础 tpu_mlir + Unlimited-OCR overlay
+# 容器内
+# 1. 下载并安装 tpu_mlir 基础包 + Unlimited-OCR overlay wheel
 pip install tpu_mlir==1.28.1
-pip install https://open.sophgo.com/sophon-demo/Unlimited-OCR/tpu_mlir_uocr-1.28.1+uocr-py3-none-any.whl
-# 设置环境
+bash /workspace/sophon-demo/sample/Unlimited-OCR/scripts/download.sh
+pip install tpu_mlir_uocr-1.28.1+uocr-py3-none-any.whl
+
+# 2. 安装其他依赖
 pip install transformers==4.57.1 torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
 pip install addict easydict einops
 ```
-
-> **说明**：`tpu_mlir_uocr` 是 overlay wheel，在标准 `tpu_mlir==1.28.1` 之上添加了 Unlimited-OCR converter 支持（[相关 Gerrit 评审](https://gerrit-ai.sophgo.vip:8443/165605)）。它覆盖了 `tpu_mlir/python/llm/` 和 `tpu_mlir/python/tools/` 下的 Python 文件，添加了 MoE one-hot routing、GGUF/Safetensors 双路径加载等功能，不影响其他模型的编译。
 
 **下载 HF 权重**：
 
