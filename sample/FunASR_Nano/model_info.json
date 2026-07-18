@@ -1,0 +1,57 @@
+{
+  "model_name": "FunASR-Nano-2512",
+  "task": "Automatic Speech Recognition (ASR)",
+  "source": "https://huggingface.co/FunAudioLLM/Fun-ASR-Nano-2512",
+  "paper": "arXiv:2509.12508",
+  "vendor": "Alibaba Tongyi Lab (FunAudioLLM)",
+  "architecture": {
+    "encoder": {
+      "type": "SenseVoiceEncoderSmall (SANM)",
+      "blocks": 70,
+      "hidden_size": 512,
+      "attention_heads": 4,
+      "fsmn_kernel": 11
+    },
+    "adapter": {
+      "type": "Transformer",
+      "layers": 2,
+      "input_dim": 512,
+      "output_dim": 1024
+    },
+    "llm": {
+      "type": "Qwen3-0.6B",
+      "layers": 28,
+      "hidden_size": 1024,
+      "attention_heads": 16,
+      "kv_heads": 8,
+      "head_dim": 128,
+      "vocab_size": 151936
+    }
+  },
+  "frontend": {
+    "sample_rate": 16000,
+    "feature": "FBank",
+    "mel_bins": 80,
+    "frame_length_ms": 25,
+    "frame_shift_ms": 10,
+    "lfr_m": 7,
+    "lfr_n": 6,
+    "input_dim": 560
+  },
+  "bmodels": {
+    "BM1688": {
+      "quantize": "F16",
+      "encoder": "funasr_encoder_f16_1b.bmodel",
+      "adapter": "funasr_adapter_f16_1b.bmodel",
+      "encoder_size_mb": 431,
+      "adapter_size_mb": 31,
+      "grid": 200,
+      "max_audio_seconds": 12
+    }
+  },
+  "supported_languages": 31,
+  "languages": ["zh", "en", "ja", "ko", "fr", "de", "es", "pt", "ru", "ar", "hi", "th", "vi", "id", "ms", "tl", "tr", "it", "nl", "pl", "sv", "da", "fi", "nb", "cs", "ro", "hu", "bg", "el", "he", "uk"],
+  "test_dataset": "aishell_S0764",
+  "compile_env": "TPU-MLIR >= v1.28.1",
+  "platform": ["BM1688"]
+}
