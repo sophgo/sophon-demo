@@ -45,9 +45,9 @@ if [ ! -d "../datasets" ];
 then
     mkdir ../datasets
     pushd ../datasets
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/ArcFace/test.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ArcFace/datasets/test.tar.gz
     tar xvf test.tar.gz && rm test.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/ArcFace/cali.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ArcFace/datasets/cali.tar.gz
     tar xvf cali.tar.gz && rm cali.tar.gz
     popd
     echo "datasets download!"
