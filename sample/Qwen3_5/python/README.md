@@ -21,7 +21,7 @@ Qwen3.5能够输入单一图片/视频进行对话，python目录下提供了例
 
 ## 1. 环境准备
 > **注意：**
-> 无论哪个环境，都要求transformers>=5.9.0，该版本要求python版本大于3.10。若不满足，请参考[python3.10安装](../../../docs/FAQ.md#13-se7安装python310)安装。
+> 无论哪个环境，都要求transformers==5.7.0，该版本要求python版本大于3.10。若不满足，请参考[python3.10安装](../../../docs/FAQ.md#13-se7安装python310)安装。
 
 ### 1.1 x86/arm PCIe平台
 

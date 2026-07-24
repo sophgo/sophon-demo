@@ -1,4 +1,4 @@
-transformers==5.9.0
+transformers==5.7.0
 torch==2.6.0
 torchvision==0.21.0
 qwen_vl_utils==0.0.14

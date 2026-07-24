@@ -66,6 +66,8 @@ class Qwen3_5():
         for dim_i in range(len(self.net.get_input_shape("block_cache_3", 3))-2, -1, -1):
             self.past_kv_stride[dim_i] = self.net.get_input_shape("block_cache_3", 3)[dim_i + 1] * \
                                             self.past_kv_stride[dim_i + 1]
+        # full KV shape [1, SEQLEN, num_heads, head_dim], used for per-chunk reshape
+        self.fa_kv_shape = list(self.net.get_input_shape("block_cache_3", 3))
         self.kv_dtype = self.net.get_input_dtype("block_cache_3", 3)
         if self.kv_dtype == sail.Dtype.BM_BFLOAT16:
             self.dtype_size = 2
@@ -83,7 +85,14 @@ class Qwen3_5():
         self.support_history = False
         self.MAX_INPUT_LENGTH = self.net.get_input_shape("embedding", 0)[1]
         self.PREFILL_KV_LENGTH = self.net.get_input_shape("block_cache_3", 3)[1]
-        self.support_history = self.net.get_input_num("block_cache_" + str(self.FA_INTERVAL - 1)) == 5
+        # history is supported iff the bmodel ships block_kv_<FA-1> networks
+        # (FA-layer prefill graph WITH past-KV inputs at input[2]/input[3],
+        # used when old_kvlen > 0). The fresh-prefill FA graph is block_<i>
+        # (no past-KV inputs). Counting block_cache inputs is not a valid probe:
+        # FA decode always has 5 inputs regardless.
+        kv_name = "block_kv_" + str(self.FA_INTERVAL - 1)
+        self.support_history = kv_name in self.graph_names
+        self.history_length = 0
 
         self.name_embed = "embedding"
         self.name_embed_cache = "embedding_cache"
@@ -105,6 +114,7 @@ class Qwen3_5():
             self.logger.info(f"Generation mode: lmhead_with_topk")
 
         embed_output_dtype = self.net.get_output_dtype(self.name_embed_cache, 0)
+        self.embed_dtype = embed_output_dtype
         if embed_output_dtype == sail.Dtype.BM_FLOAT16:
             self.MASK_VALUE = 0xF0E2
         elif embed_output_dtype == sail.Dtype.BM_BFLOAT16:
@@ -112,6 +122,16 @@ class Qwen3_5():
         else:
             self.logger.error(f"Unsupported dtype for mask: {embed_output_dtype}")
             raise TypeError("Only support float16/bfloat16 for attention mask")
+
+        # When support_history, embed output for all chunks must persist across
+        # MAX_INPUT_LENGTH-bound embed calls, so allocate a SEQLEN-wide buffer.
+        # Non-history path keeps using output_tensors[name_embed][0] directly.
+        if self.support_history:
+            self.dev_buffer = sail.Tensor(self.handle,
+                                          [1, self.seq_len, self.hidden_size],
+                                          self.embed_dtype, False, True)
+        else:
+            self.dev_buffer = None
 
         self.input_tensors[self.name_vit] = self.net.create_max_input_tensors(self.name_vit)
         self.output_tensors[self.name_vit] = self.net.create_max_output_tensors(self.name_vit)
@@ -129,6 +149,32 @@ class Qwen3_5():
         self.output_tensors[self.name_blocks[self.FA_INTERVAL - 1]] = self.net.create_max_output_tensors(self.name_blocks[self.FA_INTERVAL - 1])
         self.fa_output_num = self.net.get_output_num(self.name_blocks[self.FA_INTERVAL - 1])
 
+        # Per-layer prefill output tensors (avoid in-place read-write of a shared
+        # first_hidden_states_output across layers, which races with streaming
+        # kernels). Mirrors C++ where each layer uses its own output_mems[0].
+        self.prefill_hidden_outputs = []
+        for i in range(self.num_layers):
+            self.prefill_hidden_outputs.append(
+                sail.Tensor(self.handle, [1, self.MAX_INPUT_LENGTH, self.hidden_size],
+                            self.embed_dtype, False, True))
+
+        # block_kv_<i> is the FA prefill graph WITH past-KV inputs; used when
+        # old_kvlen > 0 (has history). The fresh variant is block_<i> (no
+        # past-KV). One template (FA_INTERVAL-1) is enough — all FA layers
+        # share the same shape.
+        self.name_blocks_kv = []
+        if self.support_history:
+            kv_template = "block_kv_" + str(self.FA_INTERVAL - 1)
+            self.input_tensors[kv_template] = self.net.create_max_input_tensors(kv_template)
+            self.output_tensors[kv_template] = self.net.create_max_output_tensors(kv_template)
+            for i in range(self.num_layers):
+                if self.is_FA(i):
+                    self.name_blocks_kv.append("block_kv_" + str(i))
+                else:
+                    self.name_blocks_kv.append(None)
+            self.fa_kv_k_cache_output = self.output_tensors[kv_template][1]
+            self.fa_kv_v_cache_output = self.output_tensors[kv_template][2]
+
         self.first_hidden_states_output = self.output_tensors[self.name_blocks[0]][0]
         self.fa_k_cache_output = self.output_tensors[self.name_blocks[self.FA_INTERVAL - 1]][1]
         self.fa_v_cache_output = self.output_tensors[self.name_blocks[self.FA_INTERVAL - 1]][2]
@@ -141,15 +187,28 @@ class Qwen3_5():
         self.present_value_output = self.init_sail_tensor(self.name_blocks_cache[self.FA_INTERVAL - 1], 2, is_input=False)
 
         for i in range(self.num_layers):
-            self.input_tensors[self.name_blocks_cache[i]] = self.net.create_max_input_tensors(self.name_blocks_cache[i])
-            self.output_tensors[self.name_blocks_cache[i]] = self.net.create_max_output_tensors(self.name_blocks_cache[i])
+            # Use internal (pre-allocated) tensors — in addr_mode=1 (SHARE_MEM),
+            # the bmodel writes in-place updates (e.g. non-FA recurrent_state)
+            # to the pre-allocated input_mems address. Independent tensors
+            # (create_max_*) have their own memory and miss those updates.
+            # This matches C++ chat.cpp which uses net->stages[0].input_mems.
+            self.input_tensors[self.name_blocks_cache[i]] = self.net.get_input_tensors(self.name_blocks_cache[i])
+            self.output_tensors[self.name_blocks_cache[i]] = self.net.get_output_tensors(self.name_blocks_cache[i])
 
         self.linear_conv_state_outputs = []
         self.linear_recurrent_state_outputs = []
         for i in range(self.num_layers):
             if not self.is_FA(i):
-                self.linear_conv_state_outputs.append(self.output_tensors[self.name_blocks_cache[i]][1])
-                self.linear_recurrent_state_outputs.append(self.output_tensors[self.name_blocks_cache[i]][2])
+                cache_out = self.output_tensors[self.name_blocks_cache[i]]
+                self.linear_conv_state_outputs.append(cache_out[1])
+                # Some bmodels only emit output_states + conv_state for non-FA
+                # decode (recurrent_state is updated in-place in input[2]).
+                # In that case there is no output[2] to sync from — leave None
+                # and forward_next skips the recurrent_state sync.
+                if len(cache_out) > 2:
+                    self.linear_recurrent_state_outputs.append(cache_out[2])
+                else:
+                    self.linear_recurrent_state_outputs.append(None)
             else:
                 self.linear_conv_state_outputs.append(None)
                 self.linear_recurrent_state_outputs.append(None)
@@ -221,8 +280,16 @@ class Qwen3_5():
 
     def init_runtime_vals(self):
         self.step = 0
+        self.history_length = 0
         self.token_pos_length = 0
         self.last_id = None
+        # Zero past KV / state tensors at init to match C++ empty() in chat.cpp:331-340.
+        # Uninitialized device memory contains garbage that can poison FA attention
+        # (masked but still read) and corrupt Mamba recurrent state.
+        if hasattr(self, "past_key_input"):
+            for i in range(self.num_layers):
+                self.past_key_input[i].zeros()
+                self.past_value_input[i].zeros()
         self.logger.debug(f"clear runtime vals success!")
 
     def is_FA(self, layer_idx):
@@ -281,16 +348,16 @@ class Qwen3_5():
         return messages
 
     def clear_history(self):
-        self.past_key_input = []
-        self.past_value_input = []
-        self.step = 0
+        if not self.support_history:
+            return
+        # Zero the existing KV/state tensors in place (mirrors C++ empty()).
+        # Recreating them would break the alias with block_cache_<i> input tensors
+        # held in self.input_tensors, and leak device memory.
         for i in range(self.num_layers):
-            if self.is_FA(i):
-                self.past_key_input.append(self.init_sail_tensor(self.name_blocks_cache[self.FA_INTERVAL - 1], 3))
-                self.past_value_input.append(self.init_sail_tensor(self.name_blocks_cache[self.FA_INTERVAL - 1], 4))
-            else:
-                self.past_key_input.append(self.init_sail_tensor(self.name_blocks_cache[0], 1))
-                self.past_value_input.append(self.init_sail_tensor(self.name_blocks_cache[0], 2))
+            self.past_key_input[i].zeros()
+            self.past_value_input[i].zeros()
+        self.history_length = 0
+        self.step = 0
 
     def get_media_type(self, file_path):
         image_exts = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}
@@ -476,10 +543,29 @@ class Qwen3_5():
         self.token_len = tokens.shape[1]
         self.tokens = tokens[0].tolist()
 
-        input_ids = np.zeros((tokens.shape[0], self.MAX_INPUT_LENGTH), dtype=type_convert(self.input_tensors[self.name_embed][0].dtype()))
-        input_ids[:, :min(self.MAX_INPUT_LENGTH, tokens.shape[1])] = tokens
-        self.input_tensors[self.name_embed][0].update_data(input_ids)
-        self.net.process(self.name_embed, self.input_tensors[self.name_embed], self.output_tensors[self.name_embed])
+        embed_in_dtype = type_convert(self.input_tensors[self.name_embed][0].dtype())
+        if not self.support_history:
+            input_ids = np.zeros((tokens.shape[0], self.MAX_INPUT_LENGTH), dtype=embed_in_dtype)
+            input_ids[:, :min(self.MAX_INPUT_LENGTH, tokens.shape[1])] = tokens
+            self.input_tensors[self.name_embed][0].update_data(input_ids)
+            self.net.process(self.name_embed, self.input_tensors[self.name_embed], self.output_tensors[self.name_embed])
+            return
+
+        # support_history: token_len can exceed MAX_INPUT_LENGTH. Embed in
+        # MAX_INPUT_LENGTH chunks and stitch into dev_buffer at offset i*HIDDEN_SIZE
+        # (element units). dev_buffer persists across chunks so block_prompt/block_<i>
+        # can index into it during chunk prefill.
+        assert self.token_len <= self.seq_len, \
+            f"token_len {self.token_len} exceeds seq_len {self.seq_len}"
+        for i in range(0, self.token_len, self.MAX_INPUT_LENGTH):
+            real_len = min(self.MAX_INPUT_LENGTH, self.token_len - i)
+            input_ids = np.zeros((tokens.shape[0], self.MAX_INPUT_LENGTH), dtype=embed_in_dtype)
+            input_ids[:, :real_len] = tokens[:, i:i + real_len]
+            self.input_tensors[self.name_embed][0].update_data(input_ids)
+            self.net.process(self.name_embed, self.input_tensors[self.name_embed], self.output_tensors[self.name_embed])
+            dst_offset = i * self.hidden_size
+            size = real_len * self.hidden_size
+            self.dev_buffer.sync_d2d(self.output_tensors[self.name_embed][0], 0, dst_offset, size)
 
     def forward_vit(self, pixel_values, position_ids, pos_idx, pos_weight, grid_thw, vit_offset):
         t, h, w = grid_thw.squeeze(0).tolist()
@@ -546,9 +632,10 @@ class Qwen3_5():
 
         self.net.process(self.name_vit, self.input_tensors[self.name_vit], self.output_tensors[self.name_vit])
 
-        dst_offset = (vit_offset + 1) * self.hidden_size
+        dst_offset = vit_offset * self.hidden_size
         vit_size = (real_patches // 4) * self.hidden_size
-        self.output_tensors[self.name_embed][0].sync_d2d(
+        embed_target = self.dev_buffer if self.support_history else self.output_tensors[self.name_embed][0]
+        embed_target.sync_d2d(
             self.output_tensors[self.name_vit][0], 0, dst_offset, vit_size)
         self.vit_run = True
 
@@ -581,6 +668,8 @@ class Qwen3_5():
         return token
 
     def forward_first(self, position_ids):
+        if self.support_history:
+            return self.forward_first_with_kv(position_ids)
         self.token_pos_length = position_ids.max() + 1
         position_ids = position_ids.flatten()
 
@@ -661,6 +750,7 @@ class Qwen3_5():
 
         self.vit_run = False
         self.step = self.token_len
+        self.history_length = self.token_len
         self.token_pos_length = position_ids.max() + 1
 
         lm_input = sail.Tensor(out_mem, [1, self.hidden_size], (self.token_len - 1) * self.hidden_size)  # offset in elements
@@ -668,6 +758,150 @@ class Qwen3_5():
 
         self.last_id = self.sample_token()
         self.logger.debug(f"get first inference results token id {self.last_id}")
+        return self.last_id
+
+    def forward_first_with_kv(self, position_ids):
+        """Chunk prefill with KV-cache reuse — mirrors C++ chat.cpp:forward_first_with_kv.
+
+        For each MAX_INPUT_LENGTH chunk of new tokens:
+          - FA layers, no accumulated KV yet (old_kvlen==0): use block_<idx>
+            (fresh, 2 inputs: hidden, pos; internal causal mask).
+          - FA layers, with accumulated KV (old_kvlen>0): use block_kv_<idx> and pass
+            past KV at input[2]/input[3]. New chunk KV is appended to past_key/past_value
+            at offset old_kvlen * fa_elements.
+          - non-FA (Linear/Mamba) layers: pass recurrent_state (input[1]) and conv_state
+            (input[2]) from past_value/past_key; sync conv_state back after run.
+        """
+        assert self.support_history, "forward_first_with_kv requires support_history"
+        token_len = self.token_len
+        assert self.history_length + token_len < self.seq_len, \
+            f"history_length {self.history_length} + token_len {token_len} >= seq_len {self.seq_len}"
+
+        p_ids = position_ids.flatten().astype(np.int32)
+        assert p_ids.size == 3 * token_len, \
+            f"position_ids size {p_ids.size} != 3 * token_len {3 * token_len}"
+
+        fa_elements = self.past_kv_stride[1]  # elements per token (4*256=1024 for this bmodel)
+        fa_template = self.name_blocks[self.FA_INTERVAL - 1]              # block_3 (fresh, 2 inputs)
+        kv_template = "block_kv_" + str(self.FA_INTERVAL - 1)             # block_kv_3 (with history, 4 inputs)
+        linear_template = self.name_blocks[0]                            # block_0
+
+        old_kvlen = (self.history_length - 1) if self.history_length > 0 else 0
+        last_cur_len = 0
+        out_mem = self.first_hidden_states_output
+
+        for t in range(0, token_len, self.MAX_INPUT_LENGTH):
+            cur_len = min(self.MAX_INPUT_LENGTH, token_len - t)
+            last_cur_len = cur_len
+            old_length = self.history_length
+            self.history_length += cur_len
+            use_kv = old_kvlen > 0
+
+            # this chunk's position_ids, layout [3, cur_len]
+            chunk_pos = np.zeros((3, cur_len), dtype=np.int32)
+            for i in range(3):
+                chunk_pos[i] = p_ids[i * token_len + t : i * token_len + t + cur_len]
+
+            for idx in range(self.num_layers):
+                is_fa = self.is_FA(idx)
+
+                if is_fa:
+                    template_key = kv_template if use_kv else fa_template
+                else:
+                    template_key = linear_template
+                block_input_tensors = dict(self.input_tensors[template_key])
+                block_output_tensors_ref = self.output_tensors[template_key]
+
+                # input_states: layer 0 reads from dev_buffer at chunk offset;
+                # subsequent layers read from prev layer output (per-layer
+                # prefill_hidden_outputs[idx] — NOT in-place, mirrors C++ where
+                # each layer has its own output_mems[0]).
+                layer_out = self.prefill_hidden_outputs[idx]
+                if idx == 0:
+                    block_input_tensors[0] = sail.Tensor(
+                        self.dev_buffer, [1, cur_len, self.hidden_size], t * self.hidden_size)
+                else:
+                    block_input_tensors[0] = sail.Tensor(
+                        out_mem, [1, cur_len, self.hidden_size], 0)
+
+                block_output_tensors = {0: layer_out}
+
+                if is_fa:
+                    # position_ids input[1]
+                    block_input_tensors[1].reshape([3, cur_len])
+                    block_input_tensors[1].update_data(chunk_pos)
+
+                    if use_kv:
+                        # block_kv_<idx>: pass a VIEW of past_key/past_value at input[2]/input[3].
+                        # Using a view (not reshape on the shared template tensor) avoids
+                        # mutating the template's reported size across chunks.
+                        old_kv_shape = [1, old_kvlen] + list(self.fa_kv_shape[2:])
+                        block_input_tensors[2] = sail.Tensor(
+                            self.past_key_input[idx], old_kv_shape, 0)
+                        block_input_tensors[3] = sail.Tensor(
+                            self.past_value_input[idx], old_kv_shape, 0)
+                    # else: block_<idx> (fresh, 2 inputs) — no past KV ports.
+
+                    # output[1]/[2]: new chunk KV (shape [1, cur_len, 4, 256])
+                    block_output_tensors[1] = block_output_tensors_ref[1]
+                    block_output_tensors[2] = block_output_tensors_ref[2]
+
+                    net_name = ("block_kv_" + str(idx)) if use_kv else self.name_blocks[idx]
+                    self.net.process(net_name, block_input_tensors, block_output_tensors)
+
+                    # append new chunk KV to past_key/past_value at offset old_kvlen * fa_elements
+                    new_kv_size = cur_len * fa_elements
+                    dst_offset = old_kvlen * fa_elements
+                    self.past_key_input[idx].sync_d2d(block_output_tensors_ref[1], 0, dst_offset, new_kv_size)
+                    self.past_value_input[idx].sync_d2d(block_output_tensors_ref[2], 0, dst_offset, new_kv_size)
+                else:
+                    # non-FA (Linear/Mamba): input[1]=recurrent_state, input[2]=conv_state
+                    if old_kvlen > 0:
+                        block_input_tensors[1].sync_d2d(self.past_value_input[idx], 0, 0,
+                                                        block_input_tensors[1].size())
+                        block_input_tensors[2].sync_d2d(self.past_key_input[idx], 0, 0,
+                                                        block_input_tensors[2].size())
+                    else:
+                        block_input_tensors[1].zeros()
+                        block_input_tensors[2].zeros()
+
+                    # output[1]: conv_states
+                    block_output_tensors[1] = block_output_tensors_ref[1]
+
+                    self.net.process(self.name_blocks[idx], block_input_tensors, block_output_tensors)
+
+                    # sync conv_state (output[1]) back to past_key
+                    self.past_key_input[idx].sync_d2d(block_output_tensors_ref[1], 0, 0,
+                                                      block_output_tensors_ref[1].size())
+                    # sync recurrent_state (input[1]) back to past_value
+                    self.past_value_input[idx].sync_d2d(block_input_tensors[1], 0, 0,
+                                                        block_input_tensors[1].size())
+
+                out_mem = layer_out
+
+            old_kvlen += cur_len
+
+        # lm_head: last chunk's last-token hidden state sits at offset
+        # (last_cur_len - 1) * HIDDEN_SIZE in first_hidden_states_output
+        # (NOT (token_len-1)*HIDDEN_SIZE — chunked layers only hold the last chunk).
+        self.vit_run = False
+        self.step = self.history_length
+        self.token_pos_length = int(position_ids.max()) + 1
+
+        lm_input = sail.Tensor(out_mem, [1, self.hidden_size],
+                               (last_cur_len - 1) * self.hidden_size)
+        if os.environ.get("QWEN_DEBUG"):
+            arr = lm_input.asnumpy().astype(np.float32)
+            print(f"[prefill] lm_input: shape={arr.shape} min={arr.min():.4f} max={arr.max():.4f} mean={arr.mean():.4f} has_nan={np.isnan(arr).any()} has_inf={np.isinf(arr).any()}", flush=True)
+        self.net.process(self.name_lm, {0: lm_input}, self.output_tensors[self.name_lm])
+
+        self.last_id = self.sample_token()
+        # Match C++ chat.cpp:639 — history_length++ after lm_head so the
+        # first forward_next writes to slot token_len (not token_len - 1).
+        self.history_length += 1
+        self.step = self.history_length
+        self.logger.debug(
+            f"forward_first_with_kv: history_length={self.history_length}, last_id={self.last_id}")
         return self.last_id
 
     def forward_next(self, position_id):
@@ -680,18 +914,36 @@ class Qwen3_5():
         fa_block_name = self.name_blocks_cache[self.FA_INTERVAL - 1]
         attn_mask_shape = self.net.get_input_shape(fa_block_name, 2)
         attention_mask = np.zeros(attn_mask_shape, dtype=type_convert(self.net.get_input_dtype(fa_block_name, 2)))
-        attention_mask[0, 0, 0, self.step:self.seq_len] = self.MASK_VALUE
+        # Match C++ chat.cpp:645 — mask and KV slot use (history_length - 1).
+        # For non-history path, fall back to step (which equals token count so far).
+        if self.support_history:
+            cur_pos = self.history_length - 1
+        else:
+            cur_pos = self.step
+        attention_mask[0, 0, 0, cur_pos:self.seq_len] = self.MASK_VALUE
 
         position_ids = np.array(position_id, dtype=np.int32).reshape(3, 1)
         self.next_pos_ids_input.update_data(position_ids)
         self.next_attention_mask_input.update_data(attention_mask)
 
         fa_elements = self.past_kv_stride[1]
-        token_offset_elements = self.step * fa_elements
+        token_offset_elements = cur_pos * fa_elements
         fa_size = fa_elements
+        fa_view_shape = [1, 1] + list(self.fa_kv_shape[2:])  # [1, 1, 4, 256]
 
         for idx in range(self.num_layers):
+            # Use per-layer output tensor (mirrors C++ out_mem = output_mems[0]
+            # per layer) to avoid in-place read/write of next_hidden_states_output
+            # which can race with streaming kernels.
+            layer_out_hidden = self.output_tensors[self.name_blocks_cache[idx]][0]
             if self.is_FA(idx):
+                # C++-style: write new KV directly into past_key/past_value at slot
+                # cur_pos via a view (no scratch tensor + sync). This avoids any
+                # divergence between the bmodel's output and the persisted KV.
+                new_k_view = sail.Tensor(self.past_key_input[idx], fa_view_shape,
+                                         token_offset_elements)
+                new_v_view = sail.Tensor(self.past_value_input[idx], fa_view_shape,
+                                         token_offset_elements)
                 block_input_tensors = {
                     0: out_mem,
                     1: self.next_pos_ids_input,
@@ -700,13 +952,11 @@ class Qwen3_5():
                     4: self.past_value_input[idx],
                 }
                 block_output_tensors = {
-                    0: self.next_hidden_states_output,
-                    1: self.present_key_output,
-                    2: self.present_value_output,
+                    0: layer_out_hidden,
+                    1: new_k_view,
+                    2: new_v_view,
                 }
                 self.net.process(self.name_blocks_cache[idx], block_input_tensors, block_output_tensors)
-                self.past_key_input[idx].sync_d2d(self.present_key_output, 0, token_offset_elements, fa_size)
-                self.past_value_input[idx].sync_d2d(self.present_value_output, 0, token_offset_elements, fa_size)
             else:
                 block_input_tensors = {
                     0: out_mem,
@@ -714,19 +964,26 @@ class Qwen3_5():
                     2: self.past_value_input[idx],
                 }
                 block_output_tensors = {
-                    0: self.next_hidden_states_output,
+                    0: layer_out_hidden,
                     1: self.linear_conv_state_outputs[idx],
                     2: self.linear_recurrent_state_outputs[idx],
                 }
                 self.net.process(self.name_blocks_cache[idx], block_input_tensors, block_output_tensors)
                 self.past_key_input[idx].sync_d2d(self.linear_conv_state_outputs[idx], 0, 0, self.linear_conv_state_outputs[idx].size())
-                self.past_value_input[idx].sync_d2d(self.linear_recurrent_state_outputs[idx], 0, 0, self.linear_recurrent_state_outputs[idx].size())
+                # recurrent_state may be updated in-place (no output[2] for this bmodel);
+                # only sync back when an explicit recurrent_state output exists.
+                if self.linear_recurrent_state_outputs[idx] is not None:
+                    self.past_value_input[idx].sync_d2d(self.linear_recurrent_state_outputs[idx], 0, 0, self.linear_recurrent_state_outputs[idx].size())
 
-            out_mem = self.next_hidden_states_output
+            out_mem = layer_out_hidden
 
-        self.step += 1
+        self.history_length += 1
+        self.step = self.history_length
         self.token_pos_length += 1
 
+        if os.environ.get("QWEN_DEBUG"):
+            arr = out_mem.asnumpy().astype(np.float32)
+            print(f"[next hl={self.history_length}] lm_input: shape={arr.shape} min={arr.min():.4f} max={arr.max():.4f} mean={arr.mean():.4f} has_nan={np.isnan(arr).any()} has_inf={np.isinf(arr).any()}", flush=True)
         self.net.process(self.name_lm, {0: out_mem}, self.output_tensors[self.name_lm])
 
         self.last_id = self.sample_token()
@@ -735,7 +992,7 @@ class Qwen3_5():
         return self.last_id
 
     def forward_prefill(self, position_ids):
-        if self.step == 0 or not self.support_history:
+        if self.history_length == 0 or not self.support_history:
             self.history_max_posid = 0
             return self.forward_first(position_ids)
         self.max_posid += self.history_max_posid
@@ -812,17 +1069,18 @@ class Qwen3_5():
 
             inputs = self.process(messages, media_type)
             token_len = inputs.input_ids.numel()
-            if token_len > self.MAX_INPUT_LENGTH:
+            max_input_tokens = self.seq_len if self.support_history else self.MAX_INPUT_LENGTH
+            if token_len > max_input_tokens:
                 if media_type in ["image", "video"]:
                     print("grid_thw:{}".format(inputs.image_grid_thw if media_type ==
                                                "image" else inputs.video_grid_thw))
                 print(
                     "Error: The maximum question length should be shorter than {} but we get {} instead."
-                    .format(self.MAX_INPUT_LENGTH, token_len))
+                    .format(max_input_tokens, token_len))
                 continue
             if self.support_history:
-                if (token_len + self.step > self.seq_len - 128) or \
-                (self.step > self.PREFILL_KV_LENGTH):
+                if (token_len + self.history_length > self.seq_len - 128) or \
+                (self.history_length > self.PREFILL_KV_LENGTH):
                     print("Warning: History is full and clear it to continue.")
                     self.clear_history()
                     self.history_max_posid = 0
@@ -854,7 +1112,7 @@ class Qwen3_5():
             tok_num = 0
             full_word_tokens = []
             text = ""
-            while token not in [self.ID_IM_END, self.ID_END] and self.step < self.seq_len:
+            while token not in [self.ID_IM_END, self.ID_END] and self.history_length < self.seq_len:
                 full_word_tokens.append(token)
                 word = self.tokenizer.decode(full_word_tokens, skip_special_tokens=True)
                 if "\ufffd" not in word:
@@ -877,6 +1135,8 @@ class Qwen3_5():
             tps = tok_num / next_duration
             print(f"\nFTL: {first_duration:.3f} s")
             print(f"TPS: {tps:.3f} token/s")
+            if self.support_history:
+                print(f"Total Tokens: {self.history_length}")
             if media_type == "image":
                 print(f"Vision({inputs.image_grid_thw.tolist()}): {vit_end - vit_start:.3f} s")
             elif media_type == "video":

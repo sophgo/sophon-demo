@@ -25,6 +25,7 @@ function download_bm1684x_2b {
     fi
     pushd ../models/BM1684X
         python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU/qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260415_111517.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-2b-int4-autoround_w4bf16_seq8192_bm1684x_1dev_history_dynamic_20260722_164018.bmodel
     popd
 }
 
@@ -53,6 +54,7 @@ function download_bm1688 {
     pushd ../models/BM1688
         python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU/qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260415_212627.bmodel
         python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU/qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260416_145112.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-2b-int4-autoround_w4bf16_seq8192_bm1688_2core_history_dynamic_20260722_160000.bmodel
     popd
 }
 

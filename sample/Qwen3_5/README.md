@@ -28,6 +28,7 @@ Qwen3.5 是阿里巴巴推出的新一代多模态大语言模型（Multimodal L
 * 支持图像Resize
 * 支持视频抽帧
 * 支持动态模型
+* 支持历史上下文（仅`use_history_kv`的bmodel，详见[自行编译BModel模型](#42-自行编译bmodel模型)）
 
 ## 3. 运行环境准备
 
@@ -44,7 +45,7 @@ tar xvf memory_edit_v2.10.tar.xz
 cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息
 ./memory_edit.sh -c -npu 7615 -vpu 2048 -vpp 2048 #如果是在1688平台上请修改为：./memory_edit.sh -c -npu 10240 -vpu 0 -vpp 3072
-sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/emmcboot.itb /boot/emmcboot.itb && sync
+sudo cp output/emmcboot.itb /boot/emmcboot.itb && sync #如果是在1688平台上请修改为：sudo cp output/boot.itb /boot/boot.itb && sync
 sudo reboot
 ```
 
@@ -61,7 +62,7 @@ sudo reboot
 ​本例程在`scripts`目录下提供了相关模型和数据的下载脚本
 ```bash
 └── scripts
-    └──ownload_bmodel.sh                                        # 通过该脚本下载Qwen3.5的BModel
+    └──download_bmodel.sh                                        # 通过该脚本下载Qwen3.5的BModel
 ```
 
 > **注意：**
@@ -80,10 +81,12 @@ chmod -R +x scripts/
 ├── models
 |   ├── BM1684X
 |   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260415_111517.bmodel
+|   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq8192_bm1684x_1dev_history_dynamic_20260722_164018.bmodel  # 支持历史上下文，上下文长度为8k
 |   |   ├── qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260416_144422.bmodel
-|   |   └── qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260416_150658.bmodel  # 使用TPU-MLIR编译，用于BM1684X的Qwen3.5 BModel，上下文长度为2k
+|   |   └── qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260416_150658.bmodel  
 |   └── BM1688
 |       ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260415_212627.bmodel
+|       ├── qwen3.5-2b-int4-autoround_w4bf16_seq8192_bm1688_2core_history_dynamic_20260722_160000.bmodel  # 支持历史上下文，上下文长度为8k
 |       └── qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260416_145112.bmodel
 └── datasets # 测试图片和视频
 ```
@@ -103,14 +106,14 @@ Qwen3.5模型编译需要依赖[transformers官方仓库](https://github.com/hug
 - 进入docker环境后需要安装TPU-MLIR。本例程需要的TPU-MLIR版本较新，这里提供一个whl包供下载安装：
 ```bash
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/mlir_club/tpu-mlir_v1.28.beta.0-37-gdf2b86866-20260522.tar.gz
-tar xvf tpu-mlir_v1.28.beta.0-37-gdf2b86866-20260522.tar.gz
-source tpu-mlir_v1.28.beta.0-37-gdf2b86866-20260522/envsetup.sh
+python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/mlir_club/tpu-mlir_v1.29.beta.0-43-gae1a9bc81-20260722.tar.gz
+tar xvf tpu-mlir_v1.29.beta.0-43-gae1a9bc81-20260722.tar.gz
+source tpu-mlir_v1.29.beta.0-43-gae1a9bc81-20260722/envsetup.sh
 ```
 
 - 安装依赖
 ```bash
-pip3 install qwen-vl-utils accelerate torch==2.6.0 transformers==5.9.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install qwen-vl-utils accelerate torch==2.6.0 transformers==5.7.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ``` 
 
 - 从ModelScope或Huggingface下载`Qwen3.5-2B-Instruct`
@@ -134,6 +137,11 @@ git clone https://huggingface.co/Intel/Qwen3.5-9B-int4-AutoRound
 # 如果有提示transformers/torch版本问题，pip3 install transformers torchvision -U
 # 这里max_input_length指定最大输入长度，如果不指定则为-s指定的长度
 llm_convert.py -m /workspace/Qwen3.5-2B-int4-AutoRound --max_input_length 1024 -s 2048 --quantize w4bf16 -c bm1684x --out_dir qwen3.5_2b --max_pixels 768,768
+``` 
+
+默认情况下，模型不支持历史上下文；--use_history_kv参数是必需的；使用--chunk_length指定每次预填充处理的最大长度；如果未指定，则默认为seq_length的1/4。当实际输入超过该值时，将执行多次预填充运行；历史KV长度固定为seq_length。
+``` shell
+llm_convert.py -m /workspace/Qwen3.5/Qwen3.5-4B-int4-AutoRound -s 8192 -c bm1684x --out_dir qwen3.5_kv --use_history_kv --chunk_length 1024
 ```
 编译完成后，在指定目录`qwen3.5_2b`生成`qwen3.5-xxx.bmodel`和`config`
 
