@@ -125,7 +125,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [FaceFormer](./sample/FaceFormer/README.md)                   | 音频驱动口型      | Python     | FP32           | BM1684X        |
 | [MP_SENet](./sample/MP_SENet/README.md)                       | 语音降噪          | Python     | FP32/BF16      | BM1684X        |
 | [Silero](./sample/Silero/README.md)                         | 语音活动检测      | C++/Python | FP16           | BM1684X                      |
-| [LightStereo](./sample/LightStereo/README.md)                 | 立体匹配          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [LightStereo](./sample/LightStereo/README.md)                 | 立体匹配          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 
 | application                                                              | 应用场景                  | 编程语言    | 支持硬件                     |
 |---                                                                       |---                       |---          | ---                         |

@@ -150,60 +150,60 @@ datasets/
 ```bash
 # 请根据实际情况修改路径
 cd tools
-python3 eval.py --gt_path ../datasets/KITTI12/training/disp_occ --results_path ../python/results/images
+python3 eval.py --gt_path ../datasets/KITTI12/training/ --results_path ../python/results/images
 ```
 ### 5.2 测试结果
 在`datasets/KITTI12`数据集上，精度测试结果如下：
 |   测试平台    |      测试程序          |              测试模型               |    D1     |
 | ------------ | ----------------      | ----------------------------------- | --------- |
-| SE7-32       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.454 |
-| SE7-32       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.453 |
-| SE7-32       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.405 |
-| SE7-32       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.405 |
-| SE7-32       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.457 |
-| SE7-32       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.456 |
-| SE7-32       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.408 |
-| SE7-32       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.408 |
-| SE7-32       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.457 |
-| SE7-32       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.456 |
-| SE7-32       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.408 |
-| SE7-32       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.408 |
-| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.454 |
-| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.453 |
-| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.405 |
-| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.405 |
-| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.457 |
-| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.456 |
-| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.412 |
-| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.412 |
-| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.457 |
-| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.456 |
-| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.412 |
-| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.412 |
-| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp32_1b_2core.bmodel |    0.454 |
-| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp16_1b_2core.bmodel |    0.453 |
-| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_1b_2core.bmodel |    0.405 |
-| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_4b_2core.bmodel |    0.405 |
-| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp32_1b_2core.bmodel |    0.457 |
-| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp16_1b_2core.bmodel |    0.456 |
-| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_1b_2core.bmodel |    0.412 |
-| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_4b_2core.bmodel |    0.412 |
-| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp32_1b_2core.bmodel |    0.457 |
-| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp16_1b_2core.bmodel |    0.456 |
-| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_1b_2core.bmodel |    0.412 |
-| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_4b_2core.bmodel |    0.412 |
-| SE9-8        | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.454 |
-| SE9-8        | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.453 |
-| SE9-8        | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.405 |
-| SE9-8        | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.405 |
-| SE9-8        | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.457 |
-| SE9-8        | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.456 |
-| SE9-8        | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.412 |
-| SE9-8        | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.412 |
-| SE9-8        | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.457 |
-| SE9-8        | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.456 |
-| SE9-8        | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.412 |
-| SE9-8        | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.412 |
+| SE7-32       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3456 |
+| SE7-32       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3454 |
+| SE7-32       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3575 |
+| SE7-32       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3575 |
+| SE7-32       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3540 |
+| SE7-32       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3538 |
+| SE7-32       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3666 |
+| SE7-32       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3666 |
+| SE7-32       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3540 |
+| SE7-32       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3538 |
+| SE7-32       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3666 |
+| SE7-32       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3666 |
+| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3456 |
+| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3453 |
+| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3573 |
+| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3573 |
+| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3544 |
+| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3542 |
+| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3666 |
+| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3666 |
+| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3544 |
+| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3542 |
+| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3666 |
+| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3666 |
+| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp32_1b_2core.bmodel |    0.3456 |
+| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp16_1b_2core.bmodel |    0.3453 |
+| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_1b_2core.bmodel |    0.3573 |
+| SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_4b_2core.bmodel |    0.3573 |
+| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp32_1b_2core.bmodel |    0.3544 |
+| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp16_1b_2core.bmodel |    0.3542 |
+| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_1b_2core.bmodel |    0.3666 |
+| SE9-16       | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_4b_2core.bmodel |    0.3666 |
+| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp32_1b_2core.bmodel |    0.3544 |
+| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp16_1b_2core.bmodel |    0.3542 |
+| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_1b_2core.bmodel |    0.3666 |
+| SE9-16       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_4b_2core.bmodel |    0.3666 |
+| SE9-8        | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3456 |
+| SE9-8        | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3453 |
+| SE9-8        | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3456 |
+| SE9-8        | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3573 |
+| SE9-8        | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3544 |
+| SE9-8        | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3542 |
+| SE9-8        | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3666 |
+| SE9-8        | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3666 |
+| SE9-8        | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3544 |
+| SE9-8        | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3542 |
+| SE9-8        | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3666 |
+| SE9-8        | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3666 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
@@ -223,16 +223,16 @@ bmrt_test --bmodel models/BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel
 | ----------- | -------------------------------------------       | ----------------- |
 |   SE7-32    | BM1684X/LightStereo-S-SceneFlow_fp32_1b.bmodel|          86.91  |
 |   SE7-32    | BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel|          27.35  |
-|   SE7-32    | BM1684X/LightStereo-S-SceneFlow_int8_1b.bmodel|          21.46  |
-|   SE7-32    | BM1684X/LightStereo-S-SceneFlow_int8_4b.bmodel|          20.49  |
+|   SE7-32    | BM1684X/LightStereo-S-SceneFlow_int8_1b.bmodel|          23.51  |
+|   SE7-32    | BM1684X/LightStereo-S-SceneFlow_int8_4b.bmodel|          22.78  |
 |   SE9-16    | BM1688/LightStereo-S-SceneFlow_fp32_1b.bmodel|         321.78  |
 |   SE9-16    | BM1688/LightStereo-S-SceneFlow_fp16_1b.bmodel|          75.31  |
-|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_1b.bmodel|          40.68  |
-|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_4b.bmodel|          36.08  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_1b.bmodel|          48.60  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_4b.bmodel|          43.56  |
 |   SE9-16    | BM1688/LightStereo-S-SceneFlow_fp32_1b_2core.bmodel|         191.59  |
 |   SE9-16    | BM1688/LightStereo-S-SceneFlow_fp16_1b_2core.bmodel|          53.80  |
-|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_1b_2core.bmodel|          32.51  |
-|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_4b_2core.bmodel|          25.93  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_1b_2core.bmodel|          37.83  |
+|   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_4b_2core.bmodel|          30.11  |
 |   SE9-8    | CV186X/LightStereo-S-SceneFlow_fp32_1b.bmodel|         354.74  |
 |   SE9-8    | CV186X/LightStereo-S-SceneFlow_fp16_1b.bmodel|          91.46  |
 |   SE9-8    | CV186X/LightStereo-S-SceneFlow_int8_1b.bmodel|          50.23  |
@@ -249,40 +249,40 @@ bmrt_test --bmodel models/BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel
 | ----------- | ---------------- | ----------------------------------- | --------      | ---------       | ---------        | --------- |
 |   SE7-32    |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp32_1b.bmodel|      42.84      |     154.08      |     147.39      |      0.03       |
 |   SE7-32    |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp16_1b.bmodel|      42.82      |     151.30      |      92.38      |      0.03       |
-|   SE7-32    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      42.82      |     152.70      |     111.64      |      0.03       |
-|   SE7-32    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_4b.bmodel|      43.14      |     164.69      |     102.68      |      0.01       |
+|   SE7-32    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      42.82      |     152.70      |      72.28      |      0.03       |
+|   SE7-32    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_4b.bmodel|      43.14      |     164.69      |      68.55      |      0.01       |
 |   SE7-32    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_fp32_1b.bmodel|      52.41      |      6.95       |      90.87      |      0.12       |
 |   SE7-32    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_fp16_1b.bmodel|      52.37      |      6.94       |      31.23      |      0.12       |
-|   SE7-32    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      52.46      |      3.99       |      25.29      |      0.12       |
-|   SE7-32    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_4b.bmodel|      52.11      |      4.43       |      23.75      |      0.05       |
+|   SE7-32    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      52.46      |      3.99       |      26.94      |      0.12       |
+|   SE7-32    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_4b.bmodel|      52.11      |      4.43       |      26.03      |      0.05       |
 |   SE7-32    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_fp32_1b.bmodel|      50.02      |      3.69       |      87.14      |      1.86       |
 |   SE7-32    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_fp16_1b.bmodel|      50.02      |      3.68       |      27.53      |      1.86       |
-|   SE7-32    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_1b.bmodel|      50.05      |      2.26       |      21.64      |      1.86       |
-|   SE7-32    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_4b.bmodel|      49.93      |      2.15       |      21.10      |      1.89       |
+|   SE7-32    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_1b.bmodel|      50.05      |      2.26       |      23.76      |      1.86       |
+|   SE7-32    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_4b.bmodel|      49.93      |      2.15       |      23.43      |      1.89       |
 |   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp32_1b.bmodel|      59.51      |     173.58      |     382.81      |      0.05       |
 |   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp16_1b.bmodel|      59.51      |     172.39      |     135.88      |      0.05       |
-|   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      59.54      |     172.94      |     142.96      |      0.05       |
+|   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      59.54      |     172.94      |     120.27      |      0.05       |
 |   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_4b.bmodel|      59.39      |     169.29      |     133.28      |      0.02       |
 |   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_fp32_1b.bmodel|      73.24      |      11.92      |     326.73      |      0.16       |
 |   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_fp16_1b.bmodel|      73.13      |      11.87      |      80.14      |      0.16       |
-|   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      73.22      |      8.47       |      45.39      |      0.16       |
-|   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_4b.bmodel|      72.83      |      9.27       |      40.58      |      0.06       |
+|   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      73.22      |      8.47       |      53.24      |      0.16       |
+|   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_4b.bmodel|      72.83      |      9.27       |      48.47      |      0.06       |
 |   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_fp32_1b.bmodel|      70.37      |      7.40       |     322.01      |      2.65       |
 |   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_fp16_1b.bmodel|      70.30      |      7.38       |      75.54      |      2.60       |
-|   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_1b.bmodel|      70.27      |      6.18       |      40.84      |      2.61       |
-|   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_4b.bmodel|      70.19      |      6.01       |      37.12      |      2.64       |
+|   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_1b.bmodel|      70.27      |      6.18       |      48.98      |      2.61       |
+|   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_4b.bmodel|      70.19      |      6.01       |      44.75      |      2.64       |
 |   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp32_1b_2core.bmodel|      59.60      |     172.34      |     251.55      |      0.05       |
 |   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp16_1b_2core.bmodel|      59.50      |     172.05      |     114.37      |      0.05       |
-|   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_1b_2core.bmodel|      59.46      |     172.54      |     134.06      |      0.05       |
+|   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_1b_2core.bmodel|      59.46      |     172.54      |     109.70      |      0.05       |
 |   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_4b_2core.bmodel|      59.43      |     169.30      |     121.84      |      0.02       |
 |   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_fp32_1b_2core.bmodel|      73.11      |      11.92      |     196.12      |      0.16       |
 |   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_fp16_1b_2core.bmodel|      73.15      |      11.88      |      58.55      |      0.16       |
-|   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_1b_2core.bmodel|      73.05      |      8.44       |      37.37      |      0.16       |
-|   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_4b_2core.bmodel|      72.88      |      9.37       |      30.24      |      0.06       |
+|   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_1b_2core.bmodel|      73.05      |      8.44       |      42.46      |      0.16       |
+|   SE9-16    |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_4b_2core.bmodel|      72.88      |      9.37       |      35.06      |      0.06       |
 |   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_fp32_1b_2core.bmodel|      70.32      |      7.41       |     191.49      |      2.60       |
 |   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_fp16_1b_2core.bmodel|      70.24      |      7.44       |      54.02      |      2.60       |
-|   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_1b_2core.bmodel|      70.24      |      6.18       |      32.71      |      2.60       |
-|   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_4b_2core.bmodel|      70.20      |      6.04       |      26.75      |      2.64       |
+|   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_1b_2core.bmodel|      70.24      |      6.18       |      38.22      |      2.60       |
+|   SE9-16    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_4b_2core.bmodel|      70.20      |      6.04       |      31.02      |      2.64       |
 |    SE9-8    |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp32_1b.bmodel|      73.49      |     174.39      |     415.77      |      0.05       |
 |    SE9-8    |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp16_1b.bmodel|      59.68      |     171.47      |     151.25      |      0.05       |
 |    SE9-8    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      59.31      |     173.13      |     152.51      |      0.05       |

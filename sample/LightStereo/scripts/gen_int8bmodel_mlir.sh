@@ -15,7 +15,7 @@ function gen_mlir()
 {
     model_transform.py \
         --model_name LightStereo \
-        --model_def ../models/onnx/LightStereo-S-SceneFlow.onnx \
+        --model_def ../models/LightStereo-S-SceneFlow.onnx \
         --input_shapes [[$1,3,384,1248],[$1,3,384,1248]] \
         --mlir LightStereo-S-SceneFlow_$1b.mlir
         # --test_input ../datasets/cali_data/1.npz \
@@ -27,10 +27,9 @@ function gen_cali_table()
 {
     run_calibration.py LightStereo-S-SceneFlow_$1b.mlir \
         --dataset ../datasets/cali_data \
+        --cali_method mse \
         --input_num 32 \
-        -o LightStereo_cali_table \
-        --search search_qtable \
-        --quantize_table lightstereo_sensitive_layer
+        -o LightStereo_cali_table
 }
 
 function gen_int8bmodel()
@@ -40,8 +39,9 @@ function gen_int8bmodel()
         --quantize INT8 \
         --chip $target \
         --calibration_table LightStereo_cali_table \
-        --model LightStereo-S-SceneFlow_int8_$1b.bmodel \
-        --quant_input
+        --quantize_table LightStereo_qtable \
+        --model LightStereo-S-SceneFlow_int8_$1b.bmodel
+        # --quant_input
         # --test_input ../datasets/cali_data/1.npz \
         # --test_reference LightStereo_top_outputs.npz \
         # --compare_all
@@ -53,8 +53,8 @@ function gen_int8bmodel()
             --quantize INT8 \
             --chip $target \
             --calibration_table LightStereo_cali_table \
+            --quantize_table LightStereo_qtable \
             --model LightStereo-S-SceneFlow_int8_$1b_2core.bmodel \
-            --quant_input \
             --num_core 2
             # --test_input ../datasets/cali_data/1.npz \
             # --test_reference LightStereo_top_outputs.npz

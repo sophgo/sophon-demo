@@ -125,7 +125,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [FaceFormer](./sample/FaceFormer/README.md)                   | Speech-Driven 3D Facial Animation  | Python     | FP32           | BM1684X        |
 | [MP_SENet](./sample/MP_SENet/README.md)                       | Speech Enhancement                 | Python     | FP32/BF16      | BM1684X        |
 | [Silero](./sample/Silero/README.md)                         | Voice Activity Detection           | C++/Python | FP16           | BM1684X                      |
-| [LightStereo](./sample/LightStereo/README.md)                 | Stereo                             | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [LightStereo](./sample/LightStereo/README.md)                 | Stereo                             | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 
 | application                                                              | scenarios                                         | code        | supported hardware           |
 |---                                                                       |---                                                |---          | ---                          | 
