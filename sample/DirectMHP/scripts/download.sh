@@ -8,6 +8,8 @@ if [ ! -d "../datasets" ];
 then
     mkdir ../datasets
     pushd ../datasets
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/DirectMHP/datasets/cali_npz.tar.gz  #calibration npz files
+    tar xvf cali_npz.tar.gz && rm cali_npz.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/DirectMHP/datasets/test.tar.gz    #test pictures
     tar xvf test.tar.gz && rm test.tar.gz                                   #in case `tar xvf xx` failed.
     python3 -m dfss --url=open@sophgo.com:sophon-demo/DirectMHP/datasets/val_pictures.tar.gz

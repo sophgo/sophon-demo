@@ -22,7 +22,7 @@
 
 ## 2. 特性
 * 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)
+* 支持FP32、FP16、INT8(BM1684X/BM1688/CV186X)
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -50,15 +50,19 @@ chmod -R +x scripts/
 ./models
 ├── BM1684X
 │   ├── directmhp_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
-│   └── directmhp_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── directmhp_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   └── directmhp_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 ├── BM1688
 │   ├── directmhp_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=1
 │   ├── directmhp_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=1
+│   ├── directmhp_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=1
 │   ├── directmhp_fp32_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
-│   └── directmhp_fp16_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+│   ├── directmhp_fp16_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
+│   └── directmhp_int8_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
 ├── CV186X
 │   ├── directmhp_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
-│   └── directmhp_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   ├── directmhp_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   └── directmhp_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
 │── torch
 │   └── directmhp_torchscript.pt   # trace后的torchscript模型
 └── onnx
@@ -72,6 +76,7 @@ chmod -R +x scripts/
 ./datasets
 ├── test                                      # 测试图片
 ├── person_small.mp4                          # 测试视频
+├── cali_npz                                  # 量化数据集
 └── coco                                      
     ├── val                                   # coco val数据集：从CMU数据集中抽取的778张图片
     └── coco_style_sampled_val.json           # coco_style_sampled_val.json数据集标签文件，用于计算精度评价指标 
@@ -102,6 +107,15 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1684X/`下生成`directmhp_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
+- 生成INT8 BModel
+
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+
+```bash
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+```
+
+​执行上述命令会在`models/BM1684X/`下生成`directmhp_int8_1b.bmodel`文件，即转换好的INT8 BModel。
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
@@ -124,22 +138,31 @@ python3 tools/eval.py --gt_path datasets/coco/coco_style_sampled_val.json --resu
 | ------------ | ------------------------- | ---------------------------------------- | ---------| -------- |
 | SE7-32       | directmhp_opencv.py       | directmhp_fp32_1b.bmodel                 |    0.856 |    8.706 |
 | SE7-32       | directmhp_opencv.py       | directmhp_fp16_1b.bmodel                 |    0.857 |    8.697 |
+| SE7-32       | directmhp_opencv.py       | directmhp_int8_1b.bmodel                 |    0.820 |    9.137 |
 | SE7-32       | directmhp_bmcv.py         | directmhp_fp32_1b.bmodel                 |    0.856 |    8.758 |
 | SE7-32       | directmhp_bmcv.py         | directmhp_fp16_1b.bmodel                 |    0.855 |    8.751 |
+| SE7-32       | directmhp_bmcv.py         | directmhp_int8_1b.bmodel                 |    0.825 |    9.104 |
 | SE7-32       | directmhp_bmcv.soc        | directmhp_fp32_1b.bmodel                 |    0.858 |    8.712 |
 | SE7-32       | directmhp_bmcv.soc        | directmhp_fp16_1b.bmodel                 |    0.859 |    8.710 |
+| SE7-32       | directmhp_bmcv.soc        | directmhp_int8_1b.bmodel                 |    0.823 |    9.085 |
 | SE9-16       | directmhp_opencv.py       | directmhp_fp32_1b.bmodel                 |    0.856 |    8.706 |
 | SE9-16       | directmhp_opencv.py       | directmhp_fp16_1b.bmodel                 |    0.857 |    8.698 |
+| SE9-16       | directmhp_opencv.py       | directmhp_int8_1b.bmodel                 |    0.820 |    9.137 |
 | SE9-16       | directmhp_bmcv.py         | directmhp_fp32_1b.bmodel                 |    0.857 |    8.730 |
 | SE9-16       | directmhp_bmcv.py         | directmhp_fp16_1b.bmodel                 |    0.858 |    8.729 |
+| SE9-16       | directmhp_bmcv.py         | directmhp_int8_1b.bmodel                 |    0.826 |    9.121 |
 | SE9-16       | directmhp_bmcv.soc        | directmhp_fp32_1b.bmodel                 |    0.858 |    8.712 |
 | SE9-16       | directmhp_bmcv.soc        | directmhp_fp16_1b.bmodel                 |    0.859 |    8.713 |
+| SE9-16       | directmhp_bmcv.soc        | directmhp_int8_1b.bmodel                 |    0.824 |    9.111 |
 | SE9-16       | directmhp_opencv.py       | directmhp_fp32_1b_2core.bmodel           |    0.856 |    8.706 |
 | SE9-16       | directmhp_opencv.py       | directmhp_fp16_1b_2core.bmodel           |    0.857 |    8.698 |
+| SE9-16       | directmhp_opencv.py       | directmhp_int8_1b_2core.bmodel           |    0.820 |    9.137 |
 | SE9-16       | directmhp_bmcv.py         | directmhp_fp32_1b_2core.bmodel           |    0.857 |    8.730 |
 | SE9-16       | directmhp_bmcv.py         | directmhp_fp16_1b_2core.bmodel           |    0.858 |    8.729 |
+| SE9-16       | directmhp_bmcv.py         | directmhp_int8_1b_2core.bmodel           |    0.826 |    9.121 |
 | SE9-16       | directmhp_bmcv.soc        | directmhp_fp32_1b_2core.bmodel           |    0.858 |    8.712 |
 | SE9-16       | directmhp_bmcv.soc        | directmhp_fp16_1b_2core.bmodel           |    0.859 |    8.713 |
+| SE9-16       | directmhp_bmcv.soc        | directmhp_int8_1b_2core.bmodel           |    0.824 |    9.111 |
 | SE9-8        | directmhp_opencv.py       | directmhp_fp32_1b.bmodel                 |    0.856 |    8.706 |
 | SE9-8        | directmhp_opencv.py       | directmhp_fp16_1b.bmodel                 |    0.857 |    8.698 |
 | SE9-8        | directmhp_bmcv.py         | directmhp_fp32_1b.bmodel                 |    0.857 |    8.730 |
@@ -174,10 +197,13 @@ bmrt_test --bmodel models/BM1684X/directmhp_fp32_1b.bmodel
 | ----------- | ------------------------------------ | ----------------- |
 |   SE7-32    | BM1684X/directmhp_fp32_1b.bmodel     |         84.34     |
 |   SE7-32    | BM1684X/directmhp_fp16_1b.bmodel     |         23.48     |
+|   SE7-32    | BM1684X/directmhp_int8_1b.bmodel     |         12.83     |
 |   SE9-16    | BM1688/directmhp_fp32_1b.bmodel      |         407.81    |
 |   SE9-16    | BM1688/directmhp_fp16_1b.bmodel      |         107.39    |
+|   SE9-16    | BM1688/directmhp_int8_1b.bmodel      |          24.64    |
 |   SE9-16    | BM1688/directmhp_fp32_1b_2core.bmodel|         215.63    |
 |   SE9-16    | BM1688/directmhp_fp16_1b_2core.bmodel|          62.98    |
+|   SE9-16    | BM1688/directmhp_int8_1b_2core.bmodel|          20.51    |
 |   SE9-8    | CV186X/directmhp_fp32_1b.bmodel      |         420.19    |
 |   SE9-8    | CV186X/directmhp_fp16_1b.bmodel      |         115.67    |
 
@@ -197,22 +223,31 @@ bmrt_test --bmodel models/BM1684X/directmhp_fp32_1b.bmodel
 | ----------- | ---------------- | ---------------------------------- | --------------  | ------------    | -----------     | ----------      |
 |   SE7-32    |directmhp_opencv.py|     directmhp_fp32_1b.bmodel      |      35.46      |     103.07      |     102.92      |      5.95       |
 |   SE7-32    |directmhp_opencv.py|     directmhp_fp16_1b.bmodel      |      40.34      |     101.64      |      41.95      |      5.96       |
+|   SE7-32    |directmhp_opencv.py|     directmhp_int8_1b.bmodel      |      30.10      |     102.24      |      30.40      |      6.51       |
 |   SE7-32    | directmhp_bmcv.py |     directmhp_fp32_1b.bmodel      |      8.02       |      8.58       |      88.22      |      5.97       |
 |   SE7-32    | directmhp_bmcv.py |     directmhp_fp16_1b.bmodel      |      6.56       |      8.68       |      27.41      |      5.97       |
+|   SE7-32    | directmhp_bmcv.py |     directmhp_int8_1b.bmodel      |      6.47       |      8.27       |      16.25      |      6.47       |
 |   SE7-32    |directmhp_bmcv.soc |     directmhp_fp32_1b.bmodel      |      9.95       |      4.06       |      84.32      |      2.74       |
 |   SE7-32    |directmhp_bmcv.soc |     directmhp_fp16_1b.bmodel      |      9.90       |      4.06       |      23.43      |      2.74       |
+|   SE7-32    |directmhp_bmcv.soc |     directmhp_int8_1b.bmodel      |      9.72       |      3.96       |      12.61      |      2.69       |
 |   SE9-16    |directmhp_opencv.py|     directmhp_fp32_1b.bmodel      |      54.05      |     134.03      |     430.60      |      7.30       |
 |   SE9-16    |directmhp_opencv.py|     directmhp_fp16_1b.bmodel      |      51.51      |     137.22      |     131.09      |      7.31       |
+|   SE9-16    |directmhp_opencv.py|     directmhp_int8_1b.bmodel      |      47.63      |     138.90      |      47.37      |      8.44       |
 |   SE9-16    | directmhp_bmcv.py |     directmhp_fp32_1b.bmodel      |      15.49      |      17.67      |     413.37      |      7.35       |
 |   SE9-16    | directmhp_bmcv.py |     directmhp_fp16_1b.bmodel      |      11.31      |      17.65      |     112.64      |      7.35       |
+|   SE9-16    | directmhp_bmcv.py |     directmhp_int8_1b.bmodel      |      26.33      |      16.89      |      29.54      |      8.52       |
 |   SE9-16    |directmhp_bmcv.soc |     directmhp_fp32_1b.bmodel      |      15.30      |      7.15       |     407.72      |      3.32       |
 |   SE9-16    |directmhp_bmcv.soc |     directmhp_fp16_1b.bmodel      |      15.17      |      7.15       |     107.29      |      3.28       |
+|   SE9-16    |directmhp_bmcv.soc |     directmhp_int8_1b.bmodel      |      29.26      |      7.14       |      24.64      |      3.55       |
 |   SE9-16    |directmhp_opencv.py|  directmhp_fp32_1b_2core.bmodel   |      46.36      |     136.42      |     238.36      |      7.30       |
 |   SE9-16    |directmhp_opencv.py|  directmhp_fp16_1b_2core.bmodel   |      49.97      |     134.85      |      86.90      |      7.30       |
+|   SE9-16    |directmhp_opencv.py|  directmhp_int8_1b_2core.bmodel   |      45.85      |     137.99      |      43.21      |      8.44       |
 |   SE9-16    | directmhp_bmcv.py |  directmhp_fp32_1b_2core.bmodel   |      12.88      |      17.63      |     221.12      |      7.37       |
 |   SE9-16    | directmhp_bmcv.py |  directmhp_fp16_1b_2core.bmodel   |      11.33      |      17.63      |      68.06      |      7.36       |
+|   SE9-16    | directmhp_bmcv.py |  directmhp_int8_1b_2core.bmodel   |      27.46      |      16.88      |      25.39      |      8.52       |
 |   SE9-16    |directmhp_bmcv.soc |  directmhp_fp32_1b_2core.bmodel   |      15.45      |      7.14       |     215.53      |      3.31       |
 |   SE9-16    |directmhp_bmcv.soc |  directmhp_fp16_1b_2core.bmodel   |      15.13      |      7.15       |      62.87      |      3.27       |
+|   SE9-16    |directmhp_bmcv.soc |  directmhp_int8_1b_2core.bmodel   |      27.44      |      7.14       |      20.47      |      3.53       |
 |   SE9-8     |directmhp_opencv.py|     directmhp_fp32_1b.bmodel      |      50.38      |     139.18      |     442.47      |      7.37       |
 |   SE9-8     |directmhp_opencv.py|     directmhp_fp16_1b.bmodel      |      58.76      |     140.77      |     137.92      |      7.41       |
 |   SE9-8     | directmhp_bmcv.py |     directmhp_fp32_1b.bmodel      |      26.04      |      17.28      |     425.40      |      7.47       |

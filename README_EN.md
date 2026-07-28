@@ -120,7 +120,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [SuperGlue](./sample/SuperGlue/README.md)                     | Keypoint Matching                  | C++        | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | Text To Speech                     | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [ChatTTS](./sample/ChatTTS/README.md)                         | Text To Speech                     | Python     | BF16/INT8/INT4 | BM1684X/BM1688        |
-| [DirectMHP](./sample/DirectMHP/README.md)                     | Head pose estimation               | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
+| [DirectMHP](./sample/DirectMHP/README.md)                     | Head pose estimation               | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [CAM++](./sample/CAM++/README.md)                             | Speaker Recogition                 | C++/Python | FP32           | BM1684X/BM1688/CV186X        |
 | [FaceFormer](./sample/FaceFormer/README.md)                   | Speech-Driven 3D Facial Animation  | Python     | FP32           | BM1684X        |
 | [MP_SENet](./sample/MP_SENet/README.md)                       | Speech Enhancement                 | Python     | FP32/BF16      | BM1684X        |
