@@ -22,7 +22,7 @@
 本例程对[A simple training framework that recreates bert4keras in PyTorch. bert4torch](https://github.com/Tongjilibo/bert4torch/)的模型和算法进行移植,使之能在SOPHON BM1684\BM1684X\BM1688\CV186X上进行推理测试。
 ## 2. 特性
 * 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)模型编译和推理
+* 支持FP32、FP16、INT8(BM1684X/BM1688/CV186X)模型编译和推理
 * 支持基于sail的C++推理
 * 支持基于sail的Python推理
 * 支持单batch和多batch模型推理
@@ -53,20 +53,28 @@ chmod -R +x scripts/
 │   └── bert4torch_output_fp32_8b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=8
 │   └── bert4torch_output_fp16_1b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   └── bert4torch_output_fp16_8b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=8
+│   └── bert4torch_output_int8_1b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
+│   └── bert4torch_output_int8_8b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=8
 ├── BM1688
 │   └── bert4torch_output_fp32_1b.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
 │   └── bert4torch_output_fp32_8b.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=8
 │   └── bert4torch_output_fp16_1b.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
 │   └── bert4torch_output_fp16_8b.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=8
+│   └── bert4torch_output_int8_1b.bmodel     # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
+│   └── bert4torch_output_int8_8b.bmodel     # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=8
 │   └── bert4torch_output_fp32_1b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
 │   └── bert4torch_output_fp32_8b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=8
 │   └── bert4torch_output_fp16_1b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
 │   └── bert4torch_output_fp16_8b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=8
+│   └── bert4torch_output_int8_1b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
+│   └── bert4torch_output_int8_8b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=8
 ├── CV186X
 │   └── bert4torch_output_fp32_1b.bmodel     # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=1
 │   └── bert4torch_output_fp32_8b.bmodel     # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，batch_size=8
 │   └── bert4torch_output_fp16_1b.bmodel     # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
 │   └── bert4torch_output_fp16_8b.bmodel     # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=8
+│   └── bert4torch_output_int8_1b.bmodel     # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
+│   └── bert4torch_output_int8_8b.bmodel     # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=8
 ├── pre_train
 │   └── vocab.txt
 └── torch
@@ -74,10 +82,12 @@ chmod -R +x scripts/
 ```
 下载的数据包括：
 ```
-./datasets/china-people-daily-ner-corpus                     # 人民日报数据集
-├── example.dev                                              # 验证集
-├── example.test                                             # 测试集
-└── example.train                                            # 训练集
+./datasets/
+├── china-people-daily-ner-corpus                     # 人民日报数据集
+│   ├── example.dev                                          # 验证集
+│   ├── example.test                                         # 测试集
+│   └── example.train                                        # 训练集
+├── cali_npz                                          # 量化数据集
 ```
 
 ## 4. 模型编译
@@ -107,6 +117,15 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`bert4torch_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
+- 生成INT8 BModel
+
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+
+```bash
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+```
+
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`bert4torch_output_int8_1b.bmodel`文件，即转换好的INT8 BModel。
 
 ## 5. 例程测试
 - [C++例程](./cpp/README.md)
@@ -136,26 +155,38 @@ python3 eval_people.py --test_path ../datasets/china-people-daily-ner-corpus/exa
 | SE7-32       | bert_sail.pcie   | bert4torch_output_fp32_8b.bmodel    | 0.9130        | 0.9907   |
 | SE7-32       | bert_sail.pcie   | bert4torch_output_fp16_1b.bmodel    | 0.9121        | 0.9907   |
 | SE7-32       | bert_sail.pcie   | bert4torch_output_fp16_8b.bmodel    | 0.9120        | 0.9907   |
+| SE7-32       | bert_sail.pcie   | bert4torch_output_int8_1b.bmodel    | 0.8900        | 0.9900   |
+| SE7-32       | bert_sail.pcie   | bert4torch_output_int8_8b.bmodel    | 0.8841        | 0.9905   |
 | SE7-32       | bert_sail.py     | bert4torch_output_fp32_1b.bmodel    | 0.9161        | 0.9914   |
 | SE7-32       | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 0.9224        | 0.9917   |
 | SE7-32       | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 0.9219        | 0.9915   |
 | SE7-32       | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 0.9191        | 0.9915   |
+| SE7-32       | bert_sail.py     | bert4torch_output_int8_1b.bmodel    | 0.8859        | 0.9906   |
+| SE7-32       | bert_sail.py     | bert4torch_output_int8_8b.bmodel    | 0.8956        | 0.9907   |
 | SE9-16       | bert_sail.py   | bert4torch_output_fp32_1b.bmodel |   0.9154 |   0.9915 |
 | SE9-16       | bert_sail.py   | bert4torch_output_fp32_8b.bmodel |   0.9211 |   0.9915 |
 | SE9-16       | bert_sail.py   | bert4torch_output_fp16_1b.bmodel |   0.9200 |   0.9915 |
 | SE9-16       | bert_sail.py   | bert4torch_output_fp16_8b.bmodel |   0.9176 |   0.9915 |
+| SE9-16       | bert_sail.py   | bert4torch_output_int8_1b.bmodel |   0.9136 |   0.9916 |
+| SE9-16       | bert_sail.py   | bert4torch_output_int8_8b.bmodel |   0.9040 |   0.9915 |
 | SE9-16       | bert_sail.soc  | bert4torch_output_fp32_1b.bmodel |   0.9130 |   0.9908 |
 | SE9-16       | bert_sail.soc  | bert4torch_output_fp32_8b.bmodel |   0.9130 |   0.9908 |
 | SE9-16       | bert_sail.soc  | bert4torch_output_fp16_1b.bmodel |   0.9129 |   0.9908 |
 | SE9-16       | bert_sail.soc  | bert4torch_output_fp16_8b.bmodel |   0.9129 |   0.9908 |
+| SE9-16       | bert_sail.soc  | bert4torch_output_int8_1b.bmodel |   0.9027 |   0.9907 |
+| SE9-16       | bert_sail.soc  | bert4torch_output_int8_8b.bmodel |   0.9027 |   0.9907 |
 | SE9-16       | bert_sail.py   | bert4torch_output_fp32_1b_2core.bmodel |   0.9183 |   0.9916 |
 | SE9-16       | bert_sail.py   | bert4torch_output_fp32_8b_2core.bmodel |   0.9183 |   0.9915 |
 | SE9-16       | bert_sail.py   | bert4torch_output_fp16_1b_2core.bmodel |   0.9187 |   0.9915 |
 | SE9-16       | bert_sail.py   | bert4torch_output_fp16_8b_2core.bmodel |   0.9211 |   0.9916 |
+| SE9-16       | bert_sail.py   | bert4torch_output_int8_1b_2core.bmodel |   0.9136 |   0.9916 |
+| SE9-16       | bert_sail.py   | bert4torch_output_int8_8b_2core.bmodel |   0.9020 |   0.9914 |
 | SE9-16       | bert_sail.soc  | bert4torch_output_fp32_1b_2core.bmodel |   0.9130 |   0.9908 |
 | SE9-16       | bert_sail.soc  | bert4torch_output_fp32_8b_2core.bmodel |   0.9130 |   0.9908 |
 | SE9-16       | bert_sail.soc  | bert4torch_output_fp16_1b_2core.bmodel |   0.9129 |   0.9908 |
 | SE9-16       | bert_sail.soc  | bert4torch_output_fp16_8b_2core.bmodel |   0.9129 |   0.9908 |
+| SE9-16       | bert_sail.soc  | bert4torch_output_int8_1b_2core.bmodel |   0.9027 |   0.9907 |
+| SE9-16       | bert_sail.soc  | bert4torch_output_int8_8b_2core.bmodel |   0.9012 |   0.9907 |
 | SE9-8        | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    | 0.9129        | 0.9907   |
 | SE9-8        | bert_sail.soc    | bert4torch_output_fp32_8b.bmodel    | 0.9129        | 0.9907   |
 | SE9-8        | bert_sail.soc    | bert4torch_output_fp16_1b.bmodel    | 0.9129        | 0.9907   |
@@ -192,16 +223,22 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 |   SE5-16    | BM1684/bert4torch_output_fp32_8b.bmodel          | 146.653           |
 |   SE7-32    | BM1684X/bert4torch_output_fp32_1b.bmodel         | 91.473            |
 |   SE7-32    | BM1684X/bert4torch_output_fp16_1b.bmodel         | 8.643             |
+|   SE7-32    | BM1684X/bert4torch_output_int8_1b.bmodel         | 4.394             |
 |   SE7-32    | BM1684X/bert4torch_output_fp32_8b.bmodel         | 87.478            |
 |   SE7-32    | BM1684X/bert4torch_output_fp16_8b.bmodel         | 5.726             |
+|   SE7-32    | BM1684X/bert4torch_output_int8_8b.bmodel         | 3.462             |
 |   SE9-16    | BM1688/bert4torch_output_fp32_1b.bmodel          | 269.7             |
 |   SE9-16    | BM1688/bert4torch_output_fp16_1b.bmodel          | 40.0              |
+|   SE9-16    | BM1688/bert4torch_output_int8_1b.bmodel          | 22.7              |
 |   SE9-16    | BM1688/bert4torch_output_fp32_8b.bmodel          | 263.5             |
 |   SE9-16    | BM1688/bert4torch_output_fp16_8b.bmodel          | 34.1              |
+|   SE9-16    | BM1688/bert4torch_output_int8_8b.bmodel          | 18.3              |
 |   SE9-16    | BM1688/bert4torch_output_fp32_1b_2core.bmodel    | 184.3             |
 |   SE9-16    | BM1688/bert4torch_output_fp16_1b_2core.bmodel    | 30.2              |
+|   SE9-16    | BM1688/bert4torch_output_int8_1b_2core.bmodel    | 16.9              |
 |   SE9-16    | BM1688/bert4torch_output_fp32_8b_2core.bmodel    | 156.8             |
 |   SE9-16    | BM1688/bert4torch_output_fp16_8b_2core.bmodel    | 18.5              |
+|   SE9-16    | BM1688/bert4torch_output_int8_8b_2core.bmodel    | 10.2              |
 |   SE9-8    | CV186X/bert4torch_output_fp16_1b.bmodel           |          39.14  |
 |   SE9-8    | CV186X/bert4torch_output_fp32_1b.bmodel           |         270.40  |
 |   SE9-8    | CV186X/bert4torch_output_fp16_8b.bmodel           |         33.03   |
@@ -225,26 +262,38 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 | SE7-32      | bert_sail.py     | bert4torch_output_fp32_8b.bmodel    | 109.60   | 3.5        | 87.76       | 18.36       |
 | SE7-32      | bert_sail.py     | bert4torch_output_fp16_1b.bmodel    | 141.59   | 3.5        | 9.50        | 128.57      |
 | SE7-32      | bert_sail.py     | bert4torch_output_fp16_8b.bmodel    | 27.64    | 3.4        | 5.84        | 18.325      |
+| SE7-32      | bert_sail.py     | bert4torch_output_int8_1b.bmodel    | 152.64   | 3.5        | 4.92        | 144.21      |
+| SE7-32      | bert_sail.py     | bert4torch_output_int8_8b.bmodel    | 27.62    | 3.5        | 3.53        | 20.608      |
 | SE7-32      | bert_sail.soc    | bert4torch_output_fp32_1b.bmodel    | 19.45    | 19.14      | 0.028       | 0.022       |
 | SE7-32      | bert_sail.soc    | bert4torch_output_fp32_8b.bmodel    | 19.28    | 19.15      | 0.078       | 0.021       |
 | SE7-32      | bert_sail.soc    | bert4torch_output_fp16_1b.bmodel    | 19.87    | 19.59      | 0.218       | 0.020       |
 | SE7-32      | bert_sail.soc    | bert4torch_output_fp16_8b.bmodel    | 19.73    | 19.62      | 0.642       | 0.019       |
+| SE7-32      | bert_sail.soc    | bert4torch_output_int8_1b.bmodel    | 22.38    | 17.79      | 4.560       | 0.018       |
+| SE7-32      | bert_sail.soc    | bert4torch_output_int8_8b.bmodel    | 21.23    | 17.71      | 3.502       | 0.015       |
 |   SE9-16    |   bert_sail.py    |bert4torch_output_fp32_1b.bmodel|     473.89      |      4.92       |     274.80      |     194.11      |
 |   SE9-16    |   bert_sail.py    |bert4torch_output_fp32_8b.bmodel|     297.54      |      4.90       |     264.84      |      27.79      |
 |   SE9-16    |   bert_sail.py    |bert4torch_output_fp16_1b.bmodel|     243.83      |      4.90       |      41.54      |     197.32      |
 |   SE9-16    |   bert_sail.py    |bert4torch_output_fp16_8b.bmodel|      67.42      |      4.94       |      34.47      |      28.00      |
+|   SE9-16    |   bert_sail.py    |bert4torch_output_int8_1b.bmodel|      200.10     |      4.99       |      23.57      |     171.51      |
+|   SE9-16    |   bert_sail.py    |bert4torch_output_int8_8b.bmodel|      48.28      |      5.01       |      18.47      |      24.80      |
 |   SE9-16    |   bert_sail.soc   |bert4torch_output_fp32_1b.bmodel|     298.32      |      27.11      |     271.15      |      0.04       |
 |   SE9-16    |   bert_sail.soc   |bert4torch_output_fp32_8b.bmodel|     291.28      |      26.79      |     264.45      |      0.03       |
 |   SE9-16    |   bert_sail.soc   |bert4torch_output_fp16_1b.bmodel|      67.56      |      26.86      |      40.66      |      0.04       |
 |   SE9-16    |   bert_sail.soc   |bert4torch_output_fp16_8b.bmodel|      61.32      |      26.96      |      34.33      |      0.03       |
+|   SE9-16    |   bert_sail.soc   |bert4torch_output_int8_1b.bmodel|      43.32      |      20.24      |      23.04      |      0.03       |
+|   SE9-16    |   bert_sail.soc   |bert4torch_output_int8_8b.bmodel|      38.54      |      20.11      |      18.40      |      0.02       |
 |   SE9-16    |   bert_sail.py    |bert4torch_output_fp32_1b_2core.bmodel|     381.68      |      4.90       |     180.75      |     195.95      |
 |   SE9-16    |   bert_sail.py    |bert4torch_output_fp32_8b_2core.bmodel|     185.70      |      4.98       |     152.89      |      27.83      |
 |   SE9-16    |   bert_sail.py    |bert4torch_output_fp16_1b_2core.bmodel|     234.26      |      4.92       |      31.72      |     197.54      |
 |   SE9-16    |   bert_sail.py    |bert4torch_output_fp16_8b_2core.bmodel|      51.49      |      4.89       |      18.75      |      27.84      |
+|   SE9-16    |   bert_sail.py    |bert4torch_output_int8_1b_2core.bmodel|     192.87      |      5.04       |      17.71      |     170.10      |
+|   SE9-16    |   bert_sail.py    |bert4torch_output_int8_8b_2core.bmodel|      40.07      |      4.98       |      10.33      |      24.75      |
 |   SE9-16    |   bert_sail.soc   |bert4torch_output_fp32_1b_2core.bmodel|     206.84      |      26.88      |     179.91      |      0.04       |
 |   SE9-16    |   bert_sail.soc   |bert4torch_output_fp32_8b_2core.bmodel|     179.37      |      26.73      |     152.61      |      0.03       |
 |   SE9-16    |   bert_sail.soc   |bert4torch_output_fp16_1b_2core.bmodel|      57.63      |      26.82      |      30.77      |      0.03       |
 |   SE9-16    |   bert_sail.soc   |bert4torch_output_fp16_8b_2core.bmodel|      45.67      |      27.01      |      18.64      |      0.03       |
+|   SE9-16    |   bert_sail.soc   |bert4torch_output_int8_1b_2core.bmodel|      37.38      |      20.19      |      17.17      |      0.03       |
+|   SE9-16    |   bert_sail.soc   |bert4torch_output_int8_8b_2core.bmodel|      30.39      |      20.09      |      10.27      |      0.02       |
 |    SE9-8    |   bert_sail.soc   |bert4torch_output_fp32_1b.bmodel|     297.99      |      27.09      |     270.85      |      0.04       |
 |    SE9-8    |   bert_sail.soc   |bert4torch_output_fp32_8b.bmodel|     290.67      |      26.48      |     264.16      |      0.03       |
 |    SE9-8    |   bert_sail.soc   |bert4torch_output_fp16_1b.bmodel|      66.50      |      27.02      |      39.45      |      0.03       |

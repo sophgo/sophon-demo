@@ -83,7 +83,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [Whisper](./sample/Whisper/README.md)                         | Speech Recognition                 | Python     | FP16           | BM1684X                      |
 | [Seamless](./sample/Seamless/README.md)                       | Speech Recognition                 | Python     | FP32/FP16      | BM1684X/BM1688               |
 | [SeACoParaformer](./sample/SeAcoParaformer/README.md)       | Speech Recognition                 | C++/Python | FP32           | BM1684X                      |
-| [BERT](./sample/BERT/README.md)                               | Language                           | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [BERT](./sample/BERT/README.md)                               | Language                           | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ChatGLM2](./sample/ChatGLM2/README.md)                       | Large Language Model               | C++/Python | FP16/INT8/INT4 | BM1684X                      |
 | [Llama2](./sample/Llama2/README.md)                           | Large Language Model               | C++        | FP16/INT8/INT4 | BM1684X                      |
 | [ChatGLM3](./sample/ChatGLM3/README.md)                       | Large Language Model               | Python     | FP16/INT8/INT4 | BM1684X/BM1688               |

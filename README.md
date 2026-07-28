@@ -83,7 +83,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [Whisper](./sample/Whisper/README.md)                         | 语音识别          | Python     | FP16           | BM1684X                      |
 | [Seamless](./sample/Seamless/README.md)                       | 语音识别          | Python     | FP32/FP16      | BM1684X/BM1688               |
 | [SeACoParaformer](./sample/SeAcoParaformer/README.md)       | 语音识别          | C++/Python | FP32           | BM1684X                      |
-| [BERT](./sample/BERT/README.md)                               | 语言模型          | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [BERT](./sample/BERT/README.md)                               | 语言模型          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ChatGLM2](./sample/ChatGLM2/README.md)                       | 大规模语言模型     | C++/Python | FP16/INT8/INT4 | BM1684X                     |
 | [Llama2](./sample/Llama2/README.md)                           | 大规模语言模型     | C++/Python | FP16/INT8/INT4 | BM1684X                     |
 | [ChatGLM3](./sample/ChatGLM3/README.md)                       | 大规模语言模型     | Python     | FP16/INT8/INT4 | BM1684X/BM1688              |

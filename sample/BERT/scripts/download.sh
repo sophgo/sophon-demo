@@ -15,7 +15,11 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/BERT/datasets_0918/datasets.zip
     unzip datasets.zip -d ../
     rm datasets.zip
-
+    pushd ../datasets/
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/BERT/cali_npz.zip
+    unzip cali_npz.zip
+    rm cali_npz.zip
+    popd
     echo "datasets download!"
 else
     echo "Datasets folder exist! Remove it if you need to update."
@@ -28,10 +32,13 @@ then
     unzip models.zip -d ../
     rm models.zip
     pushd ../models/
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/BERT/models_a2_0118/BM1688.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/BERT/models_with_int8/BM1684X.zip
+    unzip -o BM1684X.zip
+    rm -r BM1684X.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/BERT/models_with_int8/BM1688.zip
     unzip BM1688.zip
     rm -r BM1688.zip
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/BERT/models_a2_240410/CV186X.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/BERT/models_with_int8/CV186X.zip
     unzip CV186X.zip
     rm -r CV186X.zip
     popd
