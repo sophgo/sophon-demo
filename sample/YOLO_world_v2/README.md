@@ -24,7 +24,7 @@ YOLO-World 是腾讯人工智能实验室提出的实时开放词汇目标检测
 
 ## 2. 特性
 * 支持BM1684X(x86 PCIe、SoC)
-* 支持FP32、FP16模型编译和推理
+* 支持FP32、FP16、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持开放词汇（open-vocabulary）：运行时通过 `--class_names` 指定任意类别
 * 支持图片和视频测试
@@ -51,6 +51,7 @@ chmod -R +x scripts/
 ├── BM1684X
 │   ├── yoloworld_v2_fp32_1b.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
 │   ├── yoloworld_v2_fp16_1b.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+│   ├── yoloworld_v2_int8_1b.bmodel        # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── clip_text_vitb32_bm1684x_f16_1b.bmodel  # CLIP文本编码部分FP16 BModel
 ├── onnx
 │   ├── yoloworld_v2.onnx                     # 导出的主检测onnx模型
@@ -92,6 +93,14 @@ chmod -R +x scripts/
 
 执行后会在`models/BM1684X/`下生成`yoloworld_v2_fp16_1b.bmodel`和`clip_text_vitb32_bm1684x_f16_1b.bmodel`。
 
+- 生成INT8 BModel
+
+```bash
+./scripts/gen_int8bmodel_mlir.sh bm1684x
+```
+
+执行后会在`models/BM1684X/`下生成`yoloworld_v2_int8_1b.bmodel`和`clip_text_vitb32_bm1684x_f16_1b.bmodel`。
+
 > ℹ️ `--mean`/`--scale` 仅写入 mlir、用于 INT8 校准量化，**不烤入 bmodel 计算图**，对 FP32/FP16 推理无影响；推理侧 python 的 `/255` 是唯一归一化。脚本沿用 `--mean 0 --scale 1/255 --keep_aspect_ratio --pixel_format rgb --output_names output` 与 v1 一致。
 > ⚠️ CLIP文本编码ONNX必须用**torch 1.13**导出（torch 2.0+的MHA走SDPA，TPU-MLIR会误编译），详见[模型导出](./docs/YOLO_World_v2_Export_Guide.md)。
 
@@ -115,7 +124,9 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | ------------ | ---------------- | ---------------------- | ------------- | -------- |
 | SE7-32       | yoloworld_opencv.py | yoloworld_v2_fp32_1b.bmodel |    0.376 |    0.522 |
 | SE7-32       | yoloworld_opencv.py | yoloworld_v2_fp16_1b.bmodel |    0.376 |    0.522 |
+| SE7-32       | yoloworld_opencv.py | yoloworld_v2_int8_1b.bmodel |    0.366 |    0.512 |
 | SE7-32       | yoloworld_bmcv.py   | yoloworld_v2_fp16_1b.bmodel |    0.371 |    0.514 |
+| SE7-32       | yoloworld_bmcv.py   | yoloworld_v2_int8_1b.bmodel |    0.366 |    0.514 |
 > **测试说明**：
 > 1. FP32与FP16精度一致；opencv与bmcv精度基本一致；
 > 2. 与旧版`sample/YOLO_world`（v1）的0.370一致，<0.01的精度误差源于ultralytics版本差异，属正常；
@@ -137,6 +148,7 @@ bmrt_test --bmodel models/BM1684X/yoloworld_v2_fp16_1b.bmodel --devid 0
 | ----------- | ----------------------------------- | ----------------- |
 |   SE7-32    | BM1684X/yoloworld_v2_fp32_1b.bmodel   |          35.26  |
 |   SE7-32    | BM1684X/yoloworld_v2_fp16_1b.bmodel   |           6.87  |
+|   SE7-32    | BM1684X/yoloworld_v2_int8_1b.bmodel   |           4.41  |
 |   SE7-32    | BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel|          4.37  |
 > **测试说明**：
 > 1. `clip_text`为一次性文本编码（按类集摊销，不计入每图耗时）；
@@ -152,8 +164,10 @@ bmrt_test --bmodel models/BM1684X/yoloworld_v2_fp16_1b.bmodel --devid 0
 | ----------- | ---------------- | ---------------------- | --------  | ---------    | ---------     | ---------      |
 |   SE7-32    |yoloworld_opencv.py|yoloworld_v2_fp32_1b.bmodel |      6.90       |      22.87      |      40.74      |      5.39       |
 |   SE7-32    |yoloworld_opencv.py|yoloworld_v2_fp16_1b.bmodel |      6.83       |      22.74      |      12.31      |      5.36       |
+|   SE7-32    |yoloworld_opencv.py|yoloworld_v2_int8_1b.bmodel |      6.77       |      22.70      |      9.90      |      5.36       |
 |   SE7-32    | yoloworld_bmcv.py |yoloworld_v2_fp32_1b.bmodel |      2.94       |       2.00      |      43.54      |      5.37       |
 |   SE7-32    | yoloworld_bmcv.py |yoloworld_v2_fp16_1b.bmodel |      2.88       |       2.00      |      15.09      |      5.40       |
+|   SE7-32    | yoloworld_bmcv.py |yoloworld_v2_int8_1b.bmodel |      2.94       |       2.00      |      12.73      |      5.40       |
 
 > **测试说明**：
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

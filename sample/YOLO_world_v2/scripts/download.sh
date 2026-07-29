@@ -19,6 +19,8 @@ if [ ! -d "../datasets" ]; then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/common/coco_val2017_1000.tar.gz
     tar xvf coco_val2017_1000.tar.gz && rm coco_val2017_1000.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/common/test_car_person_1080P.mp4
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLO_world_v2/cali_npz.tar.gz
+    tar xvf cali_npz.tar.gz && rm cali_npz.tar.gz
     popd
     echo "datasets download!"
 else
@@ -30,12 +32,12 @@ if [ ! -d "../models" ];
 then
     mkdir ../models
     pushd ../models
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLO_world_v2/models/BM1684X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLO_world_v2/BM1684X.tar.gz
     tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLO_world_v2/models/onnx.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLO_world_v2/onnx.tar.gz
     tar xvf onnx.tar.gz && rm onnx.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLO_world_v2/models/text_projection_512_512.npy
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLO_world_v2/models/bpe_simple_vocab_16e6.txt.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLO_world_v2/text_projection_512_512.npy
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLO_world_v2/bpe_simple_vocab_16e6.txt.gz
     popd
     echo "models download!"
 else

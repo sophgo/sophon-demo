@@ -74,7 +74,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [YOLO_world](./sample/YOLO_world/README.md)                   | 目标检测          | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
-| [YOLO_world_v2](./sample/YOLO_world_v2/README.md)           | 开放词汇目标检测   | Python     | FP32/FP16      | BM1684X                      |
+| [YOLO_world_v2](./sample/YOLO_world_v2/README.md)             | 开放词汇目标检测   | Python     | FP32/FP16/INT8 | BM1684X                      |
 | [D-FINE](./sample/D-FINE/README.md)                           | 目标检测          | Python     | FP16/INT8      | BM1684X/BM1688/CV186X        |
 | [YOLOv8_obb](./sample/YOLOv8_obb/README.md)                | 旋转框目标检测     | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X       |
 | [YOLOv11_obb](./sample/YOLOv11_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X       |
