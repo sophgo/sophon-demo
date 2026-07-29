@@ -23,7 +23,7 @@
 
 ## 2. 特性
 * 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
-* 图像压缩(embedding)部分支持FP16 1batch(BM1684X)模型编译和推理
+* 图像压缩(embedding)部分支持FP16 1batch、INT8 1batch(BM1684X)模型编译和推理
 * 图像推理(mask_decoder)部分支持FP32 1batch、FP16 1batch(BM1684X)模型编译和推理
 * 支持基于OpenCV的Python推理
 * 支持单点和box输入的模型推理，并输出最高置信度mask或置信度前三的mask
@@ -65,7 +65,8 @@ chmod -R +x scripts/
 │   │   ├── SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel    # decoder部分fp16 bmodel，输出置信度第一的mask  
 │   │   └── SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel    # decoder部分fp32 bmodel，输出置信度第一的mask  
 │   └── embedding_bmodel
-│       └── SAM-ViT-B_embedding_fp16_1b.bmodel              # embedding部分fp16 bmodel
+│       ├── SAM-ViT-B_embedding_fp16_1b.bmodel              # embedding部分fp16 bmodel
+│       └── SAM-ViT-B_embedding_int8_1b.bmodel              # embedding部分int8 bmodel
 ├── onnx
 │   ├── decode_model_multi_mask.onnx                        # 由原模型导出的，decoder部分onnx模型，输出置信度前三的mask 
 │   ├── decode_model_single_mask.onnx                       # 由原模型导出的，decoder部分onnx模型，输出置信度第一的mask 
@@ -78,6 +79,8 @@ chmod -R +x scripts/
 下载的数据包括：
 ```
 ./datasets
+├── emb_cali_npz                                   # embedding部分量化校准数据
+├── dec_cali_npz                                   # decoder部分量化校准数据
 ├── truck.jpg                                      # 测试图片1
 ├── groceries.jpg                                  # 测试图片2
 └── dog.jpg                                        # 测试图片3         
@@ -119,6 +122,17 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1684X/embedding_bmodel`下生成`SAM-ViT-B_embedding_fp16_1b.bmodel` 以及`models/BM1684X/decode_bmodel`下生成`SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel`、`SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel`文件，即转换好的图像压缩（embedding）和图像推理（mask_decoder）FP16 BModel。
 
+- 生成INT8 BModel
+
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+
+```bash
+./scripts/gen_int8bmodel_mlir.sh bm1684x
+```
+
+​执行上述命令会在`models/BM1684X/embedding_bmodel`下生成`SAM-ViT-B_embedding_int8_1b.bmodel`，即转换好的图像压缩（embedding）INT8 BModel。
+
+
 - 生成auto mask FP32 BModel
 
 本例程在`scripts`目录下提供了TPU-MLIR编译专门用于自动掩码生成的FP32 BModel的脚本，请注意修改`gen_auto_fp32bmodel_mlir.sh`中的onnx模>型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
@@ -154,6 +168,7 @@ bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_decoder_fp32_1b.b
 
 |  测试平台 | 测试embedding/decode模型                     | calculate time(s) |
 |  ------- | -------------------------------------------- | ----------------- |
+|   SE7-32 | SAM-ViT-B_embedding_int8_1b.bmodel           | 0.171             |
 |   SE7-32 | SAM-ViT-B_embedding_fp16_1b.bmodel           | 0.303             |
 |   SE7-32 | SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  | 0.009             |
 |   SE7-32 | SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel  | 0.027             |
@@ -172,8 +187,10 @@ bmrt_test --bmodel models/BM1684X/decode_bmodel/SAM-ViT-B_auto_decoder_fp32_1b.b
 测试`datasets/truck.jpg`单张图片性能测试结果如下（时间单位为ms），测试结果有一定波动性：
 | 测试平台    | 测试程序      | 测试模型                                                                        | decode_time | embedding_time | decode_mask_time | postprocess_time |
 | ----------- | ------------- | ------------------------------------------------------------------------------- | ----------- | -------------- | ---------------- | ---------------- |
+|  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_int8_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  | 11.0        | 210.4          | 15.5             | 16.2             |
 |  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp16_1b.bmodel  | 11.0        | 416.0          | 15.5             | 16.2             |
 |  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_multi_mask_fp32_1b.bmodel  | 11.0        | 411.0          | 34.0             | 16.5             |
+|  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_int8_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel | 11.0        | 210.4          | 15.5             | 16.2             |
 |  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp16_1b.bmodel | 11.0        | 416.0          | 15.5             | 16.2             |
 |  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_decoder_single_mask_fp32_1b.bmodel | 11.0        | 411.0          | 34.0             | 16.5             |
 |  SE7-32  | sam_opencv.py | SAM-ViT-B_embedding_fp16_1b.bmodel,SAM-ViT-B_auto_multi_decoder_fp32_1b.bmodel  | 37.39       | 512.61         | 28942.54         | 9403.08          |

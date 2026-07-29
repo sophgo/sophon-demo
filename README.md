@@ -40,7 +40,7 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 | [SCRFD](./sample/SCRFD/README.md)                             | 人脸检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ArcFace](./sample/ArcFace/README.md)                       | 人脸识别          | C++/Python | FP32/FP16/INT8 | BM1684X                      |
 | [segformer](./sample/segformer/README.md)                     | 语义分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [SAM](./sample/SAM/README.md)                                 | 语义分割          | Python     | FP32/FP16      | BM1684X                      |
+| [SAM](./sample/SAM/README.md)                                 | 语义分割          | Python     | FP32/FP16/INT8 | BM1684X                      |
 | [SAM2](./sample/SAM2/README.md)                               | 语义分割          | Python     | FP32/FP16/INT8 | BM1684X/BM1688               |
 | [Unet](./sample/Unet/README.md)                             | 语义分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
 | [yolact](./sample/yolact/README.md)                           | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |

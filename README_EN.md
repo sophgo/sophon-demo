@@ -40,7 +40,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [SCRFD](./sample/SCRFD/README.md)                             | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [ArcFace](./sample/ArcFace/README.md)                       | Face Recognition                  | C++/Python | FP32/FP16/INT8 | BM1684X                      |
 | [segformer](./sample/segformer/README.md)                     | Semantic Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [SAM](./sample/SAM/README.md)                                 | Semantic Segmentation              | Python     | FP32/FP16      | BM1684X                      |
+| [SAM](./sample/SAM/README.md)                                 | Semantic Segmentation              | Python     | FP32/FP16/INT8 | BM1684X                      |
 | [SAM2](./sample/SAM2/README.md)                               | Semantic Segmentation              | Python     | FP32/FP16/INT8 | BM1684X/BM1688               |
 | [Unet](./sample/Unet/README.md)                             | Semantic Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
 | [yolact](./sample/yolact/README.md)                           | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |

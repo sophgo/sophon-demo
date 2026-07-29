@@ -22,6 +22,12 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM/datasets.zip
     unzip datasets.zip -d ../datasets
     rm datasets.zip
+    pushd ../datasets
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM/emb_cali_npz.tar.gz
+    tar xvf emb_cali_npz.tar.gz &&  rm emb_cali_npz.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM/dec_cali_npz.tar.gz
+    tar xvf dec_cali_npz.tar.gz &&  rm dec_cali_npz.tar.gz
+    popd
 
     echo "datasets download!"
 else
@@ -35,6 +41,10 @@ then
     if test $model_type = "SAM-ViT-B"; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM/models.zip
         unzip models.zip -d ../
+        pushd ../models
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM/emb_int8_model.tar.gz
+        tar xvf emb_int8_model.tar.gz &&  rm emb_int8_model.tar.gz
+        popd
         rm models.zip
     elif test $model_type = "SAM-ViT-T"; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM/mobile_models.tar.gz
