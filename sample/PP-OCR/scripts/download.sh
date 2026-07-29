@@ -10,6 +10,14 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/datasets.tar.gz
     tar xvf datasets.tar.gz && rm datasets.tar.gz
     popd
+    pushd ../datasets
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/cali_npz_det.tar.gz
+    tar xvf cali_npz_det.tar.gz && rm cali_npz_det.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/cali_npz_rec320.tar.gz
+    tar xvf cali_npz_rec320.tar.gz && rm cali_npz_rec320.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/cali_npz_rec640.tar.gz
+    tar xvf cali_npz_rec640.tar.gz && rm cali_npz_rec640.tar.gz
+    popd
     echo "datasets download!"
 else
     echo "Datasets folder exist! Remove it if you need to update."

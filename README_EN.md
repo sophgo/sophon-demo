@@ -48,7 +48,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [YOLOv8_plus_seg_fuse](./sample/YOLOv8_plus_seg_fuse/README.md)| Instance Segmentation(TPU Postprocess) | C++/Python | INT8      | BM1684X/BM1688        |
 | [YOLOv9_seg](./sample/YOLOv9_seg/README.md)              | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688        |
 | [YOLO26_seg](./sample/YOLO26_seg/README.md)                   | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688        |
-| [PP-OCR](./sample/PP-OCR/README.md)                           | OCR                                | C++/Python | FP32/FP16      | BM1684/BM1684X/BM1688/CV186X |
+| [PP-OCR](./sample/PP-OCR/README.md)                           | OCR                                | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [OpenPose](./sample/OpenPose/README.md)                       | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
 | [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [HRNet_pose](./sample/HRNet_pose/README.md)                   | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |

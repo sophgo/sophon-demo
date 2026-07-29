@@ -22,7 +22,7 @@ PP-OCRv4，是百度飞桨团队开源的超轻量OCR系列模型，包含文本
 
 ## 2. 特性
 * 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)模型编译和推理
+* 支持FP32、FP16、INT8(BM1684X/BM1688/CV186X)模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV的Python推理
 * 支持单batch、多batch、组合batch模型推理
@@ -56,22 +56,30 @@ chmod -R +x scripts/
 │   ├── ch_PP-OCRv4_det_fp32.bmodel       # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   ├── ch_PP-OCRv4_rec_fp32.bmodel       # 使用TPU-MLIR编译，用于BM1684的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
 ├── BM1684X      
+│   ├── ch_PP-OCRv4_det_int8.bmodel       # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   ├── ch_PP-OCRv4_det_fp16.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   ├── ch_PP-OCRv4_det_fp32.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
+│   ├── ch_PP-OCRv4_rec_int8.bmodel       # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   ├── ch_PP-OCRv4_rec_fp16.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
-│   ├── ch_PP-OCRv4_rec_fp32.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
-│   BM1688      
-│   ├── ch_PP-OCRv4_det_fp16.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
-│   ├── ch_PP-OCRv4_det_fp32.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
-│   ├── ch_PP-OCRv4_rec_fp16.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
-|   ├── ch_PP-OCRv4_rec_fp32.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
-│   ├── ch_PP-OCRv4_det_fp16_2core.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
-│   ├── ch_PP-OCRv4_det_fp32_2core.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
-│   ├── ch_PP-OCRv4_rec_fp16_2core.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
-|   └── ch_PP-OCRv4_rec_fp32_2core.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
+│   └── ch_PP-OCRv4_rec_fp32.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
+├── BM1688      
+│   ├── ch_PP-OCRv4_det_int8.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
+│   ├── ch_PP-OCRv4_det_fp16.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
+│   ├── ch_PP-OCRv4_det_fp32.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
+│   ├── ch_PP-OCRv4_rec_int8.bmodel       # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
+│   ├── ch_PP-OCRv4_rec_fp16.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
+│   ├── ch_PP-OCRv4_rec_fp32.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，由batch_size=1和batch_size=4且num_core=1的模型combine得到。
+│   ├── ch_PP-OCRv4_det_int8_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
+│   ├── ch_PP-OCRv4_det_fp16_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
+│   ├── ch_PP-OCRv4_det_fp32_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
+│   ├── ch_PP-OCRv4_rec_int8_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
+│   ├── ch_PP-OCRv4_rec_fp16_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
+│   └── ch_PP-OCRv4_rec_fp32_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，由batch_size=1和batch_size=4且num_core=2的模型combine得到。
 ├── CV186X      
+│   ├── ch_PP-OCRv4_det_int8.bmodel       # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   ├── ch_PP-OCRv4_det_fp16.bmodel       # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   ├── ch_PP-OCRv4_det_fp32.bmodel       # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
+│   ├── ch_PP-OCRv4_rec_int8.bmodel       # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   ├── ch_PP-OCRv4_rec_fp16.bmodel       # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   └── ch_PP-OCRv4_rec_fp32.bmodel       # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
 ├── onnx # 原始模型的onnx版本
@@ -80,8 +88,9 @@ chmod -R +x scripts/
 
 下载的数据包括：
 ```bash
-├── cali_set_det # 检测模型量化用的数据集
-├── cali_set_rec # 分类、识别模型量化用的数据集
+├── cali_npz_det # 检测模型量化用的数据集
+├── cali_npz_rec320 # 分类、识别模型量化用的数据集
+├── cali_npz_rec640 # 分类、识别模型量化用的数据集
 ├── fonts # 字体
 ├── ppocr_keys_v1.txt # 汉字集合
 ├── train_full_images_0 # ICDAR-2019训练集
@@ -199,12 +208,16 @@ F-score: 0.57488, Precision: 0.80639, Recall: 0.44665
 |------------- | ----------------------- | -----------  | ------ |
 | SE7-32       | ppocr_system_opencv.py    | fp32       |    0.608 |
 | SE7-32       | ppocr_system_opencv.py    | fp16       |    0.608 |
+| SE7-32       | ppocr_system_opencv.py    | int8       |    0.596 |
 | SE7-32       | ppocr_bmcv.soc            | fp32       |    0.604 |
 | SE7-32       | ppocr_bmcv.soc            | fp16       |    0.604 |
+| SE7-32       | ppocr_bmcv.soc            | int8       |    0.580 |
 | SE9-16       | ppocr_system_opencv.py    | fp32       |    0.608 |
 | SE9-16       | ppocr_system_opencv.py    | fp16       |    0.608 |
+| SE9-16       | ppocr_system_opencv.py    | int8       |    0.597 |
 | SE9-16       | ppocr_bmcv.soc            | fp32       |    0.604 |
 | SE9-16       | ppocr_bmcv.soc            | fp16       |    0.604 |
+| SE9-16       | ppocr_bmcv.soc            | int8       |    0.597 |
 | SE9-8        | ppocr_system_opencv.py    | fp32       |    0.608 |
 | SE9-8        | ppocr_system_opencv.py    | fp16       |    0.608 |
 | SE9-8        | ppocr_bmcv.soc            | fp32       |    0.605 |
@@ -243,6 +256,12 @@ bmrt_test --bmodel models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel
 |   SE7-32    | ^                                        |       1 |           0.87  |
 |   SE7-32    | ^                                        |       2 |           1.61  |
 |   SE7-32    | ^                                        |       3 |           2.99  |
+|   SE7-32    | BM1684X/ch_PP-OCRv4_det_int8.bmodel      |       0 |           2.86  |
+|   SE7-32    | ^                                        |       1 |          10.89  |
+|   SE7-32    | BM1684X/ch_PP-OCRv4_rec_int8.bmodel      |       0 |           0.53  |
+|   SE7-32    | ^                                        |       1 |           0.91  |
+|   SE7-32    | ^                                        |       2 |           1.75  |
+|   SE7-32    | ^                                        |       3 |           3.36  |
 |   SE9-16    | BM1688/ch_PP-OCRv4_det_fp32.bmodel       |       0 |          48.66  |
 |   SE9-16    | ^                                        |       1 |         196.37  |
 |   SE9-16    | BM1688/ch_PP-OCRv4_rec_fp32.bmodel       |       0 |           8.20  |
@@ -255,6 +274,12 @@ bmrt_test --bmodel models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel
 |   SE9-16    | ^                                        |       1 |           3.86  |
 |   SE9-16    | ^                                        |       2 |           6.95  |
 |   SE9-16    | ^                                        |       3 |          14.39  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_det_int8.bmodel       |       0 |           5.70  |
+|   SE9-16    | ^                                        |       1 |          22.88  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_rec_int8.bmodel       |       0 |           1.61  |
+|   SE9-16    | ^                                        |       1 |           2.75  |
+|   SE9-16    | ^                                        |       2 |           5.78  |
+|   SE9-16    | ^                                        |       3 |          10.59  |
 |   SE9-16    | BM1688/ch_PP-OCRv4_det_fp32_2core.bmodel |       0 |          29.91  |
 |   SE9-16    | ^                                        |       1 |         106.49  |
 |   SE9-16    | BM1688/ch_PP-OCRv4_rec_fp32_2core.bmodel |       0 |           5.83  |
@@ -267,6 +292,12 @@ bmrt_test --bmodel models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel
 |   SE9-16    | ^                                        |       1 |           3.23  |
 |   SE9-16    | ^                                        |       2 |           4.46  |
 |   SE9-16    | ^                                        |       3 |           9.41  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_det_int8_2core.bmodel |       0 |           3.86  |
+|   SE9-16    | ^                                        |       1 |          13.90  |
+|   SE9-16    | BM1688/ch_PP-OCRv4_rec_int8_2core.bmodel |       0 |           1.57  |
+|   SE9-16    | ^                                        |       1 |           2.66  |
+|   SE9-16    | ^                                        |       2 |           3.42  |
+|   SE9-16    | ^                                        |       3 |           6.29  |
 |   SE9-8    | CV186X/ch_PP-OCRv4_det_fp32.bmodel       |       0 |          48.58  |
 |   SE9-8    | ^                                        |       1 |         196.22  |
 |   SE9-8    | CV186X/ch_PP-OCRv4_rec_fp32.bmodel       |       0 |           8.12  |
@@ -294,26 +325,38 @@ bmrt_test --bmodel models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp32.bmodel    |        1.59         |        0.56         |        3.20         |        1.55         |
 |   SE7-32    | ppocr_system_opencv.py  |    ch_PP-OCRv4_det_fp16.bmodel    |        23.00        |        25.62        |        15.20        |        13.55        |
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp16.bmodel    |        1.60         |        0.56         |        2.07         |        1.55         |
+|   SE7-32    | ppocr_system_opencv.py  |    ch_PP-OCRv4_det_int8.bmodel    |        13.95        |        27.48        |        14.65        |        13.94        |
+|      ^      |            ^            |    ch_PP-OCRv4_rec_int8.bmodel    |        1.57         |        0.55         |        2.01         |        1.55         |
 |   SE7-32    |     ppocr_bmcv.soc      |    ch_PP-OCRv4_det_fp32.bmodel    |        14.34        |        1.26         |        15.19        |        3.48         |
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp32.bmodel    |        0.68         |        0.18         |        1.81         |        2.91         |
 |   SE7-32    |     ppocr_bmcv.soc      |    ch_PP-OCRv4_det_fp16.bmodel    |        14.44        |        1.26         |        3.60         |        3.56         |
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp16.bmodel    |        0.68         |        0.18         |        0.56         |        2.91         |
+|   SE7-32    |     ppocr_bmcv.soc      |    ch_PP-OCRv4_det_int8.bmodel    |         5.58        |        1.26         |        2.74         |        3.37         |
+|      ^      |            ^            |    ch_PP-OCRv4_rec_int8.bmodel    |        0.81         |        0.18         |        0.60         |        2.89         |
 |   SE9-16    | ppocr_system_opencv.py  |    ch_PP-OCRv4_det_fp32.bmodel    |        27.23        |        33.41        |        65.26        |        19.00        |
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp32.bmodel    |        2.25         |        0.77         |        11.30        |        1.86         |
 |   SE9-16    | ppocr_system_opencv.py  |    ch_PP-OCRv4_det_fp16.bmodel    |        26.85        |        33.61        |        27.85        |        18.78        |
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp16.bmodel    |        2.24         |        0.77         |        4.16         |        1.87         |
+|   SE9-16    | ppocr_system_opencv.py  |    ch_PP-OCRv4_det_int8.bmodel    |        24.39        |        33.33        |        15.99        |        20.16        |
+|      ^      |            ^            |    ch_PP-OCRv4_rec_int8.bmodel    |        2.19         |        0.72         |        3.98         |        2.03         |
 |   SE9-16    |     ppocr_bmcv.soc      |    ch_PP-OCRv4_det_fp32.bmodel    |        14.42        |        3.10         |        49.08        |        4.46         |
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp32.bmodel    |        0.85         |        0.41         |        10.14        |        4.07         |
 |   SE9-16    |     ppocr_bmcv.soc      |    ch_PP-OCRv4_det_fp16.bmodel    |        14.90        |        3.10         |        12.14        |        4.36         |
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp16.bmodel    |        0.84         |        0.41         |        2.34         |        4.08         |
+|   SE9-16    |     ppocr_bmcv.soc      |    ch_PP-OCRv4_det_int8.bmodel    |        18.18        |        3.10         |         5.74        |        4.53         |
+|      ^      |            ^            |    ch_PP-OCRv4_rec_int8.bmodel    |        0.91         |        0.39         |        1.88         |        4.12         |
 |   SE9-16    | ppocr_system_opencv.py  | ch_PP-OCRv4_det_fp32_2core.bmodel |        27.24        |        33.46        |        42.42        |        18.77        |
 |      ^      |            ^            | ch_PP-OCRv4_rec_fp32_2core.bmodel |        2.24         |        0.76         |        7.39         |        1.86         |
 |   SE9-16    | ppocr_system_opencv.py  | ch_PP-OCRv4_det_fp16_2core.bmodel |        27.26        |        33.49        |        23.29        |        18.76        |
 |      ^      |            ^            | ch_PP-OCRv4_rec_fp16_2core.bmodel |        2.25         |        0.76         |        3.50         |        1.86         |
+|   SE9-16    | ppocr_system_opencv.py  | ch_PP-OCRv4_det_int8_2core.bmodel |        22.93        |        33.56        |        14.52        |        20.01        |
+|      ^      |            ^            | ch_PP-OCRv4_rec_int8_2core.bmodel |        2.19         |        0.72         |        3.61         |        2.03         |
 |   SE9-16    |     ppocr_bmcv.soc      | ch_PP-OCRv4_det_fp32_2core.bmodel |        14.56        |        3.10         |        26.65        |        4.39         |
 |      ^      |            ^            | ch_PP-OCRv4_rec_fp32_2core.bmodel |        0.85         |        0.41         |        6.08         |        4.07         |
 |   SE9-16    |     ppocr_bmcv.soc      | ch_PP-OCRv4_det_fp16_2core.bmodel |        15.04        |        3.10         |        7.85         |        4.43         |
 |      ^      |            ^            | ch_PP-OCRv4_rec_fp16_2core.bmodel |        0.84         |        0.41         |        1.79         |        4.08         |
+|   SE9-16    |     ppocr_bmcv.soc      | ch_PP-OCRv4_det_int8_2core.bmodel |        15.41        |        3.10         |        3.50         |        4.62         |
+|      ^      |            ^            | ch_PP-OCRv4_rec_int8_2core.bmodel |        0.91         |        0.39         |        1.45         |        4.13         |
 |    SE9-8    | ppocr_system_opencv.py  |    ch_PP-OCRv4_det_fp32.bmodel    |        27.23        |        34.28        |        64.38        |        19.04        |
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp32.bmodel    |        2.22         |        0.78         |        11.33        |        1.89         |
 |    SE9-8    | ppocr_system_opencv.py  |    ch_PP-OCRv4_det_fp16.bmodel    |        27.17        |        34.08        |        27.46        |        18.98        |
