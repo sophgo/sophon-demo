@@ -67,6 +67,12 @@ chmod -R +x scripts/
 --onnx    # 下载onnx
 ```
 
+您可以通过`download_yolov8_nano.sh`脚本单独下载`yolov8n`相关的bmodel和onnx（仅拉取yolov8n交付件，不覆盖已下载的其它模型）：
+```bash
+./scripts/download_yolov8_nano.sh            # 下载yolov8n全部模型与onnx
+./scripts/download_yolov8_nano.sh --BM1684X  # 仅下载BM1684X的yolov8n bmodel（可选 --BM1688 / --CV186X / --onnx / --all）
+```
+
 下载的模型包括：
 ```bash
 models/
@@ -83,6 +89,10 @@ models/
 │   ├── yolov8s_fp32_1b.bmodel
 │   ├── yolov8s_int8_1b.bmodel
 │   ├── yolov8s_int8_4b.bmodel
+│   ├── yolov8n_fp16_1b.bmodel
+│   ├── yolov8n_fp32_1b.bmodel
+│   ├── yolov8n_int8_1b.bmodel
+│   ├── yolov8n_int8_4b.bmodel
 │   ├── yolov9s_fp16_1b.bmodel
 │   ├── yolov9s_fp32_1b.bmodel
 │   ├── yolov9s_int8_1b.bmodel
@@ -103,6 +113,11 @@ models/
 │   ├── yolov8s_int8_1b.bmodel
 │   ├── yolov8s_int8_4b_2core.bmodel
 │   ├── yolov8s_int8_4b.bmodel
+│   ├── yolov8n_fp16_1b.bmodel
+│   ├── yolov8n_fp32_1b.bmodel
+│   ├── yolov8n_int8_1b.bmodel
+│   ├── yolov8n_int8_4b_2core.bmodel
+│   ├── yolov8n_int8_4b.bmodel
 │   ├── yolov9s_fp16_1b.bmodel
 │   ├── yolov9s_fp32_1b.bmodel
 │   ├── yolov9s_int8_1b.bmodel
@@ -121,6 +136,10 @@ models/
 │   ├── yolov8s_fp32_1b.bmodel
 │   ├── yolov8s_int8_1b.bmodel
 │   ├── yolov8s_int8_4b.bmodel
+│   ├── yolov8n_fp16_1b.bmodel
+│   ├── yolov8n_fp32_1b.bmodel
+│   ├── yolov8n_int8_1b.bmodel
+│   ├── yolov8n_int8_4b.bmodel
 │   ├── yolov9s_fp16_1b.bmodel
 │   ├── yolov9s_fp32_1b.bmodel
 │   ├── yolov9s_int8_1b.bmodel
@@ -132,6 +151,8 @@ models/
     ├── yolov11s_qtable # 量化yolov11s.onnx时，需要混合精度的层
     ├── yolov8s.onnx
     ├── yolov8s_qtable # 量化yolov8s.onnx时，需要混合精度的层
+    ├── yolov8n.onnx
+    ├── yolov8n_qtable # 量化yolov8n.onnx时，需要混合精度的层
     ├── yolov9s_qtable # 量化yolov9-s-converted.onnx时，需要混合精度的层
     └── yolov9-s-converted.onnx
 ```
