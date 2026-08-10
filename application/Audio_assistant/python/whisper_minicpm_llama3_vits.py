@@ -32,7 +32,14 @@ from datetime import datetime
 import whisperWrapper
 import sys
 sys.path.append("./XTTS")
-from XTTS.api import TTS
+try:
+    from XTTS.api import TTS
+except Exception as _e:
+    import logging
+    logging.warning(
+        "XTTS not available (%s); --tts_type xtts disabled. "
+        "For BM1684X xtts install deps per python/README.md.", _e)
+    TTS = None
 
 # vad
 VAD_FRAME_DURATION_MS = 30
@@ -862,16 +869,16 @@ def set_argparser(name:str):
     
     def minicpm_parser():
         parser = argparse.ArgumentParser()
-        parser.add_argument('--minicpm_model_path', type=str, default = '../BM1688/minicpm/minicpm-2b_int4_1core.bmodel', help='path to the LLM bmodel file') 
-        parser.add_argument('--minicpm_tokenizer_model_path', type=str, default = '../BM1688/minicpm/tokenizer.model', help='path to the tokenizer file') 
+        parser.add_argument('--minicpm_model_path', type=str, default = '../models/BM1688/minicpm/minicpm-2b_int4_1core.bmodel', help='path to the LLM bmodel file')
+        parser.add_argument('--minicpm_tokenizer_model_path', type=str, default = '../models/BM1688/minicpm/tokenizer.model', help='path to the tokenizer file')
         parser.add_argument('-d', '--devid', type=str, default='0', help='device ID to use')
         return parser
 
     def vits_parser():
         parser = argparse.ArgumentParser(
             description='Inference code for bert vits models')
-        parser.add_argument('--vits_model', type=str, default='../BM1688/vits/vits_chinese_128_bm1688_f16_1core.bmodel', help='path of bmodel')
-        parser.add_argument('--bert_model', type=str, default='../BM1688/vits/bert_1688_f32_1core.bmodel', help='path of bert config')
+        parser.add_argument('--vits_model', type=str, default='../models/BM1688/vits/vits_chinese_128_bm1688_f16_1core.bmodel', help='path of bmodel')
+        parser.add_argument('--bert_model', type=str, default='../models/BM1688/vits/bert_1688_f32_1core.bmodel', help='path of bert config')
         parser.add_argument('-d', '--devid', type=int, default=0, help='device id')
         return parser
 
