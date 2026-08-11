@@ -1,0 +1,50 @@
+{
+  "model_name": "TAPNext++",
+  "upstream_repo": "https://github.com/google-deepmind/tapnet",
+  "framework": "pytorch",
+  "framework_note": "Repo ships JAX/Haiku original + PyTorch reimplementation (tapnet/tapnext/tapnext_torch.py). Port from the PyTorch impl; JAX deps not needed.",
+  "algorithm": "point_tracking (Tracking Any Point)",
+  "sub_models": 1,
+  "architecture": "ViT (Conv2d patch-embed 3->768 @8x8 + 12x TRecViTBlock, width=768, heads=12); each block's temporal mixing is a RecurrentBlock = Linear -> CausalConv1D -> RG-LRU (gated linear recurrent unit / SSM). Heads: coordinate_head (MLP->512), visible_head (MLP->1). Explicit online state: TAPNextTrackingState{step, query_points, List[RecurrentBlockCache(rg_lru_state, conv1d_state)]}.",
+  "input": {
+    "per_step": "[1,3,H,W] image + [1,Q,3] query_points + cached state (rg_lru_state, conv1d_state per block)",
+    "dtype": "float32",
+    "channel_order": "RGB",
+    "dynamic_dims": ["Q (num query points)", "HxW (configurable)", "video length (handled by host state loop)"],
+    "note": "Fix HxW (256x256 or 480x480) and max Q with zero-padding for static-shape compile."
+  },
+  "preprocess": {
+    "resize": "bilinear to [model_size, model_size] (256 for POC; 256/480 in repo)",
+    "scale": "x / 127.5 - 1.0  (range -> [-1, 1]; NO mean/std)",
+    "bgr_to_rgb": true,
+    "source": "tapnet/tapnextpp/votsp2026/utils.py: preprocess_frame (t.div_(127.5).sub_(1.0))",
+    "mlir_mapping": "--mean 127.5 --scale 0.007843 (=1/127.5) --pixel_format rgb"
+  },
+  "output": [
+    { "name": "coordinates", "shape": "[1,Q,2]", "dtype": "float32", "via": "coordinate_head MLP->512 then decode (verify decode convention)" },
+    { "name": "visibility", "shape": "[1,Q,1]", "dtype": "float32", "via": "visible_head MLP->1 (occlusion/visibility logit)" },
+    { "name": "new_state", "dtype": "float32", "note": "RecurrentBlockCache x12 (rg_lru_state, conv1d_state) = 24 cache tensors; fed back as inputs next step (host-side loop). step (frame counter) and query_points (constant) are step-graph INPUTS only, host-managed -- not echoed as outputs (echoing them produced pass-through Cast/Constant outputs the ONNX->MLIR converter could not resolve)." }
+  ],
+  "ops": ["Conv2d", "LayerNorm", "GELU(tanh)", "Linear", "Sigmoid", "Softplus", "Exp", "Sqrt", "MultiHeadAttention", "CausalConv1D", "RG-LRU(elementwise a*h0+x)"],
+  "recurrence": {
+    "type": "linear gated RNN / SSM (RG-LRU, Mamba/Griffin family)",
+    "inference_step": "rnn_scan(x.shape[1]==1) => y = a*h0 + x; pure elementwise, no control flow, static graph (tapnext_lru_modules.py:102)",
+    "state": "RecurrentBlockCache(rg_lru_state, conv1d_state) per block; TAPNextTrackingState wraps list + step + query_points",
+    "tpu_strategy": "export per-step network (single-timestep path) to ONNX with static shapes; run recurrence/state loop on BM1688 host (C++/Python), feed cache back as ONNX input/output tensors"
+  },
+  "ref_sample": "none (no existing point-tracker sample; ByteTrack/FearTracker are bbox trackers, different task). Nearest attention/transformer sample: sample/Qwen.",
+  "feasibility": "FEASIBLE. Customer fear (recurrence not ONNX-exportable) is unfounded for inference: recurrence is LINEAR with an explicit single-step path (pure elementwise). Real work = (1) refactor forward to drive single-step online mode, (2) fix static shapes (HxW, max Q with padding), (3) choose ONNX export boundary (whole per-step forward incl cache as I/O), (4) host-side state loop in C++. Risks MEDIUM, not HIGH.",
+  "risks": [
+    "Online single-step path must be driven explicitly (default demo runs whole-video parallel scan) - refactor forward()",
+    "num_query_points dynamic -> fix to max Q with zero-padding",
+    "CausalConv1D conv1d_state buffer handling in ONNX (fixed temporal_width=4)",
+    "Verify no data-dependent control flow in coordinate decode (coordinate_head outputs 512)",
+    "RESOLVED: nn.MultiheadAttention ONNX export. torch>=2.0 routes through aten::scaled_dot_product_attention (no symbolic); torch 1.13 routes through the fused aten::_native_multi_head_attention fast-path (also no symbolic at any opset, and EncoderBlock hits every fast-path gate in eval). Fix: monkey-patch nn.MultiheadAttention.forward onto its explicit F.multi_head_attention_forward (MatMul/Softmax/MatMul) path in tools/export_onnx.py (_mha_forward_exportable). Same math/weights, exports cleanly. Export venv: torch 1.13.1+cpu / torchvision 0.14.1+cpu / onnx 1.13.1 / onnxruntime 1.13.1 / numpy<2.",
+    "Checkpoint is a direct PyTorch state_dict (.pt) on GCS, ~2.4GB (401 keys, 244.5M params, Lightning 'tapnext.' prefix); torch.load(weights_only=False) + load_state_dict(strict=False), no JAX conversion"
+  ],
+  "weights": {
+    "source": "https://storage.googleapis.com/dm-tapnet/tapnextpp/tapnextpp_ckpt.pt",
+    "format": "PyTorch state_dict (.pt), loaded via torch.load(weights_only=False) + load_state_dict(strict=False); strips Lightning 'tapnext.' prefix. NO JAX/.npy conversion needed. ~2.4GB, 401 keys, 244.5M params."
+  },
+  "metrics": { "accuracy": "AJ (%) / delta_avg / TAP-Vid Average Jaccard", "performance": "FPS / per-frame latency (ms)" }
+}
