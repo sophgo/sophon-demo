@@ -43,16 +43,9 @@ cd build && cmake -DTARGET_ARCH=pcie .. && make && mv *cpython* ../..
 cd ../../../socket_demo
 ```
 
-- 接着需要下载Whisper的依赖文件
+- 接着需要下载Whisper的bmodel和assets（sail版，无需libuntpu）
 ```bash
-cd ../whisper-TPU_py/bmwhisper
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper-TPU_py/third_party.zip
-unzip third_party.zip -d ./
-rm -f third_party.zip
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper-TPU_py/assets.zip
-unzip assets.zip -d ./
-rm -f assets.zip
-cd ../../socket_demo
+bash ../../scripts/download_whisper.sh
 ```
 
 - 此外您还需要安装其他python第三方库：
@@ -93,16 +86,9 @@ cd build && cmake -DTARGET_ARCH=soc .. && make && mv minicpm ..
 cd ../../../socket_demo
 ```
 
-- 接着需要下载Whisper的依赖文件
+- 接着需要下载Whisper的bmodel和assets（sail版，无需libuntpu）
 ```bash
-cd ../whisper-TPU_py/bmwhisper
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper-TPU_py/third_party.zip
-unzip third_party.zip -d ./
-rm -f third_party.zip
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper-TPU_py/assets.zip
-unzip assets.zip -d ./
-rm -f assets.zip
-cd ../../socket_demo
+bash ../../scripts/download_whisper.sh
 ```
 
 - 此外您还需要在SOC平台安装其他python第三方库：

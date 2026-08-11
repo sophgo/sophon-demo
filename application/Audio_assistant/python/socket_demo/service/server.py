@@ -7,7 +7,7 @@ import multiprocessing
 from rich.console import Console
 from pipeline import Pipeline, MinicpmModel, Llama3Model, VITS, Timer
 import sys
-sys.path.append("../whisper-TPU_py")
+sys.path.append("../")
 import whisperWrapper
 import os
 import time

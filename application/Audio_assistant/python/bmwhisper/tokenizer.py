@@ -1,10 +1,17 @@
+#===----------------------------------------------------------------------===#
+#
+# Copyright (C) 2024 Sophgo Technologies Inc.  All rights reserved.
+#
+# SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
+# third-party components.
+#
+#===----------------------------------------------------------------------===#
 import base64
 import os
 import string
 from dataclasses import dataclass, field
 from functools import cached_property, lru_cache
 from typing import Dict, List, Optional, Tuple
-
 import tiktoken
 
 LANGUAGES = {

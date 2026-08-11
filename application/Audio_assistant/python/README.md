@@ -38,16 +38,9 @@ cd build && cmake -DTARGET_ARCH=pcie .. && make && mv *cpython* ../..
 cd ../../..
 ```
 
-- 接着需要下载Whisper的依赖文件
+- 接着需要下载Whisper的bmodel和assets（sail版，无需libuntpu）
 ```bash
-cd whisper-TPU_py/bmwhisper
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper-TPU_py/third_party.zip
-unzip third_party.zip -d ./
-rm -f third_party.zip
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper-TPU_py/assets.zip
-unzip assets.zip -d ./
-rm -f assets.zip
-cd ../..
+bash ../scripts/download_whisper.sh
 ```
 
 - 此外您还需要安装其他python第三方库：
@@ -89,16 +82,9 @@ cd build && cmake -DTARGET_ARCH=soc .. && make && mv minicpm ..
 cd ../../..
 ```
 
-- 接着需要下载Whisper的依赖文件
+- 接着需要下载Whisper的bmodel和assets（sail版，无需libuntpu）
 ```bash
-cd whisper-TPU_py/bmwhisper
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper-TPU_py/third_party.zip
-unzip third_party.zip -d ./
-rm -f third_party.zip
-python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/whisper-TPU_py/assets.zip
-unzip assets.zip -d ./
-rm -f assets.zip
-cd ../..
+bash ../scripts/download_whisper.sh
 ```
 
 - 此外您还需要在SOC平台安装其他python第三方库：
@@ -133,11 +119,14 @@ export BMRUNTIME_USING_FIRMWARE=/path-to-current-dir/libfirmware_core.so
 ​本例程在`scripts`目录下提供了相关模型和数据的下载脚本
 ```bash
 └── scripts
-    ├── download_bm1684x_whisper_llama3_vits.sh                              # 通过该脚本下载BM1684X平台运行所需要的BModel
-    ├── download_bm1688_whisper_minicpm_vits.sh                              # 通过该脚本下载BM1688平台运行所需要的BModel
+    ├── download_bm1684x_whisper_llama3_vits.sh                              # 通过该脚本下载BM1684X平台运行所需要的BModel（llama3/vits）
+    ├── download_bm1688_whisper_minicpm_vits.sh                              # 通过该脚本下载BM1688平台运行所需要的BModel（minicpm/vits）
+    ├── download_whisper.sh                                                  # 下载Whisper sail版合并bmodel + assets（--chip 1688/1684x，--model small）
     ├── download_datasets.sh                                                 # 通过该脚本下载测试音频文件
     └── download.sh                                                          # 通过该脚本下载所有模型和测试数据
 ```
+
+> Whisper 已改为 `python/bmwhisper/` 下的 sail 版实现（从 `sample/Whisper` 复制，自包含，不依赖 libuntpu）。合并 bmodel 和 assets 由 `download_whisper.sh` 单独下载，与平台脚本解耦。
 
 - 对于BM1688平台，执行如下命令下载模型
 ```bash
@@ -145,36 +134,29 @@ export BMRUNTIME_USING_FIRMWARE=/path-to-current-dir/libfirmware_core.so
 sudo apt install unzip
 cd ..
 chmod -R +x scripts/
-./scripts/download_bm1688_whisper_minicpm_vits.sh
+./scripts/download_bm1688_whisper_minicpm_vits.sh   # minicpm + vits
+./scripts/download_whisper.sh --chip 1688           # whisper sail 合并 bmodel + assets
 cd python
 ```
 
 下载的模型包括：
 ```
 ./models
-└── BM1688
-    ├── minicpm
-    |   ├── minicpm-2b_int4_1core.bmodel                                                                 # MiniCPM-2B int4，1core BM1688 BModel
-    |   └── tokenizer.model                                                                              # MiniCPM-2B 的Tokenizer模型
-    ├── vits
-    |   ├── bert_1688_f32_1core.bmodel                                                                   # VITS BERT fp32，1core BM1688 BModel
-    |   └── vits_chinese_128_bm1688_f16_1core.bmodel                                                     # VITS fp16，1core BM1688 BModel
-    └── whisper
-        ├── all_quant_decoder_loop_with_kvcache_and_rearrange_base_5beam_128pad_bm1688_f16.bmodel        # Whisper-Base Decoder模型，beam size为5，输出最大token长度为128，fp16 BM1688 BModel
-        ├── all_quant_decoder_loop_with_kvcache_and_rearrange_small_5beam_128pad_bm1688_f16.bmodel       # Whisper-Small Decoder模型，beam size为5，输出最大token长度为128，fp16 BM1688 BModel
-        ├── all_quant_decoder_loop_with_kvcache_and_rearrange_small_5beam_448pad_bm1688_f16.bmodel       # Whisper-Small Decoder模型，beam size为5，输出最大token长度为448，效率相比128模型更低，fp16 BM1688 BModel
-        ├── all_quant_decoder_main_with_kvcache_base_5beam_128pad_bm1688_f16.bmodel                      # Whisper-Base Decoder模型，beam size为5，输出最大token长度为128，fp16 BM1688 BModel
-        ├── all_quant_decoder_main_with_kvcache_small_5beam_128pad_bm1688_f16.bmodel                     # Whisper-Small Decoder模型，beam size为5，输出最大token长度为128，fp16 BM1688 BModel
-        ├── all_quant_decoder_main_with_kvcache_small_5beam_448pad_bm1688_f16.bmodel                     # Whisper-Small Decoder模型，beam size为5，输出最大token长度为448，效率相比128模型更低，fp16 BM1688 BModel
-        ├── all_quant_decoder_post_base_5beam_128pad_bm1688_f16.bmodel                                   # Whisper-Base Decoder模型，beam size为5，fp16 BM1688 BModel
-        ├── all_quant_decoder_post_small_5beam_128pad_bm1688_f16.bmodel                                  # Whisper-Small Decoder模型，beam size为5，fp16 BM1688 BModel
-        ├── all_quant_decoder_post_small_5beam_448pad_bm1688_f16.bmodel                                  # Whisper-Small Decoder模型，beam size为5，fp16 BM1688 BModel
-        ├── all_quant_encoder_base_5beam_128pad_bm1688_f16.bmodel                                        # Whisper-Base Encoder模型，beam size为5，fp16 BM1688 BModel
-        ├── all_quant_encoder_small_5beam_128pad_bm1688_f16.bmodel                                       # Whisper-Small Encoder模型，beam size为5，fp16 BM1688 BModel
-        ├── all_quant_encoder_small_5beam_448pad_bm1688_f16.bmodel                                       # Whisper-Small Encoder模型，beam size为5，fp16 BM1688 BModel
-        ├── all_quant_logits_decoder_base_5beam_128pad_bm1688_f16.bmodel                                 # Whisper-Base 预测层，beam size为5，fp16 BM1688 BModel
-        ├── all_quant_logits_decoder_small_5beam_128pad_bm1688_f16.bmodel                                # Whisper-Small 预测层，beam size为5，fp16 BM1688 BModel
-        └── all_quant_logits_decoder_small_5beam_448pad_bm1688_f16.bmodel                                # Whisper-Small 预测层，beam size为5，fp16 BM1688 BModel
+├── BM1688
+|   ├── minicpm
+|   |   ├── minicpm-2b_int4_1core.bmodel                                                                 # MiniCPM-2B int4，1core BM1688 BModel
+|   |   └── tokenizer.model                                                                              # MiniCPM-2B 的Tokenizer模型
+|   └── vits
+|       ├── bert_1688_f32_1core.bmodel                                                                   # VITS BERT fp32，1core BM1688 BModel
+|       └── vits_chinese_128_bm1688_f16_1core.bmodel                                                     # VITS fp16，1core BM1688 BModel
+└── whisper                                                                                              # sail版合并bmodel，由 download_whisper.sh 下载
+    └── bmwhisper_small_1688_f16.bmodel                                                                  # Whisper-Small 合并bmodel，beam=5，pad=448，fp16 BM1688，6 graphs，无需libuntpu
+
+./python/bmwhisper/assets/                                                                               # 与芯片无关，由 download_whisper.sh 解压 assets.zip
+    ├── positional_embedding_small.npz                                                                   # decoder 位置编码（从 small.pt 提取）
+    ├── mel_filters.npz                                                                                  # log-mel 滤波器组
+    ├── gpt2.tiktoken                                                                                    # GPT-2 tokenizer
+    └── multilingual.tiktoken                                                                            # 多语言 tokenizer
 ```
 
 - 对于BM1684X平台，执行如下命令下载模型
@@ -183,38 +165,26 @@ cd python
 sudo apt install unzip
 cd ..
 chmod -R +x scripts/
-./scripts/download_bm1684x_whisper_llama3_vits.sh
+./scripts/download_bm1684x_whisper_llama3_vits.sh   # llama3 + vits
+./scripts/download_whisper.sh --chip 1684x          # whisper sail 合并 bmodel + assets
 cd python
 ```
 
 下载的模型包括：
 ```
 ./models
-└── BM1684X
-    ├── llama3
-    |   ├── token_config                                                                                 # Llama3-8B Tokenizer配置文件 
-    |   └── llama3-8b_int4_1dev_256.bmodel                                                               # Llama3-8B 最大输出长度为256个tokens，int4 Bmodel
-    ├── vits
-    |   ├── bert_1684x_f32.bmodel                                                                        # VITS BERT fp32 BModel
-    |   └── vits_chinese_128_f16.bmodel                                                                  # VITS fp16 BModel
-    └── whisper
-        ├── all_quant_decoder_loop_with_kvcache_and_rearrange_base_5beam_448pad_1684x_f16.bmodel         # Whisper-Base Decoder模型，beam size为5，输出最大token长度为448，fp16 BM1684X BModel
-        ├── all_quant_decoder_loop_with_kvcache_and_rearrange_large-v2_5beam_448pad_1684x_f16.bmodel     # Whisper-Large-v2 Decoder模型，beam size为5，输出最大token长度为448，fp16 BM1684X BModel
-        ├── all_quant_decoder_loop_with_kvcache_and_rearrange_large-v3_5beam_448pad_1684x_f16.bmodel     # Whisper-Large-v3 Decoder模型，beam size为5，输出最大token长度为448，fp16 BM1684X BModel
-        ├── all_quant_decoder_loop_with_kvcache_and_rearrange_medium_5beam_448pad_1684x_f16.bmodel       # Whisper-Medium Decoder模型，beam size为5，输出最大token长度为448，fp16 BM1684X BModel
-        ├── all_quant_decoder_loop_with_kvcache_and_rearrange_small_5beam_448pad_1684x_f16.bmodel        # Whisper-Small Decoder模型，beam size为5，输出最大token长度为448，fp16 BM1684X BModel
-        ├── all_quant_decoder_main_with_kvcache_base_5beam_448pad_1684x_f16.bmodel                       # Whisper-Base Decoder模型，beam size为5，输出最大token长度为448，fp16 BM1684X BModel
-        ├── all_quant_decoder_main_with_kvcache_medium_5beam_448pad_1684x_f16.bmodel                     # Whisper-Medium Decoder模型，beam size为5，输出最大token长度为448，fp16 BM1684X BModel
-        ├── all_quant_decoder_main_with_kvcache_small_5beam_448pad_1684x_f16.bmodel                      # Whisper-Small Decoder模型，beam size为5，输出最大token长度为448，fp16 BM1684X BModel
-        ├── all_quant_decoder_post_base_5beam_448pad_1684x_f16.bmodel                                    # Whisper-Base Decoder模型，beam size为5，fp16 BM1684X BModel
-        ├── all_quant_decoder_post_medium_5beam_448pad_1684x_f16.bmodel                                  # Whisper-Medium Decoder模型，beam size为5，fp16 BM1684X BModel
-        ├── all_quant_decoder_post_small_5beam_448pad_1684x_f16.bmodel                                   # Whisper-Small Decoder模型，beam size为5，fp16 BM1684X BModel
-        ├── all_quant_encoder_base_5beam_448pad_1684x_f16.bmodel                                         # Whisper-Base Encoder模型，beam size为5，fp16 BM1684X BModel
-        ├── all_quant_encoder_medium_5beam_448pad_1684x_f16.bmodel                                       # Whisper-Medium Encoder模型，beam size为5，fp16 BM1688 BModel
-        ├── all_quant_encoder_small_5beam_448pad_1684x_f16.bmodel                                        # Whisper-Small Encoder模型，beam size为5，fp16 BM1684X BModel
-        ├── all_quant_logits_decoder_base_5beam_448pad_1684x_f16.bmodel                                  # Whisper-Base 预测层，beam size为5，fp16 BM1684X BModel
-        ├── all_quant_logits_decoder_medium_5beam_448pad_1684x_f16.bmodel                                # Whisper-Medium 预测层，beam size为5，fp16 BM1684X BModel
-        └── all_quant_logits_decoder_small_5beam_448pad_1684x_f16.bmodel                                 # Whisper-Small 预测层，beam size为5，fp16 BM1684X BModel
+├── BM1684X
+|   ├── llama3
+|   |   ├── token_config                                                                                 # Llama3-8B Tokenizer配置文件
+|   |   └── llama3-8b_int4_1dev_256.bmodel                                                               # Llama3-8B 最大输出长度为256个tokens，int4 Bmodel
+|   └── vits
+|       ├── bert_1684x_f32.bmodel                                                                        # VITS BERT fp32 BModel
+|       └── vits_chinese_128_f16.bmodel                                                                  # VITS fp16 BModel
+└── whisper                                                                                              # sail版合并bmodel，由 download_whisper.sh 下载
+    └── bmwhisper_small_1684x_f16.bmodel                                                                 # Whisper-Small 合并bmodel，beam=5，pad=448，fp16 BM1684X，6 graphs，无需libuntpu
+
+./python/bmwhisper/assets/                                                                               # 与芯片无关，与 BM1688 共用同一份
+    └── （同上 BM1688 assets）
 ```
 
 - 执行如下命令下载测试数据

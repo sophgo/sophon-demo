@@ -1,14 +1,21 @@
+#===----------------------------------------------------------------------===#
+#
+# Copyright (C) 2024 Sophgo Technologies Inc.  All rights reserved.
+#
+# SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
+# third-party components.
+#
+#===----------------------------------------------------------------------===#
 import argparse
 import os
 import warnings
 from typing import TYPE_CHECKING, Optional, Tuple, Union
-
 import numpy as np
 import torch
 import tqdm
 import time
-
-from .audio import (
+import contextlib, wave
+from .utils import (
     FRAMES_PER_SECOND,
     HOP_LENGTH,
     N_FRAMES,
@@ -18,7 +25,6 @@ from .audio import (
     pad_or_trim,
 )
 from .decoding import DecodingOptions, DecodingResult
-from .timing import add_word_timestamps
 from .tokenizer import LANGUAGES, TO_LANGUAGE_CODE, get_tokenizer
 from .utils import (
     exact_div,
@@ -28,6 +34,7 @@ from .utils import (
     optional_float,
     optional_int,
     str2bool,
+    add_word_timestamps
 )
 
 if TYPE_CHECKING:
@@ -107,11 +114,13 @@ def transcribe(
     A dictionary containing the resulting text ("text") and segment-level details ("segments"), and
     the spoken language ("language"), which is detected when `decode_options["language"]` is None.
     """
-
+    # only float16 now
     dtype = torch.float16
 
+    start_time = time.time()
     # Pad 30-seconds of silence to the input audio, for slicing
     mel = log_mel_spectrogram(audio, model.dims.n_mels, padding=N_SAMPLES)
+
     content_frames = mel.shape[-1] - N_FRAMES
 
     if decode_options.get("language", None) is None:
@@ -129,7 +138,6 @@ def transcribe(
                 print(
                     f"Detected language: {LANGUAGES[decode_options['language']].title()}\n"
                 )
-
     language: str = decode_options["language"]
     task: str = decode_options.get("task", "transcribe")
     tokenizer = get_tokenizer(
@@ -140,6 +148,25 @@ def transcribe(
     )
     if word_timestamps and task == "translate":
         warnings.warn("Word-level timestamps on translations may not be reliable.")
+
+    seek = 0
+    input_stride = exact_div(
+        N_FRAMES, model.dims.n_audio_ctx
+    )  # mel frames per output token: 2
+    time_precision = (
+        input_stride * HOP_LENGTH / SAMPLE_RATE
+    )  # time per output token: 0.02 (seconds)
+    all_tokens = []
+    all_segments = []
+    prompt_reset_since = 0
+
+    if initial_prompt is not None:
+        initial_prompt_tokens = tokenizer.encode(" " + initial_prompt.strip())
+        all_tokens.extend(initial_prompt_tokens)
+    else:
+        initial_prompt_tokens = []
+
+    model.preprocess_time += time.time() - start_time
 
     def decode_with_fallback(segment: torch.Tensor) -> DecodingResult:
         temperatures = (
@@ -158,6 +185,7 @@ def transcribe(
                 kwargs.pop("best_of", None)
             # print('{:=^100s}'.format(f' decode_with_fallback temperatures {t} '))
             # print(f"kwargs: {kwargs}")
+
             options = DecodingOptions(**kwargs, temperature=t)
             decode_result = model.decode(segment, options)
 
@@ -182,22 +210,6 @@ def transcribe(
 
         return decode_result
 
-    seek = 0
-    input_stride = exact_div(
-        N_FRAMES, model.dims.n_audio_ctx
-    )  # mel frames per output token: 2
-    time_precision = (
-        input_stride * HOP_LENGTH / SAMPLE_RATE
-    )  # time per output token: 0.02 (seconds)
-    all_tokens = []
-    all_segments = []
-    prompt_reset_since = 0
-
-    if initial_prompt is not None:
-        initial_prompt_tokens = tokenizer.encode(" " + initial_prompt.strip())
-        all_tokens.extend(initial_prompt_tokens)
-    else:
-        initial_prompt_tokens = []
 
     def new_segment(
         *, start: float, end: float, tokens: torch.Tensor, result: DecodingResult
@@ -215,7 +227,8 @@ def transcribe(
             "compression_ratio": result.compression_ratio,
             "no_speech_prob": result.no_speech_prob,
         }
-        
+
+
     # show the progress bar when verbose is False (if True, transcribed text will be printed)
     with tqdm.tqdm(
         total=content_frames, unit="frames", disable=verbose is not False
@@ -229,7 +242,6 @@ def transcribe(
             mel_segment = pad_or_trim(mel_segment, N_FRAMES).to(dtype)
 
             decode_options["prompt"] = all_tokens[prompt_reset_since:]
-            # import pdb; pdb.set_trace()
             result: DecodingResult = decode_with_fallback(mel_segment)
             tokens = torch.tensor(result.tokens)
             # print(f"result: {result}")
@@ -337,10 +349,9 @@ def transcribe(
                         seek = previous_seek + seek_shift
 
             if verbose:
-                print("Question:")
                 for segment in current_segments:
                     start, end, text = segment["start"], segment["end"], segment["text"]
-                    line = f"{text}"
+                    line = f"[{format_timestamp(start)} --> {format_timestamp(end)}] {text}"
                     print(make_safe(line))
 
             # if a segment is instantaneous or does not contain text, clear it
@@ -378,14 +389,17 @@ def transcribe(
 def cli():
     start_time = time.time()
     from . import available_models
-
+    total_preprocess_time = 0
+    total_inference_time = 0
+    total_audio_time = 0
     # fmt: off
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("audio", nargs="+", type=str, help="audio file(s) to transcribe")
     parser.add_argument("--model", default="small", choices=available_models(), help="name of the Whisper model to use")
-    parser.add_argument("--model_dir", type=str, default=None, help="the path to save model files; uses ~/.cache/whisper by default")
-    parser.add_argument("--bmodel_dir", type=str, default="./bmodel", help="the path to save model files; uses ./bmodel by default")
-    # parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu", help="device to use for PyTorch inference")
+    parser.add_argument("--bmodel_dir", type=str, default="../models/BM1684X/", help="the path of bmodels; uses ../models/BM1684X/ by default")
+
+    parser.add_argument('--dev_id', type=int, default=0, help='dev id for sophgo tpu')
+
     parser.add_argument("--output_dir", "-o", type=str, default=".", help="directory to save the outputs")
     parser.add_argument("--output_format", "-f", type=str, default="all", choices=["txt", "vtt", "srt", "tsv", "json", "all"], help="format of the output file; if not specified, all available formats will be produced")
     parser.add_argument("--verbose", type=str2bool, default=True, help="whether to print out the progress and debug messages")
@@ -415,9 +429,7 @@ def cli():
     parser.add_argument("--max_line_count", type=optional_int, default=None, help="(requires --word_timestamps True) the maximum number of lines in a segment")
     parser.add_argument("--threads", type=optional_int, default=0, help="number of threads used by torch for CPU inference; supercedes MKL_NUM_THREADS/OMP_NUM_THREADS")
     parser.add_argument("--padding_size", type=optional_int, default=448, help="max pre-allocation size for the key-value cache")
-    parser.add_argument("--chip_mode", default="soc", choices=["pcie", "soc"], help="name of the Whisper model to use")
     parser.add_argument("--loop_profile", action="store_true", help="whether to print loop times")
-    parser.add_argument("--chip", default="bm1688", choices=["1684x", "bm1684x", "1688", "bm1688"], help="chip platform name")
     # fmt: on
 
     args = parser.parse_args().__dict__
@@ -426,8 +438,6 @@ def cli():
     output_format: str = args.pop("output_format")
     loop_profile = args.pop("loop_profile")
     os.makedirs(output_dir, exist_ok=True)
-    os.environ["LOG_LEVEL"] = "-1"
-
 
     model_name = args["model_name"]
     if model_name.endswith(".en") and args["language"] not in {"en", "English"}:
@@ -448,8 +458,8 @@ def cli():
 
     from . import load_model
 
-    model = load_model(args) 
-    pop_list = ["model_name", "model_dir", "bmodel_dir", "chip_mode", "chip"]
+    model = load_model(args)
+    pop_list = ["model_name", "bmodel_dir", "dev_id"]
     for arg in pop_list:
         args.pop(arg)
 
@@ -462,23 +472,39 @@ def cli():
     if args["max_line_count"] and not args["max_line_width"]:
         warnings.warn("--max_line_count has no effect without --max_line_width")
     writer_args = {arg: args.pop(arg) for arg in word_options}
-
-    for audio_path in args.pop("audio"):
-        model.init_cnt()
+    audio_list=args.pop("audio")
+    for audio_path in audio_list:
+        if os.path.isdir(audio_path):
+            all_files = [os.path.join(audio_path, f) for f in os.listdir(audio_path)]
+            audio_list.extend(all_files)
+            continue
+        with contextlib.closing(wave.open(audio_path, 'r')) as f:
+            frames = f.getnframes()
+            rate = f.getframerate()
+            total_audio_time += frames / float(rate)
         print()
         print("{:=^100}".format(f" Start "))
         print(f"### audio_path: {os.path.basename(audio_path)}")
         audio_start_time = time.time()
+        model.init_cnt()
+        model.init_time()
         result = transcribe(model, audio_path, temperature=temperature, **args)
-        cpu_time = time.time() - audio_start_time - model.time
+        writer(result, audio_path, writer_args)
+        total_time = time.time() - audio_start_time
+        preprocess_time = total_time - model.inference_time
+        total_preprocess_time += preprocess_time
+        total_inference_time += model.inference_time
         if loop_profile:
             model.print_cnt()
         print()
-        print(f"Total tpu inference time: {model.time}s")
-        print(f"Total cpu inference time: {cpu_time}s")
-        print(f"Total time: {cpu_time + model.time}s")
-        model.time = 0
-    print("{:-^100}".format(f"  Total time: {time.time() - start_time} seconds "))
+        print(f"Preprocess time: {preprocess_time}s")
+        print(f"Inference time: {model.inference_time}s")
+        print(f"Total time: {total_time}s")
+    audio_num = len(audio_list)
+    print("{:=^100}".format(f" End "))
+    print("{:-^100}".format(f" {audio_num} audio(s) average preprocess time: {total_preprocess_time / total_audio_time} seconds "))
+    print("{:-^100}".format(f" {audio_num} audio(s) average inference time: {total_inference_time / total_audio_time} seconds "))
+    print("{:-^100}".format(f" {audio_num} audio(s) total time: {time.time() - start_time} seconds "))
 
 if __name__ == "__main__":
     cli()

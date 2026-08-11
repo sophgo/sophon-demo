@@ -1,6 +1,5 @@
 import sys
 sys.path.append("../")
-sys.path.append("../whisper-TPU_py")
 try:
     from Llama3 import chat
 except:

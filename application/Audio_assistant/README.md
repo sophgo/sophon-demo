@@ -46,12 +46,13 @@ Audio_assistant
 │   ├── MiniCPM    # MiniCPM源码和依赖库文件夹
 │   │   ├── demo          # MiniCPM源码文件夹
 │   │   └── support       # MiniCPM依赖库文件夹
-│   ├── whisper-TPU_py    # Whisper源码文件夹
+│   ├── bmwhisper         # Whisper sail版推理包（来自sample/Whisper，无需libuntpu）
 │   ├── whisper_minicpm_llama3_vits.py     # 全流程串通源代码
 │   └── whisperWrapper.py                  # Whisper接口源代码
 └── scripts
     ├── download_bm1684x_whisper_llama3_vits.sh       # BM1684X模型下载脚本，包括Whisper-small、Whisper-medium、Whisper-base、Llama3-8b、VITS-chinese
     ├── download_bm1688_whisper_minicpm_vits.sh       # BM1688模型下载脚本，包括Whisper-small、Whisper-base、MiniCPM-2b、VITS-chinese
+    ├── download_whisper.sh                           # Whisper sail版合并bmodel+assets下载脚本（无需libuntpu）
     ├── download_datasets.sh                          # 音频测试文件下载脚本
     └── download.sh                                   # 完整的模型、数据下载脚本
 ```

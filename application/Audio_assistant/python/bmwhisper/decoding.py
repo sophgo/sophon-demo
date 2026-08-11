@@ -1,24 +1,28 @@
-import os
+#===----------------------------------------------------------------------===#
+#
+# Copyright (C) 2024 Sophgo Technologies Inc.  All rights reserved.
+#
+# SOPHON-DEMO is licensed under the 2-Clause BSD License except for the
+# third-party components.
+#
+#===----------------------------------------------------------------------===#
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 import time
-
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 from torch.distributions import Categorical
 
-from .audio import CHUNK_LENGTH
+from .utils import CHUNK_LENGTH
 from .tokenizer import Tokenizer, get_tokenizer
-from .utils import compression_ratio
-from .untool import Tool, make_np2c, data_type, data_type_map
+from .utils import compression_ratio, fp16_cast, uint16_to_fp16
 
 if TYPE_CHECKING:
     from .model import Whisper
 
-@torch.no_grad()
+
 def detect_language(
     model: "Whisper", mel: Tensor, tokenizer: Tokenizer = None
 ) -> Tuple[Tensor, List[dict]]:
@@ -48,40 +52,27 @@ def detect_language(
     if single:
         mel = mel.unsqueeze(0)
 
-    start_time = time.time()
+
     # skip encoder forward pass if already-encoded audio features were given
     if mel.shape[-2:] != (model.dims.n_audio_ctx, model.dims.n_audio_state):
-        # transform type from encoder inputs
-        encoder_info = model.tool.model_info(model.encoder_handle)
-        mel_input_dtype = data_type_map[encoder_info['input_dtypes'][0]]
-        mel = mel.numpy().astype(mel_input_dtype)
+        mel = mel.numpy().astype(np.float16)
         mel = mel if mel.flags.c_contiguous else np.ascontiguousarray(mel)
+        model.encoder_input_tensors_map[model.combined_whisper_engine.get_input_names(model.encoder_engine_graph_name)[0]].update_data(fp16_cast(mel));
 
-        # combine numpy addr with C addr & copy data from host to device for input data
-        model.tool.copy_data_from_numpy(model.tool.get_input_tensor(model.runtime1, 0), make_np2c(mel), data_type[mel_input_dtype])
-        model.tool.force_host_to_device(model.tool.get_input_tensor(model.runtime1, 0), model.handle)
+        start_time = time.time()
+        model.combined_whisper_engine.process(model.encoder_engine_graph_name,model.encoder_input_tensors_map,model.encoder_output_tensors_map)
+        model.inference_time += time.time() - start_time
 
-        # combine numpy addr with C addr for output data need cpu infernece
-        mel_out = np.empty(encoder_info[0]['output_shapes'][0], dtype=data_type_map[encoder_info['output_dtypes'][0]])
-        model.tool.copy_data_from_numpy(model.tool.get_output_tensor(model.runtime1, 0), make_np2c(mel_out), encoder_info['output_dtypes'][0])
+        mel_out_tensor = list(model.encoder_output_tensors_map.values())[0]
+        mel_out = torch.from_numpy(uint16_to_fp16(mel_out_tensor.asnumpy()))
 
-        # inference encoder on tpu
-        model.tool.inference(model.runtime1)
-
-        # copy data from device to host for output data
-        model.tool.copy_output_data_to_host(model.runtime1)
-        mel_out = torch.from_numpy(mel_out)
-
-        model.time += time.time() - start_time
         model.call_encoder += 1
-        # print(f"detect_language encoder time: {time.time() - start_time}")
 
     # forward pass using a single token, startoftranscript
     n_audio = mel_out.shape[0]
     x = torch.tensor([[tokenizer.sot]] * n_audio)  # [n_audio, 1]
     start_time = time.time()
     logits = model.logits(x, mel_out)[:, 0].float()
-    # print(f"logits time: {time.time() - start_time}")
 
     # collect detected languages; suppress all non-language tokens
     mask = torch.ones(logits.shape[-1], dtype=torch.bool)
@@ -153,38 +144,25 @@ class DecodingResult:
     compression_ratio: float = np.nan
 
 
-class Inference:
-    def logits(self, tokens: Tensor, audio_features: Tensor) -> Tensor:
-        """Perform a forward pass on the decoder and return per-token logits"""
-        raise NotImplementedError
-
-    def rearrange_kv_cache(
-            self, 
-            source_indices, 
-            self_attention_kcache: Tensor, 
-            self_attention_vcache: Tensor, 
-            cross_attention_kcache: Tensor, 
-            cross_attention_vcache: Tensor
-        ) -> None:
-        """Update the key-value cache according to the updated beams"""
-        raise NotImplementedError
-
-    def cleanup_caching(self) -> None:
-        """Clean up any resources or hooks after decoding is finished"""
-        pass
-
-
-class PyTorchInference(Inference):
+class PyTorchInference():
     def __init__(self, model: "Whisper", initial_token_length: int):
         self.model: "Whisper" = model
 
     def rearrange_kv_cache(
-            self, 
-            source_indices, 
-            self_attention_kcache: Tuple[Tensor] = None, 
-            self_attention_vcache: Tuple[Tensor] = None, 
+            self,
+            source_indices
         ):
-            # Move rearrange_kv_cache process to decoder_loop model
+        if source_indices != list(range(len(source_indices))):
+            indices = np.array(source_indices, dtype=np.int32)
+            indices = indices if indices.flags.contiguous else indices.copy()
+
+            self.model.kvcache_rearrange_input_list[0][self.model.kvcache_rearrange_input_names[1]].update_data(indices)
+            for i in range(2 * self.model.dims.n_text_layer):
+                start_time = time.time()
+                self.model.combined_whisper_engine.process(self.model.kvcache_rearrange_graph_name, self.model.kvcache_rearrange_input_list[i], self.model.kvcache_rearrange_output_list[i])
+                self.model.inference_time += time.time() - start_time
+
+            self.model.call_kvcache_rearrange += 2 * self.model.dims.n_text_layer
             return
 
 class SequenceRanker:
@@ -229,10 +207,10 @@ class TokenDecoder:
         """Initialize any stateful variables for decoding a new sequence"""
 
     def update(
-        self, 
-        tokens: Tensor, 
-        logits: Tensor, 
-        sum_logprobs: Tensor, 
+        self,
+        tokens: Tensor,
+        logits: Tensor,
+        sum_logprobs: Tensor,
     ) -> Tuple[Tensor, bool]:
         """Specify how to select the next token, based on the current trace and logits
 
@@ -283,18 +261,17 @@ class TokenDecoder:
         raise NotImplementedError
 
 
+
 class GreedyDecoder(TokenDecoder):
     def __init__(self, temperature: float, eot: int):
         self.temperature = temperature
         self.eot = eot
 
     def update(
-        self, 
-        tokens: Tensor, 
-        logits: Tensor, 
-        sum_logprobs: Tensor, 
-        self_attention_kcache: Tensor = None, 
-        self_attention_vcache: Tensor = None, 
+        self,
+        tokens: Tensor,
+        logits: Tensor,
+        sum_logprobs: Tensor
     ) -> Tuple[Tensor, bool]:
         if self.temperature == 0:
             next_tokens = logits.argmax(dim=-1)
@@ -309,10 +286,28 @@ class GreedyDecoder(TokenDecoder):
         tokens = torch.cat([tokens, next_tokens[:, None]], dim=-1)
 
         completed = (tokens[:, -1] == self.eot).all()
-        source_indices = list(range(logprobs.shape[0]))
-        return tokens, completed, source_indices
+        return tokens, completed
 
     def finalize(self, tokens: Tensor, sum_logprobs: Tensor):
+        """Finalize search and return the final candidate sequences
+
+        Parameters
+        ----------
+        tokens : Tensor, shape = (n_audio, n_group, current_sequence_length)
+            all tokens in the context so far, including the prefix and sot_sequence
+
+        sum_logprobs : Tensor, shape = (n_audio, n_group)
+            cumulative log probabilities for each sequence
+
+        Returns
+        -------
+        tokens : Sequence[Sequence[Tensor]], length = n_audio
+            sequence of Tensors containing candidate token sequences, for each audio input
+
+        sum_logprobs : List[List[float]], length = n_audio
+            sequence of cumulative log probabilities corresponding to the above
+
+        """
         # make sure each sequence has at least one EOT token at the end
         tokens = F.pad(tokens, (0, 1), value=self.eot)
         return tokens, sum_logprobs.tolist()
@@ -323,7 +318,7 @@ class BeamSearchDecoder(TokenDecoder):
         self,
         beam_size: int,
         eot: int,
-        inference: Inference,
+        inference,
         patience: Optional[float] = None,
     ):
         self.beam_size = beam_size
@@ -341,12 +336,12 @@ class BeamSearchDecoder(TokenDecoder):
         self.finished_sequences = None
 
     def update(
-        self, 
-        tokens: Tensor, 
-        logits: Tensor, 
-        sum_logprobs: Tensor, 
-        self_attention_kcache: Tensor = None, 
-        self_attention_vcache: Tensor = None, 
+        self,
+        tokens: Tensor,
+        logits: Tensor,
+        sum_logprobs: Tensor,
+        self_attention_kcache: Tensor = None,
+        self_attention_vcache: Tensor = None,
     ) -> Tuple[Tensor, bool]:
         if tokens.shape[0] % self.beam_size != 0:
             raise ValueError(f"{tokens.shape}[0] % {self.beam_size} != 0")
@@ -388,15 +383,14 @@ class BeamSearchDecoder(TokenDecoder):
 
         tokens = torch.tensor(next_tokens, device=tokens.device)
 
-        # Move rearrange_kv_cache process to decoder_loop model
-        # if self_attention_kcache:
-        #     self.inference.rearrange_kv_cache(
-        #         source_indices, 
-        #         self_attention_kcache, 
-        #         self_attention_vcache, 
-        #     )
-        # else:
-        #     self.inference.rearrange_kv_cache(source_indices)
+        if self_attention_kcache:
+            self.inference.rearrange_kv_cache(
+                source_indices,
+                self_attention_kcache,
+                self_attention_vcache,
+            )
+        else:
+            self.inference.rearrange_kv_cache(source_indices)
 
         # add newly finished sequences to self.finished_sequences
         assert len(self.finished_sequences) == len(finished_sequences)
@@ -413,10 +407,29 @@ class BeamSearchDecoder(TokenDecoder):
             len(sequences) >= self.max_candidates
             for sequences in self.finished_sequences
         )
-        # print(source_indices)
-        return tokens, completed, source_indices
+        return tokens, completed
 
     def finalize(self, preceding_tokens: Tensor, sum_logprobs: Tensor):
+        """Finalize search and return the final candidate sequences
+
+        Parameters
+        ----------
+        tokens : Tensor, shape = (n_audio, n_group, current_sequence_length)
+            all tokens in the context so far, including the prefix and sot_sequence
+
+        sum_logprobs : Tensor, shape = (n_audio, n_group)
+            cumulative log probabilities for each sequence
+
+        Returns
+        -------
+        tokens : Sequence[Sequence[Tensor]], length = n_audio
+            sequence of Tensors containing candidate token sequences, for each audio input
+
+        sum_logprobs : List[List[float]], length = n_audio
+            sequence of cumulative log probabilities corresponding to the above
+
+        """
+
         # collect all finished sequences, including patience, and add unfinished ones if not enough
         sum_logprobs = sum_logprobs.cpu()
         for i, sequences in enumerate(self.finished_sequences):
@@ -541,14 +554,13 @@ class ApplyTimestampRules(LogitFilter):
 
 
 class DecodingTask:
-    inference: Inference
     sequence_ranker: SequenceRanker
     decoder: TokenDecoder
     logit_filters: List[LogitFilter]
 
     def __init__(self, model: "Whisper", options: DecodingOptions):
         self.model = model
-        
+
         language = options.language or "en"
         tokenizer = get_tokenizer(
             model.is_multilingual, num_languages=model.num_languages, language=language, task=options.task
@@ -686,34 +698,16 @@ class DecodingTask:
             # encoded audio features are given; skip audio encoding
             audio_features = mel
         else:
-            start_time = time.time()
-            # type transform for decoder_main inputs
-            encoder_info = self.model.tool.model_info(self.model.encoder_handle)
-            mel_input_dtype = data_type_map[encoder_info['input_dtypes'][0]]
-            mel = mel.numpy().astype(mel_input_dtype)
-
+            mel = mel.numpy().astype(np.float16)
             mel = mel if mel.flags.c_contiguous else np.ascontiguousarray(mel)
+            self.model.encoder_input_tensors_map[self.model.encoder_input_names[0]].update_data(fp16_cast(mel));
+            start_time = time.time()
+            self.model.combined_whisper_engine.process(self.model.encoder_engine_graph_name, self.model.encoder_input_tensors_map, self.model.encoder_output_tensors_map)
+            self.model.inference_time += time.time() - start_time
+            mel_out_tensor = list(self.model.encoder_output_tensors_map.values())[0]
 
-            # combine numpy addr with C addr & copy data from host to device for input data
-            self.model.tool.copy_data_from_numpy(self.model.tool.get_input_tensor(self.model.runtime1, 0), make_np2c(mel), data_type[mel_input_dtype])
-            self.model.tool.force_host_to_device(self.model.tool.get_input_tensor(self.model.runtime1, 0), self.model.handle)
-
-            # combine numpy addr with C addr for output data need cpu infernece
-            mel_out = np.empty(encoder_info[0]['output_shapes'][0], dtype=data_type_map[encoder_info['output_dtypes'][0]])
-            self.model.tool.copy_data_from_numpy(self.model.tool.get_output_tensor(self.model.runtime1, 0), make_np2c(mel_out), encoder_info['output_dtypes'][0])
-
-            # inference encoder on tpu
-            self.model.tool.inference(self.model.runtime1)
-
-            # copy data from device to host for output data
-            self.model.tool.copy_output_data_to_host(self.model.runtime1)
-            audio_features = torch.from_numpy(mel_out)
-
-            t = time.time() - start_time
-            self.model.time += t
-            self.model.call_encoder_time += t
+            audio_features = torch.from_numpy(uint16_to_fp16(mel_out_tensor.asnumpy()))
             self.model.call_encoder +=1
-            # print(f"_get_audio_features encoder time: {time.time() - start_time}")
 
         return audio_features
 
@@ -731,7 +725,7 @@ class DecodingTask:
 
         return languages, lang_probs
 
-    def _main_loop_untool(self, audio_features: Tensor, tokens: Tensor):
+    def _main_loop_sail(self, audio_features: Tensor, tokens: Tensor):
         # print("{:=^100}".format(f" start main_loop {self.model.main_loop_cnt} "))
         self.model.main_loop_cnt += 1
         n_batch = tokens.shape[0]
@@ -739,12 +733,11 @@ class DecodingTask:
         no_speech_probs = [np.nan] * n_batch
         initial_tokens_length = len(self.initial_tokens)
         padding_num = self.padding_size
-    
+
         attention_mask_firstly = torch.empty(padding_num, padding_num).fill_(-10000).triu_(1)
         attention_mask_with_kvcache_max = torch.empty(448, 448).fill_(-10000).triu_(1)
         attention_mask_with_kvcache = attention_mask_with_kvcache_max[-padding_num:, -padding_num:]
-        loop_start_time = time.time()
-        tool = self.model.tool
+
 
         try:
             for i in range(self.sample_len):
@@ -762,115 +755,77 @@ class DecodingTask:
                     mask = mask.reshape(1, 1, *mask.shape).repeat(n_batch, self.n_text_head, 1, 1).permute(0, 2, 1, 3).contiguous()
 
                 if i == 0:
-                    start_time = time.time()
                     # type transform for decoder_main inputs
-                    decoder_main_info = tool.model_info(self.model.decoder_main_handle)
                     tokens_input = tokens_input.numpy().astype(np.int32)
-                    audio_features_dtype = data_type_map[decoder_main_info['input_dtypes'][1]]
-                    audio_features = audio_features.numpy().astype(audio_features_dtype)
-                    positional_embedding_input_dtype = data_type_map[decoder_main_info['input_dtypes'][2]]
-                    positional_embedding_input = positional_embedding_input.numpy().astype(positional_embedding_input_dtype)
-                    mask_dtype = data_type_map[decoder_main_info['input_dtypes'][3]]
-                    mask = mask.numpy().astype(mask_dtype)
+                    audio_features = audio_features.numpy().astype(np.float16)
+                    positional_embedding_input = positional_embedding_input.numpy().astype(np.float16)
+                    mask = mask.numpy().astype(np.float16)
 
                     tokens_input = tokens_input if tokens_input.flags.c_contiguous else np.ascontiguousarray(tokens_input)
                     audio_features = audio_features if audio_features.flags.c_contiguous else np.ascontiguousarray(audio_features)
                     positional_embedding_input = positional_embedding_input if positional_embedding_input.flags.c_contiguous else np.ascontiguousarray(positional_embedding_input)
                     mask = mask if mask.flags.c_contiguous else np.ascontiguousarray(mask)
 
-                    # combine numpy addr with C addr & copy data from host to device for input data
-                    tool.copy_data_from_numpy(tool.get_input_tensor(self.model.runtime3, 0), make_np2c(tokens_input), data_type[np.int32])
-                    tool.copy_data_from_numpy(tool.get_input_tensor(self.model.runtime3, 1), make_np2c(audio_features), data_type[audio_features_dtype])
-                    tool.copy_data_from_numpy(tool.get_input_tensor(self.model.runtime3, 2), make_np2c(positional_embedding_input), data_type[positional_embedding_input_dtype])
-                    tool.copy_data_from_numpy(tool.get_input_tensor(self.model.runtime3, 3), make_np2c(mask), data_type[mask_dtype])
-                    tool.force_host_to_device(tool.get_input_tensor(self.model.runtime3, 0), self.model.handle)
-                    tool.force_host_to_device(tool.get_input_tensor(self.model.runtime3, 1), self.model.handle)
-                    tool.force_host_to_device(tool.get_input_tensor(self.model.runtime3, 2), self.model.handle)
-                    tool.force_host_to_device(tool.get_input_tensor(self.model.runtime3, 3), self.model.handle)
+                    self.model.decoder_main_input_tensors_map[self.model.decoder_main_input_names[0]].update_data(tokens_input)
 
-                    # combine numpy addr with C addr for output data need cpu infernece
-                    x = np.empty(decoder_main_info[0]['output_shapes'][0], dtype=data_type_map[decoder_main_info['output_dtypes'][0]])
-                    tool.copy_data_from_numpy(tool.get_output_tensor(self.model.runtime3, 0), make_np2c(x), decoder_main_info['output_dtypes'][0])
+                    self.model.decoder_main_input_tensors_map[self.model.decoder_main_input_names[1]].update_data(fp16_cast(audio_features))
 
-                    # inference decoder_main on tpu
-                    tool.inference(self.model.runtime3)
+                    self.model.decoder_main_input_tensors_map[self.model.decoder_main_input_names[2]].update_data(fp16_cast(positional_embedding_input))
 
-                    # copy data from device to host for output data
-                    tool.device_to_host(tool.get_output_tensor(self.model.runtime3, 0), self.model.handle)
+                    self.model.decoder_main_input_tensors_map[self.model.decoder_main_input_names[3]].update_data(fp16_cast(mask))
 
+                    start_time = time.time()
+                    self.model.combined_whisper_engine.process(self.model.decoder_main_graph_name, self.model.decoder_main_input_tensors_map,self.model.decoder_main_output_tensors_map)
+                    self.model.inference_time += time.time() - start_time
+
+                    x_tensor = self.model.decoder_main_output_tensors_map[self.model.combined_whisper_engine.get_output_names(self.model.decoder_main_graph_name)[0]]
+
+                    x = uint16_to_fp16(x_tensor.asnumpy())
                     # get input data for decoder_post
                     # this process is dynamic
                     x_sot = x[:, padding_num - initial_tokens_length + self.sot_index:padding_num - initial_tokens_length + self.sot_index + 1].copy()
                     x_last = x[:, -1:].copy()
 
-                    # combine numpy addr with C addr & copy data from host to device for input data
-                    decoder_post_info = tool.model_info(self.model.decoder_post_handle)
-                    tool.copy_data_from_numpy(tool.get_input_tensor(self.model.runtime4, 0), make_np2c(x_sot), data_type[x_sot.dtype])
-                    tool.copy_data_from_numpy(tool.get_input_tensor(self.model.runtime4, 1), make_np2c(x_last), data_type[x_last.dtype])
-                    tool.force_host_to_device(tool.get_input_tensor(self.model.runtime4, 0), self.model.handle)
-                    tool.force_host_to_device(tool.get_input_tensor(self.model.runtime4, 1), self.model.handle)
-                    
-                    # combine numpy addr with C addr for output data need cpu infernece
-                    logits = np.empty(decoder_post_info[0]['output_shapes'][0], dtype=data_type_map[decoder_post_info['output_dtypes'][0]])
-                    no_speech_probs = np.empty(decoder_post_info[0]['output_shapes'][1], dtype=data_type_map[decoder_post_info['output_dtypes'][1]])
-                    tool.copy_data_from_numpy(tool.get_output_tensor(self.model.runtime4, 0), make_np2c(logits), decoder_post_info['output_dtypes'][0])
-                    tool.copy_data_from_numpy(tool.get_output_tensor(self.model.runtime4, 1), make_np2c(no_speech_probs), decoder_post_info['output_dtypes'][1])
+                    self.model.decoder_post_input_tensors_map[self.model.decoder_post_input_names[0]].update_data(fp16_cast(x_sot));
 
-                    # inference decoder_post on tpu
-                    tool.inference(self.model.runtime4)
+                    self.model.decoder_post_input_tensors_map[self.model.decoder_post_input_names[1]].update_data(fp16_cast(x_last));
 
-                    # copy data from device to host for output data
-                    tool.copy_output_data_to_host(self.model.runtime4)
-
-                    logits = torch.from_numpy(logits)
-                    no_speech_probs = no_speech_probs.tolist()
-                    
-                    t = time.time() - start_time
-                    self.model.time += t
-                    self.model.call_decoder_firstly_time += t
-                    self.model.call_decoder_firstly += 1
-
-                else:
                     start_time = time.time()
-                    # type transform for decoder_loop inputs
-                    decoder_loop_info = tool.model_info(self.model.decoder_loop_handle)
+                    self.model.combined_whisper_engine.process(self.model.decoder_post_graph_name, self.model.decoder_post_input_tensors_map, self.model.decoder_post_output_tensors_map)
+                    self.model.inference_time += time.time() - start_time
 
+                    logits_tensor = self.model.decoder_post_output_tensors_map[self.model.decoder_post_output_names[0]]
+                    no_speech_probs_tensor = self.model.decoder_post_output_tensors_map[self.model.decoder_post_output_names[1]]
+
+                    logits = torch.from_numpy(uint16_to_fp16(logits_tensor.asnumpy()))
+                    no_speech_probs = uint16_to_fp16(no_speech_probs_tensor.asnumpy()).tolist()
+
+                    self.model.call_decoder_firstly += 1
+                else:
+                    # type transform for decoder_loop inputs
                     tokens_input = tokens_input.numpy().astype(np.int32)
-                    positional_embedding_input_dtype = data_type_map[decoder_loop_info['input_dtypes'][1]]
-                    positional_embedding_input = positional_embedding_input.numpy().astype(positional_embedding_input_dtype)
-                    mask_dtype = data_type_map[decoder_loop_info['input_dtypes'][2]]
-                    mask = mask.numpy().astype(mask_dtype)
-                    source_indices_dtype = data_type_map[decoder_loop_info['input_dtypes'][3]]
-                    source_indices = np.array(source_indices, dtype=source_indices_dtype)
+                    positional_embedding_input = positional_embedding_input.numpy().astype(np.float16)
+                    mask = mask.numpy().astype(np.float16)
 
                     tokens_input = tokens_input if tokens_input.flags.contiguous else np.ascontiguousarray(tokens_input)
                     positional_embedding_input = positional_embedding_input if positional_embedding_input.flags.contiguous else np.ascontiguousarray(positional_embedding_input)
                     mask = mask if mask.flags.contiguous else np.ascontiguousarray(mask)
 
-                    # combine numpy addr with C addr & copy data from host to device for input data
-                    tool.copy_data_from_numpy(tool.get_input_tensor(self.model.runtime5, 0), make_np2c(tokens_input), data_type[np.int32])
-                    tool.copy_data_from_numpy(tool.get_input_tensor(self.model.runtime5, 1), make_np2c(positional_embedding_input), data_type[positional_embedding_input_dtype])
-                    tool.copy_data_from_numpy(tool.get_input_tensor(self.model.runtime5, 2), make_np2c(mask), data_type[mask_dtype])
-                    tool.copy_data_from_numpy(tool.get_input_tensor(self.model.runtime5, 3), make_np2c(source_indices), data_type[source_indices_dtype])
-                    tool.force_host_to_device(tool.get_input_tensor(self.model.runtime5, 0), self.model.handle)
-                    tool.force_host_to_device(tool.get_input_tensor(self.model.runtime5, 1), self.model.handle)
-                    tool.force_host_to_device(tool.get_input_tensor(self.model.runtime5, 2), self.model.handle)
-                    tool.force_host_to_device(tool.get_input_tensor(self.model.runtime5, 3), self.model.handle)
+                    # sail
+                    self.model.decoder_loop_input_tensors_map[self.model.decoder_loop_input_names[0]].update_data(tokens_input)
+                    self.model.decoder_loop_input_tensors_map[self.model.decoder_loop_input_names[1]].update_data(fp16_cast(positional_embedding_input))
+                    self.model.decoder_loop_input_tensors_map[self.model.decoder_loop_input_names[1]]
 
-                    # combine numpy addr with C addr for output data need cpu infernece in first loop
-                    if i == 1:
-                        tool.copy_data_from_numpy(tool.get_output_tensor(self.model.runtime5, 0), make_np2c(logits.numpy()), decoder_loop_info['output_dtypes'][0])
+                    self.model.decoder_loop_input_tensors_map[self.model.decoder_loop_input_names[2]].update_data(fp16_cast(mask))
+                    self.model.decoder_loop_input_tensors_map[self.model.decoder_loop_input_names[2]]
 
-                    # tool.malloc_device_address(self.model.runtime5)
-                    # inference decoder_post on tpu
-                    tool.inference(self.model.runtime5)
+                    start_time = time.time()
+                    self.model.combined_whisper_engine.process(self.model.decoder_loop_graph_name, self.model.decoder_loop_input_tensors_map, self.model.decoder_loop_output_tensors_map)
+                    self.model.inference_time += time.time() - start_time
 
-                    # copy data from device to host for output data
-                    tool.device_to_host(tool.get_output_tensor(self.model.runtime5, 0), self.model.handle)
+                    logits_tensor = self.model.decoder_loop_output_tensors_map[self.model.decoder_loop_output_names[0]]
+                    logits = torch.from_numpy(uint16_to_fp16(logits_tensor.asnumpy()))
 
-                    t = time.time() - start_time
-                    self.model.time += t
-                    self.model.call_decoder_loop_time += t
                     self.model.call_decoder_loop += 1
 
                 # apply the logit filters, e.g. for suppressing or applying penalty to
@@ -878,24 +833,18 @@ class DecodingTask:
                     logit_filter.apply(logits, tokens)
 
                 # expand the tokens tensor with the selected next tokens
-                # print(tokens)
-                # print(logits)
-                # print(sum_logprobs)
-                # print(self.decoder)
-                tokens, completed, source_indices = self.decoder.update(tokens, 
-                                                        logits.float(), 
-                                                        sum_logprobs, 
-                                                    )
+                tokens, completed = self.decoder.update(tokens,
+                                                        logits.float(),
+                                                        sum_logprobs)
 
                 if completed or tokens.shape[-1] > self.n_ctx:
                     break
         finally:
             pass
-        # print(f'loop cost time: {time.time() - loop_start_time}')
         return tokens, sum_logprobs, no_speech_probs
 
-    @torch.no_grad()
     def run(self, mel: Tensor) -> List[DecodingResult]:
+        
         self.decoder.reset()
         tokenizer: Tokenizer = self.tokenizer
         n_audio: int = mel.shape[0]
@@ -904,8 +853,8 @@ class DecodingTask:
         tokens: Tensor = torch.tensor([self.initial_tokens]).repeat(n_audio, 1)
 
         # detect language if requested, overwriting the language token
-        
         languages, language_probs = self._detect_language(audio_features, tokens) # encoder forward pass
+
         if self.options.task == "lang_id":
             return [
                 DecodingResult(
@@ -920,7 +869,7 @@ class DecodingTask:
         tokens = tokens.repeat_interleave(self.n_group, dim=0).to(torch.int32)
 
         # call the main sampling loop
-        tokens, sum_logprobs, no_speech_probs = self._main_loop_untool(audio_features, tokens) # decoder forward pass
+        tokens, sum_logprobs, no_speech_probs = self._main_loop_sail(audio_features, tokens) # decoder forward pass
 
         # reshape the tensors to have (n_audio, n_group) as the first two dimensions
         audio_features = audio_features[:: self.n_group]
@@ -975,7 +924,6 @@ class DecodingTask:
         ]
 
 
-@torch.no_grad()
 def decode(
     model: "Whisper",
     mel: Tensor,
@@ -1001,6 +949,7 @@ def decode(
     result: Union[DecodingResult, List[DecodingResult]]
         The result(s) of decoding contained in `DecodingResult` dataclass instance(s)
     """
+
     if single := mel.ndim == 2:
         mel = mel.unsqueeze(0)
 

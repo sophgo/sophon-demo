@@ -38,7 +38,7 @@ else
 fi
 
 # datasets
-if [ ! -d "../datasets" ]; 
+if [ ! -d "../datasets" ];
 then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/application/Audio_assistant/datasets.zip
     unzip datasets.zip -d ../
@@ -47,5 +47,9 @@ then
 else
     echo "datasets folder exist! Remove it if you need to update."
 fi
+
+# Whisper sail combined bmodel + assets (replaces the old libuntpu 5-bmodel set;
+# see python/bmwhisper/. Default chip=1688; pass --chip 1684x for BM1684X.)
+bash "$scripts_dir/download_whisper.sh" --chip 1688
 
 popd
