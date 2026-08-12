@@ -377,24 +377,19 @@ def main(args):
                 cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
 
                 kpts = det_draw[:, 5:]
+
                 # save result
-                res_dict = dict()
-                res_dict['image_name'] = filename
-                # res_dict['bboxes'] = []
-                # for idx in range(det.shape[0]):
-                #     bbox_dict = dict()
-                #     x1, y1, x2, y2, score = det[idx][:5]
-                #     bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2 - x1,3)), float(round(y2 -y1, 3))]
-                #     bbox_dict['score'] = float(round(score,5))
-                #     res_dict['bboxes'].append(bbox_dict)
-                res_dict['keypoints'] = []
                 for n in range(kpts.shape[0]):
+                    res_dict = dict()
+                    res_dict['image_name'] = filename
+                    res_dict['score'] = det[n, 4]
+                    res_dict['keypoints'] = []
                     for m in range(0, len(kpts[n]), 3):
-                        x, y, score = kpts[n, i:i + 3]
+                        x, y, score = kpts[n, m:m + 3]
                         res_dict['keypoints'].append(x)
                         res_dict['keypoints'].append(y)
                         res_dict['keypoints'].append(score)
-                results_list.append(res_dict)
+                    results_list.append(res_dict)
             img_list.clear()
             filename_list.clear()   
 
