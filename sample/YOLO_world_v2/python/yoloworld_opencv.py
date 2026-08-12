@@ -357,7 +357,7 @@ def main(args):
                     bbox_dict = dict()
                     x1, y1, x2, y2, score, category_id = det[idx]
                     bbox_dict['bbox'] = [float(round(x1, 3)), float(round(y1, 3)), float(round(x2 - x1,3)), float(round(y2 -y1, 3))]
-                    bbox_dict['category_id'] = COCO_CLASSES.index(classes[int(category_id)]) - 1
+                    bbox_dict['category_id'] = _coco_cat_id(classes[int(category_id)], category_id)
                     bbox_dict['score'] = float(round(score,5))
                     res_dict['bboxes'].append(bbox_dict)
                 results_list.append(res_dict)
