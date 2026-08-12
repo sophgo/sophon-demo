@@ -426,17 +426,20 @@ def main(args):
                             conf_scores=det_draw[:, 4]
                             )
                 
+                kpts = det_draw[:, 5:]
+
                 # save result
-                res_dict = dict()
-                res_dict['image_name'] = filename
-                res_dict['keypoints'] = []
                 for n in range(kpts.shape[0]):
+                    res_dict = dict()
+                    res_dict['image_name'] = filename
+                    res_dict['score'] = det[n, 4]
+                    res_dict['keypoints'] = []
                     for m in range(0, len(kpts[n]), 3):
-                        x, y, score = kpts[n, i:i + 3]
+                        x, y, score = kpts[n, m:m + 3]
                         res_dict['keypoints'].append(x)
                         res_dict['keypoints'].append(y)
                         res_dict['keypoints'].append(score)
-                results_list.append(res_dict)
+                    results_list.append(res_dict)
             bmimg_list.clear()
             filename_list.clear()   
 
