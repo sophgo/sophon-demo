@@ -1,162 +1,170 @@
 ---
 name: auto_test
-description: Use when the user wants to automatically test sophon-demo routines on a remote TPU device — triggers like「自动测试例程」「跑 auto_test」「回归测试 sophon-demo」「测所有例程」, and device 账号/IP/密码/设备类型 will be requested first. Applies when a BM1684X/BM1688/CV186X/BM1684 device is available for SSH access.
+description: Use when the user wants to README-walkthrough-test sophon-demo samples on a TPU device — triggers like「自动测试例程」「README 走查」「按 README 测例程」「测所有例程」「sample 走查」. auto_test.sh 已全部过时，以各 sample 的 README 为唯一事实来源。远程设备先索取账号/IP/密码/设备类型；本地直跑（用户明确说本机）则免。Applies when a BM1684X/BM1688/CV186X/BM1684 device is available.
 ---
 
-# sophon-demo 例程自动测试（远程设备）
+# sophon-demo 例程 README 走查测试
 
-> 目的：在一台 TPU 设备上，把 sophon-demo 里**自带 `scripts/auto_test.sh` 的样例**逐个跑通，输出 per-sample pass/fail 报告。
-> **第一动作永远是向用户要设备**（账号/IP/密码/设备类型），拿到之前不连机器、不跑任何测试、不改任何文件。
+> 目的：在目标设备上，**以每个 sample 的 README 为唯一事实来源**，按文档把例程完整走一遍，验证"照 README 能否复现"，并产出 **README 缺陷清单**（这是走查的核心价值）。
+> **关键认知：各 sample 的 `scripts/auto_test.sh` 已全部过时**（用例集/数值基线与现状不符），**一律不作为判据，仅作参考**。判定时只信 README。
+> 第一动作：远程设备先索取 账号/IP/密码/设备类型；**本地直跑**（用户明确说在本机测）跳过索取。
 
-## 1. 第一步：向用户要设备（拿到前禁止动手）
+## 1. 要设备（远程才要，本地跳过）
 
-用这段话向用户索取（可按上下文精简，但 4 个必填项不能少）：
+远程设备用这段话索取（4 个必填项不能少）：
 
-> 我需要一台设备来跑 sophon-demo 例程自动测试。请提供：
-> 1. **设备类型**：BM1684X / BM1688 / CV186X / BM1684（若知道具体型号如 SC7/SE7-32/SE9-16/SE9-8/SE5-16 也一并告诉我，用于 SoC 模式选 PLATFORM 与双核变体）
-> 2. **设备 IP**
-> 3. **登录账号**
-> 4. **登录密码**
-> 5. **连接形态**：PCIe（x86 主机插加速卡，编译+测试都在该主机）还是 SoC（边缘设备，本机直接跑 `soc_test`）？默认按设备类型推断：BM1684X 可能是 PCIe 也可能是 SoC，BM1688/CV186X/BM1684 通常按 SoC 处理——**不确定就问**。
+> 我需要一台设备来跑 sophon-demo 例程 README 走查。请提供：
+> 1. **设备类型**：BM1684X / BM1688 / CV186X / BM1684（知道具体型号 SC7/SE7-32/SE9-16/SE9-8/SE5-16 也告诉我）
+> 2. **设备 IP**  3. **登录账号**  4. **登录密码**
+> 5. **连接形态**：PCIe（x86 主机插卡，编译+运行都在该主机）还是 SoC（边缘设备）？不确定就问。
 > 6. （可选）TPU dev id，默认 0
-> 7. （可选）只跑某些样例，默认全跑
+> 7. （可选）只走查某些 sample，默认全量
 
-**Red Flag — STOP：** 用户没给齐账号/IP/密码/设备类型就动手连机器、跑测试、或改文件 = 违反本 skill。先要设备，再做事。
+**Red Flag — STOP：** 远程设备凭据未齐就动手 = 违反本 skill。本地直跑（用户已说明"本机/本地，型号 XXX"）不需要密码，直接进入走查。
 
-## 2. 设备信息 → 测试参数映射
+## 2. 设备信息 → 走查参数映射
 
 | 用户提供 | 映射到 |
 |---|---|
-| 设备类型 BM1684X/BM1688/CV186X/BM1684 | `TARGET`（传给 `auto_test.sh -t`） |
-| 具体型号（SoC 模式） | `PLATFORM`：BM1684X→SE7-32、BM1684→SE5-16、BM1688→SE9-16、CV186X→SE9-8（部分脚本会按 `nproc` 把 6 核 BM1688 映射为 SE9-8，非所有脚本都有此分支，不影响 `int8_4b_2core` 用例的触发——那由 `TARGET=BM1688` 决定） |
-| PCIe 形态 | `MODE=pcie_test`（先 `pcie_build` 编 C++） |
-| SoC 形态 | `MODE=soc_test`（若有 x86 交叉编译主机则先 `soc_build`，否则要求设备自托管可原生编译/或已有预编译产物） |
-| TPU dev id | `-d` |
+| 设备类型 BM1684X/BM1688/CV186X/BM1684 | 决定读 README 的哪一节（BM1684X PCIe 看 PCIe/x86 段与 `models/BM1684X/`；SoC 看对应段） |
+| 具体型号（SoC） | `PLATFORM`：BM1684X→SE7-32、BM1684→SE5-16、BM1688→SE9-16、CV186X→SE9-8 |
+| PCIe 形态 | 本机原生 `cmake .. && make` 编 C++ |
+| SoC 形态 | 需 x86 主机交叉编译（`SOPHON_SDK_SOC`），或设备自托管原生编译 |
+| TPU dev id | 推理命令的 `--dev_id` |
 
-**SoC 交叉编译坑：** SoC 的 C++ 例程通常需在 x86 主机用 `SOPHON_SDK_SOC` 交叉编译再拷到设备。若用户给的是纯 SoC 设备且无 x86 主机，先确认设备上是否已能 `cmake .. -DTARGET_ARCH=soc` 原生编译或已有预编译 `.so`/二进制；都不行就只跑 Python 用例（`auto_test.sh` 的 Python 部分不依赖 C++ 编译），并如实报告 C++ 用例被跳过。
+## 3. 连接设备 + 准备代码（本地直跑跳过 1-3 的 SSH 部分）
 
-## 3. 连接设备 + 准备代码（凭据到位后才执行）
+1. （远程）SSH 探活：`sshpass -p '<pwd>' ssh -o StrictHostKeyChecking=no <user>@<ip> 'uname -a; bm-smi; ls /opt/sophon'`。
+2. 建工作目录 `~/code-review/`，取代码（联网 `git clone`，否则从本地 scp）。
+3. 记录受测 commit：`git -C <repo> log -1 --format='%H %s'`。
+4. 基础依赖：`unzip p7zip-full libeigen3-dev`；`pip3 install dfss pycocotools opencv-python-headless`（清华源）。确认 `which bmrt_test`、`ls /opt/sophon/sophon-sail/lib` 在。
+5. **Python 环境隔离**：各 sample 依赖可能互相冲突，**优先用 `python3 -m venv` 按 sample 建隔离环境**，不要全局乱装（LLM 类对 transformers/torch 版本敏感）。
 
-1. SSH 探活：`sshpass -p '<pwd>' ssh -o StrictHostKeyChecking=no <user>@<ip> 'uname -a; bm-smi -V; ls /opt/sophon'`，确认芯片型号与 libsophon 在位。
-2. 建工作目录 `~/code-review/`。
-3. 取代码（优先级）：
-   - 设备能联网 → `git clone`（用与本地副本相同的远端）。
-   - 否则 → 从本地 `scp -r /home/lihengfang/work/git_commits/code-review/sophon-demo <user>@<ip>:~/code-review/`。
-4. 记录受测 commit：`git -C ~/code-review/sophon-demo log -1 --format='%H %s'`。
-5. 装依赖（参照 `scripts/auto_test_regression.sh`）：`unzip p7zip p7zip-full`，PCIe/soc_build 还需 `libeigen3-dev`；`pip3 install pycocotools opencv-python-headless`（用清华源 `-i https://pypi.tuna.tsinghua.edu.cn/simple`）。**另需 `pip3 install dfss`**（各样例 `download.sh` 依赖它拉数据/模型，regression 脚本未含但 download 必需）。确认 `which bmrt_test`、`ls /opt/sophon/sophon-sail/lib` 存在。
+**凭据安全：** 密码只出现在 `sshpass` 命令行，用 SSH ControlMaster 复用连接，任何日志/报告不回显密码。
 
-**凭据安全：** 密码会出现在 `sshpass` 的命令行（`ps` 可见）。尽量用 SSH ControlMaster 复用连接（`-M -S /tmp/ssh-<ip>`），减少带密码命令次数；任何日志/报告里都不要回显密码。
+## 4. 走查范围（不限于有 auto_test.sh 的样例）
 
-## 4. 测试范围（关键：不是所有样例都能自动测）
-
-`sophon-demo/sample/` 下约 99 个目录，**只有约 47 个自带 `scripts/auto_test.sh`**。用这条命令在设备上列出可测样例：
-```bash
-find ~/code-review/sophon-demo/sample -maxdepth 3 -name auto_test.sh | sed 's#.*/sample/##; s#/scripts/auto_test.sh##' | sort
-```
-- **只跑有 `auto_test.sh` 的样例。**
-- **没有 `auto_test.sh` 的样例（多为 LLM/VLM：Qwen、Llama2、ChatGLM2、DeepSeek、FLUX.1、SAM、InternVL2 等，及新增样例）一律 SKIP**，并在报告里按名列出"无自动测试脚本，已跳过"。不要为它们临时手搓测试。
-  - 注意 `SAM` 无脚本（SKIP），但 **`SAM2` 有 `auto_test.sh`，必须跑**——别因前缀相同误跳。最终以 `find` 命令的输出为准，不要凭名字猜。
-
-## 5. 每个样例的测试流程（sophon-demo）
-
-`auto_test.sh` 已封装好下载+推理+精度+性能。驱动方式复刻 `scripts/auto_test_regression.sh`，但**遍历全部 47 个有脚本的样例**（不局限于 regression 脚本里硬编码的那十几个）。
-
-### 模式选择
-
-- **PCIe**：先 `pcie_build` 再 `pcie_test`：
-  ```bash
-  cd ~/code-review/sophon-demo/sample/<NAME>
-  chmod +x scripts/auto_test.sh
-  ./scripts/auto_test.sh -m pcie_build -t <TARGET> -d <TPUID>    # 编 C++
-  ./scripts/auto_test.sh -m pcie_test  -t <TARGET> -d <TPUID> -c fully
-  ```
-- **SoC**：有 x86 交叉编译主机则先 `soc_build`，再 `soc_test`：
-  ```bash
-  ./scripts/auto_test.sh -m soc_build -t <TARGET> -s <SOCSDK> -d <TPUID>     # 编 C++（-s 仅此模式用）
-  ./scripts/auto_test.sh -m soc_test  -t <TARGET>              -d <TPUID> -c fully
-  ```
-  （`-s <SOCSDK>` 仅 `soc_build` 用；`soc_test` 不需要，传了也被忽略）
-
-### sail_list 样例需多传 `-a`
-
-这 9 个 C++ 用例用 SAIL 接口，必须传 SAIL 路径 `/opt/sophon/sophon-sail`：
-`YOLOv5、CenterNet、BERT、ppYOLOv3、YOLOv34、YOLOX、segformer、ppYoloe、YOLOv5_opt`
-→ 对它们加 `-a /opt/sophon/sophon-sail`（其余样例不要加）。
-
-### 通过判定（不要自己造标准）
-
-> 注：`*_test` 模式内部会先调 `download.sh` 拉数据/模型（依赖 dfss + 外网 + 磁盘，耗时较长），不要事先再单独跑一次 download。
-
-`auto_test.sh` 内部用 `ALL_PASS` 累积，结尾二选一打印：
-- `Test cases all pass!` → **PASS**
-- `Some process produced unexpected results, please look out their logs!` → **FAIL**
-
-只认这两行；不要自行判断精度数值是否合格（脚本内 `compare_acc.py`/`compare_statis.py` 已对比基线）。
-
-### 驱动循环（每个样例）
+对象 = **所有有 `README.md` 的 sample**（`sample/<NAME>/README.md`），不只是有 auto_test.sh 的那 47 个。先 triage 分桶：
 
 ```bash
-cd ~/code-review/sophon-demo/sample/<NAME>
-chmod +x scripts/auto_test.sh
-# 按 MODE / 是否在 sail_list 组装参数
-./scripts/auto_test.sh -m <MODE> -t <TARGET> [-s <SOCSDK>] [-a <SAIL>] -d <TPUID> -c fully \
-  > ~/code-review/logs_demo/<NAME>.log 2>&1
-tail -n 4 ~/code-review/logs_demo/<NAME>.log   # 取 PASS/FAIL 行
+cd <repo>/sophon-demo/sample
+for d in */; do
+  n=${d%/}
+  [ -f "$n/README.md" ] || continue
+  chips=$(grep -oiE "BM1684X|BM1688|CV186X|BM1684" "$n/README.md" | sort -u | tr '\n' ',' )
+  echo "$n :: $chips"
+done
 ```
-- PASS → 记录 PASS，进入下一个。
-- FAIL → `tail -n 40` 该日志，并 `grep -E "Failed:|Error|Traceback|core|Aborted" logs_demo/<NAME>.log | head`，把真实错误摘进报告。
-- 单个样例超时（如卡在下载或死循环）→ 记 TIMEOUT，kill 后继续下一个，不要卡死全流程。
-- 每个样例测完清理其 `datasets/`、`models/`、`results/`、中间产物（磁盘有限），保留 `log/` 与顶层 `logs_demo/<NAME>.log`。
 
-### 不要做的事
+- **本机可测**：README 声明支持本机芯片 → 进走查队列。
+- **SKIP-for-chip**：README 只声明其它芯片（如纯 BM1688/CV186X SoC-only、无 PCIe 段）→ SKIP，注明。
+- **SKIP-硬件**：需摄像头/HDMI 显示/麦克风/多卡/特定外设而本机没有 → SKIP，注明。
+- **超重 LLM/VLM/AIGC**（Qwen、Llama2、MiniCPM、DeepSeek、InternVL、FLUX、StableDiffusion、Whisper、FunASR…）：模型 GB 级 + 专用 Python 环境，**先问用户是否纳入**（默认纳入但放最后，逐个 venv）。
 
-- 不跑 `compile_mlir`/`compile_nntc` 模式（重编 bmodel 需 MLIR 工具链，耗时且易环境问题）——只用 `download.sh` 拉的预编译 bmodel。用户明确要重编时再加。
-- 不 `git add/commit/push`（除非用户明确要提交测试结果）。
-- 不改样例源码/脚本去"让它过"。
+triage 后给用户一份"将走查 N 个 / SKIP 哪些"的清单再开跑（全量时）。
 
-## 6. 报告格式（结论先行，中文）
+## 5. 每个 sample 的走查流程（核心）
+
+严格按 README 步骤执行，逐步记录"文档说的 vs 实际发生的"。要读的 README：`sample/<N>/README.md` + `sample/<N>/python/README.md` + `sample/<N>/cpp/*/README.md`（存在才读）。
+
+### 5.1 读 README，提取走查清单
+从 README 提取：
+- 支持芯片/平台声明（本机是否在列）
+- 依赖安装命令（apt / pip / requirements.txt / 环境变量 / docker）
+- 数据+模型下载命令（通常 `scripts/download.sh`，或手动 dfss/wget/编译）
+- Python 推理命令 + **README 给的期望输出**（demo 结果、检测框、数值、输出图）
+- C++ 编译命令 + 推理命令 + 期望输出
+- 精度测试命令 + **README 给的期望精度数值**
+- 性能测试命令 + README 给的性能数值（如有）
+
+### 5.2 芯片/平台门禁
+README 支持芯片不含本机 → SKIP-for-chip，注明，不进后续。
+
+### 5.3 装依赖（按 README）
+- 严格按 README 命令装（venv 内）。README 没写但运行报缺的依赖 → 记 **DOC_DEFECT（依赖未文档化）**。
+- 装不上（版本冲突/源不可达）→ 记录实际报错，按 README 意图尽量继续，记偏差。
+
+### 5.4 下载数据/模型（按 README）
+- 按 README 的下载命令跑。校验产物存在且非空；bmodel 用 `bmrt_test --bmodel <p> --dev_id <id>` 能加载（"Run ok"）。
+- 下载失败/缺文件 → FAIL（附错误）；README 指向的 URL/路径失效 → **DOC_DEFECT**。
+
+### 5.5 Python 推理（按 README）
+- 严格用 README 的命令 + README 指定的测试输入跑。
+- 对照 README 期望输出：一致/容差内 → OK；明显不符但能跑 → **DOC_DEFECT（数值/结果过时）**；跑不通 → FAIL。
+
+### 5.6 C++ 编译+推理（按 README）
+- 按 README 编译命令（PCIe 原生 cmake/make；SoC 交叉 SDK）。
+- 编译失败：README 命令/路径写错 → **DOC_DEFECT**；源码/环境缺东西 → FAIL。
+- 按 README 跑 C++ 推理，对照期望输出，同 5.5 判定。
+
+### 5.7 精度 / 性能（README 有则跑）
+- 精度：按 README 命令跑，对照 README 给的期望数值。明显偏离 → DOC_DEFECT 或 FAIL。
+- 性能：可选，只作参考（随环境波动），**不作 FAIL 依据**。
+
+### 5.8 清理
+每个 sample 测完删其 `datasets/` `models/` `results/` 中间产物（磁盘有限），保留顶层日志。
+
+### 判定（每 sample 一个结论）
+- ✅ **PASS**：README 全链路（下载→Python→C++→精度）按文档复现，输出与文档一致。
+- ⚠️ **DOC_DEFECT**：例程能跑通，但 README 有缺陷（错命令/错路径/过时数值/缺步骤/失效链接/缺依赖）。逐条列缺陷——**走查核心产出**。
+- ❌ **FAIL**：按 README（及合理推断）跑不通。附真实报错。
+- ⏭️ **SKIP**：本机硬件/平台不支持（注明：纯 SoC、需摄像头/HDMI、需多卡、模型超显存等）。
+
+## 6. 驱动循环
+
+- 逐个 sample 走 §5 流程（本机单 TPU，**串行**，避免 TPU/磁盘/带宽争用）。
+- 单 sample 超时（下载卡死/死循环）→ 记 TIMEOUT，kill 后继续，不卡死全流程。
+- **流式报进度**：每完成一个报 `[i/N] <NAME> ✅/⚠️/❌/⏭️ 一句话`。
+- 不改样例源码/脚本去凑通过；不动 git；密码不落盘。
+
+## 7. 报告格式（结论先行，中文）
 
 ```
-## sophon-demo 例程自动测试报告
+## sophon-demo README 走查报告
 
-结论：<PASS数>/<总数> 通过；FAIL <n>；SKIP <n>
+结论：PASS a / DOC_DEFECT b / FAIL c / SKIP d（共 N 个有 README 的 sample）
 
-- 设备：<型号> @ <ip>（<设备类型>，<PCIe|SoC>，dev_id=<id>）
-- 受测 commit：<hash>
-- 模式：<MODE>，TARGET=<TARGET>
-- 耗时：<hh:mm:ss>
+- 设备：<型号> @ <ip>（<类型>，<PCIe|SoC>，dev_id=<id>）
+- 受测 commit：<hash>   形态/目标：<…>   耗时：<hh:mm:ss>
+- 判据：只信 README；auto_test.sh 已过时仅参考。TIMEOUT≠FAIL。
 
-| 样例 | 结果 | 说明 | 日志 |
-|------|------|------|------|
-| YOLOv8_plus_det | ✅ PASS | 全 16 个 model×精度用例通过 | logs_demo/YOLOv8_plus_det.log |
-| ResNet | ❌ FAIL | cpp int8_4b eval 精度偏离基线 | logs_demo/ResNet.log（tail 见下） |
-| … | | | |
+| 样例 | 结论 | 说明 |
+|------|------|------|
+| ResNet | ✅ PASS | 下载/Python/C++/精度全复现，数值与文档一致 |
+| YOLOv5 | ⚠️ DOC_DEFECT | 能跑通，但 README 精度数值过时（见缺陷清单 #3） |
+| CLIP | ❌ FAIL | bmodel 加载 invalid bmodel |
+| SAM3 | ⏭️ SKIP | 纯 SoC，本机 PCIe 不支持 |
 
-SKIP（无 auto_test.sh，共 <n> 个）：ArcFace、Baichuan2、BLIP、ChatGLM2、DeepSeek、FLUX.1、InternVL2、Llama2、SAM、Qwen…（按 `find` 输出列全；注意 SAM2 有脚本、不在本列）
+## README 缺陷清单（核心产出）
+| # | 样例 | 文件:行 | 缺陷 | 正确应为 |
+|---|------|---------|------|----------|
+| 1 | YOLOv5 | README.md:120 | 精度数值与实测不符 | 更新为实测值 X |
+| … | | | | |
 
-FAIL 详情（每个 FAIL 摘最后 ~20 行关键报错）：
-### ResNet
-...
+FAIL 详情（每个摘关键报错）：…
+SKIP 清单（含原因）：…
 ```
-流式汇报：每跑完一个样例就向用户报一句进度（`[12/47] YOLOv8_plus_det PASS`），不要闷头跑完才出声。
 
-## 7. 常见坑
+## 8. 常见坑
 
 | 现象 | 原因 | 处理 |
 |------|------|------|
-| `bmrt_test` not found / `import sophon.sail` 失败 | libsophon/sophon-sail 未装或 `LD_LIBRARY_PATH` 缺 `/opt/sophon/sophon-sail/lib` | 装包；`auto_test.sh` 已 export 该路径，手动跑 Python 时记得也 export |
-| `download.sh` 卡住 / dfss 连不上 | 设备无外网或 dfss 未装 | 先 `pip3 install dfss`；无外网则从本地 scp 数据，或跳过该样例并报原因 |
-| C++ 编译 `cmake` 找不到 SAIL | sail_list 样例没传 `-a` | 对这 9 个样例加 `-a /opt/sophon/sophon-sail` |
-| SoC 上 C++ 编译失败 | 需交叉编译，设备上缺 SDK 头文件 | 改只跑 Python 用例，C++ 记 SKIP-需交叉编译 |
-| BM1688 上没跑双核变体 | `auto_test.sh` 在 `TARGET=BM1688` 时会自动加 `int8_4b_2core` 用例 | 无需干预；2core 用例由 `TARGET=BM1688` 触发，与设备核数无关。6 核设备的 PLATFORM 映射仅部分脚本有分支 |
-| bmodel 加载 "magic number" | 下载未完成/被截断 | 重跑 download；校验字节数 |
-| 磁盘满 | 多样例累积 datasets/models 数十 GB | 每样例测完即清理其 datasets/models/results |
+| `import sophon.sail` 失败 | sophon-sail 未装或 `LD_LIBRARY_PATH` 缺 `/opt/sophon/sophon-sail/lib` | 装包 + export；venv 里也要能 import |
+| README 命令直接报错 | README 过时（这正是走查要抓的） | 记 DOC_DEFECT，按 README 意图修正后继续，记偏差 |
+| 依赖装不上/版本冲突 | README 依赖清单过时或与全局冲突 | 用 venv 隔离；记 DOC_DEFECT（依赖未文档化/版本未锁） |
+| dfss 下载慢/卡 | 网络慢（~2.8MiB/s），大包久 | 耐心等；超时记 TIMEOUT；无外网则从本地 scp |
+| bmodel 加载 "magic number" / invalid | 下载被截断/文件坏 | 重下并校验字节数；README 模型路径错 → DOC_DEFECT |
+| C++ cmake 找不到 SAIL/opencv | 缺 `-DSAIL_PATH` 或 `LD_LIBRARY_PATH` | 按 README 补；README 没写 → DOC_DEFECT |
+| 需摄像头/HDMI/麦克风 | 本机无外设 | SKIP-硬件，注明 |
+| LLM 环境互相污染 | transformers/torch 版本各 sample 不同 | 每 sample 独立 venv |
+| 磁盘满 | 多样例累积 datasets/models | 每 sample 测完即清 §5.8 |
 
-## 8. 执行纪律
+## 9. 执行纪律
 
-- **凭据未齐前不动手**（见 §1 Red Flag）。
-- 只跑有 `auto_test.sh` 的样例；其余 SKIP 并列名。
+- **以 README 为唯一事实来源**；auto_test.sh 已过时，仅参考不作判据。
+- 远程设备凭据未齐不动手；本地直跑免密码（见 §1 Red Flag）。
 - 不改源码/脚本/模型去凑通过；不改 git。
-- 测完清理每样例的大文件，保留日志。
+- 走查核心价值是 **README 缺陷清单**——能跑通但文档有错的，一定逐条记。
+- 测完清理每 sample 大文件，保留日志。
 - 密码不进任何日志/报告。
 - 结论先行、中文、流式报进度。
