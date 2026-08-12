@@ -293,11 +293,11 @@ def main(args):
             for i, filename in enumerate(filename_list):
                 det = results[i]
                 # save image
-                det_draw = det[det[:, -2] > 0.25]
+                det_draw = det[det[:, -2] > 0.1]
                 boxes_draw = xywhr2xyxyxyxy(det_draw[:,:5])
                 res_img = draw_numpy(img_list[i], boxes_draw, masks=None, classes_ids=det_draw[:, -1], conf_scores=det_draw[:, -2])
                 cv2.imwrite(os.path.join(output_img_dir, filename), res_img)
-                
+
                 # save result
                 res_dict = dict()
                 res_dict['image_name'] = filename
