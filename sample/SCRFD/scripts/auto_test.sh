@@ -11,15 +11,16 @@ ALL_PASS=1
 PYTEST="auto_test"
 ECHO_LINES=20
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
+CASE_MODE="fully"
 
-usage() 
+usage()
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
 }
 
-while getopts ":m:t:s:a:d:p:" opt
+while getopts ":m:t:s:a:d:p:c:" opt
 do
-  case $opt in 
+  case $opt in
     m)
       MODE=${OPTARG}
       echo "mode is $MODE";;
@@ -38,6 +39,9 @@ do
     p)
       PYTEST=${OPTARG}
       echo "generate logs for $PYTEST";;
+    c)
+      CASE_MODE=${OPTARG}
+      echo "case mode is $CASE_MODE";;
     ?)
       usage
       exit 1;;
@@ -429,6 +433,21 @@ elif test $MODE = "soc_test"
 then
   download
   pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
+  if test $CASE_MODE = "partly"
+  then
+    # partly: smoke-test int8_4b bmcv (python + cpp) on face_det.mp4, one
+    # WIDER_val perf pass, and accuracy eval. Covers the core code paths
+    # without the 32 full WIDER_val passes of fully mode.
+    test_python bmcv scrfd_10g_kps_int8_4b.bmodel datasets/face_det.mp4
+    test_cpp soc bmcv scrfd_10g_kps_int8_4b.bmodel ../../datasets/face_det.mp4
+    test_python bmcv scrfd_10g_kps_int8_4b.bmodel datasets/WIDER_val
+    eval_python bmcv scrfd_10g_kps_int8_4b.bmodel 0.9380 0.9202 0.7713
+    eval_cpp soc bmcv scrfd_10g_kps_int8_4b.bmodel 0.9380 0.9202 0.7713
+    if test "$TARGET" = "BM1688"; then
+      test_python bmcv scrfd_10g_kps_int8_4b_2core.bmodel datasets/WIDER_val
+      eval_python bmcv scrfd_10g_kps_int8_4b_2core.bmodel 0.9380 0.9202 0.7713
+    fi
+  else
   if test $TARGET = "BM1684"
   then
     test_python opencv scrfd_10g_kps_fp32_1b.bmodel datasets/face_det.mp4
@@ -460,7 +479,7 @@ then
     eval_python bmcv scrfd_10g_kps_fp32_1b.bmodel 0.9380 0.9202 0.7713
     eval_python bmcv scrfd_10g_kps_int8_1b.bmodel 0.9380 0.9202 0.7713
     eval_python bmcv scrfd_10g_kps_int8_4b.bmodel 0.9380 0.9202 0.7713
-    eval_cpp soc bmcv scrfd_10g_kps_fp32_1b.bmodel 0.9380 0.9202 0.7713 
+    eval_cpp soc bmcv scrfd_10g_kps_fp32_1b.bmodel 0.9380 0.9202 0.7713
     eval_cpp soc bmcv scrfd_10g_kps_int8_1b.bmodel 0.9380 0.9202 0.7713
     eval_cpp soc bmcv scrfd_10g_kps_int8_4b.bmodel 0.9380 0.9202 0.7713
     eval_cpp soc sail scrfd_10g_kps_fp32_1b.bmodel 0.9380 0.9202 0.7713
@@ -636,6 +655,7 @@ then
     eval_cpp soc sail scrfd_10g_kps_fp16_1b.bmodel 0.9380 0.9202 0.7713
     eval_cpp soc sail scrfd_10g_kps_int8_1b.bmodel 0.9380 0.9202 0.7713 
     eval_cpp soc sail scrfd_10g_kps_int8_4b.bmodel 0.9380 0.9202 0.7713
+  fi
   fi
 fi
 

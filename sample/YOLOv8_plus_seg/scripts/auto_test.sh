@@ -287,7 +287,14 @@ then
   build_pcie bmcv
 elif test $MODE = "pcie_test"
 then
-  pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
+  # Install pycocotools for accuracy evaluation. On SEX SoC devices the overlay
+  # partition is small and can fill up, so fall back to installing on /data (the
+  # large partition) and export PYTHONPATH so the eval scripts can import it.
+  pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple 2>/dev/null || {
+    mkdir -p /data/py_pkgs /data/tmp
+    TMPDIR=/data/tmp pip3 install --target=/data/py_pkgs pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
+    export PYTHONPATH=/data/py_pkgs:$PYTHONPATH
+  }
   download $TARGET
   if test $CASE_MODE = "fully"
   then
@@ -321,7 +328,14 @@ then
   build_soc bmcv
 elif test $MODE = "soc_test"
 then
-  pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
+  # Install pycocotools for accuracy evaluation. On SEX SoC devices the overlay
+  # partition is small and can fill up, so fall back to installing on /data (the
+  # large partition) and export PYTHONPATH so the eval scripts can import it.
+  pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple 2>/dev/null || {
+    mkdir -p /data/py_pkgs /data/tmp
+    TMPDIR=/data/tmp pip3 install --target=/data/py_pkgs pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
+    export PYTHONPATH=/data/py_pkgs:$PYTHONPATH
+  }
   download $TARGET
   if test $CASE_MODE = "fully"
   then
