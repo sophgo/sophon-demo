@@ -47,4 +47,9 @@ usage: arcface_bmcv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 ```bash
 python3 python/arcface_bmcv.py --input datasets/test --bmodel models/BM1684X/arcface_resnet50_fp32_1b.bmodel --dev_id 0
 ```
+BM1688/SE9-16、CV186X/SE9-8 平台将 `--bmodel` 替换为对应模型路径即可，例如：
+```bash
+python3 python/arcface_bmcv.py --input datasets/test --bmodel models/BM1688/arcface_resnet50_int8_4b.bmodel --dev_id 0
+python3 python/arcface_bmcv.py --input datasets/test --bmodel models/CV186X/arcface_resnet50_int8_1b.bmodel --dev_id 0
+```
 测试结束后，会打印每张图片的L2归一化嵌入向量以及各阶段耗时统计。

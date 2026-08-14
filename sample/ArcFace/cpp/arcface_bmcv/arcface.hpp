@@ -42,6 +42,7 @@ private:
 public:
     int batch_size = -1;
     TimeStamp* m_ts = NULL;
+    bm_handle_t get_handle() { return handle; }
     ArcFace(std::string bmodel_file, int dev_id = 0){
         auto ret = bm_dev_request(&handle, dev_id);
         assert(BM_SUCCESS == ret);

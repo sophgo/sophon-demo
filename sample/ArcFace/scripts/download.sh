@@ -15,6 +15,14 @@ while [[ $# -gt 0 ]]; do
             download_bm1684x=1
             shift 1
             ;;
+        --BM1688)
+            download_bm1688=1
+            shift 1
+            ;;
+        --CV186X)
+            download_cv186x=1
+            shift 1
+            ;;
         --onnx)
             download_onnx=1
             shift 1
@@ -74,7 +82,29 @@ else
     echo "models/BM1684X folder exist! Remove it if you need to update."
 fi
 
-if [ ! -d "../models/onnx" ]; 
+if [ ! -d "../models/BM1688" ];
+then
+    if [ $download_bm1688 == 1 ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/ArcFace/models/BM1688.tar.gz
+        tar xvf BM1688.tar.gz && rm BM1688.tar.gz
+        echo "models/BM1688 download!"
+    fi
+else
+    echo "models/BM1688 folder exist! Remove it if you need to update."
+fi
+
+if [ ! -d "../models/CV186X" ];
+then
+    if [ $download_cv186x == 1 ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/ArcFace/models/CV186X.tar.gz
+        tar xvf CV186X.tar.gz && rm CV186X.tar.gz
+        echo "models/CV186X download!"
+    fi
+else
+    echo "models/CV186X folder exist! Remove it if you need to update."
+fi
+
+if [ ! -d "../models/onnx" ];
 then
     if [ $download_onnx == 1 ]; then
         python3 -m dfss --url=open@sophgo.com:sophon-demo/ArcFace/models/onnx.tar.gz

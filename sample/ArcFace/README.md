@@ -20,7 +20,7 @@
 
 ## 1. 简介
 
-ArcFace（IR-SE-ResNet50）人脸识别模型，基于[insightface](https://github.com/deepinsight/insightface)的buffalo_l预训练权重（w600k_r50），用于提取512维人脸特征嵌入向量。目前已适配BM1684X，支持在SOPHON BM1684X上进行推理测试。
+ArcFace（IR-SE-ResNet50）人脸识别模型，基于[insightface](https://github.com/deepinsight/insightface)的buffalo_l预训练权重（w600k_r50），用于提取512维人脸特征嵌入向量。目前已适配BM1684X、BM1688（SE9-16）、CV186X（SE9-8），支持在SOPHON BM1684X、BM1688、CV186X上进行推理测试。
 
 **模型信息：**
 - 输入：RGB图像，尺寸112x112，值域[0, 255]
@@ -49,8 +49,9 @@ ArcFace（IR-SE-ResNet50）人脸识别模型，基于[insightface](https://gith
 ```
 
 ### 2.2 SDK特性
-- 支持BM1684X(x86 PCIe、SoC)
-- 支持FP32、FP16(BM1684X)、INT8模型编译和推理
+- 支持BM1684X(x86 PCIe、SoC)、BM1688(SE9-16 SoC)、CV186X(SE9-8 SoC)
+- 支持FP32、FP16、INT8模型编译和推理
+- 支持BM1688多核（_2core）推理
 - 支持C++、Python推理
 - 支持图片目录批量测试
 - 输出512维L2归一化人脸嵌入向量
@@ -70,6 +71,8 @@ chmod -R +x scripts/
 ```bash
 --all      # 下载所有模型
 --BM1684X  # 下载BM1684X的bmodel
+--BM1688   # 下载BM1688的bmodel
+--CV186X   # 下载CV186X的bmodel
 --onnx     # 下载onnx
 ```
 
@@ -81,6 +84,20 @@ models/
 │   ├── arcface_resnet50_fp16_1b.bmodel   # FP16 1batch (89MB)
 │   ├── arcface_resnet50_int8_1b.bmodel   # INT8 1batch (48MB)
 │   └── arcface_resnet50_int8_4b.bmodel   # INT8 4batch (48MB)
+├── BM1688                              # 在BM1688(SE9-16)上运行的模型
+│   ├── arcface_resnet50_fp32_1b.bmodel        # FP32 1batch
+│   ├── arcface_resnet50_fp32_1b_2core.bmodel  # FP32 1batch 2core
+│   ├── arcface_resnet50_fp16_1b.bmodel        # FP16 1batch
+│   ├── arcface_resnet50_fp16_1b_2core.bmodel  # FP16 1batch 2core
+│   ├── arcface_resnet50_int8_1b.bmodel        # INT8 1batch
+│   ├── arcface_resnet50_int8_1b_2core.bmodel  # INT8 1batch 2core
+│   ├── arcface_resnet50_int8_4b.bmodel        # INT8 4batch
+│   └── arcface_resnet50_int8_4b_2core.bmodel  # INT8 4batch 2core
+├── CV186X                              # 在CV186X(SE9-8)上运行的模型
+│   ├── arcface_resnet50_fp32_1b.bmodel   # FP32 1batch
+│   ├── arcface_resnet50_fp16_1b.bmodel   # FP16 1batch
+│   ├── arcface_resnet50_int8_1b.bmodel   # INT8 1batch
+│   └── arcface_resnet50_int8_4b.bmodel   # INT8 4batch
 └── onnx
     └── w600k_r50.onnx                  # ONNX模型
 ```
@@ -100,7 +117,7 @@ models/
 
 - 生成FP32 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X、BM1688、CV186X**），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
@@ -110,7 +127,7 @@ models/
 
 - 生成FP16 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X、BM1688、CV186X**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
@@ -120,7 +137,7 @@ models/
 
 - 生成INT8 BModel
 
-本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X**），如：
+本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X、BM1688、CV186X**），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684x
@@ -151,11 +168,24 @@ bmrt_test --bmodel models/BM1684X/arcface_resnet50_fp32_1b.bmodel
 |   SE7-32    | BM1684X/arcface_resnet50_fp16_1b.bmodel     |           2.243   |
 |   SE7-32    | BM1684X/arcface_resnet50_int8_1b.bmodel     |           1.189   |
 |   SE7-32    | BM1684X/arcface_resnet50_int8_4b.bmodel     |           0.499   |
+|   SE9-16    | BM1688/arcface_resnet50_fp32_1b.bmodel      |           72.690  |
+|   SE9-16    | BM1688/arcface_resnet50_fp32_1b_2core.bmodel|           42.259  |
+|   SE9-16    | BM1688/arcface_resnet50_fp16_1b.bmodel      |           9.934   |
+|   SE9-16    | BM1688/arcface_resnet50_fp16_1b_2core.bmodel|           8.504   |
+|   SE9-16    | BM1688/arcface_resnet50_int8_1b.bmodel      |           3.426   |
+|   SE9-16    | BM1688/arcface_resnet50_int8_1b_2core.bmodel|           3.610   |
+|   SE9-16    | BM1688/arcface_resnet50_int8_4b.bmodel      |           11.201  |
+|   SE9-16    | BM1688/arcface_resnet50_int8_4b_2core.bmodel|           6.521   |
+|   SE9-8     | CV186X/arcface_resnet50_fp32_1b.bmodel      |           72.839  |
+|   SE9-8     | CV186X/arcface_resnet50_fp16_1b.bmodel      |           10.039  |
+|   SE9-8     | CV186X/arcface_resnet50_int8_1b.bmodel      |           3.547   |
+|   SE9-8     | CV186X/arcface_resnet50_int8_4b.bmodel      |           11.538  |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性；
 > 2. INT8 4batch模型的`calculate time`为4张图像的总推理时间；
-> 3. SoC和PCIe的测试结果基本一致。
+> 3. SoC和PCIe的测试结果基本一致；
+> 4. SE9-16/SE9-8 仅支持 SoC；BM1688 的 `_2core` 为双核推理模型。
 
 ### 6.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
@@ -171,19 +201,36 @@ bmrt_test --bmodel models/BM1684X/arcface_resnet50_fp32_1b.bmodel
 |   SE7-32    |arcface_bmcv.soc   | arcface_resnet50_fp16_1b.bmodel |     0.68       |     0.19       |     2.12       |     0.02       |
 |   SE7-32    |arcface_bmcv.soc   | arcface_resnet50_int8_1b.bmodel |     0.67       |     0.19       |     1.05       |     0.02       |
 |   SE7-32    |arcface_bmcv.soc   | arcface_resnet50_int8_4b.bmodel |     0.74       |     0.22       |     1.44       |     0.01       |
+|   SE9-16    | arcface_bmcv.py   | arcface_resnet50_fp32_1b.bmodel |     1.47       |     0.79       |     73.25      |     0.28       |
+|   SE9-16    | arcface_bmcv.py   | arcface_resnet50_fp16_1b.bmodel |     1.47       |     0.79       |     10.46      |     0.25       |
+|   SE9-16    | arcface_bmcv.py   | arcface_resnet50_int8_1b.bmodel |     1.43       |     0.78       |     3.95       |     0.26       |
+|   SE9-16    | arcface_bmcv.py   | arcface_resnet50_int8_4b.bmodel |     1.10       |     0.69       |     4.85       |     0.12       |
+|   SE9-16    |arcface_bmcv.soc   | arcface_resnet50_fp32_1b.bmodel |     1.00       |     0.25       |     72.66      |     0.05       |
+|   SE9-16    |arcface_bmcv.soc   | arcface_resnet50_fp16_1b.bmodel |     0.94       |     0.25       |     9.90       |     0.03       |
+|   SE9-16    |arcface_bmcv.soc   | arcface_resnet50_int8_1b.bmodel |     0.92       |     0.23       |     3.40       |     0.03       |
+|   SE9-16    |arcface_bmcv.soc   | arcface_resnet50_int8_4b.bmodel |     0.92       |     0.28       |     7.01       |     0.03       |
+|   SE9-8     | arcface_bmcv.py   | arcface_resnet50_fp32_1b.bmodel |     1.51       |     0.78       |     73.26      |     0.27       |
+|   SE9-8     | arcface_bmcv.py   | arcface_resnet50_fp16_1b.bmodel |     1.60       |     0.83       |     10.69      |     0.30       |
+|   SE9-8     | arcface_bmcv.py   | arcface_resnet50_int8_1b.bmodel |     1.44       |     0.77       |     3.99       |     0.26       |
+|   SE9-8     | arcface_bmcv.py   | arcface_resnet50_int8_4b.bmodel |     1.09       |     0.67       |     4.94       |     0.12       |
+|   SE9-8     |arcface_bmcv.soc   | arcface_resnet50_fp32_1b.bmodel |     1.11       |     0.25       |     72.71      |     0.06       |
+|   SE9-8     |arcface_bmcv.soc   | arcface_resnet50_fp16_1b.bmodel |     0.95       |     0.23       |     9.93       |     0.04       |
+|   SE9-8     |arcface_bmcv.soc   | arcface_resnet50_int8_1b.bmodel |     0.92       |     0.23       |     3.46       |     0.04       |
+|   SE9-8     |arcface_bmcv.soc   | arcface_resnet50_int8_4b.bmodel |     0.92       |     0.27       |     7.16       |     0.03       |
 
 > **测试说明**：
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE7-32的主控处理器为8核CA53@2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
-> 4. 图片分辨率对解码时间影响较大，不同的测试图片可能存在较大差异。
+> 4. 图片分辨率对解码时间影响较大，不同的测试图片可能存在较大差异；
+> 5. SE9-16/SE9-8 表内为 1 核推理耗时；BM1688 的 `_2core` 模型推理耗时更低（见 6.1 bmrt_test 表）。
 
 ## 7. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。以下是ArcFace例程特定的FAQ：
 
 **Q: C++ INT8 4b模型输出是否正常？**
 
-A: C++ INT8 4b模型使用批量`bmcv_image_convert_to`调用（参考YOLOv8_plus_cls实现），经测试batch内各图像输出独立且正确。如遇到异常，请检查libsophon版本与bmodel编译SDK版本是否兼容。
+A: 正常。`main.cpp` 在 `cv::imread` + `toBMI` 解码后立即将每张图拷贝到独立设备内存（SE9 上解码产出的 `bm_image` 会复用同一块设备缓冲，若不拷贝，batch 内各图会全部指向最后一张图的内容），保证 batch 内各图像输出独立且正确。如遇到异常，请检查libsophon版本与bmodel编译SDK版本是否兼容。
 
 **Q: 预处理参数是否需要手动设置？**
 

@@ -42,13 +42,21 @@ int ArcFace::pre_process(const std::vector<bm_image>& images,
     m_resized_imgs.resize(batch_size);
     m_converto_imgs.resize(batch_size);
 
-    // create bm_images for resize
+    // create bm_images for resize, with contiguous device memory allocated upfront
+    // (BUG-003: 批量输入必须预先分配连续内存；否则 bmcv_image_vpp_convert 各槽位会
+    //  落到同一块内存，batch 内所有图互相覆盖、只剩最后一张，输出全部相同)
     int aligned_net_w = FFALIGN(m_net_w, 64);
     int strides[3] = {aligned_net_w, aligned_net_w, aligned_net_w};
-    ret = bm_image_create_batch(handle, m_net_h, m_net_w, FORMAT_RGB_PLANAR,
-                                DATA_TYPE_EXT_1N_BYTE, m_resized_imgs.data(), batch_size, strides);
+    for (int i = 0; i < batch_size; i++) {
+        ret = bm_image_create(handle, m_net_h, m_net_w, FORMAT_RGB_PLANAR,
+                              DATA_TYPE_EXT_1N_BYTE, &m_resized_imgs[i], strides);
+        if (ret != BM_SUCCESS) {
+            throw std::runtime_error("BMRuntime error creating resized images");
+        }
+    }
+    ret = bm_image_alloc_contiguous_mem(batch_size, m_resized_imgs.data());
     if (ret != BM_SUCCESS) {
-        throw std::runtime_error("BMRuntime error creating resized images");
+        throw std::runtime_error("BMRuntime error allocating resized images memory");
     }
 
     // create bm_images for convert_to (float32)
@@ -108,6 +116,7 @@ int ArcFace::pre_process(const std::vector<bm_image>& images,
     }
 
     // destroy bm_images
+    // (destroy_batch 内部已含 free_contiguous_mem，不要再显式 free，否则双释放报 free gmem failed)
     bm_image_destroy_batch(m_resized_imgs.data(), batch_size);
 #if BMCV_VERSION_MAJOR > 1
     bm_image_detach_contiguous_mem(batch_size, m_converto_imgs.data());

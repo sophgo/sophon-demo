@@ -92,9 +92,23 @@ int main(int argc, char* argv[]) {
             cv::bmcv::toBMI(mat, &bmimg);
             arcface_ts.save("decode time");
 
+            // BUG-003: toBMI 产出的 bm_image 复用同一块设备缓冲（SE9 上同一 batch 各图全部指向最后一张）。
+            // 立即拷贝到独立内存，保证 batch 内每张图互不覆盖。包装图不持有缓冲，destroy 只释放句柄。
+            bm_image bmimg_indep;
+            bm_image_create(arcface.get_handle(), bmimg.height, bmimg.width,
+                            bmimg.image_format, bmimg.data_type, &bmimg_indep);
+            bm_image_alloc_dev_mem(bmimg_indep, BMCV_IMAGE_FOR_IN);
+            bmcv_copy_to_atrr_t copy_attr;
+            memset(&copy_attr, 0, sizeof(copy_attr));
+            copy_attr.start_x = 0;
+            copy_attr.start_y = 0;
+            copy_attr.if_padding = 1;
+            bmcv_image_copy_to(arcface.get_handle(), copy_attr, bmimg, bmimg_indep);
+            bm_image_destroy(bmimg);
+            batch_imgs.push_back(bmimg_indep);
+
             size_t index = img_file.rfind("/");
             string img_name = img_file.substr(index + 1);
-            batch_imgs.push_back(bmimg);
             batch_names.push_back(img_name);
 
             iter++;
