@@ -956,22 +956,25 @@ then
       eval_python bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35567016002066365
       eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.35346132862376395
       eval_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel 0.35346132862376395
-      if test "$PLATFORM" = "SE9-16"; then 
+      if test "$PLATFORM" = "SE9-16"; then
         eval_python opencv yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.3574651731066506
         eval_python bmcv yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.35536824796522914
         eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.35346132862376395
         eval_cpp soc sail yolov5s_v6.1_3output_int8_4b_2core.bmodel 0.35346132862376395
       fi
-      
-      test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_python_cpu_opt bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
-      test_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
 
-      eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.354
-      eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.350
-      eval_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel  0.355
-      eval_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel  0.355
+      # cpu_opt tests run on val2017_1000 and are slow; only run in fully mode
+      if test "$CASE_MODE" = "fully"; then
+        test_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
+        test_python_cpu_opt bmcv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
+        test_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
+        test_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
+
+        eval_python_cpu_opt opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.354
+        eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.350
+        eval_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel  0.355
+        eval_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel  0.355
+      fi
     else
       echo "unknown CASE_MODE: $CASE_MODE"
     fi

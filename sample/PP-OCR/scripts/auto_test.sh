@@ -337,15 +337,17 @@ then
   elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
     eval_python opencv fp32 0.608
-    eval_python opencv fp16 0.608
     eval_cpp soc bmcv fp32  0.604
-    eval_cpp soc bmcv fp16  0.604
+    if test "$CASE_MODE" = "fully"; then
+      eval_python opencv fp16 0.608
+      eval_cpp soc bmcv fp16  0.604
 
-    if test "$PLATFORM" = "SE9-16"; then 
-      eval_python opencv fp32_2core 0.608
-      eval_python opencv fp16_2core 0.608
-      eval_cpp soc bmcv fp32_2core  0.604
-      eval_cpp soc bmcv fp16_2core  0.604
+      if test "$PLATFORM" = "SE9-16"; then
+        eval_python opencv fp32_2core 0.608
+        eval_python opencv fp16_2core 0.608
+        eval_cpp soc bmcv fp32_2core  0.604
+        eval_cpp soc bmcv fp16_2core  0.604
+      fi
     fi
   fi
 fi
