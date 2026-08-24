@@ -254,11 +254,13 @@ class SAM3Engines:
       - grounding_decoder: Grounding TransformerDecoder
     """
 
-    def __init__(self, model_dir, precision="f16", dev_id=0, mode="bmodel"):
+    def __init__(self, model_dir, precision="f16", dev_id=0, mode="bmodel",
+                 streaming=False):
         self.dev_id = dev_id
         self.model_dir = os.path.abspath(model_dir)
         self.precision = precision
         self.mode = mode
+        self.streaming = streaming
 
         if mode == "onnx":
             self._init_onnx()
@@ -267,27 +269,38 @@ class SAM3Engines:
         import sophon.sail as sail
 
         # --- ViT engines (5 parts) ---
+        # streaming=True（SoC 流式）：不在此常驻 ViT part0-4，交给 SAM3ViTEncoder
+        # 在 __call__ 里自管（part0 常驻 + part1-4 load→run→free，
+        # 峰值显存 = max 单 part，落 SoC 3GB）。vit_engines 留空。
         self.vit_engines = []
         self.vit_graph_names = []
         self.vit_input_names = []
         self.vit_output_names = []
-        for part in range(5):
-            path = os.path.join(model_dir, "vit",
-                                f"sam3_vit_part{part}_{precision}_1b.bmodel")
-            if not os.path.exists(path):
-                raise FileNotFoundError(f"ViT part {part} bmodel not found: {path}")
-            engine = sail.Engine(path, dev_id, sail.IOMode.SYSIO)
-            gname = engine.get_graph_names()[0]
-            self.vit_engines.append(engine)
-            self.vit_graph_names.append(gname)
-            self.vit_input_names.append(engine.get_input_names(gname)[0])
-            self.vit_output_names.append(engine.get_output_names(gname)[0])
-            size_mb = os.path.getsize(path) / (1024 * 1024)
-            logger.info("ViT part %d: %.0fMB loaded", part, size_mb)
+        if streaming:
+            logger.info("ViT: streaming mode, engines deferred to SAM3ViTEncoder "
+                        "(part0 常驻 + part1-4 load→run→free)")
+        else:
+            for part in range(5):
+                # int8: part0（patch_embed+preproc）无 int8 变体，回退 f16
+                p = "f16" if (precision == "int8" and part == 0) else precision
+                path = os.path.join(model_dir, "vit",
+                                    f"sam3_vit_part{part}_{p}_1b.bmodel")
+                if not os.path.exists(path):
+                    raise FileNotFoundError(f"ViT part {part} bmodel not found: {path}")
+                engine = sail.Engine(path, dev_id, sail.IOMode.SYSIO)
+                gname = engine.get_graph_names()[0]
+                self.vit_engines.append(engine)
+                self.vit_graph_names.append(gname)
+                self.vit_input_names.append(engine.get_input_names(gname)[0])
+                self.vit_output_names.append(engine.get_output_names(gname)[0])
+                size_mb = os.path.getsize(path) / (1024 * 1024)
+                logger.info("ViT part %d: %.0fMB loaded", part, size_mb)
 
         # --- Neck engine ---
+        # int8: neck 无 int8 变体（FPN 小，量化收益小、风险大），回退 f16
+        neck_p = "f16" if precision == "int8" else precision
         neck_path = os.path.join(model_dir, "neck",
-                                 f"sam3_neck_{precision}_1b.bmodel")
+                                 f"sam3_neck_{neck_p}_1b.bmodel")
         if not os.path.exists(neck_path):
             raise FileNotFoundError(f"Neck bmodel not found: {neck_path}")
         self.neck_engine = sail.Engine(neck_path, dev_id, sail.IOMode.SYSIO)
@@ -312,27 +325,42 @@ class SAM3Engines:
         else:
             logger.info("Text encoder bmodel not found, will use CPU fallback")
 
-        # --- Grounding encoder engine ---
+        # --- Grounding encoder engine (optional: 1008 int8 = backbone-only) ---
         ge_path, _ = self._gnd_bmodel_path("sam3_grounding_encoder")
-        if not os.path.exists(ge_path):
-            raise FileNotFoundError(f"Grounding encoder bmodel not found: {ge_path}")
-        self.gr_encoder = sail.Engine(ge_path, dev_id, sail.IOMode.SYSIO)
-        ge_gname = self.gr_encoder.get_graph_names()[0]
-        self.gr_enc_input_names = self.gr_encoder.get_input_names(ge_gname)
-        self.gr_enc_output_names = self.gr_encoder.get_output_names(ge_gname)
-        logger.info("Grounding encoder: %.0fMB loaded",
-                    os.path.getsize(ge_path) / (1024 * 1024))
+        self.gr_encoder = None
+        self.gr_enc_input_names = []
+        self.gr_enc_output_names = []
+        if os.path.exists(ge_path):
+            self.gr_encoder = sail.Engine(ge_path, dev_id, sail.IOMode.SYSIO)
+            ge_gname = self.gr_encoder.get_graph_names()[0]
+            self.gr_enc_input_names = self.gr_encoder.get_input_names(ge_gname)
+            self.gr_enc_output_names = self.gr_encoder.get_output_names(ge_gname)
+            logger.info("Grounding encoder: %.0fMB loaded",
+                        os.path.getsize(ge_path) / (1024 * 1024))
+        else:
+            logger.info("Grounding encoder bmodel not found: %s", ge_path)
 
-        # --- Grounding decoder engine ---
+        # --- Grounding decoder engine (optional: 1008 int8 = backbone-only) ---
         gd_path, _ = self._gnd_bmodel_path("sam3_grounding_decoder")
-        if not os.path.exists(gd_path):
-            raise FileNotFoundError(f"Grounding decoder bmodel not found: {gd_path}")
-        self.gr_decoder = sail.Engine(gd_path, dev_id, sail.IOMode.SYSIO)
-        gd_gname = self.gr_decoder.get_graph_names()[0]
-        self.gr_dec_input_names = self.gr_decoder.get_input_names(gd_gname)
-        self.gr_dec_output_names = self.gr_decoder.get_output_names(gd_gname)
-        logger.info("Grounding decoder: %.0fMB loaded",
-                    os.path.getsize(gd_path) / (1024 * 1024))
+        self.gr_decoder = None
+        self.gr_dec_input_names = []
+        self.gr_dec_output_names = []
+        if os.path.exists(gd_path):
+            self.gr_decoder = sail.Engine(gd_path, dev_id, sail.IOMode.SYSIO)
+            gd_gname = self.gr_decoder.get_graph_names()[0]
+            self.gr_dec_input_names = self.gr_decoder.get_input_names(gd_gname)
+            self.gr_dec_output_names = self.gr_decoder.get_output_names(gd_gname)
+            logger.info("Grounding decoder: %.0fMB loaded",
+                        os.path.getsize(gd_path) / (1024 * 1024))
+        else:
+            logger.info("Grounding decoder bmodel not found: %s", gd_path)
+
+        # 1008 int8 / 任何缺 grounding 的交付集 → backbone-only 模式
+        self.grounding_available = (
+            self.gr_encoder is not None and self.gr_decoder is not None)
+        if not self.grounding_available:
+            logger.info("Grounding unavailable → backbone-only mode "
+                        "(ViT + Neck, no box/mask output)")
 
     def _init_onnx(self):
         """ONNX backend: load onnxruntime sessions as sail.Engine-compatible
@@ -460,13 +488,21 @@ class SAM3ImageEncoder:
         self.scalp = 1  # discard lowest FPN level
         self.pos_encoder = PositionEmbeddingSine(num_pos_feats=256)
 
-        # Use SAM3ViTEncoder with pre-loaded engines (no code duplication)
-        self.vit_encoder = SAM3ViTEncoder(
-            precision=precision, dev_id=dev_id, resolution=resolution,
-            engines=engines.vit_engines,
-            graph_names=engines.vit_graph_names,
-            input_names=engines.vit_input_names,
-            output_names=engines.vit_output_names)
+        # Use SAM3ViTEncoder (delegates ViT inference, no code duplication).
+        # streaming: SoC 流式 — 不传预加载引擎，让 SAM3ViTEncoder 自管
+        # part0 常驻 + part1-4 load→run→free（峰值显存落 SoC 3GB）。
+        # 仅 bmodel 模式生效（onnx 模式走 CPU，无显存压力）。
+        if engines.streaming and engines.mode == "bmodel":
+            self.vit_encoder = SAM3ViTEncoder(
+                model_dir=engines.model_dir, precision=precision,
+                dev_id=dev_id, resolution=resolution, streaming=True)
+        else:
+            self.vit_encoder = SAM3ViTEncoder(
+                precision=precision, dev_id=dev_id, resolution=resolution,
+                engines=engines.vit_engines,
+                graph_names=engines.vit_graph_names,
+                input_names=engines.vit_input_names,
+                output_names=engines.vit_output_names)
 
         # Timing (SAM2 pattern)
         self.preprocess_time = 0
@@ -1444,36 +1480,50 @@ class SAM3Pipeline:
     version = "1.0.0"
 
     def __init__(self, model_dir, precision="f16", dev_id=0,
-                 resolution=504, bpe_path=None, ckpt_path=None, mode="bmodel"):
+                 resolution=504, bpe_path=None, ckpt_path=None, mode="bmodel",
+                 streaming=False):
         self.version = "1.0.0"
         self.resolution = resolution
         self.grid = resolution // 14
         self.model_dir = os.path.abspath(model_dir)
         self.mode = mode
+        self.streaming = streaming
 
-        # Resolve default paths
+        # Resolve default ckpt path (string only, no import)
         if ckpt_path is None:
             ckpt_path = os.path.join(
                 os.path.dirname(model_dir), "sam3.pt")
-        if bpe_path is None:
-            import sam3
-            bpe_path = os.path.join(
-                os.path.dirname(sam3.__file__), "assets",
-                "bpe_simple_vocab_16e6.txt.gz")
 
         logger.info("SAM3Pipeline init, model_dir=%s, precision=%s, resolution=%d",
                     model_dir, precision, resolution)
 
         # Load all TPU engines once (SAM2 pattern)
-        self.engines = SAM3Engines(model_dir, precision, dev_id, mode=mode)
+        # streaming: ViT part1-4 不常驻，由 SAM3ViTEncoder 流式加载（SoC 落地）
+        self.engines = SAM3Engines(model_dir, precision, dev_id, mode=mode,
+                                   streaming=streaming)
 
-        # Component wrappers
+        # Component wrappers — image encoder always built (ViT + Neck)
         self.image_encoder = SAM3ImageEncoder(
             self.engines, precision, dev_id, resolution)
-        self.text_encoder = SAM3TextEncoder(
-            self.engines, bpe_path=bpe_path, context_length=32)
-        self.grounding = SAM3Grounding(
-            self.engines, ckpt_path=ckpt_path, bpe_path=bpe_path)
+
+        # Text encoder + grounding only when grounding bmodels present.
+        # 1008 int8 交付集只有 ViT+Neck → backbone-only，不 import sam3 源码。
+        if self.engines.grounding_available:
+            if bpe_path is None:
+                import sam3
+                bpe_path = os.path.join(
+                    os.path.dirname(sam3.__file__), "assets",
+                    "bpe_simple_vocab_16e6.txt.gz")
+            self.text_encoder = SAM3TextEncoder(
+                self.engines, bpe_path=bpe_path, context_length=32)
+            self.grounding = SAM3Grounding(
+                self.engines, ckpt_path=ckpt_path, bpe_path=bpe_path)
+            logger.info("Full detection pipeline (ViT+Neck+Grounding+Text)")
+        else:
+            self.text_encoder = None
+            self.grounding = None
+            logger.info("Backbone-only pipeline (ViT+Neck); "
+                        "predict() will skip grounding")
 
         # Timing (cumulative, SAM2 pattern)
         self.preprocess_time = 0
@@ -1504,6 +1554,31 @@ class SAM3Pipeline:
         """
         if isinstance(text_prompts, str):
             text_prompts = [text_prompts]
+
+        # Backbone-only 模式（1008 int8 等无 grounding 交付集）：
+        # 跑完 ViT+Neck 即返回 FPN 特征，跳过 text/grounding。
+        if not self.engines.grounding_available:
+            fpn_shapes = [f.shape for f in self.fpn_feats]
+            fpn_norms = [float(np.linalg.norm(f.ravel()))
+                         for f in self.fpn_feats]
+            logger.info("Backbone-only: grounding skipped, returning FPN feats "
+                        "(shapes=%s)", fpn_shapes)
+            return {
+                "grounding_skipped": True,
+                "fpn_feats": self.fpn_feats,
+                "fpn_pos": self.fpn_pos,
+                "fpn_shapes": fpn_shapes,
+                "fpn_norms": fpn_norms,
+                "timing": {
+                    "preprocess_ms": self.preprocess_time * 1000,
+                    "vit_ms": self.vit_time * 1000,
+                    "neck_ms": self.neck_time * 1000,
+                    "text_ms": 0.0,
+                    "grounding_ms": 0.0,
+                    "total_ms": (self.preprocess_time + self.vit_time +
+                                 self.neck_time) * 1000,
+                },
+            }
 
         # --- Text encoding ---
         text_features, text_mask, inputs_embeds = self.text_encoder(text_prompts)
@@ -1749,15 +1824,19 @@ def draw_results(image, results, score_thresh, output_path, prompts):
 def main():
     parser = argparse.ArgumentParser(
         description="SAM3 Full Inference Pipeline")
-    parser.add_argument("--model_dir", type=str,
-                        default=os.path.join(
-                            os.path.dirname(os.path.abspath(__file__)),
-                            "..", "models", "BM1684X_504"),
-                        help="Path to compiled bmodel directory")
+    parser.add_argument("--model_dir", type=str, default=None,
+                        help="Path to compiled bmodel directory "
+                             "(default: models/BM1684X_504; "
+                             "int8 → models/BM1684X)")
     parser.add_argument("--precision", type=str, default="f16",
-                        choices=["f32", "f16"])
+                        choices=["f32", "f16", "w8f16", "int8"])
     parser.add_argument("--dev_id", type=int, default=0)
-    parser.add_argument("--resolution", type=int, default=504)
+    parser.add_argument("--streaming", action="store_true",
+                        help="SoC 流式加载 ViT part1-4（load→run→free，峰值显存 = "
+                             "max 单 part）。int8 1008 落 SoC 3GB 需开；PCIe 显存充裕时"
+                             "关掉更快（全常驻）")
+    parser.add_argument("--resolution", type=int, default=None,
+                        help="Input resolution (default: 504; int8 → 1008)")
     parser.add_argument("--grid", type=int, default=36,
                         help="Feature grid size (36 for 504, 72 for 1008)")
     parser.add_argument("--image", type=str, default=None,
@@ -1777,10 +1856,26 @@ def main():
                         help="bmodel=TPU sail, onnx=onnxruntime CPU (no device needed)")
     args = parser.parse_args()
 
+    # int8 → 1008 + BM1684X 自动接线（1008 交付集只有 ViT+Neck int8 bmodel）
+    sample_root = os.path.dirname(os.path.abspath(__file__))
+    if args.precision == "int8":
+        if args.resolution is None:
+            args.resolution = 1008
+        if args.model_dir is None:
+            args.model_dir = os.path.join(sample_root, "..", "models", "BM1684X")
+        logger.info("int8 precision → resolution=%d, model_dir=%s",
+                    args.resolution, args.model_dir)
+    else:
+        if args.resolution is None:
+            args.resolution = 504
+        if args.model_dir is None:
+            args.model_dir = os.path.join(sample_root, "..", "models", "BM1684X_504")
+
     pipeline = SAM3Pipeline(
         args.model_dir, args.precision, args.dev_id,
         resolution=args.resolution,
-        bpe_path=args.bpe_path, ckpt_path=args.ckpt_path, mode=args.mode)
+        bpe_path=args.bpe_path, ckpt_path=args.ckpt_path, mode=args.mode,
+        streaming=args.streaming)
 
     if args.image is None:
         args.image = os.path.join(
@@ -1802,6 +1897,22 @@ def main():
     results = pipeline.predict(prompts)
 
     pipeline.print_timing()
+
+    # Backbone-only 模式（1008 int8）：无 box/mask，存 FPN 特征到 npz 即结束
+    if results.get("grounding_skipped"):
+        if args.output is None:
+            os.makedirs("results", exist_ok=True)
+            args.output = os.path.join("results", "sam3_backbone_int8.npz")
+        savez = {}
+        for i, (f, p) in enumerate(zip(results["fpn_feats"], results["fpn_pos"])):
+            savez[f"fpn_feat_{i}"] = f
+            savez[f"fpn_pos_{i}"] = p
+        np.savez_compressed(args.output, **savez)
+        logger.info("Backbone-only output saved: %s", args.output)
+        for i, (s, n) in enumerate(zip(results["fpn_shapes"], results["fpn_norms"])):
+            logger.info("  fpn[%d] shape=%s norm=%.2f", i, s, n)
+        pipeline.close()
+        return
 
     # Show detections
     logger.info("\nDetections (score > %.1f):", args.score_thresh)

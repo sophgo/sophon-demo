@@ -67,4 +67,26 @@ else
     echo "Models folder exist! Remove it if you need to update."
 fi
 
+# 1008×1008 INT8 bmodel（PCIe / SoC 流式，可选）
+# 默认不下（540MB，仅 1008 ViT+Neck 场景需要）。要 1008 int8 时：
+#   DOWNLOAD_1008_INT8=1 ./scripts/download.sh
+# 含 ViT Part1-4 int8 + Part0/Neck f16 回退（int8 推理路径所需）。
+if [ "${DOWNLOAD_1008_INT8:-0}" = "1" ] && [ ! -f "../models/BM1684X/vit/sam3_vit_part1_int8_1b.bmodel" ]; then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM3/BM1684X_1008_int8.zip
+    unzip BM1684X_1008_int8.zip -d ../models
+    rm BM1684X_1008_int8.zip
+    echo "1008 int8 models download!"
+fi
+
+# BM1688(SE9 等) 1008 int8 bmodel（SoC 流式，可选）
+#   DOWNLOAD_1008_INT8_BM1688=1 ./scripts/download.sh
+# 已在 SE9-16(BM1688 SoC) 实测：6 bmodel bmrt_test 全过 + 流式 e2e 跑通，
+# 峰值显存 1.35GB/part < SoC 3GB（见 docs/export_bmodel.md §3.3）。
+if [ "${DOWNLOAD_1008_INT8_BM1688:-0}" = "1" ] && [ ! -f "../models/BM1688/vit/sam3_vit_part1_int8_1b.bmodel" ]; then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM3/BM1688_1008_int8.zip
+    unzip BM1688_1008_int8.zip -d ../models
+    rm BM1688_1008_int8.zip
+    echo "BM1688 1008 int8 models download!"
+fi
+
 popd

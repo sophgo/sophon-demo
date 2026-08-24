@@ -40,7 +40,7 @@ pip3 install -r requirements.txt
 `sam3_infer.py` 的参数说明如下：
 
 ```bash
-usage: sam3_infer.py [-h] [--model_dir MODEL_DIR] [--precision {f32,f16}]
+usage: sam3_infer.py [-h] [--model_dir MODEL_DIR] [--precision {f32,f16,w8f16,int8}]
                      [--dev_id DEV_ID] [--resolution RESOLUTION] [--grid GRID]
                      [--image IMAGE] [--prompt PROMPT]
                      [--score_thresh SCORE_THRESH] [--output OUTPUT]
@@ -51,10 +51,14 @@ SAM3 Full Inference Pipeline
 
 optional arguments:
   -h, --help            show this help message and exit
-  --model_dir MODEL_DIR Path to compiled bmodel directory (default: models/BM1684X_504)
-  --precision {f32,f16} Model precision (default: f16)
+  --model_dir MODEL_DIR Path to compiled bmodel directory (default: models/BM1684X_504;
+                        int8 → models/BM1684X)
+  --precision {f32,f16,w8f16,int8} Model precision (default: f16)
+                        int8 = 1008 量化版：自动接线 resolution=1008 + models/BM1684X，
+                        跑 ViT(Part1-4 int8 + Part0 f16)+Neck(f16) 骨干，无 grounding/box/mask，
+                        输出 FPN 特征 npz（backbone-only 模式）
   --dev_id DEV_ID       TPU device ID (default: 0)
-  --resolution RESOLUTION Input resolution (default: 504)
+  --resolution RESOLUTION Input resolution (default: 504; int8 → 1008)
   --grid GRID           Feature grid size, 36 for 504, 72 for 1008 (default: 36)
   --image IMAGE         Input image path
   --prompt PROMPT       Text prompt for detection, e.g. "a truck", "a dog", "groceries"
@@ -63,6 +67,23 @@ optional arguments:
   --ckpt_path CKPT_PATH SAM3 PyTorch checkpoint path
   --bpe_path BPE_PATH   BPE tokenizer vocabulary path
   --mode {bmodel,onnx}  bmodel=TPU sail inference, onnx=onnxruntime CPU inference
+```
+
+`sam3_vit_infer.py`（ViT 单模块测试，1008 主用入口）额外支持：
+
+```bash
+python3 python/sam3_vit_infer.py --model_dir models/BM1684X \
+  --precision int8 --resolution 1008 [--streaming]
+# --streaming: SoC 流式加载 part1-4（load→run→free，峰值显存 = max 单 part = 1.35GB 落 3GB）。
+#              PCIe 显存充裕时关掉更快（全常驻）。详见 docs/export_bmodel.md §3.3。
+```
+
+**int8 1008 骨干推理（`sam3_infer.py --precision int8`）**：自动接线 `resolution=1008` + `models/BM1684X`，跑 ViT+Neck 骨干，跳过 grounding（1008 交付集无 grounding bmodel，架构上 1008 也只有 ViT+Neck），输出 FPN 多尺度特征到 npz（backbone-only 模式，不依赖 sam3 源码）：
+
+```bash
+python3 python/sam3_infer.py --precision int8 --image datasets/truck.jpg
+# → results/sam3_backbone_int8.npz（fpn_feat_{0,1,2} + fpn_pos_{0,1,2}）
+# 1008 三级 FPN: (1,256,288,288) / (1,256,144,144) / (1,256,72,72)
 ```
 
 ### 2.2 测试图片

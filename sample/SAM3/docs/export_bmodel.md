@@ -24,7 +24,7 @@
 ### 1.3 分辨率约定
 - **504×504 → SoC**（SE7-32/BM1684X SoC、SE9/BM1688）：NPU 峰值 ~1.6 GB，交付集。
 - **1008×1008 → PCIe**：NPU 需 3.48 GB，超 SE7-32 SoC 的 3 GB 限制，仅 PCIe。
-- Grounding + Text Encoder 在交付流水线中仅 504。
+- Grounding + Text Encoder 在交付流水线中：504 为 SoC 交付集；1008 为 PCIe f16 增项（`--grounding` 开启，SoC 显存不够）。
 
 ## 2. 导出 ONNX
 
@@ -67,6 +67,13 @@ python tools/export_onnx.py --start_export --resolution 1008 --output_dir ../mod
 python tools/export_neck_onnx.py --start_export --resolution 1008 --output_dir ../models/onnx  # → onnx/sam3_neck_combined.onnx (72×72)
 ```
 
+**Grounding Encoder + Decoder**（PCIe f16 增项，可选）→ `models/onnx_grounding_1008/`（host）
+```bash
+python tools/export_grounding_all.py --grid 72 --output_dir ../models/onnx_grounding_1008
+# → sam3_grounding_encoder.onnx + sam3_grounding_decoder.onnx（grid=72, N=5184）
+```
+Text Encoder 与 504 共用同一个 ONNX（`models/onnx/sam3_text_encoder_static.onnx`，分辨率无关）。
+
 ## 3. 编译 BModel
 
 进入 tpu-mlir Docker，在例程目录执行：
@@ -85,10 +92,66 @@ python tools/export_neck_onnx.py --start_export --resolution 1008 --output_dir .
 ### 3.2 1008×1008 PCIe
 ```bash
 ./scripts/gen_bmodel.sh --res 1008 --chip bm1684x --mode f32   # 或 --mode f16
-# → models/BM1684X/{vit,neck}/*_{f32|f16}_1b.bmodel
+# → models/BM1684X/{vit,neck}/*_{f32|f16}_1b.bmodel（仅骨干）
+
+# 全流程（含 Grounding/Text，PCIe f16 增项）
+./scripts/gen_bmodel.sh --res 1008 --chip bm1684x --mode f16 --grounding
+# → 额外生成 models/BM1684X/grounding/{sam3_grounding_encoder,sam3_grounding_decoder,sam3_text_encoder}_f16_1b.bmodel
 ```
 
-> `gen_bmodel.sh --res 504` 依次编译 ViT 5 part + Neck + Grounding enc/dec + Text enc，消耗 `onnx_504/` 与 `onnx_grounding_504/`；`--res 1008` 仅编译 ViT 4 part + Neck，消耗 `onnx/`。
+`--grounding` 默认关闭（0=仅骨干）。开启后编译 Grounding Encoder（grid=72, N=5184）、Decoder、Text Encoder 三个 f16 bmodel。SoC 显存不够（Encoder O(N²) 16× + ViT 3GB），仅 PCIe 可用。推理需 `--streaming` 标志避免 OOM（见 README §4）。
+
+### 3.3 1008×1008 INT8（SoC 落地）
+
+F16 1008 单个 ViT Part NPU 显存 3.45GB，超 SE7-32 SoC 3GB 限制。INT8 量化把 Part 1-4 压到 1.35GB/Part，配合流式加载（part1-4 逐个 load→run→free）峰值显存 = 1.35GB，可落 SoC。
+
+**前置：校准集**。`tools/prepare_int8_cali_1008.py` 用 onnxruntime 逐 Part 跑真实激活，生成各 Part 的校准 npz（key 严格等于模型输入名，`run_calibration.py` 强校验）：
+
+```bash
+# host 上（onnxruntime），输入 N 张真实图 + 1008 onnx 目录
+python3 tools/prepare_int8_cali_1008.py \
+    --image_dir datasets --onnx_dir models/onnx \
+    --cali_dir datasets/cali_data_1008 --num 24 --resolution 1008
+# → datasets/cali_data_1008/{part0,part1,part2,part3,part4,neck}/<i>.npz
+```
+
+**编译**（tpu-mlir Docker 内）：
+
+```bash
+./scripts/gen_bmodel.sh --res 1008 --chip bm1684x --mode int8
+# → models/BM1684X/vit/sam3_vit_part{1..4}_int8_1b.bmodel（Part 0/Neck 无 int8，回退 f16）
+```
+
+`gen_bmodel.sh` 的 int8 路径已内置：`run_calibration.py --tune_num 0`（跳过 tune，24 样本 KLD 已够；tune 对 0-dim 张量崩 `cali_math.py:265`）+ `model_deploy.py --opt 1`（Part 3/4 用默认 opt=2 时 address-assign 阶段 `LmemAllocator.cpp:1645 llvm_unreachable`，opt=1 绕过）。校准集规模可通过 `CALI_INPUT_NUM` / `CALI_TUNE_NUM` 环境变量覆盖。
+
+**提精度（可选）**：剩余精度杠杆为 `--tune_num > 0` 主动调优逐 op 量化阈值。需先修 tpu-mlir `python/calibration/cali_math.py:265` 的 0-dim 崩（2 行 size guard，Python-only 无需 rebuild），再 `CALI_TUNE_NUM=8 ./scripts/gen_bmodel.sh --res 1008 --chip bm1684x --mode int8`，耗时 ~1-2hr。改 tpu-mlir 源码前先报用户。
+
+**推理**（host 验证 / SoC 部署）：
+
+```bash
+# PCIe 全常驻（显存充裕，更快）
+python3 python/sam3_vit_infer.py --model_dir models/BM1684X --precision int8 --resolution 1008
+# SoC 流式（part1-4 load→run→free，峰值 1.35GB 落 3GB）
+python3 python/sam3_vit_infer.py --model_dir models/BM1684X --precision int8 --resolution 1008 --streaming
+```
+
+**完整流水线入口（`sam3_infer.py --precision int8`）**：自动接线 1008 + `models/BM1684X`，跑 ViT+Neck 骨干，跳过 grounding（INT8 1008 仅骨干，不含 Grounding/Text），输出 FPN 特征 npz（backbone-only，不依赖 sam3 源码）：
+
+```bash
+python3 python/sam3_infer.py --precision int8 --image datasets/truck.jpg
+# → results/sam3_backbone_int8.npz（fpn_feat_{0,1,2} + fpn_pos_{0,1,2}）
+```
+
+**SoC 全骨干流式（`sam3_infer.py --streaming`）**：`--streaming` 让 `SAM3Engines` 不常驻 ViT part1-4，改由 `SAM3ViTEncoder` 逐 part load→run→free（part0/neck 小，仍常驻）。峰值显存 = max 单 part = 1.35GB，落 SoC 3GB。PCIe 上流式比全常驻慢约 900ms/帧（part1-4 reload 开销），SoC 上是落地的唯一路径：
+
+```bash
+# SoC（SE9/BM1688 等）全骨干流式
+python3 python/sam3_infer.py --precision int8 --streaming --image datasets/truck.jpg
+```
+
+> **SE9-16（BM1688 SoC）实测**：`--precision int8 --streaming` exit 0，FPN 输出 (1,256,288/144/72)² 三级特征正确，ViT 10504ms + Neck 7230ms/帧，仅 part0 常驻，不 OOM（SoC 3.4G RAM 下推理+npz 落盘均通过）。BM1688 int8 bmodel 经 `DOWNLOAD_1008_INT8_BM1688=1 ./scripts/download.sh` 拉取。
+
+> `gen_bmodel.sh --res 504` 依次编译 ViT 5 part + Neck + Grounding enc/dec + Text enc，消耗 `onnx_504/` 与 `onnx_grounding_504/`；`--res 1008` 编译 ViT 4 part + Neck（消耗 `onnx/`），加 `--grounding` 额外编译 Grounding enc/dec + Text enc（消耗 `onnx_grounding_1008/`，PCIe f16 增项）。
 
 ## 4. 算子兼容性与已知限制
 

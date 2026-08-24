@@ -42,23 +42,26 @@ class SAM3ViTEncoder:
     def __init__(self, model_dir: str = None, precision: str = "f16", dev_id: int = 0,
                  resolution: int = 504, engines: list = None,
                  graph_names: list = None, input_names: list = None,
-                 output_names: list = None):
+                 output_names: list = None, streaming: bool = False):
         """
         Args:
             model_dir: Path to directory containing vit/*.bmodel files
-            precision: "f32" or "f16"
+            precision: "f32", "f16", "w8f16", or "int8"
             dev_id: TPU device ID
             resolution: Input image resolution (504 or 1008)
             engines: Pre-loaded list of sail.Engine (pipeline integration)
             graph_names: Pre-loaded graph names
             input_names: Pre-loaded input names
             output_names: Pre-loaded output names
+            streaming: SoC 流式加载（part1-4 load→run→free，峰值显存 = max 单 part）。
+                int8_1008 落 SoC 3GB 需开此选项；PCIe 显存充裕时关掉更快（全常驻）。
         """
         self.dev_id = dev_id
         self.precision = precision
         self.model_dir = model_dir
         self.resolution = resolution
         self.grid = resolution // 14  # patch_size=14
+        self.streaming = streaming
 
         if engines is not None:
             # Use externally-provided engines (pipeline integration)
@@ -67,15 +70,28 @@ class SAM3ViTEncoder:
             self.input_names = input_names
             self.output_names = output_names
             self._owns_engines = False
+            self.streaming = False  # 外部引擎已全常驻，流式无意义
         else:
-            # Load all 5 engines once (SAM2 pattern: engines persist for lifetime)
+            # BModel 路径：int8 时 part0（patch_embed+preproc）无 int8 变体，回退 f16
+            # （part0 仅 17MB，f16/int8 差 6MB，对 SoC 3GB 预算可忽略；用已验证 f16 基线）
+            def _bmodel_path(part):
+                p = "f16" if (precision == "int8" and part == 0) else precision
+                return os.path.join(model_dir, "vit",
+                                    f"sam3_vit_part{part}_{p}_1b.bmodel")
+            self._bmodel_path = _bmodel_path
+
             self.engines = []
             self.graph_names = []
             self.input_names = []
             self.output_names = []
-            for part in range(5):
-                bmodel = os.path.join(model_dir, "vit",
-                                      f"sam3_vit_part{part}_{precision}_1b.bmodel")
+            if streaming:
+                # 流式：只常驻 part0（小），part1-4 在 __call__ 里 load→run→free
+                load_parts = [0]
+            else:
+                # 全常驻（SAM2 模式，PCIe 显存充裕）
+                load_parts = range(5)
+            for part in load_parts:
+                bmodel = _bmodel_path(part)
                 if not os.path.exists(bmodel):
                     raise FileNotFoundError(f"BModel not found: {bmodel}")
                 size_mb = os.path.getsize(bmodel) / (1024 * 1024)
@@ -148,19 +164,40 @@ class SAM3ViTEncoder:
         self.tpu_times = []
         intermediates = [] if return_intermediate else None
 
-        # Chain through all 5 pre-loaded engines (SAM2 pattern: no per-call load/unload)
-        for part in range(5):
+        if self.streaming:
+            # part0 常驻
             t0 = time.time()
-            output = self.engines[part].process(
-                self.graph_names[part],
-                {self.input_names[part]: x})
-            tpu_time = time.time() - t0
-            self.tpu_times.append(tpu_time)
-
-            x = output[self.output_names[part]]
-
+            output = self.engines[0].process(
+                self.graph_names[0], {self.input_names[0]: x})
+            self.tpu_times.append(time.time() - t0)
+            x = output[self.output_names[0]]
             if return_intermediate:
                 intermediates.append(x.copy())
+            # part1-4 流式：load → run → free（SoC 3GB fit，峰值 = max 单 part 1.35GB）
+            for part in range(1, 5):
+                bmodel = self._bmodel_path(part)
+                t0 = time.time()
+                engine = sail.Engine(bmodel, self.dev_id, sail.IOMode.SYSIO)
+                gname = engine.get_graph_names()[0]
+                iname = engine.get_input_names(gname)[0]
+                oname = engine.get_output_names(gname)[0]
+                output = engine.process(gname, {iname: x})
+                self.tpu_times.append(time.time() - t0)
+                x = output[oname]
+                if return_intermediate:
+                    intermediates.append(x.copy())
+                del engine
+        else:
+            # 全常驻：链式跑 5 个预加载引擎（SAM2 模式，PCIe 显存充裕）
+            for part in range(5):
+                t0 = time.time()
+                output = self.engines[part].process(
+                    self.graph_names[part],
+                    {self.input_names[part]: x})
+                self.tpu_times.append(time.time() - t0)
+                x = output[self.output_names[part]]
+                if return_intermediate:
+                    intermediates.append(x.copy())
 
         # Reshape from [1, grid, grid, 1024] to [1, 1024, grid, grid]
         g = self.grid
@@ -206,11 +243,15 @@ if __name__ == "__main__":
     parser.add_argument("--model_dir", type=str, default="../models/BM1684X_504",
                        help="Directory containing vit/*.bmodel files")
     parser.add_argument("--precision", type=str, default="f16",
-                       choices=["f32", "f16"], help="Model precision")
+                       choices=["f32", "f16", "w8f16", "int8"],
+                       help="Model precision (int8 = 1008 SoC 量化版)")
     parser.add_argument("--dev_id", type=int, default=0,
                        help="TPU device ID")
     parser.add_argument("--resolution", type=int, default=504,
                        help="Input resolution")
+    parser.add_argument("--streaming", action="store_true",
+                       help="SoC 流式加载 part1-4（load→run→free，峰值显存=max 单 part）。"
+                            "int8_1008 落 SoC 3GB 需开此选项")
     parser.add_argument("--image", type=str, default=None,
                        help="Input image path (optional, uses random if not set)")
     parser.add_argument("--warmup", type=int, default=3,
@@ -221,7 +262,7 @@ if __name__ == "__main__":
 
     logger.info(f"Loading SAM3 ViT encoder ({args.precision}, {args.resolution}x{args.resolution})...")
     encoder = SAM3ViTEncoder(args.model_dir, args.precision, args.dev_id,
-                             resolution=args.resolution)
+                             resolution=args.resolution, streaming=args.streaming)
 
     # Prepare input
     if args.image and os.path.exists(args.image):

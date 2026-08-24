@@ -35,7 +35,9 @@
 - 输入图像尺寸: 1008×1008 (PCIe), 504×504 (SoC)
 - 预处理: Resize(504,504 或 1008,1008) → Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5])
 
-> **SoC适配说明**: 1008×1008分辨率模型需要3.48GB NPU内存，超出SE7-32 (BM1684X SoC) 的3GB限制，因此针对SoC采用504×504低分辨率模型（NPU峰值约1.6GB）。
+> **SoC适配说明**: SoC 的 TPU 内存在默认分区下划分为若干 ION heap，bmodel 推理通常只能使用 npu heap，故「SoC 3GB 限制」实指默认 npu heap 分区，并非物理 TPU 内存。SE7-32 (BM1684X SoC) TPU 8.3GB = npu 2.36GB + vpu 2.87GB + vpp 3.00GB；SE9-16 (BM1688 SoC, 16G DDR) 仅 npu + vpp 两 heap（无 vpu），默认 npu 2GB。1008×1008 F16 单 ViT Part 需 3.45GB 超过默认 npu heap；因此针对 SoC 默认分区采用 504×504 低分辨率模型（NPU 峰值约 1.6GB）。1008 落 SoC 的路径因芯片而异：
+> - **SE7-32 (BM1684X)**：INT8 单 Part 压到 1.35GB，流式加载（part1-4 逐个 load→run→free）峰值 2.10GB 可 fit 默认 npu heap；用 `memory_edit.sh -c -npu 6144 -vpu 1024 -vpp 1024` 重分配后还可全常驻 INT8（峰值 5.96GB，比流式快 20–32%）。
+> - **SE9-16 (BM1688)**：INT8 单 Part NPU 运行显存约 **3.6GB**（远大于 BM1684X 的 1.35GB，neuron 激活 3.23GB），默认 2GB npu heap 直接 OOM，须先用 `memory_edit.sh -c -npu 6144 -vpu 0 -vpp 2048 bm1688_se9v1_16G` 扩到 6GB 才能跑流式（峰值 ≤4.04GB）；**全常驻不可行**——5 Part+Neck 需 ≥13.7GB，扩到 12GB 仍 OOM（npu peak 10.51GB 触顶），16G DDR 亦容不下，故 BM1688 上流式是 INT8 1008 落地的唯一路径。详见 §7.1。
 
 ## 2. 特性
 
@@ -180,7 +182,51 @@ chmod -R +x scripts/
 ./scripts/gen_bmodel.sh --res 1008 --chip bm1684x --mode f32   # 或 --mode f16
 ```
 
-​执行上述命令会在`models/BM1684X/vit`下生成 ViT Part bmodel，在`models/BM1684X/neck`下生成 Neck FPN bmodel（1008 仅含 ViT+Neck，不含 Grounding/Text）。
+​执行上述命令会在`models/BM1684X/vit`下生成 ViT Part bmodel，在`models/BM1684X/neck`下生成 Neck FPN bmodel（默认仅骨干 ViT+Neck）。
+
+- 生成 FP16 BModel（1008×1008 PCIe 全流程，含 Grounding/Text）
+
+```bash
+./scripts/gen_bmodel.sh --res 1008 --chip bm1684x --mode f16 --grounding
+```
+
+​加 `--grounding` 后额外在 `models/BM1684X/grounding/` 下编译 Grounding Encoder、Grounding Decoder、Text Encoder 三个 f16 bmodel，即 1008×1008 全流程（ViT+Neck+Grounding+Text）的 FP16 BModel。此为 **PCIe f16 增项**——SoC 显存不够（Grounding Encoder O(N²) 随 grid 16× 增长 + ViT 顶 3GB），仅 PCIe 可用。
+
+- 生成 INT8 BModel（1008×1008，SoC 落地）
+
+```bash
+# 需先准备校准集（见 docs/export_bmodel.md §3.3）
+./scripts/gen_bmodel.sh --res 1008 --chip bm1684x --mode int8
+```
+
+​INT8 把 1008 单个 ViT Part 的 NPU 显存从 F16 的 3.45GB 压到 1.35GB（weight 114MB + runtime 1.23GB），使 1008 骨干能在 SE7-32 SoC（默认 npu heap 2.36GB）上以流式加载运行（part0 常驻 + part1-4 逐个 load→run→free，实测峰值 2.10GB）。全常驻（SAM2 风格 part0-4 + Neck 同时加载）int8 需 5.96GB 超默认 npu heap；但 SE7-32 TPU 总内存 8.3GB（npu+vpu+vpp 三 heap），可用 `memory_edit.sh` 把 npu heap 调到 6GB（见 §7.1），全常驻即可落 SoC 且比流式快 20–32%（省去 eMMC 重载）。**默认分区下流式是落 SoC 的路径；改内存后全常驻亦可。** Part 0 与 Neck 无 INT8 变体，自动回退 F16（Part 0 含预处理、Neck 为小 FPN，量化收益小风险大）；INT8 Part 1-4 bmodel 各 114–135MB（vs F16 227MB）。精度：24 样本校准下 Neck 输出 cos ≈ 0.89–0.90 vs F16（不保真，见 §6.3）。对比 W8F16（仅压权重、激活仍 F16）精度 0.91 同档但显存 ~3.3GB 不解决默认 SoC npu heap 限制，故选 INT8。
+
+**推理**：`sam3_infer.py --precision int8` 自动接线 1008 + `models/BM1684X`，跑 ViT+Neck 骨干，跳过 grounding（INT8 1008 仅骨干，不含 Grounding/Text），输出 FPN 特征 npz（backbone-only，不依赖 sam3 源码）；`sam3_vit_infer.py --precision int8 --resolution 1008 --streaming` 为 SoC 流式单模块入口。
+
+```bash
+python3 python/sam3_infer.py --precision int8 --image datasets/truck.jpg   # → results/sam3_backbone_int8.npz
+```
+
+- 1008×1008 PCIe 全流程推理（f16，含 grounding 出框）
+
+1008 全流程需 `--streaming` 标志：ViT part1-4 逐个 load→run→free（part0 常驻），降低峰值显存。不加 `--streaming` 时所有引擎同时加载（5 ViT + Neck + Text Enc + Gnd Enc + Gnd Dec），峰值显存超设备上限，part4 加载时 OOM（`bm_alloc_gmem failed, size=3.48GB`）。
+
+```bash
+# 1008 全流程（ViT+Neck+Grounding+Text），需 --streaming 避免 OOM
+python3 python/sam3_infer.py --image datasets/truck.jpg --prompt "a truck" \
+    --model_dir models/BM1684X --precision f16 --resolution 1008 --mode bmodel --streaming
+# → results/sam3_1008_truck_full.jpg（图像 + 检测框）
+```
+
+测试结果（PCIe x86 + BM1684X F16，2026-07-22）：
+
+| 图片 | prompt | score | 框 (cx, cy, w, h) | 端到端耗时 |
+|------|--------|-------|-------------------|-----------|
+| truck | "a truck" | 0.5874 | (0.509, 0.459, 0.875, 0.491) | ~7.4s |
+| dog | "a dog" | 0.5284 | (0.252, 0.737, 0.525, 0.556) | ~7.7s |
+| groceries | "groceries" | 0.4861 | (0.631, 0.458, 0.340, 0.375) | ~7.5s |
+
+框均落在目标上，score 合理。ViT 骨干 ~5.9s 占主导（1008 分辨率 4× token），grounding ~0.4s。结果图见 `results/sam3_1008_{truck,dog,groceries}_full.jpg`。
 
 ### 模型拆分说明
 
@@ -264,6 +310,21 @@ consistency_harness.py: error: unrecognized arguments: onnx datasets/dog.jpg dat
 
 完整 per-layer 数据和 per-stage diff 报告见 。
 
+### 6.3 INT8 1008 精度（ViT+Neck only）
+
+1008×1008 仅含 ViT+Neck（无 Grounding/Text），INT8 量化针对 ViT Part 1-4（Part 0/Neck 回退 F16）。24 样本校准（`--input_num 24 --tune_num 0`）下，以 F16 1008 全链为参考基准：
+
+| 对比项 | cos vs F16 |
+|--------|-----------|
+| Part 1 隔离 | 0.770 |
+| Part 2 隔离 | 0.628 |
+| Part 3 隔离 | 0.629 |
+| Part 4 隔离 | 0.641 |
+| ViT 末态（Part 0-4 链式累积） | 0.35 |
+| **Neck FPN 最终输出** | **0.89–0.90** |
+
+逐 Part 隔离 cos 偏低且链式累积退化严重（INT8 激活量化经 32 个 Transformer Block 残差链滚雪球，ViT 末态落到 0.35），但 Neck FPN 把方向拉回 0.89–0.90。1008 交付物即 Neck 输出，0.89 与 W8F16（0.91）同档，**不保真**（504 F16 基线 0.99+）。W8F16 仅压权重（559M vs 925M）、激活仍 F16，1008 显存 ~3.3GB 仍超默认 SoC npu heap（2.36GB），不解决落地问题；INT8 压激活才是落 SoC 的路。若需提精度，剩余杠杆为 `--tune_num > 0` 主动调优逐 op 量化阈值（需先修 tpu-mlir `cali_math.py` 0-dim 崩，见 docs/export_bmodel.md §3.3）。
+
 ## 7. 性能测试
 
 ### 7.1 bmrt_test
@@ -308,6 +369,44 @@ bmrt_test --bmodel models/BM1684X_504/grounding/sam3_grounding_encoder_f16_1b.bm
 > 3. ViT部分总计: SE7 = 5.8 + 272.8×4 ≈ 1097ms；SE9 = 9.9 + 664.7×4 ≈ 2669ms（5个part串联推理）；
 > 4. Grounding encoder/decoder为多输入模型，其数据来自端到端运行时统计；
 > 5. SE9 (BM1688) 数据为单核(num_core=1)编译测试；BM1688 支持双核(num_core=2)，ViT 等大模型双核吞吐约可翻倍（本表未测）。BM1688 单核 F16 算力低于 BM1684X，故 ViT 单 part SE9≈664.7ms vs SE7≈272.8ms。
+
+**1008×1008 INT8（PCIe x86 + BM1684X，测试日期 2026-07-22）**：
+
+| 测试模型 | calculate time(ms) |
+|----------| ----------------- |
+| vit/sam3_vit_part0_f16_1b.bmodel（Part 0 回退 F16） | 87 |
+| vit/sam3_vit_part1_int8_1b.bmodel | 656 |
+| vit/sam3_vit_part2_int8_1b.bmodel | 655 |
+| vit/sam3_vit_part3_int8_1b.bmodel | 653 |
+| vit/sam3_vit_part4_int8_1b.bmodel | 656 |
+
+端到端 ViT 串联（`sam3_vit_infer.py --precision int8 --resolution 1008`）：全常驻 2736ms/帧、流式（`--streaming`）3054ms/帧（~12% 重加载开销，换默认 SoC npu heap fit）；流式与全常驻输出 bitwise 一致（maxdiff=0, cos=1.0），仅慢约 900ms/帧（part1-4 reload 开销）。完整流水线入口 `sam3_infer.py --precision int8`（ViT+Neck 骨干，backbone-only）：~4060ms/帧（ViT 2894 + Neck 1144，含预处理），输出 FPN 特征 npz。
+
+**1008×1008 INT8（SE9-16 BM1688 SoC，流式 `--streaming`，npu heap 6GB，测试日期 2026-08-24）**：
+
+| 测试模型 | calculate time(ms) |
+|----------| ----------------- |
+| vit/sam3_vit_part0_f16_1b.bmodel（Part 0 回退 F16） | 9.4 |
+| vit/sam3_vit_part1_int8_1b.bmodel | ~1750 |
+| vit/sam3_vit_part2_int8_1b.bmodel | ~1750 |
+| vit/sam3_vit_part3_int8_1b.bmodel | ~1750 |
+| vit/sam3_vit_part4_int8_1b.bmodel | ~1750 |
+| neck/sam3_neck_f16_1b.bmodel（Neck 回退 F16） | 242 |
+
+SE9 流式全骨干 e2e（`sam3_infer.py --precision int8 --streaming`，npu heap 已扩至 6GB）：ViT ≈10.4s + Neck ≈5.6s ≈ 16.1s/帧（0.062 FPS），npu peak ≤4.04GB（part0 F16 常驻 + 1 个 INT8 Part 的 neuron+coeff），FPN 三级特征 (1,256,288/144/72)² 正确。表内 per-part ~1750ms 为纯 TPU 计算时间，ViT e2e 10.4s 与 4×1750≈7.0s 的差值约 3.4s 为流式逐个重载 part1-4 bmodel（各 ~114MB，eMMC I/O）的开销；Neck e2e 5.6s 远大于纯计算 242ms，主因是 FPN 三级特征的 CPU 后处理（top-k/精修 numpy）。
+
+> **SE9-16 (BM1688) 显存注记（与 SE7-32 / BM1684X 不同）**：BM1688 上单个 INT8 ViT Part 的 NPU 运行显存约 **3.6GB**（weight 114MB + neuron 激活 3.23GB），远大于 BM1684X 的 1.35GB——BM1688 INT8 激活 neuron 仍是全精度张量、且单核路径 neuron_mem 占比更高。故 **默认 npu heap（2GB）直接 OOM**，必须先用 `memory_edit.sh -c -npu 6144 -vpu 0 -vpp 2048 bm1688_se9v1_16G` 把 npu heap 扩到 6GB（写 `/boot/boot.itb` 后重启生效）才能跑流式。**全常驻不可行**：5 Part 全加载 + Neck 需 ≥13.7GB，即便把 npu heap 扩到 12GB 仍 OOM（part4 推理时 `bm_alloc_gmem failed, size=3.23GB`，npu peak 10.51GB 触顶），16G DDR 亦无法容纳 npu 14GB + vpp + 系统，故 BM1688 上**流式是 INT8 1008 落地的唯一路径**（对比 SE7-32 全常驻 6GB heap 可行，见下表）。
+
+**1008×1008 INT8（SE7-32 BM1684X SoC，测试日期 2026-08-21）**：
+
+SE7-32 默认 TPU 分区：npu 2.36GB + vpu 2.87GB + vpp 3.00GB（合计 8.23GB）。INT8 1008 落 SE7-32 两种模式均验证通过（FPN 三级特征 (1,256,288/144/72)² 正确，三图 FPN norm 与 PCIe 全常驻一致）：
+
+| 模式 | 命令 | npu heap 配置 | 峰值显存 | truck / dog / groceries e2e (ViT+Neck) |
+|------|------|--------------|---------|----------------------------------------|
+| 流式（默认分区，不改内存） | `sam3_infer.py --precision int8 --streaming` | 默认 2.36GB | 2.10GB（part0 F16 常驻 + 1 INT8 Part） | 9159 / 9365 / 7972 ms |
+| 全常驻（改内存后） | `sam3_infer.py --precision int8`（不加 `--streaming`） | 6.0GB（memory_edit） | 5.96GB（part0-4 + Neck 全常驻） | 6414 / 6382 / 6372 ms |
+
+> SE7-32 全常驻比流式快 20–32%（PCIe 仅快 ~12%）：SoC 流式每次从 eMMC 重载 part1-4 四个 bmodel（各 ~130MB），I/O 开销远大于 PCIe；全常驻省去重载但需 npu heap ≥ 5.96GB，默认 2.36GB 不够，须先用 `memory_edit.sh -c -npu 6144 -vpu 1024 -vpp 1024` 重分配（npu 可访问 vpu/vpp 内存，改完写 `/boot/emmcboot.itb` 后重启生效，参考 `../Qwen/README.md`）。流式与全常驻输出 bitwise 一致（三图 FPN norm 逐位相同）。
 
 ### 7.2 程序运行性能
 
@@ -377,12 +476,15 @@ SoC 环境要求：
 | 10 | 自动化测试 (sam3_infer 端到端) | ✅ 完成 |
 | 11 | 文档 | ✅ 完成 |
 | 12 | Mask路径 (NumpyMaskDecoder CPU掩码, 2个bug修复+验证) | ✅ 完成 |
+| 13 | INT8 1008 (ViT Part1-4 量化 + 流式加载落 SoC, Neck cos 0.89) | ✅ 本地+SE9(BM1688)+SE7-32(BM1684X)完成 |
+| 14 | 1008 全流程 PCIe f16 增项 (Grounding+Text, --streaming, 出框验证) | ✅ 完成 |
 
 ### 已知限制
 
 - **presence_logit_dec 丢弃**：TPU-MLIR Save:424 阻塞，不影响排序/框/mask，仅影响绝对置信度 ~0.12。
 - **BF16 / F32 bmodel 不可用**：同 Save:424 阻塞 (si32→f32 Cast 导致 TPU_DYNAMIC→A53 hang)。
-- **仅 504×504 + 文本提示**：1008 超 SE7-32 内存；框/点提示走 CPU 回退。
+- **1008 Grounding 仅 PCIe f16**：1008×1008 全流程（含 Grounding/Text 出框）作为 PCIe f16 增项提供，需 `--streaming` 标志避免 OOM（见第 4 节）。SoC 因显存不足（Grounding Encoder O(N²) 随 grid 16× 增长 + ViT 顶 3GB）无法运行 1008 全流程。INT8 1008 仅 ViT+Neck 骨干（无 Grounding/Text），流式峰值 2.10GB 可落 SE7-32 默认 npu heap（2.36GB），全常驻峰值 5.96GB 需 `memory_edit.sh` 把 npu heap 调到 6GB（见 §7.1）；Neck 精度 cos ≈ 0.89 vs F16（不保真，见 §6.3）。F16 1008 单 Part 3.45GB 超默认 npu heap（2.36GB），PCIe 或改内存后的 SoC 可用。
+- **504 框/点提示走 CPU 回退**。
 
 ### 参考
 

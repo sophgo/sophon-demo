@@ -82,6 +82,7 @@ def load_model(checkpoint_path):
         bpe_path=None,  # BPE is embedded in checkpoint for VETextEncoder
         device='cpu',
         load_from_HF=False,
+        checkpoint_path=checkpoint_path,
         enable_segmentation=False,
         enable_inst_interactivity=False,
     )
@@ -91,15 +92,36 @@ def load_model(checkpoint_path):
     return model
 
 
-def export_block_sequence(blocks, block_indices, output_path, input_shape=(1, 5184, 1024)):
+def patch_rope_real(model):
+    """把 RoPE 从 complex64 路径切到 real/imag float32 路径。
+
+    tpu-mlir 的 OnnxConverter 把 complex64 cast 成 float32 会丢虚部，导致
+    freqs_cis 的 Reshape[...,2]→Split 失败（num_input != num_output）。
+    use_rope_real=True 路径用 apply_rotary_enc_real（纯实数算子），数值等价，
+    且把 freqs_cis 拆成 freqs_cis_real / freqs_cis_imag 两个 float32 buffer，
+    onnx 里不再出现 complex64。504 交付集即用此路径。
+    """
+    from sam3.model.vitdet import Attention
+    cnt = 0
+    for m in model.modules():
+        if isinstance(m, Attention) and getattr(m, 'freqs_cis', None) is not None \
+                and not getattr(m, 'use_rope_real', False):
+            m.use_rope_real = True
+            m.register_buffer('freqs_cis_real', m.freqs_cis.real.float().detach().clone())
+            m.register_buffer('freqs_cis_imag', m.freqs_cis.imag.float().detach().clone())
+            cnt += 1
+    print(f"[Patch] use_rope_real=True on {cnt} attn modules (complex64→real/imag float32)")
+
+
+def export_block_sequence(blocks, block_indices, output_path, input_shape=(1, 72, 72, 1024)):
     """
     Export a sequence of consecutive ViT blocks as a single ONNX model.
 
     Args:
         blocks: nn.ModuleList of ViT blocks
-        block_indices: list of block indices in this sequence (e.g., [0,1])
+        block_indices: list of block indices in this sequence (e.g., [0..7])
         output_path: output ONNX file path
-        input_shape: input tensor shape (B, seq_len, hidden_dim)
+        input_shape: input tensor shape (B, H, W, C) — blocks operate on 4D
     """
     class BlockSequence(nn.Module):
         def __init__(self, blocks):
@@ -156,7 +178,7 @@ def export_patch_embed(model, output_path, input_shape=(1, 3, 1008, 1008)):
     vit_trunk = model.backbone.vision_backbone.trunk
     vit_trunk.eval()
 
-    from sam3.model.data_misc import NestedTensor
+    from sam3.model.vitdet import get_abs_pos
 
     class PatchEmbedWrapper(nn.Module):
         def __init__(self, trunk):
@@ -164,13 +186,18 @@ def export_patch_embed(model, output_path, input_shape=(1, 3, 1008, 1008)):
             self.trunk = trunk
 
         def forward(self, x):
-            B = x.shape[0]
-            mask = torch.zeros(B, x.shape[2], x.shape[3], dtype=torch.bool, device=x.device)
-            nt = NestedTensor(x, mask)
-            # Run patch_embed + pos_embed + pre-norm only
-            x = self.trunk.patch_embed(nt.tensors)
+            # patch_embed + abs pos_embed + ln_pre (mirrors ViT.forward prelude)
+            # retain_cls_token=False for sam3 → no cls-token flatten, blocks see 4D
+            x = self.trunk.patch_embed(x)
+            h, w = x.shape[1], x.shape[2]
             if self.trunk.pos_embed is not None:
-                x = x + self.trunk.pos_embed(nt)
+                x = x + get_abs_pos(
+                    self.trunk.pos_embed,
+                    self.trunk.pretrain_use_cls_token,
+                    (h, w),
+                    self.trunk.retain_cls_token,
+                    tiling=self.trunk.tile_abs_pos,
+                )
             if self.trunk.ln_pre is not None:
                 x = self.trunk.ln_pre(x)
             return x
@@ -246,6 +273,7 @@ def main():
 
     # Load model
     model = load_model(args.checkpoint)
+    patch_rope_real(model)
     vit_trunk = model.backbone.vision_backbone.trunk
 
     # Export patch embedding (part 0)
