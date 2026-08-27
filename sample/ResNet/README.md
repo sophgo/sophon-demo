@@ -18,7 +18,7 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-本例程对[torchvision Resnet](https://pytorch.org/vision/stable/models.html)的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688\CV186X上进行推理测试。
+本例程对[torchvision Resnet](https://pytorch.org/vision/stable/models.html)的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1684X2\BM1688\CV186X上进行推理测试。
 
 **论文:** [Resnet论文](https://arxiv.org/abs/1512.03385)
 
@@ -27,8 +27,8 @@
 在此非常感谢Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun等人的贡献。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1688/BM1684X/CV186X)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684X2(SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1688/BM1684X/BM1684X2/CV186X)、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -72,6 +72,10 @@ chmod +x ./scripts/*
 │   ├── resnet50_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
 │   ├── resnet50_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
 │   └── resnet50_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=4
+├── BM1684X2
+│   ├── resnet50_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
+│   ├── resnet50_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=1
+│   └── resnet50_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=4
 ├── torch
 │   ├── resnet50-11ad3fa6.pth                         # 原始模型
 │   └── resnet50-11ad3fa6.torchscript.pt              # trace后的torchscript模型
@@ -97,7 +101,7 @@ chmod +x ./scripts/*
 
 - 生成FP32 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**；BM1684X2当前固件codegen不支持FP32，请改用FP16/INT8），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
@@ -107,20 +111,20 @@ chmod +x ./scripts/*
 
 - 生成FP16 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
 ```
 
 执行上述命令会在`models/BM1684X/`等文件夹下生成`resnet50_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
+本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1684x2/bm1688/cv186x
 ```
 
 上述脚本会在`models/BM1684`等文件夹下生成`resnet50_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
@@ -234,10 +238,21 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 | SRM1-20      | resnet_bmcv.pcie   | resnet50_fp16_1b.bmodel  |  80.00 |
 | SRM1-20      | resnet_bmcv.pcie   | resnet50_int8_1b.bmodel  |  79.40 |
 | SRM1-20      | resnet_bmcv.pcie   | resnet50_int8_4b.bmodel  |  79.40 |
+| SE13-64      | resnet_opencv.py   | resnet50_fp16_1b.bmodel   |    80.00 |
+| SE13-64      | resnet_opencv.py   | resnet50_int8_1b.bmodel   |    79.80 |
+| SE13-64      | resnet_opencv.py   | resnet50_int8_4b.bmodel   |    79.80 |
+| SE13-64      | resnet_bmcv.py     | resnet50_fp16_1b.bmodel   |    68.90 |
+| SE13-64      | resnet_opencv.soc  | resnet50_fp16_1b.bmodel   |    69.10 |
+| SE13-64      | resnet_opencv.soc  | resnet50_int8_1b.bmodel   |    68.80 |
+| SE13-64      | resnet_opencv.soc  | resnet50_int8_4b.bmodel   |    68.80 |
+| SE13-64      | resnet_bmcv.soc    | resnet50_fp16_1b.bmodel   |    68.90 |
+| SE13-64      | resnet_bmcv.soc    | resnet50_int8_1b.bmodel   |    69.00 |
+| SE13-64      | resnet_bmcv.soc    | resnet50_int8_4b.bmodel   |    69.00 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
-> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应BM1684X2；
+> 3. SE13-64（BM1684X2）当前固件（libsophon 0.4.13）的硬件 JPEG 解码器（`/dev/soph_vc_dec`）输出有偏差，导致所有走硬件解码的例程（bmcv 系列及 opencv.soc）精度下降约11%；`resnet_opencv.py`（软件解码）在 80%/79.8%，可代表 BM1684X2 TPU 的真实推理精度。该问题已反馈多媒体固件团队，待固件修复后硬件解码路径精度应与软件解码一致；`resnet_bmcv.py` + `resnet50_int8_4b.bmodel` 在该固件上还存在 4 batch 输出拷贝报错（`bmcv_image_copy_to err=9`），暂不适用。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -270,6 +285,9 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 | SE9-8           | CV186X/resnet50_fp16_1b.bmodel     |           6.94  |
 | SE9-8           | CV186X/resnet50_int8_1b.bmodel     |           2.47  |
 | SE9-8           | CV186X/resnet50_int8_4b.bmodel     |           1.84  |
+|   SE13-64   | BM1684X2/resnet50_fp16_1b.bmodel    |           3.19  |
+|   SE13-64   | BM1684X2/resnet50_int8_1b.bmodel    |           1.52  |
+|   SE13-64   | BM1684X2/resnet50_int8_4b.bmodel    |           1.14  |
 
 
 > **测试说明**：  
@@ -375,6 +393,17 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 |    SRM1-20  | resnet_bmcv.pcie  |      resnet50_fp16_1b.bmodel      |      4.07       |      0.86       |      1.99       |      0.40       |
 |    SRM1-20  | resnet_bmcv.pcie  |      resnet50_int8_1b.bmodel      |      5.56       |      0.98       |      1.40       |      0.45       |
 |    SRM1-20  | resnet_bmcv.pcie  |      resnet50_int8_4b.bmodel      |      4.06       |      0.70       |      0.95       |      0.18       |
+|   SE13-64   | resnet_opencv.py  |      resnet50_fp16_1b.bmodel      |      5.79       |      8.06       |      4.60       |      0.33       |
+|   SE13-64   | resnet_opencv.py  |      resnet50_int8_1b.bmodel      |      5.78       |      8.09       |      2.99       |      0.33       |
+|   SE13-64   | resnet_opencv.py  |      resnet50_int8_4b.bmodel      |      5.64       |      8.73       |      2.69       |      0.13       |
+|   SE13-64   |  resnet_bmcv.py   |      resnet50_fp16_1b.bmodel      |      1.50       |      0.75       |      3.16       |      0.17       |
+|   SE13-64   |  resnet_bmcv.py   |      resnet50_int8_1b.bmodel      |      1.50       |      0.74       |      1.56       |      0.17       |
+|   SE13-64   | resnet_opencv.soc |      resnet50_fp16_1b.bmodel      |      1.65       |      5.95       |      3.06       |      0.11       |
+|   SE13-64   | resnet_opencv.soc |      resnet50_int8_1b.bmodel      |      1.66       |      5.96       |      1.45       |      0.11       |
+|   SE13-64   | resnet_opencv.soc |      resnet50_int8_4b.bmodel      |      1.39       |      5.90       |      1.12       |      0.08       |
+|   SE13-64   |  resnet_bmcv.soc  |      resnet50_fp16_1b.bmodel      |      2.39       |      0.77       |      2.99       |      0.14       |
+|   SE13-64   |  resnet_bmcv.soc  |      resnet50_int8_1b.bmodel      |      2.38       |      0.77       |      1.39       |      0.14       |
+|   SE13-64   |  resnet_bmcv.soc  |      resnet50_int8_4b.bmodel      |      2.40       |      0.67       |      1.11       |      0.13       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

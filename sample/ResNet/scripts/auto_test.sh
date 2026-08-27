@@ -15,7 +15,7 @@ CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c CASE_MODE fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c CASE_MODE fully|partly]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -65,6 +65,8 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE9-16"
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
+  elif test $TARGET = "BM1684X2"; then
+    PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
   fi
@@ -111,6 +113,11 @@ function bmrt_test_benchmark(){
       bmrt_test_case CV186X/resnet50_fp16_1b.bmodel
       bmrt_test_case CV186X/resnet50_int8_1b.bmodel
       bmrt_test_case CV186X/resnet50_int8_4b.bmodel
+    elif test $TARGET = "BM1684X2"; then
+      # 84x2 当前固件 codegen 不支持 fp32，只有 fp16/int8
+      bmrt_test_case BM1684X2/resnet50_fp16_1b.bmodel
+      bmrt_test_case BM1684X2/resnet50_int8_1b.bmodel
+      bmrt_test_case BM1684X2/resnet50_int8_4b.bmodel
     fi
   
     popd
@@ -435,6 +442,33 @@ then
       eval_python bmcv     resnet50_int8_4b.bmodel 80.50
       eval_cpp soc opencv  resnet50_int8_4b.bmodel 80.20
       eval_cpp soc bmcv    resnet50_int8_4b.bmodel 80.50
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
+  elif test $TARGET = "BM1684X2"
+  then
+    # 84x2(cv184x) SoC 模式。注意：
+    # 1. 当前固件(libsophon 0.4.13)硬件 JPEG 解码器输出有偏差，走硬件解码的例程
+    #    (bmcv.py / *.soc) 精度比软件解码的 opencv.py 低约11%，属已知固件问题；
+    # 2. resnet_bmcv.py + int8_4b 在该固件上 bmcv_image_copy_to err=9，暂不测试；
+    # 3. resnet_bmcv.py 需要 root 权限访问 /dev/soph_vc_dec，若因权限失败可忽略该条。
+    if test $CASE_MODE = "fully"
+    then
+      eval_python opencv  resnet50_fp16_1b.bmodel 80.00
+      eval_python opencv  resnet50_int8_1b.bmodel 79.80
+      eval_python opencv  resnet50_int8_4b.bmodel 79.80
+      eval_python bmcv    resnet50_fp16_1b.bmodel 68.90
+      eval_cpp soc opencv resnet50_fp16_1b.bmodel 69.10
+      eval_cpp soc opencv resnet50_int8_1b.bmodel 68.80
+      eval_cpp soc opencv resnet50_int8_4b.bmodel 68.80
+      eval_cpp soc bmcv   resnet50_fp16_1b.bmodel 68.90
+      eval_cpp soc bmcv   resnet50_int8_1b.bmodel 69.00
+      eval_cpp soc bmcv   resnet50_int8_4b.bmodel 69.00
+    elif test $CASE_MODE = "partly"
+    then
+      eval_python opencv  resnet50_int8_4b.bmodel 79.80
+      eval_cpp soc opencv resnet50_int8_4b.bmodel 68.80
+      eval_cpp soc bmcv   resnet50_int8_4b.bmodel 69.00
     else
       echo "unknown CASE_MODE: $CASE_MODE"
     fi
