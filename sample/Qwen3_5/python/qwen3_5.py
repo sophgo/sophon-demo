@@ -667,9 +667,22 @@ class Qwen3_5():
         self.tokens.append(token)
         return token
 
+    # BM1684X2 dynamic bmodel bug workaround: the linear-attention prefill graph
+    # (block_<i> for non-FA layers) outputs all-NaN when the dynamic seq_len is
+    # greater than 64 and not a multiple of 16. Prefill in 16-aligned chunks and
+    # replay the tail tokens (< 16) one-by-one through the block_cache_ decode
+    # graphs, which are correct at any length.
+    DYNAMIC_PREFILL_ALIGN = 16
+
     def forward_first(self, position_ids):
         if self.support_history:
             return self.forward_first_with_kv(position_ids)
+        if self.is_dynamic and self.token_len > 64 and \
+                self.token_len % self.DYNAMIC_PREFILL_ALIGN != 0:
+            return self.forward_first_aligned(position_ids)
+        return self.forward_first_plain(position_ids)
+
+    def forward_first_plain(self, position_ids):
         self.token_pos_length = position_ids.max() + 1
         position_ids = position_ids.flatten()
 
@@ -755,6 +768,156 @@ class Qwen3_5():
 
         lm_input = sail.Tensor(out_mem, [1, self.hidden_size], (self.token_len - 1) * self.hidden_size)  # offset in elements
         self.net.process(self.name_lm, {0: lm_input}, self.output_tensors[self.name_lm])
+
+        self.last_id = self.sample_token()
+        self.logger.debug(f"get first inference results token id {self.last_id}")
+        return self.last_id
+
+    def forward_first_aligned(self, position_ids):
+        """16-aligned dynamic prefill for BM1684X2 (workaround).
+
+        Phase 1: prefill the first L = (token_len // 16) * 16 tokens through the
+        normal block_ dynamic graphs (L is a 16-multiple -> safe).
+        Phase 2: replay the remaining token_len - L tokens one-by-one through the
+        block_cache_ decode graphs (same wiring as forward_next), feeding each
+        token's embedding row (ViT-spliced) copied from the full embed output.
+        """
+        align = self.DYNAMIC_PREFILL_ALIGN
+        tok = self.token_len
+        L = (tok // align) * align
+        pos_np = position_ids.numpy() if hasattr(position_ids, "numpy") else position_ids
+        pos = np.asarray(pos_np).reshape(3, -1).astype(np.int32)  # [3, tok]
+        self.logger.debug(f"aligned prefill: tok={tok} chunk={L} replay={tok - L}")
+
+        ATTENTION_MASK = self.MASK_VALUE
+        fa_block_name = self.name_blocks[self.FA_INTERVAL - 1]
+
+        # ---- phase 1: L-token chunked prefill (identical to forward_first_plain) ----
+        attention_mask = [ATTENTION_MASK] * (L * L)
+        for i in range(L):
+            for j in range(i + 1):
+                attention_mask[i * L + j] = 0
+        attention_mask = np.array(attention_mask,
+            dtype=type_convert(self.input_tensors[fa_block_name][2].dtype())).reshape(1, 1, L, L)
+        position_ids_pad = np.array(pos[:, :L].flatten(),
+            dtype=type_convert(self.input_tensors[fa_block_name][1].dtype())).reshape(3, L)
+
+        out_mem = self.output_tensors[self.name_embed][0]
+
+        for idx in range(self.num_layers):
+            if self.is_FA(idx):
+                block_input_tensors = self.input_tensors[fa_block_name]
+                block_output_tensors_ref = self.output_tensors[fa_block_name]
+            else:
+                block_input_tensors = self.input_tensors[self.name_blocks[0]]
+                block_output_tensors_ref = self.output_tensors[self.name_blocks[0]]
+
+            block_input_tensors[0] = sail.Tensor(out_mem, [1, L, self.hidden_size], 0)
+
+            if self.is_FA(idx):
+                block_input_tensors[1].reshape([3, L])
+                block_input_tensors[2].reshape([1, 1, L, L])
+                block_input_tensors[1].update_data(position_ids_pad)
+                block_input_tensors[2].update_data(attention_mask)
+            else:
+                block_input_tensors[1].zeros()
+
+            block_output_tensors = {}
+            if self.is_FA(idx):
+                block_output_tensors[0] = self.first_hidden_states_output
+                block_output_tensors[1] = self.fa_k_cache_output
+                block_output_tensors[2] = self.fa_v_cache_output
+            else:
+                for out_idx in range(self.linear_output_num):
+                    if out_idx == 0:
+                        block_output_tensors[out_idx] = self.first_hidden_states_output
+                    else:
+                        block_output_tensors[out_idx] = block_output_tensors_ref[out_idx]
+
+            self.net.process(self.name_blocks[idx], block_input_tensors, block_output_tensors)
+
+            if self.is_FA(idx):
+                kv_elements = self.past_kv_stride[1] * L  # num_heads * head_dim * L
+                self.past_key_input[idx].sync_d2d(self.fa_k_cache_output, 0, 0, kv_elements)
+                self.past_value_input[idx].sync_d2d(self.fa_v_cache_output, 0, 0, kv_elements)
+            else:
+                self.past_key_input[idx].sync_d2d(block_output_tensors_ref[1], 0, 0, block_output_tensors_ref[1].size())  # conv_state
+                self.past_value_input[idx].sync_d2d(block_input_tensors[1], 0, 0, block_input_tensors[1].size())
+
+            out_mem = self.first_hidden_states_output
+
+        # ---- phase 2: replay tail tokens via block_cache_ decode graphs ----
+        fa_block_name_c = self.name_blocks_cache[self.FA_INTERVAL - 1]
+        attn_mask_shape = self.net.get_input_shape(fa_block_name_c, 2)
+        fa_elements = self.past_kv_stride[1]
+        fa_view_shape = [1, 1] + list(self.fa_kv_shape[2:])
+        embed_full = self.output_tensors[self.name_embed][0]
+        ec_out = self.output_tensors[self.name_embed_cache][0]
+
+        for t in range(L, tok):
+            # hidden input for token t: its (ViT-spliced) embedding row
+            ec_out.sync_d2d(embed_full, t * self.hidden_size, 0, self.hidden_size)
+            out_mem = ec_out
+
+            attention_mask_c = np.zeros(attn_mask_shape,
+                dtype=type_convert(self.net.get_input_dtype(fa_block_name_c, 2)))
+            attention_mask_c[0, 0, 0, t:self.seq_len] = self.MASK_VALUE
+
+            position_ids_c = np.array(pos[:, t].tolist(),
+                dtype=type_convert(self.next_pos_ids_input.dtype())).reshape(3, 1)
+            self.next_pos_ids_input.update_data(position_ids_c)
+            self.next_attention_mask_input.update_data(attention_mask_c)
+
+            token_offset_elements = t * fa_elements
+
+            for idx in range(self.num_layers):
+                layer_out_hidden = self.output_tensors[self.name_blocks_cache[idx]][0]
+                if self.is_FA(idx):
+                    new_k_view = sail.Tensor(self.past_key_input[idx], fa_view_shape,
+                                             token_offset_elements)
+                    new_v_view = sail.Tensor(self.past_value_input[idx], fa_view_shape,
+                                             token_offset_elements)
+                    block_input_tensors = {
+                        0: out_mem,
+                        1: self.next_pos_ids_input,
+                        2: self.next_attention_mask_input,
+                        3: self.past_key_input[idx],
+                        4: self.past_value_input[idx],
+                    }
+                    block_output_tensors = {
+                        0: layer_out_hidden,
+                        1: new_k_view,
+                        2: new_v_view,
+                    }
+                    self.net.process(self.name_blocks_cache[idx], block_input_tensors,
+                                     block_output_tensors)
+                else:
+                    block_input_tensors = {
+                        0: out_mem,
+                        1: self.past_key_input[idx],
+                        2: self.past_value_input[idx],
+                    }
+                    block_output_tensors = {
+                        0: layer_out_hidden,
+                        1: self.linear_conv_state_outputs[idx],
+                        2: self.linear_recurrent_state_outputs[idx],
+                    }
+                    self.net.process(self.name_blocks_cache[idx], block_input_tensors,
+                                     block_output_tensors)
+                    self.past_key_input[idx].sync_d2d(self.linear_conv_state_outputs[idx], 0, 0,
+                                                      self.linear_conv_state_outputs[idx].size())
+                    if self.linear_recurrent_state_outputs[idx] is not None:
+                        self.past_value_input[idx].sync_d2d(self.linear_recurrent_state_outputs[idx],
+                                                           0, 0,
+                                                           self.linear_recurrent_state_outputs[idx].size())
+                out_mem = layer_out_hidden
+
+        self.vit_run = False
+        self.step = tok
+        self.history_length = tok
+        self.token_pos_length = int(pos.max()) + 1
+
+        self.net.process(self.name_lm, {0: out_mem}, self.output_tensors[self.name_lm])
 
         self.last_id = self.sample_token()
         self.logger.debug(f"get first inference results token id {self.last_id}")
