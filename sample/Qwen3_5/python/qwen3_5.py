@@ -92,6 +92,16 @@ class Qwen3_5():
         # FA decode always has 5 inputs regardless.
         kv_name = "block_kv_" + str(self.FA_INTERVAL - 1)
         self.support_history = kv_name in self.graph_names
+        # prefill_mask: whether the fresh-prefill FA block (block_<FA-1>) takes
+        # an explicit attention_mask input. Mirrors chat.cpp:
+        #   prefill_mask = net_blocks[FA-1].input_num == (support_history ? 5 : 3)
+        # Older toolchain: FA fresh block has 3 inputs (hidden, pos, attn_mask).
+        # Newer toolchain: FA fresh block has 2 inputs (hidden, pos), internal
+        # causal mask — attn_mask is dropped (prefill_mask=False). When False,
+        # the non-FA fresh block also drops its conv_state input.
+        fa_fresh_name = "block_" + str(self.FA_INTERVAL - 1)
+        self.prefill_mask = (self.net.get_input_num(fa_fresh_name)
+                             == (5 if self.support_history else 3))
         self.history_length = 0
 
         self.name_embed = "embedding"
@@ -165,8 +175,16 @@ class Qwen3_5():
         self.name_blocks_kv = []
         if self.support_history:
             kv_template = "block_kv_" + str(self.FA_INTERVAL - 1)
-            self.input_tensors[kv_template] = self.net.create_max_input_tensors(kv_template)
-            self.output_tensors[kv_template] = self.net.create_max_output_tensors(kv_template)
+            # Bind the block_kv input/output tensors to the bmodel's own
+            # internal device mems (via the addrmode0 accessors) instead of
+            # create_max_* (which mallocs independent device mem on a different
+            # heap). Some history bmodels' block_kv_* dynamic prefill ops are
+            # sensitive to the input device_mem heap; binding to the net mem
+            # mirrors C++ bmrt_tensor_with_device and fixes the 0x7FFF (32767)
+            # degeneration on multi-round history prefill. addrmode0 tensors are
+            # non-owning (own_dev_data=false), so reshape() will not realloc.
+            self.input_tensors[kv_template] = self.net.get_input_tensors_addrmode0(kv_template)
+            self.output_tensors[kv_template] = self.net.get_output_tensors_addrmode0(kv_template)
             for i in range(self.num_layers):
                 if self.is_FA(i):
                     self.name_blocks_kv.append("block_kv_" + str(i))
@@ -690,20 +708,14 @@ class Qwen3_5():
         fa_block_name = self.name_blocks[self.FA_INTERVAL - 1]
 
         if self.is_dynamic:
-            attention_mask = [ATTENTION_MASK] * (self.token_len * self.token_len)
-            for i in range(self.token_len):
-                for j in range(i + 1):
-                    attention_mask[i * self.token_len + j] = 0
-            attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[fa_block_name][2].dtype())).reshape(1, 1, self.token_len, self.token_len)
             position_ids_pad = np.array(position_ids, dtype=type_convert(self.input_tensors[fa_block_name][1].dtype())).reshape(3, self.token_len)
+            if self.prefill_mask:
+                attention_mask = [ATTENTION_MASK] * (self.token_len * self.token_len)
+                for i in range(self.token_len):
+                    for j in range(i + 1):
+                        attention_mask[i * self.token_len + j] = 0
+                attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[fa_block_name][2].dtype())).reshape(1, 1, self.token_len, self.token_len)
         else:
-            attention_mask = [ATTENTION_MASK] * (self.MAX_INPUT_LENGTH * self.MAX_INPUT_LENGTH)
-            for i in range(self.token_len):
-                for j in range(self.token_len):
-                    if j <= i:
-                        attention_mask[i * self.MAX_INPUT_LENGTH + j] = 0
-            attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[fa_block_name][2].dtype())).reshape(self.input_tensors[fa_block_name][2].shape())
-
             position_ids_pad = [0] * (3 * self.MAX_INPUT_LENGTH)
             ori_length = len(position_ids) // 3
             for i in range(3):
@@ -712,6 +724,13 @@ class Qwen3_5():
                 position_ids_pad[dst_offset : dst_offset + ori_length] = \
                     position_ids[ori_offset : ori_offset + ori_length]
             position_ids_pad = np.array(position_ids_pad, dtype=type_convert(self.input_tensors[fa_block_name][1].dtype())).reshape(self.input_tensors[fa_block_name][1].shape())
+            if self.prefill_mask:
+                attention_mask = [ATTENTION_MASK] * (self.MAX_INPUT_LENGTH * self.MAX_INPUT_LENGTH)
+                for i in range(self.token_len):
+                    for j in range(self.token_len):
+                        if j <= i:
+                            attention_mask[i * self.MAX_INPUT_LENGTH + j] = 0
+                attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[fa_block_name][2].dtype())).reshape(self.input_tensors[fa_block_name][2].shape())
 
         out_mem = self.output_tensors[self.name_embed][0]
 
@@ -731,9 +750,11 @@ class Qwen3_5():
             if self.is_FA(idx):
                 if self.is_dynamic:
                     block_input_tensors[1].reshape([3, self.token_len])
-                    block_input_tensors[2].reshape([1, 1, self.token_len, self.token_len])
                 block_input_tensors[1].update_data(position_ids_pad)
-                block_input_tensors[2].update_data(attention_mask)
+                if self.prefill_mask:
+                    if self.is_dynamic:
+                        block_input_tensors[2].reshape([1, 1, self.token_len, self.token_len])
+                    block_input_tensors[2].update_data(attention_mask)
             else:
                 block_input_tensors[1].zeros()
 
@@ -793,14 +814,15 @@ class Qwen3_5():
         fa_block_name = self.name_blocks[self.FA_INTERVAL - 1]
 
         # ---- phase 1: L-token chunked prefill (identical to forward_first_plain) ----
-        attention_mask = [ATTENTION_MASK] * (L * L)
-        for i in range(L):
-            for j in range(i + 1):
-                attention_mask[i * L + j] = 0
-        attention_mask = np.array(attention_mask,
-            dtype=type_convert(self.input_tensors[fa_block_name][2].dtype())).reshape(1, 1, L, L)
         position_ids_pad = np.array(pos[:, :L].flatten(),
             dtype=type_convert(self.input_tensors[fa_block_name][1].dtype())).reshape(3, L)
+        if self.prefill_mask:
+            attention_mask = [ATTENTION_MASK] * (L * L)
+            for i in range(L):
+                for j in range(i + 1):
+                    attention_mask[i * L + j] = 0
+            attention_mask = np.array(attention_mask,
+                dtype=type_convert(self.input_tensors[fa_block_name][2].dtype())).reshape(1, 1, L, L)
 
         out_mem = self.output_tensors[self.name_embed][0]
 
@@ -816,9 +838,10 @@ class Qwen3_5():
 
             if self.is_FA(idx):
                 block_input_tensors[1].reshape([3, L])
-                block_input_tensors[2].reshape([1, 1, L, L])
                 block_input_tensors[1].update_data(position_ids_pad)
-                block_input_tensors[2].update_data(attention_mask)
+                if self.prefill_mask:
+                    block_input_tensors[2].reshape([1, 1, L, L])
+                    block_input_tensors[2].update_data(attention_mask)
             else:
                 block_input_tensors[1].zeros()
 
@@ -951,7 +974,10 @@ class Qwen3_5():
 
         old_kvlen = (self.history_length - 1) if self.history_length > 0 else 0
         last_cur_len = 0
-        out_mem = self.first_hidden_states_output
+        # In-place hidden buffer mirroring C++ chat.cpp::forward_first_with_kv
+        # (out_mem = dev_buffer, all layers read/write it). dev_buffer is
+        # SEQLEN*H wide in history mode.
+        out_mem = self.dev_buffer
 
         for t in range(0, token_len, self.MAX_INPUT_LENGTH):
             cur_len = min(self.MAX_INPUT_LENGTH, token_len - t)
@@ -975,11 +1001,10 @@ class Qwen3_5():
                 block_input_tensors = dict(self.input_tensors[template_key])
                 block_output_tensors_ref = self.output_tensors[template_key]
 
-                # input_states: layer 0 reads from dev_buffer at chunk offset;
-                # subsequent layers read from prev layer output (per-layer
-                # prefill_hidden_outputs[idx] — NOT in-place, mirrors C++ where
-                # each layer has its own output_mems[0]).
-                layer_out = self.prefill_hidden_outputs[idx]
+                # In-place data flow (mirrors C++ chat.cpp and other
+                # sophon-demo LLM samples): layer 0 reads embedded input tokens
+                # from dev_buffer; layer>0 reads the previous layer's output
+                # (same buffer). output[0] is also this buffer.
                 if idx == 0:
                     block_input_tensors[0] = sail.Tensor(
                         self.dev_buffer, [1, cur_len, self.hidden_size], t * self.hidden_size)
@@ -987,7 +1012,7 @@ class Qwen3_5():
                     block_input_tensors[0] = sail.Tensor(
                         out_mem, [1, cur_len, self.hidden_size], 0)
 
-                block_output_tensors = {0: layer_out}
+                block_output_tensors = {0: out_mem}
 
                 if is_fa:
                     # position_ids input[1]
@@ -995,14 +1020,30 @@ class Qwen3_5():
                     block_input_tensors[1].update_data(chunk_pos)
 
                     if use_kv:
-                        # block_kv_<idx>: pass a VIEW of past_key/past_value at input[2]/input[3].
-                        # Using a view (not reshape on the shared template tensor) avoids
-                        # mutating the template's reported size across chunks.
+                        # block_kv_<idx>: copy past_key/past_value into the net's
+                        # max-sized input[2]/input[3] template tensors (mirrors
+                        # C++ d2d), then present a VIEW with the correct seq dim
+                        # (old_kvlen) to the net. Using a view (not reshape on the
+                        # shared template) keeps the template at max capacity so
+                        # sync_d2d never hits "size out of range" on later rounds.
+                        #
+                        # The view is built with the template's MAX shape first,
+                        # then reshaped to old_kvlen: because the view is
+                        # non-owning, reshape() leaves dev_data_.size at MAX
+                        # (matching C++ where device_mem is the net's max input
+                        # mem); only shape.dims[1] becomes old_kvlen. This keeps
+                        # the device_mem.size the net sees at MAX — some bmodels'
+                        # block_kv_* dynamic prefill depend on it.
+                        old_kv_size = old_kvlen * fa_elements
+                        block_input_tensors[2].sync_d2d(self.past_key_input[idx], 0, 0, old_kv_size)
+                        block_input_tensors[3].sync_d2d(self.past_value_input[idx], 0, 0, old_kv_size)
                         old_kv_shape = [1, old_kvlen] + list(self.fa_kv_shape[2:])
-                        block_input_tensors[2] = sail.Tensor(
-                            self.past_key_input[idx], old_kv_shape, 0)
-                        block_input_tensors[3] = sail.Tensor(
-                            self.past_value_input[idx], old_kv_shape, 0)
+                        kv_view_2 = sail.Tensor(block_input_tensors[2], self.fa_kv_shape, 0)
+                        kv_view_2.reshape(old_kv_shape)
+                        kv_view_3 = sail.Tensor(block_input_tensors[3], self.fa_kv_shape, 0)
+                        kv_view_3.reshape(old_kv_shape)
+                        block_input_tensors[2] = kv_view_2
+                        block_input_tensors[3] = kv_view_3
                     # else: block_<idx> (fresh, 2 inputs) — no past KV ports.
 
                     # output[1]/[2]: new chunk KV (shape [1, cur_len, 4, 256])
@@ -1040,8 +1081,6 @@ class Qwen3_5():
                     self.past_value_input[idx].sync_d2d(block_input_tensors[1], 0, 0,
                                                         block_input_tensors[1].size())
 
-                out_mem = layer_out
-
             old_kvlen += cur_len
 
         # lm_head: last chunk's last-token hidden state sits at offset
@@ -1066,7 +1105,6 @@ class Qwen3_5():
         self.logger.debug(
             f"forward_first_with_kv: history_length={self.history_length}, last_id={self.last_id}")
         return self.last_id
-
     def forward_next(self, position_id):
         token_input = np.array([self.last_id], dtype=type_convert(self.input_tensors[self.name_embed_cache][0].dtype())).reshape(self.input_tensors[self.name_embed_cache][0].shape())
         self.input_tensors[self.name_embed_cache][0].update_data(token_input)
