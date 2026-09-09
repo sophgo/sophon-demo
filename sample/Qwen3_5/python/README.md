@@ -12,12 +12,14 @@
       - [一张图片占多少Token ?](#一张图片占多少token-)
       - [视频占多少Token ?](#视频占多少token-)
     - [2.2 使用方式](#22-使用方式)
+    - [2.3 固定文本前缀缓存测试](#23-固定文本前缀缓存测试)
 
 Qwen3.5能够输入单一图片/视频进行对话，python目录下提供了例程，具体情况如下：
 
 | 序号  |  Python例程       |            说明                 |
 | ---- | ---------------- | ------------------------------ |
 |   1  | qwen3_5.py       | 使用SAIL推理                     |
+|   2  | qwen3_5_prefix_cache.py | 固定文本前缀缓存推理（文字固定、图片变化场景） |
 
 ## 1. 环境准备
 > **注意：**
@@ -118,3 +120,48 @@ python3 qwen3_5.py -m ../models/BM1684X/qwen3.5-2b-int4-autoround_w4bf16_seq2048
 
 > **测试说明**：  
 > 1. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型。
+
+### 2.3 固定文本前缀缓存测试
+
+针对**文字固定、图片变化**的场景（如对同一批图片反复提问同一个问题），提供[qwen3_5_prefix_cache.py](./qwen3_5_prefix_cache.py)：提问的文本部分只预填充一次并快照 KV/线性状态，之后每张图片仅需执行视觉塔和图片 token + 尾部文本的预填充。
+
+**要求**：bmodel 必须是 `--use_history_kv` 编译的版本（含 `block_kv_<i>` 子图，编译方法见[README](../README.md)第 4.2 节），普通 bmodel 运行会直接报错提示。
+
+```bash
+usage: qwen3_5_prefix_cache.py [-h] -m MODEL_PATH [-c CONFIG_PATH] [-vr VIDEO_RATIO] [-d DEVID]
+                               --question QUESTION --images IMAGES [IMAGES ...]
+                               [--max_tokens MAX_TOKENS] [--do_sample] [-ll {DEBUG,INFO,WARNING,ERROR}]
+
+options:
+  -m MODEL_PATH, --model_path MODEL_PATH
+                        path to the bmodel file (must be --use_history_kv build)
+  -c CONFIG_PATH, --config_path CONFIG_PATH
+                        path to the processor config dir
+  -vr VIDEO_RATIO, --video_ratio VIDEO_RATIO
+                        Set video ratio, default is 0.25
+  -d DEVID, --devid DEVID
+                        device ID to use
+  --question QUESTION   fixed text question used for every image
+  --images IMAGES       image paths to query one by one
+  --max_tokens MAX_TOKENS
+                        max new tokens per image, default 50
+  --do_sample           enable sampling (default greedy)
+  -ll {DEBUG,INFO,WARNING,ERROR}, --log_level {DEBUG,INFO,WARNING,ERROR}
+                        log level, default: INFO, option[DEBUG, INFO, WARNING, ERROR]
+```
+
+使用`../datasets/test.jpg`测试图片，测试问题为："请描述图片中的内容"，测试命令如下:
+```bash
+python3 qwen3_5_prefix_cache.py -m ../models/BM1684X/qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_history_dynamic_xxx.bmodel -c config/ --question "请描述图片中的内容" --images ../datasets/test.jpg ../datasets/test.jpg
+```
+
+```
+程序启动后先对固定文本前缀做一次预填充（一次性开销，约零点几秒），随后逐张推理 --images 指定的图片：
+每张图片打印回答内容、总输入 token 数（前缀 + 图片/尾部）、FTL(cached)（视觉塔 + 剩余预填充）和 TPS，
+最后汇总输出除首张外的平均 FTL(cached) 与平均 TPS。换一组图片只需换 --images 参数，前缀快照继续复用。
+```
+
+> **测试说明**：  
+> 1. 首次前缀预填充为一次性开销，图片数量越多摊销越划算；
+> 2. 固定文本越长（长系统提示词/固定文档），缓存节省的预填充计算越多，收益越大；
+> 3. 吞吐量（decode 速度）不受前缀缓存影响。

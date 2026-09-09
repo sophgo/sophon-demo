@@ -171,3 +171,28 @@ python3 qwen3_5.py -m ../models/BM1684X/qwen3.5-2b-int4-autoround_w4bf16_seq2048
 > 1. 性能测试结果具有一定的波动性，且与输入也有关；
 > 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 3. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型；
+
+## 7. 固定文本前缀缓存测试
+
+针对**文字固定、图片变化**的场景（如对同一批图片反复提问同一个问题），提供[固定文本前缀缓存例程](./python/qwen3_5_prefix_cache.py)：提问的文本部分只预填充一次，其 FA 层 KV cache 与线性层 conv/recurrent state 被快照下来；之后每张图片仅需执行视觉塔和图片 token + 尾部文本的预填充，固定文本越长首个 token 延迟下降越明显。
+
+使用前需用 `--use_history_kv` 编译的 bmodel（含 `block_kv_<i>` 子图，见第 4.2 节），并按第 3 节准备 `config` 目录。测试命令如下：
+
+```bash
+cd python
+python3 qwen3_5_prefix_cache.py -m ../models/BM1684X/qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_history_dynamic_xxx.bmodel -c config/ --question "请描述图片中的内容" --images a.jpg b.jpg c.jpg
+```
+
+使用 `../datasets/images/test.jpg` 测试图片、`max_tokens=50`，缓存命中后的 FTL/TPS 统计口径与上表一致（不含前缀预填充的一次性开销），在 SE7-32 上测试结果如下（图片占 300 token，"固定文本长度"为提示词中文字部分的 token 数）：
+
+|    测试平台   |               测试模型                                          | 固定文本长度(token) | 首token延迟-无缓存(s) | 首token延迟-前缀缓存(s) | FTL降幅 | 吞吐量(tokens/s) |
+| -----------  | ---------------------------------------------------------------| ------------------ | --------------------- | ---------------------- | ------- | ----------------- |
+|    SE7-32    | qwen3.5-2b-int4-autoround_w4bf16_seq8192_bm1684x_1dev_history_dynamic_20260722_164018.bmodel  |        9           |         0.507           |        0.490           |   -3.4% |       24.53       |
+|    SE7-32    | qwen3.5-2b-int4-autoround_w4bf16_seq8192_bm1684x_1dev_history_dynamic_20260722_164018.bmodel  |        170          |         0.628           |        0.491           |   -21.8% |       24.51       |
+|    SE7-32    | qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_history_dynamic_20260909_145930.bmodel  |        9           |         1.164           |        1.034           |   -11.2% |       8.99        |
+|    SE7-32    | qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_history_dynamic_20260909_145930.bmodel  |        170          |         1.460           |        1.036           |   -29.0% |       8.99        |
+
+> **测试说明**：  
+> 1. 无缓存列使用 `qwen3_5.py` 对同一图片完整预填充的 FTL（多次取中位数），前缀缓存列为快照恢复后各图片调用的 FTL（不含首次前缀预填充，约 0.1~0.6 s 一次性开销）；
+> 2. 前缀缓存收益随固定文本占比增大而增大：固定文本 170 token（约 288 字的固定提问）时，9B 模型 FTL 从 1.460 s 降至 1.036 s；
+> 3. 吞吐量（decode 速度）不受前缀缓存影响，与无缓存一致。
