@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=/opt/sophon/sophon-sail/lib:$LD_LIBRARY_PATH
 CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -57,6 +57,8 @@ PLATFORM=$TARGET
 if test $MODE = "soc_test"; then
   if test $TARGET = "BM1684X"; then
     PLATFORM="SE7-32"
+  elif test $TARGET = "BM1684X2"; then
+    PLATFORM="SE13-64"
   elif test $TARGET = "BM1684"; then
     PLATFORM="SE5-16"
   elif test $TARGET = "BM1688"; then
@@ -109,7 +111,12 @@ function bmrt_test_benchmark(){
       bmrt_test_case CV186X/bert4torch_output_fp32_1b.bmodel
       bmrt_test_case CV186X/bert4torch_output_fp16_8b.bmodel
       bmrt_test_case CV186X/bert4torch_output_fp32_8b.bmodel
-   
+    elif test $TARGET = "BM1684X2"; then
+      # BM1684X2当前固件不支持FP32，仅测FP16/INT8
+      bmrt_test_case BM1684X2/bert4torch_output_fp16_1b.bmodel
+      bmrt_test_case BM1684X2/bert4torch_output_fp16_8b.bmodel
+      bmrt_test_case BM1684X2/bert4torch_output_int8_1b.bmodel
+      bmrt_test_case BM1684X2/bert4torch_output_int8_8b.bmodel
     fi
     popd
 }
@@ -493,6 +500,40 @@ then
       test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
       eval_python sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
       eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9201187249967738
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
+  elif test $TARGET = "BM1684X2"
+  then
+    # BM1684X2(SE13-64) SoC 模式。注意：
+    # 1. 当前固件不支持 FP32 codegen，仅转 FP16/INT8。
+    # 2. bert_sail.soc 基于 sophon-sail C++ 库交叉编译
+    #    (参考 docs/Environment_Install_Guide.md §4.2)，C++ 版使用 libtorch_tokenizer，
+    #    精度略低于 Python 版(bert_sail.py)。运行前需将 libsail.so 放入 LD_LIBRARY_PATH。
+    if test $CASE_MODE = "fully"
+    then
+      test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_python sail bert4torch_output_fp16_8b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_python sail bert4torch_output_int8_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_python sail bert4torch_output_int8_8b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp16_8b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_int8_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_int8_8b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp16_1b.bmodel 0.9201
+      eval_python sail bert4torch_output_fp16_8b.bmodel 0.9199
+      eval_python sail bert4torch_output_int8_1b.bmodel 0.9035
+      eval_python sail bert4torch_output_int8_8b.bmodel 0.8979
+      eval_cpp soc sail bert4torch_output_fp16_1b.bmodel 0.9130
+      eval_cpp soc sail bert4torch_output_fp16_8b.bmodel 0.9130
+      eval_cpp soc sail bert4torch_output_int8_1b.bmodel 0.8946
+      eval_cpp soc sail bert4torch_output_int8_8b.bmodel 0.8946
+    elif test $CASE_MODE = "partly"
+    then
+      test_python sail bert4torch_output_fp16_1b.bmodel ../datasets/china-people-daily-ner-corpus/test.txt
+      test_cpp soc sail bert4torch_output_fp16_1b.bmodel ../../datasets/china-people-daily-ner-corpus/test.txt
+      eval_python sail bert4torch_output_fp16_8b.bmodel 0.9199
+      eval_cpp soc sail bert4torch_output_int8_1b.bmodel 0.8946
     else
       echo "unknown CASE_MODE: $CASE_MODE"
     fi

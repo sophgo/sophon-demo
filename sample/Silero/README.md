@@ -23,7 +23,7 @@ Silero VAD（Voice Activity Detection，语音活动检测）是一个基于深�
 本例程对[Silero VAD](https://github.com/snakers4/silero-vad)的预训练JIT模型进行移植，导出为ONNX模型，并编译为BModel使之能在SOPHON BM1684X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe, SoC)
+* 支持BM1684X(x86 PCIe, SoC)/BM1684X2(SoC)
 * 支持FP16模型编译和推理
 * 支持基于sail的Python推理
 * 支持基于bmrt的C++推理
@@ -48,6 +48,8 @@ bash scripts/download.sh --all
 ./models
 ├── BM1684X
 │   └── silero_vad_bm1684x_f16.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
+├── BM1684X2
+│   └── silero_vad_bm1684x2_f16.bmodel  # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
 └── onnx
     └── silero_vad_core_clean.onnx           # 导出的onnx模型，3输入(mel, h, c)，3输出(speech_prob, h_new, c_new)
 ```
@@ -65,7 +67,7 @@ bash scripts/download.sh --all
 
 - 生成FP16 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_f16_bmodel.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_f16_bmodel.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2**），如：
 
 ```bash
 ./scripts/gen_f16_bmodel.sh
@@ -73,6 +75,8 @@ bash scripts/download.sh --all
 
 执行上述命令会在`models/BM1684X/`下生成`silero_vad_bm1684x_f16.bmodel`文件，即转换好的FP16 BModel。
 
+
+注意：BM1684X2编译时脚本会自动追加`--disable_layer_group`（默认layer_group会把STFT的Conv1d分到local memory执行，触发固件断言，关闭后走global路径可正常编译）。
 注意：模型有3个输入（x=[1,576]音频帧, h=[1,128] LSTM隐藏状态, c=[1,128] LSTM细胞状态）和3个输出（out=[1,1]语音概率, h_new=[1,128], c_new=[1,128]），编译时必须指定`--channel_format none`（非图片模型）。
 
 ## 5. 例程测试
@@ -99,11 +103,14 @@ import numpy as np
 |   测试平台  |    测试程序               |              测试模型              | Max Prob Diff | Mean Prob Diff | VAD Segments |
 | ---------- | ----------------------- | --------------------------------- | ------------- | -------------- | ------------ |
 | SE7-32     | silero_vad.py           | silero_vad_bm1684x_f16.bmodel     |    0.016      |    4.27e-4     |   完全一致     |
+| SE13-64    | silero_vad.py           | silero_vad_bm1684x2_f16.bmodel    |    0.536      |    7.21e-3     |   17 vs 19      |
 
 > **测试说明**：
 > 1. Max Prob Diff为全部帧中语音概率的最大绝对差，Mean Prob Diff为平均绝对差；
 > 2. F16量化带来的精度损失极小（<0.02），VAD分段结果与JIT参考模型完全一致；
-> 3. SE7系列对应BM1684X；
+> 3. SE7系列对应BM1684X，SE13系列对应BM1684X2；
+> 4. SE13-64对比基准为ONNX参考模型
+> 5. 单帧零状态测试
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -118,6 +125,7 @@ bmrt_test --bmodel models/BM1684X/silero_vad_bm1684x_f16.bmodel
 |   测试平台  |                  测试模型                     | calculate time(ms) |
 | ----------- | -------------------------------------------- | ----------------- |
 |   SE7-32    | BM1684X/silero_vad_bm1684x_f16.bmodel        |        0.291      |
+|   SE13-64   | BM1684X2/silero_vad_bm1684x2_f16.bmodel      |        0.434      |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性；
@@ -131,6 +139,8 @@ bmrt_test --bmodel models/BM1684X/silero_vad_bm1684x_f16.bmodel
 | ----------- | ---------------- | --------------------------------------- | ------------ | ----------- | ------------- | -------------- |
 |   SE7-32    | silero_vad.py    | silero_vad_bm1684x_f16.bmodel           |     0.718    |    0.676    |     0.001     |     0.0211     |
 |   SE7-32    | silero_vad_bmrt.soc | silero_vad_bm1684x_f16.bmodel        |     0.003    |    0.210    |     0.000     |     0.0066     |
+|   SE13-64   | silero_vad.py    | silero_vad_bm1684x2_f16.bmodel          |     0.581    |    0.531    |     0.001     |     0.0166     |
+|   SE13-64   | silero_vad_bmrt.soc | silero_vad_bm1684x2_f16.bmodel      |     0.004    |    0.279    |     0.000     |     0.0087     |
 
 > **测试说明**：
 > 1. 时间单位均为毫秒(ms)，统计的时间均为每帧（512采样点=32ms音频）的处理时间；
@@ -138,6 +148,7 @@ bmrt_test --bmodel models/BM1684X/silero_vad_bm1684x_f16.bmodel
 > 3. real_time_factor = inference时间 / 音频时长，值越小代表加速比越高；
 > 4. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 5. SE7-32的主控处理器为8核CA53@2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 6. SE13-64的C++例程postprocess
 
 ## 8. FAQ
 1. **模型编译时出现Shape/Gather算子警告**: 这些算子在ONNX导出时不可避免（来自chunk和reshape操作），但BM1684X支持这些算子，不影响编译结果。

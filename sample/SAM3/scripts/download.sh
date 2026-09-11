@@ -5,6 +5,7 @@
 # 通过 dfss 从 sophon-demo 文件服务器下载预编译 bmodel、onnx 及测试数据：
 #   - BM1684X_504.zip   : BM1684X(SE7等) FP16 bmodel（ViT 5part + Neck + Grounding enc/dec + Text enc）
 #   - BM1688_504.zip    : BM1688(SE9等) FP16 bmodel（同构，单核）
+#   - BM1684X2_504.zip  : BM1684X2(SE13等) FP16 bmodel（同构；该芯片固件不支持 FP32）
 #   - onnx_504.zip      : 504×504 ViT 5 part + Neck 的 ONNX（含外置 .data，用于自行编译 bmodel）
 #   - onnx_grounding_504.zip : Grounding Encoder + Decoder ONNX（用于自行编译）
 #   - postproc_weights.zip : 后处理权重 post_process_weights.npz + seg_head_weights.npz
@@ -48,6 +49,10 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM3/BM1688_504.zip
     unzip BM1688_504.zip -d ../models
     rm BM1688_504.zip
+
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM3/BM1684X2_504.zip
+    unzip BM1684X2_504.zip -d ../models
+    rm BM1684X2_504.zip
 
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM3/onnx_504.zip
     unzip onnx_504.zip -d ../models

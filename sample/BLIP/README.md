@@ -13,11 +13,12 @@
 
 ## 1. 简介
 
-BLIP (Bootstrapping Language-Image Pre-training) 是一种用于多模态学习的模型，旨在处理图像和语言的结合任务，如图像字幕生成和视觉问答。BLIP 的核心思想是通过结合语言和图像的特征表示来进行预训练，从而提高模型在多模态任务中的表现。本例程对[BLIP官方开源仓库](https://github.com/salesforce/BLIP)中的算法进行移植，使之能在SOPHON BM1684,BM1684X,BM1688上进行推理。
+BLIP (Bootstrapping Language-Image Pre-training) 是一种用于多模态学习的模型，旨在处理图像和语言的结合任务，如图像字幕生成和视觉问答。BLIP 的核心思想是通过结合语言和图像的特征表示来进行预训练，从而提高模型在多模态任务中的表现。本例程对[BLIP官方开源仓库](https://github.com/salesforce/BLIP)中的算法进行移植，使之能在SOPHON BM1684,BM1684X,BM1684X2,BM1688上进行推理。
 
 ## 2. 特性
 
-* 支持BM1688(SoC)、BM1684(x86 PCIe、SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)
+* 支持BM1688(SoC)、BM1684(x86 PCIe、SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684X2(SoC)
+* BM1684X2使用FP16 BModel（当前固件不支持FP32）
 * 支持Python例程
 * 支持图片测试
 
@@ -81,12 +82,18 @@ models
 │   ├── blip_vqa_tdec_bm1684x_f32_1b.bmodel      # 图文问答 解码器 1684X fp32 bmodel
 │   ├── blip_vqa_tenc_bm1684x_f32_1b.bmodel      # 图文问答 图文编码器 1684X fp32 bmodel
 │   └── blip_vqa_venc_bm1684x_f32_1b.bmodel      # 图文问答 图像编码器 1684X fp32 bmodel
-└── BM1688
-    ├── blip_cap_bm1688_f32_1b.bmodel            # 图像字幕 1688 fp32 bmodel
-    ├── blip_itm_bm1688_f32_1b.bmodel            # 图文匹配 1688 fp32 bmodel
-    ├── blip_vqa_tdec_bm1688_f32_1b.bmodel       # 图文问答 解码器 1688 fp32 bmodel
-    ├── blip_vqa_tenc_bm1688_f32_1b.bmodel       # 图文问答 图文编码器 1688 fp32 bmodel
-    └── blip_vqa_venc_bm1688_f32_1b.bmodel       # 图文问答 图像编码器 1688 fp32 bmodel
+├── BM1688
+│   ├── blip_cap_bm1688_f32_1b.bmodel            # 图像字幕 1688 fp32 bmodel
+│   ├── blip_itm_bm1688_f32_1b.bmodel            # 图文匹配 1688 fp32 bmodel
+│   ├── blip_vqa_tdec_bm1688_f32_1b.bmodel       # 图文问答 解码器 1688 fp32 bmodel
+│   ├── blip_vqa_tenc_bm1688_f32_1b.bmodel       # 图文问答 图文编码器 1688 fp32 bmodel
+│   └── blip_vqa_venc_bm1688_f32_1b.bmodel       # 图文问答 图像编码器 1688 fp32 bmodel
+└── BM1684X2
+    ├── blip_cap_bm1684x2_f16_1b.bmodel          # 图像字幕 1684X2 fp16 bmodel
+    ├── blip_itm_bm1684x2_f16_1b.bmodel          # 图文匹配 1684X2 fp16 bmodel
+    ├── blip_vqa_tdec_bm1684x2_f16_1b.bmodel     # 图文问答 解码器 1684X2 fp16 bmodel
+    ├── blip_vqa_tenc_bm1684x2_f16_1b.bmodel     # 图文问答 图文编码器 1684X2 fp16 bmodel
+    └── blip_vqa_venc_bm1684x2_f16_1b.bmodel     # 图文问答 图像编码器 1684X2 fp16 bmodel
 ```
 
 
@@ -127,6 +134,7 @@ bmrt_test --bmodel models/BM1684X/blip_itm_bm1684_f32_1b.bmodel
 |---------|--------------------------------------------| ------------------ |
 | SE7-32  | BM1684X/blip_cap_bm1684x_f32_1b.bmodel     | 332                |
 | SE9-16  | BM1688/blip_cap_bm1688_f32_1b.bmodel       | 987               |
+| SE13-64 | BM1684X2/blip_cap_bm1684x2_f16_1b.bmodel   | 113.52             |
 
 
 | 测试平台 | 测试blip_itm模型                           | calculate time(ms) |
@@ -134,6 +142,7 @@ bmrt_test --bmodel models/BM1684X/blip_itm_bm1684_f32_1b.bmodel
 | SE5-16  | BM1684/blip_itm_bm1684_f32_1b.bmodel       | 513                |
 | SE7-32  | BM1684X/blip_itm_bm1684x_f32_1b.bmodel     | 201                |
 | SE9-16  | BM1688/blip_itm_bm1688_f32_1b.bmodel       | 798                |
+| SE13-64 | BM1684X2/blip_itm_bm1684x2_f16_1b.bmodel   | 53.01              |
 
 
 | 测试平台 | 测试blip_vqa模型                                 | calculate time(ms) |
@@ -147,6 +156,9 @@ bmrt_test --bmodel models/BM1684X/blip_itm_bm1684_f32_1b.bmodel
 | SE9-16  | BM1688/blip_vqa_venc_bm1688_f32_1b.bmodel       | 1090               |
 | SE9-16  | BM1688/blip_vqa_tenc_bm1688_f32_1b.bmodel       | 202                |
 | SE9-16  | BM1688/blip_vqa_tdec_bm1688_f32_1b.bmodel       | 101                |
+| SE13-64 | BM1684X2/blip_vqa_venc_bm1684x2_f16_1b.bmodel   | 66.94              |
+| SE13-64 | BM1684X2/blip_vqa_tenc_bm1684x2_f16_1b.bmodel   | 14.64              |
+| SE13-64 | BM1684X2/blip_vqa_tdec_bm1684x2_f16_1b.bmodel   | 26.06              |
 
 
 
@@ -172,6 +184,9 @@ bmrt_test --bmodel models/BM1684X/blip_itm_bm1684_f32_1b.bmodel
 | SRM1-20  | blip_cap.py | 67.74           | 394.40        |
 | SRM1-20  | blip_itm.py | 67.43           | 239.84        |
 | SRM1-20  | blip_vqa.py | 28.61           |  78.51        |
+| SE13-64  | blip_cap.py | 33.63           | 116.58        |
+| SE13-64  | blip_itm.py | 49.63           |  55.91        |
+| SE13-64  | blip_vqa.py | 17.10           |  41.90        |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性，实测结果与该表结果有误差属正常现象，建议取稳定后的性能数据、并多次测试取平均值。

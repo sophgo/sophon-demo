@@ -11,6 +11,7 @@ baseline = """
 | SE7-32   | zeroshot_predict.py | clip_image_vitb32_bm1684x_f16_1b.bmodel | clip_text_vitb32_bm1684x_f16_1b.bmodel | 12.17           | 9.63                | 18.90              |
 | SE9-16   | zeroshot_predict.py | clip_image_vitb32_bm1688_f16_1b.bmodel  | clip_text_vitb32_bm1688_f16_1b.bmodel  | 16.92           | 25.04               | 49.61              |
 | SE9-8    | zeroshot_predict.py | clip_image_vitb32_cv186x_f16_1b.bmodel  | clip_text_vitb32_cv186x_f16_1b.bmodel  | 17.09           | 30.59               | 59.56              |
+| SE13-64  | zeroshot_predict.py | clip_image_vitb32_bm1684x2_f16_1b.bmodel | clip_text_vitb32_bm1684x2_f16_1b.bmodel | 11.45           | 11.35               | 6.72               |
 """
 
 table_data = {
@@ -81,6 +82,8 @@ if __name__ == '__main__':
                 platform = "SE9-8"
         elif args.target == "CV186X":
             platform = "SE9-8"
+        elif args.target == "BM1684X2":
+            platform = "SE13-64"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
 

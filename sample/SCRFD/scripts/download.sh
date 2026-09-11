@@ -38,6 +38,16 @@ else
     echo "models exist!"
 fi
 
+# BM1684X2 bmodels (单独提供，models.zip 中未包含)
+if [ ! -d "../models/BM1684X2" ];
+then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SCRFD/BM1684X2.tar.gz
+    tar xvf BM1684X2.tar.gz -C ../models/ && rm BM1684X2.tar.gz
+    echo "models/BM1684X2 download!"
+else
+    echo "models/BM1684X2 exist!"
+fi
+
 # ground_truth
 if [ ! -d "../tools/ground_truth" ];
 then

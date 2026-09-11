@@ -41,6 +41,10 @@ then
     unzip CV186X.zip ../models/
     rm -r CV186X.zip
 
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv5/models/BM1684X2.tar.gz
+    tar xvf BM1684X2.tar.gz -C ../models/
+    rm BM1684X2.tar.gz
+
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."

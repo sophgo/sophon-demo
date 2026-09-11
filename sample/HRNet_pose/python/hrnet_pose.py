@@ -84,7 +84,8 @@ def save_coco_keypoints(keypoints, maxvals, image_name, box_score):
     res = {"image_id": image_id,
            "category_id": 1,  # person
            "keypoints": keypoints,
-           "score": box_score * k_score}
+           # np.float32 无法被标准库 json 序列化，此处显式转为 Python float
+           "score": float(box_score * k_score)}
     return res
 
 

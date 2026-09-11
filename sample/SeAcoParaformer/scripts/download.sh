@@ -24,6 +24,17 @@ else
     echo "models folder exist! Remove it if you need to update."
 fi
 
+# BM1684X2 models (SE13-64, BF16)
+if [ ! -d "../models/BM1684X2" ];
+then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SeAcoParaformer/models/BM1684X2.zip
+    unzip BM1684X2.zip -d ../models/
+    rm BM1684X2.zip
+    echo "BM1684X2 models download!"
+else
+    echo "BM1684X2 models folder exist! Remove it if you need to update."
+fi
+
 # cross_compile_module (from WeNet sample)
 if [ ! -d "../cpp/cross_compile_module" ];
 then

@@ -182,7 +182,12 @@ float* SuperPoint::get_cpu_data(bm_tensor_t* tensor, float scale){
     int ret = 0;
     float *pFP32 = NULL;
     int count = bmrt_shape_count(&tensor->shape);
-    if(misc_info.pcie_soc_mode == 1){ //soc
+    // BM1684X2 (chipid 0x1694): reading TPU outputs via
+    // bm_mem_mmap_device_mem + bm_mem_invalidate_device_mem returns stale
+    // cached data non-deterministically, corrupting results run-to-run.
+    // Fall back to bm_memcpy_d2s (correct, and no measurable cost here).
+    bool can_mmap = (misc_info.pcie_soc_mode == 1) && (misc_info.chipid != 0x1694u);
+    if(can_mmap){ //soc
         if (tensor->dtype == BM_FLOAT32) {
             unsigned long long addr;
             ret = bm_mem_mmap_device_mem(handle, &tensor->device_mem, &addr);
@@ -241,7 +246,7 @@ float* SuperPoint::get_cpu_data(bm_tensor_t* tensor, float scale){
         } else{
             std::cerr << "unsupport dtype: " << tensor->dtype << std::endl;
         }
-    } else { //pcie
+    } else { //pcie or BM1684X2 (mmap fallback to d2s)
         if (tensor->dtype == BM_FLOAT32) {
             pFP32 = new float[count];
             assert(pFP32 != nullptr);
@@ -385,7 +390,9 @@ int SuperPoint::postprocess(std::vector<bm_tensor_t>& output_tensors, torch::Ten
     descriptors = sample_descriptors(keypoints, descriptors, 8);
     descriptors = descriptors.squeeze(0);
 
-    if(misc_info.pcie_soc_mode == 1){ // soc
+    // keep consistent with get_cpu_data: on BM1684X2 the data was copied via
+    // d2s into heap buffers, so always free with delete[] there
+    if(misc_info.pcie_soc_mode == 1 && misc_info.chipid != 0x1694u){ // soc
         if(output_tensors_map["descriptors"].dtype != BM_FLOAT32){
             delete [] desc;
         } else {

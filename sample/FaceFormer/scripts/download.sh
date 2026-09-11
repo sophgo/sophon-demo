@@ -21,7 +21,7 @@ else
 fi
 
 # models
-if [ ! -d "../models" ]; 
+if [ ! -d "../models" ];
 then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/FaceFormer/models.zip
     unzip models.zip -d ../
@@ -29,6 +29,17 @@ then
     echo "models download!"
 else
     echo "Models folder exist! Remove it if you need to update."
+fi
+
+# BM1684X2 models
+if [ ! -d "../models/BM1684X2" ];
+then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/FaceFormer/models_260906/BM1684X2.zip
+    unzip BM1684X2.zip -d ../models/
+    rm BM1684X2.zip
+    echo "BM1684X2 models download!"
+else
+    echo "BM1684X2 models folder exist! Remove it if you need to update."
 fi
 
 if [ ! -d "../tools/wav2vec2-base-960h" ] || [ ! -d "../tools/vocaset" ];

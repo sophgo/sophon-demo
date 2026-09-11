@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==============================================================================
 # FunASR Nano-2512 F16 BModel 编译 (TPU-MLIR ≥ v1.28.1)
-# 在 TPU-MLIR 容器内运行: bash gen_fp16bmodel_mlir.sh [bm1688|bm1684x]
+# 在 TPU-MLIR 容器内运行: bash gen_fp16bmodel_mlir.sh [bm1688|bm1684x|bm1684x2]
 # 产物: funasr_encoder_f16_1b.bmodel, funasr_adapter_f16_1b.bmodel
 # ==============================================================================
 model_dir=$(dirname $(readlink -f "$0"))

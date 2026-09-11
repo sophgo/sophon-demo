@@ -24,7 +24,7 @@
   
 ## 1. 简介
 
-​SAM2是Meta基于SAM提出的一种实时图像和视频分割模型。SAM2适用于图像和视频。而SAM的先前版本是专门为图像使用而构建的。本例程对[​SAM2官方开源仓库](https://github.com/facebookresearch/segment-anything-2)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1688上进行推理测试。
+​SAM2是Meta基于SAM提出的一种实时图像和视频分割模型。SAM2适用于图像和视频。而SAM的先前版本是专门为图像使用而构建的。本例程对[​SAM2官方开源仓库](https://github.com/facebookresearch/segment-anything-2)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1684X2/BM1688上进行推理测试。
 
 ## 2. 特性
 ### 2.1 目录结构说明
@@ -53,9 +53,9 @@
 ```
 
 ### 2.2 SDK特性
-* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1688(SoC)
-* 图像编码器（Image Encoder）部分支持FP16、FP32的模型编译和推理，支持1core和2core(BM1688)
-* 图像解码器（Image Decoder）部分支持FP16、FP32的模型编译和推理，支持1core和2core(BM1688)
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684X2(SoC)、BM1688(SoC)
+* 图像编码器（Image Encoder）部分支持FP16、FP32的模型编译和推理，支持1core和2core(BM1688)；BM1684X2支持FP16的模型编译和推理
+* 图像解码器（Image Decoder）部分支持FP16、FP32的模型编译和推理，支持1core和2core(BM1688)；BM1684X2支持FP16的模型编译和推理
 * Memory attention部分支持FP16的模型编译和推理
 * Memory Encoder部分支持FP16的模型编译和推理
 * 支持基于OpenCV的Python推理
@@ -93,6 +93,18 @@ chmod -R +x scripts/
 │   │   ├── sam2_encoder_f16_1b.bmodel                     # encoder部分fp16 bmodel
 │   │   └── sam2_encoder_f32_1b.bmodel                     # encoder部分fp32 bmodel
 │   └── video
+│       |── sam2_image_encoder_no_pos.bmodel               # encoder部分fp16 bmodel
+│       ├── sam2_image_decoder.bmodel                      # decoder部分fp16 bmodel
+│       ├── sam2_memory_attention_nomatmul.bmodel          # encoder部分fp16 bmodel
+│       ├── sam2_memory_encoder.bmodel                     # encoder部分fp16 bmodel
+│       ├── pos.npz                                        # image encoder中的position encoding参数
+|       └── maskmem_pos_enc.npz                            # memory encoder中的position encoding参数
+├── BM1684X2
+|   ├── image_decoder
+|   |   └── sam2_decoder_f16_1b.bmodel                     # decoder部分fp16 bmodel
+|   ├── image_encoder
+|   |   └── sam2_encoder_f16_1b.bmodel                     # encoder部分fp16 bmodel
+|   └── video
 │       |── sam2_image_encoder_no_pos.bmodel               # encoder部分fp16 bmodel
 │       ├── sam2_image_decoder.bmodel                      # decoder部分fp16 bmodel
 │       ├── sam2_memory_attention_nomatmul.bmodel          # encoder部分fp16 bmodel
@@ -166,6 +178,14 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1688/image_encoder`下生成`sam2_encoder_f32_1b_1core.bmodel`和`sam2_encoder_f32_1b_2core.bmodel`,在`models/BM1688/image_decoder`下生成`sam2_decoder_f32_1b_1core.bmodel`及`sam2_decoder_f32_1b_2core.bmodel`文件，即BM1688平台转换好的图像编码和解码的单双核FP32 BModel。
 
+BM1684X2平台请使用：
+```bash
+./scripts/gen_bmodel_image.sh --chip bm1684x2 --mode f16
+```
+
+执行上述命令会在`models/BM1684X2/image_encoder`下生成`sam2_encoder_f16_1b.bmodel`，在`models/BM1684X2/image_decoder`下生成`sam2_decoder_f16_1b.bmodel`文件，即BM1684X2平台转换好的图像编码和解码的FP16 BModel。
+**注意：BM1684X2当前固件codegen不支持FP32（含matmul的模型编译时tpuc-opt断言失败），且INT8量化校准时TPU-MLIR解释器需同时驻留全部中间激活（峰值约28GB主机内存），常规环境会OOM被杀，BM1684X2请使用FP16 BModel。**
+
 #### 3.2.2 视频分割模型编译
 
 ```bash
@@ -173,6 +193,13 @@ chmod -R +x scripts/
 ```
 
 ​执行上述命令会在`models/BM1688/video`下生成sam2_image_encoder_no_pos.bmodel、sam2_image_decoder.bmodel、sam2_memory_attention_nomatmul.bmodel和sam2_memory_encoder.bmodel。
+
+BM1684X2平台请使用：
+```bash
+./scripts/gen_bmodel_video.sh --chip bm1684x2 --mode f16
+```
+
+执行上述命令会在`models/BM1684X2/video`下生成sam2_image_encoder_no_pos.bmodel、sam2_image_decoder.bmodel、sam2_memory_attention_nomatmul.bmodel和sam2_memory_encoder.bmodel。视频分割推理还需要pos.npz和maskmem_pos_enc.npz两个常量文件（下载脚本会一并下载到`models/BM1684X2/video`下）。
 
 ## 4. 例程测试
 ### [Python例程](./python/README.md)
@@ -202,6 +229,7 @@ python3 tools/eval.py --gt_path datasets/images/instances_val2017.json --res_pat
 | SE9-16       | sam2_image_opencv.py     | sam2_encoder_int8_1b_2core.bmodel| sam2_decoder_int8_1b_2core.bmodel|    0.44|
 | SRM1-20      | sam2_image_opencv.py     | sam2_encoder_f32_1b.bmodel       | sam2_decoder_f32_1b.bmodel      |    0.44|
 | SRM1-20      | sam2_image_opencv.py     | sam2_encoder_f16_1b.bmodel       | sam2_decoder_f16_1b.bmodel      |    0.44|
+| SE13-64      | sam2_image_opencv.py     | sam2_encoder_f16_1b.bmodel       | sam2_decoder_f16_1b.bmodel      |    0.45|
 
 ## 6. 性能测试
 **以下性能测试仅针对图像分割进行测试**
@@ -243,6 +271,12 @@ bmrt_test --bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel
 |   SE9-16      | BM1688/video/sam2_image_decoder.bmodel                     |          16.59     |
 |   SE9-16      | BM1688/video/sam2_memory_attention_nomatmul.bmodel         |        2468.28     |
 |   SE9-16      | BM1688/video/sam2_memory_encoder.bmodel                    |          26.29     |
+|   SE13-64     | BM1684X2/image_encoder/sam2_encoder_f16_1b.bmodel          |         153.43     |
+|   SE13-64     | BM1684X2/image_decoder/sam2_decoder_f16_1b.bmodel          |           5.63     |
+|   SE13-64     | BM1684X2/video/sam2_image_encoder_no_pos.bmodel            |         152.99     |
+|   SE13-64     | BM1684X2/video/sam2_image_decoder.bmodel                   |          23.48     |
+|   SE13-64     | BM1684X2/video/sam2_memory_attention_nomatmul.bmodel       |        2168.02     |
+|   SE13-64     | BM1684X2/video/sam2_memory_encoder.bmodel                  |          13.52     |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -266,7 +300,9 @@ bmrt_test --bmodel models/BM1688/image_encoder/sam2_encoder_f16_1b_2core.bmodel
 |   SE9-16    |  sam2_image_opencv.py   | sam2_encoder_int8_1b_2core.bmodel  | sam2_decoder_int8_1b_2core.bmodel  |     88.34     |     188.08      |      19.73      |      1.35       |
 |   SRM1-20   |  sam2_image_opencv.py   |    sam2_encoder_f32_1b.bmodel     |    sam2_decoder_f32_1b.bmodel     |      240.09     |     1299.50     |      116.50     |      5.19       |
 |   SRM1-20   |  sam2_image_opencv.py   |    sam2_encoder_f16_1b.bmodel     |    sam2_decoder_f16_1b.bmodel     |      251.30     |     473.61      |      91.98      |      4.19       |
+|   SE13-64   |  sam2_image_opencv.py   |    sam2_encoder_f16_1b.bmodel     |    sam2_decoder_f16_1b.bmodel     |      99.06      |     176.18      |      10.63      |      6.05       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
+> 3. SE13系列为BM1684X2平台，目前仅提供fp16 bmodel（fp32/int8编译受限，见3.2节说明）。

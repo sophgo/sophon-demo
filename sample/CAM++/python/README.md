@@ -40,4 +40,8 @@ usage: campplus.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 ```bash
 python3 python/campplus.py --dev_id 0 --bmodel models/BM1684X/campplus_bm1684x_fp32_1b.bmodel --input datasets/test
 ```
+BM1684X2平台（如SE13-64）上：
+```bash
+python3 python/campplus.py --dev_id 0 --bmodel models/BM1684X2/campplus_bm1684x2_fp32_1b.bmodel --input datasets/test
+```
 测试结束后，会打印推理时间等信息，并将计算结果保存在`./results`中。

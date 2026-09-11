@@ -98,11 +98,13 @@ usage: whisper.py wavfile/path [--model MODEL] [--bmodel_dir BMODEL_DIR] [--dev_
 测试单个语音文件
 ```bash
 python3 whisper.py ../datasets/test/demo.wav --model base --bmodel_dir ../models/BM1684X --dev_id 0  --output_dir ./result/ --output_format txt
+python3 whisper.py ../datasets/test/demo.wav --model base --bmodel_dir ../models/BM1684X2 --dev_id 0  --output_dir ./result/ --output_format txt  # BM1684X2
 ```
 
 测试语音数据集
 ```bash
 python3 whisper.py ../datasets/aishell_S0764/ --model base --bmodel_dir ../models/BM1684X --dev_id 0  --output_dir ./result/ --output_format txt
+python3 whisper.py ../datasets/aishell_S0764/ --model base --bmodel_dir ../models/BM1684X2 --dev_id 0 --output_dir ./result/ --output_format txt  # BM1684X2
 ```
 
 ## 3. 执行录屏

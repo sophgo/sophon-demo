@@ -64,6 +64,14 @@ baseline = """
 |    SE9-8    | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      0.78       |      5.79       |      7.00       |
 |    SE9-8    | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.23       |      1.06       |      7.02       |
 |    SE9-8    | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      0.78       |      2.06       |      6.97       |
+|   SE13-64   |deepsort_opencv.py |     extractor_fp16_1b.bmodel      |      3.01       |      1.39       |      26.51      |
+|   SE13-64   |deepsort_opencv.py |     extractor_fp16_4b.bmodel      |      3.06       |      0.87       |      27.22      |
+|   SE13-64   |deepsort_opencv.py |     extractor_int8_1b.bmodel      |      3.01       |      1.02       |      27.08      |
+|   SE13-64   |deepsort_opencv.py |     extractor_int8_4b.bmodel      |      3.04       |      0.63       |      26.14      |
+|   SE13-64   | deepsort_bmcv.soc |     extractor_fp16_1b.bmodel      |      0.20       |      0.90       |      5.11       |
+|   SE13-64   | deepsort_bmcv.soc |     extractor_fp16_4b.bmodel      |      0.57       |      2.04       |      5.29       |
+|   SE13-64   | deepsort_bmcv.soc |     extractor_int8_1b.bmodel      |      0.19       |      0.53       |      5.09       |
+|   SE13-64   | deepsort_bmcv.soc |     extractor_int8_4b.bmodel      |      0.55       |      1.22       |      5.15       |
 """
 table_data = {
     "platform": [],
@@ -136,6 +144,8 @@ if __name__ == '__main__':
                 platform = "SE9-8"
         elif args.target == "CV186X":
             platform = "SE9-8"
+        elif args.target == "BM1684X2":
+            platform = "SE13-64"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 17

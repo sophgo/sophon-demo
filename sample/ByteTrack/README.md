@@ -54,6 +54,11 @@ chmod -R +x scripts/
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的INT8 BModel，batch_size=1
 │   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1684X2
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X2的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X2的FP16 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X2的INT8 BModel，batch_size=1
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 从YOLOv5例程中获取，用于BM1684X2的INT8 BModel，batch_size=4
 │── BM1688
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # 从YOLOv5例程中获取，用于BM1688的FP16 BModel，batch_size=1, num_core=1
 │   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # 从YOLOv5例程中获取，用于BM1688的FP32 BModel，batch_size=1, num_core=1
@@ -139,12 +144,22 @@ acc         525  0.602846  0.733543  0.511679  0.614893  0.881511  5009  10  12 
 | SE9-8       | bytetrack_eigen.soc   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.524 |
 | SE9-8       | bytetrack_eigen.soc   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.524 |
 | SE9-8       | bytetrack_eigen.soc   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.491 |
+| SE13-64     | bytetrack_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.516 |
+| SE13-64     | bytetrack_opencv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.516 |
+| SE13-64     | bytetrack_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.485 |
+| SE13-64     | bytetrack_opencv.soc  | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.524 |
+| SE13-64     | bytetrack_opencv.soc  | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.524 |
+| SE13-64     | bytetrack_opencv.soc  | yolov5s_v6.1_3output_int8_1b.bmodel | 0.500 |
+| SE13-64     | bytetrack_eigen.soc   | yolov5s_v6.1_3output_fp32_1b.bmodel | 0.524 |
+| SE13-64     | bytetrack_eigen.soc   | yolov5s_v6.1_3output_fp16_1b.bmodel | 0.524 |
+| SE13-64     | bytetrack_eigen.soc   | yolov5s_v6.1_3output_int8_1b.bmodel | 0.500 |
 
 > **测试说明**：
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
-> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9-16对应BM1688，SE9-8对应CV186X；
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应BM1684X2；
 > 4. BM1688 num_core=2的模型与num_core=1的模型精度基本一致；
+> 5. BM1684X2 的INT8模型精度（MOTA 0.485/0.500）低于其他平台（0.526/0.538），为该芯片INT8量化精度差异所致，batch_size=1和batch_size=4的模型精度一致；
 
 
 ## 7. 性能测试
@@ -215,11 +230,23 @@ acc         525  0.602846  0.733543  0.511679  0.614893  0.881511  5009  10  12 
 |    SE9-8    |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_fp16_1b.bmodel|      0.48       |
 |    SE9-8    |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_int8_1b.bmodel|      0.46       |
 |    SE9-8    |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_int8_4b.bmodel|      0.47       |
+|   SE13-64   |   bytetrack_opencv.py   |yolov5s_v6.1_3output_fp32_1b.bmodel|      7.36       |
+|   SE13-64   |   bytetrack_opencv.py   |yolov5s_v6.1_3output_fp16_1b.bmodel|      7.36       |
+|   SE13-64   |   bytetrack_opencv.py   |yolov5s_v6.1_3output_int8_1b.bmodel|      6.79       |
+|   SE13-64   |   bytetrack_opencv.py   |yolov5s_v6.1_3output_int8_4b.bmodel|      6.48       |
+|   SE13-64   |   bytetrack_opencv.soc  |yolov5s_v6.1_3output_fp32_1b.bmodel|      0.82       |
+|   SE13-64   |   bytetrack_opencv.soc  |yolov5s_v6.1_3output_fp16_1b.bmodel|      0.83       |
+|   SE13-64   |   bytetrack_opencv.soc  |yolov5s_v6.1_3output_int8_1b.bmodel|      0.78       |
+|   SE13-64   |   bytetrack_opencv.soc  |yolov5s_v6.1_3output_int8_4b.bmodel|      0.71       |
+|   SE13-64   |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_fp32_1b.bmodel|      0.45       |
+|   SE13-64   |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_fp16_1b.bmodel|      0.44       |
+|   SE13-64   |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_int8_1b.bmodel|      0.43       |
+|   SE13-64   |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_int8_4b.bmodel|      0.42       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz,PCIe上的性能由于处理器的不同可能存在较大差异；
+> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，SE13-64为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 
 

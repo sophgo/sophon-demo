@@ -72,6 +72,22 @@ baseline = """
 |    SE9-8    |     wenet.py      | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      4.40       |      10.97      |      38.89      |      4.68       |
 |    SE9-8    |     wenet.soc     |               wenet_encoder_non_streaming_fp16.bmodel                |      35.91      |      9.48       |      none       |      0.49       |
 |    SE9-8    |     wenet.soc     | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      36.67      |      9.49       |      38.42      |      0.63       |
+|   SE13-64    |     wenet.py      |                 wenet_encoder_streaming_fp16.bmodel                  |      16.48       |      8.88       |      none       |      12.36      |
+|   SE13-64    |     wenet.py      |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      12.15       |      8.86       |      13.26      |      14.61      |
+|   SE13-64    |     wenet.soc     |                 wenet_encoder_streaming_fp16.bmodel                  |      19.90       |      5.38       |      none       |      4.15       |
+|   SE13-64    |     wenet.soc     |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      20.85       |      5.33       |      13.14      |      2.84       |
+|   SE13-64    |     wenet.py      |                 wenet_encoder_streaming_int8.bmodel                  |      16.02       |      7.22       |      none       |      12.22      |
+|   SE13-64    |     wenet.py      |   wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |      12.63       |      7.24       |      10.76      |      14.64      |
+|   SE13-64    |     wenet.soc     |                 wenet_encoder_streaming_int8.bmodel                  |      19.93       |      3.74       |      none       |      4.65       |
+|   SE13-64    |     wenet.soc     |   wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |      20.81       |      3.72       |      10.65      |      3.78       |
+|   SE13-64    |     wenet.py      |               wenet_encoder_non_streaming_fp16.bmodel                |      16.32       |      4.03       |      none       |      2.32       |
+|   SE13-64    |     wenet.py      | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      11.51       |      4.01       |      13.27      |      4.75       |
+|   SE13-64    |     wenet.soc     |               wenet_encoder_non_streaming_fp16.bmodel                |      19.96       |      3.49       |      none       |      0.82       |
+|   SE13-64    |     wenet.soc     | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      20.89       |      3.49       |      13.15      |      1.12       |
+|   SE13-64    |     wenet.py      |               wenet_encoder_non_streaming_int8.bmodel                |      15.33       |      2.69       |      none       |      2.29       |
+|   SE13-64    |     wenet.py      | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel  |      11.66       |      2.68       |      10.76      |      4.74       |
+|   SE13-64    |     wenet.soc     |               wenet_encoder_non_streaming_int8.bmodel                |      19.86       |      2.16       |      none       |      1.32       |
+|   SE13-64    |     wenet.soc     | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel  |      20.76       |      2.16       |      10.66      |      1.77       |
 
 """
 
@@ -154,6 +170,8 @@ if __name__ == '__main__':
                 platform = "SE9-8"
         elif args.target == "CV186X":
             platform = "SE9-8"
+        elif args.target == "BM1684X2":
+            platform = "SE13-64"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 17

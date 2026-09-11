@@ -25,13 +25,59 @@
 #include <filesystem>
 #include <stdexcept>
 
-void CLIP::init(const std::string& image_model, const std::string& text_model, const int &dev_id, 
+// ---------------------------------------------------------------------------
+// bm1684x2 (SoC) SYSIO-style launch helper
+// ---------------------------------------------------------------------------
+// On bm1684x2 the load-time stage mems of a static net are pseudo addresses,
+// so s2d/d2s on net->stages[0].*_mems fails. Launch the way python
+// sail.Engine(SYSIO).process() does: malloc an exact-size input mem, s2d,
+// bmrt_launch_tensor_ex with user_mem=false so the runtime allocates the
+// real output mems, sync, d2s the outputs back, then free both. Guarded by
+// SKIP_SYSIO_LAUNCH (only the soc build for bm1684x2 defines it).
+#ifdef SKIP_SYSIO_LAUNCH
+extern "C" bool bmrt_free_device(void* p_bmrt, bm_device_mem_t mem);
+
+static std::vector<float> launch_sysio(bm_handle_t handle, void* p_bmrt,
+                                       const bm_net_info_t* net,
+                                       const void* host_data, int num_dims,
+                                       const int* dims, bm_data_type_t dtype,
+                                       size_t elem_size, uint64_t out_count) {
+    // single-input, single-output nets (both CLIP encoders are)
+    bm_tensor_t input, output;
+    int in_count = 1;
+    for (int d = 0; d < num_dims; d++) in_count *= dims[d];
+
+    bm_device_mem_t mem;
+    int ret = bm_malloc_device_byte(handle, &mem,
+                                    (unsigned long long)in_count * elem_size);
+    assert(ret == BM_SUCCESS);
+    bm_memcpy_s2d(handle, mem, (void*)host_data);
+    bm_shape_t in_shape;
+    in_shape.num_dims = num_dims;
+    for (int d = 0; d < num_dims; d++) in_shape.dims[d] = dims[d];
+    bmrt_tensor_with_device(&input, mem, dtype, in_shape);
+
+    bool ok = bmrt_launch_tensor_ex(p_bmrt, net->name, &input, 1, &output, 1,
+                                    false, false);
+    assert(ok);
+    bm_thread_sync(handle);
+    bm_free_device(handle, input.device_mem);
+
+    std::vector<float> out(out_count, 0.f);
+    bm_memcpy_d2s_partial(handle, out.data(), output.device_mem,
+                          out_count * sizeof(float));
+    bmrt_free_device(p_bmrt, output.device_mem);
+    return out;
+}
+#endif
+
+void CLIP::init(const std::string& image_model, const std::string& text_model, const int &dev_id,
                 const std::string text_projection_path, const std::string clip_type_name) {
     bm_status_t status = bm_dev_request(&bm_handle, dev_id);
     assert(BM_SUCCESS == status);
     std::cout << "set device id: " << dev_id << std::endl;
     // Create bmruntime for text model
-    p_bmrt_text = bmrt_create(bm_handle); 
+    p_bmrt_text = bmrt_create(bm_handle);
     assert(NULL != p_bmrt_text);
     bmrt_set_flags(p_bmrt_text, BM_RUNTIME_SHARE_MEM);
     // Load text model by file
@@ -41,7 +87,7 @@ void CLIP::init(const std::string& image_model, const std::string& text_model, c
     printf("Text Model Done!\n");
 
     // Create bmruntime for image model
-    p_bmrt_image = bmrt_create(bm_handle); 
+    p_bmrt_image = bmrt_create(bm_handle);
     assert(NULL != p_bmrt_image);
     bmrt_set_flags(p_bmrt_image, BM_RUNTIME_SHARE_MEM);
     // Load image model by file
@@ -110,7 +156,7 @@ void CLIP::deinit() {
     bm_dev_free(bm_handle);
     // 替换 text_projection.clear(); 为调整维度为0×0
     text_projection.resize(0, 0);
-    
+
     if (image_name) {
         free(image_name);
         image_name = nullptr;
@@ -120,7 +166,7 @@ void CLIP::deinit() {
         free(text_name);
         text_name = nullptr;
     }
-    
+
     encode_image_time = 0.0;
     encode_text_time = 0.0;
     preprocess_time = 0.0;
@@ -146,12 +192,12 @@ std::pair<std::vector<float>, std::vector<int>> CLIP::topk(const std::vector<flo
     return {values, std::vector<int>(indices.begin(), indices.begin() + k)};
 }
 
-std::tuple<cv::Mat, std::pair<float, float>, std::pair<float, float>> CLIP:: letterbox(const cv::Mat& im, 
-    const cv::Size& new_shape, 
-    const cv::Scalar& color, 
-    bool auto_pad, 
-    bool scaleFill, 
-    bool scaleup, 
+std::tuple<cv::Mat, std::pair<float, float>, std::pair<float, float>> CLIP:: letterbox(const cv::Mat& im,
+    const cv::Size& new_shape,
+    const cv::Scalar& color,
+    bool auto_pad,
+    bool scaleFill,
+    bool scaleup,
     int stride) {
     cv::Size shape = im.size(); // [width, height]
     float r = std::min(static_cast<float>(new_shape.height) / shape.height, static_cast<float>(new_shape.width) / shape.width);
@@ -162,7 +208,7 @@ std::tuple<cv::Mat, std::pair<float, float>, std::pair<float, float>> CLIP:: let
     cv::Size new_unpad(static_cast<int>(round(shape.width * r)), static_cast<int>(round(shape.height * r)));
     float dw = new_shape.width - new_unpad.width;
     float dh = new_shape.height - new_unpad.height;
-    
+
     if (auto_pad) {
         dw = std::fmod(dw, stride);
         dh = std::fmod(dh, stride);
@@ -187,7 +233,7 @@ std::tuple<cv::Mat, std::pair<float, float>, std::pair<float, float>> CLIP:: let
     int bottom = static_cast<int>(round(dh + 0.1));
     int left = static_cast<int>(round(dw - 0.1));
     int right = static_cast<int>(round(dw + 0.1));
-    
+
     cv::Mat letterboxed_img;
     cv::copyMakeBorder(resized_img, letterboxed_img, top, bottom, left, right, cv::BORDER_CONSTANT, color);
 
@@ -227,7 +273,7 @@ cv::Mat CLIP::mobile_clip_preprocess(const cv::Mat& image) {
     cv::Size new_shape(image_resolution, image_resolution);
     cv::Mat resized_image;
     cv::resize(image, resized_image, new_shape, 0, 0, cv::INTER_CUBIC);
-   
+
     // Convert to RGB and normalize
     cv::Mat rgb_image;
     cv::cvtColor(resized_image, rgb_image, cv::COLOR_BGR2RGB);
@@ -260,11 +306,14 @@ std::vector<float> CLIP::preprocess(const cv::Mat& image) {
 std::vector<float> CLIP::encode_image(const std::vector<float>& image) {
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    auto &in0_mem = image_net->stages[0].input_mems[0];
-    auto &out_mem = image_net->stages[0].output_mems[0];
     uint64_t in_shape = bmrt_shape_count(image_net_input_shape);
     uint64_t out_shape = bmrt_shape_count(image_net_output_shape);
-    
+    std::vector<float> output_data;
+
+#ifndef SKIP_SYSIO_LAUNCH
+    auto &in0_mem = image_net->stages[0].input_mems[0];
+    auto &out_mem = image_net->stages[0].output_mems[0];
+
     auto ret =  bm_memcpy_s2d_partial(bm_handle, in0_mem, (void*)image.data(), in_shape * sizeof(float));
     if (ret != BM_SUCCESS) {
         throw std::runtime_error("BMRuntime 操作失败");
@@ -273,23 +322,35 @@ std::vector<float> CLIP::encode_image(const std::vector<float>& image) {
     size_t batch_size = 1;
     size_t total_size = out_shape * batch_size;
 
-    std::vector<float> output_data(out_shape, 0);
+    output_data.resize(out_shape, 0);
     ret =  bm_memcpy_d2s_partial(bm_handle, output_data.data(), out_mem, output_data.size() * sizeof(float));
     if (ret != BM_SUCCESS) {
         throw std::runtime_error("BMRuntime 操作失败");
     }
+#else
+    // bm1684x2 (SoC): load-time stage mems are pseudo addresses; launch the
+    // sail-SYSIO way instead (runtime allocates the real output mem).
+    (void)in_shape;
+    output_data = launch_sysio(bm_handle, p_bmrt_image, image_net, image.data(),
+                               image_net_input_shape->num_dims,
+                               image_net_input_shape->dims, BM_FLOAT32,
+                               sizeof(float), out_shape);
+#endif
     normalize(output_data);
     encode_image_time += std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - start_time).count();
-    
+
     return output_data;
 }
 
 std::vector<float> CLIP::encode_text(const std::vector<int>& text) {
     auto start_time = std::chrono::high_resolution_clock::now();
+    uint64_t out_shape = bmrt_shape_count(text_net_output_shape);
+    std::vector<float> output_data;
+
+#ifndef SKIP_SYSIO_LAUNCH
     auto &in0_mem = text_net->stages[0].input_mems[0];
     auto &out_mem = text_net->stages[0].output_mems[0];
     uint64_t in_shape = bmrt_shape_count(text_net_input_shape);
-    uint64_t out_shape = bmrt_shape_count(text_net_output_shape);
 
     auto ret = bm_memcpy_s2d_partial(bm_handle, in0_mem, (void*)text.data(), text.size() * sizeof(int));
     if (ret != BM_SUCCESS) {
@@ -298,17 +359,24 @@ std::vector<float> CLIP::encode_text(const std::vector<int>& text) {
 
     net_launch(text_net, p_bmrt_text);
 
-    std::vector<float> output_data(out_shape, 0);
+    output_data.resize(out_shape, 0);
     ret = bm_memcpy_d2s_partial(bm_handle, output_data.data(), out_mem, output_data.size() * sizeof(float));
     if (ret != BM_SUCCESS) {
         throw std::runtime_error("BMRuntime 操作失败");
     }
+#else
+    // bm1684x2 (SoC): see encode_image.
+    output_data = launch_sysio(bm_handle, p_bmrt_text, text_net, text.data(),
+                               text_net_input_shape->num_dims,
+                               text_net_input_shape->dims, BM_INT32,
+                               sizeof(int32_t), out_shape);
+#endif
 
     std::vector<float> result(embed_dim, 0.0f);
     auto maxIt = std::max_element(text.begin(), text.end());
     int max_index = std::distance(text.begin(), maxIt);
     int row_start_index = max_index * 512;
-    std::vector<float> extracted_row(output_data.begin() + row_start_index, 
+    std::vector<float> extracted_row(output_data.begin() + row_start_index,
                                     output_data.begin() + row_start_index + 512);
 
     Eigen::Map<Eigen::RowVectorXf> extracted_row_eigen(extracted_row.data(), extracted_row.size());
@@ -373,7 +441,7 @@ void CLIP::net_launch(const bm_net_info_t *net, void *p_bmrt) {
     auto ret = bmrt_launch_tensor_ex(p_bmrt, net->name, input_tensors,
                                       net->input_num, output_tensors,
                                       net->output_num, true, false);
-                                      
+
     assert(ret);
     bm_thread_sync(bm_handle);
 }

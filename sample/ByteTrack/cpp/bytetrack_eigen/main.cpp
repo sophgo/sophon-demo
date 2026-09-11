@@ -105,6 +105,17 @@ void getAllFiles(string path, vector<string>& files,
     else if (ptr->d_type == 4) {
       // files.push_back(ptr->d_name);//dir
       getAllFiles(path + "/" + ptr->d_name, files, correct_postfixes);
+    } else if (ptr->d_type == 0) {
+      // DT_UNKNOWN: some filesystems don't fill d_type, fall back to stat()
+      struct stat st;
+      string full_path = path + "/" + ptr->d_name;
+      if (stat(full_path.c_str(), &st) == 0) {
+        if (S_ISDIR(st.st_mode))
+          getAllFiles(full_path, files, correct_postfixes);
+        else if (S_ISREG(st.st_mode) &&
+                 check_path(full_path, correct_postfixes))
+          files.push_back(full_path);
+      }
     }
   }
   closedir(dir);

@@ -13,7 +13,7 @@ CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_test|soc_build] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -d TPUID] [-s SOCSDK] [-a SAIL_PATH] [ -c fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_test|soc_build] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688|CV186X] [ -d TPUID] [-s SOCSDK] [-a SAIL_PATH] [ -c fully|partly]" 1>&2
 }
  
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -70,6 +70,8 @@ if test $MODE = "soc_test"; then
     fi
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
+  elif test $TARGET = "BM1684X2"; then
+    PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
   fi
@@ -120,6 +122,14 @@ function bmrt_test_benchmark(){
       bmrt_test_case CV186X/wenet_encoder_streaming_fp16.bmodel
       bmrt_test_case CV186X/wenet_encoder_non_streaming_fp16.bmodel
       bmrt_test_case CV186X/wenet_decoder_fp16.bmodel
+    elif test $TARGET = "BM1684X2"; then
+      # BM1684X2当前固件codegen不支持FP32，只有FP16/INT8模型
+      bmrt_test_case BM1684X2/wenet_encoder_streaming_fp16.bmodel
+      bmrt_test_case BM1684X2/wenet_encoder_non_streaming_fp16.bmodel
+      bmrt_test_case BM1684X2/wenet_decoder_fp16.bmodel
+      bmrt_test_case BM1684X2/wenet_encoder_streaming_int8.bmodel
+      bmrt_test_case BM1684X2/wenet_encoder_non_streaming_int8.bmodel
+      bmrt_test_case BM1684X2/wenet_decoder_int8.bmodel
     fi
   
     popd
@@ -145,10 +155,18 @@ function download()
  
 function compile_mlir()
 {
-  ./scripts/gen_fp32bmodel_mlir.sh $TARGET
-  judge_ret $? "generate $TARGET fp32bmodel" 0
+  if test $TARGET != "BM1684X2"; then
+    ./scripts/gen_fp32bmodel_mlir.sh $TARGET
+    judge_ret $? "generate $TARGET fp32bmodel" 0
+  else
+    echo "Skip fp32bmodel: BM1684X2当前固件codegen不支持FP32"
+  fi
   ./scripts/gen_fp16bmodel_mlir.sh $TARGET
   judge_ret $? "generate $TARGET fp16bmodel" 0
+  if test $TARGET = "BM1684X2"; then
+    ./scripts/gen_int8bmodel_mlir.sh $TARGET
+    judge_ret $? "generate $TARGET int8bmodel" 0
+  fi
 }
 
 function build_pcie()
@@ -405,6 +423,28 @@ then
     eval_python wenet_encoder_non_streaming_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 2.77
     eval_cpp soc wenet_encoder_non_streaming_fp16.bmodel ctc_prefix_beam_search . 2.02
     eval_cpp soc wenet_encoder_non_streaming_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 2.77
+  elif test $TARGET = "BM1684X2"
+  then
+    # BM1684X2当前固件codegen不支持FP32，只测FP16/INT8
+    eval_python wenet_encoder_streaming_fp16.bmodel ctc_prefix_beam_search . 2.70
+    eval_python wenet_encoder_streaming_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 1.87
+    eval_cpp soc wenet_encoder_streaming_fp16.bmodel ctc_prefix_beam_search . 2.55
+    eval_cpp soc wenet_encoder_streaming_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 1.87
+
+    eval_python wenet_encoder_streaming_int8.bmodel ctc_prefix_beam_search . 2.77
+    eval_python wenet_encoder_streaming_int8.bmodel attention_rescoring wenet_decoder_int8.bmodel 2.10
+    eval_cpp soc wenet_encoder_streaming_int8.bmodel ctc_prefix_beam_search . 2.92
+    eval_cpp soc wenet_encoder_streaming_int8.bmodel attention_rescoring wenet_decoder_int8.bmodel 2.02
+
+    eval_python wenet_encoder_non_streaming_fp16.bmodel ctc_prefix_beam_search . 2.02
+    eval_python wenet_encoder_non_streaming_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 1.65
+    eval_cpp soc wenet_encoder_non_streaming_fp16.bmodel ctc_prefix_beam_search . 2.02
+    eval_cpp soc wenet_encoder_non_streaming_fp16.bmodel attention_rescoring wenet_decoder_fp16.bmodel 1.65
+
+    eval_python wenet_encoder_non_streaming_int8.bmodel ctc_prefix_beam_search . 2.40
+    eval_python wenet_encoder_non_streaming_int8.bmodel attention_rescoring wenet_decoder_int8.bmodel 1.65
+    eval_cpp soc wenet_encoder_non_streaming_int8.bmodel ctc_prefix_beam_search . 2.55
+    eval_cpp soc wenet_encoder_non_streaming_int8.bmodel attention_rescoring wenet_decoder_int8.bmodel 1.65
   fi
 fi
 

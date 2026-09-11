@@ -51,6 +51,10 @@ baseline = """
 |   SE9-16    |slowfast_opencv.soc|slowfast_bm1688_fp16_4b_2core.bmodel|     119.55      |     173.87      |     193.42      |      0.56       |
 |   SE9-16    |slowfast_opencv.soc|slowfast_bm1688_int8_1b_2core.bmodel|     117.10      |     173.77      |      52.90      |      0.59       |
 |   SE9-16    |slowfast_opencv.soc|slowfast_bm1688_int8_4b_2core.bmodel|     118.87      |     173.69      |      50.75      |      0.56       |
+|   SE13-64   |slowfast_opencv.py |slowfast_bm1684x2_fp16_1b.bmodel|      92.88      |     568.59      |     172.26      |      0.35       |
+|   SE13-64   |slowfast_opencv.py |slowfast_bm1684x2_fp16_4b.bmodel|      91.46      |     591.74      |     200.33      |      0.18       |
+|   SE13-64   |slowfast_opencv.soc|slowfast_bm1684x2_fp16_1b.bmodel|      91.00      |     110.59      |     140.34      |      0.51       |
+|   SE13-64   |slowfast_opencv.soc|slowfast_bm1684x2_fp16_4b.bmodel|      79.15      |     109.85      |     138.30      |      0.48       |
 """
 table_data = {
     "platform": [],
@@ -123,6 +127,8 @@ if __name__ == '__main__':
             platform = "SE9-16"
         elif args.target == "CV186X":
             platform = "SE9-8"
+        elif args.target == "BM1684X2":
+            platform = "SE13-64"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 17

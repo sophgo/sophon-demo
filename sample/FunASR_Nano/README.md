@@ -41,8 +41,8 @@ WAV (16kHz) → FBank (80维, 25ms/10ms) → LFR (7帧拼接, ×6下采样)
 
 ## 2. 特性
 
-- 支持 BM1688 SoC
-- 支持 F16、FP32 模型编译和推理
+- 支持 BM1688 SoC、BM1684X2 SoC
+- 支持 F16、FP32 模型编译和推理（BM1684X2 当前固件不支持 FP32 codegen，仅 F16）
 - 编码器+适配器运行在 TPU，LLM 解码器运行在 CPU
 - FBank 特征提取 + LFR + CMVN 预处理
 - 31 种语言语音识别（中文、英文、日文等）
@@ -97,8 +97,9 @@ TPU-MLIR 环境准备参考 [TPU-MLIR 环境搭建](../../docs/Environment_Insta
 
 ```bash
 cd scripts
-bash gen_fp16bmodel_mlir.sh       # F16（推荐）
+bash gen_fp16bmodel_mlir.sh       # F16（推荐，BM1688）
 bash gen_fp16bmodel_mlir.sh bm1684x   # BM1684X 版本
+bash gen_fp16bmodel_mlir.sh bm1684x2  # BM1684X2 版本（仅 F16，固件不支持 FP32）
 ```
 
 编译产物：
@@ -156,11 +157,16 @@ bmrt_test --bmodel models/BM1688/funasr_adapter_f16_1b.bmodel --devid 0
 | SE9-16 | BM1688/funasr_adapter_f16_1b.bmodel | 5.8 |
 | SE9-16 | BM1688/funasr_encoder_f32_1b.bmodel | 677.9 |
 | SE9-16 | BM1688/funasr_adapter_f32_1b.bmodel | 31.1 |
+| SE13-64 | BM1684X2/funasr_encoder_f16_1b.bmodel | 43.4 |
+| SE13-64 | BM1684X2/funasr_adapter_f16_1b.bmodel | 2.4 |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性；
 > 2. calculate time 为单次 TPU 推理耗时，不含数据搬运；
-> 3. 单 batch 模型无需折算 batch size。
+> 3. 单 batch 模型无需折算 batch size；
+> 4. SE13-64 对应 BM1684X2，仅 F16（固件不支持 FP32）。SE13-64 编码器/适配器 TPU 推理可正常工作；
+>    但 SE13-64 板端可用 RAM 仅约 2GB，加载 FunASR AutoModel（含 Qwen3-0.6B LLM）会 OOM，
+>    端到端 LLM 解码需在 x86 主机上进行（同 SE9 限制，见 §7.2 与 FAQ Q4）。
 
 ### 7.2 程序运行性能
 
@@ -174,9 +180,11 @@ bmrt_test --bmodel models/BM1688/funasr_adapter_f16_1b.bmodel --devid 0
 > **测试说明**：
 > 1. preprocess_time 为 FBank+LFR 特征提取耗时（单次，含 WAV 解码）；
 > 2. encoder/adapter_time 为 10 次循环平均的纯 TPU 推理耗时；
-> 3. llm_time 为 Qwen3-0.6B 在 x86 CPU 上的 decode 耗时（SE9 内存不足无法运行）；
+> 3. llm_time 为 Qwen3-0.6B 在 x86 CPU 上的 decode 耗时（SE9/SE13-64 内存不足无法运行）；
 > 4. F16 encoder 比 F32 快 6.3x（107.2ms vs 678.8ms）；
-> 5. 性能测试结果具有一定的波动性，建议多次测试取平均值。
+> 5. 性能测试结果具有一定的波动性，建议多次测试取平均值；
+> 6. SE13-64(BM1684X2) 板端 RAM 仅约 2GB，无法加载完整 FunASR AutoModel（含 Qwen3-0.6B LLM），
+>    故未给出 SE13-64 的端到端程序运行性能；SE13-64 的编码器/适配器纯 TPU 推理性能见 §7.1 bmrt_test。
 
 ## 8. FAQ
 

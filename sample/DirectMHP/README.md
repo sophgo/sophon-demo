@@ -18,11 +18,11 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-​​DirectMHP 是一种新颖的单级端到端网络，专注于全范围的多人头部姿势估计，通过联合回归位置和方向来直接预测图像中所有人类头部的姿势。本例程对[​DirectMHP官方开源仓库](https://github.com/hnuzhy/DirectMHP)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1688/CV186X上进行推理测试。
+​​DirectMHP 是一种新颖的单级端到端网络，专注于全范围的多人头部姿势估计，通过联合回归位置和方向来直接预测图像中所有人类头部的姿势。本例程对[​DirectMHP官方开源仓库](https://github.com/hnuzhy/DirectMHP)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1684X2/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)
-* 支持FP32、FP16、INT8(BM1684X/BM1688/CV186X)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684X2(SoC)
+* 支持FP32、FP16、INT8(BM1684X/BM1684X2/BM1688/CV186X)
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -52,6 +52,10 @@ chmod -R +x scripts/
 │   ├── directmhp_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
 │   ├── directmhp_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   └── directmhp_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
+├── BM1684X2 # 在BM1684X2上运行的模型
+│   ├── directmhp_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的FP32 BModel，batch_size=1
+│   ├── directmhp_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
+│   └── directmhp_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=1
 ├── BM1688
 │   ├── directmhp_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=1
 │   ├── directmhp_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=1
@@ -89,7 +93,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -99,7 +103,7 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -109,7 +113,7 @@ chmod -R +x scripts/
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -145,6 +149,15 @@ python3 tools/eval.py --gt_path datasets/coco/coco_style_sampled_val.json --resu
 | SE7-32       | directmhp_bmcv.soc        | directmhp_fp32_1b.bmodel                 |    0.858 |    8.712 |
 | SE7-32       | directmhp_bmcv.soc        | directmhp_fp16_1b.bmodel                 |    0.859 |    8.710 |
 | SE7-32       | directmhp_bmcv.soc        | directmhp_int8_1b.bmodel                 |    0.823 |    9.085 |
+| SE13-64      | directmhp_opencv.py       | directmhp_fp32_1b.bmodel                 |    0.856 |    8.706 |
+| SE13-64      | directmhp_opencv.py       | directmhp_fp16_1b.bmodel                 |    0.857 |    8.697 |
+| SE13-64      | directmhp_opencv.py       | directmhp_int8_1b.bmodel                 |    0.820 |    9.137 |
+| SE13-64      | directmhp_bmcv.py         | directmhp_fp32_1b.bmodel                 |    0.856 |    8.758 |
+| SE13-64      | directmhp_bmcv.py         | directmhp_fp16_1b.bmodel                 |    0.855 |    8.751 |
+| SE13-64      | directmhp_bmcv.py         | directmhp_int8_1b.bmodel                 |    0.825 |    9.104 |
+| SE13-64      | directmhp_bmcv.soc        | directmhp_fp32_1b.bmodel                 |    0.858 |    8.712 |
+| SE13-64      | directmhp_bmcv.soc        | directmhp_fp16_1b.bmodel                 |    0.859 |    8.710 |
+| SE13-64      | directmhp_bmcv.soc        | directmhp_int8_1b.bmodel                 |    0.823 |    9.085 |
 | SE9-16       | directmhp_opencv.py       | directmhp_fp32_1b.bmodel                 |    0.856 |    8.706 |
 | SE9-16       | directmhp_opencv.py       | directmhp_fp16_1b.bmodel                 |    0.857 |    8.698 |
 | SE9-16       | directmhp_opencv.py       | directmhp_int8_1b.bmodel                 |    0.820 |    9.137 |
@@ -180,7 +193,7 @@ python3 tools/eval.py --gt_path datasets/coco/coco_style_sampled_val.json --resu
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标。
-> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X，SE13系列对应BM1684X2，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
 
 
 ## 7. 性能测试
@@ -198,6 +211,9 @@ bmrt_test --bmodel models/BM1684X/directmhp_fp32_1b.bmodel
 |   SE7-32    | BM1684X/directmhp_fp32_1b.bmodel     |         84.34     |
 |   SE7-32    | BM1684X/directmhp_fp16_1b.bmodel     |         23.48     |
 |   SE7-32    | BM1684X/directmhp_int8_1b.bmodel     |         12.83     |
+|   SE13-64    | BM1684X2/directmhp_fp32_1b.bmodel    |        265.91     |
+|   SE13-64    | BM1684X2/directmhp_fp16_1b.bmodel    |         47.91     |
+|   SE13-64    | BM1684X2/directmhp_int8_1b.bmodel    |         31.57     |
 |   SE9-16    | BM1688/directmhp_fp32_1b.bmodel      |         407.81    |
 |   SE9-16    | BM1688/directmhp_fp16_1b.bmodel      |         107.39    |
 |   SE9-16    | BM1688/directmhp_int8_1b.bmodel      |          24.64    |
@@ -230,6 +246,12 @@ bmrt_test --bmodel models/BM1684X/directmhp_fp32_1b.bmodel
 |   SE7-32    |directmhp_bmcv.soc |     directmhp_fp32_1b.bmodel      |      9.95       |      4.06       |      84.32      |      2.74       |
 |   SE7-32    |directmhp_bmcv.soc |     directmhp_fp16_1b.bmodel      |      9.90       |      4.06       |      23.43      |      2.74       |
 |   SE7-32    |directmhp_bmcv.soc |     directmhp_int8_1b.bmodel      |      9.72       |      3.96       |      12.61      |      2.69       |
+|   SE13-64    |directmhp_opencv.py|     directmhp_fp32_1b.bmodel      |      35.46      |     103.07      |     265.91      |      5.95       |
+|   SE13-64    |directmhp_opencv.py|     directmhp_fp16_1b.bmodel      |      40.34      |     101.64      |      47.91      |      5.96       |
+|   SE13-64    |directmhp_opencv.py|     directmhp_int8_1b.bmodel      |      30.10      |     102.24      |      31.57      |      6.51       |
+|   SE13-64    | directmhp_bmcv.py |     directmhp_fp32_1b.bmodel      |      8.02       |      8.58       |     265.91      |      5.97       |
+|   SE13-64    | directmhp_bmcv.py |     directmhp_fp16_1b.bmodel      |      6.56       |      8.68       |      47.91      |      5.97       |
+|   SE13-64    | directmhp_bmcv.py |     directmhp_int8_1b.bmodel      |      6.47       |      8.27       |      31.57      |      6.47       |
 |   SE9-16    |directmhp_opencv.py|     directmhp_fp32_1b.bmodel      |      54.05      |     134.03      |     430.60      |      7.30       |
 |   SE9-16    |directmhp_opencv.py|     directmhp_fp16_1b.bmodel      |      51.51      |     137.22      |     131.09      |      7.31       |
 |   SE9-16    |directmhp_opencv.py|     directmhp_int8_1b.bmodel      |      47.63      |     138.90      |      47.37      |      8.44       |
@@ -267,6 +289,7 @@ bmrt_test --bmodel models/BM1684X/directmhp_fp32_1b.bmodel
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE7-32的主控处理器为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 5. SE13系列对应BM1684X2，其TPU与BM1684X(SE7系列)相同，模型推理时间一致；表中SE13-64的推理(inference)时间引用SE7-32实测值，解码/预处理/后处理为CPU相关时间，不同SoC可能略有差异；
 
 
 ## 8. FAQ

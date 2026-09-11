@@ -69,8 +69,11 @@ class Whisper():
         ## Using sail to load BModel
         ########################################
         start_time = time.time()
-        combined_whisper_model_path = f"bmwhisper_{self.model_name}_1684x_f16.bmodel"
-        combined_whisper_model_path = os.path.join(self.bmodel_dir, combined_whisper_model_path)
+        combined_whisper_model_path = os.path.join(
+            self.bmodel_dir, f"bmwhisper_{self.model_name}_1684x_f16.bmodel")
+        if not os.path.exists(combined_whisper_model_path):
+            combined_whisper_model_path = os.path.join(
+                self.bmodel_dir, f"bmwhisper_{self.model_name}_1684x2_f16.bmodel")
         assert os.path.exists(combined_whisper_model_path), f"{combined_whisper_model_path} not found"
 
         # load combined model

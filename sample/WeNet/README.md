@@ -23,8 +23,8 @@
 WeNet是一款面向工业落地应用的语音识别工具包，提供了从语音识别模型的训练到部署的一条龙服务。本例程对[WeNet官方开源仓库](https://github.com/wenet-e2e/wenet)中基于aishell的预训练模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X上进行推理测试。后处理用到的ctc decoder代码来自[Ctc Decoder](https://github.com/Kevindurant111/ctcdecode-cpp.git)。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC)
-* 支持FP32、FP16、INT8(BM1688/BM1684X/CV186X)模型编译和推理
+* 支持BM1684X2(SoC)、BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684(x86 PCIe、SoC)
+* 支持FP32、FP16、INT8(BM1688/BM1684X/CV186X)模型编译和推理，FP16/INT8(BM1684X2)模型编译和推理
 * 支持基于torchaudio的Python推理和基于Armadillo的C++推理
 * 支持单batch模型推理
 * 支持流式和非流式语音的测试
@@ -83,6 +83,13 @@ chmod -R +x scripts/
 │   ├── wenet_encoder_streaming_int8.bmodel     # 使用TPU-MLIR编译，用于CV186X的流式INT8 Encoder BModel，batch_size=1
 │   ├── wenet_encoder_streaming_fp16.bmodel     # 使用TPU-MLIR编译，用于CV186X的流式FP16 Encoder BModel，batch_size=1
 │   └── wenet_encoder_streaming_fp32.bmodel     # 使用TPU-MLIR编译，用于CV186X的流式FP32 Encoder BModel，batch_size=1
+├── BM1684X2
+│   ├── wenet_decoder_int8.bmodel               # 使用TPU-MLIR编译，用于BM1684X2的INT8 Decoder BModel，batch_size=1
+│   ├── wenet_decoder_fp16.bmodel               # 使用TPU-MLIR编译，用于BM1684X2的FP16 Decoder BModel，batch_size=1
+│   ├── wenet_encoder_non_streaming_int8.bmodel # 使用TPU-MLIR编译，用于BM1684X2的非流式INT8 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_non_streaming_fp16.bmodel # 使用TPU-MLIR编译，用于BM1684X2的非流式FP16 Encoder BModel，batch_size=1
+│   ├── wenet_encoder_streaming_int8.bmodel     # 使用TPU-MLIR编译，用于BM1684X2的流式INT8 Encoder BModel，batch_size=1
+│   └── wenet_encoder_streaming_fp16.bmodel     # 使用TPU-MLIR编译，用于BM1684X2的流式FP16 Encoder BModel，batch_size=1
 └── onnx
     ├── wenet_decoder.onnx                      # 导出的流式decoder onnx模型
     ├── wenet_decoder_qtable                    # 转fp16的decoder时，传给model_deploy的混精度敏感层
@@ -129,7 +136,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**，BM1684X2当前固件codegen不支持FP32，请改用FP16/INT8），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
@@ -139,20 +146,20 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`wenet_encoder_fp16.bmodel`和`wenet_decoder_fp16.bmodel`等文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`wenet_encoder_int8.bmodel`和`wenet_decoder_int8.bmodel`等文件，即转换好的INT8 BModel。
@@ -255,10 +262,27 @@ cat online_wer | grep "Overall"
 | SE9-8        | wenet.py           | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |    1.800% |
 | SE9-8        | wenet.soc          | wenet_encoder_non_streaming_int8.bmodel                                |    2.020% |
 | SE9-8        | wenet.soc          | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |    1.800% |
+| SE13-64      | wenet.py           | wenet_encoder_streaming_fp16.bmodel                                    |    2.700% |
+| SE13-64      | wenet.py           | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    1.870% |
+| SE13-64      | wenet.soc          | wenet_encoder_streaming_fp16.bmodel                                    |    2.550% |
+| SE13-64      | wenet.soc          | wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel        |    1.870% |
+| SE13-64      | wenet.py           | wenet_encoder_streaming_int8.bmodel                                    |    2.770% |
+| SE13-64      | wenet.py           | wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel        |    2.100% |
+| SE13-64      | wenet.soc          | wenet_encoder_streaming_int8.bmodel                                    |    2.920% |
+| SE13-64      | wenet.soc          | wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel        |    2.020% |
+| SE13-64      | wenet.py           | wenet_encoder_non_streaming_fp16.bmodel                                |    2.020% |
+| SE13-64      | wenet.py           | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    1.650% |
+| SE13-64      | wenet.soc          | wenet_encoder_non_streaming_fp16.bmodel                                |    2.020% |
+| SE13-64      | wenet.soc          | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |    1.650% |
+| SE13-64      | wenet.py           | wenet_encoder_non_streaming_int8.bmodel                                |    2.400% |
+| SE13-64      | wenet.py           | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |    1.650% |
+| SE13-64      | wenet.soc          | wenet_encoder_non_streaming_int8.bmodel                                |    2.550% |
+| SE13-64      | wenet.soc          | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |    1.650% |
 
 > **测试说明**：
 1. 在使用的模型相同的情况下，wer在不同的测试平台上是相同的。
 2. 由于SDK版本之间的差异，实测的wer与本表有1%以内的差值是正常的。
+3. SE13系列对应BM1684X2，BM1684X2当前固件codegen不支持FP32，故无FP32模型精度数据。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -298,11 +322,17 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 |   SE9-8    | CV186X/wenet_encoder_streaming_fp16.bmodel        |           6.87  |
 |   SE9-8    | CV186X/wenet_encoder_non_streaming_fp16.bmodel    |          44.21  |
 |   SE9-8    | CV186X/wenet_decoder_fp16.bmodel                  |         177.34  |
+|   SE13-64   | BM1684X2/wenet_encoder_streaming_fp16.bmodel       |           3.88  |
+|   SE13-64   | BM1684X2/wenet_encoder_non_streaming_fp16.bmodel   |          16.69  |
+|   SE13-64   | BM1684X2/wenet_decoder_fp16.bmodel                 |          60.78  |
+|   SE13-64   | BM1684X2/wenet_encoder_streaming_int8.bmodel       |           2.28  |
+|   SE13-64   | BM1684X2/wenet_encoder_non_streaming_int8.bmodel   |          10.01  |
+|   SE13-64   | BM1684X2/wenet_decoder_int8.bmodel                 |          51.27  |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性；
 > 2. 流式encoder的特征长度为67，非流式encoder的特征长度为1200，decoder的特征长度为350。
-> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应BM1684X2；
 
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++例程打印的预处理时间、推理时间、后处理时间为整个batch处理的时间，需除以相应的batch size才是每张图片的处理时间。
@@ -382,11 +412,27 @@ bmrt_test --bmodel models/BM1684/wenet_encoder_fp32.bmodel
 |    SE9-8    |     wenet.py      | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      4.40       |      10.97      |      38.89      |      4.68       |
 |    SE9-8    |     wenet.soc     |               wenet_encoder_non_streaming_fp16.bmodel                |      35.91      |      9.48       |      none       |      0.49       |
 |    SE9-8    |     wenet.soc     | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      36.67      |      9.49       |      38.42      |      0.63       |
+|   SE13-64    |     wenet.py      |                 wenet_encoder_streaming_fp16.bmodel                  |      16.48       |      8.88       |      none       |      12.36      |
+|   SE13-64    |     wenet.py      |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      12.15       |      8.86       |      13.26      |      14.61      |
+|   SE13-64    |     wenet.soc     |                 wenet_encoder_streaming_fp16.bmodel                  |      19.90       |      5.38       |      none       |      4.15       |
+|   SE13-64    |     wenet.soc     |   wenet_encoder_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel    |      20.85       |      5.33       |      13.14      |      2.84       |
+|   SE13-64    |     wenet.py      |                 wenet_encoder_streaming_int8.bmodel                  |      16.02       |      7.22       |      none       |      12.22      |
+|   SE13-64    |     wenet.py      |   wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |      12.63       |      7.24       |      10.76      |      14.64      |
+|   SE13-64    |     wenet.soc     |                 wenet_encoder_streaming_int8.bmodel                  |      19.93       |      3.74       |      none       |      4.65       |
+|   SE13-64    |     wenet.soc     |   wenet_encoder_streaming_int8.bmodel + wenet_decoder_int8.bmodel    |      20.81       |      3.72       |      10.65      |      3.78       |
+|   SE13-64    |     wenet.py      |               wenet_encoder_non_streaming_fp16.bmodel                |      16.32       |      4.03       |      none       |      2.32       |
+|   SE13-64    |     wenet.py      | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      11.51       |      4.01       |      13.27      |      4.75       |
+|   SE13-64    |     wenet.soc     |               wenet_encoder_non_streaming_fp16.bmodel                |      19.96       |      3.49       |      none       |      0.82       |
+|   SE13-64    |     wenet.soc     | wenet_encoder_non_streaming_fp16.bmodel + wenet_decoder_fp16.bmodel  |      20.89       |      3.49       |      13.15      |      1.12       |
+|   SE13-64    |     wenet.py      |               wenet_encoder_non_streaming_int8.bmodel                |      15.33       |      2.69       |      none       |      2.29       |
+|   SE13-64    |     wenet.py      | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel  |      11.66       |      2.68       |      10.76      |      4.74       |
+|   SE13-64    |     wenet.soc     |               wenet_encoder_non_streaming_int8.bmodel                |      19.86       |      2.16       |      none       |      1.32       |
+|   SE13-64    |     wenet.soc     | wenet_encoder_non_streaming_int8.bmodel + wenet_decoder_int8.bmodel  |      20.76       |      2.16       |      10.66      |      1.77       |
 
 > **测试说明**：
 > 1. 时间单位均为毫秒(ms)，统计的时间均为1秒音频处理的时间(本例程用到的测试音频总时长442.955s)；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，SE13-64为16核CA52@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 
 ## 8. FAQ
 1. ImportError: xxxx/libstdc++.so.6: version `GLIBCXX_3.4.30' not found: 常出现在pcie模式下，原因是编译好的ctc decoder与本机的环境不适配。

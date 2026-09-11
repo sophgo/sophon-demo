@@ -40,10 +40,10 @@ python3 tools/model_onnx.py --config tools/configs/bert_vits.json --model vits_b
 
 ### 3. BModel编译
 
-目前TPU-MLIR支持bm1684x和bm1688、cv186x编译BERT、VITS，使用如下命令生成bmodel。
+目前TPU-MLIR支持bm1684x和bm1684x2、bm1688、cv186x编译BERT、VITS，使用如下命令生成bmodel。
 
 ```bash
-./scripts/gen_bmodel.sh bm1684x #bm1688#cv186x
+./scripts/gen_bmodel.sh bm1684x #bm1684x2#bm1688#cv186x
 ```
 
 编译成功之后，vits模型和bert模型的bmodel将会存放在`models/BM1684X/`目录下。

@@ -6,6 +6,7 @@ beam_size=5
 padding_size=448
 quant=true
 process=""
+chip="bm1684x"
 
 
 work_dir="$script_dir/../models"
@@ -16,11 +17,6 @@ if [ ! -d "$work_dir/onnx" ]; then
 fi
 
 bmodel_dir="./models/BM1684X"
-if [ ! -d "$bmodel_dir" ]; then
-    mkdir "$bmodel_dir"
-    echo "[Cmd] mkdir $bmodel_dir"
-fi
-
 
 pushd "$work_dir"
 
@@ -36,6 +32,10 @@ while [[ $# -gt 0 ]]; do
             process="$2"
             shift 2
             ;;
+        --chip)
+            chip="$2"
+            shift 2
+            ;;
         *)
             # Unknown option
             echo "Unknown option: $1"
@@ -43,6 +43,14 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [ "$chip" == "bm1684x2" ]; then
+    bmodel_dir="./models/BM1684X2"
+fi
+if [ ! -d "$bmodel_dir" ]; then
+    mkdir "$bmodel_dir"
+    echo "[Cmd] mkdir $bmodel_dir"
+fi
 
 # padding_size_1=$((padding_size - 1))
 padding_size_1=$((padding_size))
@@ -123,7 +131,7 @@ function gen_bmodel() {
 
     model_deploy_cmd="model_deploy.py --mlir transformed.mlir \
         --quantize F16 \
-        --chip bm1684x \
+        --chip $chip \
         --model $bmodel_file"
 
     if [ "$quant" = true ]; then
@@ -146,7 +154,7 @@ echo "process list: ${process_list[@]}"
 models=""
 for process_name in "${process_list[@]}"; do
     model_name="${process_name}_${model}_${beam_size}beam_${padding_size}pad"
-    bmodel_file="all_quant_${model_name}_1684x_f16.bmodel"
+    bmodel_file="all_quant_${model_name}_${chip}_f16.bmodel"
     models="${models} ${bmodel_file}"
     if [ -e "$bmodel_dir/$bmodel_file" ]; then
         echo "[Msg] $bmodel_dir/$bmodel_file already exists, skip this process"
@@ -164,8 +172,8 @@ for process_name in "${process_list[@]}"; do
     fi
     pushd "$model_name"
     gen_bmodel
-    echo "[Cmd] mv $bmodel_file ../../BM1684X/"
-    mv $bmodel_file ../../BM1684X/
+    echo "[Cmd] mv $bmodel_file ../../$(basename $bmodel_dir)/"
+    mv $bmodel_file ../../$(basename $bmodel_dir)/
     popd
     rm -rf $bmodel_file
     popd
@@ -175,5 +183,5 @@ chmod -R 777 $bmodel_dir/
 cd $bmodel_dir/
 
 model_tool --combine $models \
-                     -o bmwhisper_${model}_1684x_f16.bmodel && rm $models
-chown 1000:1000 bmwhisper_${model}_1684x_f16.bmodel
+                     -o bmwhisper_${model}_${chip#bm}_f16.bmodel && rm $models
+chown 1000:1000 bmwhisper_${model}_${chip#bm}_f16.bmodel

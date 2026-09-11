@@ -217,6 +217,7 @@ class BMNNNetwork : public NoCopyable {
   bm_handle_t  m_handle;
   void *m_bmrt;
   bool is_soc;
+  bool can_mmap;
   std::set<int> m_batches;
   int m_max_batch;
 
@@ -270,7 +271,13 @@ class BMNNNetwork : public NoCopyable {
     assert(BM_SUCCESS == ret);
     is_soc = misc_info.pcie_soc_mode == 1;
 
-    printf("*** Run in %s mode ***\n", is_soc?"SOC": "PCIE");
+    // BM1684X2 (chipid 0x1694): reading TPU outputs via
+    // bm_mem_mmap_device_mem + bm_mem_invalidate_device_mem returns stale
+    // cached data non-deterministically, corrupting results run-to-run.
+    // Fall back to bm_memcpy_d2s (correct, and no measurable cost here).
+    can_mmap = is_soc && (misc_info.chipid != 0x1694u);
+
+    printf("*** Run in %s mode, chipid=0x%x ***\n", is_soc?"SOC": "PCIE", misc_info.chipid);
 
     //assert(m_netinfo->stage_num == 1);
     showInfo();
@@ -309,7 +316,7 @@ class BMNNNetwork : public NoCopyable {
       }
     }
     return std::make_shared<BMNNTensor>(m_handle, m_netinfo->input_names[index],
-        m_netinfo->input_scales[index], &m_inputTensors[index], is_soc);
+        m_netinfo->input_scales[index], &m_inputTensors[index], can_mmap);
   }
 
   int outputTensorNum() {
@@ -324,7 +331,7 @@ class BMNNNetwork : public NoCopyable {
       }
     }
     return std::make_shared<BMNNTensor>(m_handle, m_netinfo->output_names[index],
-        m_netinfo->output_scales[index], &m_outputTensors[index], is_soc);
+        m_netinfo->output_scales[index], &m_outputTensors[index], can_mmap);
   }
 
   int forward() {

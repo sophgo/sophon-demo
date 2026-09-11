@@ -34,6 +34,19 @@ cmake ..
 make -j4
 ```
 
+若在x86主机上交叉编译SOC程序（如BM1684X2），请参考[运行环境准备](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)安装交叉编译工具链，并执行：
+
+```shell
+mkdir build && cd build
+cmake .. -DTARGET_ARCH=soc -DSDK=<path-to-soc-sdk> \
+      -DCMAKE_C_COMPILER=<toolchain>/aarch64-linux-gnu-gcc \
+      -DCMAKE_CXX_COMPILER=<toolchain>/aarch64-linux-gnu-g++ \
+      -DCMAKE_EXE_LINKER_FLAGS="-Wl,--allow-shlib-undefined"
+make -j4
+```
+
+编译完成后会生成`campplus.soc`。
+
 ## 3. 例程测试
 
 在编译完成后，会在项目路径下生成campplus的可执行文件, model路径以及chip id都可以可以通过下列参数来指定，设置好以后即可运行
@@ -51,4 +64,10 @@ usage: ./campplus [--model BMODEL] [--input INPUT_DIR] [--devid DEV_ID]
 
 ```shell
 ./campplus --bmodel=../models/BM1684X/campplus_bm1684x_fp32_1b.bmodel  --input=../datasets/test --dev_id=0
+```
+
+如运行BM1684X2 fp32模型`campplus_bm1684x2_fp32_1b.bmodel`（交叉编译产物为`campplus.soc`）:
+
+```shell
+./campplus.soc --bmodel=../models/BM1684X2/campplus_bm1684x2_fp32_1b.bmodel  --input=../datasets/test --dev_id=0
 ```

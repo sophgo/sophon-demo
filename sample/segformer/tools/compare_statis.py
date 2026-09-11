@@ -49,6 +49,12 @@ baseline = """
 |    SE9-8     | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   185.56  |      11.89    |     162.81    |   197.55       |
 |    SE9-8     |segformer_sail.soc   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   183.28  |      12.80    |     413.78    |   341.59       |
 |    SE9-8     |segformer_sail.soc   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   183.28  |      12.80    |     413.78    |     341.59     |
+|   SE13-64   |segformer_opencv.py  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   110.20  |      27.71    |      57.41    |     195.84     |
+|   SE13-64   |segformer_opencv.py  | segformer.b0.512x1024.city.160k_int8_1b.bmodel |   113.41  |      27.91    |      42.44    |     194.34     |
+|   SE13-64   | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   141.61  |      6.88     |      52.22    |     156.26     |
+|   SE13-64   | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |   141.65  |      6.90     |      37.01    |     157.90     |
+|   SE13-64   |segformer_bmcv.soc   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   196.99  |      2.82     |      48.82    |     347.05     |
+|   SE13-64   |segformer_bmcv.soc   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |   196.76  |      2.81     |      33.61    |     349.51     |
 """
 table_data = {
     "platform": [],
@@ -121,6 +127,8 @@ if __name__ == '__main__':
             platform = "SE9-16"
         elif args.target == "CV186X":
             platform = "SE9-8"
+        elif args.target == "BM1684X2":
+            platform = "SE13-64"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 17

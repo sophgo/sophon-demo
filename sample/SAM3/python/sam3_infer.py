@@ -589,7 +589,12 @@ class SAM3TextEncoder:
     def _ensure_tokenizer(self):
         if self.tokenizer is not None:
             return
-        from sam3.model.tokenizer_ve import SimpleTokenizer
+        # 优先用仓库内的 standalone SimpleTokenizer（无 iopath/timm 依赖，SoC 可用）；
+        # 仅当找不到时才退回 sam3 包内的原始实现。
+        try:
+            from simple_tokenizer import SimpleTokenizer
+        except ImportError:
+            from sam3.model.tokenizer_ve import SimpleTokenizer
         bpe_path = self.bpe_path
         if bpe_path is None:
             # Auto-detect from sam3 package
@@ -1510,10 +1515,22 @@ class SAM3Pipeline:
         # 1008 int8 交付集只有 ViT+Neck → backbone-only，不 import sam3 源码。
         if self.engines.grounding_available:
             if bpe_path is None:
-                import sam3
-                bpe_path = os.path.join(
-                    os.path.dirname(sam3.__file__), "assets",
-                    "bpe_simple_vocab_16e6.txt.gz")
+                # bpe 词表随 sam3 包分发；板端无 iopath 时 import sam3 会失败，
+                # 先按 sys.path 直接定位 assets/ 下的词表文件。
+                try:
+                    import sam3
+                    bpe_path = os.path.join(
+                        os.path.dirname(sam3.__file__), "assets",
+                        "bpe_simple_vocab_16e6.txt.gz")
+                except ImportError:
+                    import glob
+                    hits = glob.glob(os.path.join(
+                        os.path.dirname(os.path.abspath(__file__)),
+                        "..", "..", "..", "py_pkgs*", "sam3", "assets",
+                        "bpe_simple_vocab_16e6.txt.gz"))
+                    if not hits:
+                        raise
+                    bpe_path = hits[0]
             self.text_encoder = SAM3TextEncoder(
                 self.engines, bpe_path=bpe_path, context_length=32)
             self.grounding = SAM3Grounding(

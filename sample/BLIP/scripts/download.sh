@@ -20,9 +20,9 @@ if [ ! $1 ]; then
 else
     target=${1^^}
 
-    if [[ $target != "BM1684" && $target != "BM1684X" && $target != "BM1688" ]]
+    if [[ $target != "BM1684" && $target != "BM1684X" && $target != "BM1684X2" && $target != "BM1688" ]]
         then
-        echo "Only support BM1684, BM1684X, BM1688"
+        echo "Only support BM1684, BM1684X, BM1684X2, BM1688"
         exit
     fi
 
@@ -31,9 +31,17 @@ fi
 function download_target()
 {
     name=("cap" "itm" "vqa_venc" "vqa_tenc" "vqa_tdec")
-    for str in "${name[@]}"; do
-        python3 -m dfss --url=open@sophgo.com:sophon-demo/BLIP/blip_${str}_${1,,}_f32_1b.bmodel
-    done
+    if [[ $1 == "BM1684X2" ]]
+    then
+        # BM1684X2 uses fp16 bmodels
+        for str in "${name[@]}"; do
+            python3 -m dfss --url=open@sophgo.com:sophon-demo/BLIP/blip_${str}_${1,,}_f16_1b.bmodel
+        done
+    else
+        for str in "${name[@]}"; do
+            python3 -m dfss --url=open@sophgo.com:sophon-demo/BLIP/blip_${str}_${1,,}_f32_1b.bmodel
+        done
+    fi
     mkdir -p ../models/${1^^}
     mv blip_*_${1,,}_*.bmodel ../models/${1^^}
     echo "$1 models download!"
@@ -46,8 +54,8 @@ then
     unzip bert-base-uncased.zip -d ../models
     rm bert-base-uncased.zip
     if [ "$target" = "all" ];
-    then 
-        for target in BM1684 BM1684X BM1688
+    then
+        for target in BM1684 BM1684X BM1684X2 BM1688
         do
             download_target $target
         done

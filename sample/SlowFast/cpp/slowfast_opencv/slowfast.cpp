@@ -297,10 +297,12 @@ int SlowFast::pre_process(const std::vector<cv::Mat> &decoded_frames){
 
         for(int i = channel_base_fast; i < channel_base_fast + m_clip_len_fast; i++){
             // RGB -> BGR
-            cv::Mat sample_bgr(ori_w, ori_h, CV_8UC3, cv::SophonDevice(m_dev_id));
+            // note: cv::Mat takes (rows, cols); use (ori_h, ori_w) to match
+            // decoded_frames[i], otherwise cvtColor/resize get mismatched dims
+            cv::Mat sample_bgr(ori_h, ori_w, CV_8UC3, cv::SophonDevice(m_dev_id));
             cv::cvtColor(decoded_frames[i], sample_bgr, cv::COLOR_RGB2BGR);
             // ShortSideScale
-            cv::Mat sample_resized(scale_w, scale_h, CV_8UC3, cv::SophonDevice(m_dev_id));
+            cv::Mat sample_resized(scale_h, scale_w, CV_8UC3, cv::SophonDevice(m_dev_id));
             cv::resize(sample_bgr, sample_resized, cv::Size(scale_w, scale_h));
             // CenterCropVideo
             cv::Mat sample_croped = sample_resized(cv::Rect(start_w, start_h, m_net_w, m_net_h));

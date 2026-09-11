@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -72,6 +72,8 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE7-32"
   elif test $TARGET = "BM1684"; then
     PLATFORM="SE5-16"
+  elif test $TARGET = "BM1684X2"; then
+    PLATFORM="SE13-64"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
     cpu_core_num=$(nproc)
@@ -129,6 +131,11 @@ function bmrt_test_benchmark(){
       bmrt_test_case CV186X/yolov5s_v6.1_3output_fp16_1b.bmodel
       bmrt_test_case CV186X/yolov5s_v6.1_3output_int8_1b.bmodel
       bmrt_test_case CV186X/yolov5s_v6.1_3output_int8_4b.bmodel
+    elif test $TARGET = "BM1684X2"; then
+      bmrt_test_case BM1684X2/yolov5s_v6.1_3output_fp32_1b.bmodel
+      bmrt_test_case BM1684X2/yolov5s_v6.1_3output_fp16_1b.bmodel
+      bmrt_test_case BM1684X2/yolov5s_v6.1_3output_int8_1b.bmodel
+      bmrt_test_case BM1684X2/yolov5s_v6.1_3output_int8_4b.bmodel
     fi
   
     popd
@@ -825,6 +832,68 @@ then
       eval_python_cpu_opt bmcv   yolov5s_v6.1_3output_int8_4b.bmodel 0.353
       eval_cpp_cpu_opt soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.358
       eval_cpp_cpu_opt soc sail yolov5s_v6.1_3output_int8_4b.bmodel 0.358
+    else
+      echo "unknown CASE_MODE: $CASE_MODE"
+    fi
+  elif test $TARGET = "BM1684X2"
+  then
+    # 84x2(cv184x) SoC 模式。注意：
+    # 1. 硬件 JPEG 解码器(/dev/soph_vc_dec)的 malloc(): invalid size 崩溃问题已在 libsophon 0.4.13 修复，
+    #    yolov5_bmcv.soc / yolov5_sail.soc 的硬件解码路径现已可正常完成测试。
+    # 2. yolov5_sail.soc 基于 sophon-sail C++ 库交叉编译(参考 docs/Environment_Install_Guide.md §4.2)，
+    #    运行前需将 libsail.so 放入 LD_LIBRARY_PATH(部署到 cpp/yolov5_sail/ 下即可)。
+    # 3. yolov5_bmcv.py 需要 root 权限访问 /dev/soph_vc_dec，且 sail whl 装在 linaro 用户目录下，
+    #    跑前需在 shell 里准备好 sudo 与 PYTHONPATH(本脚本不带 sudo)；本段以 bmcv.soc 代表硬件解码路径。
+    # 4. BM1684X2 的 FP32 可正常转换(YOLOv5 为纯 conv 检测头，无 fc/matmul，不触发 mm1 断言)。
+    if test $CASE_MODE = "fully"
+    then
+      test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/test_car_person_1080P.mp4
+      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+      #performance test
+      test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel datasets/coco/val2017_1000
+      test_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel datasets/coco/val2017_1000
+      test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel datasets/coco/val2017_1000
+      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
+      test_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+      test_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+      test_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel ../../datasets/coco/val2017_1000
+      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
+      test_cpp soc sail yolov5s_v6.1_3output_fp32_1b.bmodel ../../datasets/coco/val2017_1000
+      test_cpp soc sail yolov5s_v6.1_3output_fp16_1b.bmodel ../../datasets/coco/val2017_1000
+      test_cpp soc sail yolov5s_v6.1_3output_int8_1b.bmodel ../../datasets/coco/val2017_1000
+      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
+
+      eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.37729630994631597
+      eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.37715758201975225
+      eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.3549855644444821
+      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3549855644444821
+      eval_cpp soc bmcv yolov5s_v6.1_3output_fp32_1b.bmodel 0.3741216975853237
+      eval_cpp soc bmcv yolov5s_v6.1_3output_fp16_1b.bmodel 0.3742267489303309
+      eval_cpp soc bmcv yolov5s_v6.1_3output_int8_1b.bmodel 0.3520377259338656
+      eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3520377259338656
+      eval_cpp soc sail yolov5s_v6.1_3output_fp32_1b.bmodel 0.3741216975853237
+      eval_cpp soc sail yolov5s_v6.1_3output_fp16_1b.bmodel 0.3742267489303309
+      eval_cpp soc sail yolov5s_v6.1_3output_int8_1b.bmodel 0.3520377259338656
+      eval_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel 0.3520377259338656
+    elif test $CASE_MODE = "partly"
+    then
+      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/test_car_person_1080P.mp4
+      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/test_car_person_1080P.mp4
+
+      #performance test
+      test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel datasets/coco/val2017_1000
+      test_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
+      test_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel ../../datasets/coco/val2017_1000
+
+      eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.3549855644444821
+      eval_cpp soc bmcv yolov5s_v6.1_3output_int8_4b.bmodel 0.3520377259338656
+      eval_cpp soc sail yolov5s_v6.1_3output_int8_4b.bmodel 0.3520377259338656
     else
       echo "unknown CASE_MODE: $CASE_MODE"
     fi

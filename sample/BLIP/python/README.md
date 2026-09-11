@@ -33,12 +33,16 @@ python目录下提供了一系列Python例程，具体情况如下：
 ```bash
 pip3 install transformers
 ```
+
+> **注意：** 请安装transformers 5.0以下的版本（如`pip3 install "transformers<5"`），5.x版本移除了`additional_special_tokens_ids`属性，会导致初始化tokenizer时报`AttributeError`。
 ### 1.2 SoC平台
 如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。您还需要交叉编译安装sophon-sail，具体可参考[交叉编译安装sophon-sail](../../../docs/Environment_Install_Guide.md#42-交叉编译安装sophon-sail)。
 此外您可能还需要安装其他第三方库：
 ```bash
 pip3 install transformers
 ```
+
+> **注意：** 请安装transformers 5.0以下的版本（如`pip3 install "transformers<5"`），5.x版本移除了`additional_special_tokens_ids`属性，会导致初始化tokenizer时报`AttributeError`。
 
 若您使用sophon-opencv，需要设置环境变量，**使用sophon-opencv需要保证python版本小于等于3.8。**
 ```bash
@@ -101,3 +105,12 @@ python3 python/blip_itm.py --image_path datasets/test/demo.jpg --text "a woman s
 python3 python/blip_vqa.py --image_path datasets/test/demo.jpg --venc_bmodel_path models/BM1684X/blip_vqa_venc_bm1684x_f32_1b.bmodel --tenc_bmodel_path models/BM1684X/blip_vqa_tenc_bm1684x_f32_1b.bmodel --tdec_bmodel_path models/BM1684X/blip_vqa_tdec_bm1684x_f32_1b.bmodel --tokenizer_path models/bert-base-uncased --dev_id 0
 ```
 程序运行后，会提示输入问题，可以输入"where is the woman", "what are they doing", "what's the color of the clothes"来测试，输入exit退出，程序运行结束后，会在命令行中打印信息，输出图片预处理以及推理的时间
+
+BM1684X2平台使用FP16 BModel（当前固件不支持FP32），测试实例如下：
+```bash
+python3 python/blip_cap.py --image_path datasets/test --bmodel_path models/BM1684X2/blip_cap_bm1684x2_f16_1b.bmodel --tokenizer_path models/bert-base-uncased --dev_id 0
+python3 python/blip_itm.py --image_path datasets/test/demo.jpg --text "a woman sitting on the beach with a dog" "a woman sitting on the beach with a cat" --bmodel_path models/BM1684X2/blip_itm_bm1684x2_f16_1b.bmodel --tokenizer_path models/bert-base-uncased --dev_id 0
+python3 python/blip_vqa.py --image_path datasets/test/demo.jpg --venc_bmodel_path models/BM1684X2/blip_vqa_venc_bm1684x2_f16_1b.bmodel --tenc_bmodel_path models/BM1684X2/blip_vqa_tenc_bm1684x2_f16_1b.bmodel --tdec_bmodel_path models/BM1684X2/blip_vqa_tdec_bm1684x2_f16_1b.bmodel --tokenizer_path models/bert-base-uncased --dev_id 0
+```
+
+> **注意：** BLIP的vqa/cap解码依赖逐步贪心解码的argmax，FP16精度下部分问题的答案可能与FP32有差异（如"where is the woman"），itm匹配结果不受影响；对答案精度要求高时建议在支持FP32的平台上运行。

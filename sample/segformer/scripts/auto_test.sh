@@ -15,7 +15,7 @@ CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -63,6 +63,8 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE9-16"
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
+  elif test $TARGET = "BM1684X2"; then
+    PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
   fi
@@ -100,6 +102,10 @@ function bmrt_test_benchmark(){
     elif test $TARGET = "CV186X"; then
       bmrt_test_case CV186X/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
       bmrt_test_case CV186X/segformer.b0.512x1024.city.160k_fp16_1b.bmodel
+
+    elif test $TARGET = "BM1684X2"; then
+      bmrt_test_case BM1684X2/segformer.b0.512x1024.city.160k_fp16_1b.bmodel
+      bmrt_test_case BM1684X2/segformer.b0.512x1024.city.160k_int8_1b.bmodel
 
     fi
   
@@ -376,6 +382,19 @@ then
     eval_cpp soc sail segformer.b0.512x1024.city.160k_fp32_1b.bmodel 0.945
     eval_cpp soc sail segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
     
+
+  elif test $TARGET = "BM1684X2"
+  then
+    # BM1684X2当前固件不支持FP32，仅FP16/INT8。segformer_sail.soc基于sophon-sail C++库交叉编译
+    # (参考docs/Environment_Install_Guide.md §4.2)，运行前需将libsail.so放入LD_LIBRARY_PATH。
+    eval_python opencv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+    eval_python opencv segformer.b0.512x1024.city.160k_int8_1b.bmodel 0.945
+    eval_python bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+    eval_python bmcv segformer.b0.512x1024.city.160k_int8_1b.bmodel 0.945
+    eval_cpp soc bmcv segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+    eval_cpp soc bmcv segformer.b0.512x1024.city.160k_int8_1b.bmodel 0.945
+    eval_cpp soc sail segformer.b0.512x1024.city.160k_fp16_1b.bmodel 0.945
+    eval_cpp soc sail segformer.b0.512x1024.city.160k_int8_1b.bmodel 0.945
 
   fi
 fi

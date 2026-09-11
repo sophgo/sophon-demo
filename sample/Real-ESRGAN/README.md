@@ -18,7 +18,7 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-本例程对[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)的`realesr-general-x4v3`轻量级超分模型进行移植，使之能在SOPHON BM1684X/BM1688/CV186X 上进行推理测试。
+本例程对[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)的`realesr-general-x4v3`轻量级超分模型进行移植，使之能在SOPHON BM1684X/BM1684X2/BM1688/CV186X 上进行推理测试。
 
 ## 2. 特性
 
@@ -40,8 +40,8 @@
 ```
 
 ### 2.2 SDK特性
-* 支持BM1688(SoC)和BM1684X(x86 PCIe、SoC、riscv PCIe)
-* 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684X2(SoC)
+* 支持FP32、FP16(BM1684X/BM1688/BM1684X2)、INT8模型编译和推理
 * 支持C++、Python推理
 * 支持图片测试
  
@@ -63,6 +63,7 @@ chmod -R +x scripts/
 --BM1684X # 下载BM1684X的bmodel
 --BM1688  # 下载BM1688的bmodel
 --CV186X  # 下载BM1688的bmodel
+--BM1684X2 # 下载BM1684X2的bmodel
 --onnx    # 下载onnx
 ```
 
@@ -74,6 +75,10 @@ chmod -R +x scripts/
 │   ├── real_esrgan_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── real_esrgan_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── real_esrgan_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1684X2
+│   ├── real_esrgan_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
+│   ├── real_esrgan_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=1
+│   └── real_esrgan_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=4
 ├── BM1688
 |   ├── real_esrgan_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=1
 │   ├── real_esrgan_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=1
@@ -100,7 +105,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**；BM1684X2当前固件codegen不支持FP32，请使用FP16/INT8模型），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1684x/bm1688
@@ -131,7 +136,18 @@ chmod -R +x scripts/
 - [Python例程](./python/README.md)
 
 ## 6. 精度测试
-暂不提供精度测试结果。
+在coco128的4张测试图片上，与ONNX模型（FP32）的输出结果进行对比，计算超分结果的PSNR（峰值信噪比，越高越好）：
+|    测试平台  |    测试程序           |              测试模型              |  PSNR(dB)  |
+| ---------- | -------------------- | ---------------------------------- | ---------- |
+|   SE13-64   |real_esrgan_opencv.py|    real_esrgan_int8_4b.bmodel      |    36.80   |
+|   SE13-64   |real_esrgan_bmcv.soc |    real_esrgan_int8_4b.bmodel      |    36.76   |
+
+> **测试说明**：
+> 1. PSNR为4张测试图片（000000000078/000000000081/000000000109/000000000110.jpg）相对ONNX FP32参考输出（放大4倍前的输入）的平均PSNR，单图依次为opencv.py 37.34/38.82/33.98/37.07，bmcv.soc 37.61/36.76/34.94/37.73；
+> 2. SE13-64对应BM1684X2，当前固件codegen不支持FP32，测试使用FP16/INT8模型；
+> 3. 早期版本bmcv.soc在000000000081.jpg上PSNR偏低（23.53），经定位为BM1684X2硬件JPEG解码器固件失真（C++例程`cv::imread`走VPU硬解码路径）；libsophon 0.4.13修复该固件问题后复测，081.jpg PSNR恢复至36.76，bmcv.soc平均PSNR（36.76）与opencv.py（36.80）基本一致；
+> 4. 图片分辨率对PSNR影响较大，不同测试图片可能存在较大差异。
+
 ## 7. 性能测试
 ### 7.1 bmrt_test
 使用bmrt_test测试模型的理论性能：
@@ -153,6 +169,9 @@ bmrt_test --bmodel models/BM1684X/
 |   SE9-16    | BM1688/real_esrgan_int8_1b.bmodel  |         115.69  |
 |   SE9-16    | BM1688/real_esrgan_int8_4b.bmodel  |         114.72  |
 |   SE9-16    | BM1688/real_esrgan_int8_4b_2core.bmodel|          64.63  |
+|   SE13-64   | BM1684X2/real_esrgan_fp16_1b.bmodel |         189.85  |
+|   SE13-64   | BM1684X2/real_esrgan_int8_1b.bmodel |          85.48  |
+|   SE13-64   | BM1684X2/real_esrgan_int8_4b.bmodel |         340.50  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -204,12 +223,19 @@ bmrt_test --bmodel models/BM1684X/
 |    SE9-8    |real_esrgan_bmcv.soc|    real_esrgan_fp16_1b.bmodel     |      2.48       |      2.13       |     457.72      |     163.80      |
 |    SE9-8    |real_esrgan_bmcv.soc|    real_esrgan_int8_1b.bmodel     |      2.46       |      1.74       |     121.44      |      10.39      |
 |    SE9-8    |real_esrgan_bmcv.soc|    real_esrgan_int8_4b.bmodel     |      2.19       |      1.61       |     120.20      |      10.35      |
+|   SE13-64   |real_esrgan_opencv.py|    real_esrgan_fp16_1b.bmodel     |      8.35       |      20.62      |     215.39   |      56.52      |
+|   SE13-64   |real_esrgan_opencv.py|    real_esrgan_int8_1b.bmodel     |      5.76       |      18.76      |     136.74   |      56.33      |
+|   SE13-64   |real_esrgan_opencv.py|    real_esrgan_int8_4b.bmodel     |      5.36       |      19.84      |     136.39   |      54.84      |
+|   SE13-64   |real_esrgan_bmcv.soc|    real_esrgan_fp16_1b.bmodel     |      1.29       |      1.11       |     192.72   |     117.26      |
+|   SE13-64   |real_esrgan_bmcv.soc|    real_esrgan_int8_1b.bmodel     |      1.30       |      1.13       |      86.19   |       6.43      |
+|   SE13-64   |real_esrgan_bmcv.soc|    real_esrgan_int8_4b.bmodel     |      1.14       |      0.82       |      85.89   |       6.43      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-16的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 5. SE13-64对应BM1684X2（SoC）：FP16模型输出为FP32，后处理走CPU路径（`post_process_opencv`），耗时较长（约117ms）；INT8模型输出为UINT8，后处理走bmcv零拷贝路径（`post_process_bmcv`），仅需约6.4ms；int8_4b的推理时间为折算后单张耗时；bmcv.soc的decode time因图片仅4张（统计无效）未列出。
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

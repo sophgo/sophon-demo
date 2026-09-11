@@ -30,6 +30,8 @@ then
     unzip BM1688.zip -d ../models/
     python3 -m dfss --url=open@sophgo.com:sophon-demo/LPRNet/models_240328/CV186X.zip
     unzip CV186X.zip -d ../models/
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/LPRNet/BM1684X2.tar.gz
+    tar xvf BM1684X2.tar.gz -C ../models/ && rm BM1684X2.tar.gz
 
     rm models.zip BM1688.zip CV186X.zip
     echo "models download!"

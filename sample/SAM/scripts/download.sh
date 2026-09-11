@@ -44,6 +44,8 @@ then
         pushd ../models
         python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM/emb_int8_model.tar.gz
         tar xvf emb_int8_model.tar.gz &&  rm emb_int8_model.tar.gz
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM/BM1684X2.tar.gz
+        tar xvf BM1684X2.tar.gz && rm BM1684X2.tar.gz
         popd
         rm models.zip
     elif test $model_type = "SAM-ViT-T"; then

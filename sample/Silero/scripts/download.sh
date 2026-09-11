@@ -2,6 +2,7 @@
 scripts_dir=$(dirname $(readlink -f "$0"))
 
 download_bm1684x=0
+download_bm1684x2=0
 download_bm1688=0
 download_cv186x=0
 download_onnx=0
@@ -15,12 +16,17 @@ while [[ $# -gt 0 ]]; do
             download_bm1684x=1
             shift 1
             ;;
+        --BM1684X2)
+            download_bm1684x2=1
+            shift 1
+            ;;
         --onnx)
             download_onnx=1
             shift 1
             ;;
         --all)
             download_bm1684x=1
+            download_bm1684x2=1
             download_bm1688=1
             download_cv186x=1
             download_onnx=1
@@ -69,6 +75,17 @@ then
     fi
 else
     echo "models/BM1684X folder exist! Remove it if you need to update."
+fi
+
+if [ ! -d "../models/BM1684X2" ]; 
+then
+    if [ $download_bm1684x2 == 1 ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/Silero/models/silero_vad_bm1684x2_f16.bmodel
+        tar xvf BM1684X2.tar.gz && rm BM1684X2.tar.gz
+        echo "models/BM1684X2 download!"
+    fi
+else
+    echo "models/BM1684X2 folder exist! Remove it if you need to update."
 fi
 
 if [ ! -d "../models/onnx" ]; 

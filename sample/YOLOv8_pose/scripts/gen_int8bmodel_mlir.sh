@@ -16,6 +16,10 @@ fp_forward_chip=$target
 if test $target = "bm1688"; then
     fp_forward_chip=bm1684x
 fi
+if test $target = "bm1684x2"; then
+    # fp_forward.py does not support bm1684x2, use bm1684x to generate qtable
+    fp_forward_chip=bm1684x
+fi
 
 function gen_mlir()
 {

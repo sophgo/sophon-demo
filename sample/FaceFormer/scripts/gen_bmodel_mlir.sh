@@ -74,7 +74,7 @@ function gen_encoder2()
 
     model_deploy.py \
         --mlir audio_encoder_2.mlir \
-        --quantize F32 \
+        --quantize F16 \
         --test_input ../testInput/input_encoder_2.npz \
         --test_reference audio_encoder_2_top_output.npz \
         --chip $target \
@@ -125,6 +125,7 @@ function gen_decoder()
         --test_reference decoder_top_output.npz \
         --chip $target \
         --model decoder_f16.bmodel \
+        --disable_layer_group \
         --compare_all \
         --dynamic
 }
@@ -133,8 +134,8 @@ gen_encoder1
 gen_encoder2
 gen_ppe
 gen_decoder
-model_tool --combine decoder_f16.bmodel audio_encoder_1.bmodel audio_encoder_2.bmodel ppe.bmodel -o faceformer_f32.bmodel
-mv faceformer_f32.bmodel ../$target_dir
+model_tool --combine decoder_f16.bmodel audio_encoder_1.bmodel audio_encoder_2.bmodel ppe.bmodel -o faceformer_f16.bmodel
+mv faceformer_f16.bmodel ../$target_dir
 popd
 popd
 popd

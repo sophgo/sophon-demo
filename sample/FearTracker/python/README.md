@@ -96,6 +96,16 @@ python3 fear_tracker.py \
     --output ../results/output.mp4
 ```
 
+BM1684X2平台测试实例如下：
+```bash
+cd python
+python3 fear_tracker.py \
+    --bmodel ../models/BM1684X2/feartracker_fp16_1b.bmodel \
+    --input ../datasets/test.mp4 \
+    --initial_bbox 163,53,45,174 \
+    --output ../results/output.mp4
+```
+
 测试结束后，输出每帧的跟踪边界框位置，如指定了`--output`参数，会保存带跟踪框的可视化视频。
 
 ## 3. 性能测试
@@ -105,6 +115,7 @@ python3 fear_tracker.py \
 |    测试平台  |                  测试模型                       | 帧率  | 平均推理时间(ms) |
 | ----------- | ---------------------------------------------- | ----- | ---------------- |
 |   SE9-16    | BM1688/feartracker_bm1688_fp16_1b.bmodel       |  64   |      15.5        |
+|   SE13-64   | BM1684X2/feartracker_fp16_1b.bmodel            |  99   |      10.1        |
 
 > **测试说明**：
 > 1. 测试视频：661帧，分辨率 640x360；
@@ -112,3 +123,4 @@ python3 fear_tracker.py \
 > 3. 模板图像仅在首帧预处理一次，后续帧复用，不计入后续帧的推理时间；
 > 4. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 5. SE9-16的主控处理器为8核CA55@1.6GHz，BM1688 TPU；
+> 6. SE13-64的主控处理器为8核CA53@1.6GHz，BM1684X2 TPU；SE13系列对应BM1684X2。

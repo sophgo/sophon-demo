@@ -99,6 +99,12 @@ baseline = """
 |    SE9-8    |   c3d_bmcv.soc    |   c3d_fp16_4b.bmodel    |     128.82      |      8.75       |      66.03      |      0.01       |
 |    SE9-8    |   c3d_bmcv.soc    |   c3d_int8_1b.bmodel    |     130.24      |      8.95       |      32.53      |      0.02       |
 |    SE9-8    |   c3d_bmcv.soc    |   c3d_int8_4b.bmodel    |     128.00      |      8.81       |      27.79      |      0.01       |
+|   SE13-64   |   c3d_opencv.py   |   c3d_fp16_1b.bmodel    |      46.20      |      22.22      |      39.59      |      0.09       |
+|   SE13-64   |   c3d_opencv.py   |   c3d_fp16_4b.bmodel    |      44.92      |      27.50      |      33.04      |      0.03       |
+|   SE13-64   |  c3d_opencv.soc   |   c3d_fp16_1b.bmodel    |      83.47      |      24.22      |      37.17      |      0.02       |
+|   SE13-64   |  c3d_opencv.soc   |   c3d_fp16_4b.bmodel    |      72.50      |      23.35      |      29.87      |      0.01       |
+|   SE13-64   |   c3d_bmcv.soc    |   c3d_fp16_1b.bmodel    |      85.85      |      50.00      |      36.96      |      0.02       |
+|   SE13-64   |   c3d_bmcv.soc    |   c3d_fp16_4b.bmodel    |      87.69      |      47.78      |      30.13      |      0.01       |
 """
 table_data = {
     "platform": [],
@@ -167,6 +173,8 @@ if __name__ == '__main__':
             platform = "SE7-32"
         elif args.target == "BM1684":
             platform = "SE5-16"
+        elif args.target == "BM1684X2":
+            platform = "SE13-64"
         elif args.target == "BM1688":
             platform = "SE9-16"
         elif args.target == "CV186X":

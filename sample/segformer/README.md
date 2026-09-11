@@ -9,11 +9,11 @@
 * [5. 例程测试](#5-例程测试)
 
 ## 1. 简介
-SegFormer是一种用于语义分割的简单、高效和强大的方法。SegFormer使用了Transformer技术，Transformer是一种用于序列建模的深度学习模型，它在自然语言处理中广泛应用。本例程对[​SegFormer官方开源仓库](https://github.com/NVlabs/SegFormer)版本的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1688\CV186X上进行推理测试。
+SegFormer是一种用于语义分割的简单、高效和强大的方法。SegFormer使用了Transformer技术，Transformer是一种用于序列建模的深度学习模型，它在自然语言处理中广泛应用。本例程对[​SegFormer官方开源仓库](https://github.com/NVlabs/SegFormer)版本的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1684X2\BM1688\CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16、INT8(BM1688/BM1684X/CV186X)模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684X2(SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16、INT8(BM1684X/BM1688/CV186X)模型编译和推理，支持FP16、INT8(BM1684X2)模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持图片和视频测试
@@ -42,6 +42,9 @@ chmod -R +x scripts/
 │   ├── segformer.b0.512x1024.city.160k_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
 │   ├── segformer.b0.512x1024.city.160k_fp16_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   └── segformer.b0.512x1024.city.160k_int8_1b.bmodel               # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
+├── BM1684X2
+│   ├── segformer.b0.512x1024.city.160k_fp16_1b.bmodel             # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel， batch_size=1
+│   └── segformer.b0.512x1024.city.160k_int8_1b.bmodel             # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel， batch_size=1
 ├── BM1688
 │   ├── segformer.b0.512x1024.city.160k_fp32_1b_2core.bmodel         # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=2
 │   ├── segformer.b0.512x1024.city.160k_fp32_1b.bmodel               # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=1
@@ -77,7 +80,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**，BM1684X2当前固件不支持FP32，请改用FP16/INT8），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
@@ -89,20 +92,20 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`segformer.b0.512x1024.city.160k_fp16_1b.bmodel`等文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2**），如：
 
 ```bash
-./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`segformer.b0.512x1024.city.160k_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
@@ -176,10 +179,20 @@ python3 tools/segformer_eval.py --result_json cpp/segformer_bmcv/results/segform
 | SE9-8       | segformer_opencv.py | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    68.06 |    76.65 |    94.70 |
 | SE9-8       | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    67.84 |    76.37 |    94.64 |
 | SE9-8       | segformer_sail.soc  | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    68.06 |    76.65 |    94.70 |
+| SE13-64      | segformer_opencv.py | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.34 |    76.95 |    94.75 |
+| SE13-64      | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.17 |    76.69 |    94.70 |
+| SE13-64      | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.32 |    76.93 |    94.75 |
+| SE13-64      | segformer_sail.soc  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |    68.32 |    76.93 |    94.75 |
+| SE13-64      | segformer_opencv.py | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    67.95 |    76.61 |    94.68 |
+| SE13-64      | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    67.81 |    76.35 |    94.63 |
+| SE13-64      | segformer_bmcv.soc  | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    67.79 |    76.43 |    94.68 |
+| SE13-64      | segformer_sail.soc  | segformer.b0.512x1024.city.160k_int8_1b.bmodel |    67.79 |    76.43 |    94.68 |
 
 > **测试说明**：  
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. SoC和PCIe的模型精度一致；
+> 3. SE13系列对应BM1684X2。BM1684X2当前固件不支持FP32，仅提供FP16/INT8 BModel；
+> 4. SE13-64的segformer_sail.soc基于sophon-sail C++库交叉编译（参考[环境安装手册](../../docs/Environment_Install_Guide.md#42-sophon-sail库源码编译安装)），运行前需将libsail.so放入LD_LIBRARY_PATH；segformer_sail.soc与segformer_bmcv.soc精度一致。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -203,11 +216,14 @@ bmrt_test --bmodel models/BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
 |   SE9-16    | BM1688/segformer.b0.512x1024.city.160k_int8_1b_2core.bmodel|  52.66             |
 |   SE9-8    | CV186X/segformer.b0.512x1024.city.160k_fp32_1b.bmodel       | 473.95             |
 |   SE9-8    | CV186X/segformer.b0.512x1024.city.160k_fp16_1b.bmodel       | 157.45             |
+|   SE13-64  | BM1684X2/segformer.b0.512x1024.city.160k_fp16_1b.bmodel | 48.86             |
+|   SE13-64  | BM1684X2/segformer.b0.512x1024.city.160k_int8_1b.bmodel | 33.69             |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
 > 2. `calculate time`已折算为平均每张图片的推理时间；
 > 3. SoC和PCIe的测试结果基本一致。
+> 4. SE13-64对应BM1684X2。BM1684X2不支持FP32，故无FP32行。
 
 
 ### 7.2 程序运行性能
@@ -263,6 +279,12 @@ bmrt_test --bmodel models/BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
 |    SE9-8     | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   185.56  |      11.89    |     162.81    |   197.55       |
 |    SE9-8     |segformer_sail.soc   | segformer.b0.512x1024.city.160k_fp32_1b.bmodel |   183.28  |      12.80    |     413.78    |   341.59       |
 |    SE9-8     |segformer_sail.soc   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   183.28  |      12.80    |     413.78    |     341.59     |
+|   SE13-64   |segformer_opencv.py  | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   110.20  |      27.71    |      57.41    |     195.84     |
+|   SE13-64   |segformer_opencv.py  | segformer.b0.512x1024.city.160k_int8_1b.bmodel |   113.41  |      27.91    |      42.44    |     194.34     |
+|   SE13-64   | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   141.61  |      6.88     |      52.22    |     156.26     |
+|   SE13-64   | segformer_bmcv.py   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |   141.65  |      6.90     |      37.01    |     157.90     |
+|   SE13-64   |segformer_bmcv.soc   | segformer.b0.512x1024.city.160k_fp16_1b.bmodel |   196.99  |      2.82     |      48.82    |     347.05     |
+|   SE13-64   |segformer_bmcv.soc   | segformer.b0.512x1024.city.160k_int8_1b.bmodel |   196.76  |      2.81     |      33.61    |     349.51     |
 
 
 > **测试说明**：  
@@ -270,6 +292,7 @@ bmrt_test --bmodel models/BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异。 
+> 5. SE13-64对应BM1684X2，主控为8核CA53@1.6GHz；BM1684X2当前固件不支持FP32，仅提供FP16/INT8数据。segformer_sail.soc基于sophon-sail C++库交叉编译（参考docs/Environment_Install_Guide.md §4.2）。
 
 ## 8. FAQ
 其他问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

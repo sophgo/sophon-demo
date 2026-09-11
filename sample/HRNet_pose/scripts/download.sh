@@ -38,6 +38,9 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/HRNet_pose/models_a2_0826/CV186X.zip
     unzip CV186X.zip
     rm -r CV186X.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/HRNet_pose/models_84x2/BM1684X2.zip
+    unzip BM1684X2.zip
+    rm -r BM1684X2.zip
     popd
     echo "models download!"
 else

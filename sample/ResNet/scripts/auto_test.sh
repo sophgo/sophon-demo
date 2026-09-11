@@ -447,28 +447,29 @@ then
     fi
   elif test $TARGET = "BM1684X2"
   then
-    # 84x2(cv184x) SoC 模式。注意：
-    # 1. 当前固件(libsophon 0.4.13)硬件 JPEG 解码器输出有偏差，走硬件解码的例程
-    #    (bmcv.py / *.soc) 精度比软件解码的 opencv.py 低约11%，属已知固件问题；
-    # 2. resnet_bmcv.py + int8_4b 在该固件上 bmcv_image_copy_to err=9，暂不测试；
-    # 3. resnet_bmcv.py 需要 root 权限访问 /dev/soph_vc_dec，若因权限失败可忽略该条。
+    # 84x2(cv184x) SoC 模式。硬件 JPEG 解码器(/dev/soph_vc_dec)在 libsophon 0.4.13
+    # 已修复：早期固件硬件解码输出失真导致 bmcv/opencv.soc 精度低约11%、int8_4b err=9；
+    # 修复后硬件解码路径精度与软件解码一致。resnet_bmcv.py 需 root 权限访问解码器(sudo)。
     if test $CASE_MODE = "fully"
     then
       eval_python opencv  resnet50_fp16_1b.bmodel 80.00
       eval_python opencv  resnet50_int8_1b.bmodel 79.80
       eval_python opencv  resnet50_int8_4b.bmodel 79.80
-      eval_python bmcv    resnet50_fp16_1b.bmodel 68.90
-      eval_cpp soc opencv resnet50_fp16_1b.bmodel 69.10
-      eval_cpp soc opencv resnet50_int8_1b.bmodel 68.80
-      eval_cpp soc opencv resnet50_int8_4b.bmodel 68.80
-      eval_cpp soc bmcv   resnet50_fp16_1b.bmodel 68.90
-      eval_cpp soc bmcv   resnet50_int8_1b.bmodel 69.00
-      eval_cpp soc bmcv   resnet50_int8_4b.bmodel 69.00
+      eval_python bmcv    resnet50_fp16_1b.bmodel 80.10
+      eval_python bmcv    resnet50_int8_1b.bmodel 80.10
+      eval_python bmcv    resnet50_int8_4b.bmodel 80.10
+      eval_cpp soc opencv resnet50_fp16_1b.bmodel 80.30
+      eval_cpp soc opencv resnet50_int8_1b.bmodel 80.00
+      eval_cpp soc opencv resnet50_int8_4b.bmodel 80.00
+      eval_cpp soc bmcv   resnet50_fp16_1b.bmodel 80.10
+      eval_cpp soc bmcv   resnet50_int8_1b.bmodel 80.10
+      eval_cpp soc bmcv   resnet50_int8_4b.bmodel 80.10
     elif test $CASE_MODE = "partly"
     then
       eval_python opencv  resnet50_int8_4b.bmodel 79.80
-      eval_cpp soc opencv resnet50_int8_4b.bmodel 68.80
-      eval_cpp soc bmcv   resnet50_int8_4b.bmodel 69.00
+      eval_python bmcv    resnet50_int8_4b.bmodel 80.10
+      eval_cpp soc opencv resnet50_int8_4b.bmodel 80.00
+      eval_cpp soc bmcv   resnet50_int8_4b.bmodel 80.10
     else
       echo "unknown CASE_MODE: $CASE_MODE"
     fi

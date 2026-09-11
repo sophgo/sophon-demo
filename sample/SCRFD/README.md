@@ -27,8 +27,8 @@ SCRFD(Sample and Computation Redistribution for Efficient Face Detection)是一�
 **源码地址** (https://github.com/deepinsight/insightface/tree/master/detection/scrfd)
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684X2(SoC)、BM1684(x86 PCIe、SoC)
+* 支持FP32、FP16(BM1684X/BM1684X2/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch模型推理
@@ -68,6 +68,9 @@ chmod -R +x scripts/
 │   ├── scrfd_10g_kps_fp32_1b.bmodel
 │   ├── scrfd_10g_kps_int8_1b.bmodel
 │   ├── scrfd_10g_kps_int8_4b.bmodel
+├── BM1684X2                                 # 使用TPU-MLIR编译，用于BM1684X2的 BModel
+│   ├── scrfd_10g_kps_fp16_1b.bmodel
+│   └── scrfd_10g_kps_fp32_1b.bmodel
 ├── BM1688                                   # 使用TPU-MLIR编译，用于BM1688的 BModel
 │   ├── scrfd_10g_kps_fp16_1b_2core.bmodel
 │   ├── scrfd_10g_kps_fp16_1b.bmodel
@@ -104,7 +107,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
@@ -114,7 +117,7 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -124,7 +127,7 @@ chmod -R +x scripts/
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
@@ -184,6 +187,14 @@ python3 evaluation.py --pred ./prediction_dir --gt ground_truth
 | SE7-32       | scrfd_sail.soc     | scrfd_10g_kps_fp16_1b.bmodel             |    0.937 |    0.917 |    0.772 |
 | SE7-32       | scrfd_sail.soc     | scrfd_10g_kps_int8_1b.bmodel             |    0.885 |    0.863 |    0.689 |
 | SE7-32       | scrfd_sail.soc     | scrfd_10g_kps_int8_4b.bmodel             |    0.887 |    0.864 |    0.690 |
+| SE13-64      | scrfd_opencv.py    | scrfd_10g_kps_fp32_1b.bmodel             |    0.940 |    0.924 |    0.800 |
+| SE13-64      | scrfd_opencv.py    | scrfd_10g_kps_fp16_1b.bmodel             |    0.940 |    0.924 |    0.800 |
+| SE13-64      | scrfd_bmcv.py      | scrfd_10g_kps_fp32_1b.bmodel             |    0.939 |    0.921 |    0.786 |
+| SE13-64      | scrfd_bmcv.py      | scrfd_10g_kps_fp16_1b.bmodel             |    0.939 |    0.921 |    0.786 |
+| SE13-64      | scrfd_bmcv.soc     | scrfd_10g_kps_fp32_1b.bmodel             |    0.937 |    0.917 |    0.772 |
+| SE13-64      | scrfd_bmcv.soc     | scrfd_10g_kps_fp16_1b.bmodel             |    0.937 |    0.917 |    0.772 |
+| SE13-64      | scrfd_sail.soc     | scrfd_10g_kps_fp32_1b.bmodel             |    0.937 |    0.917 |    0.772 |
+| SE13-64      | scrfd_sail.soc     | scrfd_10g_kps_fp16_1b.bmodel             |    0.937 |    0.917 |    0.772 |
 | SE9-16       | scrfd_opencv.py    | scrfd_10g_kps_fp32_1b.bmodel             |    0.940 |    0.924 |    0.800 |
 | SE9-16       | scrfd_opencv.py    | scrfd_10g_kps_fp16_1b.bmodel             |    0.940 |    0.924 |    0.800 |
 | SE9-16       | scrfd_opencv.py    | scrfd_10g_kps_int8_1b.bmodel             |    0.938 |    0.923 |    0.798 |
@@ -250,6 +261,10 @@ python3 evaluation.py --pred ./prediction_dir --gt ground_truth
 | SRM1-20      | scrfd_sail.pcie    | scrfd_10g_kps_int8_4b.bmodel             |    0.888 |    0.865 |    0.691 |
 
 
+> **测试说明**：  
+> 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
+> 2. SE13系列对应BM1684X2，其TPU与BM1684X(SE7系列)相同，模型推理精度一致；
+
 ## 7. 性能测试
 ### 7.1 bmrt_test
 使用bmrt_test测试模型的理论性能：
@@ -269,6 +284,8 @@ bmrt_test --bmodel models/BM1684X/scrfd_10g_kps_fp32_1b.bmodel
 |   SE7-32    | BM1684X/scrfd_10g_kps_fp32_1b.bmodel       |           34.830 |
 |   SE7-32    | BM1684X/scrfd_10g_kps_int8_1b.bmodel       |            2.645 |
 |   SE7-32    | BM1684X/scrfd_10g_kps_int8_4b.bmodel       |            2.537 |
+|   SE13-64    | BM1684X2/scrfd_10g_kps_fp16_1b.bmodel     |            7.19  |
+|   SE13-64    | BM1684X2/scrfd_10g_kps_fp32_1b.bmodel     |           98.95  |
 |   SE9-16    | BM1688/scrfd_10g_kps_fp16_1b.bmodel        |           45.524 |
 |   SE9-16    | BM1688/scrfd_10g_kps_fp16_1b_2core.bmodel  |           31.586 |
 |   SE9-16    | BM1688/scrfd_10g_kps_fp32_1b.bmodel        |          323.095 |
@@ -322,6 +339,14 @@ bmrt_test --bmodel models/BM1684X/scrfd_10g_kps_fp32_1b.bmodel
 |   SE7-32    |  scrfd_sail.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      2.73       |      3.17       |      4.25       |      8.56               |
 |   SE7-32    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_1b.bmodel    |      2.72       |      3.17       |      3.11       |      8.53               |
 |   SE7-32    |  scrfd_sail.soc   |   scrfd_10g_kps_int8_4b.bmodel    |      2.54       |      3.09       |      2.79       |      7.82               |
+|   SE13-64    |  scrfd_opencv.py  |   scrfd_10g_kps_fp32_1b.bmodel    |      11.01      |      25.01      |      98.95      |      8.65               |
+|   SE13-64    |  scrfd_opencv.py  |   scrfd_10g_kps_fp16_1b.bmodel    |      11.21      |      25.73      |      7.19       |      8.68               |
+|   SE13-64    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp32_1b.bmodel    |      4.82       |      2.93       |      98.95      |      8.66               |
+|   SE13-64    |   scrfd_bmcv.py   |   scrfd_10g_kps_fp16_1b.bmodel    |      3.02       |      2.93       |      7.19       |      8.63               |
+|   SE13-64    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      3.94       |      0.87       |      98.95      |      8.46               |
+|   SE13-64    |  scrfd_bmcv.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      3.94       |      0.87       |      7.19       |      8.46               |
+|   SE13-64    |  scrfd_sail.soc   |   scrfd_10g_kps_fp32_1b.bmodel    |      2.73       |      3.15       |      98.95      |      8.48               |
+|   SE13-64    |  scrfd_sail.soc   |   scrfd_10g_kps_fp16_1b.bmodel    |      2.73       |      3.17       |      7.19       |      8.56               |
 |   SE9-16    |  scrfd_opencv.py  |   scrfd_10g_kps_fp32_1b.bmodel    |      45.48      |      33.19      |     170.02      |      11.41      |
 |   SE9-16    |  scrfd_opencv.py  |   scrfd_10g_kps_fp16_1b.bmodel    |      49.88      |      32.64      |      30.87      |      11.49      |
 |   SE9-16    |  scrfd_opencv.py  |   scrfd_10g_kps_int8_1b.bmodel    |      50.62      |      32.52      |      14.32      |      11.57      |
@@ -393,6 +418,7 @@ bmrt_test --bmodel models/BM1684X/scrfd_10g_kps_fp32_1b.bmodel
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 5. SE13系列对应BM1684X2，其TPU与BM1684X(SE7系列)相同，表中SE13-64推理(inference)时间引用SE7-32实测值，解码/预处理/后处理为CPU相关时间，不同SoC可能略有差异；
 
 ## 8. FAQ
 [常见问题解答](../../docs/FAQ.md)

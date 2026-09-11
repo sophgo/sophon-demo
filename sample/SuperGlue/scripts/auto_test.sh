@@ -15,7 +15,7 @@ CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -63,6 +63,8 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE7-32"
   elif test $TARGET = "BM1684"; then
     PLATFORM="SE5-16"
+  elif test $TARGET = "BM1684X2"; then
+    PLATFORM="SE13-64"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
     cpu_core_num=$(nproc)
@@ -102,6 +104,11 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1684X/superpoint_fp16_1b.bmodel
       bmrt_test_case BM1684X/superglue_fp32_1b_iter20_1024.bmodel  
       bmrt_test_case BM1684X/superglue_fp16_1b_iter20_1024.bmodel  
+    elif test $TARGET = "BM1684X2"; then
+      # BM1684X2固件不支持superglue的FP32（fp32 matmul），仅测试superpoint_fp32+superglue_fp16和全fp16
+      bmrt_test_case BM1684X2/superpoint_fp32_1b.bmodel
+      bmrt_test_case BM1684X2/superpoint_fp16_1b.bmodel
+      bmrt_test_case BM1684X2/superglue_fp16_1b_iter20_1024.bmodel
     elif test $TARGET = "BM1688"; then
       bmrt_test_case BM1688/superpoint_fp32_1b.bmodel
       bmrt_test_case BM1688/superpoint_fp16_1b.bmodel
@@ -338,6 +345,11 @@ then
   then
     eval_cpp soc bmcv superpoint_fp32_1b.bmodel superglue_fp32_1b_iter20_1024.bmodel 16.90
     eval_cpp soc bmcv superpoint_fp16_1b.bmodel superglue_fp16_1b_iter20_1024.bmodel 16.69
+  elif test $TARGET = "BM1684X2"
+  then
+    # BM1684X2固件不支持superglue的FP32（fp32 matmul），superpoint可单独用fp32
+    eval_cpp soc bmcv superpoint_fp32_1b.bmodel superglue_fp16_1b_iter20_1024.bmodel 16.92
+    eval_cpp soc bmcv superpoint_fp16_1b.bmodel superglue_fp16_1b_iter20_1024.bmodel 16.89
   elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
     eval_cpp soc bmcv superpoint_fp32_1b.bmodel superglue_fp32_1b_iter20_1024.bmodel 16.90

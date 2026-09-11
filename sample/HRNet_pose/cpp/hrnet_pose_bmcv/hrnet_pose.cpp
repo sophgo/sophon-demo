@@ -318,7 +318,6 @@ int HRNetPose::pre_process(const bm_image& image, YoloV5Box& box) {
 
     ret = bmcv_image_convert_to(m_bmContext->handle(), 1, linear_trans_param_, m_resized_imgs.data(), m_converto_imgs.data());
     CV_Assert(ret == 0);
-
     bm_device_mem_t imput_dev_mem;
     ret = bm_image_get_contiguous_device_mem(1, m_converto_imgs.data(), &imput_dev_mem);
     input_tensor->set_device_mem(&imput_dev_mem);
@@ -340,8 +339,21 @@ cv::Mat flip_image(const cv::Mat& image) {
 //Function to flip the output back according to the matched parts
 void flip_back(vector<cv::Mat>& output_flipped, const vector<vector<int>>& matched_parts){
 
+    // 84x2: sophon-opencv 的 cv::flip 会优先尝试 bmcv 硬件加速，而
+    // bmcv_image_flip 不支持 float32 输入（每次必报 ret=6），失败回退后
+    // 数据偶发被污染（热图出现 huge/NaN）。这里用纯 CPU 循环按列翻转。
     for (cv::Mat& mat : output_flipped){
-        cv::flip(mat, mat, 1);
+        const int rows = mat.rows;
+        const int cols = mat.cols;
+        float* data = (float*)mat.data;
+        for (int r = 0; r < rows; r++){
+            float* row = data + (size_t)r * cols;
+            for (int c = 0; c < cols / 2; c++){
+                float tmp = row[c];
+                row[c] = row[cols - 1 - c];
+                row[cols - 1 - c] = tmp;
+            }
+        }
     }
 
     for (const auto& pair : matched_parts){
@@ -367,17 +379,6 @@ void shift_output(vector<cv::Mat>& flippedBackMat){
   }
 }
 
-vector<cv::Mat> clone_output(vector<cv::Mat>& heatMaps){
-
-    vector<cv::Mat> newMat;
-    for (cv::Mat& mat : heatMaps){
-      cv::Mat newmat = mat.clone();
-      newMat.emplace_back(newmat);
-    }
-
-    return newMat;
-}
-
 vector<cv::Mat> add_mat(vector<cv::Mat>& outputMat, vector<cv::Mat>& finalFlippedMat){
     
     if (outputMat.size() != finalFlippedMat.size()){
@@ -394,7 +395,16 @@ vector<cv::Mat> add_mat(vector<cv::Mat>& outputMat, vector<cv::Mat>& finalFlippe
         }
 
         cv::Mat res(outputMat[i].size(), outputMat[i].type());
-        cv::addWeighted(outputMat[i], 0.5, finalFlippedMat[i], 0.5, 0.0, res);
+        const cv::Mat& a = outputMat[i];
+        const cv::Mat& b = finalFlippedMat[i];
+        const int n = (int)(a.total());
+        const float* pa = (const float*)a.data;
+        const float* pb = (const float*)b.data;
+        float* pr = (float*)res.data;
+        // 84x2: 同 flip_back，避免 cv::addWeighted 触发 bmcv 硬件路径
+        for (int k = 0; k < n; k++){
+            pr[k] = 0.5f * pa[k] + 0.5f * pb[k];
+        }
         result.emplace_back(res);
     }
 
@@ -413,13 +423,18 @@ void get_output_mat(shared_ptr<BMNNTensor>& outputTensor, vector<cv::Mat>& outpu
     // Return an array pointer to system memory of tensor.
     float* predict = (float*)outputTensor->get_cpu_data();
 
-    // batch_size = 1
+    // 84x2: 若直接用 mmap 的设备内存指针构造零拷贝 Mat，sophon-opencv 会把
+    // 这些 Mat 当作设备内存，后续 cv::flip/addWeighted 等会尝试走 bmcv 硬件
+    // 路径；bmcv_image_flip 不支持 float32 数据（每次必报 ret=6），失败回退
+    // 后数据偶发被污染（热图出现 1e28~1e38 的 huge/NaN 值）。这里逐通道
+    // 拷贝到普通 CPU Mat，保证 flip_back/shift_output/add_mat 全部走 CPU。
     for (int i = 0; i < batch_size; i++){
-        
+
         for (int j = 0; j < keypoints_num; j++){
-            
+
             float* start_ptr = predict + i * keypoints_num * heatmap_h * heatmap_w + j * heatmap_h * heatmap_w;
-            cv::Mat single_heatmap(heatmap_h, heatmap_w, CV_32FC1, start_ptr);
+            cv::Mat single_heatmap(heatmap_h, heatmap_w, CV_32FC1);
+            memcpy(single_heatmap.data, start_ptr, heatmap_h * heatmap_w * sizeof(float));
             outputMat.emplace_back(single_heatmap);
         }
     }
@@ -558,28 +573,31 @@ int HRNetPose::poseEstimate(const bm_image& image, YoloV5Box& box, vector<cv::Po
     shared_ptr<BMNNTensor> outputTensorFlip;
     vector<cv::Mat> heatMapsFlip;
     if (m_flip){
-        
-        m_ts->save("hrnet postprocess", 1);
-        heatMaps = clone_output(heatMaps);
+
         m_ts->save("hrnet postprocess", 1);
         shared_ptr<BMNNTensor> input_tensor = m_bmNetwork->inputTensor(0);
-        
+        m_ts->save("hrnet postprocess", 1);
+
         m_ts->save("hrnet preprocess", 1);
         cv::Mat cv_mat_image;
         bm_image bm_image_to_mat = m_resized_imgs[0];
-        ret = cv::bmcv::toMAT(&bm_image_to_mat, cv_mat_image); 
+        ret = cv::bmcv::toMAT(&bm_image_to_mat, cv_mat_image);
 
         cv::Mat flipped_image = flip_image(cv_mat_image);
         bm_image flipped_bm_image;
         ret = bm_image_create(m_bmContext->handle(), m_net_h, m_net_w, m_resized_imgs[0].image_format, m_resized_imgs[0].data_type, &flipped_bm_image);
-        ret = cv::bmcv::toBMI(flipped_image, &flipped_bm_image, true); 
+        ret = cv::bmcv::toBMI(flipped_image, &flipped_bm_image, true);
 
-        bm_image flipped_convert_bm_image;
-        ret = bm_image_create(m_bmContext->handle(), m_net_h, m_net_w, m_converto_imgs[0].image_format, m_converto_imgs[0].data_type, &flipped_convert_bm_image);
-        ret = bmcv_image_convert_to(m_bmContext->handle(), 1, linear_trans_param_, &flipped_bm_image, &flipped_convert_bm_image);
+        // toBMI 会把图像格式覆盖成与 Mat 对应的 BGR_PACKED，convert_to 不接受 packed 输入；
+        // 与 pre_process 保持一致：先 vpp_convert 转回 RGB_PLANAR，再做线性变换
+        ret = bmcv_image_vpp_convert(m_bmContext->handle(), 1, flipped_bm_image, m_resized_imgs.data());
+        CV_Assert(ret == 0);
+        ret = bmcv_image_convert_to(m_bmContext->handle(), 1, linear_trans_param_, m_resized_imgs.data(), m_converto_imgs.data());
+        CV_Assert(ret == 0);
 
         bm_device_mem_t input_dev_mem_;
-        ret = bm_image_get_contiguous_device_mem(1, &flipped_convert_bm_image, &input_dev_mem_);
+        ret = bm_image_get_contiguous_device_mem(1, m_converto_imgs.data(), &input_dev_mem_);
+        CV_Assert(ret == 0);
         input_tensor->set_device_mem(&input_dev_mem_);
         input_tensor->set_shape_by_dim(0, 1);
         m_ts->save("hrnet preprocess", 1);
@@ -590,11 +608,14 @@ int HRNetPose::poseEstimate(const bm_image& image, YoloV5Box& box, vector<cv::Po
         m_ts->save("hrnet inference", 1);
 
         ret = bm_image_destroy(flipped_bm_image);
-        ret = bm_image_destroy(flipped_convert_bm_image);
 
         m_ts->save("hrnet postprocess", 1);
         outputTensorFlip = m_bmNetwork->outputTensor(0);
         get_output_mat(outputTensorFlip, heatMapsFlip);
+        // get_output_mat 已把输出逐通道拷贝到普通 CPU Mat（不再零拷贝包
+        // mmap 的 TPU 输出内存），后续 flip_back/shift_output 在 CPU 上改写
+        // 不会回写设备内存；84x2 上 CPU 与 TPU 无缓存一致性，零拷贝 Mat 的
+        // 脏行回写会破坏下一次 forward 的输出（flip=true 结果非确定的根因）。
         flip_back(heatMapsFlip, FLIP_PAIRS);
         shift_output(heatMapsFlip);
         heatMaps = add_mat(heatMaps, heatMapsFlip);

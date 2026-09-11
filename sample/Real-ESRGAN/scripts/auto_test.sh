@@ -20,7 +20,7 @@ fi
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET CV186X|BM1684X|BM1688] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET CV186X|BM1684X|BM1684X2|BM1688] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -110,6 +110,8 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE9-8"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
+  elif test $TARGET = "BM1684X2"; then
+    PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
   fi
@@ -153,6 +155,11 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1688/real_esrgan_fp16_1b_2core.bmodel
       bmrt_test_case BM1688/real_esrgan_int8_1b_2core.bmodel
       bmrt_test_case BM1688/real_esrgan_int8_4b_2core.bmodel
+    elif test $TARGET = "BM1684X2"; then
+      # BM1684X2(SE13-64)当前固件codegen不支持FP32，仅测试fp16/int8
+      bmrt_test_case BM1684X2/real_esrgan_fp16_1b.bmodel
+      bmrt_test_case BM1684X2/real_esrgan_int8_1b.bmodel
+      bmrt_test_case BM1684X2/real_esrgan_int8_4b.bmodel
     fi
     popd
 }
@@ -306,23 +313,34 @@ then
     cd ..
   fi
   pip3 install onnxruntime==1.14.1 opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
-  for pre in fp32_1b fp16_1b int8_1b int8_4b; do
-    eval_python opencv real_esrgan_${pre}.bmodel
-  done
-  if test $TARGET = "BM1688"; then
-    eval_python opencv real_esrgan_int8_4b_2core.bmodel
-  fi
-  for pre in fp32_1b fp16_1b int8_1b int8_4b; do
-    eval_python bmcv real_esrgan_${pre}.bmodel
-  done
-  if test $TARGET = "BM1688"; then
-    eval_python bmcv real_esrgan_int8_4b_2core.bmodel
-  fi
-  for pre in fp32_1b fp16_1b int8_1b int8_4b; do
-    eval_cpp soc bmcv real_esrgan_${pre}.bmodel
-  done
-  if test $TARGET = "BM1688"; then
-    eval_cpp soc bmcv real_esrgan_int8_4b_2core.bmodel
+  if test $TARGET = "BM1684X2"; then
+    # BM1684X2(SE13-64)当前固件codegen不支持FP32，仅测试fp16/int8模型
+    # 注意：bmcv.py需要sudo访问硬件解码器并显式传递PYTHONPATH，请参考README
+    for pre in fp16_1b int8_1b int8_4b; do
+      eval_python opencv real_esrgan_${pre}.bmodel
+    done
+    for pre in fp16_1b int8_1b int8_4b; do
+      eval_cpp soc bmcv real_esrgan_${pre}.bmodel
+    done
+  else
+    for pre in fp32_1b fp16_1b int8_1b int8_4b; do
+      eval_python opencv real_esrgan_${pre}.bmodel
+    done
+    if test $TARGET = "BM1688"; then
+      eval_python opencv real_esrgan_int8_4b_2core.bmodel
+    fi
+    for pre in fp32_1b fp16_1b int8_1b int8_4b; do
+      eval_python bmcv real_esrgan_${pre}.bmodel
+    done
+    if test $TARGET = "BM1688"; then
+      eval_python bmcv real_esrgan_int8_4b_2core.bmodel
+    fi
+    for pre in fp32_1b fp16_1b int8_1b int8_4b; do
+      eval_cpp soc bmcv real_esrgan_${pre}.bmodel
+    done
+    if test $TARGET = "BM1688"; then
+      eval_cpp soc bmcv real_esrgan_int8_4b_2core.bmodel
+    fi
   fi
 fi
 

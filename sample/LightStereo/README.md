@@ -23,7 +23,7 @@
   - [7. FAQ](#7-faq)
   
 ## 1. 简介
-LightStereo是一种用于双目立体匹配的神经网络模型，它的输入是双目摄像头的左图和右图，输出是视差图（disparity map）。本例程对[LightStereo官方开源仓库](https://github.com/XiandaGuo/OpenStereo)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1688/CV186X上进行推理测试。
+LightStereo是一种用于双目立体匹配的神经网络模型，它的输入是双目摄像头的左图和右图，输出是视差图（disparity map）。本例程对[LightStereo官方开源仓库](https://github.com/XiandaGuo/OpenStereo)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1684X2/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
 
@@ -45,7 +45,7 @@ LightStereo是一种用于双目立体匹配的神经网络模型，它的输入
 ```
 
 ### 2.2 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684X2(SoC)
 * 支持FP32、FP16、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -67,6 +67,7 @@ chmod -R +x scripts/
 ```bash
 --all     # 下载所有模型
 --BM1684X # 下载BM1684X的bmodel
+--BM1684X2 # 下载BM1684X2的bmodel
 --BM1688  # 下载BM1688的bmodel
 --CV186X  # 下载CV186X的bmodel
 --onnx    # 下载onnx
@@ -79,6 +80,11 @@ models/
 ├── BM1684X
 │   ├── LightStereo-S-SceneFlow_fp16_1b.bmodel
 │   └── LightStereo-S-SceneFlow_fp32_1b.bmodel
+├── BM1684X2
+│   ├── LightStereo-S-SceneFlow_fp16_1b.bmodel
+│   ├── LightStereo-S-SceneFlow_fp32_1b.bmodel
+│   ├── LightStereo-S-SceneFlow_int8_1b.bmodel
+│   └── LightStereo-S-SceneFlow_int8_4b.bmodel
 ├── BM1688
 │   ├── LightStereo-S-SceneFlow_fp16_1b_2core.bmodel
 │   ├── LightStereo-S-SceneFlow_fp16_1b.bmodel
@@ -109,7 +115,7 @@ datasets/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -119,7 +125,7 @@ datasets/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -129,7 +135,7 @@ datasets/
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -168,6 +174,18 @@ python3 eval.py --gt_path ../datasets/KITTI12/training/ --results_path ../python
 | SE7-32       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3538 |
 | SE7-32       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3666 |
 | SE7-32       | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3666 |
+| SE13-64      | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3390 |
+| SE13-64      | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3388 |
+| SE13-64      | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3509 |
+| SE13-64      | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3509 |
+| SE13-64      | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3478 |
+| SE13-64      | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3476 |
+| SE13-64      | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3600 |
+| SE13-64      | lightstereo_bmcv.py       | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3600 |
+| SE13-64      | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3478 |
+| SE13-64      | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3476 |
+| SE13-64      | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3600 |
+| SE13-64      | lightstereo_bmcv.soc      | LightStereo-S-SceneFlow_int8_4b.bmodel |    0.3600 |
 | SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp32_1b.bmodel |    0.3456 |
 | SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_fp16_1b.bmodel |    0.3453 |
 | SE9-16       | lightstereo_opencv.py     | LightStereo-S-SceneFlow_int8_1b.bmodel |    0.3573 |
@@ -207,7 +225,7 @@ python3 eval.py --gt_path ../datasets/KITTI12/training/ --results_path ../python
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
-> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE13系列对应BM1684X2，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
@@ -225,6 +243,10 @@ bmrt_test --bmodel models/BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel
 |   SE7-32    | BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel|          27.35  |
 |   SE7-32    | BM1684X/LightStereo-S-SceneFlow_int8_1b.bmodel|          23.51  |
 |   SE7-32    | BM1684X/LightStereo-S-SceneFlow_int8_4b.bmodel|          22.78  |
+|   SE13-64   | BM1684X2/LightStereo-S-SceneFlow_fp32_1b.bmodel|         186.90  |
+|   SE13-64   | BM1684X2/LightStereo-S-SceneFlow_fp16_1b.bmodel|          53.25  |
+|   SE13-64   | BM1684X2/LightStereo-S-SceneFlow_int8_1b.bmodel|          45.18  |
+|   SE13-64   | BM1684X2/LightStereo-S-SceneFlow_int8_4b.bmodel|          43.83  |
 |   SE9-16    | BM1688/LightStereo-S-SceneFlow_fp32_1b.bmodel|         321.78  |
 |   SE9-16    | BM1688/LightStereo-S-SceneFlow_fp16_1b.bmodel|          75.31  |
 |   SE9-16    | BM1688/LightStereo-S-SceneFlow_int8_1b.bmodel|          48.60  |
@@ -259,6 +281,18 @@ bmrt_test --bmodel models/BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel
 |   SE7-32    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_fp16_1b.bmodel|      50.02      |      3.68       |      27.53      |      1.86       |
 |   SE7-32    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_1b.bmodel|      50.05      |      2.26       |      23.76      |      1.86       |
 |   SE7-32    |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_4b.bmodel|      49.93      |      2.15       |      23.43      |      1.89       |
+|   SE13-64   |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp32_1b.bmodel|      54.63      |     154.33      |     210.80      |      0.04       |
+|   SE13-64   |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp16_1b.bmodel|      54.77      |     153.92      |      76.75      |      0.04       |
+|   SE13-64   |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      54.87      |     153.86      |      68.75      |      0.04       |
+|   SE13-64   |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_4b.bmodel|      54.40      |     150.45      |      66.33      |      0.02       |
+|   SE13-64   |lightstereo_bmcv.py|LightStereo-S-SceneFlow_fp32_1b.bmodel|      67.32      |      5.95       |     189.45      |      0.05       |
+|   SE13-64   |lightstereo_bmcv.py|LightStereo-S-SceneFlow_fp16_1b.bmodel|      67.43      |      5.95       |      55.74      |      0.05       |
+|   SE13-64   |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      67.23      |      5.95       |      47.69      |      0.05       |
+|   SE13-64   |lightstereo_bmcv.py|LightStereo-S-SceneFlow_int8_4b.bmodel|      67.09      |      6.87       |      45.99      |      0.02       |
+|   SE13-64   |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_fp32_1b.bmodel|      66.45      |      4.34       |     186.91      |      2.47       |
+|   SE13-64   |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_fp16_1b.bmodel|      66.45      |      4.33       |      53.24      |      2.49       |
+|   SE13-64   |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_1b.bmodel|      66.45      |      4.35       |      45.20      |      2.58       |
+|   SE13-64   |lightstereo_bmcv.soc|LightStereo-S-SceneFlow_int8_4b.bmodel|      66.56      |      3.63       |      44.82      |      2.33       |
 |   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp32_1b.bmodel|      59.51      |     173.58      |     382.81      |      0.05       |
 |   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_fp16_1b.bmodel|      59.51      |     172.39      |     135.88      |      0.05       |
 |   SE9-16    |lightstereo_opencv.py|LightStereo-S-SceneFlow_int8_1b.bmodel|      59.54      |     172.94      |     120.27      |      0.05       |
@@ -299,7 +333,7 @@ bmrt_test --bmodel models/BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，SE13-64为8核CA55@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，不同的测试图片可能存在较大差异。 
 
 ## 7. FAQ

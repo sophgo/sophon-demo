@@ -18,8 +18,8 @@ CLIP（Contrastive Language-Image Pre-Training）是一个在多种（图像，�
 
 ## 2. 特性
 
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)
-* 支持FP16/INT8(BM1684X/BM1688/CV186X)模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684X2(SoC)
+* 支持FP16/INT8(BM1684X/BM1688/CV186X/BM1684X2)模型编译和推理
 * 支持Python、C++例程
 * 支持单batch和多batch模型推理
 * 支持图片测试
@@ -35,7 +35,7 @@ Pytorch模型在编译前要导出成onnx模型，具体可参考[CLIP模型导�
 sudo apt install unzip
 sudo apt install p7zip p7zip-full
 chmod -R +x scripts/
-# 下载模型，target可选输入BM1684X, BM1688, CV186X；不输入默认下载全部模型
+# 下载模型，target可选输入BM1684X, BM1688, CV186X, BM1684X2；不输入默认下载全部模型
 ./scripts/download.sh [target] 
 # 中文版CLIP，下载模型，target可选输入BM1684X, BM1688；不输入默认下载全部模型
 ./scripts/download_chinese_bmodel.sh [target] 
@@ -80,10 +80,10 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X/BM1684X2**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x/bm1684x2
 
 # 中文版CLIP
 ./scripts/gen_chinese_fp16bmodel_mlir.sh bm1684x #bm1688
@@ -96,10 +96,10 @@ chmod -R +x scripts/
 
 - 生成INT8 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X/BM1684X2**），如：
 
 ```bash
-./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x/bm1684x2
 
 # 中文版CLIP
 ./scripts/gen_chinese_int8bmodel_mlir.sh bm1684x #bm1688
@@ -137,6 +137,8 @@ bmrt_test --bmodel models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel
 |   SE9-16    | BM1688/clip_image_vitb32_bm1688_f16_1b_2core.bmodel | 15.50              |
 |   SE9-16    | BM1688/clip_image_vitb32_bm1688_int8_1b_2core.bmodel|  9.85              |
 |   SE9-8     | CV186X/clip_image_vitb32_cv186x_f16_1b.bmodel       | 17.55              |
+|   SE13-64   | BM1684X2/clip_image_vitb32_bm1684x2_f16_1b.bmodel   | 8.77               |
+|   SE13-64   | BM1684X2/clip_image_vitb32_bm1684x2_int8_1b.bmodel  | 5.52               |
 
 |   测试平台  | 测试clip_text_vitb32模型                           | calculate time(ms) |
 | ----------- | -------------------------------------------------- | ------------------ |
@@ -147,6 +149,8 @@ bmrt_test --bmodel models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel
 |   SE9-16    | BM1688/clip_text_vitb32_bm1688_f16_1b_2core.bmodel | 6.89              |
 |   SE9-16    | BM1688/clip_text_vitb32_bm1688_int8_1b_2core.bmodel| 3.46              |
 |   SE9-8     | CV186X/clip_text_vitb32_cv186x_f16_1b.bmodel       | 7.61              |
+|   SE13-64   | BM1684X2/clip_text_vitb32_bm1684x2_f16_1b.bmodel   | 6.02              |
+|   SE13-64   | BM1684X2/clip_text_vitb32_bm1684x2_int8_1b.bmodel  | 4.86              |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性；
@@ -167,9 +171,12 @@ bmrt_test --bmodel models/BM1684X/clip_image_vitb32_bm1684x_f16_1b.bmodel
 | SE9-8    | zeroshot_predict.py | 11.74           | 21.92               | 8.36              |
 | SE9-8    | clip_opencv.soc | 9.37           | 17.94               | 9.61             |
 | SRM1-20  | zeroshot_predict.py | 17.07           | 11.46               | 13.10              |
+| SE13-64  | zeroshot_predict.py | 11.45           | 11.35               | 6.72               |
+| SE13-64  | clip_opencv.soc | 9.01           | 9.13                | 7.24               |
 
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性，实测结果与该表结果有误差属正常现象，建议取稳定后的性能数据、并多次测试取平均值。
 > 2. 初次启动程序，程序解码、推理时间较长，再次运行程序时间正常，为正常现象，原因是文件还没有缓存到cache中。
 > 3. SE7-32的主控处理器为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异。
+4. SE13系列对应BM1684X2。SE13-64上int8模型（image encode 8.07ms左右、text encode 5.58ms左右）精度较fp16有所下降（置信度降低、相近文本的区分度下降），但CLIP.png对`a diagram`仍为正确top-1，建议优先使用fp16模型。

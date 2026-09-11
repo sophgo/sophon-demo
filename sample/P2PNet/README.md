@@ -18,13 +18,13 @@
   - [8. FAQ](#8-faq)
 
 ## 1. 简介
-P2PNet是腾讯优图实验室提出的点对点网络（Point-to-Point Network，P2PNet），业界首创直接预测人头中心点的人群计数新范式，能够同时实现人群个体定位和人群计数，该算法在 2020 年 12 月份刷新 NWPU 榜单。本例程对[P2PNet官方开源仓库](https://github.com/TencentYoutuResearch/CrowdCounting-P2PNet)的模型和算法进行移植，使之能在SOPHON BM1684|BM1684X|BM1688|CV186X上进行推理测试。
+P2PNet是腾讯优图实验室提出的点对点网络（Point-to-Point Network，P2PNet），业界首创直接预测人头中心点的人群计数新范式，能够同时实现人群个体定位和人群计数，该算法在 2020 年 12 月份刷新 NWPU 榜单。本例程对[P2PNet官方开源仓库](https://github.com/TencentYoutuResearch/CrowdCounting-P2PNet)的模型和算法进行移植，使之能在SOPHON BM1684|BM1684X|BM1688|CV186X|BM1684X2上进行推理测试。
 
 **数据集**: (https://www.datafountain.cn/datasets/5670)
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)、BM1688(SoC)和CV186X(SoC)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)、BM1688(SoC)、CV186X(SoC)和BM1684X2(SoC)
+* 支持FP32、FP16(BM1684X/BM1688/CV186X/BM1684X2)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -66,6 +66,10 @@ chmod -R +x scripts/
 │   ├── p2pnet_cv186x_fp16_1b.bmodel  # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
 │   ├── p2pnet_cv186x_int8_1b.bmodel  # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
 │   └── p2pnet_cv186x_int8_4b.bmodel  # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=4
+├── BM1684X2
+│   ├── p2pnet_bm1684x2_fp16_1b.bmodel  # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
+│   ├── p2pnet_bm1684x2_int8_1b.bmodel  # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=1
+│   └── p2pnet_bm1684x2_int8_4b.bmodel  # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=4
 └── onnx
     ├── p2pnet_1b.onnx                 # onnx模型，batch_size=1
     └── p2pnet_4b.onnx                 # onnx模型，batch_size=4
@@ -88,7 +92,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684|BM1684X|BM1688|CV186X），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684|BM1684X|BM1688|CV186X，BM1684X2当前固件codegen不支持FP32，请改用FP16/INT8），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684
@@ -100,7 +104,7 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684|BM1684X|BM1688|CV186X），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684|BM1684X|BM1688|CV186X|BM1684X2），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
@@ -110,7 +114,7 @@ chmod -R +x scripts/
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684|BM1684X|BM1688|CV186X），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684|BM1684X|BM1688|CV186X|BM1684X2），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684
@@ -206,12 +210,22 @@ python3 tools/eval_acc.py --gt_path datasets/test/ground-truth --result_path pyt
 | SRM1-20      | p2pnet_bmcv.pcie   | p2pnet_bm1684x_fp16_1b.bmodel |  18.09 | 28.51 |
 | SRM1-20      | p2pnet_bmcv.pcie   | p2pnet_bm1684x_int8_1b.bmodel |  17.99 | 28.32 |
 | SRM1-20      | p2pnet_bmcv.pcie   | p2pnet_bm1684x_int8_4b.bmodel |  17.99 | 28.32 |
+| SE13-64      | p2pnet_opencv.py   | p2pnet_bm1684x2_fp16_1b.bmodel |  18.31 | 29.09 |
+| SE13-64      | p2pnet_opencv.py   | p2pnet_bm1684x2_int8_1b.bmodel |  18.59 | 29.72 |
+| SE13-64      | p2pnet_opencv.py   | p2pnet_bm1684x2_int8_4b.bmodel |  18.59 | 29.72 |
+| SE13-64      | p2pnet_bmcv.py     | p2pnet_bm1684x2_fp16_1b.bmodel |  20.16 | 30.42 |
+| SE13-64      | p2pnet_bmcv.py     | p2pnet_bm1684x2_int8_1b.bmodel |  20.41 | 30.68 |
+| SE13-64      | p2pnet_bmcv.py     | p2pnet_bm1684x2_int8_4b.bmodel |  20.41 | 30.68 |
+| SE13-64      | p2pnet_bmcv.soc    | p2pnet_bm1684x2_fp16_1b.bmodel |  18.06 | 28.66 |
+| SE13-64      | p2pnet_bmcv.soc    | p2pnet_bm1684x2_int8_1b.bmodel |  18.18 | 28.67 |
+| SE13-64      | p2pnet_bmcv.soc    | p2pnet_bm1684x2_int8_4b.bmodel |  18.18 | 28.67 |
 
 
 > **测试说明**：
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2.由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
-> 3.在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 3.在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应BM1684X2；
+> 4.BM1684X2(SE13)上C++例程读取TPU输出使用`bm_memcpy_d2s`而非`bm_mem_mmap_device_mem`：SE13的mmap+invalidate读回方式会非确定性地读到脏缓存数据，导致结果在两次运行间漂移（fp16_1b MAE漂移到50+，int8_1b漂移到70+），d2s读回结果正确且耗时无可测差别；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -244,6 +258,9 @@ bmrt_test --bmodel models/BM1684/p2pnet_bm1684_fp32_1b.bmodel
 |   SE9-8    | CV186X/p2pnet_cv186x_fp16_1b.bmodel  		 | 109.5              |
 |   SE9-8    | CV186X/p2pnet_cv186x_int8_1b.bmodel  		 | 28.6               |
 |   SE9-8    | CV186X/p2pnet_cv186x_int8_4b.bmodel  		 | 27.68              |
+|   SE13-64  | BM1684X2/p2pnet_bm1684x2_fp16_1b.bmodel 	 | 36.25              |
+|   SE13-64  | BM1684X2/p2pnet_bm1684x2_int8_1b.bmodel 	 | 18.49              |
+|   SE13-64  | BM1684X2/p2pnet_bm1684x2_int8_4b.bmodel 	 | 18.09              |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性；
@@ -325,6 +342,15 @@ bmrt_test --bmodel models/BM1684/p2pnet_bm1684_fp32_1b.bmodel
 | SRM1-20| p2pnet_bmcv.pcie  |   p2pnet_bm1684x_fp16_1b.bmodel   |      7.95       |      1.10       |      17.33      |      2.86       |
 | SRM1-20| p2pnet_bmcv.pcie  |   p2pnet_bm1684x_int8_1b.bmodel   |      7.94       |      1.11       |      8.54       |      2.81       |
 | SRM1-20| p2pnet_bmcv.pcie  |   p2pnet_bm1684x_int8_4b.bmodel   |      7.88       |      0.99       |      8.22       |      2.39       |
+| SE13-64 | p2pnet_opencv.py | p2pnet_bm1684x2_fp16_1b.bmodel  | 12.72      | 43.98         | 37.81        | 5.84      |
+| SE13-64 | p2pnet_opencv.py | p2pnet_bm1684x2_int8_1b.bmodel  | 12.74      | 44.06         | 19.99        | 5.83      |
+| SE13-64 | p2pnet_opencv.py | p2pnet_bm1684x2_int8_4b.bmodel  | 12.74      | 44.06         | 19.99        | 5.83      |
+| SE13-64 | p2pnet_bmcv.py   | p2pnet_bm1684x2_fp16_1b.bmodel  | 3.15       | 3.24          | 36.69        | 5.82      |
+| SE13-64 | p2pnet_bmcv.py   | p2pnet_bm1684x2_int8_1b.bmodel  | 3.10       | 3.24          | 18.88        | 5.77      |
+| SE13-64 | p2pnet_bmcv.py   | p2pnet_bm1684x2_int8_4b.bmodel  | 3.10       | 3.24          | 18.88        | 5.77      |
+| SE13-64 | p2pnet_bmcv.soc  | p2pnet_bm1684x2_fp16_1b.bmodel  | 4.340      | 1.336         | 36.151       | 1.773     |
+| SE13-64 | p2pnet_bmcv.soc  | p2pnet_bm1684x2_int8_1b.bmodel  | 4.316      | 1.335         | 18.352       | 1.773     |
+| SE13-64 | p2pnet_bmcv.soc  | p2pnet_bm1684x2_int8_4b.bmodel  | 4.279      | 1.109         | 18.094       | 1.757     |
 
 
 > **测试说明**：

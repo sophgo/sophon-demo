@@ -52,6 +52,10 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/OpenPose/BM1688.zip
     unzip BM1688.zip -d ../models
     rm BM1688.zip
+
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/OpenPose/BM1684X2.zip
+    unzip BM1684X2.zip -d ../models
+    rm BM1684X2.zip
     echo "models download!"
 else
     echo "models exist!"

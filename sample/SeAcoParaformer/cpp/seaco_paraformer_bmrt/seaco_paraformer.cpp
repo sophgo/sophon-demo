@@ -184,10 +184,21 @@ SeacoParaformer::SeacoParaformer(const std::string& model_dir, int dev_id)
     bmrt_ = bmrt_create(handle_);
     assert(bmrt_ != nullptr);
 
-    // Load three bmodels
-    load_network(model_dir + "/encoder_fp32_10b.bmodel", enc_net_);
-    load_network(model_dir + "/decoder_fp32_10b.bmodel", dec_net_);
-    load_network(model_dir + "/predictor_fp32_10b.bmodel", pred_net_);
+    // Load three bmodels. Prefer BM1684X2 bf16 names, fall back to the
+    // BM1684X fp32 release names.
+    auto pick = [&](const std::string& base) -> std::string {
+        std::string candidates[] = {base + "_bf16_1b.bmodel",
+                                    base + "_fp32_10b.bmodel"};
+        for (auto& c : candidates) {
+            std::ifstream f(c);
+            if (f.good())
+                return c;
+        }
+        return candidates[0];
+    };
+    load_network(pick(model_dir + "/encoder"), enc_net_);
+    load_network(pick(model_dir + "/decoder"), dec_net_);
+    load_network(pick(model_dir + "/predictor"), pred_net_);
 
     // Load tokens
     std::ifstream tok_file(model_dir + "/tokens.json");
@@ -295,52 +306,29 @@ float* SeacoParaformer::get_cpu_data(bm_tensor_t* tensor, float scale) {
     int count = bmrt_shape_count(&tensor->shape);
     float* pFP32 = nullptr;
 
-    if (misc_info_.pcie_soc_mode == 1) { // SoC
-        if (tensor->dtype == BM_FLOAT32) {
-            unsigned long long addr;
-            bm_mem_mmap_device_mem(handle_, &tensor->device_mem, &addr);
-            bm_mem_invalidate_device_mem(handle_, &tensor->device_mem);
-            pFP32 = (float*)addr;
-        } else if (tensor->dtype == BM_INT32) {
-            int32_t* pI32 = nullptr;
-            unsigned long long addr;
-            bm_mem_mmap_device_mem(handle_, &tensor->device_mem, &addr);
-            bm_mem_invalidate_device_mem(handle_, &tensor->device_mem);
-            pI32 = (int32_t*)addr;
-            pFP32 = new float[count];
-            for (int i = 0; i < count; i++) pFP32[i] = (float)pI32[i] * scale;
-            bm_mem_unmap_device_mem(handle_, pI32, bm_mem_get_device_size(tensor->device_mem));
-        } else {
-            std::cerr << "unsupported dtype: " << tensor->dtype << std::endl;
-        }
-    } else { // PCIe
-        if (tensor->dtype == BM_FLOAT32) {
-            pFP32 = new float[count];
-            bm_memcpy_d2s_partial(handle_, pFP32, tensor->device_mem, count * sizeof(float));
-        } else if (tensor->dtype == BM_INT32) {
-            int tensor_size = bmrt_tensor_bytesize(tensor);
-            int32_t* pI32 = new int32_t[tensor_size / sizeof(int32_t)];
-            bm_memcpy_d2s_partial(handle_, pI32, tensor->device_mem, tensor_size);
-            pFP32 = new float[count];
-            for (int i = 0; i < count; i++) pFP32[i] = (float)pI32[i] * scale;
-            delete[] pI32;
-        } else {
-            std::cerr << "unsupported dtype: " << tensor->dtype << std::endl;
-        }
+    // Always copy with d2s. The SoC mmap+invalidate shortcut is buggy on
+    // chipid 0x1694 (bm1684x2): non-deterministic stale-cache data, and on
+    // load-time stage mems bm_mem_mmap_device_mem fails "out of range"
+    // leaving the address uninitialized (segfault).
+    if (tensor->dtype == BM_FLOAT32) {
+        pFP32 = new float[count];
+        bm_memcpy_d2s_partial(handle_, pFP32, tensor->device_mem, count * sizeof(float));
+    } else if (tensor->dtype == BM_INT32) {
+        int tensor_size = bmrt_tensor_bytesize(tensor);
+        int32_t* pI32 = new int32_t[tensor_size / sizeof(int32_t)];
+        bm_memcpy_d2s_partial(handle_, pI32, tensor->device_mem, tensor_size);
+        pFP32 = new float[count];
+        for (int i = 0; i < count; i++) pFP32[i] = (float)pI32[i] * scale;
+        delete[] pI32;
+    } else {
+        std::cerr << "unsupported dtype: " << tensor->dtype << std::endl;
     }
     return pFP32;
 }
 
 void SeacoParaformer::free_cpu_data(bm_tensor_t* tensor, float* data) {
-    if (misc_info_.pcie_soc_mode == 1) { // SoC
-        if (tensor->dtype == BM_FLOAT32) {
-            bm_mem_unmap_device_mem(handle_, data, bm_mem_get_device_size(tensor->device_mem));
-        } else {
-            delete[] data;
-        }
-    } else {
-        delete[] data;
-    }
+    (void)tensor;
+    delete[] data;
 }
 
 // ---------------------------------------------------------------------------
@@ -357,87 +345,95 @@ int SeacoParaformer::shape_dim_at(const bm_shape_t& shape, int dim, int default_
 }
 
 // ===========================================================================
-// Dynamic network launch helper
+// Dynamic network launch helper (sail SYSIO style)
 // ===========================================================================
-// Follows Qwen/cpp/qwen_bmlib net_launch_dyn pattern:
-//   1. Allocate device memory for MAX compiled shape
-//   2. Copy actual data
-//   3. bm_set_device_mem to shrink to actual size
-//   4. Set tensor.shape.dims to actual dimensions
-//   5. Launch with bmrt_launch_tensor_ex(user_mem=true)
+// Launches a dynamic net exactly the way python sail.Engine(SYSIO).process()
+// does — the only path proven to run these dynamic nets on bm1684x2:
+//   1. bm_malloc_device_mem an EXACT-size input mem per call, s2d the data
+//   2. bmrt_launch_tensor_ex with user_mem = false so the runtime allocates
+//      the output mems and fills in the real output shapes
+//   3. bm_thread_sync, free the input mems
+//   4. caller reads outputs, then frees them with bm_free_device
 //
-// The valid_tensors list specifies which input tensor indices need dynamic
-// shape adjustment, along with the dim index and actual value to set.
+// NEVER touch net_info->stages[s].input_mems: shrinking those in place with
+// bm_set_device_mem corrupts the runtime's memory bookkeeping and wedges the
+// TPU driver on the next launch in the same context (observed: encoder
+// dynamic launch "succeeds", decoder launch then hangs in
+// bmdrv_thread_sync_api until the board is power-cycled).
 
-struct DynamicDim {
-    int tensor_idx;    // which input tensor
-    int dim_idx;       // which dim (0=batch, 1=T, 2=D, etc.)
-    int actual_val;    // actual value for this dim
+struct HostInput {
+    const void* data;
+    int num_dims;
+    int dims[8];
+    bm_data_type_t dtype;
 };
 
-static void launch_dynamic(SeacoParaformer* self, bm_handle_t handle, void* bmrt,
-                           const bm_net_info_t* net_info, int stage,
-                           std::vector<bm_tensor_t>& inputs,
-                           std::vector<bm_tensor_t>& outputs,
-                           const std::vector<DynamicDim>& dyn_dims) {
-    // Get pre-allocated device memory from compiled stage
-    auto& stg = net_info->stages[stage];
-
-    // === Inputs: use pre-allocated device memory ===
+static void launch_sysio(SeacoParaformer* self, bm_handle_t handle, void* bmrt,
+                         const bm_net_info_t* net_info,
+                         const std::vector<HostInput>& host_inputs,
+                         std::vector<bm_tensor_t>& outputs) {
+    (void)self;
+    std::vector<bm_tensor_t> inputs(net_info->input_num);
     for (int i = 0; i < net_info->input_num; i++) {
-        // Start from compiled max shape
-        bm_shape_t max_shape = stg.input_shapes[i];
-
-        if (net_info->is_dynamic) {
-            // Compute actual shape by applying all DynamicDim overrides for this tensor
-            bm_shape_t actual_shape = max_shape;
-            for (auto& dd : dyn_dims) {
-                if (dd.tensor_idx == i) {
-                    actual_shape.dims[dd.dim_idx] = dd.actual_val;
-                }
-            }
-
-            // Get pre-allocated device memory for max shape
-            auto& dev_mem = stg.input_mems[i];
-            // Compute actual bytes needed
-            int actual_count = 1;
-            for (int d = 0; d < actual_shape.num_dims; d++)
-                actual_count *= actual_shape.dims[d];
-            int dtype_size = (net_info->input_dtypes[i] == BM_INT32) ?
-                             sizeof(int32_t) : sizeof(float);
-
-            // Shrink device_mem to actual size
-            bm_set_device_mem((bm_device_mem_t*)&dev_mem,
-                              actual_count * dtype_size,
-                              bm_mem_get_device_addr(dev_mem));
-
-            // Create tensor with ACTUAL shape
-            bmrt_tensor_with_device(&inputs[i], dev_mem,
-                                    net_info->input_dtypes[i], actual_shape);
-        } else {
-            bmrt_tensor_with_device(&inputs[i], stg.input_mems[i],
-                                    net_info->input_dtypes[i], max_shape);
-        }
+        auto& hi = host_inputs[i];
+        int count = 1;
+        for (int d = 0; d < hi.num_dims; d++) count *= hi.dims[d];
+        int dtype_size = (hi.dtype == BM_INT32) ? sizeof(int32_t) : sizeof(float);
+        bm_device_mem_t mem;
+        int ret = bm_malloc_device_byte(handle, &mem,
+                                        (unsigned long long)count * dtype_size);
+        assert(ret == BM_SUCCESS);
+        bm_memcpy_s2d(handle, mem, (void*)hi.data);
+        bmrt_tensor_with_device(&inputs[i], mem, hi.dtype,
+                                *(bm_shape_t*)&hi.num_dims);
     }
 
-    // === Outputs: use pre-allocated device memory (max shape) ===
-    for (int i = 0; i < net_info->output_num; i++) {
+    bool ret = bmrt_launch_tensor_ex(bmrt, net_info->name,
+                                     inputs.data(), net_info->input_num,
+                                     outputs.data(), net_info->output_num,
+                                     false, false);
+    assert(ret);
+    bm_thread_sync(handle);
+
+    for (int i = 0; i < net_info->input_num; i++)
+        bm_free_device(handle, inputs[i].device_mem);
+}
+
+// Frees a runtime-allocated output mem (user_mem=false launch). These mems
+// come from the bmrt gmem pool and MUST be released with bmrt_free_device
+// (exported by libbmrt but missing from this SDK's public headers), not
+// bm_free_device (the latter aborts with "free gmem failed" on 84x2).
+extern "C" bool bmrt_free_device(void* p_bmrt, bm_device_mem_t mem);
+
+static void rt_free_outputs(void* bmrt, std::vector<bm_tensor_t>& outputs) {
+    for (auto& t : outputs)
+        bmrt_free_device(bmrt, t.device_mem);
+}
+
+// Static net launch kept for reference — NOT used on this firmware: the
+// load-time stage mems of a static net are pseudo-addressed (e.g.
+// 0x400000000000) and every s2d/d2s on them trips
+// bm_device_mem_range_valid "out of range". Dynamic-style launch with fresh
+// mems + user_mem=false works for static nets too (outputs land in runtime
+// gmem with real addresses).
+static void launch_static(SeacoParaformer* self, bm_handle_t handle, void* bmrt,
+                          const bm_net_info_t* net_info, int stage,
+                          std::vector<bm_tensor_t>& inputs,
+                          std::vector<bm_tensor_t>& outputs) {
+    (void)self;
+    auto& stg = net_info->stages[stage];
+    for (int i = 0; i < net_info->input_num; i++)
+        bmrt_tensor_with_device(&inputs[i], stg.input_mems[i],
+                                net_info->input_dtypes[i], stg.input_shapes[i]);
+    for (int i = 0; i < net_info->output_num; i++)
         bmrt_tensor_with_device(&outputs[i], stg.output_mems[i],
-                                net_info->output_dtypes[i],
-                                stg.output_shapes[i]);
-    }
-
-    // === Launch ===
+                                net_info->output_dtypes[i], stg.output_shapes[i]);
     bool ret = bmrt_launch_tensor_ex(bmrt, net_info->name,
                                      inputs.data(), net_info->input_num,
                                      outputs.data(), net_info->output_num,
                                      true, false);
     assert(ret);
     bm_thread_sync(handle);
-
-    // Note: After launch, output tensor shapes SHOULD reflect actual dims.
-    // If dynamic dim T was changed, outputs with T dim will have actual T.
-    // We verify this by checking output shape after launch.
 }
 
 // ===========================================================================
@@ -451,91 +447,56 @@ void SeacoParaformer::encoder_forward(const float* speech, int speech_len,
                                        float& token_num) {
     auto t0 = std::chrono::steady_clock::now();
 
-    int batch = enc_net_.batch_size;           // compiled batch (10)
-    int T_max = enc_net_.info->stages[0].input_shapes[0].dims[1];  // 1000
-    int n_inputs = enc_net_.info->input_num;   // 2
-    int n_outputs = enc_net_.info->output_num; // 4
-
+    int T_max = enc_net_.info->stages[0].input_shapes[0].dims[1];  // 1100
     if (speech_len > T_max) {
         std::cerr << "Encoder: speech_len " << speech_len << " > T_max " << T_max << std::endl;
         speech_len = T_max;
     }
 
-    std::vector<bm_tensor_t> input_tensors(n_inputs);
-    std::vector<bm_tensor_t> output_tensors(n_outputs);
+    // Exact-shape inputs (sail SYSIO style): speech (1, speech_len, 560),
+    // speech_lengths (1,) — the runtime allocates outputs itself.
+    std::vector<HostInput> host_inputs = {
+        {speech, 3, {1, speech_len, FEAT_DIM}, BM_FLOAT32},
+    };
+    int32_t slens[1] = {speech_len};
+    host_inputs.push_back({slens, 1, {1}, BM_INT32});
 
-    // Copy data into pre-allocated device memory
-    auto& stg = enc_net_.info->stages[0];
-
-    // Input 0: speech (batch=10, T_max, FEAT_DIM) -> we write actual data into batch 0
-    {
-        int max_count = batch * T_max * FEAT_DIM;
-        std::vector<float> padded(max_count, 0.0f);
-        // Only write batch 0 with actual speech_len frames
-        for (int t = 0; t < speech_len; t++)
-            for (int d = 0; d < FEAT_DIM; d++)
-                padded[t * FEAT_DIM + d] = speech[t * FEAT_DIM + d];
-        bm_memcpy_s2d(handle_, stg.input_mems[0], padded.data());
-    }
-
-    // Input 1: speech_lengths (batch,) int32
-    {
-        std::vector<int32_t> slens(batch, 1);  // min length 1
-        slens[0] = speech_len;
-        bm_memcpy_s2d(handle_, stg.input_mems[1], slens.data());
-    }
-
-    // Dynamic dims: input[0].dim[0] -> 1 (batch), input[0].dim[1] -> speech_len (T)
-    // input[1].dim[0] -> 1 (batch)
-    std::vector<DynamicDim> dyn_dims;
-    if (enc_net_.is_dynamic) {
-        dyn_dims.push_back({0, 0, 1});           // actual batch = 1
-        dyn_dims.push_back({0, 1, speech_len});  // actual T = speech_len
-        dyn_dims.push_back({1, 0, 1});           // actual batch = 1 for speech_lengths
-    }
-
-    launch_dynamic(this, handle_, bmrt_, enc_net_.info, 0,
-                   input_tensors, output_tensors, dyn_dims);
+    std::vector<bm_tensor_t> output_tensors(enc_net_.info->output_num);
+    launch_sysio(this, handle_, bmrt_, enc_net_.info, host_inputs, output_tensors);
 
     auto t1 = std::chrono::steady_clock::now();
     t_enc_ += std::chrono::duration<double>(t1 - t0).count();
 
-    // Read outputs — after dynamic launch, output shapes should reflect actual dims
-    // Output order (from SAIL): enc_out(1,T,512), hidden(1,T+1,512), alphas(1,T+1), token_num(1)
-    for (int i = 0; i < n_outputs; i++) {
-        float scale = (i < (int)enc_net_.output_scales.size()) ? enc_net_.output_scales[i] : 1.0f;
-        float* data = get_cpu_data(&output_tensors[i], scale);
+    // Read outputs — the runtime filled in the actual output shapes.
+    // Output order (confirmed from SAIL/Python):
+    // out[0] = enc_out (1,T,512), out[1] = hidden (1,T+1,512),
+    // out[2] = alphas (1,T+1),   out[3] = token_num (1,)
+    for (int i = 0; i < enc_net_.info->output_num; i++) {
+        float* data = get_cpu_data(&output_tensors[i], 1.0f);
         int ndim = output_tensors[i].shape.num_dims;
         int dim1 = (ndim > 1) ? output_tensors[i].shape.dims[1] : 0;
         int dim2 = (ndim > 2) ? output_tensors[i].shape.dims[2] : 0;
 
-        // Match by output index (confirmed order from SAIL/Python):
-        // out[0] = enc_LayerNormalization: (1, T, 512)
-        // out[1] = hidden_Concat:           (1, T+1, 512)
-        // out[2] = alphas_Add:              (1, T+1)
-        // out[3] = token_num_Floor:         (1,)
         if (i == 0) {
-            // enc_out (1, speech_len, 512)
             enc_out_T = dim1;
             enc_out_D = dim2;
             int n = enc_out_T * enc_out_D;
             enc_out.assign(data, data + n);
         } else if (i == 1) {
-            // hidden (1, speech_len+1, 512)
             hidden_T = dim1;
             int n = hidden_T * dim2;
             hidden.assign(data, data + n);
         } else if (i == 2) {
-            // alphas (1, speech_len+1)
             alphas_T = dim1;
             alphas.assign(data, data + dim1);
         } else if (i == 3) {
-            // token_num (1,)
             token_num = data[0];
         }
 
         free_cpu_data(&output_tensors[i], data);
+
     }
+    rt_free_outputs(bmrt_, output_tensors);
 }
 
 // ===========================================================================
@@ -549,95 +510,48 @@ void SeacoParaformer::decoder_forward(const float* enc_out, int enc_T, int enc_D
                                        std::vector<float>& dec_hidden) {
     auto t0 = std::chrono::steady_clock::now();
 
-    int batch = dec_net_.batch_size;
-    int dec_T_max = dec_net_.info->stages[0].input_shapes[0].dims[1];  // 1000
-    int dec_N_max = dec_net_.info->stages[0].input_shapes[2].dims[1];  // 600
-    int n_inputs = dec_net_.info->input_num;   // 4
-    int n_outputs = dec_net_.info->output_num; // 2
+    // Exact-shape inputs at the ACTUAL dims (sail SYSIO style — same as the
+    // working python path): enc (1,enc_T,512), enc_len (1,), embeds
+    // (1,pre_N,512), pre_token_length (1,). The runtime derives the output
+    // shapes and allocates the output mems itself.
+    std::vector<HostInput> host_inputs = {
+        {enc_out, 3, {1, enc_T, enc_D}, BM_FLOAT32},
+    };
+    int32_t lens[1] = {enc_T};
+    host_inputs.push_back({lens, 1, {1}, BM_INT32});
+    host_inputs.push_back({pre_embeds, 3, {1, pre_N, pre_D}, BM_FLOAT32});
+    int32_t ptls[1] = {pre_token_len};
+    host_inputs.push_back({ptls, 1, {1}, BM_INT32});
 
-    if (enc_T > dec_T_max) enc_T = dec_T_max;
-    if (pre_N > dec_N_max) pre_N = dec_N_max;
-
-    std::vector<bm_tensor_t> input_tensors(n_inputs);
-    std::vector<bm_tensor_t> output_tensors(n_outputs);
-
-    auto& stg = dec_net_.info->stages[0];
-
-    // Input 0: enc (batch, T_max, enc_D) float32
-    {
-        int max_count = batch * dec_T_max * enc_D;
-        std::vector<float> padded(max_count, 0.0f);
-        for (int t = 0; t < enc_T; t++)
-            for (int d = 0; d < enc_D; d++)
-                padded[t * enc_D + d] = enc_out[t * enc_D + d];
-        bm_memcpy_s2d(handle_, stg.input_mems[0], padded.data());
-    }
-
-    // Input 1: enc_len (batch,) int32
-    {
-        std::vector<int32_t> lens(batch, 1);
-        lens[0] = enc_T;
-        bm_memcpy_s2d(handle_, stg.input_mems[1], lens.data());
-    }
-
-    // Input 2: pre_acoustic_embeds (batch, N_max, pre_D) float32
-    {
-        int max_count = batch * dec_N_max * pre_D;
-        std::vector<float> padded(max_count, 0.0f);
-        for (int n = 0; n < pre_N; n++)
-            for (int d = 0; d < pre_D; d++)
-                padded[n * pre_D + d] = pre_embeds[n * pre_D + d];
-        bm_memcpy_s2d(handle_, stg.input_mems[2], padded.data());
-    }
-
-    // Input 3: pre_token_length (batch,) int32
-    {
-        std::vector<int32_t> ptls(batch, 1);
-        ptls[0] = pre_token_len;
-        bm_memcpy_s2d(handle_, stg.input_mems[3], ptls.data());
-    }
-
-    // Dynamic dims
-    std::vector<DynamicDim> dyn_dims;
-    if (dec_net_.is_dynamic) {
-        dyn_dims.push_back({0, 0, 1});         // enc batch = 1
-        dyn_dims.push_back({0, 1, enc_T});     // enc T = actual
-        dyn_dims.push_back({1, 0, 1});         // enc_len batch = 1
-        dyn_dims.push_back({2, 0, 1});         // pre_embeds batch = 1
-        dyn_dims.push_back({2, 1, pre_N});     // pre_embeds N = actual
-        dyn_dims.push_back({3, 0, 1});         // pre_token_len batch = 1
-    }
-
-    launch_dynamic(this, handle_, bmrt_, dec_net_.info, 0,
-                   input_tensors, output_tensors, dyn_dims);
+    std::vector<bm_tensor_t> output_tensors(dec_net_.info->output_num);
+    launch_sysio(this, handle_, bmrt_, dec_net_.info, host_inputs, output_tensors);
 
     auto t1 = std::chrono::steady_clock::now();
     t_dec_ += std::chrono::duration<double>(t1 - t0).count();
 
     // Read outputs by index:
-    // out[0] = decoder_out_LogSoftmax:          (1, N, vocab_size)
+    // out[0] = decoder_out_LogSoftmax:            (1, N, vocab_size)
     // out[1] = decoder_hidden_LayerNormalization: (1, N, 512)
-    for (int i = 0; i < n_outputs; i++) {
-        float scale = (i < (int)dec_net_.output_scales.size()) ? dec_net_.output_scales[i] : 1.0f;
-        float* data = get_cpu_data(&output_tensors[i], scale);
+    for (int i = 0; i < dec_net_.info->output_num; i++) {
+        float* data = get_cpu_data(&output_tensors[i], 1.0f);
         int ndim = output_tensors[i].shape.num_dims;
+        int dim1 = (ndim > 1) ? output_tensors[i].shape.dims[1] : 0;
         int dim2 = (ndim > 2) ? output_tensors[i].shape.dims[2] : 0;
 
         if (i == 0) {
-            // logits (1, N, vocab_size)
-            logits_N = output_tensors[i].shape.dims[1];
+            logits_N = dim1;
             vocab_size = dim2;
             int n = logits_N * vocab_size;
             logits.assign(data, data + n);
         } else if (i == 1) {
-            // decoder hidden (1, N, 512)
-            int N = output_tensors[i].shape.dims[1];
-            int n = N * dim2;
+            int n = dim1 * dim2;
             dec_hidden.assign(data, data + n);
         }
 
         free_cpu_data(&output_tensors[i], data);
+
     }
+    rt_free_outputs(bmrt_, output_tensors);
 }
 
 // ===========================================================================
@@ -649,69 +563,86 @@ void SeacoParaformer::predictor_forward(const float* enc_out, int enc_T, int enc
                                          float& pred_token_num) {
     auto t0 = std::chrono::steady_clock::now();
 
-    int batch = pred_net_.batch_size;
-    int pred_T_max = pred_net_.info->stages[0].input_shapes[0].dims[1];  // 1000
-    int n_inputs = pred_net_.info->input_num;   // 2
-    int n_outputs = pred_net_.info->output_num; // 2
+    if (pred_net_.is_dynamic) {
+        // Exact-shape inputs (sail SYSIO style)
+        std::vector<HostInput> host_inputs = {
+            {enc_out, 3, {1, enc_T, enc_D}, BM_FLOAT32},
+        };
+        int32_t lens[1] = {enc_T};
+        host_inputs.push_back({lens, 1, {1}, BM_INT32});
 
+        std::vector<bm_tensor_t> output_tensors(pred_net_.info->output_num);
+        launch_sysio(this, handle_, bmrt_, pred_net_.info, host_inputs, output_tensors);
+
+        auto t1 = std::chrono::steady_clock::now();
+        t_pred_ += std::chrono::duration<double>(t1 - t0).count();
+
+        for (int i = 0; i < pred_net_.info->output_num; i++) {
+            float* data = get_cpu_data(&output_tensors[i], 1.0f);
+            int ndim = output_tensors[i].shape.num_dims;
+            int dim1 = (ndim > 1) ? output_tensors[i].shape.dims[1] : 0;
+
+            if (i == 0) {
+                us_T = dim1;
+                us_alphas.assign(data, data + us_T);
+            } else if (i == 1) {
+                pred_token_num = data[0];
+            }
+
+            free_cpu_data(&output_tensors[i], data);
+    
+        }
+        return;
+    }
+
+    // STATIC build: same sail-SYSIO launch as the dynamic nets. The load-time
+    // stage mems of a static net are pseudo-addressed on this firmware
+    // (bm_device_mem_range_valid "out of range" on every s2d/d2s), so the
+    // input goes through a fresh mem too: zero-pad enc to T_max, launch with
+    // user_mem=false, read the runtime-allocated outputs, slice us_alphas
+    // back to 3*enc_T and recompute token_num over the valid slice (pad
+    // frames would add spurious alpha mass).
+    int pred_T_max = pred_net_.info->stages[0].input_shapes[0].dims[1];  // 1100
     if (enc_T > pred_T_max) enc_T = pred_T_max;
 
-    std::vector<bm_tensor_t> input_tensors(n_inputs);
-    std::vector<bm_tensor_t> output_tensors(n_outputs);
+    int max_count = pred_T_max * enc_D;
+    std::vector<float> padded(max_count, 0.0f);
+    for (int t = 0; t < enc_T; t++)
+        for (int d = 0; d < enc_D; d++)
+            padded[t * enc_D + d] = enc_out[t * enc_D + d];
 
-    auto& stg = pred_net_.info->stages[0];
-
-    // Input 0: enc (batch, T_max, enc_D) float32
-    {
-        int max_count = batch * pred_T_max * enc_D;
-        std::vector<float> padded(max_count, 0.0f);
-        for (int t = 0; t < enc_T; t++)
-            for (int d = 0; d < enc_D; d++)
-                padded[t * enc_D + d] = enc_out[t * enc_D + d];
-        bm_memcpy_s2d(handle_, stg.input_mems[0], padded.data());
-    }
-
-    // Input 1: enc_len (batch,) int32
-    {
-        std::vector<int32_t> lens(batch, 1);
-        lens[0] = enc_T;
-        bm_memcpy_s2d(handle_, stg.input_mems[1], lens.data());
-    }
-
-    // Dynamic dims
-    std::vector<DynamicDim> dyn_dims;
-    if (pred_net_.is_dynamic) {
-        dyn_dims.push_back({0, 0, 1});         // batch = 1
-        dyn_dims.push_back({0, 1, enc_T});     // T = actual
-        dyn_dims.push_back({1, 0, 1});         // batch = 1
-    }
-
-    launch_dynamic(this, handle_, bmrt_, pred_net_.info, 0,
-                   input_tensors, output_tensors, dyn_dims);
+    std::vector<HostInput> host_inputs = {
+        {padded.data(), 3, {1, pred_T_max, enc_D}, BM_FLOAT32},
+    };
+    std::vector<bm_tensor_t> output_tensors(pred_net_.info->output_num);
+    launch_sysio(this, handle_, bmrt_, pred_net_.info, host_inputs, output_tensors);
 
     auto t1 = std::chrono::steady_clock::now();
     t_pred_ += std::chrono::duration<double>(t1 - t0).count();
 
     // Read outputs by index:
-    // out[0] = alphas2_Squeeze:     (1, T_up) where T_up = enc_T * 3
-    // out[1] = _token_num_ReduceSum: (1,)
-    for (int i = 0; i < n_outputs; i++) {
-        float scale = (i < (int)pred_net_.output_scales.size()) ? pred_net_.output_scales[i] : 1.0f;
-        float* data = get_cpu_data(&output_tensors[i], scale);
+    // out[0] = us_alphas_Squeeze:     (1, T_up) where T_up = T_max * 3
+    // out[1] = token_num_ReduceSum:   (1,) -- includes pad frames, recomputed
+    //                              below over the enc_T*3 slice
+    for (int i = 0; i < pred_net_.info->output_num; i++) {
+        float* data = get_cpu_data(&output_tensors[i], 1.0f);
         int ndim = output_tensors[i].shape.num_dims;
         int dim1 = (ndim > 1) ? output_tensors[i].shape.dims[1] : 0;
 
         if (i == 0) {
-            // us_alphas (1, T_up)
-            us_T = dim1;
-            us_alphas.assign(data, data + dim1);
-        } else if (i == 1) {
-            // pred_token_num (1,)
-            pred_token_num = data[0];
+            // us_alphas (1, T_up): keep only the first enc_T*3 frames
+            us_T = std::min(dim1, enc_T * 3);
+            us_alphas.assign(data, data + us_T);
         }
 
         free_cpu_data(&output_tensors[i], data);
     }
+    rt_free_outputs(bmrt_, output_tensors);
+
+    // pred_token_num recomputed over the sliced alphas
+    pred_token_num = 0.0f;
+    for (int t = 0; t < us_T; t++)
+        pred_token_num += us_alphas[t];
 }
 
 // ---------------------------------------------------------------------------

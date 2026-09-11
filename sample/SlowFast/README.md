@@ -20,8 +20,8 @@ SlowFast 是 Facebook AI Research (FAIR) 提出的用于视频理解的深度学
 
 本例程对[pytorchvideo的SlowFast R50模型](https://github.com/facebookresearch/pytorchvideo)进行了移植，在相同的预处理流程下可以做到精度对齐。
 ## 2. 特性
-* 支持BM1688(SoC)、BM1684X(PCIe、SoC)
-* 支持FP32、FP16、INT8模型编译和推理
+* 支持BM1688(SoC)、BM1684X(PCIe、SoC)、BM1684X2(SoC)
+* 支持FP32、FP16(BM1688/BM1684X/BM1684X2)、INT8模型编译和推理
 * 支持基于OpenCV预处理的C++推理
 * 支持基于OpenCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -63,6 +63,9 @@ chmod -R +x scripts/
 │   ├── slowfast_bm1684x_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=4
 │   ├── slowfast_bm1684x_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── slowfast_bm1684x_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1684X2
+│   ├── slowfast_bm1684x2_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
+│   └── slowfast_bm1684x2_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=4
 ├── BM1688
 │   ├── slowfast_bm1688_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=1
 │   ├── slowfast_bm1688_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4，num_core=1
@@ -92,7 +95,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**；BM1684X2当前固件codegen不支持FP32，请改用FP16），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1684x/bm1688
@@ -102,17 +105,17 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x/bm1688
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x2/bm1688
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`slowfast_bm1684x_fp16_1b.bmodel`等文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1688**；BM1684X2当前工具链INT8模型推理结果错误，暂不支持，请改用FP16），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1684x/bm1688
@@ -187,10 +190,16 @@ python3 tools/eval_kinetics.py --gt_path datasets/ground_truth.json --result_jso
 | SRM1-20      | slowfast_opencv.pcie | slowfast_bm1684x_fp16_4b.bmodel |    0.630 |
 | SRM1-20      | slowfast_opencv.pcie | slowfast_bm1684x_int8_1b.bmodel |    0.621 |
 | SRM1-20      | slowfast_opencv.pcie | slowfast_bm1684x_int8_4b.bmodel |    0.621 |
+| SE13-64      | slowfast_opencv.py | slowfast_bm1684x2_fp16_1b.bmodel |    0.632 |
+| SE13-64      | slowfast_opencv.py | slowfast_bm1684x2_fp16_4b.bmodel |    0.632 |
+| SE13-64      | slowfast_opencv.soc | slowfast_bm1684x2_fp16_1b.bmodel |    0.557 |
+| SE13-64      | slowfast_opencv.soc | slowfast_bm1684x2_fp16_4b.bmodel |    0.551 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.02的精度误差是正常的；
-> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X，SE9系列中SE9-16对应BM1688；
+> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X，SE9系列中SE9-16对应BM1688，SE13系列对应BM1684X2；
+> 3. BM1684X2当前固件codegen不支持FP32；当前工具链编译的INT8模型在BM1684X2上推理结果错误（与C3D相同的Conv3D量化问题），暂不支持INT8，SE13-64仅测试FP16模型；
+> 4. SE13-64上C++例程(slowfast_opencv.soc)依赖的sophon-opencv视频解码输出与Python例程使用的opencv-python(自带ffmpeg)存在帧级差异，C++例程精度比Python例程低约7.5个百分点，属视频解码库实现差异，非模型精度问题（同一输入张量下C++与Python推理结果一致）；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -222,6 +231,8 @@ bmrt_test --bmodel models/BM1684X/slowfast_bm1684x_fp32_1b.bmodel
 |   SE9-16    | BM1688/slowafst_bm1688_fp16_4b_2core.bmodel    |         193.83  |
 |   SE9-16    | BM1688/slowafst_bm1688_int8_1b_2core.bmodel    |          53.89  |
 |   SE9-16    | BM1688/slowafst_bm1688_int8_4b_2core.bmodel    |          50.96  |
+|   SE13-64   | BM1684X2/slowfast_bm1684x2_fp16_1b.bmodel        |        141.95  |
+|   SE13-64   | BM1684X2/slowfast_bm1684x2_fp16_4b.bmodel        |        141.13  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -276,12 +287,16 @@ bmrt_test --bmodel models/BM1684X/slowfast_bm1684x_fp32_1b.bmodel
 |   SRM1-20   |slowfast_opencv.pcie|slowfast_bm1684x_fp16_4b.bmodel|      1372.36      |     648.29       |      36.15      |      0.50       |
 |   SRM1-20   |slowfast_opencv.pcie|slowfast_bm1684x_int8_1b.bmodel|      1321.58      |     630.19       |      28.99      |      0.56       |
 |   SRM1-20   |slowfast_opencv.pcie|slowfast_bm1684x_int8_4b.bmodel|      1372.79      |     679.48       |      27.56      |      0.49       |
+|   SE13-64   |slowfast_opencv.py|slowfast_bm1684x2_fp16_1b.bmodel|      92.88      |     568.59      |     172.26      |      0.35       |
+|   SE13-64   |slowfast_opencv.py|slowfast_bm1684x2_fp16_4b.bmodel|      91.46      |     591.74      |     200.33      |      0.18       |
+|   SE13-64   |slowfast_opencv.soc|slowfast_bm1684x2_fp16_1b.bmodel|      91.00      |     110.59      |     140.34      |      0.51       |
+|   SE13-64   |slowfast_opencv.soc|slowfast_bm1684x2_fp16_4b.bmodel|      79.15      |     109.85      |     138.30      |      0.48       |
 
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 3. SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 3. SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，SE13-64为8核CA53@2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
 > 5. SlowFast的后处理只有softmax，耗时很短，可以忽略。
 > 6. riscv平台上，python例程的opencv目前不能处理视频。

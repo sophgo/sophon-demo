@@ -2,6 +2,7 @@
 scripts_dir=$(dirname $(readlink -f "$0"))
 
 download_bm1684x=0
+download_bm1684x2=0
 download_bm1688=0
 download_cv186x=0
 download_onnx=0
@@ -13,6 +14,10 @@ while [[ $# -gt 0 ]]; do
     case $key in
         --BM1684X)
             download_bm1684x=1
+            shift 1
+            ;;
+        --BM1684X2)
+            download_bm1684x2=1
             shift 1
             ;;
         --BM1688)
@@ -33,6 +38,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         --all)
             download_bm1684x=1
+            download_bm1684x2=1
             download_bm1688=1
             download_cv186x=1
             download_onnx=1
@@ -88,6 +94,21 @@ then
     fi
 else
     echo "models/BM1684X folder exist! Remove it if you need to update."
+fi
+
+if [ ! -d "../models/BM1684X2" ];
+then
+    if [ $download_bm1684x2 == 1 ]; then
+        mkdir BM1684X2
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/BM1684X2/LightStereo-S-SceneFlow_fp32_1b.bmodel
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/BM1684X2/LightStereo-S-SceneFlow_fp16_1b.bmodel
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/BM1684X2/LightStereo-S-SceneFlow_int8_1b.bmodel
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/LightStereo/BM1684X2/LightStereo-S-SceneFlow_int8_4b.bmodel
+        mv LightStereo-S-SceneFlow_*.bmodel BM1684X2/
+        echo "models/BM1684X2 download!"
+    fi
+else
+    echo "models/BM1684X2 folder exist! Remove it if you need to update."
 fi
 
 if [ ! -d "../models/BM1688" ]; 

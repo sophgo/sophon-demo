@@ -19,11 +19,11 @@
   - [8. FAQ](#8-faq)
 
 ## 1. 简介
-​YOLO26_obb对[​YOLO26官方开源仓库](https://github.com/ultralytics/ultralytics)v8.4.14的yolo26s-obb模型和算法进行移植，使之能在SOPHON BM1684X/BM1688/CV186X上进行推理测试。
+​YOLO26_obb对[​YOLO26官方开源仓库](https://github.com/ultralytics/ultralytics)v8.4.14的yolo26s-obb模型和算法进行移植，使之能在SOPHON BM1684X/BM1684X2/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
-* 支持FP32、FP16模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)和BM1684X2(SoC)
+* 支持FP32、FP16(BM1684X/BM1684X2/BM1688/CV186X)模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持端到端无 NMS 推理
@@ -45,6 +45,7 @@ chmod -R +x scripts/
 ```bash
 --all     # 下载所有模型
 --BM1684X # 下载BM1684X的bmodel
+--BM1684X2 # 下载BM1684X2的bmodel
 --BM1688  # 下载BM1688的bmodel
 --CV186X  # 下载CV186X的bmodel
 --onnx    # 下载onnx
@@ -55,6 +56,9 @@ chmod -R +x scripts/
 ./models
 ├── BM1684X # 在BM1684X上运行的模型
 │   ├── yolo26s_fp32_1b.bmodel
+│   ├── yolo26s_fp16_1b.bmodel 
+│   └── yolo26s_int8_1b.bmodel 
+├── BM1684X2 # 在BM1684X2上运行的模型
 │   ├── yolo26s_fp16_1b.bmodel 
 │   └── yolo26s_int8_1b.bmodel 
 ├── BM1688 # 在BM1688上运行的模型
@@ -90,7 +94,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -100,7 +104,7 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -110,7 +114,7 @@ chmod -R +x scripts/
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -186,6 +190,12 @@ classaps:  [55.59535284 61.21494625 60.74666923 75.77703974 90.78787879 53.55143
 |   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_fp32_1b.bmodel       | 0.597 |
 |   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_fp16_1b.bmodel       | 0.598 |
 |   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_int8_1b.bmodel       | 0.585 |
+|   SE13-64    | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       | 0.610 |
+|   SE13-64    | yolo26_opencv.py  |      yolo26s_int8_1b.bmodel       | 0.600 |
+|   SE13-64    |  yolo26_bmcv.py   |      yolo26s_fp16_1b.bmodel       | 0.593 |
+|   SE13-64    |  yolo26_bmcv.py   |      yolo26s_int8_1b.bmodel       | 0.584 |
+|   SE13-64    |  yolo26_bmcv.soc  |      yolo26s_fp16_1b.bmodel       | 0.598 |
+|   SE13-64    |  yolo26_bmcv.soc  |      yolo26s_int8_1b.bmodel       | 0.585 |
 |   SE9-16    | yolo26_opencv.py  |      yolo26s_fp32_1b.bmodel       | 0.610 |
 |   SE9-16    | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       | 0.610 |
 |   SE9-16    | yolo26_opencv.py  |      yolo26s_fp16_1b_2core.bmodel | 0.610 |
@@ -213,7 +223,7 @@ classaps:  [55.59535284 61.21494625 60.74666923 75.77703974 90.78787879 53.55143
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
-> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；SE13系列对应BM1684X2，其TPU与BM1684X(SE7系列)相同，模型推理精度一致
 
 
 ## 7. 性能测试
@@ -231,6 +241,8 @@ bmrt_test --bmodel models/BM1684X/yolo26s_fp32_1b.bmodel
 | SE7-32          | BM1684X/yolo26s_fp32_1b.bmodel     |          69.69  |
 | SE7-32          | BM1684X/yolo26s_fp16_1b.bmodel     |          17.24  |
 | SE7-32          | BM1684X/yolo26s_int8_1b.bmodel     |          10.54  |
+| SE13-64          | BM1684X2/yolo26s_fp16_1b.bmodel     |          30.26  |
+| SE13-64          | BM1684X2/yolo26s_int8_1b.bmodel    |          19.98  |
 | SE9-16          | BM1688/yolo26s_fp32_1b.bmodel      |         354.76  |
 | SE9-16          | BM1688/yolo26s_fp16_1b.bmodel      |          89.71  |
 | SE9-16          | BM1688/yolo26s_fp16_1b_2core.bmodel|          51.63  |
@@ -261,6 +273,12 @@ bmrt_test --bmodel models/BM1684X/yolo26s_fp32_1b.bmodel
 |   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_fp32_1b.bmodel       |      21.30      |      10.20      |      69.11      |      0.15                          |
 |   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_fp16_1b.bmodel       |      21.31      |      10.21      |      16.65      |      0.15                          |
 |   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_int8_1b.bmodel       |      21.30      |      10.21      |      10.66      |      0.054                         |
+|   SE13-64    | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       |      93.17      |      66.96      |      25.18      |      0.71                          |
+|   SE13-64    | yolo26_opencv.py  |      yolo26s_int8_1b.bmodel       |      93.39      |      65.74      |      19.06      |      0.71                          |
+|   SE13-64    |  yolo26_bmcv.py   |      yolo26s_fp16_1b.bmodel       |      21.91      |      10.98      |      16.97      |      0.69                          |
+|   SE13-64    |  yolo26_bmcv.py   |      yolo26s_int8_1b.bmodel       |      21.91      |      10.95      |      10.96      |      0.69                          |
+|   SE13-64    |  yolo26_bmcv.soc  |      yolo26s_fp16_1b.bmodel       |      21.31      |      10.21      |      16.65      |      0.15                          |
+|   SE13-64    |  yolo26_bmcv.soc  |      yolo26s_int8_1b.bmodel       |      21.30      |      10.21      |      10.66      |      0.054                         |
 |   SE9-16    | yolo26_opencv.py  |      yolo26s_fp32_1b.bmodel       |     140.91      |      85.57      |     364.98      |      0.90       |
 |   SE9-16    | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       |     139.66      |      84.53      |      99.98      |      0.90       |
 |   SE9-16    | yolo26_opencv.py  |   yolo26s_fp16_1b_2core.bmodel    |     130.23      |      84.15      |      61.99      |      0.90       |

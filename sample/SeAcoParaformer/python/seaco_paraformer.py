@@ -220,13 +220,13 @@ class SeacoParaformer:
 
         # ------------------------- bmodels -------------------------
         self.encoder_net = sail.Engine(
-            os.path.join(model_dir, "encoder_fp32_10b.bmodel"),
+            os.path.join(model_dir, "encoder_bf16_1b.bmodel"),
             dev_id, sail.IOMode.SYSIO)
         self.decoder_net = sail.Engine(
-            os.path.join(model_dir, "decoder_fp32_10b.bmodel"),
+            os.path.join(model_dir, "decoder_bf16_1b.bmodel"),
             dev_id, sail.IOMode.SYSIO)
         self.predictor_net = sail.Engine(
-            os.path.join(model_dir, "predictor_fp32_10b.bmodel"),
+            os.path.join(model_dir, "predictor_bf16_1b.bmodel"),
             dev_id, sail.IOMode.SYSIO)
 
         # Graph names
@@ -452,20 +452,39 @@ class SeacoParaformer:
     # -------------------------------------------------------------------
 
     def _predictor_forward(self, encoder_out, encoder_out_lens):
-        """Returns us_alphas (1, T_up) and token_num (1,)."""
+        """Returns us_alphas (1, T_up) and token_num (1,).
+
+        Note: predictor_bf16_1b.bmodel is compiled STATIC at seq 1100
+        (the dynamic compile hangs the bm1684x2 TPU driver). Its single
+        input is `enc`; zero-pad enc_out from T to 1100 frames and slice
+        the upsampled alphas back to 3T afterwards (padding frames only
+        feed a pad-mask of zeros in the reference model, so sliced
+        results are unchanged; token_num is recomputed from the slice).
+        """
         t0 = time.time()
 
-        inp = self._build_inputs(
-            self.pred_in,
-            [encoder_out,
-             encoder_out_lens.astype(np.int32)],
-        )
+        T = encoder_out.shape[1]
+        T_static = 1100
+        if T > T_static:
+            raise ValueError(
+                f"encoder frames {T} exceed static predictor shape {T_static}")
+        pad = T_static - T
+        if pad:
+            enc_in = np.zeros((1, T_static, encoder_out.shape[2]),
+                              dtype=encoder_out.dtype)
+            enc_in[:, :T, :] = encoder_out
+        else:
+            enc_in = encoder_out
+
+        inp = self._build_inputs(self.pred_in, [enc_in])
         out = self.predictor_net.process(self.pred_graph, inp)
         self.t_pred += time.time() - t0
 
-        # Output 0: us_alphas (1, T_up)    Output 1: token_num (1,)
+        # Output 0: us_alphas (1, 3*T_static)   Output 1: token_num (1,)
         us_alphas = self._extract(out, lambda a: a.ndim == 2)
-        pred_token_num = self._extract(out, lambda a: a.ndim == 1, skip=us_alphas)
+        us_alphas = us_alphas[:, :T * 3]                # drop pad frames
+        pred_token_num = us_alphas.sum(axis=-1, keepdims=True)  # recompute
+        pred_token_num = pred_token_num.reshape(1)      # (1,)
         return us_alphas, pred_token_num
 
     # -------------------------------------------------------------------

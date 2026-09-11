@@ -176,7 +176,7 @@ else
     echo "Models folder exist! "
 fi
 
-if [ x$target == x"bm1684x" ]; then
+if [ x$target == x"bm1684x" ] || [ x$target == x"bm1684x2" ]; then
     gen_mlir_image_encoder $batch_size
     if [ x$mode == x"int8" ]; then
         gen_cali_table_encoder

@@ -21,6 +21,8 @@ baseline = """
 |   SE9-16    |superglue_bmcv.soc |superpoint_fp16_1b.bmodel|superglue_fp16_1b_iter20_1024.bmodel|      5.62       |      89.39      |     198.20      |
 |    SE9-8    |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp32_1b_iter20_1024.bmodel|      5.45       |     269.53      |     686.53      |
 |    SE9-8    |superglue_bmcv.soc |superpoint_fp16_1b.bmodel|superglue_fp16_1b_iter20_1024.bmodel|      5.78       |      84.62      |     200.16      |
+|   SE13-64   |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp16_1b_iter20_1024.bmodel|      3.60       |     161.70      |      71.91      |
+|   SE13-64   |superglue_bmcv.soc |superpoint_fp16_1b.bmodel|superglue_fp16_1b_iter20_1024.bmodel|      3.70       |      40.35      |      71.24      |
 """
 
 table_data = {
@@ -90,6 +92,8 @@ if __name__ == '__main__':
             platform = "SE7-32"
         elif args.target == "BM1684":
             platform = "SE5-16"
+        elif args.target == "BM1684X2":
+            platform = "SE13-64"
         elif args.target == "BM1688":
             platform = "SE9-16"
             if multiprocessing.cpu_count() == 6:

@@ -92,8 +92,11 @@ echo "=========================================="
 # mkdir 必须在 pushd 之后做，否则按调用 cwd 建目录会错位（见 pushd 后 mkdir）。
 
 # Helper: 生成测试输入 NPZ
+# 注：npz 的 key 必须与 ONNX 图输入名一致（第4个参数），否则 tpu-mlir 的
+# ConstantFolding 拿不到输入 dtype 而静默失败（"ConstantFolding failed."），
+# Reshape/Mul-of-initializer 节点残留 → OnnxConverter KeyError: operand not found。
 gen_test_input() {
-    local name="$1" shape="$2"
+    local name="$1" shape="$2" key="${3:-data}"
     local npz_file="$cali_dir/${name}.npz"
     if [ -f "$npz_file" ]; then echo "[SKIP] $npz_file"; return 0; fi
     echo "Generating test input: $npz_file"
@@ -102,8 +105,8 @@ import numpy as np
 np.random.seed(42)
 shape = $shape
 data = np.random.randn(*shape).astype(np.float32) * 0.5
-np.savez('$npz_file', data=data)
-print(f'  shape={data.shape}, range=[{data.min():.3f}, {data.max():.3f}]')
+np.savez('$npz_file', $key=data)
+print(f'  key=$key shape={data.shape}, range=[{data.min():.3f}, {data.max():.3f}]')
 "
 }
 
@@ -151,10 +154,10 @@ gen_bmodel() {
     echo "[OK] $bmodel_name ($(ls -lh $bmodel_name | awk '{print $5}'))"
 }
 
-# 测试输入
-gen_test_input "vit_part0${suffix}" "(1, 3, $IMG, $IMG)"
-gen_test_input "vit_feat${suffix}"  "(1, ${GRID}, ${GRID}, 1024)"
-gen_test_input "neck_input${suffix}" "(1, 1024, $GRID, $GRID)"
+# 测试输入（key = 各 ONNX 图输入名，见 gen_test_input 注释）
+gen_test_input "vit_part0${suffix}" "(1, 3, $IMG, $IMG)" "image"
+gen_test_input "vit_feat${suffix}"  "(1, ${GRID}, ${GRID}, 1024)" "x"
+gen_test_input "neck_input${suffix}" "(1, 1024, $GRID, $GRID)" "vit_features"
 
 pushd "$script_dir"
 
@@ -268,9 +271,11 @@ np.savez('enc_in${suffix}.npz',
     fi
 
     # Grounding Decoder
-    # NOTE: after the _get_coords patch + onnxsim, spatial_shapes and
-    # level_start_index are folded out as constants → 6 inputs:
-    # memory, memory_pos, memory_mask, valid_ratios, prompt, prompt_mask.
+    # NOTE: after the _get_coords patch + onnxsim, level_start_index is folded
+    # out as a constant → 7 inputs: memory, memory_pos, memory_mask,
+    # spatial_shapes, valid_ratios, prompt, prompt_mask. 504 预导出的 ONNX 里
+    # spatial_shapes 仍是图输入（Gather 索引消费，onnxsim 折不掉），而单层 FPN
+    # 下恒为 [[GRID,GRID]]，这里折成 initializer → 6 输入，与 1008 导出一致。
     echo ""; echo "=== Grounding Decoder ==="
     DEC_ONNX="$onnx_gr_dir/sam3_grounding_decoder.onnx"
     [ -f "$DEC_ONNX" ] || DEC_ONNX="$onnx_dir/sam3_grounding_decoder.onnx"
@@ -278,7 +283,19 @@ np.savez('enc_in${suffix}.npz',
         TOKENS=$(( GRID * GRID ))
         python3 -c "
 import onnx, onnxsim
+from onnx import numpy_helper
+import numpy as np
 m = onnx.load('$DEC_ONNX')
+# spatial_shapes 恒为 [[GRID,GRID]]，折成 initializer（见上方 NOTE）
+names = [i.name for i in m.graph.input]
+if 'spatial_shapes' in names:
+    m.graph.initializer.append(numpy_helper.from_array(
+        np.array([[$GRID,$GRID]], dtype=np.int64), name='spatial_shapes_const'))
+    del m.graph.input[names.index('spatial_shapes')]
+    for n in m.graph.node:
+        for i, name in enumerate(n.input):
+            if name == 'spatial_shapes':
+                n.input[i] = 'spatial_shapes_const'
 ms, ok = onnxsim.simplify(m)
 assert ok, 'decoder onnxsim failed'
 onnx.save(ms, 'sam3_grounding_decoder${suffix}_sim.onnx')
@@ -313,7 +330,7 @@ np.savez('dec_in${suffix}.npz',
         python3 -c "
 import numpy as np
 tokens = np.random.randint(100, 5000, (1, 32), dtype=np.int64)
-np.savez('${cali_dir}/text_tokens.npz', data=tokens)
+np.savez('${cali_dir}/text_tokens.npz', token_ids=tokens)
 print(f'  tokens shape={tokens.shape}, range=[{tokens.min()}, {tokens.max()}]')
 "
         python3 -c "

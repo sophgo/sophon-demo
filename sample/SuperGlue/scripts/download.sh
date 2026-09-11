@@ -20,6 +20,8 @@ then
     pushd ../models
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/models/BM1684X.tar.gz
     tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/models/BM1684X2.tar.gz
+    tar xvf BM1684X2.tar.gz && rm BM1684X2.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SuperGlue/models/BM1688.tar.gz
     tar xvf BM1688.tar.gz && rm BM1688.tar.gz
     pushd BM1688

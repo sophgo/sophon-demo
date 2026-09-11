@@ -40,6 +40,10 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/BM1688.tar.gz
     tar xvf BM1688.tar.gz
     rm BM1688.tar.gz
+
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/BM1684X2.tar.gz
+    tar xvf BM1684X2.tar.gz
+    rm BM1684X2.tar.gz
     popd
 
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SAM2/onnx.zip

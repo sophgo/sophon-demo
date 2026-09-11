@@ -63,7 +63,7 @@ PYTHONPATH=<feartracker_source> python3 tools/export_onnx.py \
 ### 2.3 导出注意事项
 
 1. **FBNet backbone**: 模型依赖`mobile_cv`包中的FBNet-C预训练权重。导出时需要将`pretrained=False`传入模型配置，避免加载预训练权重（实际权重来自checkpoint）。
-2. **算子兼容性**: 模型中使用了exp、mul等算子，BM1684X和BM1688均支持。
+2. **算子兼容性**: 模型中使用了exp、mul等算子，BM1684X、BM1688和BM1684X2均支持。
 3. **非图像模型**: 两个输入尺寸不同（128x128和256x256），编译时需指定`--channel_format none`。
 
 ## 3. 验证与常见问题

@@ -72,6 +72,18 @@ baseline = """
 |   SE7-32    |  yolov8_bmcv.soc  |   yolov8s-pose_fp16_1b.bmodel   |      5.10       |      0.80       |      5.62       |      0.83       |
 |   SE7-32    |  yolov8_bmcv.soc  |   yolov8s-pose_int8_1b.bmodel   |      5.04       |      0.80       |      3.09       |      0.80       |
 |   SE7-32    |  yolov8_bmcv.soc  |   yolov8s-pose_int8_4b.bmodel   |      4.87       |      0.75       |      2.82       |      0.70       |
+|   SE13-64   | yolov8_opencv.py  |   yolov8s-pose_fp32_1b.bmodel   |      9.28       |      28.67      |     111.65      |      2.03       |
+|   SE13-64   | yolov8_opencv.py  |   yolov8s-pose_fp16_1b.bmodel   |      9.29       |      28.65      |      13.61      |      2.04       |
+|   SE13-64   | yolov8_opencv.py  |   yolov8s-pose_int8_1b.bmodel   |      9.27       |      28.71      |      7.97       |      2.03       |
+|   SE13-64   | yolov8_opencv.py  |   yolov8s-pose_int8_4b.bmodel   |      8.97       |      25.41      |      7.33       |      1.82       |
+|   SE13-64   |  yolov8_bmcv.py   |   yolov8s-pose_fp32_1b.bmodel   |      2.54       |      2.44       |     110.21      |      1.96       |
+|   SE13-64   |  yolov8_bmcv.py   |   yolov8s-pose_fp16_1b.bmodel   |      2.52       |      2.44       |      12.13      |      1.93       |
+|   SE13-64   |  yolov8_bmcv.py   |   yolov8s-pose_int8_1b.bmodel   |      2.55       |      2.43       |      6.48       |      1.95       |
+|   SE13-64   |  yolov8_bmcv.py   |   yolov8s-pose_int8_4b.bmodel   |      2.36       |      2.32       |      6.10       |      1.82       |
+|   SE13-64   |  yolov8_bmcv.soc  |   yolov8s-pose_fp32_1b.bmodel   |      4.20       |      1.19       |     109.28      |      0.62       |
+|   SE13-64   |  yolov8_bmcv.soc  |   yolov8s-pose_fp16_1b.bmodel   |      4.03       |      1.18       |      11.22      |      0.60       |
+|   SE13-64   |  yolov8_bmcv.soc  |   yolov8s-pose_int8_1b.bmodel   |      4.01       |      1.19       |      5.59       |      0.60       |
+|   SE13-64   |  yolov8_bmcv.soc  |   yolov8s-pose_int8_4b.bmodel   |      3.94       |      0.87       |      5.44       |      0.56       |
 """
 # 定义一个字典来存储表格数据
 table_data = {
@@ -159,6 +171,8 @@ if __name__ == '__main__':
     if args.platform == "soc":
         if args.target == "BM1684X":
             platform = "SE7-32"
+        elif args.target == "BM1684X2":
+            platform = "SE13-64"
         elif args.target == "BM1684":
             platform = "SE5-16"
         elif args.target == "BM1688":

@@ -19,12 +19,12 @@
 
 ## 1. 简介
 
-SuperGlue是Magic Leap完成的CVPR 2020研究项目。SuperGlue网络是一个图神经网络，结合了一个最优匹配层，该层经过训练，可以对两组稀疏图像特征执行匹配。本例程对[SuperGlue官方开源仓库](https://github.com/magicleap/SuperGluePretrainedNetwork)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1688/CV186X上进行推理测试。
+SuperGlue是Magic Leap完成的CVPR 2020研究项目。SuperGlue网络是一个图神经网络，结合了一个最优匹配层，该层经过训练，可以对两组稀疏图像特征执行匹配。本例程对[SuperGlue官方开源仓库](https://github.com/magicleap/SuperGluePretrainedNetwork)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1684X2/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
 
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)模型编译和推理
+* 支持BM1688/CV186X/BM1684X2(SoC)、BM1684X(x86 PCIe、SoC)
+* 支持FP32、FP16(BM1684X/BM1688/CV186X/BM1684X2)模型编译和推理，superglue的FP32模型不支持在BM1684X2上编译
 * 支持基于OpenCV解码、BMCV预处理、BMRT推理、LIBTORCH后处理的C++推理
 * 支持单batch模型
 
@@ -46,6 +46,10 @@ chmod -R +x scripts/
 │   ├── superglue_fp32_1b_iter20_1024.bmodel # 使用TPU-MLIR编译，用于BM1684X的superglue FP32 BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
 │   ├── superpoint_fp16_1b.bmodel            # 使用TPU-MLIR编译，用于BM1684X的superpoint FP16 BModel，batch_size=1
 │   └── superpoint_fp32_1b.bmodel            # 使用TPU-MLIR编译，用于BM1684X的superpoint FP32 BModel，batch_size=1
+├── BM1684X2
+│   ├── superglue_fp16_1b_iter20_1024.bmodel # 使用TPU-MLIR编译，用于BM1684X2的superglue FP16 BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
+│   ├── superpoint_fp16_1b.bmodel            # 使用TPU-MLIR编译，用于BM1684X2的superpoint FP16 BModel，batch_size=1
+│   └── superpoint_fp32_1b.bmodel            # 使用TPU-MLIR编译，用于BM1684X2的superpoint FP32 BModel，batch_size=1
 ├── BM1688
 │   ├── 2core_fp16
 │   │   ├── superglue_fp16_1b_iter20_1024_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的superglue FP16 2core BModel，batch_size=1，sinkhorn_iterations=20，max_keypoint_size=1024
@@ -104,20 +108,20 @@ Pytorch模型在编译前要导出成onnx模型，如果您希望自己导出模
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X/BM1684X2**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1688/cv186x; BM1684X2仅支持编译superpoint_fp32_1b.bmodel，superglue的FP32不支持
 ```
 
-​执行上述命令会在`models/BM1684X`等文件夹下生成`superpoint_fp32_1b.bmodel`和`superglue_fp32_1b_iter20_1024.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684X`等文件夹下生成`superpoint_fp32_1b.bmodel`和`superglue_fp32_1b_iter20_1024.bmodel`文件，即转换好的FP32 BModel。BM1684X2上仅生成`superpoint_fp32_1b.bmodel`（superglue的FP32 matmul当前固件不支持）。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X/BM1684X2**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x/bm1684x2
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`superpoint_fp16_1b.bmodel`和`superglue_fp16_1b_iter20_1024.bmodel`文件，即转换好的FP16 BModel。
@@ -156,10 +160,12 @@ python3 eval.py --input_pairs ../datasets/scannet_sample_pairs_with_gt.txt --res
 | SE9-16       | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_int8_1b_iter20_1024_2core.bmodel |    16.28 |
 | SE9-8        | superglue_bmcv.soc | superpoint_fp32_1b.bmodel | superglue_fp32_1b_iter20_1024.bmodel |    16.90 |
 | SE9-8        | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.71 |
+| SE13-64      | superglue_bmcv.soc | superpoint_fp32_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.92 |
+| SE13-64      | superglue_bmcv.soc | superpoint_fp16_1b.bmodel | superglue_fp16_1b_iter20_1024.bmodel |    16.89 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
-> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应BM1684X2；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -192,6 +198,9 @@ bmrt_test --bmodel models/BM1684X/superpoint_fp32_1b.bmodel
 |   SE9-8    | CV186X/superpoint_fp16_1b.bmodel   |          41.51  |
 |   SE9-8    | CV186X/superglue_fp32_1b_iter20_1024.bmodel|         667.09  |
 |   SE9-8    | CV186X/superglue_fp16_1b_iter20_1024.bmodel|         179.36  |
+|   SE13-64    | BM1684X2/superpoint_fp32_1b.bmodel  |         136.55  |
+|   SE13-64    | BM1684X2/superpoint_fp16_1b.bmodel  |          14.09  |
+|   SE13-64    | BM1684X2/superglue_fp16_1b_iter20_1024.bmodel|    53.48  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -209,11 +218,13 @@ bmrt_test --bmodel models/BM1684X/superpoint_fp32_1b.bmodel
 |   SE9-16    |superglue_bmcv.soc |superpoint_fp16_1b.bmodel|superglue_fp16_1b_iter20_1024.bmodel|      5.62       |      89.39      |     198.20      |
 |    SE9-8    |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp32_1b_iter20_1024.bmodel|      5.45       |     269.53      |     686.53      |
 |    SE9-8    |superglue_bmcv.soc |superpoint_fp16_1b.bmodel|superglue_fp16_1b_iter20_1024.bmodel|      5.78       |      84.62      |     200.16      |
+|   SE13-64    |superglue_bmcv.soc |superpoint_fp32_1b.bmodel|superglue_fp16_1b_iter20_1024.bmodel|      3.60       |     161.70      |      71.91      |
+|   SE13-64    |superglue_bmcv.soc |superpoint_fp16_1b.bmodel|superglue_fp16_1b_iter20_1024.bmodel|      3.70       |      40.35      |      71.24      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，SE13-64为8核CA53@2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
 
 ## 8. FAQ

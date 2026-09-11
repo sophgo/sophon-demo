@@ -83,11 +83,17 @@ function gen_text_cali_table()
 
 function gen_text_encoder_int8bmodel()
 {
+    text_qtable=clip_text_qtable
+    if test $target = "bm1684x2";then
+        # bm1684x2 toolchain renames the Add ops, the bundled clip_text_qtable
+        # no longer matches; use the regenerated clip_text_qtable_84x2
+        text_qtable=clip_text_qtable_84x2
+    fi
     model_deploy.py \
         --mlir clip_text_vitb32_$1b.mlir \
         --quantize INT8 \
         --calibration_table clip_text_cali_table \
-        --quantize_table clip_text_qtable \
+        --quantize_table $text_qtable \
         --chip $target \
         --model ./clip_text_vitb32_${target}_int8_$1b.bmodel
 
@@ -97,7 +103,7 @@ function gen_text_encoder_int8bmodel()
             --mlir clip_text_vitb32_$1b.mlir \
             --quantize INT8 \
             --calibration_table clip_text_cali_table \
-            --quantize_table clip_text_qtable \
+            --quantize_table $text_qtable \
             --chip $target \
             --model clip_text_vitb32_${target}_int8_$1b_2core.bmodel \
             --num_core 2

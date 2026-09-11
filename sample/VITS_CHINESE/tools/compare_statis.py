@@ -19,6 +19,7 @@ baseline = """
 |   SE7-32    |vits_infer_sail.py|      vits_chinese_f16.bmodel       |     46.26      |     232.07      |      69.75     |
 |   SE9-16    |vits_infer_sail.py|      vits_chinese_f16.bmodel       |     89.15      |     1203.62     |     96.80      |
 |    SE9-8    |vits_infer_sail.py|      vits_chinese_f16.bmodel       |     87.28      |     1185.91     |     99.84      |
+|   SE13-64   |vits_infer_sail.py|      vits_chinese_f16.bmodel       |     64.86      |     751.37      |     101.29     |
 """
 
 table_data = {
@@ -84,6 +85,8 @@ if __name__ == '__main__':
     if args.platform == "soc":
         if args.target == "BM1684X":
             platform = "SE7-32"
+        elif args.target == "BM1684X2":
+            platform = "SE13-64"
         elif args.target == "BM1688":
             platform = "SE9-16"
             if multiprocessing.cpu_count() == 6:

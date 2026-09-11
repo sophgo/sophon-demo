@@ -126,4 +126,11 @@ Usage: wenet.pcie [params]
 ```bash
 ./wenet.pcie --encoder_bmodel=../models/BM1684/wenet_encoder_streaming_fp32.bmodel --decoder_bmodel=../models/BM1684/wenet_decoder_fp32.bmodel --dict_file=../config/lang_char.txt --config_file=../config/train_u2++_conformer.yaml --result_file=./result.txt --input=../datasets/aishell_S0764/aishell_S0764.list --mode=attention_rescoring --dev_id=0
 ```
-测试结束后，会将预测的结果文本保存在`result.txt`下，同时会打印预测结果、推理时间等信息。  
+测试结束后，会将预测的结果文本保存在`result.txt`下，同时会打印预测结果、推理时间等信息。
+
+BM1684X2平台（如SE13-64）上，请使用FP16或INT8模型（当前固件codegen不支持FP32），可执行文件为`wenet.soc`，运行时需要设置`LD_LIBRARY_PATH`指向`cpp/cross_compile_module`下的运行库（由[准备模型与数据](../README.md#3-准备模型与数据)下载的3rd_party和ctcdecode提供，SoC环境）：
+```bash
+export LD_LIBRARY_PATH=../cpp/cross_compile_module/3rd_party/lib:../cpp/cross_compile_module/3rd_party/lib/blas:../cpp/cross_compile_module/3rd_party/lib/lapack:../cpp/cross_compile_module/ctcdecode-cpp/build:../cpp/cross_compile_module/ctcdecode-cpp/build/3rd_party/kenlm/lib:../cpp/cross_compile_module/ctcdecode-cpp/openfst-1.6.3/src/lib/.libs:/opt/sophon/libsophon-current/lib:/opt/sophon/sophon-opencv-latest/lib:/opt/sophon/sophon-ffmpeg-latest/lib:$LD_LIBRARY_PATH
+./wenet.soc --encoder_bmodel=../models/BM1684X2/wenet_encoder_streaming_fp16.bmodel --dict_file=../config/lang_char.txt --config_file=../config/train_u2++_conformer.yaml --result_file=./result.txt --input=../datasets/aishell_S0764/aishell_S0764.list --mode=ctc_prefix_beam_search --dev_id=0
+./wenet.soc --encoder_bmodel=../models/BM1684X2/wenet_encoder_streaming_int8.bmodel --decoder_bmodel=../models/BM1684X2/wenet_decoder_int8.bmodel --dict_file=../config/lang_char.txt --config_file=../config/train_u2++_conformer.yaml --result_file=./result.txt --input=../datasets/aishell_S0764/aishell_S0764.list --mode=attention_rescoring --dev_id=0
+```  

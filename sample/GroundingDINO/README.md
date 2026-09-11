@@ -21,7 +21,7 @@ GroundingDINO是一种多模态的目标检测模型。
 本例程对[GroundingDINO官方开源仓库](https://github.com/IDEA-Research/GroundingDINO/tree/main)的模型和算法进行移植，使之能在SOPHON BM1684X上进行推理测试,移植过程中针对TPU的推理上对源代码进行了优化和提速。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)，BM1688(SoC)、CV186X(SoC)
+* 支持BM1684X(x86 PCIe、SoC)，BM1684X2(SE13-64 SoC)，BM1688(SoC)、CV186X(SoC)
 * 支持FP16模型编译和推理
 * 支持基于PIL的Python推理
 * 支持基于SOPHON-SAIL的C++推理
@@ -43,6 +43,7 @@ chmod -R +x scripts/
 ```bash
 --all     # 下载所有模型
 --BM1684X # 下载BM1684X的bmodel
+--BM1684X2 # 下载BM1684X2的bmodel
 --BM1688  # 下载BM1688的bmodel
 --CV186X  # 下载CV186X的bmodel
 --onnx    # 下载onnx
@@ -61,6 +62,8 @@ chmod -R +x scripts/
 │   │   └── groundingdino_bm1688_fp16.bmodel    # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=1
 |   ├── CV186X
 │   │   └── groundingdino_cv186x_fp16.bmodel    # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
+│   ├── BM1684X2
+│   │  └── groundingdino_bm1684x2_fp16.bmodel  # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
 │   ├── torch
 │   │   └── groundingdino_swint_ogc.pth	     # pytorch模型
 │   └── onnx
@@ -103,18 +106,25 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/tpu_mlir-1.21b0-
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
 # 针对bm1684x平台
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
 # 针对bm1688平台
 ./scripts/gen_fp16bmodel_mlir.sh bm1688
+# 针对bm1684x2平台(SE13-64)
+./scripts/gen_fp16bmodel_mlir.sh bm1684x2   # 注意：BM1684X2版本脚本内含TopK use_hau workaround，见下方说明
 # 针对cv186x平台
 ./scripts/gen_fp16bmodel_mlir.sh cv186x
 ```
 
 ​执行上述命令会在`models/{平台}`下生成`groundingdino_{平台}_fp16.bmodel` 即用于推理的FP16 BModel。
+
+> **BM1684X2(SE13-64) 编译说明**：  
+> BM1684X2 上 `tpu.TopK`(`use_hau=true`，即 HAU 动态子网路径) 会使固件挂死 TPU（bmrt_test 卡住并触发 driver `wait api timeout`）。
+> `gen_fp16bmodel_mlir.sh bm1684x2` 已内置规避：先正常跑到 stage-1，再用 `sed` 将 TopK 的 `use_hau` 改为 `false`（走静态多核路径），然后手动执行 stage-2 + codegen。
+> 使用 `--bmodel` 时无需任何额外操作，直接用脚本生成的 `groundingdino_bm1684x2_fp16.bmodel` 即可。
 
 ## 5. 例程测试
 目前提供python版本的例程，请参考:
@@ -135,6 +145,7 @@ bmrt_test --bmodel models/BM1684X/groundingdino_bm1684x_fp16.bmodel
 |    测试平台  |              测试模型                | calculate time(s)         |
 | -----------  | ------------------------------------| --------------------------|
 |   SE7-32    | groundingdino_bm1684x_fp16.bmodel   | 0.285                  |
+|   SE13-64   | groundingdino_bm1684x2_fp16.bmodel  | 0.507                  |
 |   SE9-16    | groundingdino_bm1688_fp16.bmodel    | 0.993                 |
 |   SE9-8    | groundingdino_cv186x_fp16.bmodel    | 1.248                  |
 
@@ -153,9 +164,11 @@ bmrt_test --bmodel models/BM1684X/groundingdino_bm1684x_fp16.bmodel
 | BM1688 SoC  | groundingdino_pil.py | groundingdino_bm1688_fp16.bmodel  | 38.49       | 274.32          | 1072.98         | 12.30             |
 | CV186X SoC  | groundingdino_pil.py | groundingdino_cv186x_fp16.bmodel  | 27.19       | 255.60          | 1299.19         | 9.22             |
 | SRM1-20     | groundingdino_pil.py | groundingdino_bm1684x_fp16.bmodel | 32.09       | 200.05          | 641.01          | 10.22             |
+| SE13-64     | groundingdino_pil.py | groundingdino_bm1684x2_fp16.bmodel | 8.33        | 183.45           | 519.68          | 12.77             |
 | BM1684X SoC | groundingdino_sail.soc | groundingdino_bm1684x_fp16.bmodel | 5.81      | 6.06            | 468.55          | 6.12              |
 | BM1688 SoC  | groundingdino_sail.soc | groundingdino_bm1688_fp16.bmodel  | 8.61      | 11.26           | 1295.12         | 8.61              |
 | CV186X SoC  | groundingdino_sail.soc | groundingdino_cv186x_fp16.bmodel  | 8.68      | 11.04           | 1364.86         | 8.61              |
+| SE13-64     | groundingdino_sail.soc | groundingdino_bm1684x2_fp16.bmodel | 8.15     | 15.49           | 505.19          | 6.16              |
 | SRM1-20     | groundingdino_sail.pcie| groundingdino_bm1684x_fp16.bmodel | 22.68     | 55.29           | 648.81          | 6.06              |
 
 > **测试说明**：  

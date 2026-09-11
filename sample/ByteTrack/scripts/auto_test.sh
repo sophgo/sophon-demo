@@ -15,7 +15,7 @@ fi
 
 usage()
 {
-  echo "Usage: $0 [ -m MODE |pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
+  echo "Usage: $0 [ -m MODE |pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X|BM1684X2] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
 }
 
 while getopts ":m:t:s:d:p:" opt
@@ -397,6 +397,36 @@ then
     eval_cpp soc eigen yolov5s_v6.1_3output_fp16_1b.bmodel  0.524
     eval_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel  0.491
     eval_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel  0.491
+  elif test $TARGET = "BM1684X2"
+  then
+    # test_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_python opencv yolov5s_v6.1_3output_int8_4b.bmodel
+    # test_cpp soc opencv yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_cpp soc opencv yolov5s_v6.1_3output_fp16_1b.bmodel
+    # test_cpp soc opencv yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_cpp soc opencv yolov5s_v6.1_3output_int8_4b.bmodel
+    # test_cpp soc eigen yolov5s_v6.1_3output_fp32_1b.bmodel
+    # test_cpp soc eigen yolov5s_v6.1_3output_fp16_1b.bmodel
+    # test_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel
+    # test_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel
+
+    # BM1684X2(SE13-64): models are from sample/YOLOv5 BM1684X2 package.
+    # INT8 MOTA is lower than other platforms (0.485/0.500) due to the
+    # quantization accuracy difference of this chip.
+    eval_python opencv yolov5s_v6.1_3output_fp32_1b.bmodel  0.516
+    eval_python opencv yolov5s_v6.1_3output_fp16_1b.bmodel  0.516
+    eval_python opencv yolov5s_v6.1_3output_int8_1b.bmodel  0.485
+    eval_python opencv yolov5s_v6.1_3output_int8_4b.bmodel  0.485
+    eval_cpp soc opencv yolov5s_v6.1_3output_fp32_1b.bmodel 0.524
+    eval_cpp soc opencv yolov5s_v6.1_3output_fp16_1b.bmodel 0.524
+    eval_cpp soc opencv yolov5s_v6.1_3output_int8_1b.bmodel 0.500
+    eval_cpp soc opencv yolov5s_v6.1_3output_int8_4b.bmodel 0.500
+    eval_cpp soc eigen yolov5s_v6.1_3output_fp32_1b.bmodel  0.524
+    eval_cpp soc eigen yolov5s_v6.1_3output_fp16_1b.bmodel  0.524
+    eval_cpp soc eigen yolov5s_v6.1_3output_int8_1b.bmodel  0.500
+    eval_cpp soc eigen yolov5s_v6.1_3output_int8_4b.bmodel  0.500
   fi
 fi
 

@@ -18,11 +18,11 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-YOLO_world，作为腾讯人工智能实验室的又一力作，不仅继承了YOLO系列模型在实时性方面的优势，更在开放词汇检测方面取得了重大突破。它采用了视觉语言建模和预训练的方法，能够在无需预先训练的情况下，实时识别图像中任何由描述性文本指定的物体。本例程对[​yoloworld官方开源仓库](https://github.com/ultralytics/ultralytics)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1688/CV186X上进行推理测试。
+YOLO_world，作为腾讯人工智能实验室的又一力作，不仅继承了YOLO系列模型在实时性方面的优势，更在开放词汇检测方面取得了重大突破。它采用了视觉语言建模和预训练的方法，能够在无需预先训练的情况下，实时识别图像中任何由描述性文本指定的物体。本例程对[​yoloworld官方开源仓库](https://github.com/ultralytics/ultralytics)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1684X2/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
+* 支持BM1684X2/BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
+* 支持FP32、FP16(BM1684X/BM1684X2/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持1个输出模型推理
 * 支持图片和视频测试
@@ -51,6 +51,10 @@ chmod -R +x scripts/
 │   ├── yoloworld_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── yoloworld_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── clip_text_vitb32_bm1684x_f16_1b.bmodel          # encode_text部分fp16 bmodel 
+├── BM1684X2
+│   ├── yoloworld_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
+│   ├── yoloworld_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=1
+│   └── clip_text_vitb32_bm1684x2_f16_1b.bmodel          # encode_text部分fp16 bmodel
 ├── BM1688
 │   ├── yoloworld_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=1
 │   ├── yoloworld_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=1
@@ -95,30 +99,30 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X`下生成`yoloworld_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`yoloworld_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X`下生成`yoloworld_int8_1b.bmodel`等文件，即转换好的INT8 BModel。量化模型出现问题可以参考：[Calibration_Guide](../../docs/Calibration_Guide.md)。
@@ -148,6 +152,10 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE7-32       | yoloworld_bmcv.py | yoloworld_fp32_1b.bmodel |    0.370 |    0.515 |
 | SE7-32       | yoloworld_bmcv.py | yoloworld_fp16_1b.bmodel |    0.371 |    0.514 |
 | SE7-32       | yoloworld_bmcv.py | yoloworld_int8_1b.bmodel |    0.349 |    0.495 |
+| SE13-64      | yoloworld_opencv.py | yoloworld_fp16_1b.bmodel |    0.370 |    0.514 |
+| SE13-64      | yoloworld_opencv.py | yoloworld_int8_1b.bmodel |    0.349 |    0.494 |
+| SE13-64      | yoloworld_bmcv.py | yoloworld_fp16_1b.bmodel |    0.371 |    0.514 |
+| SE13-64      | yoloworld_bmcv.py | yoloworld_int8_1b.bmodel |    0.349 |    0.495 |
 | SE9-16       | yoloworld_opencv.py | yoloworld_fp32_1b.bmodel |    0.370 |    0.514 |
 | SE9-16       | yoloworld_opencv.py | yoloworld_fp16_1b.bmodel |    0.370 |    0.514 |
 | SE9-16       | yoloworld_opencv.py | yoloworld_int8_1b.bmodel |    0.349 |    0.495 |
@@ -171,6 +179,8 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 > 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 3. AP@IoU=0.5:0.95为area=all对应的指标。
 > 4. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 5. SE13系列对应BM1684X2，其TPU与BM1684X(SE7系列)相同，模型推理精度一致；
+> 6. yoloworld模型包含视觉-文本交互的matmul算子，BM1684X2(SE13-64)上FP32编译会触发mm1命令断言，故SE13-64仅提供FP16/INT8精度，FP32可参考SE7-32。
 
 
 ## 7. 性能测试
@@ -188,6 +198,8 @@ bmrt_test --bmodel models/BM1684X/yoloworld_fp32_1b.bmodel
 |   SE7-32    | BM1684X/yoloworld_fp32_1b.bmodel   |          35.69  |
 |   SE7-32    | BM1684X/yoloworld_fp16_1b.bmodel   |           7.50  |
 |   SE7-32    | BM1684X/yoloworld_int8_1b.bmodel   |           5.02  |
+|   SE13-64  | BM1684X2/yoloworld_fp16_1b.bmodel  |          16.00  |
+|   SE13-64  | BM1684X2/yoloworld_int8_1b.bmodel  |          11.28  |
 |   SE9-16    | BM1688/yoloworld_fp32_1b.bmodel    |         184.76  |
 |   SE9-16    | BM1688/yoloworld_fp16_1b.bmodel    |          38.99  |
 |   SE9-16    | BM1688/yoloworld_int8_1b.bmodel    |          16.30  |
@@ -215,6 +227,10 @@ bmrt_test --bmodel models/BM1684X/yoloworld_fp32_1b.bmodel
 |   SE7-32    | yoloworld_bmcv.py |yoloworld_fp32_1b.bmodel |      3.03       |      2.30       |      44.70      |      4.52       |
 |   SE7-32    | yoloworld_bmcv.py |yoloworld_fp16_1b.bmodel |      3.02       |      2.29       |      16.37      |      4.52       |
 |   SE7-32    | yoloworld_bmcv.py |yoloworld_int8_1b.bmodel |      3.05       |      2.29       |      14.01      |      4.48       |
+|   SE13-64  |yoloworld_opencv.py|yoloworld_fp16_1b.bmodel |      9.54       |      25.49      |      19.18      |      5.24       |
+|   SE13-64  |yoloworld_opencv.py|yoloworld_int8_1b.bmodel |      9.66       |      25.49      |      14.84      |      5.14       |
+|   SE13-64  | yoloworld_bmcv.py |yoloworld_fp16_1b.bmodel |      2.81       |      2.55       |      20.04      |      5.09       |
+|   SE13-64  | yoloworld_bmcv.py |yoloworld_int8_1b.bmodel |      2.66       |      2.50       |      15.39      |      4.71       |
 |   SE9-16    |yoloworld_opencv.py|yoloworld_fp32_1b.bmodel |      19.44      |      29.54      |     192.39      |      5.66       |
 |   SE9-16    |yoloworld_opencv.py|yoloworld_fp16_1b.bmodel |      12.02      |      30.10      |      46.74      |      5.65       |
 |   SE9-16    |yoloworld_opencv.py|yoloworld_int8_1b.bmodel |      9.41       |      29.94      |      23.96      |      5.66       |

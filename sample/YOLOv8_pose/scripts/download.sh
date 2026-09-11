@@ -56,6 +56,10 @@ then
     tar -zxf models_CV186X.tar.gz -C ../
     rm models_CV186X.tar.gz
 
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_pose/models_BM1684X2.tar.gz
+    tar -zxf models_BM1684X2.tar.gz -C ../
+    rm models_BM1684X2.tar.gz
+
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_pose/models20240730/models_onnx.tar.gz
     tar -zxf models_onnx.tar.gz -C ../
     rm models_onnx.tar.gz

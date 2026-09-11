@@ -21,13 +21,24 @@ void getAllFiles(std::string path, std::vector<std::string>& files) {
     while ((ptr = readdir(dir)) != NULL) {
         if (strcmp(ptr->d_name, ".") == 0 || strcmp(ptr->d_name, "..") == 0)
             continue;
-        else if (ptr->d_type == 8)  // file
-            files.push_back(path + "/" + ptr->d_name);
-        else if (ptr->d_type == 10)  // link file
+        std::string full_path = path + "/" + ptr->d_name;
+        unsigned char dtype = ptr->d_type;
+        if (dtype == 0) {  // DT_UNKNOWN: some filesystems (e.g. ext4 without ftype) don't support d_type
+            struct stat st;
+            if (stat(full_path.c_str(), &st) != 0)
+                continue;
+            if (S_ISDIR(st.st_mode))
+                dtype = 4;
+            else if (S_ISREG(st.st_mode))
+                dtype = 8;
+        }
+        if (dtype == 8)  // file
+            files.push_back(full_path);
+        else if (dtype == 10)  // link file
             continue;
-        else if (ptr->d_type == 4) {
+        else if (dtype == 4) {
             // files.push_back(ptr->d_name);//dir
-            getAllFiles(path + "/" + ptr->d_name, files);
+            getAllFiles(full_path, files);
         }
     }
     closedir(dir);

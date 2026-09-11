@@ -241,18 +241,20 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 | SE13-64      | resnet_opencv.py   | resnet50_fp16_1b.bmodel   |    80.00 |
 | SE13-64      | resnet_opencv.py   | resnet50_int8_1b.bmodel   |    79.80 |
 | SE13-64      | resnet_opencv.py   | resnet50_int8_4b.bmodel   |    79.80 |
-| SE13-64      | resnet_bmcv.py     | resnet50_fp16_1b.bmodel   |    68.90 |
-| SE13-64      | resnet_opencv.soc  | resnet50_fp16_1b.bmodel   |    69.10 |
-| SE13-64      | resnet_opencv.soc  | resnet50_int8_1b.bmodel   |    68.80 |
-| SE13-64      | resnet_opencv.soc  | resnet50_int8_4b.bmodel   |    68.80 |
-| SE13-64      | resnet_bmcv.soc    | resnet50_fp16_1b.bmodel   |    68.90 |
-| SE13-64      | resnet_bmcv.soc    | resnet50_int8_1b.bmodel   |    69.00 |
-| SE13-64      | resnet_bmcv.soc    | resnet50_int8_4b.bmodel   |    69.00 |
+| SE13-64      | resnet_bmcv.py     | resnet50_fp16_1b.bmodel   |    80.10 |
+| SE13-64      | resnet_bmcv.py     | resnet50_int8_1b.bmodel   |    80.10 |
+| SE13-64      | resnet_bmcv.py     | resnet50_int8_4b.bmodel   |    80.10 |
+| SE13-64      | resnet_opencv.soc  | resnet50_fp16_1b.bmodel   |    80.30 |
+| SE13-64      | resnet_opencv.soc  | resnet50_int8_1b.bmodel   |    80.00 |
+| SE13-64      | resnet_opencv.soc  | resnet50_int8_4b.bmodel   |    80.00 |
+| SE13-64      | resnet_bmcv.soc    | resnet50_fp16_1b.bmodel   |    80.10 |
+| SE13-64      | resnet_bmcv.soc    | resnet50_int8_1b.bmodel   |    80.10 |
+| SE13-64      | resnet_bmcv.soc    | resnet50_int8_4b.bmodel   |    80.10 |
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
 > 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应BM1684X2；
-> 3. SE13-64（BM1684X2）当前固件（libsophon 0.4.13）的硬件 JPEG 解码器（`/dev/soph_vc_dec`）输出有偏差，导致所有走硬件解码的例程（bmcv 系列及 opencv.soc）精度下降约11%；`resnet_opencv.py`（软件解码）在 80%/79.8%，可代表 BM1684X2 TPU 的真实推理精度。该问题已反馈多媒体固件团队，待固件修复后硬件解码路径精度应与软件解码一致；`resnet_bmcv.py` + `resnet50_int8_4b.bmodel` 在该固件上还存在 4 batch 输出拷贝报错（`bmcv_image_copy_to err=9`），暂不适用。
+> 3. SE13-64（BM1684X2）的硬件 JPEG 解码器（`/dev/soph_vc_dec`）在 libsophon 0.4.13 已修复：早期固件硬件解码输出像素失真，导致走硬件解码的例程（bmcv 系列及 opencv.soc）精度比软件解码低约 11%，且 `resnet_bmcv.py` + `resnet50_int8_4b.bmodel` 会 `bmcv_image_copy_to err=9`；修复后硬件解码路径精度与软件解码一致（均 ~80%），`int8_4b` 亦可正常运行。`resnet_bmcv.py` 因需 root 权限访问解码器，运行时需 sudo。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -398,6 +400,7 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 |   SE13-64   | resnet_opencv.py  |      resnet50_int8_4b.bmodel      |      5.64       |      8.73       |      2.69       |      0.13       |
 |   SE13-64   |  resnet_bmcv.py   |      resnet50_fp16_1b.bmodel      |      1.50       |      0.75       |      3.16       |      0.17       |
 |   SE13-64   |  resnet_bmcv.py   |      resnet50_int8_1b.bmodel      |      1.50       |      0.74       |      1.56       |      0.17       |
+|   SE13-64   |  resnet_bmcv.py   |      resnet50_int8_4b.bmodel      |      1.36       |      0.68       |      1.14       |      0.10       |
 |   SE13-64   | resnet_opencv.soc |      resnet50_fp16_1b.bmodel      |      1.65       |      5.95       |      3.06       |      0.11       |
 |   SE13-64   | resnet_opencv.soc |      resnet50_int8_1b.bmodel      |      1.66       |      5.96       |      1.45       |      0.11       |
 |   SE13-64   | resnet_opencv.soc |      resnet50_int8_4b.bmodel      |      1.39       |      5.90       |      1.12       |      0.08       |

@@ -39,10 +39,20 @@ function gen_mlir()
 
 function gen_fp16bmodel()
 {
+    # BM1684X2: 默认 layer_group 会把 STFT conv(kernel 256x1, stride 128x1) 分到
+    # local mem 上执行，触发固件 nodechip_conv_float_local 断言；关闭 layer group
+    # 走 global 路径即可正常 codegen
+    local extra_args=""
+    if test $target = "bm1684x2"
+    then
+        extra_args="--disable_layer_group"
+    fi
+
     model_deploy.py \
         --mlir ${MODEL_NAME}.mlir \
         --quantize F16 \
         --chip $target \
+        ${extra_args} \
         --model ${MODEL_NAME}_${target}_f16.bmodel
 
     mv ${MODEL_NAME}_${target}_f16.bmodel $outdir/

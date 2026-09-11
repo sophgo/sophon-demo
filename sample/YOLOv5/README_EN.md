@@ -28,7 +28,7 @@
   - [8. FAQ](#8-faq)
   
 ## 1. Introduction
-YOLOv5 is a very classical One Stage target detection algorithm based on anchor. Because of its excellent accuracy and speed performance, it has been widely used in engineering practice. This example [​YOLOv5 official open source repository](https://github.com/ultralytics/yolov5) transplants the v6.1 version of the model and algorithm so that it can be inference tested on SOPHON BM1684/BM1684X/BM1688/CV186X.
+YOLOv5 is a very classical One Stage target detection algorithm based on anchor. Because of its excellent accuracy and speed performance, it has been widely used in engineering practice. This example [​YOLOv5 official open source repository](https://github.com/ultralytics/yolov5) transplants the v6.1 version of the model and algorithm so that it can be inference tested on SOPHON BM1684/BM1684X/BM1684X2/BM1688/CV186X.
 
 ## 2. Characteristics
 
@@ -54,8 +54,8 @@ YOLOv5 is a very classical One Stage target detection algorithm based on anchor.
 ```
 
 ### 2.2 SDK Characteristics
-* Support for BM1688/CV186X(SoC), BM1684X(x86 PCIe、SoC、riscv PCIe), BM1684(x86 PCIe、SoC、arm PCIe)
-* Support for FP32, FP16 (BM1684X/BM1688/CV186X), INT8 model compilation and inference
+* Support for BM1688/CV186X(SoC), BM1684X(x86 PCIe、SoC、riscv PCIe), BM1684X2(SoC), BM1684(x86 PCIe、SoC、arm PCIe)
+* Support for FP32, FP16 (BM1684X/BM1684X2/BM1688/CV186X), INT8 model compilation and inference
 * Support C++ inference based on BMCV preprocessing
 * Support Python inference based on OpenCV and BMCV preprocessing
 * Support single batch and multi-batch model inference
@@ -106,6 +106,11 @@ Downloaded models include:
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # Compiled with TPU-MLIR, FP16 BModel,batch_size=1 for BM1684X
 │   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # Compiled with TPU-MLIR, INT8 BModel,batch_size=1 for BM1684X
 │   └── yolov5s_v6.1_3output_int8_4b.bmodel       # Compiled with TPU-MLIR, INT8 BModel,batch_size=4 for BM1684X
+├── BM1684X2
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1 for BM1684X2
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # Compiled with TPU-MLIR, FP16 BModel,batch_size=1 for BM1684X2
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # Compiled with TPU-MLIR, INT8 BModel,batch_size=1 for BM1684X2
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel       # Compiled with TPU-MLIR, INT8 BModel,batch_size=4 for BM1684X2
 ├── BM1688
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688
 │   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # Compiled with TPU-MLIR, FP32 BModel,batch_size=1,num_core=1 for BM1688
@@ -147,30 +152,30 @@ Use TPU-MLIR to compile BModel, refer to [TPU-MLIR Installation](../../docs/Envi
 
 - Generate FP32 BModel
 
-This example provides a script for TPU-MLIR to compile FP32 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp32bmodel_mlir.sh`, and specify the target platform on which BModel runs (**BM1684/BM1684X/BM1688/CV186X is supported**) during execution, such as:
+This example provides a script for TPU-MLIR to compile FP32 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp32bmodel_mlir.sh`, and specify the target platform on which BModel runs (**BM1684/BM1684X/BM1684X2/BM1688/CV186X is supported**) during execution, such as:
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1684x2/bm1688/cv186x
 ```
 
 Executing the above command will generate the `yolov5s_v6.1_3output_fp32_1b.bmodel` file under a folder like `models/BM1684`, that is, the converted FP32 BModel.
 
 - Generate FP16 BModel
 
-This example provides a script for TPU-MLIR to compile FP16 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp16bmodel_mlir.sh`, and specify the target platform on which BModel runs (**BM1684X/BM1688/CV186X is supported**) during execution, such as:
+This example provides a script for TPU-MLIR to compile FP16 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_fp16bmodel_mlir.sh`, and specify the target platform on which BModel runs (**BM1684X/BM1684X2/BM1688/CV186X is supported**) during execution, such as:
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
 ```
 
 Executing the above command will generate the `yolov5s_v6.1_3output_fp16_1b.bmodel` file under a folder like`models/BM1684X/`, that is, the converted FP16 BModel.
 
 - Generate INT8 BModel
 
-This example provides a script for quantifying INT8 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_int8bmodel_mlir.sh`, and enter the target platform of BModel (**BM1684/BM1684X/BM1688/CV186X is supported**) during execution, such as:
+This example provides a script for quantifying INT8 BModel in the `scripts` directory. Please modify the parameters such as onnx model path, generated model directory and input size shapes in `gen_int8bmodel_mlir.sh`, and enter the target platform of BModel (**BM1684/BM1684X/BM1684X2/BM1688/CV186X is supported**) during execution, such as:
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1684x2/bm1688/cv186x
 ```
 
 The above script will generate files such as `yolov5s_v6.1_3output_int8_1b.bmodel` under a folder like `models/BM1684`, that is, the converted INT8 BModel.
@@ -286,12 +291,17 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. On 
 | SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.374 |    0.572 |
 | SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.356 |    0.562 |
 | SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.356 |    0.562 |
+| SE13-64      | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
+| SE13-64      | yolov5_opencv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.377 |    0.579 |
+| SE13-64      | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.355 |    0.567 |
+| SE13-64      | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.355 |    0.567 |
 
 > **Note**:
 > 1. The model mAP of batch_size=4 and batch_size=1 is the same.
 > 2. Due to possible differences between SDK versions, it is normal for the mAP error of <0.01 between the actual running results and this table;
 > 3. AP@IoU=0.5:0.95 is the corresponding indicator of area=all.
-> 4. On a PCIe or SoC platform equipped with the same TPU and SOPHONSDK, the mAP of the same program is the same, SE5 series corresponds to BM1684, SE7 series corresponds to BM1684X. In SE9 series, SE9-16 corresponds to BM1688, SE9-8 corresponds to CV186X;
+> 4. On a PCIe or SoC platform equipped with the same TPU and SOPHONSDK, the mAP of the same program is the same, SE5 series corresponds to BM1684, SE7 series corresponds to BM1684X. In SE9 series, SE9-16 corresponds to BM1688, SE9-8 corresponds to CV186X, SE13 series corresponds to BM1684X2;
+> 5. The hardware JPEG decoder (`/dev/soph_vc_dec`) of SE13-64 (BM1684X2) has a defect in the current firmware (libsophon 0.4.13). The examples that use hardware decoding (`yolov5_bmcv.py`, `yolov5_bmcv.soc`) crash with memory corruption (`malloc(): invalid size` / segfault) when processing images and cannot complete the test, so this table only gives the results of software decoding (`yolov5_opencv.py`); `yolov5_opencv.py` (software decoding) can represent the real inference precision of the BM1684X2 TPU. This issue has been reported to the multimedia firmware team, and the hardware decoding path should work normally after the firmware is fixed.
 
 ## 6. Performance Testing
 ### 6.1 bmrt_test
@@ -324,8 +334,12 @@ The theoretical inference time of each model is tested, and the results are as f
 | CV186X/yolov5s_v6.1_3output_fp16_1b.bmodel|          29.93  |
 | CV186X/yolov5s_v6.1_3output_int8_1b.bmodel|           8.18  |
 | CV186X/yolov5s_v6.1_3output_int8_4b.bmodel|           7.90  |
+| BM1684X2/yolov5s_v6.1_3output_fp32_1b.bmodel|          62.03  |
+| BM1684X2/yolov5s_v6.1_3output_fp16_1b.bmodel|           8.36  |
+| BM1684X2/yolov5s_v6.1_3output_int8_1b.bmodel|           3.89  |
+| BM1684X2/yolov5s_v6.1_3output_int8_4b.bmodel|          14.26  |
 
-> **Note**：  
+> **Note**：
 > 1. The performance test results have a certain volatility.
 > 2. The `calculate time` has been converted to the average inference time per picture.
 > 3. The test results of SoC and PCIe are basically the same.
@@ -428,12 +442,17 @@ CPP set `--use_cpu_opt=false` or Python not set `--use_cpu_opt` for testing. Use
 |   SRM1-20   |  yolov5_sail.pcie |yolov5s_v6.1_3output_fp16_1b.bmodel|      7.54       |      1.41       |      34.56      |      8.48       |
 |   SRM1-20   |  yolov5_sail.pcie |yolov5s_v6.1_3output_int8_1b.bmodel|      7.60       |      1.43       |      30.28      |      8.60       |
 |   SRM1-20   |  yolov5_sail.pcie |yolov5s_v6.1_3output_int8_4b.bmodel|      7.39       |      1.23       |      28.49      |      8.37       |
+|   SE13-64   | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|       9.21      |      28.60      |      68.21      |     119.18      |
+|   SE13-64   | yolov5_opencv.py  |yolov5s_v6.1_3output_fp16_1b.bmodel|       9.25      |      28.68      |      14.60      |     119.05      |
+|   SE13-64   | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|       9.23      |      28.69      |      10.12      |     119.52      |
+|   SE13-64   | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|       9.04      |      25.98      |       8.41      |     115.45      |
 
 > **Note**：  
 > 1. The time units are all milliseconds (ms), and the statistical time is the average processing time of each image.
 > 2. The performance test results are volatile to a certain extent, so it is recommended that the average value should be taken from multiple tests.
 > 3. SE5-16/SE7-32's processors are all 8-cores ARM CA53@2.3GHz, SE9-16's processor is 8-cores ARM CA53@1.6GHz and SE9-8 use 6-cores ARM CA53@1.6GHz, performance on PCIe may vary greatly due to different processors.
 > 4. The image resolution has a great influence on the decoding time, the reasoning result has a great influence on the post-processing time, different test pictures may be different, and different thresholds have a great influence on the post-processing time.
+> 5. SE13-64 corresponds to BM1684X2; its hardware JPEG decoder firmware (libsophon 0.4.13) has a defect, and the examples that use hardware decoding (`yolov5_bmcv.py`, `yolov5_bmcv.soc`) crash with memory corruption when processing images and cannot complete the test, so this table only gives the results of software decoding (`yolov5_opencv.py`). See §5.2 Note for details.
 
 ## 7. YOLOv5 cpu opt
 

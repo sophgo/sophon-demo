@@ -72,6 +72,18 @@ baseline = """
 |    SE9-8    |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_fp16_1b.bmodel|      0.48       |
 |    SE9-8    |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_int8_1b.bmodel|      0.46       |
 |    SE9-8    |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_int8_4b.bmodel|      0.47       |
+|   SE13-64   |   bytetrack_opencv.py   |yolov5s_v6.1_3output_fp32_1b.bmodel|      7.36       |
+|   SE13-64   |   bytetrack_opencv.py   |yolov5s_v6.1_3output_fp16_1b.bmodel|      7.36       |
+|   SE13-64   |   bytetrack_opencv.py   |yolov5s_v6.1_3output_int8_1b.bmodel|      6.79       |
+|   SE13-64   |   bytetrack_opencv.py   |yolov5s_v6.1_3output_int8_4b.bmodel|      6.48       |
+|   SE13-64   |  bytetrack_opencv.soc   |yolov5s_v6.1_3output_fp32_1b.bmodel|      0.82       |
+|   SE13-64   |  bytetrack_opencv.soc   |yolov5s_v6.1_3output_fp16_1b.bmodel|      0.83       |
+|   SE13-64   |  bytetrack_opencv.soc   |yolov5s_v6.1_3output_int8_1b.bmodel|      0.78       |
+|   SE13-64   |  bytetrack_opencv.soc   |yolov5s_v6.1_3output_int8_4b.bmodel|      0.71       |
+|   SE13-64   |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_fp32_1b.bmodel|      0.45       |
+|   SE13-64   |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_fp16_1b.bmodel|      0.44       |
+|   SE13-64   |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_int8_1b.bmodel|      0.43       |
+|   SE13-64   |   bytetrack_eigen.soc   |yolov5s_v6.1_3output_int8_4b.bmodel|      0.42       |
 """
 table_data = {
     "platform": [],
@@ -132,6 +144,8 @@ if __name__ == '__main__':
             platform = "SE9-16"
         elif args.target == "CV186X":
             platform = "SE9-8"
+        elif args.target == "BM1684X2":
+            platform = "SE13-64"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"
     min_width = 17

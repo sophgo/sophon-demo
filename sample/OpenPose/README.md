@@ -23,12 +23,12 @@ OpenPose人体姿态识别项目是美国卡耐基梅隆大学（CMU）基于卷
 
 ![avatar](pics/pose_face_hands.gif)
 
-本例程对[openpose](https://github.com/CMU-Perceptual-Computing-Lab/openpose)的人体关键点模型和算法进行移植，使之能在SOPHON BM1684、BM1688和BM1684X上进行推理测试。
+本例程对[openpose](https://github.com/CMU-Perceptual-Computing-Lab/openpose)的人体关键点模型和算法进行移植，使之能在SOPHON BM1684、BM1688、BM1684X和BM1684X2上进行推理测试。
 
 ## 2. 特性
 * 支持18和25个身体关键点检测
-* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1688、BM1684X)和INT8模型编译和推理
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684X2(SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1688、BM1684X、BM1684X2)和INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV的Python推理
 * 支持单batch和多batch模型推理
@@ -75,6 +75,13 @@ chmod -R +x scripts/
 │   ├── pose_body_25_fp32_1b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的双核FP32 BModel，batch_size=1，25个身体关键点识别
 │   ├── pose_body_25_fp16_1b.bmodel           # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，25个身体关键点识别
 │   └── pose_body_25_fp16_1b_2core.bmodel     # 使用TPU-MLIR编译，用于BM1688的双核FP16 BModel，batch_size=1，25个身体关键点识别
+├── BM1684X2
+│   ├── pose_coco_fp32_1b.bmodel              # 使用TPU-MLIR编译，用于BM1684X2的FP32 BModel，batch_size=1，18个身体关键点识别
+│   ├── pose_coco_fp16_1b.bmodel              # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1，18个身体关键点识别
+│   ├── pose_coco_int8_1b.bmodel              # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=1，18个身体关键点识别
+│   ├── pose_coco_int8_4b.bmodel              # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=4，18个身体关键点识别
+│   ├── pose_body_25_fp32_1b.bmodel           # 使用TPU-MLIR编译，用于BM1684X2的FP32 BModel，batch_size=1，25个身体关键点识别
+│   └── pose_body_25_fp16_1b.bmodel           # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1，25个身体关键点识别
 └── caffe/pose
     ├── coco
     │   ├── pose_iter_440000.caffemodel       # 基于COCO的18个身体关键点识别原始模型
@@ -102,43 +109,49 @@ caffe原始模型需要编译成BModel才能在SOPHON TPU上运行，如果使�
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的caffe模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的caffe模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1684X2/BM1688**），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684
 #or
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
 #or
+./scripts/gen_fp32bmodel_mlir.sh bm1684x2
+#or
 ./scripts/gen_fp32bmodel_mlir.sh bm1688
 ```
 
-​执行上述命令会在`models/BM1684`、`models/BM1688/`或`models/BM1684X/`下生成`pose_body_25_fp32_1b.bmodel`和`pose_coco_fp32_1b.bmodel`文件，并且`models/BM1688/`下还会生成`pose_body_25_fp32_1b_2core.bmodel`和`pose_coco_fp32_1b_2core.bmodel`文件，即转换好的FP32 BModel。
+​执行上述命令会在`models/BM1684`、`models/BM1688/`、`models/BM1684X/`或`models/BM1684X2/`下生成`pose_body_25_fp32_1b.bmodel`和`pose_coco_fp32_1b.bmodel`文件，并且`models/BM1688/`下还会生成`pose_body_25_fp32_1b_2core.bmodel`和`pose_coco_fp32_1b_2core.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的caffe模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的caffe模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
 #or
+./scripts/gen_fp16bmodel_mlir.sh bm1684x2
+#or
 ./scripts/gen_fp16bmodel_mlir.sh bm1688
 ```
 
-​执行上述命令会在`models/BM1684X/`或`models/BM1688/`下生成`pose_body_25_fp16_1b.bmodel`和`pose_coco_fp16_1b.bmodel`文件，并且`models/BM1688/`下还会生成`pose_body_25_fp16_1b_2core.bmodel`和`pose_coco_fp16_1b_2core.bmodel`文件，即转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X/`、`models/BM1684X2/`或`models/BM1688/`下生成`pose_body_25_fp16_1b.bmodel`和`pose_coco_fp16_1b.bmodel`文件，并且`models/BM1688/`下还会生成`pose_body_25_fp16_1b_2core.bmodel`和`pose_coco_fp16_1b_2core.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的caffe模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的caffe模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1684X2/BM1688**），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684
 #或
 ./scripts/gen_int8bmodel_mlir.sh bm1684x
 #或
+./scripts/gen_int8bmodel_mlir.sh bm1684x2
+#或
 ./scripts/gen_int8bmodel_mlir.sh bm1688
 ```
 
-​上述脚本会在`models/BM1684`、`models/BM1688/`或`models/BM1684X/`下生成`pose_coco_int8_1b.bmodel`和`pose_coco_int8_4b.bmodel`文件，并且`models/BM1688/`下还会生成`pose_coco_int8_1b_2core.bmodel`和`pose_coco_int8_4b_2core.bmodel`文件，即转换好的INT8 BModel。
+​上述脚本会在`models/BM1684`、`models/BM1688/`、`models/BM1684X/`或`models/BM1684X2/`下生成`pose_coco_int8_1b.bmodel`和`pose_coco_int8_4b.bmodel`文件，并且`models/BM1688/`下还会生成`pose_coco_int8_1b_2core.bmodel`和`pose_coco_int8_4b_2core.bmodel`文件，即转换好的INT8 BModel。
 
 
 ## 5. 例程测试
@@ -183,6 +196,14 @@ python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000
 | SRM1-20      | openpose_bmcv.pcie | pose_coco_fp16_1b.bmodel |   0.420  |  0.697 |
 | SRM1-20      | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |   0.418  |  0.697 |
 | SRM1-20      | openpose_bmcv.pcie | pose_coco_int8_4b.bmodel |   0.418  |  0.697 |
+| SE13-64      | openpose_opencv.py | pose_coco_fp32_1b.bmodel |   0.439  |  0.693 |
+| SE13-64      | openpose_opencv.py | pose_coco_fp16_1b.bmodel |   0.440  |  0.693 |
+| SE13-64      | openpose_opencv.py | pose_coco_int8_1b.bmodel |   0.439  |  0.691 |
+| SE13-64      | openpose_opencv.py | pose_coco_int8_4b.bmodel |   0.439  |  0.691 |
+| SE13-64      | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |   0.419  |  0.697 |
+| SE13-64      | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |   0.419  |  0.697 |
+| SE13-64      | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |   0.417  |  0.698 |
+| SE13-64      | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel |   0.417  |  0.698 |
 
 若设置`--performance_opt=tpu_kernel_opt`，在coco val2017_1000数据集上，精度测试结果如下：
 |   测试平台    |      测试程序       |        测试模型          |AP@IoU=0.5:0.95|AP@IoU=0.5|
@@ -226,6 +247,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/person_keypoints_val2017_1000
 3. 本例程未提供arm PCIe平台测试结果。
 4. BM1688 num_core=2的模型与num_core=1的模型精度基本一致；
 5. `tpu_kernel_xxx`相关的后处理优化**仅支持1684x**,将OpenPose part nms使用TPU实现，提高性能；
+6. SE13系列对应BM1684X2，本表测试平台为SE13-64；`cpu_opt`后处理优化尚未在SE13-64上测试；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -254,6 +276,12 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 |   SE9-16    | BM1688/pose_coco_fp16_1b_2core.bmodel |  128.3   |
 |   SE9-16    | BM1688/pose_coco_int8_1b_2core.bmodel |  39.1    |
 |   SE9-16    | BM1688/pose_coco_int8_4b_2core.bmodel |  21.7    |
+|   SE13-64   | BM1684X2/pose_coco_fp32_1b.bmodel|    846.95   |
+|   SE13-64   | BM1684X2/pose_coco_fp16_1b.bmodel|     51.4    |
+|   SE13-64   | BM1684X2/pose_coco_int8_1b.bmodel|     27.4    |
+|   SE13-64   | BM1684X2/pose_coco_int8_4b.bmodel|     26.5    |
+|   SE13-64   | BM1684X2/pose_body_25_fp32_1b.bmodel |  534.2  |
+|   SE13-64   | BM1684X2/pose_body_25_fp16_1b.bmodel |   32.2  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -304,6 +332,14 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 | SRM1-20     | openpose_bmcv.pcie | pose_coco_fp16_1b.bmodel |      24.05      |      1.05       |      24.00      |     568.50      |
 | SRM1-20     | openpose_bmcv.pcie | pose_coco_int8_1b.bmodel |      24.47      |      1.05       |      11.94      |     559.89      |
 | SRM1-20     | openpose_bmcv.pcie | pose_coco_int8_4b.bmodel |      23.98      |      0.81       |      11.64      |     558.54      |
+| SE13-64      | openpose_opencv.py | pose_coco_fp32_1b.bmodel |  9.22   |  8.21  | 849.36  | 3308.04  |
+| SE13-64      | openpose_opencv.py | pose_coco_fp16_1b.bmodel |  9.15   |  8.15  | 53.78   | 3299.03  |
+| SE13-64      | openpose_opencv.py | pose_coco_int8_1b.bmodel |  9.19   |  8.17  | 29.79   | 3294.42  |
+| SE13-64      | openpose_opencv.py | pose_coco_int8_4b.bmodel |  9.01   |  8.18  | 28.47   | 3283.43  |
+| SE13-64      | openpose_bmcv.soc  | pose_coco_fp32_1b.bmodel |  4.60   |  0.79  | 846.89  | 426.79   |
+| SE13-64      | openpose_bmcv.soc  | pose_coco_fp16_1b.bmodel |  4.53   |  0.78  | 51.35   | 427.93   |
+| SE13-64      | openpose_bmcv.soc  | pose_coco_int8_1b.bmodel |  4.59   |  0.79  | 27.37   | 422.50   |
+| SE13-64      | openpose_bmcv.soc  | pose_coco_int8_4b.bmodel |  4.29   |  0.61  | 26.46   | 421.43   |
 
 若设置`--performance_opt=tpu_kernel_opt`，在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，性能测试结果如下：
 |    测试平台  |      测试程序       |       测试模型           |decode_time|preprocess_time|inference_time|postprocess_time| 
@@ -357,6 +393,7 @@ bmrt_test --bmodel models/BM1684/pose_coco_fp32_1b.bmodel
 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 3. SE5-16/SE7-32的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，SE9-16的主控处理器为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异；
+5. SE13-64对应BM1684X2；`tpu_kernel_xxx`后处理优化仅支持1684x，`cpu_opt`尚未在SE13-64上测试，故上述优化表未给出SE13-64结果；
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

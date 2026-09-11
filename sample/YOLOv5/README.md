@@ -28,7 +28,7 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-​YOLOv5是非常经典的基于anchor的One Stage目标检测算法，因其优秀的精度和速度表现，在工程实践应用中获得了非常广泛的应用。本例程对[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)v6.1版本的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X上进行推理测试。
+​YOLOv5是非常经典的基于anchor的One Stage目标检测算法，因其优秀的精度和速度表现，在工程实践应用中获得了非常广泛的应用。本例程对[​YOLOv5官方开源仓库](https://github.com/ultralytics/yolov5)v6.1版本的模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1684X2/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
 
@@ -54,8 +54,8 @@
 ```
 
 ### 2.2 SDK特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684X2(SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1684X/BM1684X2/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -108,6 +108,11 @@ chmod -R +x scripts/
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+├── BM1684X2
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684X2的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel       # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=1
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=4
 ├── BM1688
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=1
 │   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1, num_core=1
@@ -154,30 +159,30 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1684x2/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684`等文件夹下生成`yolov5s_v6.1_3output_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`yolov5s_v6.1_3output_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1684X2/BM1688/CV186X**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1684x2/bm1688/cv186x
 ```
 
 ​上述脚本会在`models/BM1684`等文件夹下生成`yolov5s_v6.1_3output_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
@@ -294,11 +299,24 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 | SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.374 |    0.572 |
 | SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.356 |    0.562 |
 | SRM1-20      | yolov5_sail.pcie   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.356 |    0.562 |
+| SE13-64      | yolov5_opencv.py   | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.377 |    0.580 |
+| SE13-64      | yolov5_opencv.py   | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.377 |    0.579 |
+| SE13-64      | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.355 |    0.567 |
+| SE13-64      | yolov5_opencv.py   | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.355 |    0.567 |
+| SE13-64      | yolov5_bmcv.soc    | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.374 |    0.572 |
+| SE13-64      | yolov5_bmcv.soc    | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.374 |    0.572 |
+| SE13-64      | yolov5_bmcv.soc    | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.352 |    0.564 |
+| SE13-64      | yolov5_bmcv.soc    | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.352 |    0.564 |
+| SE13-64      | yolov5_sail.soc    | yolov5s_v6.1_3output_fp32_1b.bmodel      |    0.374 |    0.572 |
+| SE13-64      | yolov5_sail.soc    | yolov5s_v6.1_3output_fp16_1b.bmodel      |    0.374 |    0.572 |
+| SE13-64      | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_1b.bmodel      |    0.352 |    0.564 |
+| SE13-64      | yolov5_sail.soc    | yolov5s_v6.1_3output_int8_4b.bmodel      |    0.352 |    0.564 |
 
-> **测试说明**：  
+> **测试说明**：
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标；
-> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应BM1684X2；
+> 4. SE13-64（BM1684X2）硬件 JPEG 解码器（`/dev/soph_vc_dec`）的 `malloc(): invalid size` / 段错误崩溃问题已在 libsophon 0.4.13 修复，`yolov5_bmcv.soc`、`yolov5_sail.soc` 的硬件解码路径现已可正常完成 1000 张图片测试；`yolov5_bmcv.py` 因需 root 权限访问解码器，精度数据请参考 `yolov5_bmcv.soc`。`yolov5_sail.soc` 基于 sophon-sail C++ 库交叉编译（参考[环境安装手册](../../docs/Environment_Install_Guide.md#42-sophon-sail库源码编译安装)），运行前需将 `libsail.so` 放入 `LD_LIBRARY_PATH`。
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
@@ -331,6 +349,10 @@ bmrt_test --bmodel models/BM1684/yolov5s_v6.1_3output_fp32_1b.bmodel
 |   SE9-8     | CV186X/yolov5s_v6.1_3output_fp16_1b.bmodel|          29.93  |
 |   SE9-8     | CV186X/yolov5s_v6.1_3output_int8_1b.bmodel|           8.18  |
 |   SE9-8     | CV186X/yolov5s_v6.1_3output_int8_4b.bmodel|           7.90  |
+|   SE13-64   | BM1684X2/yolov5s_v6.1_3output_fp32_1b.bmodel|          62.03  |
+|   SE13-64   | BM1684X2/yolov5s_v6.1_3output_fp16_1b.bmodel|           8.36  |
+|   SE13-64   | BM1684X2/yolov5s_v6.1_3output_int8_1b.bmodel|           3.89  |
+|   SE13-64   | BM1684X2/yolov5s_v6.1_3output_int8_4b.bmodel|          14.26  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -435,12 +457,25 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 |   SRM1-20   |  yolov5_sail.pcie |yolov5s_v6.1_3output_fp16_1b.bmodel|      7.54       |      1.41       |      34.56      |      8.48       |
 |   SRM1-20   |  yolov5_sail.pcie |yolov5s_v6.1_3output_int8_1b.bmodel|      7.60       |      1.43       |      30.28      |      8.60       |
 |   SRM1-20   |  yolov5_sail.pcie |yolov5s_v6.1_3output_int8_4b.bmodel|      7.39       |      1.23       |      28.49      |      8.37       |
+|   SE13-64   | yolov5_opencv.py  |yolov5s_v6.1_3output_fp32_1b.bmodel|       9.21      |      28.60      |      68.21      |     119.18      |
+|   SE13-64   | yolov5_opencv.py  |yolov5s_v6.1_3output_fp16_1b.bmodel|       9.25      |      28.68      |      14.60      |     119.05      |
+|   SE13-64   | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_1b.bmodel|       9.23      |      28.69      |      10.12      |     119.52      |
+|   SE13-64   | yolov5_opencv.py  |yolov5s_v6.1_3output_int8_4b.bmodel|       9.04      |      25.98      |       8.41      |     115.45      |
+|   SE13-64   | yolov5_bmcv.soc   |yolov5s_v6.1_3output_fp32_1b.bmodel|       4.52      |       1.23      |      61.86      |      43.73      |
+|   SE13-64   | yolov5_bmcv.soc   |yolov5s_v6.1_3output_fp16_1b.bmodel|       4.52      |       1.24      |       8.24      |      43.59      |
+|   SE13-64   | yolov5_bmcv.soc   |yolov5s_v6.1_3output_int8_1b.bmodel|       4.53      |       1.23      |       3.78      |      43.57      |
+|   SE13-64   | yolov5_bmcv.soc   |yolov5s_v6.1_3output_int8_4b.bmodel|       4.12      |       0.91      |       3.54      |      43.41      |
+|   SE13-64   | yolov5_sail.soc   |yolov5s_v6.1_3output_fp32_1b.bmodel|       2.61      |       2.55      |      62.73      |      42.69      |
+|   SE13-64   | yolov5_sail.soc   |yolov5s_v6.1_3output_fp16_1b.bmodel|       2.62      |       2.53      |       9.10      |      42.51      |
+|   SE13-64   | yolov5_sail.soc   |yolov5s_v6.1_3output_int8_1b.bmodel|       2.61      |       2.54      |       4.64      |      42.51      |
+|   SE13-64   | yolov5_sail.soc   |yolov5s_v6.1_3output_int8_4b.bmodel|       2.34      |       2.19      |       4.36      |      42.45      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 5. SE13-64对应BM1684X2；其硬件 JPEG 解码器的 `malloc(): invalid size` 崩溃问题已在 libsophon 0.4.13 修复，`yolov5_bmcv.soc`、`yolov5_sail.soc` 的硬件解码路径现已可正常运行。`yolov5_bmcv.py` 因需 root 权限访问解码器，性能数据请参考 `yolov5_bmcv.soc`。
 
 ## 7. YOLOv5 cpu opt
 本部分基于上述YOLOv5，优化了YOLOv5后处理NMS算法。下面主要说明NMS后处理算法优化的内容和优化后性能精度结果。
