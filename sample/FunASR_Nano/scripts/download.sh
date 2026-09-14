@@ -31,11 +31,25 @@ else
 fi
 
 # -------------------------------------------------------------------
-# 2. BModel (BM1688 F16)
+# 2. BModel (BM1684X F16 + LLM w4bf16, for SE7-32)
+# -------------------------------------------------------------------
+if ! ls ../models/BM1684X/*.bmodel >/dev/null 2>&1; then
+    mkdir -p ../models
+    echo "Downloading BM1684X F16 + LLM bmodels..."
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/FunASR_Nano/BM1684X_F16.tar.gz
+    tar xzf BM1684X_F16.tar.gz -C ../models/
+    rm BM1684X_F16.tar.gz
+    echo "BM1684X bmodels download OK!"
+else
+    echo "BM1684X bmodels exist! Remove them if you need to update."
+fi
+
+# -------------------------------------------------------------------
+# 2b. BModel (BM1688 F16 + LLM w4bf16, for SE9-16)
 # -------------------------------------------------------------------
 if ! ls ../models/BM1688/*.bmodel >/dev/null 2>&1; then
     mkdir -p ../models
-    echo "Downloading BM1688 F16 bmodels..."
+    echo "Downloading BM1688 F16 + LLM bmodels..."
     python3 -m dfss --url=open@sophgo.com:sophon-demo/FunASR_Nano/BM1688_F16.tar.gz
     tar xzf BM1688_F16.tar.gz -C ../models/
     rm BM1688_F16.tar.gz
@@ -75,15 +89,29 @@ fi
 popd
 
 # -------------------------------------------------------------------
-# 4. Note about PyTorch model
+# 3b. Copy LLM tokenizer config to python/config/ (for the infer script)
+# -------------------------------------------------------------------
+for chip in BM1684X BM1688; do
+    if [ -d "../models/$chip/config" ] && [ ! -f "../python/config/tokenizer.json" ]; then
+        mkdir -p ../python/config
+        cp ../models/$chip/config/* ../python/config/ 2>/dev/null
+        echo "Copied $chip LLM tokenizer config to python/config/"
+        break
+    fi
+done
+
+# -------------------------------------------------------------------
+# 4. Note about PyTorch model (only needed for recompilation)
 # -------------------------------------------------------------------
 echo ""
 echo "============================================"
-echo "Note: The FunASR Nano PyTorch model weights"
-echo "(Qwen3-0.6B LLM) will be downloaded automatically"
-echo "by FunASR AutoModel on first run."
+echo "Note: The precompiled BModels already include the"
+echo "Qwen3-0.6B LLM (w4bf16) running on TPU. You only need the"
+echo "FunASR-Nano PyTorch weights if you want to recompile:"
+echo "  - export ONNX (encoder/adapter): tools/export_onnx.py"
+echo "  - extract LLM for llm_convert:    tools/extract_llm_weights.py"
 echo ""
-echo "To pre-download:"
+echo "To pre-download the PyTorch model:"
 echo "  python3 -c \"from funasr import AutoModel; \\"
 echo "      AutoModel(model='FunAudioLLM/Fun-ASR-Nano-2512',"
 echo "               trust_remote_code=True)\""

@@ -1,0 +1,17 @@
+# Downloaded models / tokenizer / datasets (fetched by scripts/download.sh)
+models/
+python/config/
+datasets/
+
+# Compiled bmodels & intermediate mlir artifacts
+*.bmodel
+scripts/funasr_*_f16_1b/
+scripts/compiler_profile_*.txt
+*.prototxt
+
+# Python
+__pycache__/
+*.pyc
+
+# Eval outputs
+result*.txt
