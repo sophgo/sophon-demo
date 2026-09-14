@@ -58,6 +58,39 @@ function download_bm1688 {
     popd
 }
 
+function download_bm1684x2_2b {
+    if [ ! -d "../models/BM1684X2" ]; then
+        mkdir -p ../models/BM1684X2
+    fi
+    pushd ../models/BM1684X2
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1684x2_1dev_dynamic.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_dynamic_20260914_220350.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-2b-int4-autoround_w4bf16_seq8192_bm1684x2_4core_history_dynamic_20260914_162017.bmodel
+    popd
+}
+
+function download_bm1684x2_4b {
+    if [ ! -d "../models/BM1684X2" ]; then
+        mkdir -p ../models/BM1684X2
+    fi
+    pushd ../models/BM1684X2
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1684x2_1dev_dynamic.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_dynamic_20260914_220525.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_history_dynamic_20260914_155714.bmodel
+    popd
+}
+
+function download_bm1684x2_9b {
+    if [ ! -d "../models/BM1684X2" ]; then
+        mkdir -p ../models/BM1684X2
+    fi
+    pushd ../models/BM1684X2
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x2_1core_dynamic_20260914_220006.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_dynamic_20260914_152921.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_history_dynamic_20260914_154012.bmodel
+    popd
+}
+
 if [ "$1" == "bm1684x_2b" ]; then
     download_datasets
     download_bm1684x_2b
@@ -70,14 +103,26 @@ elif [ "$1" == "bm1684x_9b" ]; then
 elif [ "$1" == "bm1688" ]; then
     download_datasets
     download_bm1688
+elif [ "$1" == "bm1684x2_2b" ]; then
+    download_datasets
+    download_bm1684x2_2b
+elif [ "$1" == "bm1684x2_4b" ]; then
+    download_datasets
+    download_bm1684x2_4b
+elif [ "$1" == "bm1684x2_9b" ]; then
+    download_datasets
+    download_bm1684x2_9b
 elif [ "$1" == "all" ]; then
     download_datasets
     download_bm1684x_2b
     download_bm1684x_4b
     download_bm1684x_9b
     download_bm1688
+    download_bm1684x2_2b
+    download_bm1684x2_4b
+    download_bm1684x2_9b
 else
     echo "Error Parameter"
-    echo "Usage: $0 [all|bm1684x_2b|bm1684x_4b|bm1684x_9b|bm1688]"
+    echo "Usage: $0 [all|bm1684x_2b|bm1684x_4b|bm1684x_9b|bm1688|bm1684x2_2b|bm1684x2_4b|bm1684x2_9b]"
     exit 1
 fi

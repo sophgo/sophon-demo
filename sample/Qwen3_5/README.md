@@ -15,11 +15,11 @@
 ## 1. 简介
 Qwen3.5 是阿里巴巴推出的新一代多模态大语言模型（Multimodal Large Language Model, MLLM），属于通义千问（Qwen）系列的最新成员。支持图像、文本、视频等多种输入模态，具备跨模态理解、推理、生成能力。适用于图像描述、视觉问答（VQA）、文档分析、多模态交互等任务。相比前代模型，在推理速度、准确性、多语言支持等方面均有显著提升。Qwen3.5仓库可见[Qwen3.5](https://www.modelscope.cn/collections/Qwen/Qwen35)。
 
-本例程对Qwen3.5进行移植，使其可在Sophon BM1684X以及BM1688芯片上运行。在1684X PCIE模式下，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行。在1684X SoC设备（如SE7、SM7、Airbox等），支持在V24.04.01(libsophon_0.5.1)SDK上运行；以及在16G版本的1688设备（例如SE9-16）上，支持在V2.2以上的SDK上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
+本例程对Qwen3.5进行移植，使其可在Sophon BM1684X、BM1684X2以及BM1688芯片上运行。在1684X PCIE模式下，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行。在1684X SoC设备（如SE7、SM7、Airbox等），支持在V24.04.01(libsophon_0.5.1)SDK上运行；在1684X2 SoC设备（如SE13-64），已在libsophon-0.4.13、sophon-sail 3.11.0环境下测试通过；以及在16G版本的1688设备（例如SE9-16）上，支持在V2.2以上的SDK上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
 
-* 支持BM1684X和BM1688(x86 PCIe、SoC)
+* 支持BM1684X、BM1684X2和BM1688(x86 PCIe、SoC)
 * 支持INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持连续对话
@@ -55,7 +55,7 @@ sudo reboot
 
 ## 4. 准备模型
 
-该模型目前支持在1684X以及1688上运行，已提供编译好的bmodel。其中编译好的BModel上下文长度为2k，若需要自行编译其他上下文长度模型，需要参考[4.2 自行编译BModel模型](#42-自行编译bmodel模型)
+该模型目前支持在1684X、1684X2以及1688上运行，已提供编译好的bmodel。其中编译好的BModel上下文长度为2k，若需要自行编译其他上下文长度模型，需要参考[4.2 自行编译BModel模型](#42-自行编译bmodel模型)
 
 ### 4.1 使用提供的模型
 
@@ -72,7 +72,7 @@ sudo reboot
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
 sudo apt install unzip
 chmod -R +x scripts/
-./scripts/download_bmodel.sh all # 提供了五种all|bm1684x_2b|bm1684x_4b|bm1684x_9b|bm1688模型的下载
+./scripts/download_bmodel.sh all # 提供了all|bm1684x_2b|bm1684x_4b|bm1684x_9b|bm1688|bm1684x2_2b|bm1684x2_4b|bm1684x2_9b模型的下载
 ```
 
 执行下载脚本，将所有的模型都下载后，目录结构如下：
@@ -84,6 +84,16 @@ chmod -R +x scripts/
 |   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq8192_bm1684x_1dev_history_dynamic_20260722_164018.bmodel  # 支持历史上下文，上下文长度为8k
 |   |   ├── qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260416_144422.bmodel
 |   |   └── qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260416_150658.bmodel  
+|   ├── BM1684X2
+|   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1684x2_1dev_dynamic.bmodel
+|   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_dynamic_20260914_220350.bmodel
+|   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq8192_bm1684x2_4core_history_dynamic_20260914_162017.bmodel  # 支持历史上下文，上下文长度为8k
+|   |   ├── qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1684x2_1dev_dynamic.bmodel
+|   |   ├── qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_dynamic_20260914_220525.bmodel
+|   |   ├── qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_history_dynamic_20260914_155714.bmodel  # 支持历史上下文
+|   |   ├── qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x2_1core_dynamic_20260914_220006.bmodel
+|   |   ├── qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_dynamic_20260914_152921.bmodel
+|   |   └── qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_history_dynamic_20260914_154012.bmodel  # 支持历史上下文
 |   └── BM1688
 |       ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260415_212627.bmodel
 |       ├── qwen3.5-2b-int4-autoround_w4bf16_seq8192_bm1688_2core_history_dynamic_20260722_160000.bmodel  # 支持历史上下文，上下文长度为8k
@@ -139,6 +149,16 @@ git clone https://huggingface.co/Intel/Qwen3.5-9B-int4-AutoRound
 llm_convert.py -m /workspace/Qwen3.5-2B-int4-AutoRound --max_input_length 1024 -s 2048 --quantize w4bf16 -c bm1684x --out_dir qwen3.5_2b --max_pixels 768,768
 ``` 
 
+编译1684X2平台的模型时，将`-c`参数改为`bm1684x2`即可（默认使用4个TPU核编译，即4core模型）：
+``` shell
+llm_convert.py -m /workspace/Qwen3.5-2B-int4-AutoRound --max_input_length 1024 -s 2048 --quantize w4bf16 -c bm1684x2 --out_dir qwen3.5_2b --max_pixels 768,768
+``` 
+
+若需要只使用单个TPU核的单核模型，可加上`--num_core 1`参数：
+``` shell
+llm_convert.py -m /workspace/Qwen3.5-2B-int4-AutoRound --max_input_length 1024 -s 2048 --quantize w4bf16 -c bm1684x2 --num_core 1 --out_dir qwen3.5_2b --max_pixels 768,768
+``` 
+
 默认情况下，模型不支持历史上下文；--use_history_kv参数是必需的；使用--chunk_length指定每次预填充处理的最大长度；如果未指定，则默认为seq_length的1/4。当实际输入超过该值时，将执行多次预填充运行；历史KV长度固定为seq_length。
 ``` shell
 llm_convert.py -m /workspace/Qwen3.5/Qwen3.5-4B-int4-AutoRound -s 8192 -c bm1684x --out_dir qwen3.5_kv --use_history_kv --chunk_length 1024
@@ -166,11 +186,18 @@ python3 qwen3_5.py -m ../models/BM1684X/qwen3.5-2b-int4-autoround_w4bf16_seq2048
 |    SE7-32    | qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260416_150658.bmodel  |          1.189       |           8.20         |
 |    SE9-16    | qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260415_212627.bmodel  |        1.799           |        11.860           |
 |    SE9-16    | qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260416_145112.bmodel  |        2.882          |        6.299           |
+|    SE13-64    | qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1684x2_1dev_dynamic.bmodel  |         2.359           |        19.38           |
+|    SE13-64    | qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1684x2_1dev_dynamic.bmodel  |         3.916           |        11.02           |
+|    SE13-64    | qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x2_1core_dynamic_20260914_220006.bmodel  |         5.130           |        6.66           |
+|    SE13-64    | qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_dynamic_20260914_220350.bmodel  |         1.313           |        35.17           |
+|    SE13-64    | qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_dynamic_20260914_220525.bmodel  |         1.890           |        21.69           |
+|    SE13-64    | qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x2_4core_dynamic_20260914_152921.bmodel  |         2.366           |        14.28           |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，且与输入也有关；
 > 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 3. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型；
+> 4. SE13-64的TPU有4个核，文件名含`1dev`/`1core`的bmodel为单核编译，含`4core`的为4核编译；相同模型下4核bmodel的首token延迟和吞吐均明显优于单核bmodel；
 
 ## 7. 固定文本前缀缓存测试
 
