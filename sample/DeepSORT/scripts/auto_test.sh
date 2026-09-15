@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|CV84X6|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -68,7 +68,7 @@ if test $MODE = "soc_test"; then
     fi
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
@@ -129,12 +129,12 @@ function bmrt_test_benchmark(){
       bmrt_test_case CV186X/extractor_fp16_4b.bmodel
       bmrt_test_case CV186X/extractor_int8_1b.bmodel
       bmrt_test_case CV186X/extractor_int8_4b.bmodel
-    elif test $TARGET = "BM1684X2"; then
-      # BM1684X2当前固件不支持FP32，只测fp16/int8
-      bmrt_test_case BM1684X2/extractor_fp16_1b.bmodel
-      bmrt_test_case BM1684X2/extractor_fp16_4b.bmodel
-      bmrt_test_case BM1684X2/extractor_int8_1b.bmodel
-      bmrt_test_case BM1684X2/extractor_int8_4b.bmodel
+    elif test $TARGET = "CV84X6"; then
+      # CV84X6当前固件不支持FP32，只测fp16/int8
+      bmrt_test_case CV84X6/extractor_fp16_1b.bmodel
+      bmrt_test_case CV84X6/extractor_fp16_4b.bmodel
+      bmrt_test_case CV84X6/extractor_int8_1b.bmodel
+      bmrt_test_case CV84X6/extractor_int8_4b.bmodel
     fi
   
     popd
@@ -522,9 +522,9 @@ then
     else
       echo "unknown CASE_MODE: $CASE_MODE"
     fi
-  elif test $TARGET = "BM1684X2"
+  elif test $TARGET = "CV84X6"
   then
-    # BM1684X2当前固件不支持FP32，只测fp16/int8
+    # CV84X6当前固件不支持FP32，只测fp16/int8
     if test $CASE_MODE = "fully"
     then
       test_python opencv extractor_fp16_1b.bmodel ../datasets/test_car_person_1080P.mp4

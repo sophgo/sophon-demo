@@ -19,7 +19,7 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-本例程适配[recognize-anything官方开源仓库](https://github.com/xinyu1205/recognize-anything)中的算法，支持在SOPHON BM1684X/BM1684X2上进行推理测试。
+本例程适配[recognize-anything官方开源仓库](https://github.com/xinyu1205/recognize-anything)中的算法，支持在SOPHON BM1684X/CV84X6上进行推理测试。
 
 ## 2. 特性
 
@@ -37,8 +37,8 @@
 
 ### 2.2 SDK特性
 * 支持BM1684X(x86 PCIe、SoC)
-* 支持BM1684X2(SE13-64 SoC)
-* 支持FP32、FP16、INT8模型编译和推理(BM1684X2支持FP16、INT8)
+* 支持CV84X6(SE13-64 SoC)
+* 支持FP32、FP16、INT8模型编译和推理(CV84X6支持FP16、INT8)
 * 支持batch_size=1
 * 支持Python推理
 * 支持图片测试
@@ -58,7 +58,7 @@ chmod -R +x scripts/
 ```bash
 --all     # 下载所有模型
 --BM1684X # 下载BM1684X的bmodel
---BM1684X2 # 下载BM1684X2的bmodel
+--CV84X6 # 下载CV84X6的bmodel
 --onnx    # 下载onnx
 ```
 
@@ -69,7 +69,7 @@ models/
 │   ├── ram_fp16_1b.bmodel
 │   ├── ram_fp32_1b.bmodel
 │   ├── ram_int8_1b.bmodel
-├── BM1684X2 # 在BM1684X2上运行的模型
+├── CV84X6 # 在CV84X6上运行的模型
 │   ├── ram_fp16_1b.bmodel
 │   ├── ram_int8_1b.bmodel
 ├── onnx
@@ -108,11 +108,11 @@ models/
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
-# BM1684X2上请使用：
-./scripts/gen_fp16bmodel_mlir.sh bm1684x2
+# CV84X6上请使用：
+./scripts/gen_fp16bmodel_mlir.sh cv84x6
 ```
 
-​执行上述命令会在`models/BM1684X`、`models/BM1684X2`等文件夹下生成转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X`、`models/CV84X6`等文件夹下生成转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
@@ -120,11 +120,11 @@ models/
 
 ```bash
 ./scripts/gen_int8bmodel_mlir.sh bm1684x
-# BM1684X2上请使用：
-./scripts/gen_int8bmodel_mlir.sh bm1684x2
+# CV84X6上请使用：
+./scripts/gen_int8bmodel_mlir.sh cv84x6
 ```
 
-​执行上述命令会在`models/BM1684X`、`models/BM1684X2`等文件夹下生成转换好的INT8 BModel。
+​执行上述命令会在`models/BM1684X`、`models/CV84X6`等文件夹下生成转换好的INT8 BModel。
 
 ## 4. 例程测试
 - [C++例程](./cpp/README.md)
@@ -140,8 +140,8 @@ models/
 ```bash
 # 请根据实际情况修改要测试的bmodel路径和devid参数
 bmrt_test --bmodel models/BM1684X/ram_fp32_1b.bmodel
-# BM1684X2上请测试FP16/INT8模型，例如：
-bmrt_test --bmodel models/BM1684X2/ram_fp16_1b.bmodel
+# CV84X6上请测试FP16/INT8模型，例如：
+bmrt_test --bmodel models/CV84X6/ram_fp16_1b.bmodel
 ```
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 测试各个模型的理论推理时间，结果如下：
@@ -151,8 +151,8 @@ bmrt_test --bmodel models/BM1684X2/ram_fp16_1b.bmodel
 |   SE7-32    | BM1684X/ram_fp32_1b.bmodel         |         588.41  |
 |   SE7-32    | BM1684X/ram_fp16_1b.bmodel         |          72.64  |
 |   SE7-32    | BM1684X/ram_int8_1b.bmodel         |          45.43  |
-|   SE13-64   | BM1684X2/ram_fp16_1b.bmodel        |         140.60  |
-|   SE13-64   | BM1684X2/ram_int8_1b.bmodel        |         68.14   |
+|   SE13-64   | CV84X6/ram_fp16_1b.bmodel        |         140.60  |
+|   SE13-64   | CV84X6/ram_int8_1b.bmodel        |         68.14   |
 
 > **测试说明**：
 1. 性能测试结果具有一定的波动性；
@@ -177,7 +177,7 @@ bmrt_test --bmodel models/BM1684X2/ram_fp16_1b.bmodel
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大；
-> 5. SE13系列对应BM1684X2。 
+> 5. SE13系列对应CV84X6。 
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

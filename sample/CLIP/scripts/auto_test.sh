@@ -85,7 +85,7 @@ if test $MODE = "soc_test"; then
     fi
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
@@ -126,11 +126,11 @@ function bmrt_test_benchmark(){
     elif test $TARGET = "CV186X"; then
       bmrt_test_case CV186X/clip_image_vitb32_cv186x_f16_1b.bmodel
       bmrt_test_case CV186X/clip_text_vitb32_cv186x_f16_1b.bmodel
-    elif test $TARGET = "BM1684X2"; then
-      bmrt_test_case BM1684X2/clip_image_vitb32_bm1684x2_f16_1b.bmodel
-      bmrt_test_case BM1684X2/clip_text_vitb32_bm1684x2_f16_1b.bmodel
-      bmrt_test_case BM1684X2/clip_image_vitb32_bm1684x2_int8_1b.bmodel
-      bmrt_test_case BM1684X2/clip_text_vitb32_bm1684x2_int8_1b.bmodel
+    elif test $TARGET = "CV84X6"; then
+      bmrt_test_case CV84X6/clip_image_vitb32_cv84x6_f16_1b.bmodel
+      bmrt_test_case CV84X6/clip_text_vitb32_cv84x6_f16_1b.bmodel
+      bmrt_test_case CV84X6/clip_image_vitb32_cv84x6_int8_1b.bmodel
+      bmrt_test_case CV84X6/clip_text_vitb32_cv84x6_int8_1b.bmodel
     fi
   
     popd
@@ -255,9 +255,9 @@ then
   elif test $TARGET = "CV186X"
   then
     test_python clip_image_vitb32_cv186x_f16_1b.bmodel clip_text_vitb32_cv186x_f16_1b.bmodel
-  elif test $TARGET = "BM1684X2"
+  elif test $TARGET = "CV84X6"
   then
-    test_python clip_image_vitb32_bm1684x2_f16_1b.bmodel clip_text_vitb32_bm1684x2_f16_1b.bmodel
+    test_python clip_image_vitb32_cv84x6_f16_1b.bmodel clip_text_vitb32_cv84x6_f16_1b.bmodel
   fi
 fi
 

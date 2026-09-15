@@ -17,9 +17,9 @@ if [ ! $1 ]; then
 else
     target=${1^^}
 
-    if [[ $target != "BM1684X" && $target != "BM1688" && $target != "CV186X" && $target != "BM1684X2" ]]
+    if [[ $target != "BM1684X" && $target != "BM1688" && $target != "CV186X" && $target != "CV84X6" ]]
         then
-        echo "Only support BM1684X, BM1688, CV186X, BM1684X2"
+        echo "Only support BM1684X, BM1688, CV186X, CV84X6"
         exit
     fi
 

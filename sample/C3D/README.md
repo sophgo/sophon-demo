@@ -20,8 +20,8 @@ C3D是使用三维卷积进行视频动作识别的开荒者，论文链接：[L
 
 本例程对[MMAction的C3D_UCF101模型](https://mmaction2.readthedocs.io/zh-cn/latest/model_zoo/recognition.html)进行了移植，在相同的预处理流程下可以做到精度对齐。
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684X2(SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1688/BM1684X/BM1684X2)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、CV84X6(SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1688/BM1684X/CV84X6)、INT8模型编译和推理
 * 支持基于BMCV和OpenCV预处理的C++推理
 * 支持基于OpenCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -56,9 +56,9 @@ chmod -R +x scripts/
 │   ├── c3d_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=4
 │   ├── c3d_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── c3d_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
-├── BM1684X2
-│   ├── c3d_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
-│   └── c3d_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=4
+├── CV84X6
+│   ├── c3d_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   └── c3d_fp16_4b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=4
 ├── BM1688
 │   ├── c3d_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1，num_core=1
 │   ├── c3d_fp32_4b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=4，num_core=1
@@ -97,7 +97,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**；BM1684X2当前固件codegen不支持FP32，请改用FP16），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**；CV84X6当前固件codegen不支持FP32，请改用FP16），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
@@ -107,17 +107,17 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/CV84X6/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #cv84x6/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`c3d_fp16_1b.bmodel`等文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**；BM1684X2当前工具链INT8模型推理结果错误，暂不支持，请改用FP16），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**；CV84X6当前工具链INT8模型推理结果错误，暂不支持，请改用FP16），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
@@ -243,8 +243,8 @@ python3 tools/eval_ucf.py --gt_path datasets/ground_truth.json --result_json cpp
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
-> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应BM1684X2；
-> 3. BM1684X2当前固件codegen不支持FP32；当前工具链编译的INT8模型在BM1684X2上推理结果错误（首个Conv3D输出即与FP32参考发散，bm1684x/bm1688均正常），暂不支持INT8，SE13-64仅测试FP16模型；
+> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应CV84X6；
+> 3. CV84X6当前固件codegen不支持FP32；当前工具链编译的INT8模型在CV84X6上推理结果错误（首个Conv3D输出即与FP32参考发散，bm1684x/bm1688均正常），暂不支持INT8，SE13-64仅测试FP16模型；
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -286,8 +286,8 @@ bmrt_test --bmodel models/BM1684/c3d_fp32_1b.bmodel
 |   SE9-8     | CV186X/c3d_fp16_4b.bmodel          |          65.99  |
 |   SE9-8     | CV186X/c3d_int8_1b.bmodel          |          32.57  |
 |   SE9-8     | CV186X/c3d_int8_4b.bmodel          |          27.78  |
-|   SE13-64   | BM1684X2/c3d_fp16_1b.bmodel         |          36.69  |
-|   SE13-64   | BM1684X2/c3d_fp16_4b.bmodel         |          29.91  |
+|   SE13-64   | CV84X6/c3d_fp16_1b.bmodel         |          36.69  |
+|   SE13-64   | CV84X6/c3d_fp16_4b.bmodel         |          29.91  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

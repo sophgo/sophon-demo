@@ -18,9 +18,9 @@ if [ ! -d "../models" ]; then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/campplus/models_1023/models.zip
     unzip models.zip -d ../models
     rm models.zip
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/campplus/models_260906/BM1684X2.zip
-    unzip BM1684X2.zip -d ../models/
-    rm BM1684X2.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/campplus/models_260906/CV84X6.zip
+    unzip CV84X6.zip -d ../models/
+    rm CV84X6.zip
     echo "models download!"
 else
     echo "models folder exist! Remove it if you need to update."

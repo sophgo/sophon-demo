@@ -19,10 +19,10 @@
   
 ## 1. 简介
 ​BERT的全称为Bidirectional Encoder Representation from Transformers，是一个预训练的语言表征模型。它强调了不再像以往一样采用传统的单向语言模型或者把两个单向语言模型进行浅层拼接的方法进行预训练，而是采用新的masked language model（MLM），以致能生成深度的双向语言表征。BERT论文发表时提及在11个NLP（Natural Language Processing，自然语言处理）任务中获得了新的state-of-the-art的结果，令人惊叹。
-本例程对[A simple training framework that recreates bert4keras in PyTorch. bert4torch](https://github.com/Tongjilibo/bert4torch/)的模型和算法进行移植,使之能在SOPHON BM1684\BM1684X\BM1684X2\BM1688\CV186X上进行推理测试。
+本例程对[A simple training framework that recreates bert4keras in PyTorch. bert4torch](https://github.com/Tongjilibo/bert4torch/)的模型和算法进行移植,使之能在SOPHON BM1684\BM1684X\CV84X6\BM1688\CV186X上进行推理测试。
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684X2(SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16、INT8(BM1684X/BM1684X2/BM1688/CV186X)模型编译和推理（BM1684X2当前固件不支持FP32，仅FP16/INT8）
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、CV84X6(SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16、INT8(BM1684X/CV84X6/BM1688/CV186X)模型编译和推理（CV84X6当前固件不支持FP32，仅FP16/INT8）
 * 支持基于sail的C++推理
 * 支持基于sail的Python推理
 * 支持单batch和多batch模型推理
@@ -55,11 +55,11 @@ chmod -R +x scripts/
 │   └── bert4torch_output_fp16_8b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=8
 │   └── bert4torch_output_int8_1b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── bert4torch_output_int8_8b.bmodel     # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=8
-├── BM1684X2
-│   └── bert4torch_output_fp16_1b.bmodel     # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
-│   └── bert4torch_output_fp16_8b.bmodel     # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=8
-│   └── bert4torch_output_int8_1b.bmodel     # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=1
-│   └── bert4torch_output_int8_8b.bmodel     # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=8
+├── CV84X6
+│   └── bert4torch_output_fp16_1b.bmodel     # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   └── bert4torch_output_fp16_8b.bmodel     # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=8
+│   └── bert4torch_output_int8_1b.bmodel     # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
+│   └── bert4torch_output_int8_8b.bmodel     # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=8
 ├── BM1688
 │   └── bert4torch_output_fp32_1b.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=1
 │   └── bert4torch_output_fp32_8b.bmodel     # 使用TPU-MLIR编译，用于BM1688的FP32 BModel，batch_size=8
@@ -114,20 +114,20 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/CV84X6/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #cv84x6/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`bert4torch_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/CV84X6/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684x #cv84x6/bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`bert4torch_output_int8_1b.bmodel`文件，即转换好的INT8 BModel。
@@ -220,7 +220,7 @@ python3 eval_people.py --test_path ../datasets/china-people-daily-ner-corpus/exa
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
-> 3. SE13系列对应BM1684X2。BM1684X2当前固件不支持FP32 codegen，仅提供FP16/INT8 BModel；
+> 3. SE13系列对应CV84X6。CV84X6当前固件不支持FP32 codegen，仅提供FP16/INT8 BModel；
 >    SE13-64的bert_sail.soc基于sophon-sail C++库交叉编译（参考[环境安装手册](../../docs/Environment_Install_Guide.md#42-sophon-sail库源码编译安装)）。C++版使用libtorch_tokenizer，与Python版(bert_sail.py)的tokenizer实现略有差异，故bert_sail.soc精度略低于bert_sail.py。
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -242,10 +242,10 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 |   SE7-32    | BM1684X/bert4torch_output_fp32_8b.bmodel         | 87.478            |
 |   SE7-32    | BM1684X/bert4torch_output_fp16_8b.bmodel         | 5.726             |
 |   SE7-32    | BM1684X/bert4torch_output_int8_8b.bmodel         | 3.462             |
-|   SE13-64  | BM1684X2/bert4torch_output_fp16_1b.bmodel        | 18.14             |
-|   SE13-64  | BM1684X2/bert4torch_output_fp16_8b.bmodel        | 14.37             |
-|   SE13-64  | BM1684X2/bert4torch_output_int8_1b.bmodel        | 11.71             |
-|   SE13-64  | BM1684X2/bert4torch_output_int8_8b.bmodel        | 9.28              |
+|   SE13-64  | CV84X6/bert4torch_output_fp16_1b.bmodel        | 18.14             |
+|   SE13-64  | CV84X6/bert4torch_output_fp16_8b.bmodel        | 14.37             |
+|   SE13-64  | CV84X6/bert4torch_output_int8_1b.bmodel        | 11.71             |
+|   SE13-64  | CV84X6/bert4torch_output_int8_8b.bmodel        | 9.28              |
 |   SE9-16    | BM1688/bert4torch_output_fp32_1b.bmodel          | 269.7             |
 |   SE9-16    | BM1688/bert4torch_output_fp16_1b.bmodel          | 40.0              |
 |   SE9-16    | BM1688/bert4torch_output_int8_1b.bmodel          | 22.7              |
@@ -266,7 +266,7 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 > 1. 性能测试结果具有一定的波动性；
 > 2. `calculate time`已折算为平均每条文本的推理时间；
 > 3. SoC和PCIe的测试结果基本一致；
-> 4. SE13-64对应BM1684X2。BM1684X2不支持FP32，故无FP32行。
+> 4. SE13-64对应CV84X6。CV84X6不支持FP32，故无FP32行。
 
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
@@ -344,6 +344,6 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. BERT cpp的后处理只有softmax，耗时很短，可以忽略；
-> 5. SE13-64对应BM1684X2，主控为8核CA53@1.6GHz；仅给bert_sail.py的FP16数据，原因见6.2测试说明。
+> 5. SE13-64对应CV84X6，主控为8核CA53@1.6GHz；仅给bert_sail.py的FP16数据，原因见6.2测试说明。
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

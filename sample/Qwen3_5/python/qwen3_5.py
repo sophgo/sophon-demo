@@ -685,7 +685,7 @@ class Qwen3_5():
         self.tokens.append(token)
         return token
 
-    # BM1684X2 dynamic bmodel bug workaround: the linear-attention prefill graph
+    # CV84X6 dynamic bmodel bug workaround: the linear-attention prefill graph
     # (block_<i> for non-FA layers) outputs all-NaN when the dynamic seq_len is
     # greater than 64 and not a multiple of 16. Prefill in 16-aligned chunks and
     # replay the tail tokens (< 16) one-by-one through the block_cache_ decode
@@ -795,7 +795,7 @@ class Qwen3_5():
         return self.last_id
 
     def forward_first_aligned(self, position_ids):
-        """16-aligned dynamic prefill for BM1684X2 (workaround).
+        """16-aligned dynamic prefill for CV84X6 (workaround).
 
         Phase 1: prefill the first L = (token_len // 16) * 16 tokens through the
         normal block_ dynamic graphs (L is a 16-multiple -> safe).

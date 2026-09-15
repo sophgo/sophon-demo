@@ -455,7 +455,7 @@ class SeacoParaformer:
         """Returns us_alphas (1, T_up) and token_num (1,).
 
         Note: predictor_bf16_1b.bmodel is compiled STATIC at seq 1100
-        (the dynamic compile hangs the bm1684x2 TPU driver). Its single
+        (the dynamic compile hangs the cv84x6 TPU driver). Its single
         input is `enc`; zero-pad enc_out from T to 1100 frames and slice
         the upsampled alphas back to 3T afterwards (padding frames only
         feed a pad-mask of zeros in the reference model, so sliced

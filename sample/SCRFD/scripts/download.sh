@@ -38,14 +38,14 @@ else
     echo "models exist!"
 fi
 
-# BM1684X2 bmodels (单独提供，models.zip 中未包含)
-if [ ! -d "../models/BM1684X2" ];
+# CV84X6 bmodels (单独提供，models.zip 中未包含)
+if [ ! -d "../models/CV84X6" ];
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/SCRFD/BM1684X2.tar.gz
-    tar xvf BM1684X2.tar.gz -C ../models/ && rm BM1684X2.tar.gz
-    echo "models/BM1684X2 download!"
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SCRFD/CV84X6.tar.gz
+    tar xvf CV84X6.tar.gz -C ../models/ && rm CV84X6.tar.gz
+    echo "models/CV84X6 download!"
 else
-    echo "models/BM1684X2 exist!"
+    echo "models/CV84X6 exist!"
 fi
 
 # ground_truth

@@ -25,8 +25,8 @@ then
     pushd ../models
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_obb/BM1684X.tar.gz
     tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_obb/BM1684X2.tar.gz
-    tar xvf BM1684X2.tar.gz && rm BM1684X2.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_obb/CV84X6.tar.gz
+    tar xvf CV84X6.tar.gz && rm CV84X6.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_obb/BM1688.tar.gz
     tar xvf BM1688.tar.gz && rm BM1688.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_obb/CV186X.tar.gz

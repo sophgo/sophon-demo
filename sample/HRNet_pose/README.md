@@ -51,8 +51,8 @@ HRNet（High-Resolution Net）是针对2D人体姿态估计（Human Pose Estimat
 ```
 
 ### 2.2 SDK特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、BM1684X2(SoC)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理；支持FP16、INT8(BM1684X2)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)、CV84X6(SoC)
+* 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理；支持FP16、INT8(CV84X6)
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV预处理的Python推理
 * 前置目标检测模型YOLOv5，支持单batch和多batch模型的推理，支持1个输出和3个输出的模型推理
@@ -93,10 +93,10 @@ chmod -R +x scripts/
 │   ├── hrnet_w32_256x192_f16.bmodel              # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
 │   ├── hrnet_w32_256x192_int8.bmodel             # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1
 │   ├── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1688的前置YOLOv5的INT8 BModel，batch_size=4
-├── BM1684X2
-│   ├── hrnet_w32_256x192_f16.bmodel              # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
-│   ├── hrnet_w32_256x192_int8.bmodel             # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于BM1684X2的前置YOLOv5的INT8 BModel，batch_size=4
+├── CV84X6
+│   ├── hrnet_w32_256x192_f16.bmodel              # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   ├── hrnet_w32_256x192_int8.bmodel             # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_4b.bmodel       # 使用TPU-MLIR编译，用于CV84X6的前置YOLOv5的INT8 BModel，batch_size=4
 └── onnx
     └── pose_hrnet_w32_256x192.onnx               # 相关HRNet模型，此处没有benchmark，用户自行使用。
      
@@ -132,7 +132,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**，BM1684X2当前固件不支持FP32，请改用FP16/INT8），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**，CV84X6当前固件不支持FP32，请改用FP16/INT8），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x #/bm1688/cv186x
@@ -142,17 +142,17 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X/BM1684X2**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X/CV84X6**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x/bm1684x2
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x/cv84x6
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`hrnet_w32_256x192_f16.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**BM1684X/BM1688/CV186X/BM1684X2**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**BM1684X/BM1688/CV186X/CV84X6**），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684x #/bm1688/cv186x
@@ -215,8 +215,8 @@ python和C++不设置`--use_cpu_opt`进行测试，在`datasets/coco/val2017`数
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标；
-> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应BM1684X2；
-4. BM1684X2不支持FP32，SE13-64的测试模型为flip=true时使用前置检测模型yolov5s_v6.1_3output_int8_4b.bmodel的精度。
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应CV84X6；
+4. CV84X6不支持FP32，SE13-64的测试模型为flip=true时使用前置检测模型yolov5s_v6.1_3output_int8_4b.bmodel的精度。
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
@@ -242,8 +242,8 @@ bmrt_test --bmodel models/BM1684X/hrnet_w32_256x192_f32.bmodel
 |   SE9-8    | CV186X/hrnet_w32_256x192_f32.bmodel         |            76.4 |
 |   SE9-8    | CV186X/hrnet_w32_256x192_f16.bmodel         |            9.92 |
 |   SE9-8    | CV186X/hrnet_w32_256x192_int8.bmodel        |            3.43 |
-|   SE13-64    | BM1684X2/hrnet_w32_256x192_f16.bmodel        |            3.78 |
-|   SE13-64    | BM1684X2/hrnet_w32_256x192_int8.bmodel       |            2.11 |
+|   SE13-64    | CV84X6/hrnet_w32_256x192_f16.bmodel        |            3.78 |
+|   SE13-64    | CV84X6/hrnet_w32_256x192_int8.bmodel       |            2.11 |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -291,4 +291,4 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 > 3. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
 > 4. SE7-32的主控处理器为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 5. flip=true会提高mAP精度，但会增加前处理，推理和后处理的时间；
-6. SE13-64的主控处理器为8核CA53@2.3GHz；BM1684X2不支持FP32，上表SE13-64的测试结果为flip=true时使用前置检测模型yolov5s_v6.1_3output_int8_4b.bmodel的数据。
+6. SE13-64的主控处理器为8核CA53@2.3GHz；CV84X6不支持FP32，上表SE13-64的测试结果为flip=true时使用前置检测模型yolov5s_v6.1_3output_int8_4b.bmodel的数据。

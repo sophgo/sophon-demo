@@ -132,6 +132,6 @@ python speakerlab/bin/export_speaker_embedding_onnx.py \
 ```
 即可导出BM1684X的模型。同理，执行
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684x2
+./scripts/gen_fp32bmodel_mlir.sh cv84x6
 ```
-即可导出BM1684X2的模型。
+即可导出CV84X6的模型。

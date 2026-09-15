@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 
 usage()
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|CV84X6|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -66,7 +66,7 @@ if test $MODE = "soc_test"; then
     fi
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
@@ -116,11 +116,11 @@ function bmrt_test_benchmark(){
       bmrt_test_case CV186X/p2pnet_cv186x_fp16_1b.bmodel
       bmrt_test_case CV186X/p2pnet_cv186x_int8_1b.bmodel
       bmrt_test_case CV186X/p2pnet_cv186x_int8_4b.bmodel
-    elif test $TARGET = "BM1684X2"; then
-      # BM1684X2(SE13)当前固件不支持FP32，只测试FP16/INT8
-      bmrt_test_case BM1684X2/p2pnet_bm1684x2_fp16_1b.bmodel
-      bmrt_test_case BM1684X2/p2pnet_bm1684x2_int8_1b.bmodel
-      bmrt_test_case BM1684X2/p2pnet_bm1684x2_int8_4b.bmodel
+    elif test $TARGET = "CV84X6"; then
+      # CV84X6(SE13)当前固件不支持FP32，只测试FP16/INT8
+      bmrt_test_case CV84X6/p2pnet_cv84x6_fp16_1b.bmodel
+      bmrt_test_case CV84X6/p2pnet_cv84x6_int8_1b.bmodel
+      bmrt_test_case CV84X6/p2pnet_cv84x6_int8_4b.bmodel
     fi
   
     popd
@@ -396,21 +396,21 @@ then
     eval_cpp soc bmcv p2pnet_cv186x_fp16_1b.bmodel 18.06
     eval_cpp soc bmcv p2pnet_cv186x_int8_1b.bmodel 18.10
     eval_cpp soc bmcv p2pnet_cv186x_int8_4b.bmodel 18.10
-  elif test $TARGET = "BM1684X2"
+  elif test $TARGET = "CV84X6"
   then
-    # BM1684X2(SE13-64)当前固件不支持FP32，只测试FP16/INT8。
+    # CV84X6(SE13-64)当前固件不支持FP32，只测试FP16/INT8。
     # 注意：硬件JPEG解码器固件有已知失真，走硬解的 bmcv.py 精度偏低；
     # C++例程已改用 bm_memcpy_d2s 读回TPU输出(见cpp/dependencies/include/bmnn_utils.h)，
     # soc 结果确定且正确。
-    eval_python opencv p2pnet_bm1684x2_fp16_1b.bmodel 18.306962025316455
-    eval_python opencv p2pnet_bm1684x2_int8_1b.bmodel 18.591772151898734
-    eval_python opencv p2pnet_bm1684x2_int8_4b.bmodel 18.591772151898734
-    eval_python bmcv p2pnet_bm1684x2_fp16_1b.bmodel 20.15506329113924
-    eval_python bmcv p2pnet_bm1684x2_int8_1b.bmodel 20.40506329113924
-    eval_python bmcv p2pnet_bm1684x2_int8_4b.bmodel 20.40506329113924
-    eval_cpp soc bmcv p2pnet_bm1684x2_fp16_1b.bmodel 18.063291139240505
-    eval_cpp soc bmcv p2pnet_bm1684x2_int8_1b.bmodel 18.17721518987342
-    eval_cpp soc bmcv p2pnet_bm1684x2_int8_4b.bmodel 18.17721518987342
+    eval_python opencv p2pnet_cv84x6_fp16_1b.bmodel 18.306962025316455
+    eval_python opencv p2pnet_cv84x6_int8_1b.bmodel 18.591772151898734
+    eval_python opencv p2pnet_cv84x6_int8_4b.bmodel 18.591772151898734
+    eval_python bmcv p2pnet_cv84x6_fp16_1b.bmodel 20.15506329113924
+    eval_python bmcv p2pnet_cv84x6_int8_1b.bmodel 20.40506329113924
+    eval_python bmcv p2pnet_cv84x6_int8_4b.bmodel 20.40506329113924
+    eval_cpp soc bmcv p2pnet_cv84x6_fp16_1b.bmodel 18.063291139240505
+    eval_cpp soc bmcv p2pnet_cv84x6_int8_1b.bmodel 18.17721518987342
+    eval_cpp soc bmcv p2pnet_cv84x6_int8_4b.bmodel 18.17721518987342
   fi
 fi
 

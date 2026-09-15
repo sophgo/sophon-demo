@@ -15,7 +15,7 @@ CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684X|CV84X6|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -63,7 +63,7 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE7-32"
   elif test $TARGET = "BM1684"; then
     PLATFORM="SE5-16"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
@@ -104,11 +104,11 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1684X/LightStereo-S-SceneFlow_fp16_1b.bmodel
       bmrt_test_case BM1684X/LightStereo-S-SceneFlow_int8_1b.bmodel
       bmrt_test_case BM1684X/LightStereo-S-SceneFlow_int8_4b.bmodel
-    elif test $TARGET = "BM1684X2"; then
-      bmrt_test_case BM1684X2/LightStereo-S-SceneFlow_fp32_1b.bmodel
-      bmrt_test_case BM1684X2/LightStereo-S-SceneFlow_fp16_1b.bmodel
-      bmrt_test_case BM1684X2/LightStereo-S-SceneFlow_int8_1b.bmodel
-      bmrt_test_case BM1684X2/LightStereo-S-SceneFlow_int8_4b.bmodel
+    elif test $TARGET = "CV84X6"; then
+      bmrt_test_case CV84X6/LightStereo-S-SceneFlow_fp32_1b.bmodel
+      bmrt_test_case CV84X6/LightStereo-S-SceneFlow_fp16_1b.bmodel
+      bmrt_test_case CV84X6/LightStereo-S-SceneFlow_int8_1b.bmodel
+      bmrt_test_case CV84X6/LightStereo-S-SceneFlow_int8_4b.bmodel
     elif test $TARGET = "BM1688"; then
       bmrt_test_case BM1688/LightStereo-S-SceneFlow_fp32_1b.bmodel
       bmrt_test_case BM1688/LightStereo-S-SceneFlow_fp16_1b.bmodel
@@ -342,7 +342,7 @@ then
     eval_cpp soc bmcv LightStereo-S-SceneFlow_fp16_1b.bmodel  0.456
     eval_cpp soc bmcv LightStereo-S-SceneFlow_int8_1b.bmodel 0.408
     eval_cpp soc bmcv LightStereo-S-SceneFlow_int8_4b.bmodel 0.408
-  elif test $TARGET = "BM1684X2"
+  elif test $TARGET = "CV84X6"
   then
     eval_python opencv LightStereo-S-SceneFlow_fp32_1b.bmodel 0.349
     eval_python opencv LightStereo-S-SceneFlow_fp16_1b.bmodel 0.348

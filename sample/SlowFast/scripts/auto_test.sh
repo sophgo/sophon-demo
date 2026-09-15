@@ -13,7 +13,7 @@ PYTEST="auto_test"
 ECHO_LINES=20
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|CV84X6|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
 }
 
 while getopts ":m:t:s:d:p:" opt
@@ -58,7 +58,7 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE9-16"
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
@@ -116,10 +116,10 @@ function bmrt_test_benchmark(){
       bmrt_test_case CV186X/slowfast_cv186x_fp16_4b.bmodel
       bmrt_test_case CV186X/slowfast_cv186x_int8_1b.bmodel
       bmrt_test_case CV186X/slowfast_cv186x_int8_4b.bmodel
-    elif test $TARGET = "BM1684X2"; then
-      # BM1684X2: 固件不支持FP32；INT8推理结果错误(Conv3D量化bug)，仅测试FP16
-      bmrt_test_case BM1684X2/slowfast_bm1684x2_fp16_1b.bmodel
-      bmrt_test_case BM1684X2/slowfast_bm1684x2_fp16_4b.bmodel
+    elif test $TARGET = "CV84X6"; then
+      # CV84X6: 固件不支持FP32；INT8推理结果错误(Conv3D量化bug)，仅测试FP16
+      bmrt_test_case CV84X6/slowfast_cv84x6_fp16_1b.bmodel
+      bmrt_test_case CV84X6/slowfast_cv84x6_fp16_4b.bmodel
     fi
     popd
 }
@@ -367,14 +367,14 @@ then
     test_cpp soc opencv slowfast_bm1688_fp16_4b_2core.bmodel 0.627
     test_cpp soc opencv slowfast_bm1688_int8_1b_2core.bmodel 0.628
     test_cpp soc opencv slowfast_bm1688_int8_4b_2core.bmodel 0.628
-  elif [ "$TARGET" = "BM1684X2" ]
+  elif [ "$TARGET" = "CV84X6" ]
   then
-    # BM1684X2: 固件不支持FP32；INT8推理结果错误(Conv3D量化bug，与C3D相同)，仅测试FP16。
+    # CV84X6: 固件不支持FP32；INT8推理结果错误(Conv3D量化bug，与C3D相同)，仅测试FP16。
     # C++精度比Python低约7.5%：板端sophon-opencv视频解码与opencv-python自带ffmpeg解码存在差异，非模型问题
-    test_python opencv slowfast_bm1684x2_fp16_1b.bmodel  0.632
-    test_python opencv slowfast_bm1684x2_fp16_4b.bmodel  0.632
-    test_cpp soc opencv slowfast_bm1684x2_fp16_1b.bmodel 0.557
-    test_cpp soc opencv slowfast_bm1684x2_fp16_4b.bmodel 0.551
+    test_python opencv slowfast_cv84x6_fp16_1b.bmodel  0.632
+    test_python opencv slowfast_cv84x6_fp16_4b.bmodel  0.632
+    test_cpp soc opencv slowfast_cv84x6_fp16_1b.bmodel 0.557
+    test_cpp soc opencv slowfast_cv84x6_fp16_4b.bmodel 0.551
   fi
 fi
 

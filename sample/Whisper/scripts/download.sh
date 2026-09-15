@@ -36,9 +36,9 @@ if [ ! -d "../models/$TARGET" ];
 then
     mkdir -p ../models/$TARGET
 fi
-if [ "$TARGET" == "BM1684X2" ]; then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/Whisper/models/${TARGET}/bmwhisper_${model}_1684x2_f16.bmodel
-    mv bmwhisper_${model}_1684x2_f16.bmodel ../models/$TARGET
+if [ "$TARGET" == "CV84X6" ]; then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Whisper/models/${TARGET}/bmwhisper_${model}_84x6_f16.bmodel
+    mv bmwhisper_${model}_84x6_f16.bmodel ../models/$TARGET
 else
     python3 -m dfss --url=open@sophgo.com:sophon-demo/Whisper/models/${TARGET}/bmwhisper_${model}_1684x_f16.bmodel
     mv bmwhisper_${model}_1684x_f16.bmodel ../models/$TARGET

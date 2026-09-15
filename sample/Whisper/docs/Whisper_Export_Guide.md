@@ -15,10 +15,10 @@ pip3 install -r ./python/requirements.txt
 ```
 
 ## 3 bmodel编译
-目前TPU-MLIR支持1684x/1684x2对Whisper进行F16量化，使用如下命令生成bmodel。
+目前TPU-MLIR支持1684x/84x6对Whisper进行F16量化，使用如下命令生成bmodel。
 ```bash
 ./scripts/gen_bmodel.sh --model base #--model可选：small/medium/small.en/distil.small.en
-# BM1684X2需要追加 --chip bm1684x2
-./scripts/gen_bmodel.sh --model base --chip bm1684x2
+# CV84X6需要追加 --chip cv84x6
+./scripts/gen_bmodel.sh --model base --chip cv84x6
 ```
-编译成功之后的模型放置于`./models/BM1684X/`（BM1684X2为`./models/BM1684X2/`），以base为例，最终会生成模型`bmwhisper_base_1684x_f16.bmodel`（BM1684X2为`bmwhisper_base_1684x2_f16.bmodel`）
+编译成功之后的模型放置于`./models/BM1684X/`（CV84X6为`./models/CV84X6/`），以base为例，最终会生成模型`bmwhisper_base_1684x_f16.bmodel`（CV84X6为`bmwhisper_base_84x6_f16.bmodel`）

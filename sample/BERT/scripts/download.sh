@@ -35,9 +35,9 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/BERT/models_with_int8/BM1684X.zip
     unzip -o BM1684X.zip
     rm -r BM1684X.zip
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/BERT/BM1684X2.zip
-    unzip -o BM1684X2.zip
-    rm -r BM1684X2.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/BERT/CV84X6.zip
+    unzip -o CV84X6.zip
+    rm -r CV84X6.zip
     python3 -m dfss --url=open@sophgo.com:sophon-demo/BERT/models_with_int8/BM1688.zip
     unzip BM1688.zip
     rm -r BM1688.zip

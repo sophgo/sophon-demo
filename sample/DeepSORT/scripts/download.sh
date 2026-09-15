@@ -33,9 +33,9 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/DeepSORT/models_240620/CV186X.zip
     unzip CV186X.zip
     rm CV186X.zip
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/DeepSORT/models_260904/BM1684X2.zip
-    unzip BM1684X2.zip
-    rm BM1684X2.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/DeepSORT/models_260904/CV84X6.zip
+    unzip CV84X6.zip
+    rm CV84X6.zip
     popd
     rm models.zip 
     echo "models download!"

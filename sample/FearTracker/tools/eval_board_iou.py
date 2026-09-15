@@ -14,7 +14,7 @@ spec.loader.exec_module(mod)
 import sophon.sail as sail
 
 VIDEO = sys.argv[1] if len(sys.argv) > 1 else os.path.join(base, "datasets", "test.mp4")
-BMODEL = sys.argv[2] if len(sys.argv) > 2 else os.path.join(base, "models_bm1684x2", "feartracker_fp16_1b.bmodel")
+BMODEL = sys.argv[2] if len(sys.argv) > 2 else os.path.join(base, "models_cv84x6", "feartracker_fp16_1b.bmodel")
 BBOX = [163, 53, 45, 174]
 REF = np.load(sys.argv[3] if len(sys.argv) > 3 else "ref_bboxes.npy")
 

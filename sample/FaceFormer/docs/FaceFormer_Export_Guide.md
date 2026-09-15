@@ -104,9 +104,9 @@ python3 ./gen_npz.py
 
 编译成功之后，`faceformer_f32.bmodel`模型将会存放在`models/BM1684X/`目录下。
 
-BM1684X2(SE13-64)使用如下命令生成F16 bmodel：
+CV84X6(SE13-64)使用如下命令生成F16 bmodel：
 ```bash
-./scripts/gen_bmodel_mlir.sh bm1684x2
+./scripts/gen_bmodel_mlir.sh cv84x6
 ```
 
-编译成功之后，`faceformer_f16.bmodel`模型将会存放在`models/BM1684X2/`目录下（decoder/audio_encoder_2/ppe为F16，audio_encoder_1为F32）。
+编译成功之后，`faceformer_f16.bmodel`模型将会存放在`models/CV84X6/`目录下（decoder/audio_encoder_2/ppe为F16，audio_encoder_1为F32）。

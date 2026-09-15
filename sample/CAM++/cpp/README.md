@@ -34,7 +34,7 @@ cmake ..
 make -j4
 ```
 
-若在x86主机上交叉编译SOC程序（如BM1684X2），请参考[运行环境准备](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)安装交叉编译工具链，并执行：
+若在x86主机上交叉编译SOC程序（如CV84X6），请参考[运行环境准备](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)安装交叉编译工具链，并执行：
 
 ```shell
 mkdir build && cd build
@@ -66,8 +66,8 @@ usage: ./campplus [--model BMODEL] [--input INPUT_DIR] [--devid DEV_ID]
 ./campplus --bmodel=../models/BM1684X/campplus_bm1684x_fp32_1b.bmodel  --input=../datasets/test --dev_id=0
 ```
 
-如运行BM1684X2 fp32模型`campplus_bm1684x2_fp32_1b.bmodel`（交叉编译产物为`campplus.soc`）:
+如运行CV84X6 fp32模型`campplus_cv84x6_fp32_1b.bmodel`（交叉编译产物为`campplus.soc`）:
 
 ```shell
-./campplus.soc --bmodel=../models/BM1684X2/campplus_bm1684x2_fp32_1b.bmodel  --input=../datasets/test --dev_id=0
+./campplus.soc --bmodel=../models/CV84X6/campplus_cv84x6_fp32_1b.bmodel  --input=../datasets/test --dev_id=0
 ```

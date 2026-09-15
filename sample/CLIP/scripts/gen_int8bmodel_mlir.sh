@@ -84,8 +84,8 @@ function gen_text_cali_table()
 function gen_text_encoder_int8bmodel()
 {
     text_qtable=clip_text_qtable
-    if test $target = "bm1684x2";then
-        # bm1684x2 toolchain renames the Add ops, the bundled clip_text_qtable
+    if test $target = "cv84x6";then
+        # cv84x6 toolchain renames the Add ops, the bundled clip_text_qtable
         # no longer matches; use the regenerated clip_text_qtable_84x2
         text_qtable=clip_text_qtable_84x2
     fi

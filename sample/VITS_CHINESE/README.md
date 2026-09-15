@@ -12,21 +12,21 @@
   - [5. 程序性能测试](#5-程序性能测试)
 
 ## 1. 简介
-VITS 是一种并行的端到端TTS方法，该方法比当前的两阶段模型产生更自然的声音。关于它的特性，请前往源repo查看：https://github.com/PlayVoice/vits_chinese  。本例程对vits_chinese进行移植，使之能在SOPHON BM1684X\BM1684X2\BM1688\CV186X上进行推理测试。为了生成更自然的语音，本例程需要使用BERT模型生成字符嵌入。
+VITS 是一种并行的端到端TTS方法，该方法比当前的两阶段模型产生更自然的声音。关于它的特性，请前往源repo查看：https://github.com/PlayVoice/vits_chinese  。本例程对vits_chinese进行移植，使之能在SOPHON BM1684X\CV84X6\BM1688\CV186X上进行推理测试。为了生成更自然的语音，本例程需要使用BERT模型生成字符嵌入。
 
 BM1684X系列：该例程支持在V24.04.01及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在1684X SoC设备（如SE7）上运行。
 
 BM1688/CV186X系列：该例程支持V1.7及以上的SDK上运行，支持SE9-16/SE9-8
 
-BM1684X2系列：该例程支持在BM1684X2 SoC设备（如SE13-64，libsophon 0.4.13）上运行。BM1684X2当前固件不支持FP32 codegen，仅提供FP16 BModel。
+CV84X6系列：该例程支持在CV84X6 SoC设备（如SE13-64，libsophon 0.4.13）上运行。CV84X6当前固件不支持FP32 codegen，仅提供FP16 BModel。
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)、BM1684X2(SoC)、BM1688/CV186X(SoC)
+* 支持BM1684X(x86 PCIe、SoC)、CV84X6(SoC)、BM1688/CV186X(SoC)
 * 支持FP16模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持基于BMRT推理的C++例程（包含文本前处理、BERT推理、VITS推理全流程）
 
 ## 3. 准备模型
-该模型目前支持在bm1684X、bm1684x2、bm1688/cv186x上运行，已提供编译好的bmodel。
+该模型目前支持在bm1684X、cv84x6、bm1688/cv186x上运行，已提供编译好的bmodel。
 ### 3.1 使用提供的模型
 
 ​本例程在`scripts`目录下提供了下载脚本`download.sh`
@@ -48,7 +48,7 @@ chmod -R +x scripts/
 │   ├── BM1684X
 │   │   ├── bert_f32_1core.bmodel
 │   │   └── vits_chinese_f16.bmodel
-│   ├── BM1684X2
+│   ├── CV84X6
 │   │   ├── bert_f16_1core.bmodel
 │   │   └── vits_chinese_f16.bmodel
 │   ├── BM1688
@@ -134,7 +134,7 @@ Python例程：
 
 - 测试说明
 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-2. SE7-32(BM1684X) SDK版本:V24.04.01；SE9-16(BM1688)和SE9-8(CV186X) SDK版本:V1.7；SE13-64(BM1684X2) SDK版本:libsophon 0.4.13；
+2. SE7-32(BM1684X) SDK版本:V24.04.01；SE9-16(BM1688)和SE9-8(CV186X) SDK版本:V1.7；SE13-64(CV84X6) SDK版本:libsophon 0.4.13；
 3. SE7-32的主控处理器为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，SE13-64为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 4. C++例程将文本前处理（拼音转换、BERT推理）也集成在程序中，preprocess_time为文本处理+BERT TPU推理耗时，inference_time为VITS TPU推理耗时，postprocess_time为CPU侧音频后处理耗时（截断+去静音）；
 5. C++例程的SRM-10 PCIe测试环境运行在x86主机上（Intel Xeon处理器），插有SC7加速卡。C++例程不需要libsndfile依赖（WAV文件使用原生实现）。

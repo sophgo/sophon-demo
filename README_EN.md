@@ -31,13 +31,13 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 
 | contents                                                      | category                           | code       |  BModel        | supported hardware           |
 |---                                                            |---                                 |---         | ---            | ---                          |
-| [LPRNet](./sample/LPRNet/README.md)                           | License Plate Recognition          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [ResNet](./sample/ResNet/README.md)                           | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [LPRNet](./sample/LPRNet/README.md)                           | License Plate Recognition          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
+| [ResNet](./sample/ResNet/README.md)                           | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
 | [Recognize-Anything](./sample/Recognize-Anything/README.md)   | Image classification               | Python     | FP32/FP16/INT8 | BM1684X                      |
 | [YOLOv8_plus_cls](./sample/YOLOv8_plus_cls/README.md)              | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [MobileNetV4](./sample/MobileNetV4/README.md)                | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
-| [RetinaFace](./sample/RetinaFace/README.md)                   | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
-| [SCRFD](./sample/SCRFD/README.md)                             | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [RetinaFace](./sample/RetinaFace/README.md)                   | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688        |
+| [SCRFD](./sample/SCRFD/README.md)                             | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
 | [ArcFace](./sample/ArcFace/README.md)                       | Face Recognition                  | C++/Python | FP32/FP16/INT8 | BM1684X                      |
 | [segformer](./sample/segformer/README.md)                     | Semantic Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [SAM](./sample/SAM/README.md)                                 | Semantic Segmentation              | Python     | FP32/FP16/INT8 | BM1684X                      |
@@ -49,7 +49,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [YOLOv9_seg](./sample/YOLOv9_seg/README.md)              | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688        |
 | [YOLO26_seg](./sample/YOLO26_seg/README.md)                   | Instance Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688        |
 | [PP-OCR](./sample/PP-OCR/README.md)                           | OCR                                | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [OpenPose](./sample/OpenPose/README.md)                       | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688        |
+| [OpenPose](./sample/OpenPose/README.md)                       | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688        |
 | [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [HRNet_pose](./sample/HRNet_pose/README.md)                   | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [C3D](./sample/C3D/README.md)                                 | Video Recognition                  | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |

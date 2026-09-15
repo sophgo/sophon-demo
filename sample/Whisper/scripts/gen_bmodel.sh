@@ -44,8 +44,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ "$chip" == "bm1684x2" ]; then
-    bmodel_dir="./models/BM1684X2"
+if [ "$chip" == "cv84x6" ]; then
+    bmodel_dir="./models/CV84X6"
 fi
 if [ ! -d "$bmodel_dir" ]; then
     mkdir "$bmodel_dir"

@@ -28,7 +28,7 @@
 
 ## 1. 简介
 
-​SAM3（Segment Anything Model 3 with Concepts）是Meta提出的统一基础模型，支持基于文本、点、框和掩码提示的图像和视频分割。与前代SAM2相比，SAM3新增了开放词汇文本提示（可处理270K+概念）和DETR风格的目标检测能力。本例程对[​SAM3官方开源仓库](https://github.com/facebookresearch/sam3)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1684X2/BM1688上进行推理测试。
+​SAM3（Segment Anything Model 3 with Concepts）是Meta提出的统一基础模型，支持基于文本、点、框和掩码提示的图像和视频分割。与前代SAM2相比，SAM3新增了开放词汇文本提示（可处理270K+概念）和DETR风格的目标检测能力。本例程对[​SAM3官方开源仓库](https://github.com/facebookresearch/sam3)的模型和算法进行移植，使之能在SOPHON BM1684X/CV84X6/BM1688上进行推理测试。
 
 **模型参数**:
 - 总参数量: ~840M
@@ -72,8 +72,8 @@
 
 ### 2.2 SDK特性
 
-* 支持BM1684X (x86 PCIe、SoC)、BM1684X2 (SoC)、BM1688 (SoC)
-* ViT视觉编码器部分支持FP16、FP32模型编译和推理（BM1684X2 仅 FP16）
+* 支持BM1684X (x86 PCIe、SoC)、CV84X6 (SoC)、BM1688 (SoC)
+* ViT视觉编码器部分支持FP16、FP32模型编译和推理（CV84X6 仅 FP16）
 * Neck FPN部分支持FP16、FP32模型编译和推理
 * Grounding Encoder / Decoder 部分支持FP16、FP32模型编译和推理
 * Text Encoder部分支持FP16、FP32模型编译和推理
@@ -125,7 +125,7 @@ chmod -R +x scripts/
 │       ├── sam3_grounding_encoder_f16_1b.bmodel
 │       ├── sam3_grounding_decoder_f16_1b.bmodel
 │       └── sam3_text_encoder_f16_1b.bmodel
-├── BM1684X2_504                                  # BM1684X2(SE13等) 504×504 FP16 bmodel（结构同 BM1684X_504）
+├── CV84X6_504                                  # CV84X6(SE13等) 504×504 FP16 bmodel（结构同 BM1684X_504）
 │   ├── vit
 │   │   ├── sam3_vit_part0_f16_1b.bmodel
 │   │   ├── sam3_vit_part1_f16_1b.bmodel
@@ -189,13 +189,13 @@ chmod -R +x scripts/
 
 ​执行上述命令会在`models/BM1688_504/{vit,neck,grounding}`下生成与 BM1684X_504 同构的 FP16 BModel（单核），即 BM1688 平台的 504×504 完整推理流水线 BModel。
 
-- 生成 FP16 BModel（504×504 SoC，BM1684X2/SE13-64）
+- 生成 FP16 BModel（504×504 SoC，CV84X6/SE13-64）
 
 ```bash
-./scripts/gen_bmodel.sh --res 504 --chip bm1684x2 --mode f16
+./scripts/gen_bmodel.sh --res 504 --chip cv84x6 --mode f16
 ```
 
-​执行上述命令会在`models/BM1684X2_504/{vit,neck,grounding}`下生成与 BM1684X_504 同构的 FP16 BModel。**BM1684X2 当前固件不支持 FP32**，仅可编译 FP16。
+​执行上述命令会在`models/CV84X6_504/{vit,neck,grounding}`下生成与 BM1684X_504 同构的 FP16 BModel。**CV84X6 当前固件不支持 FP32**，仅可编译 FP16。
 
 - 生成 FP32/FP16 BModel（1008×1008 PCIe）
 
@@ -361,7 +361,7 @@ bmrt_test --bmodel models/BM1684X_504/grounding/sam3_grounding_encoder_f16_1b.bm
 
 测试结果中的`calculate time`就是模型推理的时间，多batch size模型应当除以相应的batch size才是每张图片的理论推理时间。
 
-测试各个模型的理论推理时间，结果如下（FP16；SE7=BM1684X_504 测试日期 2026-07-09，SE9=BM1688_504 测试日期 2026-07-10，SE13=BM1684X2_504 测试日期 2026-09-05）：
+测试各个模型的理论推理时间，结果如下（FP16；SE7=BM1684X_504 测试日期 2026-07-09，SE9=BM1688_504 测试日期 2026-07-10，SE13=CV84X6_504 测试日期 2026-09-05）：
 
 |    测试平台   | 测试模型                                                     | calculate time(ms) |
 | -----------   | ------------------------------------------------------------ |  ----------------- |
@@ -383,15 +383,15 @@ bmrt_test --bmodel models/BM1684X_504/grounding/sam3_grounding_encoder_f16_1b.bm
 |   SE9-16      | BM1688_504/grounding/sam3_grounding_encoder_f16_1b.bmodel    |         58.1       |
 |   SE9-16      | BM1688_504/grounding/sam3_grounding_decoder_f16_1b.bmodel    |         42.0       |
 |   SE9-16      | BM1688_504/grounding/sam3_text_encoder_f16_1b.bmodel        |         50.3       |
-|   SE13-64     | BM1684X2_504/vit/sam3_vit_part0_f16_1b.bmodel                |          1.3       |
-|   SE13-64     | BM1684X2_504/vit/sam3_vit_part1_f16_1b.bmodel                |        196.7       |
-|   SE13-64     | BM1684X2_504/vit/sam3_vit_part2_f16_1b.bmodel                |        196.7       |
-|   SE13-64     | BM1684X2_504/vit/sam3_vit_part3_f16_1b.bmodel                |        196.7       |
-|   SE13-64     | BM1684X2_504/vit/sam3_vit_part4_f16_1b.bmodel                |        196.8       |
-|   SE13-64     | BM1684X2_504/neck/sam3_neck_f16_1b.bmodel                    |         29.5       |
-|   SE13-64     | BM1684X2_504/grounding/sam3_grounding_encoder_f16_1b.bmodel  |         21.7       |
-|   SE13-64     | BM1684X2_504/grounding/sam3_grounding_decoder_f16_1b.bmodel  |         16.1       |
-|   SE13-64     | BM1684X2_504/grounding/sam3_text_encoder_f16_1b.bmodel       |         23.0       |
+|   SE13-64     | CV84X6_504/vit/sam3_vit_part0_f16_1b.bmodel                |          1.3       |
+|   SE13-64     | CV84X6_504/vit/sam3_vit_part1_f16_1b.bmodel                |        196.7       |
+|   SE13-64     | CV84X6_504/vit/sam3_vit_part2_f16_1b.bmodel                |        196.7       |
+|   SE13-64     | CV84X6_504/vit/sam3_vit_part3_f16_1b.bmodel                |        196.7       |
+|   SE13-64     | CV84X6_504/vit/sam3_vit_part4_f16_1b.bmodel                |        196.8       |
+|   SE13-64     | CV84X6_504/neck/sam3_neck_f16_1b.bmodel                    |         29.5       |
+|   SE13-64     | CV84X6_504/grounding/sam3_grounding_encoder_f16_1b.bmodel  |         21.7       |
+|   SE13-64     | CV84X6_504/grounding/sam3_grounding_decoder_f16_1b.bmodel  |         16.1       |
+|   SE13-64     | CV84X6_504/grounding/sam3_text_encoder_f16_1b.bmodel       |         23.0       |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -448,7 +448,7 @@ SE7-32 默认 TPU 分区：npu 2.36GB + vpu 2.87GB + vpp 3.00GB（合计 8.23GB�
 |----------|-------------------|-----------------------------------------------------------|----------------|-----------|----------|--------------|-------------|-------------|-----------------|-----------|
 |   SE7-32    |  sam3_infer.py  | BM1684X_504 FP16 (ViT 5part+Neck+TextEnc+GndEnc+GndDec) |       3       |   1116    |   951    |    9555      |     30      |     20      |       19        |   13394   |
 |   SE9-16    |  sam3_infer.py  | BM1688_504 FP16 (ViT 5part+Neck+TextEnc+GndEnc+GndDec) |    41   |   2695   |   2156   |    6342     |     61      |     43      |       46        |   N/A*   |
-|   SE13-64   |  sam3_infer.py  | BM1684X2_504 FP16 (ViT 5part+Neck+TextEnc+GndEnc+GndDec) |    14   |    809   |   1552   |    6674     |     24      |     18      |       47        |   26630  |
+|   SE13-64   |  sam3_infer.py  | CV84X6_504 FP16 (ViT 5part+Neck+TextEnc+GndEnc+GndDec) |    14   |    809   |   1552   |    6674     |     24      |     18      |       47        |   26630  |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
@@ -460,7 +460,7 @@ SE7-32 默认 TPU 分区：npu 2.36GB + vpu 2.87GB + vpp 3.00GB（合计 8.23GB�
 > 7. 后处理权重首次从checkpoint提取约需122s并缓存为seg_head_weights.npz，后续运行直接加载（<1ms）；
 > 8. SE9 (BM1688) mask_time 标 N/A*：SE9 用户态 RAM 仅约 851MB（BM1688 SoC 内存大量划给 TPU），全分辨率(1200×1800) numpy mask 解码器（~2.2GB 数组）内存不足无法跑通，测试时用 `SAM3_SKIP_MASK=1` 跳过；mask 解码为纯 numpy CPU 代码，与芯片无关，可参考 SE7 同代码的 13394ms。检测仍正常出框（truck score 0.53, cx=0.499/cy=0.465/w=0.850/h=0.484，结果图见 results/sam3_detection.jpg）；
 > 9. SE9 各 TPU 阶段相对 SE7 普遍 2.1–2.4×（BM1688 单核 F16 算力低于 BM1684X，与 7.1 一致）；唯 text_enc_time 反而 6342 < SE7 9555，是因 SE9 用独立 simple_tokenizer（绕开 sam3 包导入链）冷启动更轻，非芯片优势——SE9 TPU 纯文本推理 50.3ms 仍慢于 SE7 13.7ms（见 7.1）。SE9 preprocess=41ms（CPU 图像解码+resize，SE7 仅 3ms）。
-> 10. SE13-64 (BM1684X2) 仅支持 FP16（固件不支持 FP32）；text_enc_time=6674ms 含 tokenizer 首次加载开销（bpe 词表读入 + 初始化），TPU 纯文本推理仅 23.0ms（见 7.1）；mask_time=26630ms 为 numpy mask 解码 CPU 后处理（SE13 用户态 RAM 2.6GB 可跑通全分辨率 mask）；检测 truck score 0.8291 (cx=0.495, cy=0.464, w=0.886, h=0.468)，与 SE7 结果一致；
+> 10. SE13-64 (CV84X6) 仅支持 FP16（固件不支持 FP32）；text_enc_time=6674ms 含 tokenizer 首次加载开销（bpe 词表读入 + 初始化），TPU 纯文本推理仅 23.0ms（见 7.1）；mask_time=26630ms 为 numpy mask 解码 CPU 后处理（SE13 用户态 RAM 2.6GB 可跑通全分辨率 mask）；检测 truck score 0.8291 (cx=0.495, cy=0.464, w=0.886, h=0.468)，与 SE7 结果一致；
 
 ## 8. FAQ
 
@@ -492,11 +492,11 @@ SoC 环境要求：
 | numpy | 1.24.0+ | 数值计算 |
 | Python | 3.8+ | 运行环境 |
 
-**BM1684X2 (SE13-64) 部署**：bmodel 位于 `models/BM1684X2_504/`（子结构与 BM1684X_504 相同，仅提供 FP16）。文本提示推理需 CLIP tokenizer：优先使用 `python/simple_tokenizer.py`（随仓库分发，仅依赖 ftfy/regex/torch，无需在 SoC 上安装 sam3 源码包），并通过 `--bpe_path` 指定 bpe 词表（`sam3/assets/bpe_simple_vocab_16e6.txt.gz`，可从已安装的 sam3 包或[官方仓库](https://github.com/facebookresearch/sam3)获取）：
+**CV84X6 (SE13-64) 部署**：bmodel 位于 `models/CV84X6_504/`（子结构与 BM1684X_504 相同，仅提供 FP16）。文本提示推理需 CLIP tokenizer：优先使用 `python/simple_tokenizer.py`（随仓库分发，仅依赖 ftfy/regex/torch，无需在 SoC 上安装 sam3 源码包），并通过 `--bpe_path` 指定 bpe 词表（`sam3/assets/bpe_simple_vocab_16e6.txt.gz`，可从已安装的 sam3 包或[官方仓库](https://github.com/facebookresearch/sam3)获取）：
 
 ```bash
 pip3 install ftfy regex   # simple_tokenizer 依赖
-python3 python/sam3_infer.py --model_dir models/BM1684X2_504 --precision f16 \
+python3 python/sam3_infer.py --model_dir models/CV84X6_504 --precision f16 \
     --image datasets/truck.jpg --prompt "a truck" \
     --bpe_path /path/to/sam3/assets/bpe_simple_vocab_16e6.txt.gz
 ```
@@ -519,7 +519,7 @@ python3 python/sam3_infer.py --model_dir models/BM1684X2_504 --precision f16 \
 | 12 | Mask路径 (NumpyMaskDecoder CPU掩码, 2个bug修复+验证) | ✅ 完成 |
 | 13 | INT8 1008 (ViT Part1-4 量化 + 流式加载落 SoC, Neck cos 0.89) | ✅ 本地+SE9(BM1688)+SE7-32(BM1684X)完成 |
 | 14 | 1008 全流程 PCIe f16 增项 (Grounding+Text, --streaming, 出框验证) | ✅ 完成 |
-| 15 | BM1684X2(SE13-64) 适配 (504 FP16 全流水线, 板端 e2e 验证) | ✅ 完成 |
+| 15 | CV84X6(SE13-64) 适配 (504 FP16 全流水线, 板端 e2e 验证) | ✅ 完成 |
 
 ### 已知限制
 

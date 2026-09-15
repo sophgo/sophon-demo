@@ -31,15 +31,15 @@ else
     echo "Models folder exist! Remove it if you need to update."
 fi
 
-# BM1684X2 models
-if [ ! -d "../models/BM1684X2" ];
+# CV84X6 models
+if [ ! -d "../models/CV84X6" ];
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/FaceFormer/models_260906/BM1684X2.zip
-    unzip BM1684X2.zip -d ../models/
-    rm BM1684X2.zip
-    echo "BM1684X2 models download!"
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/FaceFormer/models_260906/CV84X6.zip
+    unzip CV84X6.zip -d ../models/
+    rm CV84X6.zip
+    echo "CV84X6 models download!"
 else
-    echo "BM1684X2 models folder exist! Remove it if you need to update."
+    echo "CV84X6 models folder exist! Remove it if you need to update."
 fi
 
 if [ ! -d "../tools/wav2vec2-base-960h" ] || [ ! -d "../tools/vocaset" ];

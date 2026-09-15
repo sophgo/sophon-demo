@@ -96,7 +96,7 @@ class PredictorPart(torch.nn.Module):
             alphas2 * p.smooth_factor2 - p.noise_threshold2)
 
         # NOTE: single-stream inference has no padding (mask is all ones),
-        # so the pad-mask (Range op, breaks static bm1684x2 compile) is
+        # so the pad-mask (Range op, breaks static cv84x6 compile) is
         # dropped and token_num is simply the sum over all frames.
         alphas2 = alphas2.squeeze(-1)                      # (B, 3T)
         token_num = alphas2.sum(-1)

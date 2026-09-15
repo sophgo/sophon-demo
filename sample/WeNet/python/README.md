@@ -56,8 +56,8 @@ python3 wenet.py --input ../datasets/aishell_S0764/aishell_S0764.list --encoder_
 ```
 测试结束后，会将预测的文本结果保存在`result.txt`下，同时会打印预测结果、推理时间等信息。
 
-BM1684X2平台（如SE13-64）上，请使用FP16或INT8模型（当前固件codegen不支持FP32）：
+CV84X6平台（如SE13-64）上，请使用FP16或INT8模型（当前固件codegen不支持FP32）：
 ```bash
-python3 wenet.py --input ../datasets/aishell_S0764/aishell_S0764.list --encoder_bmodel ../models/BM1684X2/wenet_encoder_streaming_fp16.bmodel --dev_id 0 --result_file ./result.txt --mode ctc_prefix_beam_search
-python3 wenet.py --input ../datasets/aishell_S0764/aishell_S0764.list --encoder_bmodel ../models/BM1684X2/wenet_encoder_streaming_int8.bmodel --decoder_bmodel ../models/BM1684X2/wenet_decoder_int8.bmodel --dev_id 0 --result_file ./result.txt --mode attention_rescoring
+python3 wenet.py --input ../datasets/aishell_S0764/aishell_S0764.list --encoder_bmodel ../models/CV84X6/wenet_encoder_streaming_fp16.bmodel --dev_id 0 --result_file ./result.txt --mode ctc_prefix_beam_search
+python3 wenet.py --input ../datasets/aishell_S0764/aishell_S0764.list --encoder_bmodel ../models/CV84X6/wenet_encoder_streaming_int8.bmodel --decoder_bmodel ../models/CV84X6/wenet_decoder_int8.bmodel --dev_id 0 --result_file ./result.txt --mode attention_rescoring
 ```

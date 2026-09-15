@@ -107,7 +107,14 @@ If you are using BM1684X, it is recommended to use TPU-MLIR to compile BModel. U
     pip install tpu_mlir[onnx,torch,caffe]
     pip install tpu_mlir[all]
     ```
-    (3)If you attained tpu-mlir release build, such as `tpu-mlir_${version}-${hash}-${date}.tar.gz`, here are configurations:
+    (3)For CV84X6 platform, tpu_mlir is not yet published to pypi. Download the whl package from dfss and install:
+	    ```bash
+	    pip3 install dfss
+	    python3 -m dfss --url=open@sophgo.com:/sophon-demo/common/tpu-mlir/cv84x6/tpu_mlir-*-py3-none-any.whl
+	    pip install tpu_mlir-*-py3-none-any.whl
+	    ```
+
+	    (4)If you attained tpu-mlir release build, such as `tpu-mlir_${version}-${hash}-${date}.tar.gz`, here are configurations:
     ```bash
     # uninstall tpu_mlir if you installed it before.
     pip uninstall tpu_mlir

@@ -21,7 +21,7 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-YOLOv8_plus​_cls例程可以运行YOLOv8_cls系列模型，以及具有相同输入输出结构的衍生版本，目前已适配[​YOLOv8官方开源仓库](https://github.com/ultralytics/ultralytics)，支持在SOPHON BM1684X/BM1684X2/BM1688/CV186X上进行推理测试。
+YOLOv8_plus​_cls例程可以运行YOLOv8_cls系列模型，以及具有相同输入输出结构的衍生版本，目前已适配[​YOLOv8官方开源仓库](https://github.com/ultralytics/ultralytics)，支持在SOPHON BM1684X/CV84X6/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
 
@@ -42,8 +42,8 @@ YOLOv8_plus​_cls例程可以运行YOLOv8_cls系列模型，以及具有相同�
 ```
 
 ### 2.2 SDK特性
-* 支持BM1688(SoC)和BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684X2(SoC)
-* 支持FP32、FP16(BM1684X/BM1684X2/BM1688)、INT8模型编译和推理
+* 支持BM1688(SoC)和BM1684X(x86 PCIe、SoC、riscv PCIe)和CV84X6(SoC)
+* 支持FP32、FP16(BM1684X/CV84X6/BM1688)、INT8模型编译和推理
 * 支持C++、Python推理
 * 支持图片和视频测试
 
@@ -62,7 +62,7 @@ chmod -R +x scripts/
 ```bash
 --all     # 下载所有模型
 --BM1684X # 下载BM1684X的bmodel
---BM1684X2 # 下载BM1684X2的bmodel
+--CV84X6 # 下载CV84X6的bmodel
 --BM1688  # 下载BM1688的bmodel
 --CV186X  # 下载BM1688的bmodel
 --onnx    # 下载onnx
@@ -76,7 +76,7 @@ models/
 │   ├── yolov8s_fp32_1b.bmodel
 │   ├── yolov8s_int8_1b.bmodel
 │   ├── yolov8s_int8_4b.bmodel
-├── BM1684X2 # 在BM1684X2上运行的模型
+├── CV84X6 # 在CV84X6上运行的模型
 │   ├── yolov8s_fp16_1b.bmodel
 │   ├── yolov8s_int8_1b.bmodel
 │   └── yolov8s_int8_4b.bmodel
@@ -111,30 +111,30 @@ models/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/CV84X6/BM1688**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1684x2 bm1688/cv186x
+./scripts/gen_fp32bmodel_mlir.sh bm1684x #cv84x6 bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X`等文件夹下生成转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/CV84X6/BM1688**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x2 bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #cv84x6 bm1688/cv186x
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1684X2/BM1688**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/CV84X6/BM1688**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1684x2 bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684x #cv84x6 bm1688/cv186x
 ```
 
 ​上述脚本会在`models/BM1684X`等文件夹下生成转换好的INT8 BModel。
@@ -186,7 +186,7 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
-> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE13系列对应BM1684X2，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X。SE13-64与SE7-32搭载相同的TPU，模型推理精度一致；
+> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE13系列对应CV84X6，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X。SE13-64与SE7-32搭载相同的TPU，模型推理精度一致；
 
 
 ## 6. 性能测试
@@ -214,9 +214,9 @@ bmrt_test --bmodel models/BM1684X/yolov8s_fp32_1b.bmodel
 |   SE9-8    | CV186X/yolov8s_fp16_1b.bmodel      |           4.07  |
 |   SE9-8    | CV186X/yolov8s_int8_1b.bmodel      |           2.26  |
 |   SE9-8    | CV186X/yolov8s_int8_4b.bmodel      |           0.90  |
-|   SE13-64   | BM1684X2/yolov8s_fp16_1b.bmodel     |           1.23  |
-|   SE13-64   | BM1684X2/yolov8s_int8_1b.bmodel     |           0.80  |
-|   SE13-64   | BM1684X2/yolov8s_int8_4b.bmodel     |           1.66  |
+|   SE13-64   | CV84X6/yolov8s_fp16_1b.bmodel     |           1.23  |
+|   SE13-64   | CV84X6/yolov8s_int8_1b.bmodel     |           0.80  |
+|   SE13-64   | CV84X6/yolov8s_int8_4b.bmodel     |           1.66  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -270,7 +270,7 @@ bmrt_test --bmodel models/BM1684X/yolov8s_fp32_1b.bmodel
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
-> 5. SE13系列对应BM1684X2，其TPU与BM1684X(SE7系列)相同，推理性能可参考SE7-32；`yolov8_bmcv.py`+`int8_4b`(4batch)组合在SE13-64上运行时会触发板端解码路径异常，暂不列入本表，建议改用`int8_1b`或`fp16_1b`。
+> 5. SE13系列对应CV84X6，其TPU与BM1684X(SE7系列)相同，推理性能可参考SE7-32；`yolov8_bmcv.py`+`int8_4b`(4batch)组合在SE13-64上运行时会触发板端解码路径异常，暂不列入本表，建议改用`int8_1b`或`fp16_1b`。
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

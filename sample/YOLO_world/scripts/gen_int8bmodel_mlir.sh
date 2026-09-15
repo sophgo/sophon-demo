@@ -16,9 +16,9 @@ fp_forward_chip=$target
 if test $target = "bm1688"; then
     fp_forward_chip=bm1684x
 fi
-# BM1684X2(SE13-64) shares the same TPU as BM1684X(SE7-32); fp_forward.py
-# does not yet accept bm1684x2, so reuse the bm1684x fp-forward behavior.
-if test $target = "bm1684x2"; then
+# CV84X6(SE13-64) shares the same TPU as BM1684X(SE7-32); fp_forward.py
+# does not yet accept cv84x6, so reuse the bm1684x fp-forward behavior.
+if test $target = "cv84x6"; then
     fp_forward_chip=bm1684x
 fi
 

@@ -5,7 +5,7 @@ set -e
 # FEARTracker bmodel compilation script
 # FEAR is a non-image model with 2 inputs of different sizes.
 # Run inside TPU-MLIR Docker container.
-# Usage: ./gen_fp16bmodel_mlir.sh [bm1684x|bm1688|bm1684x2]
+# Usage: ./gen_fp16bmodel_mlir.sh [bm1684x|bm1688|cv84x6]
 # ============================================================
 model_dir=$(dirname $(readlink -f "$0"))
 

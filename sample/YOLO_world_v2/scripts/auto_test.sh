@@ -1,8 +1,8 @@
 #!/bin/bash
 # ==============================================================================
 # YOLO-World v2 自动化测试 (参考 sample/YOLO_world/auto_test.sh)
-# 用法: ./scripts/auto_test.sh -m <compile_mlir|pcie_test|soc_test> -t <BM1684X|BM1684X2> -d <TPUID> -c <fully|partly>
-# 仅 Python (opencv/bmcv), FP32/FP16/INT8, BM1684X/BM1684X2
+# 用法: ./scripts/auto_test.sh -m <compile_mlir|pcie_test|soc_test> -t <BM1684X|CV84X6> -d <TPUID> -c <fully|partly>
+# 仅 Python (opencv/bmcv), FP32/FP16/INT8, BM1684X/CV84X6
 # ==============================================================================
 scripts_dir=$(dirname $(readlink -f "$0"))
 top_dir=$scripts_dir/../
@@ -22,7 +22,7 @@ fi
 
 usage()
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_test] [ -t TARGET BM1684X|BM1684X2] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_test] [ -t TARGET BM1684X|CV84X6] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -48,7 +48,7 @@ PLATFORM=$TARGET
 if test $MODE = "soc_test"; then
   if test $TARGET = "BM1684X"; then
     PLATFORM="SE7-32"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"; exit 1
@@ -72,10 +72,10 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1684X/yoloworld_v2_fp16_1b.bmodel
       bmrt_test_case BM1684X/yoloworld_v2_int8_1b.bmodel
       bmrt_test_case BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel
-    elif test $TARGET = "BM1684X2"; then
-      bmrt_test_case BM1684X2/yoloworld_v2_fp16_1b.bmodel
-      bmrt_test_case BM1684X2/yoloworld_v2_int8_1b.bmodel
-      bmrt_test_case BM1684X2/clip_text_vitb32_bm1684x2_f16_1b.bmodel
+    elif test $TARGET = "CV84X6"; then
+      bmrt_test_case CV84X6/yoloworld_v2_fp16_1b.bmodel
+      bmrt_test_case CV84X6/yoloworld_v2_int8_1b.bmodel
+      bmrt_test_case CV84X6/clip_text_vitb32_cv84x6_f16_1b.bmodel
     fi
     popd
 }
@@ -169,8 +169,8 @@ function compare_res(){
 }
 
 CLIP=clip_text_vitb32_bm1684x_f16_1b.bmodel
-if test $TARGET = "BM1684X2"; then
-  CLIP=clip_text_vitb32_bm1684x2_f16_1b.bmodel
+if test $TARGET = "CV84X6"; then
+  CLIP=clip_text_vitb32_cv84x6_f16_1b.bmodel
 fi
 
 if test $MODE = "compile_mlir"
@@ -203,7 +203,7 @@ then
     else
       echo "unknown CASE_MODE: $CASE_MODE"
     fi
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     if test $CASE_MODE = "fully"; then
       test_python opencv yoloworld_v2_fp16_1b.bmodel datasets/test_car_person_1080P.mp4 $CLIP
       test_python opencv yoloworld_v2_int8_1b.bmodel datasets/test_car_person_1080P.mp4 $CLIP
@@ -248,7 +248,7 @@ then
       test_python opencv yoloworld_v2_fp16_1b.bmodel datasets/coco/val2017_1000 $CLIP
       eval_python opencv yoloworld_v2_fp16_1b.bmodel 0.376 $CLIP
     fi
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     if test $CASE_MODE = "fully"; then
       test_python opencv yoloworld_v2_fp16_1b.bmodel datasets/test_car_person_1080P.mp4 $CLIP
       test_python opencv yoloworld_v2_int8_1b.bmodel datasets/test_car_person_1080P.mp4 $CLIP

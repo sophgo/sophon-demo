@@ -15,8 +15,8 @@
 Whisper 是一个开源的深度学习语音识别模型，由 OpenAI 开发，它能够实现实时、多语言的语音识别，并支持跨多种环境和设备的灵活部署。本例程对[Whisper官方开源仓库](https://github.com/openai/whisper)中的算法进行移植，使之能在SOPHON BM1684X上进行推理。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684X2(x86 PCIe、SoC)
-* 支持FP16(BM1684X、BM1684X2)模型编译和推理
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)、CV84X6(x86 PCIe、SoC)
+* 支持FP16(BM1684X、CV84X6)模型编译和推理
 * 支持基于SAIL推理的Python例程
 
 ## 3. 准备模型与数据
@@ -45,8 +45,8 @@ chmod -R +x scripts/
 │   ├── bmwhisper_small_1684x_f16.bmodel # whisper-medium模型，模型参数量为769 M
 │   ├── bmwhisper_small.en_1684x_f16.bmodel # whisper-small.en模型
 │   └── bmwhisper_distil.small.en_1684x_f16.bmodel # whisper-distil.small.en模型
-└── BM1684X2
-    └── bmwhisper_base_1684x2_f16.bmodel # whisper-base模型（BM1684X2当前仅适配base，F16）
+└── CV84X6
+    └── bmwhisper_base_84x6_f16.bmodel # whisper-base模型（CV84X6当前仅适配base，F16）
 ```
 
 下载的数据包括：
@@ -85,13 +85,13 @@ cat online_wer | grep "Overall"
 |   SRM1-20    | whisper.py   | bmwhisper_base_1684x_f16.bmodel                       | 17.68% |
 |   SRM1-20    | whisper.py   | bmwhisper_small_1684x_f16.bmodel                      | 9.44%  |
 |   SRM1-20    | whisper.py   | bmwhisper_medium_1684x_f16.bmodel                     | 5.99%  |
-|   SE13-64    | whisper.py   | bmwhisper_base_1684x2_f16.bmodel                      | 17.53% |
+|   SE13-64    | whisper.py   | bmwhisper_base_84x6_f16.bmodel                      | 17.53% |
 
 > **测试说明**：
 1. 在使用的模型相同的情况下，wer在不同的测试平台上是相同的。
 2. 由于SDK版本之间的差异，实测的wer与本表有1%以内的差值是正常的。
 3. `small.en/distil.small.en`不适用aishell数据集，暂无精度测试结果。
-4. SE13系列对应BM1684X2，当前适配`bmwhisper_base_1684x2_f16.bmodel`（F16，与BM1684X的F16-only策略一致）。
+4. SE13系列对应CV84X6，当前适配`bmwhisper_base_84x6_f16.bmodel`（F16，与BM1684X的F16-only策略一致）。
 5. SE13-64上程序运行结束、推理结果全部写出之后，进程退出阶段可能打印`BMRuntime internal error`并以exit code 134退出，属当前84x2 sail库析构阶段的已知问题，不影响推理结果与精度/性能统计。
 
 ## 7. 性能测试
@@ -105,7 +105,7 @@ cat online_wer | grep "Overall"
 |   SRM1-20    | whisper.py       | bmwhisper_base_1684x_f16.bmodel             | 9112.57               | 791.98                  |
 |   SRM1-20    | whisper.py       | bmwhisper_small_1684x_f16.bmodel            | 5673.05               | 2129.36                 |
 |   SRM1-20    | whisper.py       | bmwhisper_medium_1684x_f16.bmodel           | 5723.73               | 5348.68                 |
-|   SE13-64    | whisper.py       | bmwhisper_base_1684x2_f16.bmodel            | 6347.75               | 1026.52                 |
+|   SE13-64    | whisper.py       | bmwhisper_base_84x6_f16.bmodel            | 6347.75               | 1026.52                 |
 
 > **测试说明**：
 > 1. 该性能使用datasets/test/demo.wav音频进行测试，计算后得出平均每秒音频所需推理时间。

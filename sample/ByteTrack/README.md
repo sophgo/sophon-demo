@@ -54,11 +54,11 @@ chmod -R +x scripts/
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的INT8 BModel，batch_size=1
 │   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 从YOLOv5例程中获取，用于BM1684X的INT8 BModel，batch_size=4
-├── BM1684X2
-│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X2的FP32 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X2的FP16 BModel，batch_size=1
-│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于BM1684X2的INT8 BModel，batch_size=1
-│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 从YOLOv5例程中获取，用于BM1684X2的INT8 BModel，batch_size=4
+├── CV84X6
+│   ├── yolov5s_v6.1_3output_fp32_1b.bmodel   # 从YOLOv5例程中获取，用于CV84X6的FP32 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_fp16_1b.bmodel   # 从YOLOv5例程中获取，用于CV84X6的FP16 BModel，batch_size=1
+│   ├── yolov5s_v6.1_3output_int8_1b.bmodel   # 从YOLOv5例程中获取，用于CV84X6的INT8 BModel，batch_size=1
+│   └── yolov5s_v6.1_3output_int8_4b.bmodel   # 从YOLOv5例程中获取，用于CV84X6的INT8 BModel，batch_size=4
 │── BM1688
 │   ├── yolov5s_v6.1_3output_fp16_1b.bmodel       # 从YOLOv5例程中获取，用于BM1688的FP16 BModel，batch_size=1, num_core=1
 │   ├── yolov5s_v6.1_3output_fp32_1b.bmodel       # 从YOLOv5例程中获取，用于BM1688的FP32 BModel，batch_size=1, num_core=1
@@ -157,9 +157,9 @@ acc         525  0.602846  0.733543  0.511679  0.614893  0.881511  5009  10  12 
 > **测试说明**：
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
-> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应BM1684X2；
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应CV84X6；
 > 4. BM1688 num_core=2的模型与num_core=1的模型精度基本一致；
-> 5. BM1684X2 的INT8模型精度（MOTA 0.485/0.500）低于其他平台（0.526/0.538），为该芯片INT8量化精度差异所致，batch_size=1和batch_size=4的模型精度一致；
+> 5. CV84X6 的INT8模型精度（MOTA 0.485/0.500）低于其他平台（0.526/0.538），为该芯片INT8量化精度差异所致，batch_size=1和batch_size=4的模型精度一致；
 
 
 ## 7. 性能测试

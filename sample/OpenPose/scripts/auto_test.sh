@@ -13,7 +13,7 @@ ECHO_LINES=20
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|CV84X6|BM1688] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
 }
 
 while getopts ":m:t:s:d:p:" opt
@@ -79,7 +79,7 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE7-32"
   elif test $TARGET = "BM1684"; then
     PLATFORM="SE5-16"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
@@ -116,11 +116,11 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1684X/pose_coco_fp16_1b.bmodel
       bmrt_test_case BM1684X/pose_coco_int8_1b.bmodel
       bmrt_test_case BM1684X/pose_coco_int8_4b.bmodel
-    elif test $TARGET = "BM1684X2"; then
-      bmrt_test_case BM1684X2/pose_coco_fp32_1b.bmodel
-      bmrt_test_case BM1684X2/pose_coco_fp16_1b.bmodel
-      bmrt_test_case BM1684X2/pose_coco_int8_1b.bmodel
-      bmrt_test_case BM1684X2/pose_coco_int8_4b.bmodel
+    elif test $TARGET = "CV84X6"; then
+      bmrt_test_case CV84X6/pose_coco_fp32_1b.bmodel
+      bmrt_test_case CV84X6/pose_coco_fp16_1b.bmodel
+      bmrt_test_case CV84X6/pose_coco_int8_1b.bmodel
+      bmrt_test_case CV84X6/pose_coco_int8_4b.bmodel
     elif test $TARGET = "BM1688"; then
       bmrt_test_case BM1688/pose_coco_fp32_1b.bmodel
       bmrt_test_case BM1688/pose_coco_fp16_1b.bmodel
@@ -447,10 +447,10 @@ then
     test_cpp soc bmcv pose_coco_fp16_1b.bmodel ../../datasets/dance_1080P.mp4
     test_cpp soc bmcv pose_coco_int8_4b.bmodel ../../datasets/dance_1080P.mp4
 
-  elif test $TARGET = "BM1684X2"
+  elif test $TARGET = "CV84X6"
   then
     # 84x2(cv184x) SoC 模式。注意：
-    # 1. BM1684X2 的 FP32 可正常转换(OpenPose为纯conv网络，无fc/matmul，不触发mm1断言)。
+    # 1. CV84X6 的 FP32 可正常转换(OpenPose为纯conv网络，无fc/matmul，不触发mm1断言)。
     # 2. tpu_kernel_xxx 相关后处理优化依赖 tpu_kernel_module(仅支持1684x)，cpu_opt 尚未在SE13-64上验证，
     #    故此处不放 test_cpp_opt 用例。
     test_python opencv pose_coco_fp32_1b.bmodel datasets/test

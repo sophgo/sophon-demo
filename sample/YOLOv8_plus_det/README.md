@@ -21,7 +21,7 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-YOLOv8_plus​_det例程可以运行YOLOv8_det系列模型，以及具有相同输入输出结构的衍生版本，目前已适配[​YOLOv8官方开源仓库](https://github.com/ultralytics/ultralytics)、[​YOLOv9官方开源仓库](https://github.com/WongKinYiu/yolov9)、[<200b>YOLOv12官方开源仓库](https://github.com/sunsmarterjie/yolov12)，支持在SOPHON BM1684X/BM1684X2/BM1688/CV186X上进行推理测试。
+YOLOv8_plus​_det例程可以运行YOLOv8_det系列模型，以及具有相同输入输出结构的衍生版本，目前已适配[​YOLOv8官方开源仓库](https://github.com/ultralytics/ultralytics)、[​YOLOv9官方开源仓库](https://github.com/WongKinYiu/yolov9)、[<200b>YOLOv12官方开源仓库](https://github.com/sunsmarterjie/yolov12)，支持在SOPHON BM1684X/CV84X6/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
 
@@ -42,8 +42,8 @@ YOLOv8_plus​_det例程可以运行YOLOv8_det系列模型，以及具有相同�
 ```
 
 ### 2.2 SDK特性
-* 支持BM1688/CV186X(SoC)和BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684X2(SoC)
-* 支持FP32、FP16(BM1684X/BM1684X2/BM1688/CV186X)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)和BM1684X(x86 PCIe、SoC、riscv PCIe)和CV84X6(SoC)
+* 支持FP32、FP16(BM1684X/CV84X6/BM1688/CV186X)、INT8模型编译和推理
 * 支持C++、Python推理
 * 支持图片和视频测试
 
@@ -62,7 +62,7 @@ chmod -R +x scripts/
 ```bash
 --all     # 下载所有模型
 --BM1684X # 下载BM1684X的bmodel
---BM1684X2 # 下载BM1684X2的bmodel
+--CV84X6 # 下载CV84X6的bmodel
 --BM1688  # 下载BM1688的bmodel
 --CV186X  # 下载CV186X的bmodel
 --onnx    # 下载onnx
@@ -98,7 +98,7 @@ models/
 │   ├── yolov9s_fp32_1b.bmodel
 │   ├── yolov9s_int8_1b.bmodel
 │   └── yolov9s_int8_4b.bmodel
-├── BM1684X2 # 在BM1684X2上运行的模型
+├── CV84X6 # 在CV84X6上运行的模型
 │   ├── yolov8s_fp32_1b.bmodel
 │   ├── yolov8s_fp16_1b.bmodel
 │   ├── yolov8s_int8_1b.bmodel
@@ -194,7 +194,7 @@ models/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/CV84X6/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -204,7 +204,7 @@ models/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/CV84X6/BM1688**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -214,7 +214,7 @@ models/
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1684X2/BM1688**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/CV84X6/BM1688**），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -383,7 +383,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标；
-> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE13系列对应BM1684X2，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE13系列对应CV84X6，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
@@ -445,20 +445,20 @@ bmrt_test --bmodel models/BM1684X/yolov8s_fp32_1b.bmodel
 |   SE9-8    | CV186X/yolov12s_fp16_1b.bmodel     |          68.68  |
 |   SE9-8    | CV186X/yolov12s_int8_1b.bmodel     |          59.78  |
 |   SE9-8    | CV186X/yolov12s_int8_4b.bmodel     |          59.96  |
-|   SE13-64   | BM1684X2/yolov8s_fp32_1b.bmodel     |         102.62  |
-|   SE13-64   | BM1684X2/yolov8s_fp16_1b.bmodel     |         11.00  |
-|   SE13-64   | BM1684X2/yolov8s_int8_1b.bmodel     |         5.38  |
-|   SE13-64   | BM1684X2/yolov8s_int8_4b.bmodel     |         20.40  |
-|   SE13-64   | BM1684X2/yolov9s_fp32_1b.bmodel     |         98.46  |
-|   SE13-64   | BM1684X2/yolov9s_fp16_1b.bmodel     |         12.30  |
-|   SE13-64   | BM1684X2/yolov9s_int8_1b.bmodel     |         7.97  |
-|   SE13-64   | BM1684X2/yolov9s_int8_4b.bmodel     |         30.46  |
-|   SE13-64   | BM1684X2/yolov11s_fp16_1b.bmodel     |         10.67  |
-|   SE13-64   | BM1684X2/yolov11s_int8_1b.bmodel     |         5.58  |
-|   SE13-64   | BM1684X2/yolov11s_int8_4b.bmodel     |         20.97  |
-|   SE13-64   | BM1684X2/yolov12s_fp16_1b.bmodel     |         27.09  |
-|   SE13-64   | BM1684X2/yolov12s_int8_1b.bmodel     |         21.17  |
-|   SE13-64   | BM1684X2/yolov12s_int8_4b.bmodel     |         82.24  |
+|   SE13-64   | CV84X6/yolov8s_fp32_1b.bmodel     |         102.62  |
+|   SE13-64   | CV84X6/yolov8s_fp16_1b.bmodel     |         11.00  |
+|   SE13-64   | CV84X6/yolov8s_int8_1b.bmodel     |         5.38  |
+|   SE13-64   | CV84X6/yolov8s_int8_4b.bmodel     |         20.40  |
+|   SE13-64   | CV84X6/yolov9s_fp32_1b.bmodel     |         98.46  |
+|   SE13-64   | CV84X6/yolov9s_fp16_1b.bmodel     |         12.30  |
+|   SE13-64   | CV84X6/yolov9s_int8_1b.bmodel     |         7.97  |
+|   SE13-64   | CV84X6/yolov9s_int8_4b.bmodel     |         30.46  |
+|   SE13-64   | CV84X6/yolov11s_fp16_1b.bmodel     |         10.67  |
+|   SE13-64   | CV84X6/yolov11s_int8_1b.bmodel     |         5.58  |
+|   SE13-64   | CV84X6/yolov11s_int8_4b.bmodel     |         20.97  |
+|   SE13-64   | CV84X6/yolov12s_fp16_1b.bmodel     |         27.09  |
+|   SE13-64   | CV84X6/yolov12s_int8_1b.bmodel     |         21.17  |
+|   SE13-64   | CV84X6/yolov12s_int8_4b.bmodel     |         82.24  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；

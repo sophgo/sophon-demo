@@ -69,6 +69,6 @@ cd python
 python3 faceformer.py --bmodel ../models/BM1684X/faceformer_f32.bmodel --model_name vocaset --wav_path ../datasets/wav/test1.wav --dataset vocaset --dev_id 0 
 ```
 
-BM1684X2平台上使用`../models/BM1684X2/faceformer_f16.bmodel`。
+CV84X6平台上使用`../models/CV84X6/faceformer_f16.bmodel`。
 
 在程序执行完成后，会输出运行时间、结果以及结果的维度： “result.shape:  (XXX, 15069)”。

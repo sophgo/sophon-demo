@@ -85,7 +85,7 @@ if __name__ == '__main__':
     if args.platform == "soc":
         if args.target == "BM1684X":
             platform = "SE7-32"
-        elif args.target == "BM1684X2":
+        elif args.target == "CV84X6":
             platform = "SE13-64"
         elif args.target == "BM1688":
             platform = "SE9-16"

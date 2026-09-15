@@ -15,7 +15,7 @@ CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c CASE_MODE fully|partly]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|CV84X6|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c CASE_MODE fully|partly]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -65,7 +65,7 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE9-16"
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
@@ -113,11 +113,11 @@ function bmrt_test_benchmark(){
       bmrt_test_case CV186X/resnet50_fp16_1b.bmodel
       bmrt_test_case CV186X/resnet50_int8_1b.bmodel
       bmrt_test_case CV186X/resnet50_int8_4b.bmodel
-    elif test $TARGET = "BM1684X2"; then
+    elif test $TARGET = "CV84X6"; then
       # 84x2 当前固件 codegen 不支持 fp32，只有 fp16/int8
-      bmrt_test_case BM1684X2/resnet50_fp16_1b.bmodel
-      bmrt_test_case BM1684X2/resnet50_int8_1b.bmodel
-      bmrt_test_case BM1684X2/resnet50_int8_4b.bmodel
+      bmrt_test_case CV84X6/resnet50_fp16_1b.bmodel
+      bmrt_test_case CV84X6/resnet50_int8_1b.bmodel
+      bmrt_test_case CV84X6/resnet50_int8_4b.bmodel
     fi
   
     popd
@@ -445,7 +445,7 @@ then
     else
       echo "unknown CASE_MODE: $CASE_MODE"
     fi
-  elif test $TARGET = "BM1684X2"
+  elif test $TARGET = "CV84X6"
   then
     # 84x2(cv184x) SoC 模式。硬件 JPEG 解码器(/dev/soph_vc_dec)在 libsophon 0.4.13
     # 已修复：早期固件硬件解码输出失真导致 bmcv/opencv.soc 精度低约11%、int8_4b err=9；

@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|CV84X6|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -60,7 +60,7 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE7-32"
   elif test $TARGET = "BM1684"; then
     PLATFORM="SE5-16"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
@@ -102,10 +102,10 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1684X/c3d_fp16_4b.bmodel
       bmrt_test_case BM1684X/c3d_int8_1b.bmodel
       bmrt_test_case BM1684X/c3d_int8_4b.bmodel
-    elif test $TARGET = "BM1684X2"; then
-      # BM1684X2固件codegen不支持FP32（fp32 matmul），工具链INT8模型推理结果错误，仅测试FP16
-      bmrt_test_case BM1684X2/c3d_fp16_1b.bmodel
-      bmrt_test_case BM1684X2/c3d_fp16_4b.bmodel
+    elif test $TARGET = "CV84X6"; then
+      # CV84X6固件codegen不支持FP32（fp32 matmul），工具链INT8模型推理结果错误，仅测试FP16
+      bmrt_test_case CV84X6/c3d_fp16_1b.bmodel
+      bmrt_test_case CV84X6/c3d_fp16_4b.bmodel
     elif test $TARGET = "BM1688"; then
       bmrt_test_case BM1688/c3d_fp32_1b.bmodel
       bmrt_test_case BM1688/c3d_fp32_4b.bmodel
@@ -571,9 +571,9 @@ then
     else
       echo "unknown CASE_MODE: $CASE_MODE"
     fi
-  elif test $TARGET = "BM1684X2"
+  elif test $TARGET = "CV84X6"
   then
-    # BM1684X2固件codegen不支持FP32，工具链INT8模型推理结果错误，仅测试FP16
+    # CV84X6固件codegen不支持FP32，工具链INT8模型推理结果错误，仅测试FP16
     if test $CASE_MODE = "fully"
     then
       test_python opencv c3d_fp16_1b.bmodel ../datasets/UCF_test_01

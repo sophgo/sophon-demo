@@ -16,8 +16,8 @@ Faceformer是一个基于Transformer的自回归模型，专门设计用于驱�
 
 ## 2. 特性
 * 支持BM1684X(x86 PCIe、SoC)
-* 支持BM1684X2(SoC)
-* 支持FP32模型编译和推理（BM1684X）；BM1684X2使用F16模型（audio_encoder_1为F32）
+* 支持CV84X6(SoC)
+* 支持FP32模型编译和推理（BM1684X）；CV84X6使用F16模型（audio_encoder_1为F32）
 * 支持基于SAIL推理的Python例程
 
 
@@ -51,7 +51,7 @@ chmod -R +x scripts/
 │   └── Faceformer_Export_Guide.md    #FaceFormer onnx导出和bmodel编译指南
 ├── models
 │   ├── BM1684X                     #download.sh下载的bmodel
-│   ├── BM1684X2                    #download.sh下载的bmodel
+│   ├── CV84X6                    #download.sh下载的bmodel
 │   ├── onnx                        #export_onnx.py导出的onnx模型
 │   └── testInput                   #模型编译所需的测试数据
 ├── python
@@ -80,7 +80,7 @@ chmod -R +x scripts/
 此部分请参考[FaceFormer模型导出与编译](./docs/FaceFormer_Export_Guide.md)
 
 
-​执行上述命令会在`models/BM1684X`下生成`faceformer_f32.bmodel`文件，即转换好的FP32 BModel；使用`./scripts/gen_bmodel_mlir.sh bm1684x2`则会在`models/BM1684X2`下生成`faceformer_f16.bmodel`文件（decoder/audio_encoder_2/ppe为F16，audio_encoder_1为F32）。
+​执行上述命令会在`models/BM1684X`下生成`faceformer_f32.bmodel`文件，即转换好的FP32 BModel；使用`./scripts/gen_bmodel_mlir.sh cv84x6`则会在`models/CV84X6`下生成`faceformer_f16.bmodel`文件（decoder/audio_encoder_2/ppe为F16，audio_encoder_1为F32）。
 
 ## 4. 例程测试
 
@@ -101,4 +101,4 @@ chmod -R +x scripts/
 > 2. SC7-HP75所使用的平台上的CPU为：Intel(R) Core(TM) i9-10900X CPU @ 3.70GHz。
 > 3. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 这里使用的SDK版本是V24.04.01；
-> 5. SE13-64对应BM1684X2，使用faceformer_f16.bmodel（decoder/audio_encoder_2/ppe为F16，audio_encoder_1为F32），测试输入test1.wav（时长约11.5s，345帧）。
+> 5. SE13-64对应CV84X6，使用faceformer_f16.bmodel（decoder/audio_encoder_2/ppe为F16，audio_encoder_1为F32），测试输入test1.wav（时长约11.5s，345帧）。

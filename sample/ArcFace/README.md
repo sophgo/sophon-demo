@@ -20,7 +20,7 @@
 
 ## 1. 简介
 
-ArcFace（IR-SE-ResNet50）人脸识别模型，基于[insightface](https://github.com/deepinsight/insightface)的buffalo_l预训练权重（w600k_r50），用于提取512维人脸特征嵌入向量。目前已适配BM1684X、BM1684X2、BM1688（SE9-16）、CV186X（SE9-8），支持在SOPHON BM1684X、BM1684X2、BM1688、CV186X上进行推理测试。
+ArcFace（IR-SE-ResNet50）人脸识别模型，基于[insightface](https://github.com/deepinsight/insightface)的buffalo_l预训练权重（w600k_r50），用于提取512维人脸特征嵌入向量。目前已适配BM1684X、CV84X6、BM1688（SE9-16）、CV186X（SE9-8），支持在SOPHON BM1684X、CV84X6、BM1688、CV186X上进行推理测试。
 
 **模型信息：**
 - 输入：RGB图像，尺寸112x112，值域[0, 255]
@@ -49,8 +49,8 @@ ArcFace（IR-SE-ResNet50）人脸识别模型，基于[insightface](https://gith
 ```
 
 ### 2.2 SDK特性
-- 支持BM1684X(x86 PCIe、SoC)、BM1684X2(SoC)、BM1688(SE9-16 SoC)、CV186X(SE9-8 SoC)
-- 支持FP32(BM1684X/BM1688/CV186X)、FP16(BM1684X/BM1684X2/BM1688/CV186X)、INT8模型编译和推理
+- 支持BM1684X(x86 PCIe、SoC)、CV84X6(SoC)、BM1688(SE9-16 SoC)、CV186X(SE9-8 SoC)
+- 支持FP32(BM1684X/BM1688/CV186X)、FP16(BM1684X/CV84X6/BM1688/CV186X)、INT8模型编译和推理
 - 支持BM1688多核（_2core）推理
 - 支持C++、Python推理
 - 支持图片目录批量测试
@@ -71,7 +71,7 @@ chmod -R +x scripts/
 ```bash
 --all      # 下载所有模型
 --BM1684X  # 下载BM1684X的bmodel
---BM1684X2 # 下载BM1684X2的bmodel
+--CV84X6 # 下载CV84X6的bmodel
 --BM1688   # 下载BM1688的bmodel
 --CV186X   # 下载CV186X的bmodel
 --onnx     # 下载onnx
@@ -85,7 +85,7 @@ models/
 │   ├── arcface_resnet50_fp16_1b.bmodel   # FP16 1batch (89MB)
 │   ├── arcface_resnet50_int8_1b.bmodel   # INT8 1batch (48MB)
 │   └── arcface_resnet50_int8_4b.bmodel   # INT8 4batch (48MB)
-├── BM1684X2                           # 在BM1684X2上运行的模型
+├── CV84X6                           # 在CV84X6上运行的模型
 │   ├── arcface_resnet50_fp16_1b.bmodel   # FP16 1batch
 │   ├── arcface_resnet50_int8_1b.bmodel   # INT8 1batch
 │   └── arcface_resnet50_int8_4b.bmodel   # INT8 4batch
@@ -122,7 +122,7 @@ models/
 
 - 生成FP32 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X、BM1684X2、BM1688、CV186X**），如： BM1684X2当前固件不支持FP32编译，请改用FP16/INT8。
+本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X、CV84X6、BM1688、CV186X**），如： CV84X6当前固件不支持FP32编译，请改用FP16/INT8。
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
@@ -132,7 +132,7 @@ models/
 
 - 生成FP16 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X、BM1684X2、BM1688、CV186X**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X、CV84X6、BM1688、CV186X**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
@@ -142,7 +142,7 @@ models/
 
 - 生成INT8 BModel
 
-本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X、BM1684X2、BM1688、CV186X**），如：
+本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X、CV84X6、BM1688、CV186X**），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684x
@@ -155,7 +155,7 @@ models/
 - [Python例程](./python/README.md)
 
 ## 5. 精度测试
-SE13系列对应BM1684X2，其TPU与BM1684X(SE7系列)相同，模型推理精度一致；SE13-64上的精度与SE7-32一致。
+SE13系列对应CV84X6，其TPU与BM1684X(SE7系列)相同，模型推理精度一致；SE13-64上的精度与SE7-32一致。
 
 ## 6. 性能测试
 ### 6.1 bmrt_test
@@ -173,9 +173,9 @@ bmrt_test --bmodel models/BM1684X/arcface_resnet50_fp32_1b.bmodel
 |   SE7-32    | BM1684X/arcface_resnet50_fp16_1b.bmodel     |           2.243   |
 |   SE7-32    | BM1684X/arcface_resnet50_int8_1b.bmodel     |           1.189   |
 |   SE7-32    | BM1684X/arcface_resnet50_int8_4b.bmodel     |           0.499   |
-|   SE13-64   | BM1684X2/arcface_resnet50_fp16_1b.bmodel    |           6.90    |
-|   SE13-64   | BM1684X2/arcface_resnet50_int8_1b.bmodel    |           2.80    |
-|   SE13-64   | BM1684X2/arcface_resnet50_int8_4b.bmodel    |           1.69    |
+|   SE13-64   | CV84X6/arcface_resnet50_fp16_1b.bmodel    |           6.90    |
+|   SE13-64   | CV84X6/arcface_resnet50_int8_1b.bmodel    |           2.80    |
+|   SE13-64   | CV84X6/arcface_resnet50_int8_4b.bmodel    |           1.69    |
 |   SE9-16    | BM1688/arcface_resnet50_fp32_1b.bmodel      |           72.690  |
 |   SE9-16    | BM1688/arcface_resnet50_fp32_1b_2core.bmodel|           42.259  |
 |   SE9-16    | BM1688/arcface_resnet50_fp16_1b.bmodel      |           9.934   |
@@ -194,7 +194,7 @@ bmrt_test --bmodel models/BM1684X/arcface_resnet50_fp32_1b.bmodel
 > 2. INT8 4batch模型的`calculate time`为4张图像的总推理时间；
 > 3. SoC和PCIe的测试结果基本一致；
 > 4. SE9-16/SE9-8 仅支持 SoC；BM1688 的 `_2core` 为双核推理模型。
-> 5. SE13系列对应BM1684X2，其TPU与BM1684X(SE7系列)相同，模型推理时间一致；INT8 4batch的`calculate time`已折算为每张图片的推理时间。
+> 5. SE13系列对应CV84X6，其TPU与BM1684X(SE7系列)相同，模型推理时间一致；INT8 4batch的`calculate time`已折算为每张图片的推理时间。
 
 ### 6.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
@@ -238,7 +238,7 @@ bmrt_test --bmodel models/BM1684X/arcface_resnet50_fp32_1b.bmodel
 > 3. SE7-32的主控处理器为8核CA53@2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，不同的测试图片可能存在较大差异；
 > 5. SE9-16/SE9-8 表内为 1 核推理耗时；BM1688 的 `_2core` 模型推理耗时更低（见 6.1 bmrt_test 表）。
-> 6. SE13系列对应BM1684X2，其TPU与BM1684X(SE7系列)相同；`arcface_bmcv.py` + `int8_4b`组合在BM1684X2上会崩溃(`bmcv_image_copy_to err=9`)，故未列出。
+> 6. SE13系列对应CV84X6，其TPU与BM1684X(SE7系列)相同；`arcface_bmcv.py` + `int8_4b`组合在CV84X6上会崩溃(`bmcv_image_copy_to err=9`)，故未列出。
 
 ## 7. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。以下是ArcFace例程特定的FAQ：

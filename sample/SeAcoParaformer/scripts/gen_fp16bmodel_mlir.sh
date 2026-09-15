@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Compile SeACoParaformer bmodels for BM1684X2 (SE13-64) from tools/export_onnx.py onnx.
-# Usage: ./gen_fp16bmodel_mlir.sh [bm1684x2]   (run inside tpu-mlir docker, from scripts/)
+# Compile SeACoParaformer bmodels for CV84X6 (SE13-64) from tools/export_onnx.py onnx.
+# Usage: ./gen_fp16bmodel_mlir.sh [cv84x6]   (run inside tpu-mlir docker, from scripts/)
 #
 # Notes:
 # - BF16 for all three parts (fp16 overflows in encoder block 31).
-# - predictor is compiled STATIC (--dynamic LSTM codegen hangs the bm1684x2
+# - predictor is compiled STATIC (--dynamic LSTM codegen hangs the cv84x6
 #   TPU driver at large seq; see tools/export_onnx.py which drops the pad
 #   mask so the static compile succeeds). python/seaco_paraformer.py pads
 #   enc_out to 1100 frames and slices us_alphas back to 3T.
 set -e
-target=${1:-bm1684x2}
+target=${1:-cv84x6}
 target_dir=${target^^}
 scripts_dir=$(dirname $(readlink -f "$0"))
 pushd $scripts_dir
@@ -71,7 +71,7 @@ model_deploy.py \
     --model decoder_bf16_1b.bmodel
 
 # predictor (CifPredictorV3 upsample head) -- STATIC compile:
-# --dynamic + LSTM at large seq hangs the bm1684x2 TPU driver, and the
+# --dynamic + LSTM at large seq hangs the cv84x6 TPU driver, and the
 # pad-mask (Range op) that blocked static compile was dropped at export.
 model_transform.py \
     --model_name predictor_static \

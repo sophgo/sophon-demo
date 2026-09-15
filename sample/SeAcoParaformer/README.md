@@ -25,9 +25,9 @@ SeACoParaformer（Semantic-Augmented Contextual Paraformer）是一种非自回�
 参考论文：[SeACo-Paraformer: A Non-Autoregressive ASR System with Flexible and Effective Hotword Customization Ability](https://arxiv.org/abs/2308.03266)
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe, SoC)、BM1684X2(SoC)
+* 支持BM1684X(x86 PCIe, SoC)、CV84X6(SoC)
 * 支持FP32模型编译和推理（BM1684X）
-* 支持BF16模型编译和推理（BM1684X2）
+* 支持BF16模型编译和推理（CV84X6）
 * 支持基于sophon.sail的Python推理
 * 支持WAV音频文件的中文语音识别
 * 支持热词自定义（hotword customization）
@@ -55,7 +55,7 @@ bash scripts/download.sh
 ├── am.mvn                           # CMVN均值/方差文件
 └── seg_dict                         # 分词词典
 
-./models/BM1684X2                    # SE13-64
+./models/CV84X6                    # SE13-64
 ├── encoder_bf16_1b.bmodel           # 编码器，batch=1, 动态shape, BF16
 ├── decoder_bf16_1b.bmodel           # 解码器，batch=1, 动态shape, BF16
 ├── predictor_bf16_1b.bmodel         # CIF预测器V3，batch=1, 静态(1,1100,512), BF16
@@ -68,10 +68,10 @@ bash scripts/download.sh
 
 模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的"3. 编译ONNX模型"(请从[算能官网](https://developer.sophgo.com/site/index.html?categoryActive=material)相应版本的SDK中获取)。
 
-BM1684X2（SE13-64）使用`scripts/gen_fp16bmodel_mlir.sh bm1684x2`编译（BF16），注意：
-- predictor必须编译为**静态**shape模型：`--dynamic`下的大序列LSTM codegen会挂死bm1684x2 TPU驱动（见`tools/export_onnx.py`，导出时已去掉pad-mask使静态编译可行）；推理时将enc_out补零到1100帧后再送入，并把us_alphas切片回3T；
+CV84X6（SE13-64）使用`scripts/gen_fp16bmodel_mlir.sh cv84x6`编译（BF16），注意：
+- predictor必须编译为**静态**shape模型：`--dynamic`下的大序列LSTM codegen会挂死cv84x6 TPU驱动（见`tools/export_onnx.py`，导出时已去掉pad-mask使静态编译可行）；推理时将enc_out补零到1100帧后再送入，并把us_alphas切片回3T；
 - encoder/decoder为`--dynamic`编译，需`--disable_layer_group`；
-- BM1684X2当前固件codegen不支持FP32，使用BF16。
+- CV84X6当前固件codegen不支持FP32，使用BF16。
 
 ## 5. 例程测试
 
@@ -126,7 +126,7 @@ python3 seaco_paraformer.py --model_dir ../models/BM1684X --input ../model/examp
 > 2. x86 PCIE测试使用4个WAV音频样本（含短句和长句），TPU bmodel识别结果与PyTorch参考完全一致，CER=0.00%, WER=0.00%；
 > 3. 完整测试集（如AISHELL-1 test，7176条音频）的评估可在下载AISHELL-1数据集后运行 `python3 eval_accuracy.py --model_dir ../models/BM1684X --test_manifest <manifest_path> --audio_base <aishell_path>` 进行；
 > 4. FP32精度应与PyTorch参考模型完全一致；
-> 5. SE13-64（BM1684X2）当前固件codegen不支持FP32，使用BF16模型；
+> 5. SE13-64（CV84X6）当前固件codegen不支持FP32，使用BF16模型；
 > 6. SE13-64板端实测（asr_example.wav，4.52s）：python识别"欢迎大家来到么哒社区进行体验"，C++识别"欢迎大家来到moda社区进行体验"，与PyTorch参考仅"么哒/moda"一处差异（BF16数值漂移导致encoder的token_num 16 vs 15），其余token及词级时间戳一致（±20ms内）；热词测试wav（6.52s，"国务院发展研究中心市场经济研究所副所长邓玉松认为"）python与C++识别结果完全一致；
 
 ## 7. 性能测试
@@ -139,10 +139,10 @@ bmrt_test --bmodel models/BM1684X/encoder_fp32_10b.bmodel
 bmrt_test --bmodel models/BM1684X/decoder_fp32_10b.bmodel
 bmrt_test --bmodel models/BM1684X/predictor_fp32_10b.bmodel
 
-# BM1684X2 (SE13-64)
-bmrt_test --bmodel models/BM1684X2/encoder_bf16_1b.bmodel
-bmrt_test --bmodel models/BM1684X2/decoder_bf16_1b.bmodel
-bmrt_test --bmodel models/BM1684X2/predictor_bf16_1b.bmodel
+# CV84X6 (SE13-64)
+bmrt_test --bmodel models/CV84X6/encoder_bf16_1b.bmodel
+bmrt_test --bmodel models/CV84X6/decoder_bf16_1b.bmodel
+bmrt_test --bmodel models/CV84X6/predictor_bf16_1b.bmodel
 ```
 
 ### 7.2 程序运行性能
@@ -161,7 +161,7 @@ bmrt_test --bmodel models/BM1684X2/predictor_bf16_1b.bmodel
 > 3. SE7-32平台预处理（FBANK特征提取）耗时较长，是ARM AARCH64 CPU性能限制所致，编码器/解码器推理均在TPU上高效完成；x86 PCIE平台CPU性能更强，预处理速度明显更快；
 > 4. C++预处理使用纯Armadillo实现，耗时较Python（torchaudio后端）更长，但TPU推理部分性能相当；
 > 5. 测试音频：4.52秒，16kHz单声道WAV；
-> 6. SE13-64（BM1684X2）的decoder耗时列含decoder+predictor（1.386s predictor为静态1100帧输入，板端单次bmrt_test约1.39s）；预处理（FBANK+CMVN）占大头，为ARM CPU耗时；
+> 6. SE13-64（CV84X6）的decoder耗时列含decoder+predictor（1.386s predictor为静态1100帧输入，板端单次bmrt_test约1.39s）；预处理（FBANK+CMVN）占大头，为ARM CPU耗时；
 > 7. SE13-64上C++例程必须以"sail-SYSIO风格"启动**所有**网络（含静态net）：每次推理用`bm_malloc_device_byte`按实际shape分配输入、`bmrt_launch_tensor_ex(..., user_mem=false, ...)`让runtime分配输出、`bm_thread_sync`后读回并`bmrt_free_device`释放输出——该固件下静态net加载时的stage mem是伪地址（如0x400000000000），任何对它的s2d/d2s/mmap都会触发`bm_device_mem_range_valid ... out of range`并静默失败（拿到垃圾数据甚至段错误），详见cpp/seaco_paraformer_bmrt/seaco_paraformer.cpp注释；
 
 ## 8. FAQ

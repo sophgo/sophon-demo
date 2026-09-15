@@ -92,7 +92,7 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
 
     set(SRC_FILES main.cpp clip/clip.cpp)
 
-    # bm1684x2 (SE13): load-time stage mems are pseudo addresses, launch the
+    # cv84x6 (SE13): load-time stage mems are pseudo addresses, launch the
     # sail-SYSIO way instead (see clip.cpp launch_sysio)
     add_definitions(-DSKIP_SYSIO_LAUNCH)
 

@@ -31,9 +31,9 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/SlowFast/models_1012/BM1688.zip
     unzip BM1688.zip -d ../models/
     rm BM1688.zip
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/SlowFast/models_260905/BM1684X2.zip
-    unzip BM1684X2.zip -d ../models/
-    rm BM1684X2.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SlowFast/models_260905/CV84X6.zip
+    unzip CV84X6.zip -d ../models/
+    rm CV84X6.zip
     #python3 -m dfss --url=open@sophgo.com:sophon-demo/SlowFast/models_1012/CV186X.zip
     #unzip CV186X.zip -d ../models/
     #rm CV186X.zip

@@ -18,13 +18,13 @@
   - [8. FAQ](#8-faq)
 
 ## 1. 简介
-YOLO-World 是腾讯人工智能实验室提出的实时开放词汇目标检测器，采用视觉语言建模和预训练的方法，能够在无需预先训练的情况下，实时识别图像中任何由描述性文本指定的物体。本例程对 [YOLO-World v2](https://github.com/AILab-CVC/YOLO-World) 官方开源仓库的模型和算法进行移植（ultralytics 导出的 `yolov8s-worldv2` 权重），使之能在SOPHON BM1684X/BM1684X2上进行推理测试。
+YOLO-World 是腾讯人工智能实验室提出的实时开放词汇目标检测器，采用视觉语言建模和预训练的方法，能够在无需预先训练的情况下，实时识别图像中任何由描述性文本指定的物体。本例程对 [YOLO-World v2](https://github.com/AILab-CVC/YOLO-World) 官方开源仓库的模型和算法进行移植（ultralytics 导出的 `yolov8s-worldv2` 权重），使之能在SOPHON BM1684X/CV84X6上进行推理测试。
 
 模型由两个子模型串联：`clip_text_vitb32` 把类别名编码为文本嵌入 `txt_feats[1,80,512]`，再送入 `yoloworld_v2` 主检测模型得到 `output[1,84,8400]`，经 NMS 后处理输出检测框。
 
 ## 2. 特性
 * 支持BM1684X(x86 PCIe、SoC)
-* 支持BM1684X2(x86 PCIe、SoC)
+* 支持CV84X6(x86 PCIe、SoC)
 * 支持FP32、FP16、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持开放词汇（open-vocabulary）：运行时通过 `--class_names` 指定任意类别
@@ -43,8 +43,8 @@ sudo apt install unzip
 chmod -R +x scripts/
 # 下载测试数据集与 BM1684X BModel
 ./scripts/download.sh --BM1684X
-# 下载 BM1684X2 BModel（SE13-64）
-./scripts/download.sh --BM1684X2
+# 下载 CV84X6 BModel（SE13-64）
+./scripts/download.sh --CV84X6
 ```
 
 执行后，测试数据集下载并解压至`datasets/test/`，精度测试数据集下载并解压至`datasets/coco/val2017_1000/`（含`instances_val2017_1000.json`），测试视频下载至`datasets/test_car_person_1080P.mp4`，`coco.names`下载至`datasets/`。
@@ -57,10 +57,10 @@ chmod -R +x scripts/
 │   ├── yoloworld_v2_fp16_1b.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── yoloworld_v2_int8_1b.bmodel        # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── clip_text_vitb32_bm1684x_f16_1b.bmodel  # CLIP文本编码部分FP16 BModel
-├── BM1684X2
-│   ├── yoloworld_v2_fp16_1b.bmodel        # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
-│   ├── yoloworld_v2_int8_1b.bmodel        # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=1
-│   └── clip_text_vitb32_bm1684x2_f16_1b.bmodel  # CLIP文本编码部分FP16 BModel
+├── CV84X6
+│   ├── yoloworld_v2_fp16_1b.bmodel        # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   ├── yoloworld_v2_int8_1b.bmodel        # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
+│   └── clip_text_vitb32_cv84x6_f16_1b.bmodel  # CLIP文本编码部分FP16 BModel
 ├── onnx
 │   ├── yoloworld_v2.onnx                     # 导出的主检测onnx模型
 │   └── clip_text_vitb32.onnx              # 导出的CLIP文本编码onnx模型
@@ -83,7 +83,7 @@ chmod -R +x scripts/
 ## 4. 模型编译
 导出的模型需要编译成BModel才能在SOPHON TPU上运行，如果使用下载/已编译好的BModel可跳过本节。建议使用TPU-MLIR编译BModel。
 
-本例程在 TPU-MLIR 容器中编译（环境搭建见 [Environment_Install_Guide.md](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)）。进入容器后，在例程目录下使用`scripts`目录下的脚本编译，执行时指定BModel运行的目标平台（**支持BM1684X、BM1684X2**），如：
+本例程在 TPU-MLIR 容器中编译（环境搭建见 [Environment_Install_Guide.md](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)）。进入容器后，在例程目录下使用`scripts`目录下的脚本编译，执行时指定BModel运行的目标平台（**支持BM1684X、CV84X6**），如：
 
 - 生成FP32 BModel
 
@@ -109,7 +109,7 @@ chmod -R +x scripts/
 
 执行后会在`models/BM1684X/`下生成`yoloworld_v2_int8_1b.bmodel`和`clip_text_vitb32_bm1684x_f16_1b.bmodel`。
 
-> ℹ️ 编译BM1684X2平台时，传入参数`bm1684x2`即可，如 `./scripts/gen_fp16bmodel_mlir.sh bm1684x2`，产物输出至`models/BM1684X2/`。BM1684X2(SE13-64)的TPU与BM1684X(SE7-32)精度一致，FP16/INT8精度可参考SE7-32结果。
+> ℹ️ 编译CV84X6平台时，传入参数`cv84x6`即可，如 `./scripts/gen_fp16bmodel_mlir.sh cv84x6`，产物输出至`models/CV84X6/`。CV84X6(SE13-64)的TPU与BM1684X(SE7-32)精度一致，FP16/INT8精度可参考SE7-32结果。
 
 > ℹ️ `--mean`/`--scale` 仅写入 mlir、用于 INT8 校准量化，**不烤入 bmodel 计算图**，对 FP32/FP16 推理无影响；推理侧 python 的 `/255` 是唯一归一化。脚本沿用 `--mean 0 --scale 1/255 --keep_aspect_ratio --pixel_format rgb --output_names output` 与 v1 一致。
 > ⚠️ CLIP文本编码ONNX必须用**torch 1.13**导出（torch 2.0+的MHA走SDPA，TPU-MLIR会误编译），详见[模型导出](./docs/YOLO_World_v2_Export_Guide.md)。
@@ -144,7 +144,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 > 2. 与旧版`sample/YOLO_world`（v1）的0.370一致，<0.01的精度误差源于ultralytics版本差异，属正常；
 > 3. AP@IoU=0.5:0.95为area=all对应的指标；
 > 4. 本例程使用v2权重（`yolov8s-worldv2.pt`），BModel文件名带`_v2_`以与v1区分，避免混用。
-> 5. SE13-64(SE13系列/BM1684X2)的TPU与SE7-32(BM1684X)精度一致，SE13-64精度值引用SE7-32结果。
+> 5. SE13-64(SE13系列/CV84X6)的TPU与SE7-32(BM1684X)精度一致，SE13-64精度值引用SE7-32结果。
 
 
 ## 7. 性能测试
@@ -163,13 +163,13 @@ bmrt_test --bmodel models/BM1684X/yoloworld_v2_fp16_1b.bmodel --devid 0
 |   SE7-32    | BM1684X/yoloworld_v2_fp16_1b.bmodel   |           6.87  |
 |   SE7-32    | BM1684X/yoloworld_v2_int8_1b.bmodel   |           4.41  |
 |   SE7-32    | BM1684X/clip_text_vitb32_bm1684x_f16_1b.bmodel|          4.37  |
-|   SE13-64  | BM1684X2/yoloworld_v2_fp16_1b.bmodel  |          16.02  |
-|   SE13-64  | BM1684X2/yoloworld_v2_int8_1b.bmodel  |          11.42  |
-|   SE13-64  | BM1684X2/clip_text_vitb32_bm1684x2_f16_1b.bmodel|          6.01  |
+|   SE13-64  | CV84X6/yoloworld_v2_fp16_1b.bmodel  |          16.02  |
+|   SE13-64  | CV84X6/yoloworld_v2_int8_1b.bmodel  |          11.42  |
+|   SE13-64  | CV84X6/clip_text_vitb32_cv84x6_f16_1b.bmodel|          6.01  |
 > **测试说明**：
 > 1. `clip_text`为一次性文本编码（按类集摊销，不计入每图耗时）；
 > 2. 性能测试结果具有一定的波动性；
-> 3. SoC和PCIe的测试结果基本一致。SE13-64(SE13系列/BM1684X2)的TPU与SE7-32(BM1684X)精度一致，性能略受SoC频率/带宽影响。
+> 3. SoC和PCIe的测试结果基本一致。SE13-64(SE13系列/CV84X6)的TPU与SE7-32(BM1684X)精度一致，性能略受SoC频率/带宽影响。
 
 
 ### 7.2 程序运行性能
@@ -192,7 +192,7 @@ bmrt_test --bmodel models/BM1684X/yoloworld_v2_fp16_1b.bmodel --devid 0
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. BMCV预处理(2.0ms)远快于OpenCV(22.7ms)，bmcv例程端到端更快；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
-> 5. SE13-64(SE13系列/BM1684X2)的TPU与SE7-32(BM1684X)精度一致，性能略受SoC频率/带宽影响；SE13-64仅提供FP16/INT8 BModel。
+> 5. SE13-64(SE13系列/CV84X6)的TPU与SE7-32(BM1684X)精度一致，性能略受SoC频率/带宽影响；SE13-64仅提供FP16/INT8 BModel。
 
 
 ## 8. FAQ

@@ -24,15 +24,15 @@ else
     echo "models folder exist! Remove it if you need to update."
 fi
 
-# BM1684X2 models (SE13-64, BF16)
-if [ ! -d "../models/BM1684X2" ];
+# CV84X6 models (SE13-64, BF16)
+if [ ! -d "../models/CV84X6" ];
 then
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/SeAcoParaformer/models/BM1684X2.zip
-    unzip BM1684X2.zip -d ../models/
-    rm BM1684X2.zip
-    echo "BM1684X2 models download!"
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/SeAcoParaformer/models/CV84X6.zip
+    unzip CV84X6.zip -d ../models/
+    rm CV84X6.zip
+    echo "CV84X6 models download!"
 else
-    echo "BM1684X2 models folder exist! Remove it if you need to update."
+    echo "CV84X6 models folder exist! Remove it if you need to update."
 fi
 
 # cross_compile_module (from WeNet sample)

@@ -19,10 +19,10 @@
   - [8. FAQ](#8-faq)
 
 ## 1. 简介
-​YOLO26_seg对[​YOLO26官方开源仓库](https://github.com/ultralytics/ultralytics)v8.4.11的实例分割模型和算法进行移植，使之能在SOPHON BM1684X/BM1684X2/BM1688/CV186X上进行推理测试。
+​YOLO26_seg对[​YOLO26官方开源仓库](https://github.com/ultralytics/ultralytics)v8.4.11的实例分割模型和算法进行移植，使之能在SOPHON BM1684X/CV84X6/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X2/BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
+* 支持CV84X6/BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
 * 支持FP32、FP16、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
@@ -45,7 +45,7 @@ chmod -R +x scripts/
 ```bash
 --all     # 下载所有模型
 --BM1684X # 下载BM1684X的bmodel
---BM1684X2 # 下载BM1684X2的bmodel
+--CV84X6 # 下载CV84X6的bmodel
 --BM1688  # 下载BM1688的bmodel
 --CV186X  # 下载CV186X的bmodel
 --onnx    # 下载onnx
@@ -58,7 +58,7 @@ chmod -R +x scripts/
 │   ├── yolo26s_fp32_1b.bmodel
 │   ├── yolo26s_fp16_1b.bmodel 
 │   └── yolo26s_int8_1b.bmodel
-├── BM1684X2 # 在BM1684X2上运行的模型
+├── CV84X6 # 在CV84X6上运行的模型
 │   ├── yolo26s_fp16_1b.bmodel
 │   └── yolo26s_int8_1b.bmodel
 ├── BM1688 # 在BM1688上运行的模型
@@ -97,7 +97,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/CV84X6/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -107,7 +107,7 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/CV84X6/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -117,7 +117,7 @@ chmod -R +x scripts/
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/CV84X6/BM1688/CV186X**），如：
 
 ```bash
 ./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
@@ -185,7 +185,7 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标。
-> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；SE13系列对应BM1684X2，其TPU与BM1684X(SE7-32)一致，精度一致；
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；SE13系列对应CV84X6，其TPU与BM1684X(SE7-32)一致，精度一致；
 
 
 ## 7. 性能测试
@@ -203,8 +203,8 @@ bmrt_test --bmodel models/BM1684X/yolo26s_fp32_1b.bmodel
 | SE7-32          | BM1684X/yolo26s_fp32_1b.bmodel     |          41.00  |
 | SE7-32          | BM1684X/yolo26s_fp16_1b.bmodel     |           9.30  |
 | SE7-32          | BM1684X/yolo26s_int8_1b.bmodel     |           6.86  |
-| SE13-64         | BM1684X2/yolo26s_fp16_1b.bmodel    |          20.56  |
-| SE13-64         | BM1684X2/yolo26s_int8_1b.bmodel     |          15.97  |
+| SE13-64         | CV84X6/yolo26s_fp16_1b.bmodel    |          20.56  |
+| SE13-64         | CV84X6/yolo26s_int8_1b.bmodel     |          15.97  |
 | SE9-16          | BM1688/yolo26s_fp32_1b.bmodel      |         212.55  |
 | SE9-16          | BM1688/yolo26s_fp16_1b.bmodel      |          48.44  |
 | SE9-16          | BM1688/yolo26s_int8_1b.bmodel      |          25.47  |
@@ -218,7 +218,7 @@ bmrt_test --bmodel models/BM1684X/yolo26s_fp32_1b.bmodel
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间；
 3. SoC和PCIe的测试结果基本一致。
-4. BM1684X2(SE13-64)平台由于固件移除了mm1指令，fp32的matmul/全连接层无法编译，因此不提供fp32 BModel，请使用fp16或int8 BModel。
+4. CV84X6(SE13-64)平台由于固件移除了mm1指令，fp32的matmul/全连接层无法编译，因此不提供fp32 BModel，请使用fp16或int8 BModel。
 
 
 ### 7.2 程序运行性能

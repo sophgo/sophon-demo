@@ -170,7 +170,7 @@ if __name__ == '__main__':
                 platform = "SE9-8"
         elif args.target == "CV186X":
             platform = "SE9-8"
-        elif args.target == "BM1684X2":
+        elif args.target == "CV84X6":
             platform = "SE13-64"
     else:
         platform = args.target + " SoC" if args.platform == "soc" else args.target + " PCIe"

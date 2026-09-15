@@ -15,7 +15,7 @@ CASE_MODE="fully"
 
 usage()
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_test] [ -t TARGET BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_test] [ -t TARGET BM1684X|CV84X6|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -65,7 +65,7 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE9-16"
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
@@ -118,16 +118,16 @@ function bmrt_test_benchmark(){
     bmrt_test_case BM1688/video/sam2_image_decoder.bmodel
     bmrt_test_case BM1688/video/sam2_memory_attention_nomatmul.bmodel
     bmrt_test_case BM1688/video/sam2_memory_encoder.bmodel
-  elif test $TARGET = "BM1684X2"; then
-    # BM1684X2(SE13) 固件不支持 fp32，仅提供 fp16 bmodel
-    bmrt_test_case BM1684X2/image_encoder/sam2_encoder_f16_1b.bmodel
+  elif test $TARGET = "CV84X6"; then
+    # CV84X6(SE13) 固件不支持 fp32，仅提供 fp16 bmodel
+    bmrt_test_case CV84X6/image_encoder/sam2_encoder_f16_1b.bmodel
 
-    bmrt_test_case BM1684X2/image_decoder/sam2_decoder_f16_1b.bmodel
+    bmrt_test_case CV84X6/image_decoder/sam2_decoder_f16_1b.bmodel
 
-    bmrt_test_case BM1684X2/video/sam2_image_encoder_no_pos.bmodel
-    bmrt_test_case BM1684X2/video/sam2_image_decoder.bmodel
-    bmrt_test_case BM1684X2/video/sam2_memory_attention_nomatmul.bmodel
-    bmrt_test_case BM1684X2/video/sam2_memory_encoder.bmodel
+    bmrt_test_case CV84X6/video/sam2_image_encoder_no_pos.bmodel
+    bmrt_test_case CV84X6/video/sam2_image_decoder.bmodel
+    bmrt_test_case CV84X6/video/sam2_memory_attention_nomatmul.bmodel
+    bmrt_test_case CV84X6/video/sam2_memory_encoder.bmodel
   fi
   popd
 }
@@ -226,8 +226,8 @@ function eval_python()
 
 function compile_mlir()
 {
-  if test $TARGET = "BM1684X2"; then
-    # BM1684X2(SE13) 固件不支持 fp32，仅编译 fp16
+  if test $TARGET = "CV84X6"; then
+    # CV84X6(SE13) 固件不支持 fp32，仅编译 fp16
     ./scripts/gen_bmodel_image.sh --chip $TARGET --mode f16
     judge_ret $? "generate $TARGET fp16 image bmodel" 0
     ./scripts/gen_bmodel_video.sh --chip $TARGET --mode f16
@@ -289,10 +289,10 @@ then
 
     eval_python opencv sam2_encoder_f32_1b sam2_decoder_f32_1b dataset COCODataset datasets/images/instances_val2017.json 200 0.5
     eval_python opencv sam2_encoder_f16_1b sam2_decoder_f16_1b dataset COCODataset datasets/images/instances_val2017.json 200 0.5
-  elif test $TARGET = "BM1684X2"
+  elif test $TARGET = "CV84X6"
   then
     echo ""
-    # BM1684X2(SE13) 固件不支持 fp32，仅测试 fp16
+    # CV84X6(SE13) 固件不支持 fp32，仅测试 fp16
     test_python opencv sam2_encoder_f16_1b sam2_decoder_f16_1b img
 
     eval_python opencv sam2_encoder_f16_1b sam2_decoder_f16_1b dataset COCODataset datasets/images/instances_val2017.json 200 0.45

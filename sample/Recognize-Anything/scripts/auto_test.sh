@@ -15,7 +15,7 @@ CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c CASE_MODE fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|CV84X6|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c CASE_MODE fully|partly]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -59,7 +59,7 @@ PLATFORM=$TARGET
 if test $MODE = "soc_test"; then
   if test $TARGET = "BM1684X"; then
     PLATFORM="SE7-32"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   elif test $TARGET = "BM1684"; then
     PLATFORM="SE5-16"
@@ -95,9 +95,9 @@ function bmrt_test_benchmark(){
       bmrt_test_case BM1684X/ram_fp16_1b.bmodel
     fi
 
-    if test $TARGET = "BM1684X2"; then
-      bmrt_test_case BM1684X2/ram_fp16_1b.bmodel
-      bmrt_test_case BM1684X2/ram_int8_1b.bmodel
+    if test $TARGET = "CV84X6"; then
+      bmrt_test_case CV84X6/ram_fp16_1b.bmodel
+      bmrt_test_case CV84X6/ram_int8_1b.bmodel
     fi
   
     popd
@@ -268,7 +268,7 @@ elif test $MODE = "soc_test"
 then
   pip3 install -r python/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
   download $TARGET
-  if test $TARGET = "BM1684X2"; then
+  if test $TARGET = "CV84X6"; then
     eval_python pillow ram_fp16_1b.bmodel
     eval_python pillow ram_int8_1b.bmodel
   else

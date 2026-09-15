@@ -23,7 +23,7 @@ FEAR（Fast, Efficient, Accurate and Robust Visual Tracker）是一个基于深�
 本例程对[FEARTracker](https://github.com/vasyl-borsuk/FEARTracker)的预训练模型进行移植，导出为ONNX模型，并编译为BModel使之能在SOPHON BM1684X和BM1688上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe, SoC)、BM1688(SoC)、BM1684X2(SoC)
+* 支持BM1684X(x86 PCIe, SoC)、BM1688(SoC)、CV84X6(SoC)
 * 支持FP16模型编译和推理
 * 支持基于sail的Python推理
 * 支持视频文件的单目标跟踪
@@ -50,8 +50,8 @@ bash scripts/download.sh --all
 │   └── feartracker_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 └── BM1688
     └── feartracker_bm1688_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1
-└── BM1684X2
-    └── feartracker_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
+└── CV84X6
+    └── feartracker_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
 ```
 
 测试数据包括：
@@ -67,7 +67,7 @@ bash scripts/download.sh --all
 
 - 生成FP16 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/BM1684X2**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV84X6**），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
@@ -86,11 +86,11 @@ bash scripts/download.sh --all
 精度验证通过对比TPU推理结果与PyTorch参考模型的逐帧跟踪结果来完成。在相同的初始边界框下，比较两者的跟踪轨迹（每帧预测的边界框）。
 
 ### 6.2 测试结果
-在SE13-64（BM1684X2）上，使用`fear_tracker.py`对比TPU FP16推理与ONNX参考模型的逐帧跟踪结果（测试视频661帧，初始bbox 163,53,45,174）：
+在SE13-64（CV84X6）上，使用`fear_tracker.py`对比TPU FP16推理与ONNX参考模型的逐帧跟踪结果（测试视频661帧，初始bbox 163,53,45,174）：
 
 | 测试平台 |  测试程序   |           测试模型            | 与ONNX参考平均IoU | IoU>0.5帧占比 | IoU>0.75帧占比 |
 | -------- | ---------- | ----------------------------- | ----------------- | ------------- | -------------- |
-| SE13-64  | fear_tracker.py | BM1684X2/feartracker_fp16_1b.bmodel |      0.962      |    100.0%     |     99.7%      |
+| SE13-64  | fear_tracker.py | CV84X6/feartracker_fp16_1b.bmodel |      0.962      |    100.0%     |     99.7%      |
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -103,7 +103,7 @@ bmrt_test --bmodel models/BM1684X/feartracker_fp32_1b.bmodel
 
 | 测试平台 |                    测试模型                    | calculate time(ms) |
 | -------- | --------------------------------------------- | ------------------ |
-| SE13-64  | BM1684X2/feartracker_fp16_1b.bmodel           |        0.82        |
+| SE13-64  | CV84X6/feartracker_fp16_1b.bmodel           |        0.82        |
 
 ### 7.2 程序运行性能
 参考[Python例程](python/README.md)运行程序，并查看统计的推理时间。
@@ -113,7 +113,7 @@ bmrt_test --bmodel models/BM1684X/feartracker_fp32_1b.bmodel
 |    测试平台  |     测试程序      |             测试模型                     |  帧率   | 平均推理时间(ms) |
 | ----------- | ---------------- | --------------------------------------- | ------- | ---------------- |
 |   SE9-16    | fear_tracker.py  | BM1688/feartracker_bm1688_fp16_1b.bmodel|   64    |      15.5        |
-|   SE13-64   | fear_tracker.py  | BM1684X2/feartracker_fp16_1b.bmodel     |   99    |      10.1        |
+|   SE13-64   | fear_tracker.py  | CV84X6/feartracker_fp16_1b.bmodel     |   99    |      10.1        |
 
 > **测试说明**：
 > 1. 测试视频：661帧，分辨率 640x360；
@@ -121,7 +121,7 @@ bmrt_test --bmodel models/BM1684X/feartracker_fp32_1b.bmodel
 > 3. 模板图像仅在首帧预处理一次，后续帧复用模板图像，不计入后续帧的推理时间；
 > 4. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 5. SE9-16的主控处理器为8核CA55@1.6GHz，BM1688 TPU；
-> 6. SE13-64的主控处理器为8核CA53@1.6GHz，BM1684X2 TPU；SE13系列对应BM1684X2。
+> 6. SE13-64的主控处理器为8核CA53@1.6GHz，CV84X6 TPU；SE13系列对应CV84X6。
 
 ## 8. FAQ
 1. **推理结果与参考模型不一致**: 可检查初始边界框是否一致，以及模型是否使用相同的配置参数（template_size=128, instance_size=256, score_size=16）。

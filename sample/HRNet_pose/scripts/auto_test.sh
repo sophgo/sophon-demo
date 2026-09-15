@@ -15,7 +15,7 @@ CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684X|BM1688|CV186X|BM1684X2] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684X|BM1688|CV186X|CV84X6] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
 }
 
 
@@ -72,7 +72,7 @@ if test $MODE = "soc_test"; then
     fi
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
@@ -118,9 +118,9 @@ function bmrt_test_benchmark(){
       bmrt_test_case CV186X/hrnet_w32_256x192_f32.bmodel
       bmrt_test_case CV186X/hrnet_w32_256x192_f16.bmodel
       bmrt_test_case CV186X/hrnet_w32_256x192_int8.bmodel
-    elif test $TARGET = "BM1684X2"; then
-      bmrt_test_case BM1684X2/hrnet_w32_256x192_f16.bmodel
-      bmrt_test_case BM1684X2/hrnet_w32_256x192_int8.bmodel
+    elif test $TARGET = "CV84X6"; then
+      bmrt_test_case CV84X6/hrnet_w32_256x192_f16.bmodel
+      bmrt_test_case CV84X6/hrnet_w32_256x192_int8.bmodel
     fi
   
     popd
@@ -485,8 +485,8 @@ elif test $MODE = "soc_test"; then
       echo "unknown CASE_MODE: $CASE_MODE"
     fi  # end partly and fully
 
-  elif [ "$TARGET" = "BM1684X2" ]; then
-    # BM1684X2(SE13-64)当前固件不支持FP32，只测试FP16/INT8
+  elif [ "$TARGET" = "CV84X6" ]; then
+    # CV84X6(SE13-64)当前固件不支持FP32，只测试FP16/INT8
     if test $CASE_MODE = "fully"; then
       # test video
       test_python opencv hrnet_w32_256x192_f16.bmodel ../datasets/test_pose_estimation.mp4
@@ -511,7 +511,7 @@ elif test $MODE = "soc_test"; then
       echo "unknown CASE_MODE: $CASE_MODE"
     fi  # end fully/partly
 
-  fi  # end BM1684X,BM1688,CV186X,BM1684X2
+  fi  # end BM1684X,BM1688,CV186X,CV84X6
 fi # end MODE
 
 if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then

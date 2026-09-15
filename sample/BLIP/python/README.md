@@ -106,11 +106,11 @@ python3 python/blip_vqa.py --image_path datasets/test/demo.jpg --venc_bmodel_pat
 ```
 程序运行后，会提示输入问题，可以输入"where is the woman", "what are they doing", "what's the color of the clothes"来测试，输入exit退出，程序运行结束后，会在命令行中打印信息，输出图片预处理以及推理的时间
 
-BM1684X2平台使用FP16 BModel（当前固件不支持FP32），测试实例如下：
+CV84X6平台使用FP16 BModel（当前固件不支持FP32），测试实例如下：
 ```bash
-python3 python/blip_cap.py --image_path datasets/test --bmodel_path models/BM1684X2/blip_cap_bm1684x2_f16_1b.bmodel --tokenizer_path models/bert-base-uncased --dev_id 0
-python3 python/blip_itm.py --image_path datasets/test/demo.jpg --text "a woman sitting on the beach with a dog" "a woman sitting on the beach with a cat" --bmodel_path models/BM1684X2/blip_itm_bm1684x2_f16_1b.bmodel --tokenizer_path models/bert-base-uncased --dev_id 0
-python3 python/blip_vqa.py --image_path datasets/test/demo.jpg --venc_bmodel_path models/BM1684X2/blip_vqa_venc_bm1684x2_f16_1b.bmodel --tenc_bmodel_path models/BM1684X2/blip_vqa_tenc_bm1684x2_f16_1b.bmodel --tdec_bmodel_path models/BM1684X2/blip_vqa_tdec_bm1684x2_f16_1b.bmodel --tokenizer_path models/bert-base-uncased --dev_id 0
+python3 python/blip_cap.py --image_path datasets/test --bmodel_path models/CV84X6/blip_cap_cv84x6_f16_1b.bmodel --tokenizer_path models/bert-base-uncased --dev_id 0
+python3 python/blip_itm.py --image_path datasets/test/demo.jpg --text "a woman sitting on the beach with a dog" "a woman sitting on the beach with a cat" --bmodel_path models/CV84X6/blip_itm_cv84x6_f16_1b.bmodel --tokenizer_path models/bert-base-uncased --dev_id 0
+python3 python/blip_vqa.py --image_path datasets/test/demo.jpg --venc_bmodel_path models/CV84X6/blip_vqa_venc_cv84x6_f16_1b.bmodel --tenc_bmodel_path models/CV84X6/blip_vqa_tenc_cv84x6_f16_1b.bmodel --tdec_bmodel_path models/CV84X6/blip_vqa_tdec_cv84x6_f16_1b.bmodel --tokenizer_path models/bert-base-uncased --dev_id 0
 ```
 
 > **注意：** BLIP的vqa/cap解码依赖逐步贪心解码的argmax，FP16精度下部分问题的答案可能与FP32有差异（如"where is the woman"），itm匹配结果不受影响；对答案精度要求高时建议在支持FP32的平台上运行。

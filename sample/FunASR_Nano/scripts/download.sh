@@ -59,17 +59,17 @@ else
 fi
 
 # -------------------------------------------------------------------
-# 2b. BModel (BM1684X2 F16, only F16 — firmware does not support FP32)
+# 2b. BModel (CV84X6 F16, only F16 — firmware does not support FP32)
 # -------------------------------------------------------------------
-if ! ls ../models/BM1684X2/*.bmodel >/dev/null 2>&1; then
+if ! ls ../models/CV84X6/*.bmodel >/dev/null 2>&1; then
     mkdir -p ../models
-    echo "Downloading BM1684X2 F16 bmodels..."
-    python3 -m dfss --url=open@sophgo.com:sophon-demo/FunASR_Nano/BM1684X2_F16.tar.gz
-    tar xzf BM1684X2_F16.tar.gz -C ../models/
-    rm BM1684X2_F16.tar.gz
-    echo "BM1684X2 bmodels download OK!"
+    echo "Downloading CV84X6 F16 bmodels..."
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/FunASR_Nano/CV84X6_F16.tar.gz
+    tar xzf CV84X6_F16.tar.gz -C ../models/
+    rm CV84X6_F16.tar.gz
+    echo "CV84X6 bmodels download OK!"
 else
-    echo "BM1684X2 bmodels exist! Remove them if you need to update."
+    echo "CV84X6 bmodels exist! Remove them if you need to update."
 fi
 
 # -------------------------------------------------------------------

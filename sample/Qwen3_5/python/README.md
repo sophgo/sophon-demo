@@ -54,7 +54,7 @@ python3 -m dfss --install sail
 
   如果您使用BM1688的SoC平台（如SE9、SM9系列边缘设备），并使用它测试本例程，请使用**SDK V2.2及其以上版本**对应的刷机包进行刷机，刷机成功后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
-- BM1684X2（如SE13-64）使用出厂预装的运行库即可（实测环境：libsophon-0.4.13、sophon-sail 3.11.0），sophon-sail的安装方式见下文`python3 -m dfss --install sail`。
+- CV84X6（如SE13-64）使用出厂预装的运行库即可（实测环境：libsophon-0.4.13、sophon-sail 3.11.0），sophon-sail的安装方式见下文`python3 -m dfss --install sail`。
 
 
 - 此外您可能还需要安装其他库：

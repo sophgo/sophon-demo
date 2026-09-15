@@ -4,7 +4,7 @@ scripts_dir=$(dirname $(readlink -f "$0"))
 download_bm1684x=0
 download_bm1688=0
 download_cv186x=0
-download_bm1684x2=0
+download_cv84x6=0
 download_onnx=0
 download_ckpt=0
 
@@ -24,8 +24,8 @@ while [[ $# -gt 0 ]]; do
             download_cv186x=1
             shift 1
             ;;
-        --BM1684X2)
-            download_bm1684x2=1
+        --CV84X6)
+            download_cv84x6=1
             shift 1
             ;;
         --onnx)
@@ -40,7 +40,7 @@ while [[ $# -gt 0 ]]; do
             download_bm1684x=1
             download_bm1688=1
             download_cv186x=1
-            download_bm1684x2=1
+            download_cv84x6=1
             download_onnx=1
             download_ckpt=1
             shift 1
@@ -100,15 +100,15 @@ else
     echo "models/BM1688 folder exist! Remove it if you need to update."
 fi
 
-if [ ! -d "../models/BM1684X2" ]; 
+if [ ! -d "../models/CV84X6" ]; 
 then
-    if [ $download_bm1684x2 == 1 ]; then
-        python3 -m dfss --url=open@sophgo.com:sophon-demo/FearTracker/models/BM1684X2.tar.gz
-        tar xvf BM1684X2.tar.gz && rm BM1684X2.tar.gz
-        echo "models/BM1684X2 download!"
+    if [ $download_cv84x6 == 1 ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/FearTracker/models/CV84X6.tar.gz
+        tar xvf CV84X6.tar.gz && rm CV84X6.tar.gz
+        echo "models/CV84X6 download!"
     fi
 else
-    echo "models/BM1684X2 folder exist! Remove it if you need to update."
+    echo "models/CV84X6 folder exist! Remove it if you need to update."
 fi
 
 if [ ! -d "../models/onnx" ]; 

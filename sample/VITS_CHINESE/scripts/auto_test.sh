@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_test] [ -t TARGET BM1684X|BM1684X2|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_test] [ -t TARGET BM1684X|CV84X6|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -56,7 +56,7 @@ PLATFORM=$TARGET
 if test $MODE = "soc_test"; then
   if test $TARGET = "BM1684X"; then
     PLATFORM="SE7-32"
-  elif test $TARGET = "BM1684X2"; then
+  elif test $TARGET = "CV84X6"; then
     PLATFORM="SE13-64"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
@@ -100,9 +100,9 @@ function bmrt_test_benchmark(){
     elif test $TARGET = "CV186X"; then
       bmrt_test_case CV186X/bert_f16_1core.bmodel
       bmrt_test_case CV186X/vits_chinese_f16.bmodel
-    elif test $TARGET = "BM1684X2"; then
-      bmrt_test_case BM1684X2/bert_f16_1core.bmodel
-      bmrt_test_case BM1684X2/vits_chinese_f16.bmodel
+    elif test $TARGET = "CV84X6"; then
+      bmrt_test_case CV84X6/bert_f16_1core.bmodel
+      bmrt_test_case CV84X6/vits_chinese_f16.bmodel
     fi
   
     popd
@@ -196,9 +196,9 @@ then
   elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
   then
     test_python bert_f16_1core.bmodel vits_chinese_f16.bmodel datasets/vits_infer_item.txt
-  elif [ "$TARGET" = "BM1684X2" ]
+  elif [ "$TARGET" = "CV84X6" ]
   then
-    # BM1684X2(SE13-64) SoC，仅FP16。C++ vits_infer_bmnn.soc 依赖 bmrt+libsophon，84x2 wevb SDK 可提供；
+    # CV84X6(SE13-64) SoC，仅FP16。C++ vits_infer_bmnn.soc 依赖 bmrt+libsophon，84x2 wevb SDK 可提供；
     # 但 auto_test 仅测 Python（与 BM1688/CV186X 一致），C++ 例程参考 cpp/README.md。
     test_python bert_f16_1core.bmodel vits_chinese_f16.bmodel datasets/vits_infer_item.txt
   fi

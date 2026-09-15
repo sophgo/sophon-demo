@@ -18,7 +18,7 @@
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
-本例程对[torchvision Resnet](https://pytorch.org/vision/stable/models.html)的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\BM1684X2\BM1688\CV186X上进行推理测试。
+本例程对[torchvision Resnet](https://pytorch.org/vision/stable/models.html)的模型和算法进行移植，使之能在SOPHON BM1684\BM1684X\CV84X6\BM1688\CV186X上进行推理测试。
 
 **论文:** [Resnet论文](https://arxiv.org/abs/1512.03385)
 
@@ -27,8 +27,8 @@
 在此非常感谢Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun等人的贡献。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684X2(SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1688/BM1684X/BM1684X2/CV186X)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、CV84X6(SoC)、BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持FP32、FP16(BM1688/BM1684X/CV84X6/CV186X)、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -72,10 +72,10 @@ chmod +x ./scripts/*
 │   ├── resnet50_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
 │   ├── resnet50_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
 │   └── resnet50_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=4
-├── BM1684X2
-│   ├── resnet50_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的FP16 BModel，batch_size=1
-│   ├── resnet50_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=1
-│   └── resnet50_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X2的INT8 BModel，batch_size=4
+├── CV84X6
+│   ├── resnet50_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   ├── resnet50_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
+│   └── resnet50_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=4
 ├── torch
 │   ├── resnet50-11ad3fa6.pth                         # 原始模型
 │   └── resnet50-11ad3fa6.torchscript.pt              # trace后的torchscript模型
@@ -101,7 +101,7 @@ chmod +x ./scripts/*
 
 - 生成FP32 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**；BM1684X2当前固件codegen不支持FP32，请改用FP16/INT8），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**；CV84X6当前固件codegen不支持FP32，请改用FP16/INT8），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
@@ -111,20 +111,20 @@ chmod +x ./scripts/*
 
 - 生成FP16 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1684X2/BM1688/CV186X**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/CV84X6/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x2/bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #cv84x6/bm1688/cv186x
 ```
 
 执行上述命令会在`models/BM1684X/`等文件夹下生成`resnet50_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1684X2/BM1688/CV186X**），如：
+本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/CV84X6/BM1688/CV186X**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1684x2/bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/cv84x6/bm1688/cv186x
 ```
 
 上述脚本会在`models/BM1684`等文件夹下生成`resnet50_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
@@ -253,8 +253,8 @@ python3 tools/eval_imagenet.py --gt_path datasets/imagenet_val_1k/label.txt --re
 
 > **测试说明**：  
 > 1. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
-> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应BM1684X2；
-> 3. SE13-64（BM1684X2）的硬件 JPEG 解码器（`/dev/soph_vc_dec`）在 libsophon 0.4.13 已修复：早期固件硬件解码输出像素失真，导致走硬件解码的例程（bmcv 系列及 opencv.soc）精度比软件解码低约 11%，且 `resnet_bmcv.py` + `resnet50_int8_4b.bmodel` 会 `bmcv_image_copy_to err=9`；修复后硬件解码路径精度与软件解码一致（均 ~80%），`int8_4b` 亦可正常运行。`resnet_bmcv.py` 因需 root 权限访问解码器，运行时需 sudo。
+> 2. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应CV84X6；
+> 3. SE13-64（CV84X6）的硬件 JPEG 解码器（`/dev/soph_vc_dec`）在 libsophon 0.4.13 已修复：早期固件硬件解码输出像素失真，导致走硬件解码的例程（bmcv 系列及 opencv.soc）精度比软件解码低约 11%，且 `resnet_bmcv.py` + `resnet50_int8_4b.bmodel` 会 `bmcv_image_copy_to err=9`；修复后硬件解码路径精度与软件解码一致（均 ~80%），`int8_4b` 亦可正常运行。`resnet_bmcv.py` 因需 root 权限访问解码器，运行时需 sudo。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -287,9 +287,9 @@ bmrt_test --bmodel models/BM1684/resnet50_fp32_1b.bmodel
 | SE9-8           | CV186X/resnet50_fp16_1b.bmodel     |           6.94  |
 | SE9-8           | CV186X/resnet50_int8_1b.bmodel     |           2.47  |
 | SE9-8           | CV186X/resnet50_int8_4b.bmodel     |           1.84  |
-|   SE13-64   | BM1684X2/resnet50_fp16_1b.bmodel    |           3.19  |
-|   SE13-64   | BM1684X2/resnet50_int8_1b.bmodel    |           1.52  |
-|   SE13-64   | BM1684X2/resnet50_int8_4b.bmodel    |           1.14  |
+|   SE13-64   | CV84X6/resnet50_fp16_1b.bmodel    |           3.19  |
+|   SE13-64   | CV84X6/resnet50_int8_1b.bmodel    |           1.52  |
+|   SE13-64   | CV84X6/resnet50_int8_4b.bmodel    |           1.14  |
 
 
 > **测试说明**：  

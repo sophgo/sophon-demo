@@ -20,9 +20,9 @@ if [ ! $1 ]; then
 else
     target=${1^^}
 
-    if [[ $target != "BM1684" && $target != "BM1684X" && $target != "BM1684X2" && $target != "BM1688" ]]
+    if [[ $target != "BM1684" && $target != "BM1684X" && $target != "CV84X6" && $target != "BM1688" ]]
         then
-        echo "Only support BM1684, BM1684X, BM1684X2, BM1688"
+        echo "Only support BM1684, BM1684X, CV84X6, BM1688"
         exit
     fi
 
@@ -31,9 +31,9 @@ fi
 function download_target()
 {
     name=("cap" "itm" "vqa_venc" "vqa_tenc" "vqa_tdec")
-    if [[ $1 == "BM1684X2" ]]
+    if [[ $1 == "CV84X6" ]]
     then
-        # BM1684X2 uses fp16 bmodels
+        # CV84X6 uses fp16 bmodels
         for str in "${name[@]}"; do
             python3 -m dfss --url=open@sophgo.com:sophon-demo/BLIP/blip_${str}_${1,,}_f16_1b.bmodel
         done
@@ -55,7 +55,7 @@ then
     rm bert-base-uncased.zip
     if [ "$target" = "all" ];
     then
-        for target in BM1684 BM1684X BM1684X2 BM1688
+        for target in BM1684 BM1684X CV84X6 BM1688
         do
             download_target $target
         done
