@@ -1,0 +1,282 @@
+{
+  "model_name": "pi0_5",
+  "display_name": "π0.5 (pi05_libero)",
+  "source": "https://github.com/Physical-Intelligence/openpi",
+  "vendor": "Physical Intelligence",
+  "framework": "jax",
+  "framework_note": "官方权重为 JAX/Orbax (ocdbt) 格式，需经 openpi 官方脚本 convert_jax_model_to_pytorch.py 转为 PyTorch 后再导出 ONNX",
+  "algorithm": "vision_language_action",
+  "algorithm_note": "VLA 策略模型：观测(图像+语言) -> 连续动作轨迹。不属于分类/检测等既有算法类别。",
+  "architecture": "cascaded_multi_model",
+  "sub_models": 6,
+  "sub_model_list": [
+    {
+      "name": "pi05_siglip",
+      "role": "视觉编码器 (SigLIP So400m/14)",
+      "layers": null
+    },
+    {
+      "name": "pi05_dkv0_9",
+      "role": "主干 dual-path KV 前向 第 0-8 层",
+      "layers": [
+        0,
+        8
+      ]
+    },
+    {
+      "name": "pi05_dkv9_18",
+      "role": "主干 dual-path KV 前向 第 9-17 层",
+      "layers": [
+        9,
+        17
+      ]
+    },
+    {
+      "name": "pi05_ddn0_6",
+      "role": "动作专家去噪 第 0-5 层",
+      "layers": [
+        0,
+        5
+      ]
+    },
+    {
+      "name": "pi05_ddn6_12",
+      "role": "动作专家去噪 第 6-11 层",
+      "layers": [
+        6,
+        11
+      ]
+    },
+    {
+      "name": "pi05_ddn12_18",
+      "role": "动作专家去噪 第 12-17 层 + 动作头",
+      "layers": [
+        12,
+        17
+      ]
+    }
+  ],
+  "split_rationale": "主干与动作专家均为 18 层，单图在 W8BF16/BF16 下编译失败（OOM / 编译器崩溃），故按 9 层与 6 层切分。切分点是编译期约束，不改变数学语义。",
+  "inputs": [
+    {
+      "name": "images",
+      "sub_model": "pi05_siglip",
+      "shape": [
+        2,
+        3,
+        224,
+        224
+      ],
+      "dtype": "float32",
+      "channel_order": "RGB",
+      "dynamic_axes": [],
+      "note": "batch 维固定为 2 = 主视角(agentview) + 腕部(wrist) 两张图，非 2 个样本。输入值域 [-1,1]（rgb/127.5-1.0）。"
+    },
+    {
+      "name": "prefix_embs",
+      "sub_model": "pi05_dkv0_9 / pi05_dkv9_18",
+      "shape": [
+        1,
+        536,
+        2048
+      ],
+      "dtype": "float32",
+      "dynamic_axes": [],
+      "note": "视觉特征 + 语言 token 嵌入拼接后的前缀。"
+    },
+    {
+      "name": "p_amask",
+      "sub_model": "pi05_dkv0_9 / pi05_dkv9_18",
+      "shape": [
+        1,
+        1,
+        536,
+        536
+      ],
+      "dtype": "float32",
+      "dynamic_axes": [],
+      "note": "前缀注意力掩码；被屏蔽位置为 -10000。"
+    },
+    {
+      "name": "p_cos / p_sin",
+      "sub_model": "pi05_dkv0_9 / pi05_dkv9_18",
+      "shape": [
+        1,
+        536,
+        256
+      ],
+      "dtype": "float32",
+      "dynamic_axes": [],
+      "note": "前缀 RoPE 的 cos / sin。"
+    },
+    {
+      "name": "suffix_in",
+      "sub_model": "pi05_ddn0_6 / pi05_ddn6_12 / pi05_ddn12_18",
+      "shape": [
+        1,
+        10,
+        32
+      ],
+      "dtype": "float32",
+      "dynamic_axes": [],
+      "note": "当前去噪步的动作隐变量。段 0-5 为 32 维；段 6-11 / 12-17 为 1024 维。"
+    },
+    {
+      "name": "time",
+      "sub_model": "pi05_ddn0_6 / pi05_ddn6_12 / pi05_ddn12_18",
+      "shape": [
+        1
+      ],
+      "dtype": "float32",
+      "dynamic_axes": [],
+      "note": "flow-matching 当前时间步。"
+    },
+    {
+      "name": "f4d",
+      "sub_model": "pi05_ddn0_6 / pi05_ddn6_12 / pi05_ddn12_18",
+      "shape": [
+        1,
+        1,
+        10,
+        546
+      ],
+      "dtype": "float32",
+      "dynamic_axes": [],
+      "note": "suffix 注意力掩码；546 = 536 prefix + 10 suffix。"
+    },
+    {
+      "name": "s_cos / s_sin",
+      "sub_model": "pi05_ddn0_6 / pi05_ddn6_12 / pi05_ddn12_18",
+      "shape": [
+        1,
+        10,
+        256
+      ],
+      "dtype": "float32",
+      "dynamic_axes": [],
+      "note": "suffix RoPE 的 cos / sin。"
+    },
+    {
+      "name": "kv_*",
+      "sub_model": "pi05_ddn0_6 / pi05_ddn6_12 / pi05_ddn12_18",
+      "shape": [
+        1,
+        1,
+        536,
+        256
+      ],
+      "dtype": "float32",
+      "dynamic_axes": [],
+      "note": "12 个 KV 张量（本段负责的 6 层 × K/V），由 dkv 段产出并常驻设备。"
+    }
+  ],
+  "output": [
+    {
+      "name": "image_features",
+      "sub_model": "pi05_siglip",
+      "shape": [
+        2,
+        256,
+        2048
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "p_k* / p_v*",
+      "sub_model": "pi05_dkv0_9",
+      "shape": [
+        1,
+        1,
+        536,
+        256
+      ],
+      "dtype": "float32",
+      "count": 18
+    },
+    {
+      "name": "p_hidden",
+      "sub_model": "pi05_dkv0_9",
+      "shape": [
+        1,
+        536,
+        2048
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "p_k* / p_v*",
+      "sub_model": "pi05_dkv9_18",
+      "shape": [
+        1,
+        1,
+        536,
+        256
+      ],
+      "dtype": "float32",
+      "count": 18
+    },
+    {
+      "name": "suffix_out",
+      "sub_model": "pi05_ddn0_6 / pi05_ddn6_12",
+      "shape": [
+        1,
+        10,
+        1024
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "v_t",
+      "sub_model": "pi05_ddn12_18",
+      "shape": [
+        1,
+        10,
+        32
+      ],
+      "dtype": "float32"
+    }
+  ],
+  "preprocess": {
+    "images": "rotate180 -> resize_with_pad(224, BILINEAR) -> uint8 -> rgb/127.5 - 1.0 -> float32 CHW [-1,1]",
+    "language": "PaliGemma tokenizer -> embed -> ×sqrt(hidden_dim) -> 与视觉特征拼接；本 sample 直接使用预计算的 per-task 前缀资产",
+    "postprocess": "分位数仿射反归一化 action = x*(q99-q01)/2 + (q01+q99)/2，取前 7 维"
+  },
+  "ops": [
+    "Conv2d",
+    "MatMul",
+    "LayerNorm",
+    "RMSNorm",
+    "GELU",
+    "SiLU",
+    "MultiHeadAttention (dual-path shared attention)",
+    "RoPE (外部预计算 cos/sin)",
+    "Add",
+    "Mul",
+    "Softmax",
+    "Slice",
+    "Concat",
+    "Reshape",
+    "Transpose"
+  ],
+  "precision_matrix": {
+    "siglip": [
+      "W8BF16"
+    ],
+    "dkv": [
+      "W8BF16"
+    ],
+    "ddn": [
+      "BF16"
+    ],
+    "excluded": {
+      "F32": "3.3B 参数全 F32 约 13 GB，超出 SE7 的 16 GB 可用内存",
+      "INT8": "连续动作对激活量化敏感；实测 W4 档偏差 5.7%~13.4%，远超验收线 cos >= 0.99997",
+      "FP8/FP4": "BM1684X 无 FP4/FP8 计算单元，实测无加速"
+    }
+  },
+  "target_chip": "bm1684x",
+  "target_arch": "soc",
+  "ref_sample": "sample/SuperGlue",
+  "ref_sample_reason": "同为多子模型（superpoint + superglue）串联的 C++ 例程，且精度指标非 Top-1/mAP 类，报告格式可直接对标",
+  "stateful_note": "pi05_dkv* 的输出 KV 在设备常驻，跨帧复用；这是有状态推理，非单次前向。仓库内先例见 sample/Qwen3_5 的 prefix KV cache 例程。"
+}

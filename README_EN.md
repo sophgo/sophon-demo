@@ -113,6 +113,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [Phi4mm](./sample/Phi4mm/README.md)                           | Multimodal Large Language Model    | Python     | INT4           | BM1684X/BM1688              |
 | [VITA1_5](./sample/VITA1_5/README.md)                         | Multimodal Large Language Model    | Python     | INT4           | BM1684X/BM1688              |
 | [Qwen3.5](./sample/Qwen3_5/README.md)                         | Multimodal Large Language Model    | Python     | INT4            | BM1684X/BM1688             |
+| [Pi0.5](./sample/Pi0_5/README.md)                             | Vision-Language-Action (VLA)       | C++        | W8BF16/BF16     | BM1684X                     |
 | [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | Super Resolution                   | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [P2PNet](./sample/P2PNet/README.md)                           | Crowd Counting                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [CLIP](./sample/CLIP/README.md)                               | Image Captioning                   | C++/Python | FP16/INT8      | BM1684X/BM1688/CV186X        |
