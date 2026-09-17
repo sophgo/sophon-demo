@@ -40,6 +40,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [SCRFD](./sample/SCRFD/README.md)                             | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
 | [ArcFace](./sample/ArcFace/README.md)                       | Face Recognition                  | C++/Python | FP32/FP16/INT8 | BM1684X                      |
 | [segformer](./sample/segformer/README.md)                     | Semantic Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [YOLO26_sem](./sample/YOLO26_sem/README.md)                   | Semantic Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
 | [SAM](./sample/SAM/README.md)                                 | Semantic Segmentation              | Python     | FP32/FP16/INT8 | BM1684X                      |
 | [SAM2](./sample/SAM2/README.md)                               | Semantic Segmentation              | Python     | FP32/FP16/INT8 | BM1684X/BM1688               |
 | [Unet](./sample/Unet/README.md)                             | Semantic Segmentation              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
@@ -145,6 +146,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.3.12 | Fix documentation and other issues. Release new sample YOLO26_sem. |
 | 0.3.11 | Fix documentation and other issues. Release new samples ArcFace/FearTracker/MobileNetV4/SeACoParaformer/Silero/Unet/YOLO_world_v2, new application meeting_summary. Some samples add int8 bmodel. |
 | 0.3.10 | Fix documentation and other issues. Remove FCENet sample. Add C++ inference for VITS_CHINESE. Release new sample LFM2-VL. |
 | 0.3.9  | Fix documentation and other issues. Release new samples YOLO26/YOLO26_seg/YOLO26_obb/PaddleOCR-VL. |
