@@ -12,6 +12,9 @@ else
         echo "bm1684 do not support fp16"
         exit
     fi
+    if test $target = "bm1684x2"; then
+        target_dir=CV84X6
+    fi
 fi
 
 outdir=../models/$target_dir

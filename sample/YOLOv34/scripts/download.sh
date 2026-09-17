@@ -33,6 +33,8 @@ then
     tar xvf BM1684X.tar.gz && rm BM1684X.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv34/models/BM1688.tar.gz
     tar xvf BM1688.tar.gz && rm BM1688.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv34/models/CV84X6.tar.gz
+    tar xvf CV84X6.tar.gz && rm CV84X6.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv34/models/onnx.tar.gz
     tar xvf onnx.tar.gz && rm onnx.tar.gz
     popd

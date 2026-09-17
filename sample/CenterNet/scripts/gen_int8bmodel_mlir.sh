@@ -8,6 +8,9 @@ if [ ! $1 ]; then
 else
     target=${1,,}
     target_dir=${target^^}
+    if test $target = "bm1684x2"; then
+        target_dir=CV84X6
+    fi
 fi
 
 outdir=../models/$target_dir

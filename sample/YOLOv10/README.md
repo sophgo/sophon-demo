@@ -14,15 +14,15 @@
     - [6.2 测试结果](#62-测试结果)
   - [7. 性能测试](#7-性能测试)
     - [7.1 bmrt\_test](#71-bmrt_test)
-    - [7.2 程序运行性能(待测)](#72-程序运行性能待测)
+    - [7.2 程序运行性能](#72-程序运行性能)
   - [8. FAQ](#8-faq)
   
 ## 1. 简介
 ​YOLOv10引入了一种新的实时目标检测方法，解决了YOLO 以前版本在后处理和模型架构方面的不足。通过消除非最大抑制（NMS）和优化各种模型组件，YOLOv10 在显著降低计算开销的同时实现了最先进的性能。本例程对[​YOLOv10官方开源仓库](https://github.com/THU-MIG/yolov10)的模型和算法进行移植，使之能在SOPHON BM1684X/BM1688/CV186X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、CV84X6(SoC)
+* 支持FP32、FP16(BM1684X/BM1688/CV186X/CV84X6)、INT8模型编译和推理（CV84X6 仅 FP16/INT8，固件不支持 FP32）
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -65,6 +65,10 @@ chmod -R +x scripts/
 │   ├── yolov10s_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，batch_size=1
 │   ├── yolov10s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=1
 │   └── yolov10s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，batch_size=4
+├── CV84X6
+│   ├── yolov10s_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   ├── yolov10s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
+│   └── yolov10s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=4
 └── onnx
     ├── yolov10s.onnx      # 导出的动态opt onnx模型
     ├── yolov10s_qtable_mix       # TPU-MLIR编译时，用于BM1684X/BM1688的INT8 BModel混合精度量化
@@ -88,30 +92,30 @@ chmod -R +x scripts/
 模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)中1、2、3(3)步骤。安装好后需在TPU-MLIR环境中进入例程目录。使用TPU-MLIR将onnx模型编译为BModel，具体方法可参考《TPU-MLIR快速入门手册》的“3. 编译ONNX模型”(请从[算能官网](https://developer.sophgo.com/site/index/material/31/all.html)相应版本的SDK中获取)。
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X/CV84X6**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x
+./scripts/gen_fp32bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x/bm1684x2
 ```
 
 ​执行上述命令会在`models/BM1684X`下生成`yolov10s_fp32_1b.bmodel`和`yolov10s_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X/CV84X6**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x/bm1684x2
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`yolov10s_fp16_1b.bmodel`和`yolov10s_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684X/BM1688/CV186X/CV84X6**），如：
 
 ```bash
-./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x/bm1684x2
 ```
 
 ​执行上述命令会在`models/BM1684X`下生成`yolov10s_int8_1b.bmodel`和`yolov10s_int8_1b.bmodel`等文件，即转换好的INT8 BModel。量化模型出现问题可以参考：[Calibration_Guide](../../docs/Calibration_Guide.md)。
@@ -216,13 +220,17 @@ bmrt_test --bmodel models/BM1684X/yolov10s_fp32_1b.bmodel
 |   SE9-8    | CV186X/yolov10s_fp16_1b.bmodel  | 35.65              |
 |   SE9-8    | CV186X/yolov10s_int8_1b.bmodel  | 10.25              |
 |   SE9-8    | CV186X/yolov10s_int8_4b.bmodel  | 9.15               |
+|   SE13-64  | CV84X6/yolov10s_fp16_1b.bmodel | 16.31              |
+|   SE13-64  | CV84X6/yolov10s_int8_1b.bmodel | 11.09              |
+|   SE13-64  | CV84X6/yolov10s_int8_4b.bmodel | 10.06              |
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
 2. `calculate time`已折算为平均每张图片的推理时间；
 3. SoC和PCIe的测试结果基本一致。
+4. SE13-64(CV84X6)的TPU与SE7-32(BM1684X)架构相同，但板端主频/带宽不同，bmrt_test性能为SE13-64实测值。
 
 
-### 7.2 程序运行性能(待测)
+### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/val2017_1000`，conf_thresh=0.001，性能测试结果如下：
@@ -276,12 +284,19 @@ bmrt_test --bmodel models/BM1684X/yolov10s_fp32_1b.bmodel
 | SRM1-20  | yolov10_bmcv.pcie | yolov10s_fp16_1b.bmodel | 22.93       | 1.30            | 9.45           | 0.58             |
 | SRM1-20  | yolov10_bmcv.pcie | yolov10s_int8_1b.bmodel | 22.86       | 1.29            | 6.52           | 0.58             |
 | SRM1-20  | yolov10_bmcv.pcie | yolov10s_int8_4b.bmodel | 22.84       | 1.07            | 4.43           | 0.26             |
+| SE13-64  | yolov10_opencv.py | CV84X6/yolov10s_fp16_1b.bmodel | 2.95        | 26.64           | 16.86          | 0.82             |
+| SE13-64  | yolov10_opencv.py | CV84X6/yolov10s_int8_1b.bmodel | 2.95        | 26.55           | 11.67          | 0.85             |
+| SE13-64  | yolov10_opencv.py | CV84X6/yolov10s_int8_4b.bmodel | 2.89        | 25.42           | 10.59          | 0.62             |
+| SE13-64  | yolov10_bmcv.py   | CV84X6/yolov10s_fp16_1b.bmodel | 2.38        | 2.36            | 15.27          | 0.61             |
+| SE13-64  | yolov10_bmcv.py   | CV84X6/yolov10s_int8_1b.bmodel | 2.38        | 2.38            | 10.06          | 0.62             |
+| SE13-64  | yolov10_bmcv.py   | CV84X6/yolov10s_int8_4b.bmodel | 2.30        | 2.30            | 9.39           | 0.56             |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 5. SE13-64 对应 CV84X6，TPU 与 SE7-32（BM1684X）架构相同但板端主频/带宽不同，上表 SE13-64 行为板端实测值。 
 
 
 ## 8. FAQ

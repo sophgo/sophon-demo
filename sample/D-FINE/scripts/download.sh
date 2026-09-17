@@ -35,6 +35,8 @@ then
     tar xvf BM1688.tar.gz && rm BM1688.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/D-FINE/models/CV186X.tar.gz
     tar xvf CV186X.tar.gz && rm CV186X.tar.gz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/D-FINE/models/D-FINE_CV84X6.tar.gz
+    tar xvf D-FINE_CV84X6.tar.gz && rm D-FINE_CV84X6.tar.gz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/D-FINE/models/onnx.tar.gz
     tar xvf onnx.tar.gz && rm onnx.tar.gz
     popd

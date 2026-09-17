@@ -44,6 +44,8 @@ then
     tar xvf BM1688.tgz
     python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYOLOv3/models_20240416/CV186X.tgz
     tar xvf CV186X.tgz
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ppYOLOv3/CV84X6.tar.gz
+    tar xvf CV84X6.tar.gz && rm CV84X6.tar.gz
     rm -r *.tgz
     mkdir onnx
     pushd onnx

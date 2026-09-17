@@ -26,8 +26,8 @@
 
 
 ## 2. 特性
-* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)、CV84X6(SoC)
+* 支持FP32、FP16(BM1684X/BM1688)、INT8模型编译和推理；CV84X6支持FP16/INT8（固件不支持FP32）
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -86,6 +86,12 @@ chmod -R +x scripts/
 │   ├── yolov4_fp16_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1, num_core=2
 │   ├── yolov4_int8_1b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1, num_core=2
 │   └── yolov4_int8_4b_2core.bmodel # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4, num_core=2
+├── CV84X6
+│   ├── yolov3_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   ├── yolov3_int8_1b.bmodel       # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
+│   ├── yolov3_int8_4b.bmodel       # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=4
+│   ├── yolov4_fp16_1b.bmodel       # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   └── yolov4_int8_1b.bmodel       # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
 └── onnx
     ├── yolov3.onnx             # 导出的yolov3 onnx动态模型       
     ├── yolov4_1b.onnx          # 导出的yolov4 1batch onnx模型  
@@ -129,13 +135,13 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`yolov3_fp16bmodel_mlir.sh`和`yolov4_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
 
 ```bash
-./scripts/yolov3_fp16bmodel_mlir.sh bm1684x #bm1688
+./scripts/yolov3_fp16bmodel_mlir.sh bm1684x #bm1688/bm1684x2
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`yolov3_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
 
 ```bash
-./scripts/yolov4_fp16bmodel_mlir.sh bm1684x #bm1688
+./scripts/yolov4_fp16bmodel_mlir.sh bm1684x #bm1688/bm1684x2
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`yolov4_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
@@ -145,13 +151,13 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`yolov3_int8bmodel_mlir.sh`和`yolov4_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X**），如：
 
 ```shell
-./scripts/yolov3_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/yolov3_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/bm1684x2
 ```
 
 ​上述脚本会在`models/BM1684`下生成`yolov3_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
 
 ```shell
-./scripts/yolov4_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/yolov4_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/bm1684x2
 ```
 
 ​上述脚本会在`models/BM1684`下生成`yolov4_int8_1b.bmodel`等文件，即转换好的INT8 BModel。建议在转换1684 int8 4b模型时,在脚本中model_deploy.py参数中添加qtable，即--quantize_table ../models/yolov4_4b_int8_qtable \。
@@ -275,11 +281,22 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 |   SRM1-20    | yolov34_sail.pcie | yolov4_fp16_1b.bmodel | 0.375         | 0.552    |
 |   SRM1-20    | yolov34_sail.pcie | yolov4_int8_1b.bmodel | 0.310         | 0.522    |
 |   SRM1-20    | yolov34_sail.pcie | yolov4_int8_4b.bmodel | 0.308         | 0.522    |
+| CV84X6 SoC   | yolov34_opencv.py | yolov3_fp16_1b.bmodel | 0.471         | 0.663    |
+| CV84X6 SoC   | yolov34_opencv.py | yolov3_int8_1b.bmodel | 0.445         | 0.656    |
+| CV84X6 SoC   | yolov34_opencv.py | yolov3_int8_4b.bmodel | 0.444         | 0.655    |
+| CV84X6 SoC   | yolov34_bmcv.py   | yolov3_fp16_1b.bmodel | 0.458         | 0.657    |
+| CV84X6 SoC   | yolov34_bmcv.py   | yolov3_int8_1b.bmodel | 0.436         | 0.651    |
+| CV84X6 SoC   | yolov34_bmcv.py   | yolov3_int8_4b.bmodel | 0.435         | 0.650    |
+| CV84X6 SoC   | yolov34_opencv.py | yolov4_fp16_1b.bmodel | 0.381         | 0.557    |
+| CV84X6 SoC   | yolov34_opencv.py | yolov4_int8_1b.bmodel | 0.320         | 0.528    |
+| CV84X6 SoC   | yolov34_bmcv.py   | yolov4_fp16_1b.bmodel | 0.368         | 0.544    |
+| CV84X6 SoC   | yolov34_bmcv.py   | yolov4_int8_1b.bmodel | 0.304         | 0.508    |
 
-> **测试说明**：  
+> **测试说明**：
 > 1. batch_size=4和batch_size=1的模型精度一致；
 > 2. BM1688 1core和BM1688 2core的模型精度基本一致；
 > 3. 由于sdk版本之间可能存在差异，实际运行结果与本表有<1%的精度误差是正常的；
+> 4. CV84X6 与SE7-32(BM1684X)/SRM1-20 TPU架构相同，运行相同bmodel的FP16/INT8精度一致；CV84X6当前固件不支持FP32，仅提供FP16/INT8。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -323,11 +340,17 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 | BM1688/yolov4_fp16_1b_2core.bmodel  | 63.8               |
 | BM1688/yolov4_int8_1b_2core.bmodel  | 15.5               |
 | BM1688/yolov4_int8_4b_2core.bmodel  | 9.4                |
+| CV84X6/yolov3_fp16_1b.bmodel        | 46.26              |
+| CV84X6/yolov3_int8_1b.bmodel        | 21.91              |
+| CV84X6/yolov3_int8_4b.bmodel        | 20.89              |
+| CV84X6/yolov4_fp16_1b.bmodel        | 48.86              |
+| CV84X6/yolov4_int8_1b.bmodel        | 11.72              |
 
-> **测试说明**：  
+> **测试说明**：
 > 1. 性能测试结果具有一定的波动性；
 > 2. `calculate time`已折算为平均每张图片的推理时间；
 > 3. SoC和PCIe的测试结果基本一致。
+> 4. CV84X6为cv184x SoC，其TPU架构与BM1684X(SE7-32)相同，但板端主频/带宽不同，上表CV84X6行为SE13-64实测值。
 
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
@@ -395,6 +418,12 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 |   SRM1-20   | yolov34_sail.pcie | yolov3_fp16_1b.bmodel | 12.5     | 2.3           | 80.7          | 15.6       |
 |   SRM1-20   | yolov34_sail.pcie | yolov3_int8_1b.bmodel | 23.2     | 2.7           | 145.0         | 16.3       |
 |   SRM1-20   | yolov34_sail.pcie | yolov3_int8_4b.bmodel | 23.1     | 1.7           | 145.8         | 15.8       |
+| CV84X6 SoC  | yolov34_opencv.py | yolov3_fp16_1b.bmodel | 2.95     | 22.39         | 49.17         | 173.62     |
+| CV84X6 SoC  | yolov34_opencv.py | yolov3_int8_1b.bmodel | 2.97     | 24.05         | 25.07         | 183.48     |
+| CV84X6 SoC  | yolov34_opencv.py | yolov3_int8_4b.bmodel | 2.86     | 24.72         | 24.55         | 181.54     |
+| CV84X6 SoC  | yolov34_bmcv.py   | yolov3_fp16_1b.bmodel | 2.60     | 2.48          | 48.17         | 186.80     |
+| CV84X6 SoC  | yolov34_bmcv.py   | yolov3_int8_1b.bmodel | 2.62     | 2.47          | 24.13         | 198.00     |
+| CV84X6 SoC  | yolov34_bmcv.py   | yolov3_int8_4b.bmodel | 2.43     | 2.35          | 22.79         | 196.79     |
 
 在不同的测试平台上，使用不同的例程、模型测试`datasets/coco/val2017_1000`，conf_thresh=0.3，nms_thresh=0.5，yolov4性能测试结果如下：
 |    测试平台  |     测试程序      |       测试模型         |decode_time|preprocess_time|inference_time|postprocess_time| 
@@ -459,12 +488,17 @@ bmrt_test --bmodel models/BM1684/yolov3_fp32_1b.bmodel
 |   SRM1-20   | yolov34_sail.pcie | yolov4_fp16_1b.bmodel | 23.6     | 2.6           | 80.4          | 5.8        |
 |   SRM1-20   | yolov34_sail.pcie | yolov4_int8_1b.bmodel | 21.4     | 2.4           | 60.0          | 6.1        |
 |   SRM1-20   | yolov34_sail.pcie | yolov4_int8_4b.bmodel | 13.7     | 1.3           | 30.8          | 5.1        |
+| CV84X6 SoC  | yolov34_opencv.py | yolov4_fp16_1b.bmodel | 2.97     | 12.21         | 50.46         | 101.52     |
+| CV84X6 SoC  | yolov34_opencv.py | yolov4_int8_1b.bmodel | 3.08     | 15.76         | 14.87         | 100.37     |
+| CV84X6 SoC  | yolov34_bmcv.py   | yolov4_fp16_1b.bmodel | 2.62     | 1.87          | 50.04         | 108.66     |
+| CV84X6 SoC  | yolov34_bmcv.py   | yolov4_int8_1b.bmodel | 2.57     | 1.87          | 13.00         | 101.46     |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
-> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
+> 5. CV84X6（SE13-64）TPU 与 SE7-32（BM1684X）架构相同但板端主频/带宽不同，上表 CV84X6 行为板端实测值；CV84X6 固件不支持 FP32，故无 fp32 行。
 
 ## 8. FAQ
 导出ONNX模型可以参考[YOLOv34_Export_Guide](./docs/YOLOv34_Export_Guide.md)。其他问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

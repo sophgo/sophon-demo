@@ -37,6 +37,10 @@ then
     unzip models.zip -d ../models
     rm models.zip
 
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/yolact/yolact_CV84X6.tar.gz
+    tar -zxf yolact_CV84X6.tar.gz -C ../models
+    rm yolact_CV84X6.tar.gz
+
     echo "models download!"
 else
     echo "models exist!"

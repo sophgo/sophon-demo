@@ -22,8 +22,8 @@ yolact是一种实时的实例分割的方法。
 本例程对[yolact官方开源仓库](https://github.com/dbolya/yolact)的模型和算法进行移植，使之能在SOPHON BM1684和BM1684X上进行推理测试。
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe)，BM1684
-* 支持FP32模型编译和推理
+* 支持BM1684X(x86 PCIe)、BM1684、CV84X6(SoC)
+* 支持FP32模型编译和推理；CV84X6 支持 FP16/INT8（固件不支持 FP32）
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
 * 支持图片和视频测试
@@ -51,6 +51,10 @@ chmod -R +x scripts/
 │   │   ├── yolact_bm1684x_fp16_1b.bmodel # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   │   ├── yolact_bm1684x_int8_1b.bmodel # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   │   └── yolact_bm1684x_int8_4b.bmodel # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+│   ├── CV84X6
+│   │   ├── yolact_cv84x6_fp16_1b.bmodel # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   │   ├── yolact_cv84x6_int8_1b.bmodel # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
+│   │   └── yolact_cv84x6_int8_4b.bmodel # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=4
 │── torch
 │       └── yolact_base_54_800000.trace.pt	     # trace后的torchscript模型
 └── onnx
@@ -75,7 +79,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X【FP16仅支持BM1684X】**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/CV84X6【FP16仅支持BM1684X/CV84X6】**），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684
@@ -87,7 +91,7 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/CV84X6**），如：
 
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
 
@@ -95,7 +99,7 @@ chmod -R +x scripts/
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/CV84X6**），如：
 
 ```bash
 ./scripts/gen_int8bmodel_mlir.sh bm1684
@@ -167,11 +171,15 @@ bmrt_test --bmodel models/BM1684/yolact_bm1684_fp32_1b.bmodel
 | BM1684/yolact_bm1684_fp32_1b.bmodel         | 114.60            |
 | BM1684/yolact_bm1684_int8_1b.bmodel         | 135.59            | 
 | BM1684/yolact_bm1684_int8_4b.bmodel         | 53.90             | 
+| CV84X6/yolact_cv84x6_fp16_1b.bmodel         | 44.39             |
+| CV84X6/yolact_cv84x6_int8_1b.bmodel         | 26.86             |
+| CV84X6/yolact_cv84x6_int8_4b.bmodel         | 26.27             |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
 > 2. `calculate time`已折算为平均每张图片的推理时间；
 > 3. SoC和PCIe的测试结果基本一致。
+> 4. SE13-64(CV84X6)的TPU与SE7-32(BM1684X)架构相同，但板端主频/带宽不同，上表CV84X6行为SE13-64实测值。
 
 
 ### 7.2 程序运行性能
@@ -201,12 +209,19 @@ bmrt_test --bmodel models/BM1684/yolact_bm1684_fp32_1b.bmodel
 | BM1684 SoC  | yolact_bmcv.soc  |    yolact_bm1684_fp32_1b.bmodel     |   5.36    |    1.51       | 97.97        | 56.93          | 
 | BM1684 SoC  | yolact_bmcv.soc  |    yolact_bm1684_int8_1b.bmodel     |   5.43    |    1.51       | 118.52       | 56.35          | 
 | BM1684 SoC  | yolact_bmcv.soc  |    yolact_bm1684_int8_4b.bmodel     |   5.30    |    1.46       | 38.025       | 63.15          | 
+| CV84X6 SoC | yolact_opencv.py | CV84X6/yolact_cv84x6_fp16_1b.bmodel  |   3.28    |    35.62      | 49.74        | 347.32         |
+| CV84X6 SoC | yolact_opencv.py | CV84X6/yolact_cv84x6_int8_1b.bmodel  |   2.94    |    35.59      | 32.61        | 335.18         |
+| CV84X6 SoC | yolact_opencv.py | CV84X6/yolact_cv84x6_int8_4b.bmodel  |   3.00    |    35.46      | 31.08        | 662.06         |
+| CV84X6 SoC | yolact_bmcv.py   | CV84X6/yolact_cv84x6_fp16_1b.bmodel  |   2.66    |    1.74       | 48.44        | 347.06         |
+| CV84X6 SoC | yolact_bmcv.py   | CV84X6/yolact_cv84x6_int8_1b.bmodel  |   2.66    |    1.74       | 31.42        | 337.45         |
+| CV84X6 SoC | yolact_bmcv.py   | CV84X6/yolact_cv84x6_int8_4b.bmodel  |   2.52    |    1.61       | 29.04        | 666.84         |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. BM1684/1684X SoC的主控CPU均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于CPU的不同可能存在较大差异；
-> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大；
+> 5. CV84X6（SE13-64）行在 SE13-64 板实测。CV84X6 int8_4b bmodel 的检测头输出被 codegen 折叠为 `(1, 4*19248, k)`（BM1684X 为 `(4, 19248, k)`），`postprocess_numpy.py` 已做兼容 reshape；其 int8_4b 的 postprocess_time 偏高系批量后处理计算量所致。
 
 ## 8. FAQ
 [Yolact移植相关问题可参考Yolact常见问题](./docs/Yolact_Common_Problems.md)，其他问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

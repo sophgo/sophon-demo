@@ -1,0 +1,36 @@
+# Downloaded models / datasets (fetched by scripts/download.sh)
+models/
+datasets
+datasets/
+
+# Compiled bmodels & intermediate mlir artifacts
+*.bmodel
+*.bmodel.json
+*.bmodel.*.profile
+*.prototxt
+*.npz
+*.ref_files.json
+scripts/*_1b/
+scripts/*_4b/
+scripts/*_1b.mlir
+scripts/*_4b.mlir
+scripts/*_origin.mlir
+scripts/*_final.mlir
+scripts/*_tpu.mlir
+scripts/*.layer_group_cache.json
+scripts/*.layer_group_config.json
+scripts/compiler_profile_*.txt
+scripts/shape_pattern_qtable
+scripts/yolov3_cali_table*
+scripts/yolov4_cali_table*
+scripts/yolov3_qtable
+scripts/yolov4_qtable
+scripts/yolov3_top.npz
+scripts/yolov4_top.npz
+
+# Python
+__pycache__/
+*.pyc
+
+# Results
+results/

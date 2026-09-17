@@ -29,6 +29,10 @@ then
     tar -zxvf CV186X_models.tar.gz -C ../
     rm CV186X_models.tar.gz
 
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOX/YOLOX_CV84X6.tar.gz
+    tar -zxf YOLOX_CV84X6.tar.gz -C ../models
+    rm YOLOX_CV84X6.tar.gz
+
     echo "models download!"
 else
     echo "models exist!"

@@ -46,6 +46,7 @@ TAPNext++（Tracking Any Point）是 Google DeepMind 提出的新一代密集点
 
 ### 2.2 SDK特性
 * 支持 BM1688（SoC，如 SE9），支持 2-core 推理
+* 支持 CV84X6（SoC，SE13-64）
 * 支持 FP16 模型编译和推理（**生产精度**）
 * 支持基于 SAIL 的 Python 推理和基于 BMRT/BMCV 的 C++ 推理
 * 支持视频文件的任意点跟踪，输出逐帧轨迹与可见性
@@ -61,11 +62,14 @@ TAPNext++（Tracking Any Point）是 Google DeepMind 提出的新一代密集点
 chmod -R +x scripts/
 # 下载 BM1688 FP16 BModel（含 2-core 变体）+ 测试视频（推荐，直接可运行）
 ./scripts/download.sh --BM1688 --dataset
+# 下载 CV84X6 FP16 BModel
+./scripts/download.sh --CV84X6 --dataset
 ```
 
 `download.sh`参数如下：
 ```bash
 --BM1688   # 下载BM1688的FP16 BModel（含2-core变体）
+--CV84X6   # 下载CV84X6的FP16 BModel
 --onnx     # 下载导出的ONNX（用于重新编译BModel）
 --ckpt     # 下载原始PyTorch checkpoint（~2.4 GB，仅从零重新导出ONNX时需要）
 --dataset  # 下载测试视频
@@ -83,6 +87,9 @@ models/
     ├── tapnext_init_fp16_1b_2core.bmodel     # BM1688 FP16 init BModel，2-core
     ├── tapnext_step_fp16_1b.bmodel           # BM1688 FP16 step BModel，1-core
     └── tapnext_step_fp16_1b_2core.bmodel     # BM1688 FP16 step BModel，2-core
+├── CV84X6
+    ├── tapnext_init_fp16_1b.bmodel           # CV84X6 FP16 init BModel
+    └── tapnext_step_fp16_1b.bmodel           # CV84X6 FP16 step BModel
 ```
 
 下载的数据包括：
@@ -118,15 +125,16 @@ python3 export_onnx.py --ckpt ../models/tapnextpp_ckpt.pt --outdir ../models/onn
 
 - 编译 BModel
 
-建议使用TPU-MLIR编译BModel，模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录，并使用本例程提供的脚本将onnx模型编译为BModel，目标平台为 BM1688。
+建议使用TPU-MLIR编译BModel，模型编译前需要安装TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)。安装好后需在TPU-MLIR环境中进入例程目录，并使用本例程提供的脚本将onnx模型编译为BModel，目标平台为 BM1688 或 CV84X6。
 
 生成 FP16 BModel（**生产精度**）：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1688     # 生成 BM1688 FP16 BModel（含 2-core 变体）
+./scripts/gen_fp16bmodel_mlir.sh bm1684x2   # 生成 CV84X6 FP16 BModel（仅 1-core）
 ```
 
-执行上述命令会在 `models/BM1688/` 下生成 `tapnext_init_fp16_1b.bmodel` 和 `tapnext_step_fp16_1b.bmodel`，以及 `_2core` 变体用于双核推理。
+执行上述命令会在 `models/BM1688/`（或 `models/CV84X6/`）下生成 `tapnext_init_fp16_1b.bmodel` 和 `tapnext_step_fp16_1b.bmodel`，BM1688 另有 `_2core` 变体用于双核推理。
 
 生成 INT8 BModel（可选，**不推荐**）：
 
@@ -206,6 +214,8 @@ bmrt_test --bmodel models/BM1688/tapnext_step_fp16_1b.bmodel
 | SE9 | BM1688/tapnext_init_fp16_1b_2core.bmodel | 376.0 |
 | SE9 | BM1688/tapnext_step_fp16_1b.bmodel | 615.7 |
 | SE9 | BM1688/tapnext_step_fp16_1b_2core.bmodel | 398.5 |
+| SE13-64 | CV84X6/tapnext_init_fp16_1b.bmodel | 245.95 |
+| SE13-64 | CV84X6/tapnext_step_fp16_1b.bmodel | 254.98 |
 
 > **测试说明**：
 > 1. 性能测试结果具有一定的波动性，已取 loopnum=10 的均值；
@@ -220,6 +230,7 @@ bmrt_test --bmodel models/BM1688/tapnext_step_fp16_1b.bmodel
 | SE9 | tapnext_infer.py | tapnext_step_fp16_1b.bmodel | — | 2.42 | 911.32 | 0.03 |
 | SE9 | tapnext_infer.py | tapnext_step_fp16_1b_2core.bmodel | — | 2.50 | 685.00 | 0.03 |
 | SE9 | tapnext_bmcv.soc | tapnext_step_fp16_1b.bmodel | 1.31 | 0.49 | 636.65 | 0.40 |
+| SE13-64 | tapnext_infer.py | CV84X6/tapnext_step_fp16_1b.bmodel | — | 1.70 | 394.33 | 0.02 |
 
 > **测试说明**：
 > 1. 时间单位均为毫秒(ms)，为逐帧稳态（step 图）的平均耗时；
@@ -227,7 +238,8 @@ bmrt_test --bmodel models/BM1688/tapnext_step_fp16_1b.bmodel
 > 3. Python 例程一次性预读全部帧（cv2.VideoCapture），解码时间未单独统计，记为 "—"；
 > 4. C++ 例程采用零拷贝 cache 回馈（见 [C++ README 3.3 节](./cpp/tapnext_bmcv/README.md#33-架构说明)），24 个循环 cache（约 131 MB）留在 device memory 无 D2S 回读，`postprocess_time` 仅约 0.4 ms（tracks/vis 回读）；Python 例程该开销包含在 SAIL 推理调用内，故 postprocess 趋近于 0；
 > 5. 端到端稳态吞吐：Python 约 1.10 FPS（1-core）/ 1.46 FPS（2-core），C++ 约 1.56 FPS（1-core）；
-> 6. 该模型 244M 参数、12 层 Transformer+SSM 循环架构，逐帧串行推理，上述性能符合此类模型在边缘 SoC 上的预期。
+> 6. 该模型 244M 参数、12 层 Transformer+SSM 循环架构，逐帧串行推理，上述性能符合此类模型在边缘 SoC 上的预期；
+> 7. SE13-64 对应 CV84X6，TPU 与 SE7-32（BM1684X）架构相同但板端主频/带宽不同，上表 SE13-64 行为板端实测值（test.mp4 全部 20 帧、Q=1，init 图一次性 4345 ms，端到端稳态约 736 ms/frame ≈ 1.36 FPS；查询点 (50,100) 首帧跟踪 (49.88, 100.13)，结果正确）。
 
 ## 8. FAQ
 

@@ -36,8 +36,11 @@ then
     7z x BM1688.7z  
     rm -r BM1688.7z
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv7/CV186X.7z
-    7z x CV186X.7z  
+    7z x CV186X.7z
     rm -r CV186X.7z
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv7/CV84X6.7z
+    7z x CV84X6.7z
+    rm -r CV84X6.7z
     popd
     echo "models download!"
 else

@@ -6,6 +6,11 @@ if [ ! $1 ]; then
 else
     target=${1,,}
     target_dir=${target^^}
+    # bm1684x2 平台对外用 CV84X6 目录名（编译芯片名仍是 bm1684x2）
+    if test $target = "bm1684x2"
+    then
+        target_dir=CV84X6
+    fi
 fi
 
 outdir=../models/$target_dir

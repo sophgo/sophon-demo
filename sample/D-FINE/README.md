@@ -35,8 +35,8 @@ D-FINE 是一个强大的实时目标检测器，将 DETR 中的边界框回归�
 ```
 
 ### 2.2 SDK特性
-* 支持BM1688/CV186X(SoC)和BM1684X(x86 PCIe、SoC、riscv PCIe)
-* 支持FP32、FP16、INT8(BM1684X/BM1688/CV186X)
+* 支持BM1688/CV186X/CV84X6(SoC)和BM1684X(x86 PCIe、SoC、riscv PCIe)
+* 支持FP32、FP16、INT8(BM1684X/BM1688/CV186X)，支持FP16/INT8(CV84X6，固件不支持FP32)
 * 支持Python推理
 * 支持图片和视频测试
 
@@ -68,6 +68,11 @@ models/
 │   ├── dfine_s_obj2coco_f16_1b_2core.bmodel
 │   ├── dfine_s_obj2coco_int8_1b.bmodel
 │   └── dfine_s_obj2coco_int8_1b_2core.bmodel
+├── CV84X6 # 在CV84X6上运行的模型
+│   ├── dfine_n_coco_f16_1b.bmodel
+│   ├── dfine_n_coco_int8_1b.bmodel
+│   ├── dfine_s_obj2coco_f16_1b.bmodel
+│   └── dfine_s_obj2coco_int8_1b.bmodel
 ├── onnx
     ├── dfine_n_coco.onnx
     └── dfine_s_obj2coco.onnx
@@ -91,10 +96,10 @@ models/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV84X6**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x/bm1684x2
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成转换好的FP16 BModel。
@@ -103,10 +108,10 @@ models/
 
 - 生成INT8 BModel
 
-本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
+本例程在`scripts`目录下提供了TPU-MLIR编译INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV84X6**），如：
 
 ```bash
-./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684x #bm1688/cv186x/bm1684x2
 ``` 
 
 执行上述命令会在`models/BM1684X/`等文件夹下生成转换好的INT8 BModel。
@@ -142,11 +147,16 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 |   SE9-16    |  dfine_bmcv.py  |      dfine_s_obj2coco_int8_1b.bmodel      | 0.439 | 0.603 |
 |   SE9-16    |  dfine_bmcv.py  |      dfine_s_obj2coco_f16_1b_2core.bmodel | 0.436 | 0.591 |
 |   SE9-16    |  dfine_bmcv.py  |      dfine_s_obj2coco_int8_1b_2core.bmodel| 0.439 | 0.603 |
+|   SE13-64    |  dfine_bmcv.py  |      dfine_n_coco_f16_1b.bmodel           | 0.367 | 0.513 |
+|   SE13-64    |  dfine_bmcv.py  |      dfine_n_coco_int8_1b.bmodel          | 0.365 | 0.514 |
+|   SE13-64    |  dfine_bmcv.py  |      dfine_s_obj2coco_f16_1b.bmodel       | 0.437 | 0.596 |
+|   SE13-64    |  dfine_bmcv.py  |      dfine_s_obj2coco_int8_1b.bmodel      | 0.437 | 0.596 |
 
-> **测试说明**：  
+> **测试说明**：
 > 1. 本次仅在SE7系列平台上进行了测试，SE9-16和SE9-8平台上运行相同模型和程序时，精度表现与SE7-32平台基本一致，实际运行结果与本表有<0.01的精度误差是正常的；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标；
-> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应CV84X6；
+> 4. SE13-64(CV84X6)的TPU与SE7-32(BM1684X)架构相同，运行相同bmodel推理精度一致，上表SE13-64精度值与SE7-32一致。
 
 ## 6. 性能测试
 ### 6.1 程序运行性能
@@ -169,12 +179,17 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 |   SE9-16    |  dfine_bmcv.py   |      dfine_s_obj2coco_int8_1b_2core.bmodel|      3.83       |      3.97       |     20.06      |      0.35       |
 |    SE9-8    |  dfine_bmcv.py   |      dfine_n_coco_f16_1b.bmodel           |      5.08       |      4.54       |     19.94      |      0.34       |
 |    SE9-8    |  dfine_bmcv.py   |      dfine_s_obj2coco_f16_1b.bmodel       |      4.83       |      4.51       |     41.26      |      0.36       |
+|   SE13-64   |  dfine_bmcv.py   |      dfine_n_coco_f16_1b.bmodel           |      2.50       |      2.38       |      13.38      |      0.22       |
+|   SE13-64   |  dfine_bmcv.py   |      dfine_n_coco_int8_1b.bmodel          |      2.48       |      2.38       |      12.37      |      0.21       |
+|   SE13-64   |  dfine_bmcv.py   |      dfine_s_obj2coco_f16_1b.bmodel       |      2.50       |      2.38       |      25.01      |      0.24       |
+|   SE13-64   |  dfine_bmcv.py   |      dfine_s_obj2coco_int8_1b.bmodel      |      2.50       |      2.38       |      21.43      |      0.24       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHzPCIe上的性能由于处理器的不同可能存在较大差异；
-> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
+> 5. SE13-64(CV84X6)的TPU与SE7-32(BM1684X)架构相同但板端主频/带宽不同，bmrt_test实测理论推理时间(ms)为：dfine_n_coco_f16_1b 14.63、dfine_n_coco_int8_1b 13.52、dfine_s_obj2coco_f16_1b 27.02、dfine_s_obj2coco_int8_1b 23.35，上表 SE13-64 行为板端实测值。
 
 
 ## 7. FAQ

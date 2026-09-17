@@ -26,7 +26,7 @@ ppyolov3 是百度提出的一种基于YOLOv3和一些几乎不增加推理代�
 **官方源码地址** (https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.6/configs/ppyolo)
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、CV84X6(SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于BMCV预处理的C++推理
 * 支持基于BMCV和opencv预处理的Python推理
@@ -73,6 +73,10 @@ chmod -R +x scripts/
 │   ├── ppyolov3_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP32 BModel，batch_size=1
 │   ├── ppyolov3_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   └── ppyolov3_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
+├── CV84X6
+│   ├── ppyolov3_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的FP32 BModel，batch_size=1
+│   ├── ppyolov3_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   └── ppyolov3_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
 └── onnx
     └── ppyolov3_1b.onnx           # 导出的1batch onnx模型   
 ```
@@ -97,7 +101,7 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x/bm1684x2
 ```
 
 ​执行上述命令会在`models/BM1684`下生成`ppyolov3_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
@@ -107,7 +111,7 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/cv186x/bm1684x2
 ```
 
 ​执行上述命令会在`models/BM1684X/`下生成`ppyolov3_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
@@ -117,7 +121,7 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x/bm1684x2
 ```
 
 ​上述脚本会在`models/BM1684`下生成`ppyolov3_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
@@ -198,6 +202,9 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | SE9-8        | ppyolov3_sail.soc  | ppyolov3_fp32_1b.bmodel        |    0.281 |    0.552 |
 | SE9-8        | ppyolov3_sail.soc  | ppyolov3_fp16_1b.bmodel        |    0.281 |    0.552 |
 | SE9-8        | ppyolov3_sail.soc  | ppyolov3_int8_1b.bmodel        |    0.276 |    0.543 |
+| SE13-64      | ppyolov3_bmcv.soc  | ppyolov3_fp32_1b.bmodel        |    0.279 |    0.548 |
+| SE13-64      | ppyolov3_bmcv.soc  | ppyolov3_fp16_1b.bmodel        |    0.278 |    0.547 |
+| SE13-64      | ppyolov3_bmcv.soc  | ppyolov3_int8_1b.bmodel        |    0.273 |    0.544 |
 | SRM1-20      | ppyolov3_opencv.py | ppyolov3_fp32_1b.bmodel        |    0.290 |    0.560 |
 | SRM1-20      | ppyolov3_opencv.py | ppyolov3_fp16_1b.bmodel        |    0.290 |    0.560 |
 | SRM1-20      | ppyolov3_opencv.py | ppyolov3_int8_1b.bmodel        |    0.285 |    0.556 |
@@ -242,6 +249,9 @@ bmrt_test --bmodel models/BM1684/ppyolov3_fp32_1b.bmodel
 |   SE9-8    | CV186X/ppyolov3_fp32_1b.bmodel     |         744.30  |
 |   SE9-8    | CV186X/ppyolov3_fp16_1b.bmodel     |          97.62  |
 |   SE9-8    | CV186X/ppyolov3_int8_1b.bmodel     |          32.15  |
+|   SE13-64  | CV84X6/ppyolov3_fp32_1b.bmodel     |         475.43  |
+|   SE13-64  | CV84X6/ppyolov3_fp16_1b.bmodel     |          33.09  |
+|   SE13-64  | CV84X6/ppyolov3_int8_1b.bmodel     |          16.54  |
 
 > **测试说明**：  
 1. 性能测试结果具有一定的波动性；
@@ -322,12 +332,19 @@ bmrt_test --bmodel models/BM1684/ppyolov3_fp32_1b.bmodel
 |   SRM1-20   |ppyolov3_sail.pcie |   ppyolov3_fp32_1b.bmodel    |      23.12      |      2.64       |     313.51      |      12.08      |
 |   SRM1-20   |ppyolov3_sail.pcie |   ppyolov3_fp16_1b.bmodel    |      22.12      |      2.53       |     136.06      |      12.35      |
 |   SRM1-20   |ppyolov3_sail.pcie |   ppyolov3_int8_1b.bmodel    |      23.50      |      2.69       |     141.91      |      13.09      |
+|   SE13-64   |ppyolov3_opencv.py |   ppyolov3_fp32_1b.bmodel    |      2.93       |      33.10      |     477.45      |      98.23      |
+|   SE13-64   |ppyolov3_opencv.py |   ppyolov3_fp16_1b.bmodel    |      2.94       |      33.71      |      36.45      |      98.04      |
+|   SE13-64   |ppyolov3_opencv.py |   ppyolov3_int8_1b.bmodel    |      2.96       |      33.86      |      20.38      |      97.88      |
+|   SE13-64   | ppyolov3_bmcv.py  |   ppyolov3_fp32_1b.bmodel    |      2.65       |      2.02       |     476.08      |     120.37      |
+|   SE13-64   | ppyolov3_bmcv.py  |   ppyolov3_fp16_1b.bmodel    |      2.58       |      2.00       |      34.81      |     117.17      |
+|   SE13-64   | ppyolov3_bmcv.py  |   ppyolov3_int8_1b.bmodel    |      2.63       |      2.02       |      18.76      |     116.30      |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 5. SE13-64 对应 CV84X6，TPU 与 SE7-32（BM1684X）架构相同但板端主频/带宽不同，上表 SE13-64 行为板端实测值。
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

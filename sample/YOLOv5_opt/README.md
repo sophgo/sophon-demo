@@ -23,8 +23,8 @@
 
 ## 2. 特性
 * 支持使用tpu_kernel进行后处理加速
-* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
-* 支持FP32、FP16(BM1684X)、INT8模型编译和推理
+* 支持BM1684X(x86 PCIe、SoC、riscv PCIe)、CV84X6(SoC)
+* 支持FP32、FP16(BM1684X/CV84X6)、INT8模型编译和推理（CV84X6 仅 FP16/INT8，固件不支持 FP32）
 * 支持基于BMCV预处理C++推理
 * 支持单batch和多batch模型推理
 * 支持图片和视频测试
@@ -51,6 +51,10 @@ chmod -R +x scripts/
 │   ├── yolov5s_tpukernel_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，batch_size=1
 │   ├── yolov5s_tpukernel_int8_1b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=1
 │   └── yolov5s_tpukernel_int8_4b.bmodel   # 使用TPU-MLIR编译，用于BM1684X的INT8 BModel，batch_size=4
+├── CV84X6
+│   ├── yolov5s_tpukernel_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   ├── yolov5s_tpukernel_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
+│   └── yolov5s_tpukernel_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=4
 └── onnx
     └── yolov5s_tpukernel.onnx             # 导出的onnx动态模型       
 ```
@@ -74,7 +78,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X/CV84X6），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684x
@@ -84,7 +88,7 @@ chmod -R +x scripts/
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（支持BM1684X/CV84X6），如：
 
 ```bash
 ./scripts/gen_fp16bmodel_mlir.sh bm1684x
@@ -94,7 +98,7 @@ chmod -R +x scripts/
 
 - 生成INT8 BModel
 
-​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684X），如：
+​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（支持BM1684X/CV84X6），如：
 
 ```shell
 ./scripts/gen_int8bmodel_mlir.sh bm1684x
@@ -171,11 +175,15 @@ bmrt_test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel
 | BM1684X/yolov5s_tpukernel_fp16_1b.bmodel | 6.2               |
 | BM1684X/yolov5s_tpukernel_int8_1b.bmodel | 3.4               |
 | BM1684X/yolov5s_tpukernel_int8_4b.bmodel | 3.2               |
+| CV84X6/yolov5s_tpukernel_fp16_1b.bmodel | 7.99              |
+| CV84X6/yolov5s_tpukernel_int8_1b.bmodel | 3.64              |
+| CV84X6/yolov5s_tpukernel_int8_4b.bmodel | 3.33              |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
 > 2. `calculate time`已折算为平均每张图片的推理时间；
 > 3. SoC和PCIe的测试结果基本一致。
+> 4. SE13-64(CV84X6)的TPU与SE7-32(BM1684X)架构相同，但板端主频/带宽不同，上表CV84X6行为SE13-64实测值。
 
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md#3-推理测试)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
@@ -220,7 +228,8 @@ bmrt_test --bmodel models/BM1684X/yolov5s_tpukernel_fp32_1b.bmodel
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. 1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
-> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
+> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大；
+> 5. CV84X6（SE13-64）端到端运行性能暂未提供：本例程后处理依赖 tpu_kernel 动态加载模块 `libbm1684x_kernel_module.so`，该模块当前仅支持 BM1684X，CV84X6 固件未提供，故 §7.2 无 CV84X6 行（bmodel 本身可正常推理，见 §7.1）。 
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

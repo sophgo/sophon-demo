@@ -250,6 +250,21 @@ class PostProcess:
         classid_list, conf_scores_list, boxes_list, masks_list = [], [], [], []
         loc_data_batch, conf_preds_batch, mask_data_batch, proto_data_batch = preds_batch
 
+        # CV84X6 codegen flattens the batch dim of detection outputs, e.g.
+        # (4, 19248, k) becomes (1, 4*19248, k); restore the batch layout here.
+        n = len(org_size_list)
+        num_priors = self.priors.shape[0]
+        for arr_idx in range(3):
+            arr = (loc_data_batch, conf_preds_batch, mask_data_batch)[arr_idx]
+            if arr.ndim == 3 and arr.shape[0] == 1 and arr.shape[1] == n * num_priors:
+                fixed = arr.reshape(n, num_priors, arr.shape[2])
+                if arr_idx == 0:
+                    loc_data_batch = fixed
+                elif arr_idx == 1:
+                    conf_preds_batch = fixed
+                else:
+                    mask_data_batch = fixed
+
         for i in range(len(org_size_list)):
             loc_data = loc_data_batch[i]
             conf_preds = conf_preds_batch[i]

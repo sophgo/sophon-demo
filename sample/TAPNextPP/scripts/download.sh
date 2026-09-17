@@ -17,6 +17,7 @@ pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 scripts_dir=$(dirname $(readlink -f "$0"))
 
 download_bm1688=0
+download_cv84x6=0
 download_onnx=0
 download_ckpt=0
 download_dataset=0
@@ -24,10 +25,11 @@ download_dataset=0
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --BM1688)   download_bm1688=1;  shift ;;
+        --CV84X6)   download_cv84x6=1;  shift ;;
         --onnx)     download_onnx=1;    shift ;;
         --ckpt)     download_ckpt=1;    shift ;;
         --dataset)  download_dataset=1; shift ;;
-        --all)      download_bm1688=1; download_onnx=1; download_ckpt=1; download_dataset=1; shift ;;
+        --all)      download_bm1688=1; download_cv84x6=1; download_onnx=1; download_ckpt=1; download_dataset=1; shift ;;
         *) echo "Invalid option: $1" >&2; exit 1 ;;
     esac
 done
@@ -72,6 +74,16 @@ if [ $download_bm1688 -eq 1 ]; then
         echo "models/BM1688 download!"
     else
         echo "models/BM1688 folder exist! Remove it if you need to update."
+    fi
+fi
+
+if [ $download_cv84x6 -eq 1 ]; then
+    if [ ! -d CV84X6 ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/TAPNextPP/CV84X6.tar.gz
+        tar xvf CV84X6.tar.gz && rm CV84X6.tar.gz
+        echo "models/CV84X6 download!"
+    else
+        echo "models/CV84X6 folder exist! Remove it if you need to update."
     fi
 fi
 

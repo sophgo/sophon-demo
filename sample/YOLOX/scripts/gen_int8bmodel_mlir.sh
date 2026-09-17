@@ -7,11 +7,14 @@ if [ ! $1 ]; then
 else
     target=${1,,}
     target_dir=${target^^}
+    if test $target = "bm1684x2"; then
+        target_dir=CV84X6
+    fi
 fi
 
 outdir=../models/$target_dir
 fp_forward_chip=$target
-if test $target = "bm1688"; then
+if test $target = "bm1688" -o $target = "bm1684x2"; then
     fp_forward_chip=bm1684x
 fi
 
@@ -58,9 +61,6 @@ function gen_int8bmodel()
         --chip ${target} \
         --quantize_table yolox_s_qtable \
         --calibration_table yolox_s_cali_table \
-        --test_input ../datasets/test/3.jpg \
-        --test_reference yolox_top.npz \
-        --debug \
         --model yolox_s_int8_$1b.bmodel
 
     mv yolox_s_int8_$1b.bmodel $outdir/
@@ -72,10 +72,7 @@ function gen_int8bmodel()
             --chip ${target} \
             --quantize_table yolox_s_qtable \
             --calibration_table yolox_s_cali_table \
-            --test_input ../datasets/test/3.jpg \
-            --test_reference yolox_top.npz \
             --num_core 2 \
-            --debug \
             --model yolox_s_int8_$1b_2core.bmodel
 
         mv yolox_s_int8_$1b_2core.bmodel $outdir/

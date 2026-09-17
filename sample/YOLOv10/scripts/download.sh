@@ -41,6 +41,10 @@ then
     unzip CV186X.zip -d ../models
     rm CV186X.zip
 
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv10/YOLOv10_CV84X6.tar.gz
+    tar -zxf YOLOv10_CV84X6.tar.gz -C ../models
+    rm YOLOv10_CV84X6.tar.gz
+
     python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv10/onnx.zip
     unzip onnx.zip -d ../models
     rm onnx.zip

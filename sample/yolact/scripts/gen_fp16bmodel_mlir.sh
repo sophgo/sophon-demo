@@ -12,8 +12,14 @@ else
         echo "bm1684 do not support fp16"
         exit
     fi
+    if test $target = "bm1684x2"; then
+        target_dir=CV84X6
+    fi
 fi
  
+name_tag=$target
+if test "$target" = "bm1684x2"; then name_tag=cv84x6; fi
+
 outdir=../models/$target_dir
 
 gen_mlir()
@@ -36,9 +42,9 @@ gen_fp16bmodel()
         --mlir yolact_$1b.mlir \
         --quantize F16 \
         --chip ${target} \
-        --model yolact_${target}_fp16_$1b.bmodel
+        --model yolact_${name_tag}_fp16_$1b.bmodel
 
-    mv yolact_${target}_fp16_$1b.bmodel $outdir/
+    mv yolact_${name_tag}_fp16_$1b.bmodel $outdir/
 }
 
 pushd $model_dir

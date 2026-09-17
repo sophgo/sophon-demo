@@ -29,7 +29,7 @@ YOLOx由旷世研究提出,是基于YOLO系列的改进，引入了解耦头和A
 
 ## 2. 特性
 * 支持BM1688/CV186X(SoC)、支持BM1684X(x86 PCIe、SoC、riscv PCIe)和BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16(BM1684X/BM1688/CV186X)、INT8模型编译和推理
+* 支持FP32、FP16(BM1684X/BM1688/CV186X/CV84X6)、INT8模型编译和推理（CV84X6 仅 FP16/INT8，固件不支持 FP32）
 * 支持基于BMCV、sail预处理的C++推理
 * 支持基于OpenCV和BMCV预处理的Python推理
 * 支持单batch和多batch模型推理
@@ -80,6 +80,10 @@ chmod -R +x scripts/
 │   ├── yolox_s_fp16_1b.bmodel         # 使用TPU-MLIR编译，用于CV186X的单核FP16 BModel，batch_size=1
 │   ├── yolox_s_int8_1b.bmodel         # 使用TPU-MLIR编译，用于CV186X的单核INT8 BModel，batch_size=1
 │   ├── yolox_s_int8_4b.bmodel         # 使用TPU-MLIR编译，用于CV186X的单核INT8 BModel，batch_size=4
+├── CV84X6
+│   ├── yolox_s_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   ├── yolox_s_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
+│   └── yolox_s_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=4
 │── torch
 │   ├── yolox_s.pt               # 源模型
 |   └── yolox_s.torchscript.pt   # 源模型trace后的torchscript模型
@@ -107,7 +111,7 @@ chmod -R +x scripts/
 
 - 生成FP32 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688/CV186X/CV84X6**），如：
 
 ```bash
 ./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/cv186x
@@ -253,12 +257,16 @@ bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 |   SE9-8    | CV186X/yolox_s_int8_4b.bmodel       |     20.09         |
 |   SE9-8    | CV186X/yolox_s_fp16_1b.bmodel       |     34.80         |
 |   SE9-8    | CV186X/yolox_s_fp32_1b.bmodel       |     154.24        |
+|   SE13-64  | CV84X6/yolox_s_fp16_1b.bmodel       |     11.01         |
+|   SE13-64  | CV84X6/yolox_s_int8_1b.bmodel       |     7.85          |
+|   SE13-64  | CV84X6/yolox_s_int8_4b.bmodel       |     7.55          |
 
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
 > 2. `calculate time`已折算为平均每张图片的推理时间；
 > 3. SoC和PCIe的测试结果基本一致；
+> 4. SE13-64(CV84X6)的TPU与SE7-32(BM1684X)架构相同，但板端主频/带宽不同，上表CV84X6行为SE13-64实测值。
 
 ### 7.2 程序运行性能
 参考[C++例程](cpp/README.md)或[Python例程](python/README.md)运行程序，并查看统计的解码时间、预处理时间、推理时间、后处理时间。C++和Python例程打印的时间已经折算为单张图片的处理时间。
@@ -334,6 +342,12 @@ bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 | SRM1-20     |  yolox_sail.pcie  |      yolox_s_fp16_1b.bmodel       |      19.87      |      2.00       |      39.49      |      1.67       |
 | SRM1-20     |  yolox_sail.pcie  |      yolox_s_int8_1b.bmodel       |      10.58      |      1.79       |      18.47      |      1.58       |
 | SRM1-20     |  yolox_sail.pcie  |      yolox_s_int8_4b.bmodel       |      10.76      |      1.32       |      16.96      |      1.53       |
+| SE13-64     |  yolox_opencv.py  | CV84X6/yolox_s_fp16_1b.bmodel     |      3.08        |      5.05       |      18.20      |      3.26       |
+| SE13-64     |  yolox_opencv.py  | CV84X6/yolox_s_int8_1b.bmodel     |      3.09        |      5.06       |      14.95      |      3.33       |
+| SE13-64     |  yolox_opencv.py  | CV84X6/yolox_s_int8_4b.bmodel     |      2.83        |      4.75       |      13.75      |      3.07       |
+| SE13-64     |  yolox_bmcv.py    | CV84X6/yolox_s_fp16_1b.bmodel     |      2.47        |      2.39       |      11.83      |      2.84       |
+| SE13-64     |  yolox_bmcv.py    | CV84X6/yolox_s_int8_1b.bmodel     |      2.45        |      2.40       |      8.67       |      2.90       |
+| SE13-64     |  yolox_bmcv.py    | CV84X6/yolox_s_int8_4b.bmodel     |      2.31        |      2.32       |      8.30       |      3.02       |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
@@ -341,7 +355,8 @@ bmrt_test --bmodel models/BM1684/yolox_s_fp32_1b.bmodel
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异;
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大；
 > 5. BM1688双核模型性能与单核模型相比，推理时间不同，其他部分基本一致，推理性能区别请参考[7.1小节](#71-bmrt_test)测试数据；
-> 6. `yolox_opencv.py`的decode_time基于公版opencv。
+> 6. `yolox_opencv.py`的decode_time基于公版opencv；
+> 7. SE13-64 对应 CV84X6，TPU 与 SE7-32（BM1684X）架构相同但板端主频/带宽不同，上表 SE13-64 行为板端实测值。
 
 ## 8. FAQ
 [常见问题解答](../../docs/FAQ.md)

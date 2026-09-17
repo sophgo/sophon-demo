@@ -32,6 +32,9 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/CenterNet/models_231226/BM1688.zip
     unzip BM1688.zip
     rm -r BM1688.zip
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/CenterNet/CV84X6.tar.gz
+    tar xzf CV84X6.tar.gz
+    rm -r CV84X6.tar.gz
     popd
 
     echo "models download!"

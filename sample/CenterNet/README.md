@@ -26,7 +26,7 @@ CenterNet 是一种 anchor-free 的目标检测网络，不仅可以用于目标
 **参考repo:** [CenterNet](https://github.com/xingyizhou/CenterNet)
 
 ## 2. 特性
-* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
+* 支持BM1688(SoC)、BM1684X(x86 PCIe、SoC)、CV84X6(SoC)和BM1684(x86 PCIe、SoC、arm PCIe)
 * 支持FP32、FP16(BM1688/BM1684X)、INT8模型编译和推理
 * 支持基于BMCV预处理和sail的C++推理
 * 支持基于BMCV和opencv预处理的Python推理
@@ -68,6 +68,11 @@ chmod -R +x scripts/
 │   ├── centernet_fp16_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的FP16 BModel，batch_size=1，num_core=2
 │   ├── centernet_int8_1b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=1，num_core=2
 │   └── centernet_int8_4b_2core.bmodel   # 使用TPU-MLIR编译，用于BM1688的INT8 BModel，batch_size=4，num_core=2
+├── CV84X6
+│   ├── centernet_fp32_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的FP32 BModel，batch_size=1
+│   ├── centernet_fp16_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，batch_size=1
+│   ├── centernet_int8_1b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=1
+│   └── centernet_int8_4b.bmodel   # 使用TPU-MLIR编译，用于CV84X6的INT8 BModel，batch_size=4
 │── torch
 │   ├── ctdet_coco_dlav0_1x.pth
 │   └── ctdet_coco_dlav0_1x.torchscript.pt   # trace后的torchscript模型
@@ -97,7 +102,7 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP32 BModel的脚本，请注意修改`gen_fp32bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_fp32bmodel_mlir.sh bm1684 #bm1684x/bm1688/bm1684x2
 ```
 
 ​执行上述命令会在`models/BM1684`等文件夹下生成`centernet_fp32_1b.bmodel`文件，即转换好的FP32 BModel。
@@ -107,20 +112,22 @@ chmod -R +x scripts/
 ​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1688/bm1684x2
 ```
 
-​执行上述命令会在`models/BM1684X/`等文件夹下生成`centernet_fp16_1b.bmodel`文件，即转换好的FP16 BModel。
+​执行上述命令会在`models/BM1684X/`等文件夹下生成`centernet_fp16_1b.bmodel`文件，即转换好的FP16 BModel。指定`bm1684x2`时产物输出到`models/CV84X6/`。
+
+> 注：CV84X6（cv184x SoC）编译命令为 `--chip bm1684x2`，FP16/INT8 可用。
 
 - 生成INT8 BModel
 
 ​本例程在`scripts`目录下提供了量化INT8 BModel的脚本，请注意修改`gen_int8bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，在执行时输入BModel的目标平台（**支持BM1684/BM1684X/BM1688**），如：
 
 ```shell
-./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688
+./scripts/gen_int8bmodel_mlir.sh bm1684 #bm1684x/bm1688/bm1684x2
 ```
 
-​上述脚本会在`models/BM1684`等文件夹下生成`centernet_int8_1b.bmodel`等文件，即转换好的INT8 BModel。
+​上述脚本会在`models/BM1684`等文件夹下生成`centernet_int8_1b.bmodel`等文件，即转换好的INT8 BModel。指定`bm1684x2`时产物输出到`models/CV84X6/`。
 
 **注：int8模型有提供qtable，即保留精度不量化的层，一般指定centernet的最后几层，包括relu、conv等，详情可参考`models/onnx/dlav0_qtable`中内容，按照实际模型结构的层名添加。**
 
@@ -176,13 +183,19 @@ python3 tools/eval_coco.py --gt_path datasets/coco/instances_val2017_1000.json -
 | BM1688 SoC   | centernet_sail.soc  | centernet_fp32_1b.bmodel | 0.296         | 0.480    |
 | BM1688 SoC   | centernet_sail.soc  | centernet_fp16_1b.bmodel | 0.296         | 0.480    |
 | BM1688 SoC   | centernet_sail.soc  | centernet_int8_1b.bmodel | 0.289         | 0.467    |
+| CV84X6 SoC   | centernet_opencv.py | centernet_fp32_1b.bmodel | 0.302         | 0.487    |
+| CV84X6 SoC   | centernet_opencv.py | centernet_fp16_1b.bmodel | 0.302         | 0.487    |
+| CV84X6 SoC   | centernet_opencv.py | centernet_int8_1b.bmodel | 0.299         | 0.485    |
+| CV84X6 SoC   | centernet_bmcv.soc  | centernet_fp16_1b.bmodel | 0.268         | 0.430    |
+| CV84X6 SoC   | centernet_bmcv.soc  | centernet_int8_1b.bmodel | 0.264         | 0.425    |
 
 > **测试说明**：  
 > 1. SoC和PCIe的模型精度一致，int8 1b和4b的精度一致；
 > 2. AP@IoU=0.5:0.95为area=all对应的指标；
 > 3. bmcv的精度略低于其他，主要是预处理的一些方法与源码有差异；
 > 4. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
-> 5. BM1688 num_core=2的模型与num_core=1的模型精度基本一致。
+> 5. BM1688 num_core=2的模型与num_core=1的模型精度基本一致；
+> 6. CV84X6 TPU 架构与 BM1684X 一致，FP16/INT8 精度与 SE7-32 相同；CenterNet (DLAV0) 为纯卷积网络，CV84X6 上 FP32 亦可编译运行。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -211,8 +224,12 @@ bmrt_test --bmodel models/BM1684/centernet_fp32_1b.bmodel
 |   SE9-16     | BM1688/centernet_fp16_1b_2core.bmodel  | 32.9              |
 |   SE9-16     | BM1688/centernet_int8_1b_2core.bmodel  | 15.1              |
 |   SE9-16     | BM1688/centernet_int8_4b_2core.bmodel  | 11.5              |
+|   SE13-64    | CV84X6/centernet_fp32_1b.bmodel        | 199.39            |
+|   SE13-64    | CV84X6/centernet_fp16_1b.bmodel        | 13.72             |
+|   SE13-64    | CV84X6/centernet_int8_1b.bmodel        | 8.26              |
+|   SE13-64    | CV84X6/centernet_int8_4b.bmodel        | 7.80              |
 
-> **测试说明**：  
+> **测试说明**：
 > 1. 性能测试结果具有一定的波动性；
 > 2. `calculate time`已折算为平均每张图片的推理时间；
 > 3. SoC和PCIe的测试结果基本一致。
@@ -263,12 +280,21 @@ bmrt_test --bmodel models/BM1684/centernet_fp32_1b.bmodel
 | BM1688 SoC  | centernet_sail.soc    | centernet_fp16_1b.bmodel   | 4.21      | 3.19          | 48.40        | 1859.22      |
 | BM1688 SoC  | centernet_sail.soc    | centernet_int8_1b.bmodel   | 4.21      | 3.18          | 21.79        | 1861.07      |
 | BM1688 SoC  | centernet_sail.soc    | centernet_int8_4b.bmodel   | 3.85      | 3.04          | 21.08        | 1861.63      |
+| CV84X6 SoC  | centernet_opencv.py   | centernet_fp32_1b.bmodel   | 3.02      | 47.19         | 204.76       | 1004.62     |
+| CV84X6 SoC  | centernet_opencv.py   | centernet_fp16_1b.bmodel   | 3.01      | 48.71         | 19.55        | 1013.44     |
+| CV84X6 SoC  | centernet_opencv.py   | centernet_int8_1b.bmodel   | 3.10      | 46.01         | 14.06        | 999.23      |
+| CV84X6 SoC  | centernet_opencv.py   | centernet_int8_4b.bmodel   | 2.98      | 44.07         | 13.14        | 1052.34     |
+| CV84X6 SoC  | centernet_bmcv.py     | centernet_fp32_1b.bmodel   | 2.54      | 2.15          | 200.70       | 957.14      |
+| CV84X6 SoC  | centernet_bmcv.py     | centernet_fp16_1b.bmodel   | 2.55      | 2.15          | 15.33        | 1032.31     |
+| CV84X6 SoC  | centernet_bmcv.py     | centernet_int8_1b.bmodel   | 2.54      | 2.14          | 9.93         | 1036.01     |
+| CV84X6 SoC  | centernet_bmcv.py     | centernet_int8_4b.bmodel   | 2.31      | 2.02          | 9.31         | 1038.01     |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. BM1684/1684X SoC的主控处理器均为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
-> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异； 
+> 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异；
+> 5. CV84X6（SE13-64）TPU 与 SE7-32（BM1684X）架构相同但板端主频/带宽不同，上表 CV84X6 行为板端实测值；CenterNet (DLAV0) 为纯卷积网络，CV84X6 上 FP32 亦可运行。
 
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
