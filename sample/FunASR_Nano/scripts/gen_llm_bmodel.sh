@@ -3,7 +3,7 @@
 # FunASR Nano — Qwen3-0.6B LLM 解码器编译 (w4bf16, via llm_convert.py)
 #
 # 在 sophon-llm 容器内运行:
-#   bash gen_llm_bmodel.sh [bm1684x|bm1688|bm1684x2] [num_core]
+#   bash gen_llm_bmodel.sh [bm1684x|bm1688|cv84x6] [num_core]
 #
 # 前置: 先在 host 运行 tools/extract_llm_weights.py 生成的 HF 模型目录
 #       tools/qwen3_0.6b_llm/ (含 pytorch_model.bin + config.json + tokenizer)

@@ -108,8 +108,8 @@ fi
 if [ ! -d "../models/CV84X6" ];
 then
     if [ $download_cv84x6 == 1 ]; then
-        python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/models/CV84X6.tar.gz
-        tar xvf CV84X6.tar.gz && rm CV84X6.tar.gz
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/GroundingDINO/models/CV84X6.zip
+        unzip CV84X6.zip && rm CV84X6.zip
         echo "models/CV84X6 download!"
     fi
 else
