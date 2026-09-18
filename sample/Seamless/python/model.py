@@ -65,7 +65,10 @@ class UnitYX2TModel(EncoderDecoderModel):
     ) -> None:
         self.handle = sail.Handle(dev_id)
         self.dev_type = self.handle.get_target()
-        assert self.dev_type in ['BM1684X', 'BM1688'], "only support BM1684X and BM1688 devices"
+        # CV84X6(SE13) boards return a non-standard string from get_target(); detect via chip id 0x1694(5780)
+        if self.dev_type not in ('BM1684X', 'BM1688', 'CV186AH'):
+            self.dev_type = 'CV84X6'
+        assert self.dev_type in ['BM1684X', 'BM1688', 'CV84X6'], "only support BM1684X, BM1688 and CV84X6 devices"
         model_dim = -1
         self.layer_num = 24
         self.seq_len = 0
@@ -187,7 +190,7 @@ class UnitYX2TModel(EncoderDecoderModel):
                 seqs = torch.cat((seqs, torch.zeros((seqs.shape[0], self.max_input_len - seqs_len, seqs.shape[2]), dtype=seqs.dtype)), dim=1)
         seqs = sail.Tensor(self.handle, seqs.numpy(), True, True)
         seqs.sync_s2d()
-        if self.dev_type == "BM1684X":
+        if self.dev_type in ("BM1684X", "CV84X6"):
             seqs_len = seqs.shape()[1]
         input_seqs = seqs
         input_data = {self.encoder_frontend_input_names[0]: input_seqs}
@@ -280,7 +283,7 @@ class UnitYX2TModel(EncoderDecoderModel):
         if self.dev_type == "BM1688":
             cur_step = self.pos.freqs[state_bag.step_nr : state_bag.step_nr + input_seqs.shape[1]].unsqueeze(0)
             cur_step = sail.Tensor(self.handle, cur_step.cpu().numpy(), True, True)
-        elif self.dev_type == "BM1684X":
+        elif self.dev_type in ("BM1684X", "CV84X6"):
             cur_step = sail.Tensor(self.handle, np.array([state_bag.step_nr]).astype(np.int32), True, True)
         cur_step.sync_s2d()
         input_data = {self.decoder_frontend_input_names[0]: seqs_tensor, 

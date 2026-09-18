@@ -12,6 +12,9 @@ if [ ! $1 ]; then
 else
     target=${1,,}
     target_dir=${target^^}
+    if test $target = "bm1684x2"; then
+        target_dir=CV84X6
+    fi
     if test $target = "bm1684"
     then
         echo "do not support bm1684"
@@ -35,7 +38,7 @@ function gen_dynamic_fp16bmodel()
         --model_def ${2} \
         --input_shapes $3 \
         --mlir transformed.mlir \
-        --dynamic_inputs input_seqs
+        --dynamic_shape_input_names input_seqs
     
     model_deploy.py \
         --mlir transformed.mlir \
@@ -124,7 +127,7 @@ gen_static_fp16bmodel $decoder_step_equal_1_model_name $decoder_step_equal_1_onn
 
 decoder_step_bigger_than_1_64kvcache_model_name=seamless_streaming_monotonic_text_decoder_step_bigger_than_1_64kvcache
 decoder_step_bigger_than_1_64kvcache_onnx_file=onnx/streaming_s2t_onnx/streaming_s2t_decoder_step_bigger_than_1/seamless_streaming_monotonic_decoder_text_decoder.onnx
-decoder_step_bigger_than_1_64kvcache_input_shapes=[[1,1,1024],[1,64],[1,11,1024],[1,11],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64]]
+decoder_step_bigger_than_1_64kvcache_input_shapes=[[1,1,1024],[1,64],[1,41,1024],[1,41],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64],[1,16,64,64]]
 decoder_step_bigger_than_1_64kvcache_bmodel_file=seamless_streaming_decoder_step_bigger_1_fp16_s2t.bmodel
 gen_static_fp16bmodel $decoder_step_bigger_than_1_64kvcache_model_name $decoder_step_bigger_than_1_64kvcache_onnx_file $decoder_step_bigger_than_1_64kvcache_input_shapes $decoder_step_bigger_than_1_64kvcache_bmodel_file
 

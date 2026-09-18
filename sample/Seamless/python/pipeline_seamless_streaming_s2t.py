@@ -78,14 +78,18 @@ class SileroVADSilenceRemover:
 class seamless_stream_s2tt:
     def __init__(self, args):
         self.version = "1.0.0"
-        self.silence_remover = SileroVADSilenceRemover()
         self.is_standardized = False
         self.chunk_duration_ms = args.chunk_duration_ms # NOTE: original code: 320
         self.tgt_lang = args.tgt_lang
         self.handle = sail.Handle(args.dev_id)
         self.dev_type = self.handle.get_target()
-        assert self.dev_type in ['BM1684X', 'BM1688'], "only support BM1684X and BM1688 devices"
+        # CV84X6(SE13) boards return a non-standard string from get_target(); detect via chip id 0x1694(5780)
+        if self.dev_type not in ('BM1684X', 'BM1688', 'CV186AH'):
+            self.dev_type = 'CV84X6'
+        assert self.dev_type in ['BM1684X', 'BM1688', 'CV84X6'], "only support BM1684X, BM1688 and CV84X6 devices"
         self.use_slience_remover = args.use_slience_remover
+        if self.use_slience_remover:
+            self.silence_remover = SileroVADSilenceRemover()
 
         if self.dev_type == "BM1688":
             self.pos = SinusoidalPositionEncoder(1024, 4096, _legacy_pad_idx=1, device="cpu")
@@ -166,6 +170,8 @@ class seamless_stream_s2tt:
         # self.unity_max_encoder_frontend_input_length must be even
         self.unity_max_encoder_frontend_input_length = 2 * self.unity_max_encoder_input_length
         self.unity_max_encoder_output_length = self.unitY_encoder_adaptor_output_shapes[self.unitY_encoder_adaptor_output_names[0]][1]
+        # CV84X6: step_bigger_1 decoder cross-attn length (41) differs from the encoder
+        # output length (11) in this build; pad encoder output to the decoder expectation.
 
         self.tokenizer = NllbTokenizer(args.tokenizer_model, ['afr', 'amh', 'arb', 'ary', 'arz', 'asm', 
                                                               'azj', 'bel', 'ben', 'bos', 'bul', 'cat', 'ceb', 
@@ -231,6 +237,8 @@ class seamless_stream_s2tt:
         self.monotonic_text_decoder_input_shapes = {}
         for input_name in self.monotonic_text_decoder_input_names:
             self.monotonic_text_decoder_input_shapes[input_name] = self.monotonic_text_decoder_net.get_input_shape(self.monotonic_text_decoder_graph_name, input_name)
+        # CV84X6: step_bigger_1 cross-attn length (41) != encoder output length (11)
+        self.monotonic_cross_attn_length = self.monotonic_text_decoder_input_shapes[self.monotonic_text_decoder_input_names[3]][1]
         print('monotonic text decoder model loaded')
         print('monotonic text decoder step=0 model loading ...')
         self.monotonic_text_decoder_step0_net = sail.Engine(args.decoder_step_equal_1_bmodel, args.dev_id, sail.IOMode.DEVIO)
@@ -464,7 +472,7 @@ class seamless_stream_s2tt:
         if self.dev_type == "BM1688":
             cur_step_tensor = self.pos.freqs[cur_step : cur_step + seqs_tensor.shape()[1]].unsqueeze(0)
             cur_step_tensor = sail.Tensor(self.handle, cur_step_tensor.cpu().numpy(), True, True)
-        elif self.dev_type == "BM1684X":
+        elif self.dev_type in ("BM1684X", "CV84X6"):
             cur_step_tensor = sail.Tensor(self.handle, np.array([cur_step]).astype(np.int32), True, True)
         cur_step_tensor.sync_s2d()
         input_data = {self.monotonic_text_decoder_frontend_input_names[0]: seqs_tensor, 
@@ -484,7 +492,7 @@ class seamless_stream_s2tt:
             assert seqs_valid_len == 1
             self_attn_mask = np.ones((seqs_valid_len, self.monotonic_max_kvcache_length), dtype=np.float32) * (-1000)
             self_attn_mask[:, -valid_kv_len-seqs_valid_len:] = 0
-            cross_attn_mask = np.ones((seqs_valid_len, self.unity_max_encoder_output_length), dtype=np.float32) * (-1000)
+            cross_attn_mask = np.ones((seqs_valid_len, self.monotonic_cross_attn_length), dtype=np.float32) * (-1000)
             cross_attn_mask[:, :valid_encoder_output_len] = 0
             self_attn_mask = sail.Tensor(self.handle, self_attn_mask, True, True)
             cross_attn_mask = sail.Tensor(self.handle, cross_attn_mask, True, True)
@@ -508,7 +516,7 @@ class seamless_stream_s2tt:
             self_attn_mask = np.ones((self.monotonic_max_input_length, self.monotonic_max_input_length), dtype=np.float32) * (-1000)
             self_attn_mask = np.triu(self_attn_mask, 1)
             self_attn_mask[seqs_valid_len:] = -1000
-            cross_attn_mask = np.zeros((self.monotonic_max_input_length, self.unity_max_encoder_output_length), dtype=np.float32)
+            cross_attn_mask = np.zeros((self.monotonic_max_input_length, self.monotonic_cross_attn_length), dtype=np.float32)
             cross_attn_mask[seqs_valid_len:] = -1000
             cross_attn_mask[:, valid_encoder_output_len:] = -1000
             self_attn_mask = sail.Tensor(self.handle, self_attn_mask, True, True)
@@ -543,6 +551,11 @@ class seamless_stream_s2tt:
         return self.monotonic_final_proj_output_tensors[self.monotonic_final_proj_output_names[0]]
 
     def monotonic_predict(self, cur_step: int, target_indices: List[int], pred_seq_list: List[int], encoder_output, valid_encoder_output_len, kcache, vcache, valid_kv_len):
+        # CV84X6: pad encoder output to the decoder cross-attn length if they differ
+        if encoder_output.shape()[1] != self.monotonic_cross_attn_length:
+            padded = sail.Tensor(self.handle, (encoder_output.shape()[0], self.monotonic_cross_attn_length, encoder_output.shape()[2]), encoder_output.dtype(), True, True)
+            padded.sync_d2d(encoder_output, 0, 0, encoder_output.shape()[0] * encoder_output.shape()[1] * encoder_output.shape()[2])
+            encoder_output = padded
         # generate monotonic input
         if len(pred_seq_list) == 0:
             assert cur_step == 0
@@ -784,13 +797,13 @@ def argsparser():
     parser = argparse.ArgumentParser(prog=__file__)
     parser.add_argument('--input', type=str, default='../datasets/aishell_S0764', help='path of input')
     parser.add_argument('--tgt_lang', type=str, default='cmn', help='output langauge')
-    parser.add_argument('--encoder_frontend_bmodel', type=str, default='../models/BM1684X/seamless_streaming_encoder_frontend_fp16_s2t.bmodel', help='path of Wav2Vec2Frontend bmodel')
-    parser.add_argument('--encoder_bmodel', type=str, default='../models/BM1684X/seamless_streaming_encoder_fp16_s2t.bmodel', help='path of UnitYEncoderAdaptor bmodel')
+    parser.add_argument('--encoder_frontend_bmodel', type=str, default=os.environ.get('SEAMLESS_MODEL_DIR', '../models/BM1684X') + '/seamless_streaming_encoder_frontend_fp16_s2t.bmodel', help='path of Wav2Vec2Frontend bmodel')
+    parser.add_argument('--encoder_bmodel', type=str, default=os.environ.get('SEAMLESS_MODEL_DIR', '../models/BM1684X') + '/seamless_streaming_encoder_fp16_s2t.bmodel', help='path of UnitYEncoderAdaptor bmodel')
     parser.add_argument('--tokenizer_model', type=str, default='../models/tokenizer.model', help='path of tokenizer model')
-    parser.add_argument('--decoder_frontend_bmodel', type=str, default='../models/BM1684X/seamless_streaming_decoder_frontend_fp16_s2t.bmodel', help='path of monotonic text decoder frontend bmodel')
-    parser.add_argument('--decoder_step_bigger_1_bmodel', type=str, default='../models/BM1684X/seamless_streaming_decoder_step_bigger_1_fp16_s2t.bmodel', help='path of monotonic text decoder bmodel')
-    parser.add_argument('--decoder_step_equal_1_bmodel', type=str, default='../models/BM1684X/seamless_streaming_decoder_step_equal_1_fp16_s2t.bmodel', help='path of monotonic text decoder step=0 bmodel')
-    parser.add_argument('--decoder_final_proj_bmodel', type=str, default='../models/BM1684X/seamless_streaming_decoder_final_proj_fp16_s2t.bmodel', help='path of monotonic final proj bmodel')
+    parser.add_argument('--decoder_frontend_bmodel', type=str, default=os.environ.get('SEAMLESS_MODEL_DIR', '../models/BM1684X') + '/seamless_streaming_decoder_frontend_fp16_s2t.bmodel', help='path of monotonic text decoder frontend bmodel')
+    parser.add_argument('--decoder_step_bigger_1_bmodel', type=str, default=os.environ.get('SEAMLESS_MODEL_DIR', '../models/BM1684X') + '/seamless_streaming_decoder_step_bigger_1_fp16_s2t.bmodel', help='path of monotonic text decoder bmodel')
+    parser.add_argument('--decoder_step_equal_1_bmodel', type=str, default=os.environ.get('SEAMLESS_MODEL_DIR', '../models/BM1684X') + '/seamless_streaming_decoder_step_equal_1_fp16_s2t.bmodel', help='path of monotonic text decoder step=0 bmodel')
+    parser.add_argument('--decoder_final_proj_bmodel', type=str, default=os.environ.get('SEAMLESS_MODEL_DIR', '../models/BM1684X') + '/seamless_streaming_decoder_final_proj_fp16_s2t.bmodel', help='path of monotonic final proj bmodel')
     parser.add_argument('--dev_id', type=int, default=0, help='dev id')
     parser.add_argument('--sample_rate', type=int, default=16000, help='audio sample ratio')
     parser.add_argument('--use_slience_remover', action='store_true', default=False, help='whether to use slience remover')

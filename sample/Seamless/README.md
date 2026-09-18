@@ -15,12 +15,14 @@
 - [7. 性能测试](#7-性能测试)
 
 ## 1. 简介
-Seamless 是一个开源的深度学习语音识别模型，由 Meta 开发，它能够实现实时、多语言的语音识别、翻译，并支持跨多种环境和设备的灵活部署。本例程对[Seamless官方开源仓库](https://github.com/facebookresearch/seamless_communication)中的SeamlessStreaming（流式识别）和M4t（离线识别）算法进行移植，使之能在SOPHON BM1684X和BM1688上进行推理。同时该例程也参考了[FunASR官方开源仓库](https://github.com/modelscope/FunASR)搭建推理的websocket服务端和客户端。
+Seamless 是一个开源的深度学习语音识别模型，由 Meta 开发，它能够实现实时、多语言的语音识别、翻译，并支持跨多种环境和设备的灵活部署。本例程对[Seamless官方开源仓库](https://github.com/facebookresearch/seamless_communication)中的SeamlessStreaming（流式识别）和M4t（离线识别）算法进行移植，使之能在SOPHON BM1684X、BM1688和CV84X6上进行推理。同时该例程也参考了[FunASR官方开源仓库](https://github.com/modelscope/FunASR)搭建推理的websocket服务端和客户端。
 
 ## 2. 特性
 * 支持BM1684X(x86 PCIe, SoC)
 * 支持FP16(BM1684X)和FP32(BM1684X)模型编译和推理
 * 支持FP16(BM1688)和FP32(BM1688)模型编译和推理
+* 支持CV84X6(SoC)
+* 支持FP16(CV84X6)模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持websocket服务客户端高性能推理
 
@@ -43,7 +45,7 @@ sudo reboot
 
 ## 4. 模型编译
 ### 4.1 准备原始模型
-该模型目前只支持在BM1684X和BM1688上运行，已提供原始导出的onnx模型，onnx模型导出方法可参考[Seamless(S2T)_Export_ONNX.md](docs/Seamless(S2T)_Export_ONNX.md)
+该模型目前只支持在BM1684X、BM1688和CV84X6上运行，已提供原始导出的onnx模型，onnx模型导出方法可参考[Seamless(S2T)_Export_ONNX.md](docs/Seamless(S2T)_Export_ONNX.md)
 
 ​本例程在`scripts`目录下提供了相关模型和数据的下载脚本
 ```bash
@@ -61,6 +63,7 @@ chmod -R +x scripts/
 下载的模型包括：
 ```
 ./models
+├── CV84X6                                                                      # 通过TPU-MLIR编译，用于CV84X6的FP16 BModel
 ├── onnx
     ├── m4t_s2t_onnx
     |   ├── m4t_s2t_decoder                                                                          # M4t(s2t任务) Decoder模块，onnx模型目录
@@ -102,9 +105,11 @@ cd ./scripts
 ./gen_streaming_s2t_bmodel.sh bm1684x
 # 编译BM1688上的模型
 ./gen_streaming_s2t_bmodel.sh bm1688
+# 编译CV84X6上的模型（输出至models/CV84X6）
+./gen_streaming_s2t_bmodel.sh bm1684x2
 ```
 
-​执行上述命令会在`models/BM1684X`或`models/BM1688`文件夹下生成`seamless_streaming_encoder_fp16_s2t.bmodel `等文件，即转换好的BModel。
+​执行上述命令会在`models/BM1684X`、`models/BM1688`或`models/CV84X6`文件夹下生成`seamless_streaming_encoder_fp16_s2t.bmodel `等文件，即转换好的BModel。
 
 - 生成M4t BModel
 
@@ -116,9 +121,11 @@ cd ./scripts
 ./gen_m4t_s2t_bmodel.sh bm1684x
 # 编译BM1688上的模型
 ./gen_m4t_s2t_bmodel.sh bm1688
+# 编译CV84X6上的模型（输出至models/CV84X6）
+./gen_m4t_s2t_bmodel.sh bm1684x2
 ```
 
-​执行上述命令会在`models/BM1684X`或`models/BM1688`文件夹下生成`m4t_decoder_beam_size_fp16_s2t.bmodel`等文件，即转换好的BModel。
+​执行上述命令会在`models/BM1684X`、`models/BM1688`或`models/CV84X6`文件夹下生成`m4t_decoder_beam_size_fp16_s2t.bmodel`等文件，即转换好的BModel。
 
 ## 5. 例程测试
 
@@ -152,11 +159,14 @@ cat online_wer | grep "Overall"
 |   SE9-16     | pipeline_seamless_streaming_s2t.py   |     SeamlessStreaming(s2t任务)2core模型                | 18.80% |
 |   SE9-16     | pipeline_m4t_s2t.py                  |     M4t(s2t任务)模型                                   | 2.32%  |
 |   SE9-16     | pipeline_m4t_s2t.py                  |     M4t(s2t任务)2core模型                              | 2.10%  |
+|   SE13-64    | pipeline_seamless_streaming_s2t.py   |     SeamlessStreaming(s2t任务)模型                     | 31.16% |
+|   SE13-64    | pipeline_m4t_s2t.py                  |     M4t(s2t任务)模型                                   | 11.39% |
 
 > **测试说明**：
 > 1. 在使用的模型相同的情况下，wer在不同的测试平台上是相同的。
 > 2. 由于SDK版本之间的差异，实测的wer与本表有1%以内的差值是正常的。
 > 3. 运行时均采用默认参数，其中SeamlessStreaming(s2t任务)模型提高一次性处理的序列长度和`--consecutive_segments_num`能大幅提高精度到5%以内；M4t(s2t任务)模型提高`--beam_size`到5（最大值）也能提高精度。
+> 4. SE13-64对应CV84X6，当前模型按每次处理约1.6s音频的流式切分编译（encoder输入长度80帧），精度受切分限制；提升`--consecutive_segments_num`或用更长的encoder输入重新编译可显著提高精度。
 
 ## 7. 性能测试
 |    测试平台   |              测试程序                 |           测试模型                  |  load time(ms) |  Inference time(ms)   |  encode time(ms) |  decode time(ms)   |
@@ -167,6 +177,8 @@ cat online_wer | grep "Overall"
 |   SE9-16     | pipeline_seamless_streaming_s2t.py    | SeamlessStreaming(s2t任务)2core模型 | 27.64            |  947.19             |  143.10          |  825.02            |               
 |   SE9-16     | pipeline_m4t_s2t.py                   |   M4t(s2t任务)模型                  | 13.98            |  956.21             |  82.21           |  853.54            |      
 |   SE9-16     | pipeline_m4t_s2t.py                   |   M4t(s2t任务)2core模型             | 8.18             |  785.10             |  52.65           |  720.89            |
+|   SE13-64    | pipeline_seamless_streaming_s2t.py    |   SeamlessStreaming(s2t任务)模型      | 12.85            |  722.65             |  111.14          |  953.53            |
+|   SE13-64    | pipeline_m4t_s2t.py                   |   M4t(s2t任务)模型                    | 18.26            |  4865.18            |  475.46          |  4405.72           |
 
 > **测试说明**：
 > 1. 该性能使用datasets/test/demo.wav音频进行测试，执行ASR+翻译为中文任务，计算后得出平均每秒音频所需推理时间。

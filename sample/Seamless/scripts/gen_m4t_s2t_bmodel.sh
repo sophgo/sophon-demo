@@ -12,6 +12,9 @@ if [ ! $1 ]; then
 else
     target=${1,,}
     target_dir=${target^^}
+    if test $target = "bm1684x2"; then
+        target_dir=CV84X6
+    fi
     if test $target = "bm1684"
     then
         echo "do not support bm1684"
@@ -35,7 +38,7 @@ function gen_dynamic_fp16bmodel()
         --model_def ${2} \
         --input_shapes $3 \
         --mlir transformed.mlir \
-        --dynamic_inputs input_seqs
+        --dynamic_shape_input_names input_seqs
     
     model_deploy.py \
         --mlir transformed.mlir \
@@ -55,8 +58,8 @@ function gen_dynamic_frontend_fp16bmodel()
         --mlir transformed.mlir \
         --test_input ../scripts/decoder_frontend.npz \
         --test_result ./decoder_frontend_out.npz \
-        --dynamic_inputs start_step \
-        --inputs_is_shape start_step
+        --dynamic_shape_input_names start_step \
+        --shape_influencing_input_names start_step
 
     model_deploy.py --mlir transformed.mlir \
         --quantize F16 \

@@ -81,12 +81,13 @@ pip3 install dfss --upgrade
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/sophon_arm-3.8.0-py3-none-any.whl #arm soc, py38
 # SE9使用如下whl安装包
 python3 -m dfss --url=open@sophgo.com:sophon-demo/Seamless/bm1688/sophon_arm-3.8.0-py3-none-any.whl
+# SE13(CV84X6)使用板端已预装的sophon-sail即可
 pip3 install sophon_arm-3.8.0-py3-none-any.whl --force-reinstall
 ```
 如果您需要其他版本的sophon-sail，可以参考上一小节，下载源码自己编译。
 
 ## 2. 准备模型与数据
-该模型目前只支持在BM1684X和BM1688上运行，已提供编译好的bmodel和测试数据，​同时，您也可以自行准备用于测试的数据集，以及重新编译模型，可参考[模型编译](../../README.md#4-模型编译)。
+该模型目前只支持在BM1684X、BM1688和CV84X6上运行，已提供编译好的bmodel和测试数据，​同时，您也可以自行准备用于测试的数据集，以及重新编译模型，可参考[模型编译](../../README.md#4-模型编译)。
 
 ​本例程在`scripts`目录下提供了相关模型和数据的下载脚本
 ```bash
@@ -94,6 +95,7 @@ pip3 install sophon_arm-3.8.0-py3-none-any.whl --force-reinstall
     ├── download_bm1684x_bmodel.sh                                           # 通过该脚本下载BM1684X平台的SeamlessStreaming(s2t任务)和M4t(s2t任务)的BModel
     ├── download_bm1688_1core_bmodel.sh                                      # 通过该脚本下载BM1688平台的SeamlessStreaming(s2t任务)和M4t(s2t任务)的单core BModel
     ├── download_bm1688_2core_bmodel.sh                                      # 通过该脚本下载BM1688平台的SeamlessStreaming(s2t任务)和M4t(s2t任务)的2core BModel
+    ├── download_cv84x6_bmodel.sh                                            # 通过该脚本下载CV84X6平台的SeamlessStreaming(s2t任务)和M4t(s2t任务)的BModel
     └── download_datasets.sh                                                 # 通过该脚本下载测试数据
 ```
 
@@ -107,6 +109,8 @@ chmod -R +x scripts/
 ./scripts/download_bm1688_1core_bmodel.sh
 # 若使用BM1688平台2core模型
 ./scripts/download_bm1688_2core_bmodel.sh
+# 若使用CV84X6平台模型
+./scripts/download_cv84x6_bmodel.sh
 # 下载测试数据
 ./scripts/download_datasets.sh
 ```
