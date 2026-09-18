@@ -96,12 +96,18 @@ class StableDiffusionPipeline():
             vae_encoder_path = os.path.join(model_path, "vae_encoder_multize.bmodel")
             vae_decoder_path = os.path.join(model_path, "vae_decoder_multize.bmodel")
             unet_path = os.path.join(model_path, "unet_multize.bmodel")
+            text_encoder_path = os.path.join(model_path, "text_encoder_1684x_f32.bmodel")
+        elif "CV84X6" in os.path.abspath(model_path):
+            # CV84X6(SE13-64): text encoder 含 matmul, 固件不支持 F32, 只提供 F16; unet/vae 为 BF16
+            vae_encoder_path = os.path.join(model_path, "vae_encoder_cv84x6_bf16.bmodel")
+            vae_decoder_path = os.path.join(model_path, "vae_decoder_cv84x6_bf16.bmodel")
+            unet_path = os.path.join(model_path, "unet_cv84x6_bf16.bmodel")
+            text_encoder_path = os.path.join(model_path, "text_encoder_cv84x6_f16.bmodel")
         else:
             vae_encoder_path = os.path.join(model_path, "vae_encoder_1684x_f16.bmodel")
             vae_decoder_path = os.path.join(model_path, "vae_decoder_1684x_f16.bmodel")
             unet_path = os.path.join(model_path, "unet_1684x_f16.bmodel")
-
-        text_encoder_path = os.path.join(model_path, "text_encoder_1684x_f32.bmodel")
+            text_encoder_path = os.path.join(model_path, "text_encoder_1684x_f32.bmodel")
 
         # load model
         self.tokenizer = CLIPTokenizer.from_pretrained(tokenizer)

@@ -21,11 +21,13 @@ StableDiffusion V1.5 是开源AIGC模型:[Huggingface官网stable-diffusion-v1-5
 
 - 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 - 支持FP32(BM1684X)、FP16(BM1684X)
-- 基于sophon-sail的python推理，文生图和controlnet辅助生图两种模式
+- 支持CV84X6(SoC)
+- 支持F16 text_encoder(CV84X6)、BF16 unet/vae(CV84X6)
+- 基于sophon-sail的python推理，文生图和controlnet辅助生图两种模式（CV84X6暂只支持singlize文生图，multilize/controlnet暂不支持）
 
 ## 3. 准备模型
 
-StableDiffusion V1.5暂时只支持在BM1684X上运行，模型来自于开源的Huggingface。本demo提供了singlize和multilize两种模型，基本的文生图模式使用singlize模型，可生成``512*512``大小的图像；multilize模型可使用controlnet插件控制图像生成内容，并支持如下46种不同的图像尺度（高，宽），尺度最大的(512,896)在用cpu导出时，运行内存占用约20G，外存占用约8G，用户内存资源不足时，请删除export*.py脚本中img_size列表里不需要的尺度，仅保留一个尺度进行导出：
+StableDiffusion V1.5的模型来自于开源的Huggingface。本demo提供了singlize和multilize两种模型，基本的文生图模式使用singlize模型，可生成``512*512``大小的图像；multilize模型可使用controlnet插件控制图像生成内容，并支持如下46种不同的图像尺度（高，宽），尺度最大的(512,896)在用cpu导出时，运行内存占用约20G，外存占用约8G，用户内存资源不足时，请删除export*.py脚本中img_size列表里不需要的尺度，仅保留一个尺度进行导出：
 
 ```
 (128, 384), (128, 448), (128, 512), (192, 384), (192, 448), (192, 512), (256, 384), 
@@ -98,12 +100,29 @@ python3 export_multilize_pt_from_Huggingface.py
 
 multilize模型可配合controlnet使用，控制图像生成的内容，结构。若用户想使用或者编译自己的controlnet，请参考[controlnet导出说明](./docs/Export_Controlnet.md)。
 
+CV84X6(SE13-64)目前只支持singlize文生图模式，multilize/controlnet模型暂不支持。在scripts路径下执行如下脚本，会将models/onnx_pt/下的pt/onnx文件编译为CV84X6的bmodel，并将bmodel移入models/CV84X6/singlize文件夹下：
+
+```bash
+./get_cv84x6_text_encoder_bmodel.sh   # F16; CV84X6固件F32的matmul/fc不支持，text_encoder只能编F16
+./get_cv84x6_vae_encoder_bmodel.sh    # BF16
+./get_cv84x6_vae_decoder_bmodel.sh    # BF16
+./get_cv84x6_unet_bmodel.sh           # BF16
+./get_cv84x6_unet_bmodel.sh sd_turbo  # use sd_turbo
+```
+
 ### 3.2 使用准备好的模型文件
 在scripts路径下，可以执行download_singlize_bmodel.sh下载转换好的singlize模型，运行结束后会在 ../models/BM1684X/singlize路径下保存Stable Diffusion V1.5所需要的所有bmodel，并将下载好的pt/onnx文件保存到../models/onnx_pt/singlize中，用户可以使用准备好的bmodel，也可以用MLIR工具自行编译onnx_pt模型。
 
 ```bash
 cd scripts
 ./download_singlize_bmodel.sh
+```
+
+CV84X6平台在scripts路径下执行download_cv84x6_singlize_bmodel.sh下载对应的singlize bmodel（text_encoder F16 + unet/vae BF16），tokenizer与BM1684X共用：
+
+```bash
+cd scripts
+./download_cv84x6_singlize_bmodel.sh
 ```
 
 用户还可以选择执行scripts路径下的download_multilize_bmodel.sh和download_controlnets_bmodel.sh，脚本执行完毕后，会在../models/BM1684X/multilize/路径下保存模型需要的bmodel，在../models/BM1684X/controlnets/路径下保存controlnet bmodel，在../models/BM1684X/processors/下保存配合controlnet所需的processor net bmodel，controlnet插件只能配合multilize模型使用。 
@@ -143,6 +162,12 @@ cd scripts
 │       ├── unet_1684x_f16.bmodel               # 使用TPU-MLIR编译，用于BM1684X的FP16 单尺度unet，只能生成512*512图像
 │       ├── vae_decoder_1684x_f16.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP16 单尺度vae decoder
 │       └── vae_encoder_1684x_f16.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP16 单尺度vae encoder
+├── CV84X6
+│   └── singlize
+│       ├── text_encoder_cv84x6_f16.bmodel      # 使用TPU-MLIR编译，用于CV84X6的F16 text encoder BModel，最大编码长度为77
+│       ├── unet_cv84x6_bf16.bmodel             # 使用TPU-MLIR编译，用于CV84X6的BF16 单尺度unet，只能生成512*512图像
+│       ├── vae_decoder_cv84x6_bf16.bmodel      # 使用TPU-MLIR编译，用于CV84X6的BF16 单尺度vae decoder
+│       └── vae_encoder_cv84x6_bf16.bmodel      # 使用TPU-MLIR编译，用于CV84X6的BF16 单尺度vae encoder
 ├── onnx_pt
 │   ├── text_encoder_1684x_f32.onnx             # 导出的text encoder的onnx模型，用户自行使用
 │   ├── unet_fp32.pt                            # 单尺度unet，用户自行使用
@@ -169,6 +194,9 @@ cd scripts
 | BM1684X SoC  |   controlnet  |   text_encoder fp32 + multilize unet/vae_decoder fp16  |      50.69      |    9223.65     |     493.20       |
 |   SRM1-20    |    text2img   |   text_encoder fp32 + singlize unet/vae_decoder fp16   |      84.34      |    5883.03     |     583.24       |
 |   SRM1-20    |   controlnet  |   text_encoder fp32 + multilize unet/vae_decoder fp16  |      95.78      |    15703.22    |     592.36       |
+|   SE13-64    |    text2img   |   text_encoder f16 + singlize unet/vae_decoder bf16    |      54.64      |    23969.18    |     1293.28      |
+
+> **注**: SE13-64对应CV84X6，当前只支持singlize文生图；multilize/controlnet模型暂不支持。
 
 ## 6. FAQ
 [常见问题解答](../../docs/FAQ.md)
