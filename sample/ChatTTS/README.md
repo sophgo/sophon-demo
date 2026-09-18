@@ -16,7 +16,7 @@ ChatTTS 是一款专门为对话场景（例如 LLM 助手）设计的文本转�
 
 
 ## 2. 特性
-* 支持BM1684X(x86 PCIe、SoC)、BM1688(SoC)
+* 支持BM1684X(x86 PCIe、SoC)、BM1688(SoC)、CV84X6(SoC)
 * 支持BF16、INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 
@@ -42,10 +42,13 @@ chmod -R +x scripts/
 |   ├── asset                      #一些不需要编译成bmodel的权重文件
 |   ├── chattts-llama_int4_1dev_1024_bm1684x.bmodel # gpt bmodel，int4精度，使用1个device，seq_len=1024，运行在bm1684x。
 |   ├── chattts-llama_int4_1dev_1024_bm1688.bmodel  # gpt bmodel，int4精度，使用1个device，seq_len=1024，运行在bm1688。
+|   ├── chattts-llama_int4_1dev_1024_cv84x6.bmodel # gpt bmodel，int4精度，使用1个device，seq_len=1024，运行在cv84x6。
 |   ├── decoder_1-768-1024_bm1684x.bmodel           # decoder bmodel，bf16精度，输入大小为[1,768,1024]，运行在bm1684x
 |   ├── decoder_1-768-1024_bm1688.bmodel            # decoder bmodel，bf16精度，输入大小为[1,768,1024]，运行在bm1688
+|   ├── decoder_1-768-1024_cv84x6.bmodel           # decoder bmodel，bf16精度，输入大小为[1,768,1024]，运行在cv84x6
 |   ├── vocos_1-100-2048_bm1684x.bmodel             # vocos bmodel，bf16精度，输入大小为[1,100,2048]，运行在bm1684x
 |   └── vocos_1-100-2048_bm1688.bmodel              # vocos bmodel，bf16精度，输入大小为[1,100,2048]，运行在bm1684x
+|   └── vocos_1-100-2048_cv84x6.bmodel             # vocos bmodel，bf16精度，输入大小为[1,100,2048]，运行在cv84x6
 ├── python/
 |   ├── ChatTTS                     #封装好的ChatTTS模块，推理部分用sail实现。
 |   ├── README.md                   #运行指南
@@ -79,7 +82,10 @@ chmod -R +x scripts/
 |    测试平台   |     测试程序       |           测试模型                     |   RTF  | tpu利用率(100%) | cpu利用率(800%) | 
 | -----------  | ----------------  | ---------------------------            | ------ | --------       | --------- |
 |     SE9-16   |  test.py         | gpt(int4) + decoder(bf16) + vocos(bf16) |   2.5 | 15%~30%        |  100%~150% |
+|     SE13-64  |  test.py         | gpt(int4) + decoder(bf16) + vocos(bf16) |  ~1.6 | -              |  ~150%     |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 2. SE9-16的SDK版本是V1.7；
+> 3. SE13-64对应CV84X6，SDK版本0.4.13；TPU利用率当前无读取接口，未统计；cpu利用率为8核平均值；
+> 4. SE13-64上gpt bmodel以io_tag(addr_mode=2)模式运行，例程按create_max_*张量方式推理，`transformers`需为4.41.1（板端`torch.load`加载tokenizer需要）；

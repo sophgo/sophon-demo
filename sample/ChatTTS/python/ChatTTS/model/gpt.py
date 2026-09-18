@@ -52,6 +52,11 @@ class GPT(nn.Module):
                     self.io_alone = 1
                     self.tensors[net]['input'] = self.model.get_input_tensors(net)
                     self.tensors[net]['output'] = self.model.get_output_tensors(net)
+                else:
+                    # addr_mode 2 (io_tag): no internal tensor binding, use
+                    # independently allocated max tensors
+                    self.tensors[net]['input'] = self.model.create_max_input_tensors(net)
+                    self.tensors[net]['output'] = self.model.create_max_output_tensors(net)
         else:
             for net in self.graph_names:
                 self.tensors[net] = {}
@@ -63,6 +68,12 @@ class GPT(nn.Module):
                     self.io_alone = 1
                     self.tensors[net]['input'] = self.model.get_input_tensors(net)
                     self.tensors[net]['output'] = self.model.get_output_tensors(net)
+                else:
+                    # addr_mode 2 (io_tag, the default on CV84X6): internal
+                    # tensor access (addrmode0) fails with bmlib api error,
+                    # use independently allocated max tensors instead
+                    self.tensors[net]['input'] = self.model.create_max_input_tensors(net)
+                    self.tensors[net]['output'] = self.model.create_max_output_tensors(net)
 
         # initialize params
         self.is_dynamic = self.model.get_is_dynamic("block_0")

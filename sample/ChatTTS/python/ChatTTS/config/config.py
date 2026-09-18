@@ -3,10 +3,10 @@ from dataclasses import dataclass
 
 @dataclass(repr=False, eq=False)
 class Path:
-    vocos_ckpt_path: str = "vocos_1-100-2048_bm1684x.bmodel"
+    vocos_ckpt_path: str = "vocos_1-100-2048_bm1684x.bmodel"  # CV84X6设备请改为 vocos_1-100-2048_cv84x6.bmodel
     dvae_ckpt_path: str = "asset/DVAE_full.pt"
-    gpt_ckpt_path: str = "chattts-llama_int4_1dev_1024_bm1684x.bmodel"
-    decoder_ckpt_path: str = "decoder_1-768-1024_bm1684x.bmodel"
+    gpt_ckpt_path: str = "chattts-llama_int4_1dev_1024_bm1684x.bmodel"  # CV84X6设备请改为 chattts-llama_int4_1dev_1024_cv84x6.bmodel
+    decoder_ckpt_path: str = "decoder_1-768-1024_bm1684x.bmodel"  # CV84X6设备请改为 decoder_1-768-1024_cv84x6.bmodel
     tokenizer_path: str = "asset/tokenizer.pt"
 
 

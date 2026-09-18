@@ -231,7 +231,7 @@ class Chat:
         self.logger.log(logging.INFO, "decoder loaded.")
 
         if tokenizer_path:
-            self.tokenizer = torch.load(tokenizer_path, map_location='cpu')
+            self.tokenizer = torch.load(tokenizer_path, map_location='cpu', weights_only=False)
             self.tokenizer.padding_side = 'left'
             self.logger.log(logging.INFO, "tokenizer loaded.")
 

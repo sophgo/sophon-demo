@@ -16,6 +16,9 @@ then
     python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatTTS/decoder_1-768-1024_bm1688.bmodel
     python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatTTS/vocos_1-100-2048_bm1684x.bmodel
     python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatTTS/vocos_1-100-2048_bm1688.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatTTS/chattts-llama_int4_1dev_1024_cv84x6.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatTTS/decoder_1-768-1024_cv84x6.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatTTS/vocos_1-100-2048_cv84x6.bmodel
     python3 -m dfss --url=open@sophgo.com:sophon-demo/ChatTTS/asset.tar.gz
     tar xvf asset.tar.gz && rm asset.tar.gz
     popd

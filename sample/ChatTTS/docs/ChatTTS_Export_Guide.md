@@ -49,6 +49,11 @@ cd scripts
 ./gen_gpt_bmodel.sh --mode int4 --seq_length 1024 --target bm1688 --name "chattts-llama"
 ./gen_decoder_bmodel.sh bm1688
 ./gen_vocos_bmodel.sh bm1688
+
+# CV84X6（编译flag仍为bm1684x2，生成后请将文件重命名为 _cv84x6 后缀再放入models目录）
+./gen_gpt_bmodel.sh --mode int4 --seq_length 1024 --target bm1684x2 --name "chattts-llama"
+./gen_decoder_bmodel.sh bm1684x2
+./gen_vocos_bmodel.sh bm1684x2
 ```
 
 编译成功之后，模型将会存放在当前目录，请将它们移动到`../models/`目录下。

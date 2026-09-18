@@ -49,7 +49,7 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/sophon_arm-3.8.0-py3-none
 
 ### 2.1 非流式推理
 
-`ChatTTS`是封装好的模块，用户可以基于`ChatTTS`模块做二次开发。在调用之前，需要配置好`ChatTTS/config/config.py`里的`class Path`中相关bmodel的路径。
+`ChatTTS`是封装好的模块，用户可以基于`ChatTTS`模块做二次开发。在调用之前，需要配置好`ChatTTS/config/config.py`里的`class Path`中相关bmodel的路径（CV84X6设备对应`*_cv84x6.bmodel`）。
 
 `test.py`是调用示例，可以直接运行`test.py`：
 ```bash
