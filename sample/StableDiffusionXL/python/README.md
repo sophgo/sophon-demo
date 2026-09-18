@@ -41,6 +41,15 @@ pip3 install -r requirements.txt
 > ```
 > **若使用sophon-opencv需要保证python版本小于等于3.8。**
 
+CV84X6(SE13-64)板端无互联网时，可在有网的x86主机上侧载arm64 wheel后离线安装，本例程实测可用的组合为`diffusers==0.31.0`、`huggingface_hub==0.25.2`（与板端预装的transformers 4.41.1、numpy 1.24.4兼容）：
+
+```bash
+# x86主机上下载(以diffusers为例)
+pip3 download --no-deps --python-version 3.10 --platform manylinux2014_aarch64 --only-binary=:all: diffusers==0.31.0
+# 拷到板端后
+pip3 install diffusers-0.31.0-*.whl huggingface_hub-0.25.2-*.whl
+```
+
 ## 2. 推理测试
 
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
@@ -118,6 +127,13 @@ python3 sdxl_t2i.py --model_path ../models/BM1684X --prompt "best quality, photo
 
 ```bash
 python3 sdxl_i2i.py --model_path ../models/BM1684X --prompt "A magician riding a grey donkey" --neg_prompt "worst quality" --init_img "../pics/astronaut.png" --num_inference_steps 50 --dev_id 0
+```
+
+CV84X6(SE13-64)平台使用`--model_path ../models/CV84X6`即可，例程会自动加载`text_encoder_1_cv84x6_f16.bmodel`等CV84X6模型：
+
+```bash
+python3 sdxl_t2i.py --model_path ../models/CV84X6 --prompt "a rabbit drinking at the bar" --neg_prompt "worst quality" --num_inference_steps 20 --dev_id 0
+python3 sdxl_i2i.py --model_path ../models/CV84X6 --prompt "A magician riding a grey donkey" --neg_prompt "worst quality" --init_img "../pics/astronaut.png" --num_inference_steps 20 --dev_id 0
 ```
 
 运行结束后，生成的的图片保存为`i2i_results.png`。

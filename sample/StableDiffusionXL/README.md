@@ -20,11 +20,13 @@ StableDiffusionXL 是开源AIGC模型:[Huggingface官网stable-diffusion-xl-base
 
 - 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 - 支持FP32(BM1684X)、FP16(BM1684X)
+- 支持CV84X6(SoC)
+- 支持F16 text_encoder(CV84X6)、BF16 unet/vae(CV84X6)
 - 基于sophon-sail的python推理，文生图和图生图两种模式
 
 ## 3. 准备模型
 
-StableDiffusionXL暂时只支持在BM1684X上运行，模型来自于开源的Huggingface，可生成``1024*1024``大小的图像。用户在用cpu导出`onnx/pt`模型时，运行内存占用约64G。
+StableDiffusionXL的模型来自于开源的Huggingface，可生成``1024*1024``大小的图像。用户在用cpu导出`onnx/pt`模型时，运行内存占用约64G。
 
 ### 3.1 自己下载并且编译模型
 用户若自己下载和编译模型，请安装所需的第三方库（下载官方模型需要用户可以正常连接HuggingFace网站）：
@@ -66,12 +68,28 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/Stable_diffusion_v1_5/tpu_mlir
 ./get_vae_decoder_bmodel.sh
 ```
 
+CV84X6(SE13-64)平台在scripts路径下执行如下脚本，会将models/onnx_pt/下的pt/onnx文件编译为CV84X6的bmodel，并将bmodel移入models/CV84X6文件夹下：
+
+```bash
+./get_cv84x6_text_encoder_bmodel.sh   # F16; CV84X6固件F32的matmul/fc不支持，text_encoder只能编F16
+./get_cv84x6_unet_bmodel.sh           # BF16
+./get_cv84x6_vae_encoder_bmodel.sh    # BF16
+./get_cv84x6_vae_decoder_bmodel.sh    # BF16
+```
+
 ### 3.2 使用准备好的模型文件
 在scripts路径下，可以执行download.sh下载转换好的bmodel模型，运行结束后会在 ../models/BM1684X路径下保存Stable DiffusionXL所需要的所有bmodel，并将下载好的pt/onnx文件保存到../models/onnx_pt/中，用户可以使用准备好的bmodel，也可以用MLIR工具自行编译onnx_pt模型。
 
 ```bash
 cd scripts
 ./download.sh
+```
+
+CV84X6平台在scripts路径下执行download_cv84x6_bmodel.sh下载对应的bmodel（text_encoder_1/2 F16 + unet/vae BF16），tokenizer与BM1684X共用：
+
+```bash
+cd scripts
+./download_cv84x6_bmodel.sh
 ```
 
 在scripts目录下执行上述download脚本后，当前目录下的文件结构如下：
@@ -84,6 +102,12 @@ cd scripts
 │   ├── unet_base_1684x_bf16.bmodel       # 使用TPU-MLIR编译，用于BM1684X的BF16 unet base，对应图像尺寸为1024*1024
 │   ├── vae_decoder_1684x_bf16.bmodel     # 使用TPU-MLIR编译，用于BM1684X的BF16 vae decoder
 │   └── vae_encoder_1684x_bf16.bmodel     # 使用TPU-MLIR编译，用于BM1684X的BF16 vae encoder
+├── CV84X6
+│   ├── text_encoder_1_cv84x6_f16.bmodel  # 使用TPU-MLIR编译，用于CV84X6的F16 text encoder 1 BModel，最大编码长度为77
+│   ├── text_encoder_2_cv84x6_f16.bmodel  # 使用TPU-MLIR编译，用于CV84X6的F16 text encoder 2 BModel，最大编码长度为77
+│   ├── unet_base_cv84x6_bf16.bmodel      # 使用TPU-MLIR编译，用于CV84X6的BF16 unet base，对应图像尺寸为1024*1024
+│   ├── vae_decoder_cv84x6_bf16.bmodel    # 使用TPU-MLIR编译，用于CV84X6的BF16 vae decoder
+│   └── vae_encoder_cv84x6_bf16.bmodel    # 使用TPU-MLIR编译，用于CV84X6的BF16 vae encoder
 └── onnx_pt
     ├── text_encoder_1
     │   └── text_encoder_1.onnx           # 导出的text encoder 1的onnx模型，用户自行使用
@@ -129,6 +153,10 @@ sudo reboot
 | BM1684X SoC  |    img2img    |      178.96       |    37450.7     |    1195.56       |     2099.22      |
 |   SRM1-20    |    text2img   |      925.21       |    46417.3     |    null          |     2535.54      |
 |   SRM1-20    |    img2img    |      340.00       |    76889.4     |    1399.37       |     2523.57      |
+|   SE13-64    |    text2img   |      291.71       |    164468.94   |    null          |     6628.80      |
+|   SE13-64    |    img2img    |      291.20       |    115150.46   |    3484.47       |     6697.88      |
+
+> **注**: SE13-64对应CV84X6；img2img行默认`--strength 0.7`，20次请求迭代对应14次实际去噪迭代（inference_time与迭代次数成正比）。
 
 ## 7. FAQ
 [常见问题解答](../../docs/FAQ.md)

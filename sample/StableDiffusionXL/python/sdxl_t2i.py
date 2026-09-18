@@ -22,13 +22,25 @@ def load_pipe(args):
     tokenizer_1 = CLIPTokenizer.from_pretrained(args.tokenizer)
     tokenzier_2 = CLIPTokenizer.from_pretrained(args.tokenizer_2)
 
+    if "CV84X6" in os.path.abspath(args.model_path):
+        # CV84X6(SE13-64): text encoder 含 matmul, 固件不支持 F32, 只提供 F16; unet/vae 为 BF16
+        vae_decoder = "vae_decoder_cv84x6_bf16.bmodel"
+        te_encoder = "text_encoder_1_cv84x6_f16.bmodel"
+        te_encoder_2 = "text_encoder_2_cv84x6_f16.bmodel"
+        unet = "unet_base_cv84x6_bf16.bmodel"
+    else:
+        vae_decoder = "vae_decoder_1684x_bf16.bmodel"
+        te_encoder = "text_encoder_1_1684x_f32.bmodel"
+        te_encoder_2 = "text_encoder_2_1684x_f16.bmodel"
+        unet = "unet_base_1684x_bf16.bmodel"
+
     pipe = StableDiffusionXLPipeline(
-        vae_decoder_path = os.path.join(args.model_path, "vae_decoder_1684x_bf16.bmodel"),
-        te_encoder_path = os.path.join(args.model_path, "text_encoder_1_1684x_f32.bmodel"),
-        te_encoder_2_path = os.path.join(args.model_path, "text_encoder_2_1684x_f16.bmodel"),
+        vae_decoder_path = os.path.join(args.model_path, vae_decoder),
+        te_encoder_path = os.path.join(args.model_path, te_encoder),
+        te_encoder_2_path = os.path.join(args.model_path, te_encoder_2),
         tokenizer = tokenizer_1,
         tokenizer_2 = tokenzier_2,
-        unet_path = os.path.join(args.model_path, "unet_base_1684x_bf16.bmodel"),
+        unet_path = os.path.join(args.model_path, unet),
         scheduler = EulerDiscreteScheduler(**(scheduler_config["Euler D"])),
         dev_id = args.dev_id)
 
