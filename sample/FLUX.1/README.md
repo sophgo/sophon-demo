@@ -15,17 +15,19 @@
 
 ## 1. 简介
 
-FLUX.1-dev/schnell是black-forest开源的文本生成图像模型(schnell版为少步数模型，迭代4步即可生成效果不错的图像，但不可用cfg参数控制；dev建议至少迭代10步，可用cfg参数控制提示词强度)，关于flux的具体特性，可前往HuggingFace源repo查看：[FLUX.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev)和[FLUX.1-schnell](https://huggingface.co/black-forest-labs/FLUX.1-schnell)。本例程对FLUX.1-dev和FLUX.1-schnell进行移植，使之能在SOPHON BM1684X和BM1688上进行推理测试。
+FLUX.1-dev/schnell是black-forest开源的文本生成图像模型(schnell版为少步数模型，迭代4步即可生成效果不错的图像，但不可用cfg参数控制；dev建议至少迭代10步，可用cfg参数控制提示词强度)，关于flux的具体特性，可前往HuggingFace源repo查看：[FLUX.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev)和[FLUX.1-schnell](https://huggingface.co/black-forest-labs/FLUX.1-schnell)。本例程对FLUX.1-dev和FLUX.1-schnell进行移植，使之能在SOPHON BM1684X、BM1688和CV84X6上进行推理测试。
 
 对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，且需要安装较新的sophon-sail。可参考[运行环境准备](#3-运行环境准备)来安装本例程需要的sophon-sail版本。
 
 对于BM1688，该例程支持在V1.8.0及以上的SDK上运行，DDR需要16G，且需要安装较新的sophon-sail，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
+对于CV84X6，该例程支持在SE13-64 SoC上运行，仅支持FLUX.1-schnell(4步出图)的W4BF16单芯模型。
+
 ## 2. 特性
 
-* 支持BM1684X(x86 PCIe、SoC), BM1688(16G SoC)
-* BM1684X支持BF16(3芯运行)、W4BF16(单芯运行)模型编译和推理，BM1688支持W4BF16(单芯运行)模型编译和推理
-* BM1684X支持(1024, 1024)形状的图像生成，BM1688支持(512, 512)形状的图像生成
+* 支持BM1684X(x86 PCIe、SoC), BM1688(16G SoC), CV84X6(SE13-64 SoC)
+* BM1684X支持BF16(3芯运行)、W4BF16(单芯运行)模型编译和推理，BM1688支持W4BF16(单芯运行)模型编译和推理，CV84X6支持W4BF16(单芯运行)模型编译和推理
+* BM1684X、CV84X6支持(1024, 1024)形状的图像生成，BM1688支持(512, 512)形状的图像生成；CV84X6仅支持FLUX.1-schnell
 * 支持基于SAIL推理的Python例程
 
 
@@ -111,6 +113,12 @@ sudo reboot
 ./scripts/download.sh --chip_type BM1688 --quantize W4BF16 --flux_type dev --use_taef1 1
 ```
 
+CV84X6(SE13-64)平台请单独执行下载脚本`download_cv84x6_bmodel.sh`（仅提供schnell W4BF16单芯模型，tokenizer/ids_emb与BM1684X共用）：
+
+```bash
+./scripts/download_cv84x6_bmodel.sh
+```
+
 执行下载脚本下载**所有模型**后，./models目录下的文件如下：
 
 ```bash
@@ -134,7 +142,12 @@ models
 │   ├── schnell_w4bf16_transformer.bmodel		# 使用TPU-MLIR编译，用于BM1688的W4BF16 FLUX.1-schnell，单芯运行时使用
 │   ├── tiny_vae_decoder_bf16.bmodel		        # 使用TPU-MLIR编译，用于BM1688的BF16 tiny-vae，soc模式下使用
 │   └── w4bf16_t5.bmodel				# 使用TPU-MLIR编译，用于BM1688的W4BF16 t5编码器，最大编码长度为256
-├── ids_emb_1024.pt					# 图像的空间位置编码结果，用于BM1684X，常量值
+├── CV84X6
+│   ├── clip.bmodel					# 使用TPU-MLIR编译，用于CV84X6的F16 clip编码器，最大编码长度为77
+│   ├── schnell_w4bf16_transformer.bmodel		# 使用TPU-MLIR编译，用于CV84X6的W4BF16 FLUX.1-schnell，单芯运行时使用
+│   ├── tiny_vae_decoder_bf16.bmodel		        # 使用TPU-MLIR编译，用于CV84X6的BF16 tiny-vae，soc模式下使用
+│   └── w4bf16_t5.bmodel				# 使用TPU-MLIR编译，用于CV84X6的W4BF16 t5编码器，最大编码长度为512
+├── ids_emb_1024.pt					# 图像的空间位置编码结果，用于BM1684X/CV84X6，常量值
 ├── ids_emb_512.pt					# 图像的空间位置编码结果，用于BM1688，常量值
 ├── tokenizer						# clip的提词器文件
 │   ├── merges.txt
@@ -207,6 +220,12 @@ pip3 install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url http
 # --use_taef1 1/0
 ```
 
+CV84X6(bm1684x2)平台导出/编译流程与上面一致(导出时`--img_size 1024 --flux_type schnell --use_taef1`)，区别仅在最后一步使用专用脚本`gen_cv84x6_bmodel.sh`（输出到models/CV84X6/下，clip为F16、t5 head/tail和transformer head/tail为BF16、其余block为W4BF16）：
+
+```bash
+./gen_cv84x6_bmodel.sh
+```
+
 ## 5. 例程测试
 
 - [Python例程](./python/README.md)
@@ -221,9 +240,11 @@ soc模式下性能数据：
 |  SE7-32  | run.py   | dev_w4bf16     |  1024	 | 224.37 s     | 163.27 s     | 11438MB        |
 |  SE9-16  | run.py   | schnell_w4bf16 |  512	 | 123.45 s     | 153.28 s     | 10600MB        |
 |  SE9-16  | run.py   | dev_w4bf16     |  512	 | 125.22 s     | 154.62 s     | 10620MB        |
+|  SE13-64 | run.py   | schnell_w4bf16 |  1024	 | 37.35 s      | 299.84 s     | 12738MB        |
 
 > **测试说明**：  
 >
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，SE9-16为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 3. 这里使用的SDK版本是BM1684X V24.04.01；BM1688 V1.8.0；
+> 4. SE13-64对应CV84X6平台，仅支持FLUX.1-schnell(4步出图)；

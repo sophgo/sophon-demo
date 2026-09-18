@@ -29,7 +29,7 @@ def load_pipeline(args):
     return pipeline
 
 def run(pipeline, args):
-    if(args.chip_type == "bm1684x"):
+    if(args.chip_type in ("bm1684x", "cv84x6")):
         height = 1024
         width = 1024
     else:
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     # model_path
     parser.add_argument("--model_path", type=str, default="../models", help="bmodels total path")
     # chip_type 
-    parser.add_argument("--chip_type", type=str, default="bm1684x", help="product type, bm1684x or bm1688")
+    parser.add_argument("--chip_type", type=str, default="bm1684x", help="product type, bm1684x, bm1688 or cv84x6")
     # quant_type 
     parser.add_argument("--quant_type", type=str, default="w4bf16", help="bf16 or w4bf16, transformer module, please use w4bf16 when using one device")
     # prompt

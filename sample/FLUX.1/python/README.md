@@ -34,6 +34,15 @@ pip3 install -r requirements.txt
 pip3 install torch==1.13.1
 ```
 
+CV84X6(SE13-64)板端无互联网时，可在有网的x86主机上侧载arm64 wheel后离线安装。本例程板端额外依赖`transformers`的`T5TokenizerFast`，需要`protobuf`（实测可用`protobuf==5.28.2`，与板端环境兼容）：
+
+```bash
+# x86主机上下载
+pip3 download --no-deps --platform manylinux2014_aarch64 --only-binary=:all: --python-version 3.10 protobuf==5.28.2
+# 拷到板端后
+pip3 install --user protobuf-5.28.2-*.whl
+```
+
 ## 2. 推理测试
 
 python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测试参数和运行方式是相同的。
@@ -45,7 +54,7 @@ python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测�
 ```bash
 --flux_type: flux.1的类型，dev或schnell;
 --model_path: bmodel文件的总目录;
---chip_type: 芯片类型，目前仅支持bm1684X和bm1688;
+--chip_type: 芯片类型，目前支持bm1684X、bm1688和cv84x6;
 --quant_type: transformer主体结构的量化方式，单芯运行选W4BF16，三芯运行选BF16;
 --prompt: clip的提示词;
 --prompt_2: t5的提示词，若不给提示词则和prompt保持一致;
@@ -61,7 +70,7 @@ python例程不需要编译，可以直接运行，PCIe平台和SoC平台的测�
 ```shell
 --flux_type: flux.1的类型，dev或schnell;
 --model_path: bmodel文件的总目录;
---chip_type: 芯片类型，目前仅支持bm1684X和bm1688;
+--chip_type: 芯片类型，目前支持bm1684X、bm1688和cv84x6;
 --quant_type: transformer主体结构的量化方式，单芯运行选W4BF16，三芯运行选BF16;
 --dev_ids: 用于推理的tpu设备id;单芯输入设备号，如 0;三芯输入3个设备号，如 0 1 2;
 --tiny_vae: 是否使用tiny_vae，单芯模式下使用，可减少显存占用;
@@ -94,6 +103,9 @@ python3 run.py --prompt "a powerful mysterious sorceress, casting lightning magi
 
 # 3芯schnell版
 python3 run.py --prompt "a powerful mysterious sorceress, casting lightning magic, detailed clothing, digital painting, hyperrealistic, fantasy, Surrealist, upper body, artstation, highly detailed, sharp focus, stunningly beautiful, dystopian" --num_inference_steps 10 --dev_ids 0 1 2 --quant_type BF16  --flux_type schnell --chip_type bm1684x
+
+# CV84X6(SE13-64)单芯schnell版(仅支持schnell)
+python3 run.py --prompt "a rabbit drinking at the bar" --num_inference_steps 4 --quant_type W4BF16 --dev_ids 0 --tiny_vae --flux_type schnell --chip_type cv84x6 --model_path ../models
 ```
 
 代码运行结束后，生成的的图像保存为`result.png`。

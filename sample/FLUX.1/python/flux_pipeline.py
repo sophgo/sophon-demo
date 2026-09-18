@@ -111,7 +111,7 @@ class FluxPipeline:
     # type config
     FLUX_TYPE = ('dev', 'schnell', )
     QUANT_DTYPE = ("w4bf16", "bf16", )
-    CHIP_TYPE = ('BM1684X', 'BM1688')
+    CHIP_TYPE = ('BM1684X', 'BM1688', 'CV84X6')
     #### clip and vae are loaded on device0, t5 is loaded on device2
     MULTI_DEVICE_ALLOCATION = {'clip': 0, 'vae': 0,'t5': 2, }
     CLIP_LAYER_NUM = 12
@@ -212,7 +212,7 @@ class FluxPipeline:
         if chip_type not in self.CHIP_TYPE:
             raise UnSupportedError(chip_type)
 
-        if chip_type == "BM1684X":
+        if chip_type in ("BM1684X", "CV84X6"):
             self.tokenizer_max_length = 77
             self.tokenizer_2_max_length = 512
             self.image_rotary_emb_shape = [1, 4608, 1, 64, 2, 2] 
@@ -245,7 +245,7 @@ class FluxPipeline:
             raise FileNotFoundError(f"No '{os.path.basename(tokenizer_2_path)}' directory found at {full_model_path}.")
 
         #### check rotary embedding model
-        if chip_type == "BM1684X":
+        if chip_type in ("BM1684X", "CV84X6"):
             ids_emb_name = "ids_emb_1024.pt"
         elif chip_type == "BM1688":
             ids_emb_name = "ids_emb_512.pt"
@@ -317,7 +317,7 @@ class FluxPipeline:
             t5_block_inputs_map = self.text_encoder_2.get_input_tensors_addrmode0("t5_block_0")
             vae_inputs_map = self.vae_decoder.get_input_tensors_addrmode0("vae_decoder")
             vae_outputs_map = self.vae_decoder.get_output_tensors_addrmode0("vae_decoder")
-        elif chip_type == "BM1688":
+        elif chip_type in ("BM1688", "CV84X6"):
             clip_head_inputs_map = self.text_encoder.create_max_input_tensors("clip_head")
             clip_block_inputs_map = self.text_encoder.create_max_input_tensors("clip_block_0")
             clip_tail_outputs_map = self.text_encoder.create_max_output_tensors("clip_tail")
@@ -371,7 +371,7 @@ class FluxPipeline:
                 trans_block_on_dev0_inputs_map = self.transformer_on_device0.get_input_tensors_addrmode0(f"{flux_type}_trans_block_0")
                 single_trans_block_on_dev0_outputs_map = self.transformer_on_device0.get_output_tensors_addrmode0(f"{flux_type}_single_trans_block_0") 
                 tail_outputs_map = self.transformer_on_device0.get_output_tensors_addrmode0(f"{flux_type}_tail")
-            elif chip_type == "BM1688":
+            elif chip_type in ("BM1688", "CV84X6"):
                 head_inputs_map = self.transformer_on_device0.create_max_input_tensors(f"{flux_type}_head")
                 trans_block_on_dev0_inputs_map = self.transformer_on_device0.create_max_input_tensors(f"{flux_type}_trans_block_0")
                 single_trans_block_on_dev0_outputs_map = self.transformer_on_device0.create_max_output_tensors(f"{flux_type}_single_trans_block_0") 
