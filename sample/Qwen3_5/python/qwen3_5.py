@@ -192,6 +192,17 @@ class Qwen3_5():
                     self.name_blocks_kv.append(None)
             self.fa_kv_k_cache_output = self.output_tensors[kv_template][1]
             self.fa_kv_v_cache_output = self.output_tensors[kv_template][2]
+            # Zero the block_kv past-KV template inputs once at init. The view
+            # handed to the graph covers [0, old_kvlen), but the underlying
+            # device mem is the net's internal (uninitialized) memory: if a
+            # masked-but-still-read lane sees load-time garbage containing
+            # NaN/Inf, the attention output is poisoned and results flip
+            # between runs. Same rationale as zeroing past_key/past_value in
+            # init_runtime_vals; after this, tail slots only ever hold zeros
+            # or real (mask-annihilated) stale KV.
+            for kv_t in (self.input_tensors[kv_template][2],
+                         self.input_tensors[kv_template][3]):
+                kv_t.zeros()
 
         self.first_hidden_states_output = self.output_tensors[self.name_blocks[0]][0]
         self.fa_k_cache_output = self.output_tensors[self.name_blocks[self.FA_INTERVAL - 1]][1]
@@ -1098,9 +1109,18 @@ class Qwen3_5():
         self.net.process(self.name_lm, {0: lm_input}, self.output_tensors[self.name_lm])
 
         self.last_id = self.sample_token()
-        # Match C++ chat.cpp:639 — history_length++ after lm_head so the
-        # first forward_next writes to slot token_len (not token_len - 1).
-        self.history_length += 1
+        # Keep the invariant history_length = filled_KV_slots + 1 so the first
+        # forward_next writes the first generated token's KV exactly at the
+        # next empty slot (old_kvlen after the chunk loop). A plain += 1 is
+        # only correct when the prefill entered with history_length == 0
+        # (fresh round): there entry 0 and old_kvlen coincide. Entering with
+        # history_length > 0 (multi-round chat, or the prefix cache, which
+        # enters with prefix_kv_len + 1 so that old_kvlen = prefix_kv_len)
+        # already carries the +1, so += 1 counts one extra and the first
+        # decode writes one slot late, leaving a zero-filled hole right after
+        # the prefill that every later decode step attends to as a phantom
+        # token — a small but systematic accuracy loss.
+        self.history_length = old_kvlen + 1
         self.step = self.history_length
         self.logger.debug(
             f"forward_first_with_kv: history_length={self.history_length}, last_id={self.last_id}")

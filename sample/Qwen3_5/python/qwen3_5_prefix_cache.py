@@ -100,6 +100,14 @@ class PrefixCacheQwen3_5(Qwen3_5):
 
     def warmup_prefix(self, prefix_ids, prefix_pos_ids):
         """Embed + prefill the fixed text prefix once; snapshot the states."""
+        # A prefix rebuild (server: fixed text changed between requests) must
+        # start from a clean slate: forward_first_with_kv derives old_kvlen
+        # from history_length, so a leftover value from the previous request
+        # would push the warmup into the block_kv_ path, write the prefix KV
+        # at a displaced offset, and bake the previous request's KV into the
+        # snapshot ([:prefix_kv_len] would cover stale slots) — every later
+        # restore would then attend another request's tokens.
+        self.history_length = 0
         self.forward_embed(prefix_ids)
         # text-only prefix: 3 x len positions 0..len-1
         position_ids = np.tile(
