@@ -269,7 +269,10 @@ class Qwen3_5():
 
         config_dir = args.config_path
         self.processor = AutoProcessor.from_pretrained(config_dir, trust_remote_code=True)
-        self.tokenizer = self.processor.tokenizer
+        # Depending on the config shipped with the bmodel, AutoProcessor may
+        # return a Processor wrapper (has .tokenizer) or the bare tokenizer
+        # (35B's config.json has no processor class → Qwen2TokenizerFast).
+        self.tokenizer = getattr(self.processor, "tokenizer", self.processor)
         self.ID_IM_END = self.tokenizer.convert_tokens_to_ids("<|im_end|>")
         self.ID_IMAGE_PAD = self.tokenizer.convert_tokens_to_ids("<|image_pad|>")
         self.ID_VIDEO_PAD = self.tokenizer.convert_tokens_to_ids("<|video_pad|>")

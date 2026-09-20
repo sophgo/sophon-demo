@@ -21,6 +21,9 @@ Qwen3.5能够输入单一图片/视频进行对话，python目录下提供了例
 |   1  | qwen3_5.py       | 使用SAIL推理                     |
 |   2  | qwen3_5_prefix_cache.py | 固定文本前缀缓存推理（文字固定、图片变化场景） |
 
+> **注意：**
+> 35B-A3B (MoE) 模型与dense模型使用相同的Python推理代码，`qwen3_5.py` 从bmodel自动适配模型层数、hidden_size等参数，无需任何代码改动。35B模型仅需4核编译运行（不支持1core/1dev）。
+
 ## 1. 环境准备
 > **注意：**
 > 无论哪个环境，都要求transformers==5.7.0，该版本要求python版本大于3.10。若不满足，请参考[python3.10安装](../../../docs/FAQ.md#13-se7安装python310)安装。
