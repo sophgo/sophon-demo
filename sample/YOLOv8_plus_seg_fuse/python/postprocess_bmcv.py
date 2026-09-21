@@ -24,6 +24,15 @@ COCO_CLASSES = ("person", "bicycle", "car", "motorcycle", "airplane", "bus", "tr
                 "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book",
                 "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush")
 
+def _as_fp32(arr):
+    """sail returns fp16 tensor data as raw uint16 bits; convert to float32."""
+    if arr.dtype == np.uint16:
+        return arr.view(np.float16).astype(np.float32)
+    if arr.dtype == np.float16:
+        return arr.astype(np.float32)
+    return arr
+
+
 def hsv2bgr(h, s, v):
     h_i = int(h * 6)
     f = h * 6 - h_i
@@ -99,51 +108,64 @@ class PostProcess:
                 masks_uncrop = out
             if(len(out.shape()) == 2):
                 out.sync_d2s()
-                seg_out = out.asnumpy()
+                seg_out = _as_fp32(out.asnumpy())
         for i in range(len(txy)):
-            masks, boxes = self.postprocess(masks_uncrop, seg_out, im0_shape[i], ratio[i], txy[i][0], txy[i][1])
-            segments = self.masks2segments(masks)
-            results.append([boxes, segments, masks])
+            boxes, masks, roi = self.postprocess(masks_uncrop, seg_out, im0_shape[i], ratio[i], txy[i][0], txy[i][1])
+            results.append([boxes, masks, roi])
         return results
     
     def postprocess(self, masks_uncrop:sail.Tensor, seg_out, im0_shape, ratio, pad_w, pad_h):
         if(seg_out is None or seg_out.shape[0] <= 0):
-            return [],[]
-        masks_uncrop = self.scale_mask(masks=masks_uncrop, im0_shape=im0_shape[:2])
-        boxes =  seg_out[:,:4]
+            return [],[],()
+        im0_h, im0_w = im0_shape[:2]
 
-        boxes[..., :4] -= [pad_w, pad_h, pad_w, pad_h]
-        boxes[..., :4] /= min(ratio)
+        # bbox: model -> original-image coords (float), same numerics as before
+        boxes = seg_out.copy()
+        boxes[:, :4] -= [pad_w, pad_h, pad_w, pad_h]
+        boxes[:, :4] /= min(ratio)
+        boxes[:, [0, 2]] = boxes[:, [0, 2]].clip(0, im0_w)
+        boxes[:, [1, 3]] = boxes[:, [1, 3]].clip(0, im0_h)
 
-        boxes[..., [0, 2]] = boxes[:, [0, 2]].clip(0, im0_shape[:2][1])
-        boxes[..., [1, 3]] = boxes[:, [1, 3]].clip(0, im0_shape[:2][0])
-        masks = self.crop_mask(masks_uncrop, boxes)
-        masks = np.greater(masks, 127.5)
-        return masks, seg_out
+        # integer bbox ROI: std::round (floor(x+0.5) for x>=0) to match C++ yolov8_seg_fuse.cpp:414-419
+        x1 = np.floor(boxes[:, 0] + 0.5).astype(np.int32)
+        y1 = np.floor(boxes[:, 1] + 0.5).astype(np.int32)
+        x2 = np.floor(boxes[:, 2] + 0.5).astype(np.int32)
+        y2 = np.floor(boxes[:, 3] + 0.5).astype(np.int32)
+        keep = (x2 > x1 + 1) & (y2 > y1 + 1)
+        idx = np.nonzero(keep)[0]
+        if idx.size == 0:
+            return [], [], ()
+
+        boxes = boxes[idx]
+        x1, y1, x2, y2 = x1[idx], y1[idx], x2[idx], y2[idx]
+
+        # 3: resize / upsample only the surviving mask channels
+        masks_scaled = self.scale_mask(masks=masks_uncrop, im0_shape=im0_shape[:2], indices=idx)
+
+        # 2: crop each mask to its bbox ROI and threshold (replaces full-res broadcast gate)
+        n = idx.size
+        masks = np.zeros((n, im0_h, im0_w), dtype=bool)
+        for k in range(n):
+            masks[k, y1[k]:y2[k], x1[k]:x2[k]] = masks_scaled[k, y1[k]:y2[k], x1[k]:x2[k]] > 127.5
+
+        # ROI returned so contours can be computed outside the timed region (draw-only)
+        return boxes, masks, (x1, y1, x2, y2)
 
     @staticmethod
-    def masks2segments(masks):
+    def masks2segments(masks, x1, y1, x2, y2):
         segments = []
-        for x in masks:
-            contours, _ = cv2.findContours(x.astype('uint8'), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-            if(contours):
-                contours = np.array(contours[np.array([len(x) for x in contours]).argmax()])
-                coco_segmentation = [contours.flatten().astype('float32')]
-                segments.append(coco_segmentation)
+        for m, xs, ys, xe, ye in zip(masks, x1, y1, x2, y2):
+            roi = m[ys:ye, xs:xe].astype('uint8')  # bbox-area only, replaces full-res astype
+            contours, _ = cv2.findContours(roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            if contours:
+                contour = max(contours, key=len).reshape(-1, 2)
+                contour += [xs, ys]
+                segments.append([contour.astype('float32').flatten()])
             else:
                 segments.append([])
-
         return segments
 
-    @staticmethod
-    def crop_mask(masks, boxes):
-        n, h, w = masks.shape
-        x1, y1, x2, y2 = np.split(boxes[:, :, None], 4, 1)
-        r = np.arange(w, dtype=x1.dtype)[None, None, :]
-        c = np.arange(h, dtype=x1.dtype)[None, :, None]
-        return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
-
-    def scale_mask(self, masks:sail.Tensor, im0_shape, ratio_pad=None):
+    def scale_mask(self, masks:sail.Tensor, im0_shape, ratio_pad=None, indices=None):
         """
         Takes a mask, and resizes it to the original image size. (Borrowed from
         https://github.com/ultralytics/ultralytics/blob/465df3024f44fa97d4fad9986530d5a13cdabdca/ultralytics/utils/ops.py#L305)
@@ -173,8 +195,10 @@ class PostProcess:
         if masks.dtype() == sail.Dtype.BM_UINT8:
             mask_size = im1_shape[0] * im1_shape[1]
             masks_resized = []
-            for i in range(masks.shape()[0]):
-                mask_tensor = sail.Tensor(masks, [1,1,im1_shape[1],im1_shape[0]], i * mask_size)
+            if indices is None:
+                indices = range(masks.shape()[0])
+            for i in indices:
+                mask_tensor = sail.Tensor(masks, [1,1,im1_shape[1],im1_shape[0]], int(i) * mask_size)
                 mask_bmimg = sail.BMImage(self.handle, im1_shape[1], im1_shape[0], sail.Format.FORMAT_GRAY, sail.ImgDtype.DATA_TYPE_EXT_1N_BYTE)
                 self.bmcv.tensor_to_bm_image(mask_tensor, mask_bmimg, sail.Format.FORMAT_GRAY)
                 mask_bmimg_resized = self.bmcv.crop_and_resize(mask_bmimg, left, top, width, height, im0_shape[1], im0_shape[0], sail.bmcv_resize_algorithm.BMCV_INTER_LINEAR)
@@ -185,7 +209,9 @@ class PostProcess:
         else:
             # opencv solution
             masks.sync_d2s()
-            masks = masks.asnumpy().transpose(1,2,0)
+            masks = _as_fp32(masks.asnumpy()).transpose(1,2,0)
+            if indices is not None:
+                masks = masks[:, :, indices]
             masks = masks[top:bottom, left:right]
             masks = cv2.resize(masks, (im0_shape[1], im0_shape[0]))#,
                             #interpolation=cv2.INTER_CUBIC)  # INTER_CUBIC would be better

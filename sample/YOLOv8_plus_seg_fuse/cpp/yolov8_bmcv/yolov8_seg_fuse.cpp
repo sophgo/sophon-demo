@@ -193,6 +193,33 @@ int YoloV8SegFuse::forward(bm_tensor_t& input_tensor, std::vector<bm_tensor_t>& 
  * @param   [in]           scale    scale of tensor.
  * @retval  float*         tensor's cpu data.
  */
+// Convert a half-precision (IEEE 754 binary16) bit pattern to float32.
+// libsophon exposes fp16 -> fp32 only through the fp16 typed helpers, so do it
+// inline to keep the example self-contained and portable across soc/pcie SDKs.
+static inline float bm_fp16_to_fp32(uint16_t h) {
+    union { uint32_t u; float f; } conv;
+    uint32_t sign = (uint32_t)(h & 0x8000u) << 16;
+    uint32_t exp  = (h >> 10) & 0x1fu;
+    uint32_t man  = (uint32_t)(h & 0x3ffu);
+    if (exp == 0) {
+        if (man == 0) {
+            conv.u = sign; // +/-0
+        } else {
+            // subnormal: normalize the mantissa
+            int e = -14;
+            uint32_t m = man;
+            while ((m & 0x400u) == 0) { m <<= 1; --e; }
+            m &= 0x3ffu;
+            conv.u = sign | ((uint32_t)(e + 127) << 23) | (m << 13);
+        }
+    } else if (exp == 0x1f) {
+        conv.u = sign | 0x7f800000u | (man << 13); // +/-inf / nan
+    } else {
+        conv.u = sign | ((exp + 112u) << 23) | (man << 13); // exp - 15 + 127
+    }
+    return conv.f;
+}
+
 float* YoloV8SegFuse::get_cpu_data(bm_tensor_t* tensor, float scale){
     int ret = 0;
     float *pFP32 = NULL;
@@ -253,6 +280,28 @@ float* YoloV8SegFuse::get_cpu_data(bm_tensor_t* tensor, float scale){
             if (ret != BM_SUCCESS) {
         throw std::runtime_error("BMRuntime 操作失败");
     }
+        } else if (BM_FLOAT16 == tensor->dtype) {
+            uint16_t * pFP16 = nullptr;
+            unsigned long long  addr;
+            ret = bm_mem_mmap_device_mem(handle, &tensor->device_mem, &addr);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
+            ret = bm_mem_invalidate_device_mem(handle, &tensor->device_mem);
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
+            pFP16 = (uint16_t*)addr;
+            // dtype convert
+            pFP32 = new float[count];
+            assert(pFP32 != nullptr);
+            for(int i = 0; i < count; ++i) {
+                pFP32[i] = bm_fp16_to_fp32(pFP16[i]);
+            }
+            ret = bm_mem_unmap_device_mem(handle, pFP16, bm_mem_get_device_size(tensor->device_mem));
+            if (ret != BM_SUCCESS) {
+        throw std::runtime_error("BMRuntime 操作失败");
+    }
         } else{
             std::cerr << "unsupport dtype: " << tensor->dtype << std::endl;
         }
@@ -290,6 +339,20 @@ float* YoloV8SegFuse::get_cpu_data(bm_tensor_t* tensor, float scale){
                 pFP32[i] = pUI8[i] * scale;
             }
             delete [] pUI8;
+        } else if (BM_FLOAT16 == tensor->dtype) {
+            uint16_t * pFP16 = nullptr;
+            int tensor_size = bmrt_tensor_bytesize(tensor);
+            pFP16 = new uint16_t[tensor_size / sizeof(uint16_t)];
+            assert(pFP16 != nullptr);
+            // dtype convert
+            pFP32 = new float[count];
+            assert(pFP32 != nullptr);
+            ret = bm_memcpy_d2s_partial(handle, pFP16, tensor->device_mem, tensor_size);
+            assert(BM_SUCCESS ==ret);
+            for(int i = 0;i < count; ++ i) {
+                pFP32[i] = bm_fp16_to_fp32(pFP16[i]);
+            }
+            delete [] pFP16;
         }else{
             std::cerr << "unsupport dtype: " << tensor->dtype << std::endl;
         }
@@ -360,7 +423,7 @@ int YoloV8SegFuse::post_process(const std::vector<bm_image>& input_images,
         int mask_h = tensor_mask.shape.dims[1];
         int mask_w = tensor_mask.shape.dims[2];
         int mask_pixels = mask_h * mask_w;
-        bool mask_is_fp32 = (tensor_mask.dtype == BM_FLOAT32);
+        bool mask_is_fp32 = (tensor_mask.dtype == BM_FLOAT32 || tensor_mask.dtype == BM_FLOAT16);
         float* mask_fp32_data = nullptr;
         if (mask_is_fp32) {
             // Get float32 mask data once for all boxes
@@ -394,9 +457,14 @@ int YoloV8SegFuse::post_process(const std::vector<bm_image>& input_images,
             }
         }
         if (mask_fp32_data) {
-            // get_cpu_data for FLOAT32 returns mmap'd pointer, need unmap
-            bm_mem_unmap_device_mem(handle, mask_fp32_data,
-                                    bm_mem_get_device_size(tensor_mask.device_mem));
+            if (tensor_mask.dtype == BM_FLOAT32) {
+                // get_cpu_data for FLOAT32 returns mmap'd pointer, need unmap
+                bm_mem_unmap_device_mem(handle, mask_fp32_data,
+                                        bm_mem_get_device_size(tensor_mask.device_mem));
+            } else {
+                // FP16 path returns a new[]'d fp32 buffer, need delete
+                delete [] mask_fp32_data;
+            }
         }
         detected_boxes.push_back(yolobox_vec_tmp);
     }

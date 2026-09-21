@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -57,8 +57,6 @@ PLATFORM=$TARGET
 if test $MODE = "soc_test"; then
   if test $TARGET = "BM1684X"; then
     PLATFORM="SE7-32"
-  elif test $TARGET = "BM1684"; then
-    PLATFORM="SE5-16"
   elif test $TARGET = "BM1688"; then
     PLATFORM="SE9-16"
     cpu_core_num=$(nproc)
@@ -106,6 +104,40 @@ function judge_ret()
   fi
 
   sleep 3
+}
+
+function bmrt_test_case()
+{
+    calculate_time_log=$(bmrt_test --bmodel $1 | grep "calculate" 2>&1)
+    readarray -t calculate_times < <(echo "$calculate_time_log" | grep -oP 'calculate  time\(s\): \K\d+\.\d+' | awk '{printf "%.2f \n", $1 * 1000}')
+    for time in "${calculate_times[@]}"
+    do
+        printf "| %-15s | %-35s| % 15s |\n" "$PLATFORM" "$1" "$time"
+    done
+}
+
+function bmrt_test_benchmark()
+{
+    pushd models
+    printf "| %-15s | %-35s| % 15s |\n" "测试平台" "测试模型" "calculate time(ms)"
+    printf "| %-15s | %-35s| % 15s |\n" "-------" "-------------------" "--------------"
+    if test $TARGET = "BM1684X"; then
+        bmrt_test_case BM1684X/yolov8s_seg_fuse_fp32_1b.bmodel
+        bmrt_test_case BM1684X/yolov8s_seg_fuse_fp16_1b.bmodel
+        bmrt_test_case BM1684X/yolov8s_seg_fuse_int8_1b.bmodel
+    elif test $TARGET = "BM1688"; then
+        bmrt_test_case BM1688/yolov8s_seg_fuse_fp32_1b.bmodel
+        bmrt_test_case BM1688/yolov8s_seg_fuse_fp16_1b.bmodel
+        bmrt_test_case BM1688/yolov8s_seg_fuse_int8_1b.bmodel
+        bmrt_test_case BM1688/yolov8s_seg_fuse_fp32_1b_2core.bmodel
+        bmrt_test_case BM1688/yolov8s_seg_fuse_fp16_1b_2core.bmodel
+        bmrt_test_case BM1688/yolov8s_seg_fuse_int8_1b_2core.bmodel
+    elif test $TARGET = "CV186X"; then
+        bmrt_test_case CV186X/yolov8s_seg_fuse_fp32_1b.bmodel
+        bmrt_test_case CV186X/yolov8s_seg_fuse_fp16_1b.bmodel
+        bmrt_test_case CV186X/yolov8s_seg_fuse_int8_1b.bmodel
+    fi
+    popd
 }
 
 function download()
@@ -230,7 +262,7 @@ function compile_mlir()
 
 if test $MODE = "compile_mlir"
 then
-#   download onnx
+  download onnx
   compile_mlir
 elif test $MODE = "pcie_build"
 then
@@ -238,9 +270,19 @@ then
 elif test $MODE = "pcie_test"
 then
   pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
-  if test $TARGET = "BM1684X"
+  download $TARGET
+  if test $CASE_MODE = "fully"
   then
-    download $TARGET
+    test_python bmcv yolov8s_seg_fuse_int8_1b.bmodel datasets/test_car_person_1080P.mp4
+    test_cpp pcie bmcv yolov8s_seg_fuse_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
+    for pre in fp32_1b fp16_1b int8_1b; do
+      test_python bmcv yolov8s_seg_fuse_${pre}.bmodel datasets/coco/val2017_1000
+      test_cpp pcie bmcv yolov8s_seg_fuse_${pre}.bmodel ../../datasets/coco/val2017_1000
+      eval_python bmcv yolov8s_seg_fuse_${pre}.bmodel
+      eval_cpp pcie bmcv yolov8s_seg_fuse_${pre}.bmodel
+    done
+  elif test $CASE_MODE = "partly"
+  then
     test_python bmcv yolov8s_seg_fuse_int8_1b.bmodel datasets/test_car_person_1080P.mp4
     test_cpp pcie bmcv yolov8s_seg_fuse_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_python bmcv yolov8s_seg_fuse_int8_1b.bmodel datasets/coco/val2017_1000
@@ -254,18 +296,27 @@ then
 elif test $MODE = "soc_test"
 then
   pip3 install pycocotools opencv-python-headless -i https://pypi.tuna.tsinghua.edu.cn/simple
-  if test $TARGET = "BM1684X"
+  download $TARGET
+  if test $CASE_MODE = "fully"
   then
-    download $TARGET
     test_python bmcv yolov8s_seg_fuse_int8_1b.bmodel datasets/test_car_person_1080P.mp4
     test_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
-    test_python bmcv yolov8s_seg_fuse_int8_1b.bmodel datasets/coco/val2017_1000
-    test_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel ../../datasets/coco/val2017_1000
-    eval_python bmcv yolov8s_seg_fuse_int8_1b.bmodel
-    eval_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel
-elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
+    for pre in fp32_1b fp16_1b int8_1b; do
+      test_python bmcv yolov8s_seg_fuse_${pre}.bmodel datasets/coco/val2017_1000
+      test_cpp soc bmcv yolov8s_seg_fuse_${pre}.bmodel ../../datasets/coco/val2017_1000
+      eval_python bmcv yolov8s_seg_fuse_${pre}.bmodel
+      eval_cpp soc bmcv yolov8s_seg_fuse_${pre}.bmodel
+    done
+    if [ "$TARGET" = "BM1688" ]; then
+      for pre in fp32_1b_2core fp16_1b_2core int8_1b_2core; do
+        test_python bmcv yolov8s_seg_fuse_${pre}.bmodel datasets/coco/val2017_1000
+        test_cpp soc bmcv yolov8s_seg_fuse_${pre}.bmodel ../../datasets/coco/val2017_1000
+        eval_python bmcv yolov8s_seg_fuse_${pre}.bmodel
+        eval_cpp soc bmcv yolov8s_seg_fuse_${pre}.bmodel
+      done
+    fi
+  elif test $CASE_MODE = "partly"
   then
-    download $TARGET
     test_python bmcv yolov8s_seg_fuse_int8_1b.bmodel datasets/test_car_person_1080P.mp4
     test_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel ../../datasets/test_car_person_1080P.mp4
     test_python bmcv yolov8s_seg_fuse_int8_1b.bmodel datasets/coco/val2017_1000
@@ -273,8 +324,6 @@ elif [ "$TARGET" = "BM1688" ] || [ "$TARGET" = "CV186X" ]
     eval_python bmcv yolov8s_seg_fuse_int8_1b.bmodel
     eval_cpp soc bmcv yolov8s_seg_fuse_int8_1b.bmodel
     if [ "$TARGET" = "BM1688" ]; then
-      test_python bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel datasets/test_car_person_1080P.mp4
-      test_cpp soc bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel ../../datasets/test_car_person_1080P.mp4
       test_python bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel datasets/coco/val2017_1000
       test_cpp soc bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel ../../datasets/coco/val2017_1000
       eval_python bmcv yolov8s_seg_fuse_int8_1b_2core.bmodel
@@ -287,6 +336,7 @@ if [ x$MODE == x"pcie_test" ] || [ x$MODE == x"soc_test" ]; then
   echo "-----------------------------"
   cat tools/benchmark.txt
   echo "-----------------------------"
+  bmrt_test_benchmark
 fi
 if [ $ALL_PASS -eq 0 ]
 then

@@ -78,15 +78,15 @@ Usage: yolov8_bmcv.pcie [params]
 ### 3.2 测试图片
 图片测试实例如下，支持对整个图片文件夹进行测试。
 ```bash
-./yolov8_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/yolov8s_fp32_1b.bmodel --dev_id=0 --draw_thresh=0.5 --classnames=../../datasets/coco.names 
+./yolov8_bmcv.pcie --input=../../datasets/test --bmodel=../../models/BM1684X/yolov8s_seg_fuse_fp32_1b.bmodel --dev_id=0 --draw_thresh=0.5 --classnames=../../datasets/coco.names 
 ```
-测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov8s_fp32_1b.bmodel_test_bmcv_cpp_result.json`下，同时会打印预测结果、推理时间等信息。
+测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov8s_seg_fuse_fp32_1b.bmodel_test_bmcv_cpp_result.json`下，同时会打印预测结果、推理时间等信息。
 
 ![res](../pics/3_cpp_bmcv.jpg)
 
 ### 3.3 测试视频
 视频测试实例如下，支持对视频流进行测试。
 ```bash
-./yolov8_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel=../../models/BM1684X/yolov8s_fp32_1b.bmodel --dev_id=0 --draw_thresh=0.5 --classnames=../../datasets/coco.names
+./yolov8_bmcv.pcie --input=../../datasets/test_car_person_1080P.mp4 --bmodel=../../models/BM1684X/yolov8s_seg_fuse_fp32_1b.bmodel --dev_id=0 --draw_thresh=0.5 --classnames=../../datasets/coco.names
 ```
 测试结束后，会将预测结果画在图片上并保存在`results/output.mp4`中，同时会打印预测结果、推理时间等信息。

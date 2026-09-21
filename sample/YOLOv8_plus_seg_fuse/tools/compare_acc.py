@@ -8,8 +8,30 @@ import multiprocessing
 baseline = """
 |   测试平台    |      测试程序     |      测试模型          | AP@IoU=0.5:0.95 | AP@IoU=0.5 |
 | ------------ | ---------------- | ---------------------- | ------------- | -------- |
-|   SE9-16     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.268 | 0.407 |
-|   SE9-16     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.264 | 0.405 |
+|   SE7-32    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp32_1b.bmodel  | 0.327 | 0.506 |
+|   SE7-32    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp16_1b.bmodel  | 0.327 | 0.506 |
+|   SE7-32    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.323 | 0.496 |
+|   SE7-32    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp32_1b.bmodel  | 0.328 | 0.506 |
+|   SE7-32    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp16_1b.bmodel  | 0.328 | 0.506 |
+|   SE7-32    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.322 | 0.495 |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp32_1b.bmodel  | 0.327 | 0.506 |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp16_1b.bmodel  | 0.327 | 0.506 |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.325 | 0.497 |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp32_1b.bmodel  | 0.328 | 0.506 |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp16_1b.bmodel  | 0.328 | 0.506 |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.324 | 0.497 |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp32_1b_2core.bmodel  | 0.327 | 0.506 |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp16_1b_2core.bmodel  | 0.327 | 0.506 |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b_2core.bmodel  | 0.325 | 0.497 |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp32_1b_2core.bmodel  | 0.328 | 0.506 |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp16_1b_2core.bmodel  | 0.328 | 0.506 |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b_2core.bmodel  | 0.324 | 0.497 |
+|   SE9-8     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp32_1b.bmodel  | 0.327 | 0.506 |
+|   SE9-8     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp32_1b.bmodel  | 0.328 | 0.506 |
+|   SE9-8     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp16_1b.bmodel  | 0.327 | 0.506 |
+|   SE9-8     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp16_1b.bmodel  | 0.328 | 0.506 |
+|   SE9-8     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.325 | 0.497 |
+|   SE9-8     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 0.324 | 0.497 |
 """
 
 table_data = {
@@ -63,8 +85,6 @@ if __name__ == '__main__':
     if args.platform == "soc":
         if args.target == "BM1684X":
             platform = "SE7-32"
-        elif args.target == "BM1684":
-            platform = "SE5-16"
         elif args.target == "BM1688":
             platform = "SE9-16"
             if multiprocessing.cpu_count() == 6:

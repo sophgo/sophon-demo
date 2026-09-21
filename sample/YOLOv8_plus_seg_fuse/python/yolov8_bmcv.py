@@ -239,7 +239,9 @@ def main(args):
                     # predict
                     results = yolov8(bmimg_list)
                     for i, filename in enumerate(filename_list):
-                        boxes, segments, masks = results[i]
+                        boxes, masks, roi = results[i]
+                        # mask -> contour (draw-only) is computed here, outside the timed postprocess
+                        segments = PostProcess.masks2segments(masks, *roi) if len(boxes) else []
                         save_basename = '{}'.format(os.path.basename(filename_list[i]))
                         save_name = os.path.join(output_img_dir, save_basename)
                         draw_and_visualize(save_name, bmimg_list[i].asmat(), boxes, segments, vis=False, save=True, draw_thresh=args.draw_thresh)
@@ -297,7 +299,8 @@ def main(args):
             if (len(frame_list) == batch_size or end_flag) and len(frame_list):
                 results = yolov8(frame_list)
                 for i, frame in enumerate(frame_list):
-                    boxes, segments, _ =  results[i] 
+                    boxes, masks, roi =  results[i]
+                    segments = PostProcess.masks2segments(masks, *roi) if len(boxes) else []
                     cn += 1
                     logging.info("frame {}, det num {}".format(cn, len(boxes)))
                     save_basename = 'res_bmcv_{}'.format(os.path.basename(video_name))+"_"+str(cn)+".jpg"

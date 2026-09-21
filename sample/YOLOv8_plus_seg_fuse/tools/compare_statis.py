@@ -8,8 +8,30 @@ import multiprocessing
 baseline = """
 |    测试平台  |     测试程序      |             测试模型                |decode_time|preprocess_time|inference_time|postprocess_time|
 | ----------- | ---------------- | ----------------------------------- | -------- | ---------     | ---------     | --------- |
-|   SE9-16     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 3.97 | 2.78 | 18.90 | 21.33 |
-|   SE9-16     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 3.29 | 1.20 | 18.64 | 5.01 |
+|   SE7-32    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp32_1b.bmodel  | 3.04 | 1.17 | 44.73 | 9.52  |
+|   SE7-32    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp16_1b.bmodel  | 3.04 | 1.17 | 9.76  | 10.60 |
+|   SE7-32    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 3.01 | 1.17 | 7.04  | 7.46  |
+|   SE7-32    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp32_1b.bmodel  | 2.70 | 0.45 | 44.51 | 6.50  |
+|   SE7-32    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp16_1b.bmodel  | 2.69 | 0.45 | 9.55  | 6.63  |
+|   SE7-32    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 2.68 | 0.45 | 6.84  | 2.78  |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp32_1b.bmodel  | 3.99 | 2.80 | 239.68 | 12.40 |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp16_1b.bmodel  | 3.97 | 2.80 | 50.64  | 13.17 |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 3.96 | 2.80 | 29.09  | 12.91 |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp32_1b.bmodel  | 3.40 | 1.20 | 239.26 | 8.73  |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp16_1b.bmodel  | 3.41 | 1.19 | 50.29  | 9.05  |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 3.35 | 1.20 | 28.75  | 6.56  |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp32_1b_2core.bmodel  | 3.97 | 2.80 | 129.88 | 12.40 |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp16_1b_2core.bmodel  | 3.97 | 2.80 | 32.14  | 13.17 |
+|   SE9-16    |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b_2core.bmodel  | 3.95 | 2.80 | 21.25  | 12.91 |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp32_1b_2core.bmodel  | 3.40 | 1.20 | 129.50 | 9.04  |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp16_1b_2core.bmodel  | 3.39 | 1.19 | 31.79  | 9.00  |
+|   SE9-16    |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b_2core.bmodel  | 3.37 | 1.19 | 20.91  | 6.55  |
+|   SE9-8     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp32_1b.bmodel  | 3.86 | 2.82 | 239.71 | 13.38 |
+|   SE9-8     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp32_1b.bmodel  | 4.35 | 1.20 | 239.26 | 10.16  |
+|   SE9-8     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_fp16_1b.bmodel  | 3.87 | 2.81 | 50.64  | 14.55 |
+|   SE9-8     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_fp16_1b.bmodel  | 3.39 | 1.20 | 50.27  | 9.74   |
+|   SE9-8     |  yolov8_bmcv.py   |  yolov8s_seg_fuse_int8_1b.bmodel  | 3.85 | 2.81 | 29.09  | 13.52 |
+|   SE9-8     |  yolov8_bmcv.soc  |  yolov8s_seg_fuse_int8_1b.bmodel  | 3.33 | 1.20 | 28.72  | 6.43   |
 """
 table_data = {
     "platform": [],
@@ -22,7 +44,7 @@ table_data = {
 }
 
 for line in baseline.strip().split("\n")[2:]:
-    match = re.search(r'\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|', line)
+    match = re.search(r'\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|', line)
     if match:
         table_data["platform"].append(match.group(1))
         table_data["program"].append(match.group(2))
@@ -76,8 +98,6 @@ if __name__ == '__main__':
     if args.platform == "soc":
         if args.target == "BM1684X":
             platform = "SE7-32"
-        elif args.target == "BM1684":
-            platform = "SE5-16"
         elif args.target == "BM1688":
             platform = "SE9-16"
             if multiprocessing.cpu_count() == 6:

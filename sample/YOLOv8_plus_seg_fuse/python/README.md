@@ -77,7 +77,7 @@ usage: yolov8_bmcv.py [--input INPUT_PATH] [--bmodel BMODEL] [--dev_id DEV_ID]
 ```bash
 python3 python/yolov8_bmcv.py --input datasets/test --bmodel models/BM1688/yolov8s_seg_fuse_int8_1b.bmodel --dev_id 0 --draw_thresh 0.5
 ```
-测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov8s_int8_1b.bmodel.bmodel_test_bmcv_python_result.json`下，同时会打印预测结果、推理时间等信息。
+测试结束后，会将预测的图片保存在`results/images`下，预测的结果保存在`results/yolov8s_seg_fuse_int8_1b.bmodel_test_bmcv_python_result.json`下，同时会打印预测结果、推理时间等信息。
 
 ![res](../pics/3_python_bmcv.jpg)
 

@@ -26,57 +26,33 @@ function gen_mlir()
         --mlir ${model_name}_seg_fuse_$1b.mlir
 }
 
-function gen_cali_table()
-{
-    onnx_path=../models/onnx/yolov8s-seg.onnx
-    model_transform.py \
-        --model_name $model_name \
-        --model_def $onnx_path \
-        --input_shapes [[$1,3,640,640]] \
-        --pixel_format rgb \
-        --scale 0.0039216,0.0039216,0.0039216 \
-        --mean 0.0,0.0,0.0 \
-        --keep_aspect_ratio \
-        --mlir ${model_name}_seg_$1b.mlir
-
-    run_calibration.py ${model_name}_seg_$1b.mlir \
-        --dataset ../datasets/coco128/ \
-        --input_num 128 \
-        --inference_num 10 \
-        -o ${model_name}_seg_cali_table
-}
-
-function gen_int8bmodel()
+function gen_fp32bmodel()
 {
     gen_mlir $1
     model_deploy.py \
         --mlir ${model_name}_seg_fuse_$1b.mlir \
-        --quantize INT8 \
+        --quantize F32 \
         --chip  $target \
         --processor  $target \
         --fuse_preprocess \
-        --calibration_table ${model_name}_seg_cali_table \
-        --quantize_table ${model_name}_seg_fuse_qtable \
         --customization_format BGR_PACKED \
-        --model ${model_name}_seg_fuse_int8_$1b.bmodel \
+        --model ${model_name}_seg_fuse_fp32_$1b.bmodel \
         --quant_output
 
-    mv ${model_name}_seg_fuse_int8_$1b.bmodel $outdir/
+    mv ${model_name}_seg_fuse_fp32_$1b.bmodel $outdir/
     if test $target = "bm1688";then
         model_deploy.py \
             --mlir ${model_name}_seg_fuse_$1b.mlir \
-            --quantize INT8 \
+            --quantize F32 \
             --chip  $target \
             --processor  $target \
             --fuse_preprocess \
-            --calibration_table ${model_name}_seg_cali_table \
-            --quantize_table ${model_name}_seg_fuse_qtable \
             --customization_format BGR_PACKED \
             --num_core 2 \
-            --model ${model_name}_seg_fuse_int8_$1b_2core.bmodel \
+            --model ${model_name}_seg_fuse_fp32_$1b_2core.bmodel \
             --quant_output
 
-        mv ${model_name}_seg_fuse_int8_$1b_2core.bmodel $outdir/
+        mv ${model_name}_seg_fuse_fp32_$1b_2core.bmodel $outdir/
     fi
 }
 
@@ -86,7 +62,6 @@ if [ ! -d $outdir ]; then
 fi
 # batch_size=1
 model_name=yolov8s
-gen_cali_table 1
-gen_int8bmodel 1
+gen_fp32bmodel 1
 
 popd

@@ -1,0 +1,22 @@
+# 数据与模型（由 download.sh 下载 / gen_*.sh 编译生成，不入库；datasets 在本机为符号链接）
+datasets
+models
+
+# 编译与测试产物
+cpp/*/build/
+results/
+log/
+__pycache__/
+*.py[cod]
+
+# TPU-MLIR 编译中间产物
+scripts/*.mlir
+scripts/*.npz
+scripts/*.json
+scripts/*.prototxt
+scripts/*.net_0.profile
+scripts/compiler_profile_0.txt
+scripts/shape_pattern_qtable
+scripts/yolov8s.ref_files.json
+scripts/yolov8s_seg_cali_table
+scripts/yolov8s_seg_fuse_*_1b/

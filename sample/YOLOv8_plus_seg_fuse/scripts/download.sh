@@ -5,7 +5,6 @@ download_bm1684x=0
 download_bm1688=0
 download_cv186x=0
 download_onnx=0
-download_ckpt=0
 
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -19,6 +18,10 @@ while [[ $# -gt 0 ]]; do
             download_bm1688=1
             shift 1
             ;;
+        --CV186X)
+            download_cv186x=1
+            shift 1
+            ;;
         --onnx)
             download_onnx=1
             shift 1
@@ -28,7 +31,6 @@ while [[ $# -gt 0 ]]; do
             download_bm1688=1
             download_cv186x=1
             download_onnx=1
-            download_ckpt=1
             shift 1
             ;;
         *)
@@ -91,6 +93,17 @@ then
     fi
 else
     echo "models/BM1688 folder exist! Remove it if you need to update."
+fi
+
+if [ ! -d "../models/CV186X" ];
+then
+    if [ $download_cv186x == 1 ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/YOLOv8_plus_seg_fuse/CV186X.tar.gz
+        tar xvf CV186X.tar.gz && rm CV186X.tar.gz
+        echo "models/CV186X download!"
+    fi
+else
+    echo "models/CV186X folder exist! Remove it if you need to update."
 fi
 
 if [ ! -d "../models/onnx" ]; 
