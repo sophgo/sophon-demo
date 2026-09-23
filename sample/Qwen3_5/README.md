@@ -118,9 +118,8 @@ Qwen3.5模型编译需要依赖[transformers官方仓库](https://github.com/hug
 - 进入docker环境后需要安装TPU-MLIR。本例程需要的TPU-MLIR版本较新，这里提供一个whl包供下载安装：
 ```bash
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/mlir_club/tpu-mlir_v1.29.beta.0-43-gae1a9bc81-20260722.tar.gz
-tar xvf tpu-mlir_v1.29.beta.0-43-gae1a9bc81-20260722.tar.gz
-source tpu-mlir_v1.29.beta.0-43-gae1a9bc81-20260722/envsetup.sh
+python3 -m dfss --url=open@sophgo.com:/sophon-demo/common/tpu-mlir/cv84x6/tpu_mlir-1.30b0-py3-none-any.whl
+pip install tpu_mlir-1.30b0-py3-none-any.whl
 ```
 
 - 安装依赖

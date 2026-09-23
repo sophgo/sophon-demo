@@ -108,8 +108,8 @@ Sophon Demo所依赖的环境主要包括用于编译和量化模型的TPU-NNTC�
     (3)对于CV84X6平台，tpu_mlir尚未正式发布到pypi，可从dfss下载whl包安装：
 	    ```bash
 	    pip3 install dfss
-	    python3 -m dfss --url=open@sophgo.com:/sophon-demo/common/tpu-mlir/cv84x6/tpu_mlir-*-py3-none-any.whl
-	    pip install tpu_mlir-*-py3-none-any.whl
+	    python3 -m dfss --url=open@sophgo.com:/sophon-demo/common/tpu-mlir/cv84x6/tpu_mlir-1.30b0-py3-none-any.whl
+	    pip install tpu_mlir-1.30b0-py3-none-any.whl
 	    ```
 
 	    (4)如果您获取了类似`tpu-mlir_${version}-${hash}-${date}.tar.gz`这种形式的发布包，可以通过这种方式配置：
