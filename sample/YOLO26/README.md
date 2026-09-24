@@ -262,12 +262,12 @@ bmrt_test --bmodel models/BM1684X/yolo26s_fp32_1b.bmodel
 | SE9-8    | yolo26_bmcv.soc  | yolo26s_int8_1b.bmodel | 5.71   | 1.74   | 13.04  | 0.09 |
 
 
-| SE13-64   | yolo26_opencv.py | yolo26s_fp16_1b.bmodel | 10.18       | 29.14           | 17.11          | 0.68             |
-| SE13-64   | yolo26_opencv.py | yolo26s_int8_1b.bmodel | 11.36       | 34.91           | 14.09          | 0.63             |
-| SE13-64   | yolo26_bmcv.py   | yolo26s_fp16_1b.bmodel | 2.53        | 2.42            | 14.77          | 0.50             |
-| SE13-64   | yolo26_bmcv.py   | yolo26s_int8_1b.bmodel | 2.59        | 2.44            | 10.40          | 0.53             |
-| SE13-64   | yolo26_bmcv.soc  | yolo26s_fp16_1b.bmodel | 4.44        | 0.76            | 6.59           | 0.12            |
-| SE13-64   | yolo26_bmcv.soc  | yolo26s_int8_1b.bmodel | 4.46        | 0.76            | 4.18           | 0.12            |
+| SE13-64   | yolo26_opencv.py | yolo26s_fp16_1b.bmodel | 9.35        | 28.11           | 16.38          | 0.87             |
+| SE13-64   | yolo26_opencv.py | yolo26s_int8_1b.bmodel | 9.31        | 28.22           | 11.95          | 0.87             |
+| SE13-64   | yolo26_bmcv.py   | yolo26s_fp16_1b.bmodel | 2.51        | 2.41            | 14.71          | 0.71             |
+| SE13-64   | yolo26_bmcv.py   | yolo26s_int8_1b.bmodel | 2.51        | 2.41            | 10.64          | 0.73             |
+| SE13-64   | yolo26_bmcv.soc  | yolo26s_fp16_1b.bmodel | 4.21        | 1.17            | 14.39          | 0.045            |
+| SE13-64   | yolo26_bmcv.soc  | yolo26s_int8_1b.bmodel | 4.22        | 1.17            | 9.98           | 0.045            |
 
 > **测试说明**：
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；

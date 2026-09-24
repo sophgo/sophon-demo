@@ -236,10 +236,12 @@ bmrt_test --bmodel models/BM1684X/yolo26s_fp32_1b.bmodel
 |   SE7-32    | yolo26_opencv.py  |      yolo26s_int8_1b.bmodel       |      6.82       |      22.85      |      12.12      |      34.73      |
 |   SE7-32    |  yolo26_bmcv.py   |      yolo26s_int8_1b.bmodel       |      3.11       |      2.05       |      9.09       |      34.79      |
 |   SE7-32    |  yolo26_bmcv.soc  |      yolo26s_int8_1b.bmodel       |      2.71       |      1.38       |      6.59       |      25.36      |
-|   SE13-64   | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       |      6.85       |      22.87      |      23.53      |      35.09      |
-|   SE13-64   |  yolo26_bmcv.py   |      yolo26s_fp16_1b.bmodel       |      3.04       |      2.07       |      20.56      |      36.63      |
-|   SE13-64   | yolo26_opencv.py  |      yolo26s_int8_1b.bmodel       |      6.82       |      22.85      |      19.12      |      34.73      |
-|   SE13-64   |  yolo26_bmcv.py   |      yolo26s_int8_1b.bmodel       |      3.11       |      2.05       |      15.97      |      34.79      |
+|   SE13-64   | yolo26_opencv.py  |      yolo26s_fp16_1b.bmodel       |      9.23       |      26.74      |      22.69      |      35.70      |
+|   SE13-64   |  yolo26_bmcv.py   |      yolo26s_fp16_1b.bmodel       |      2.93       |      2.52       |      21.49      |      41.69      |
+|   SE13-64   |  yolo26_bmcv.soc  |      yolo26s_fp16_1b.bmodel       |      2.34       |      1.53       |      19.94      |      21.63      |
+|   SE13-64   | yolo26_opencv.py  |      yolo26s_int8_1b.bmodel       |      9.31       |      27.38      |      18.14      |      34.71      |
+|   SE13-64   |  yolo26_bmcv.py   |      yolo26s_int8_1b.bmodel       |      2.95       |      2.53       |      17.09      |      39.43      |
+|   SE13-64   |  yolo26_bmcv.soc  |      yolo26s_int8_1b.bmodel       |      2.30       |      1.53       |      15.36      |      20.89      |
 |   SE9-16    | yolo26_opencv.py  |      yolo26s_fp32_1b.bmodel       |      9.59       |      32.63      |     219.99      |      38.16      |
 |   SE9-16    |  yolo26_bmcv.py   |      yolo26s_fp32_1b.bmodel       |      4.20       |      4.10       |     216.30      |      39.56      |
 |   SE9-16    |  yolo26_bmcv.soc  |      yolo26s_fp32_1b.bmodel       |      3.44       |      2.63       |     212.90      |      34.53      |
