@@ -61,7 +61,6 @@ class Qwen3_VL():
         self.vit_pos_ids_input_shape = self.net.get_input_shape("vit", 1)
         self.pos_idx_input_shape = self.net.get_input_shape("vit", 2)
         self.pos_weight_input_shape = self.net.get_input_shape("vit", 3)
-        self.vit_attention_mask_input_shape = self.net.get_input_shape("vit", 4)
 
         self.seq_len = self.net.get_input_shape("block_cache_0", 3)[1]
         self.vision_seq_len = self.vit_hidden_states_input_shape[0]
@@ -78,6 +77,13 @@ class Qwen3_VL():
         self.is_dynamic = self.net.get_is_dynamic("block_0")
         self.is_vit_dynamic = self.net.get_is_dynamic("vit")
         self.is_add_dynamic = self.net.get_is_dynamic("add")
+        # tpu-mlir >=1.30 fuses the prefill attention_mask into the FA graph, so
+        # the vit and block_0 graphs drop it (vit: 4->4 vs 5 inputs, block_0:
+        # 2 vs 3 inputs). Mask is always the last input when present; detect by
+        # input count so the same code works for both old and new tpu-mlir on
+        # any chip.
+        self.has_vit_attention_mask = self.net.get_input_num("vit") > 4
+        self.has_block_attention_mask = self.net.get_input_num("block_0") > 2
         self.MAX_PATCHES = self.vit_hidden_states_input_shape[0]
         self.MAX_PIXELS = self.MAX_PATCHES * 16 * 16
         self.support_history = False
@@ -504,7 +510,6 @@ class Qwen3_VL():
             pos_ids_full = position_ids[:real_patches, :]
             pos_idx_full = pos_idx[:real_patches, :]
             pos_weight_full = pos_weight[:real_patches, :, :]
-            vit_attention_mask = np.zeros((1, 1, real_patches, real_patches), dtype=np.float32)
 
             self.input_tensors[self.name_vit][0].reshape(pixel_values_full.shape)
             self.input_tensors[self.name_vit][0].update_data(pixel_values_full)
@@ -514,7 +519,9 @@ class Qwen3_VL():
             self.input_tensors[self.name_vit][2].update_data(pos_idx_full)
             self.input_tensors[self.name_vit][3].reshape(pos_weight_full.shape)
             self.input_tensors[self.name_vit][3].update_data(pos_weight_full)
-            self.input_tensors[self.name_vit][4].update_data(vit_attention_mask)
+            if self.has_vit_attention_mask:
+                vit_attention_mask = np.zeros((1, 1, real_patches, real_patches), dtype=np.float32)
+                self.input_tensors[self.name_vit][4].update_data(vit_attention_mask)
         else:
             pixel_values = pixel_values.astype(type_convert(self.input_tensors[self.name_vit][0].dtype()))
             pixel_values_prefill = np.zeros(self.vit_hidden_states_input_shape, dtype=type_convert(self.input_tensors[self.name_vit][0].dtype()))
@@ -532,15 +539,15 @@ class Qwen3_VL():
             pos_weight = np.expand_dims(pos_weight, axis=-1)
             pos_weight_prefill = np.zeros(self.pos_weight_input_shape, dtype=type_convert(self.input_tensors[self.name_vit][3].dtype()))
             pos_weight_prefill[:pos_weight.shape[0], :, :] = pos_weight
-            
-            vit_attention_mask = np.full((1, 1, self.MAX_PATCHES, self.MAX_PATCHES), -10000.0, dtype=np.float32)
-            vit_attention_mask[:, :, :real_patches, :real_patches] = 0.0
-            
+
             self.input_tensors[self.name_vit][0].update_data(pixel_values_prefill)
             self.input_tensors[self.name_vit][1].update_data(pos_ids_prefill)
             self.input_tensors[self.name_vit][2].update_data(pos_idx_prefill)
             self.input_tensors[self.name_vit][3].update_data(pos_weight_prefill)
-            self.input_tensors[self.name_vit][4].update_data(vit_attention_mask)
+            if self.has_vit_attention_mask:
+                vit_attention_mask = np.full((1, 1, self.MAX_PATCHES, self.MAX_PATCHES), -10000.0, dtype=np.float32)
+                vit_attention_mask[:, :, :real_patches, :real_patches] = 0.0
+                self.input_tensors[self.name_vit][4].update_data(vit_attention_mask)
 
         self.net.process(self.name_vit, self.input_tensors[self.name_vit], self.output_tensors[self.name_vit])
         
@@ -599,25 +606,19 @@ class Qwen3_VL():
 
         ATTENTION_MASK = 0xC61C
         if self.is_dynamic:
-            attention_mask = [ATTENTION_MASK] * (self.token_len * self.token_len)
-            for i in range(self.token_len):
-                for j in range(i + 1):
-                    attention_mask[i * self.token_len + j] = 0
-            attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[self.name_blocks[0]][2].dtype())).reshape(1, 1, self.token_len, self.token_len)
             position_ids_pad = np.array(position_ids, dtype=type_convert(self.input_tensors[self.name_blocks[0]][1].dtype())).reshape(3, self.token_len)
 
             self.input_tensors[self.name_blocks[0]][0].reshape([1, self.token_len, self.hidden_size])
             self.input_tensors[self.name_blocks[0]][1].reshape([3, self.token_len])
-            self.input_tensors[self.name_blocks[0]][2].reshape([1, 1, self.token_len, self.token_len])
             self.input_tensors[self.name_blocks[0]][0] = sail.Tensor(self.output_tensors[self.name_embed][0], [1, self.token_len, self.hidden_size], 0)
+            if self.has_block_attention_mask:
+                attention_mask = [ATTENTION_MASK] * (self.token_len * self.token_len)
+                for i in range(self.token_len):
+                    for j in range(i + 1):
+                        attention_mask[i * self.token_len + j] = 0
+                attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[self.name_blocks[0]][2].dtype())).reshape(1, 1, self.token_len, self.token_len)
+                self.input_tensors[self.name_blocks[0]][2].reshape([1, 1, self.token_len, self.token_len])
         else:
-            attention_mask = [ATTENTION_MASK] * (self.MAX_INPUT_LENGTH * self.MAX_INPUT_LENGTH)
-            for i in range(self.token_len):
-                for j in range(self.token_len):
-                    if j <= i:
-                        attention_mask[i * self.MAX_INPUT_LENGTH + j] = 0
-            attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[self.name_blocks[0]][2].dtype())).reshape(self.input_tensors[self.name_blocks[0]][2].shape())
-
             position_ids_pad = [0] * (3 * self.MAX_INPUT_LENGTH)
             ori_length = len(position_ids) // 3
             for i in range(3):
@@ -626,12 +627,20 @@ class Qwen3_VL():
                 position_ids_pad[dst_offset : dst_offset + ori_length] = \
                     position_ids[ori_offset : ori_offset + ori_length]
             position_ids_pad = np.array(position_ids_pad, dtype=type_convert(self.input_tensors[self.name_blocks[0]][1].dtype())).reshape(self.input_tensors[self.name_blocks[0]][1].shape())
-            
+
             self.input_tensors[self.name_blocks[0]][0] = self.output_tensors[self.name_embed][0]
+            if self.has_block_attention_mask:
+                attention_mask = [ATTENTION_MASK] * (self.MAX_INPUT_LENGTH * self.MAX_INPUT_LENGTH)
+                for i in range(self.token_len):
+                    for j in range(self.token_len):
+                        if j <= i:
+                            attention_mask[i * self.MAX_INPUT_LENGTH + j] = 0
+                attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[self.name_blocks[0]][2].dtype())).reshape(self.input_tensors[self.name_blocks[0]][2].shape())
 
 
         self.input_tensors[self.name_blocks[0]][1].update_data(position_ids_pad)
-        self.input_tensors[self.name_blocks[0]][2].update_data(attention_mask)
+        if self.has_block_attention_mask:
+            self.input_tensors[self.name_blocks[0]][2].update_data(attention_mask)
         for i in range(self.num_layers):
             block_output_tensors = { \
                 0: self.first_hidden_states_output, \

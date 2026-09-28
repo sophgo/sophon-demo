@@ -69,10 +69,22 @@ function download_cv186x {
     popd
 }
 
+function download_cv84x6 {
+    if [ ! -d "../models/CV84X6" ]; then
+        mkdir -p ../models/CV84X6
+    fi
+    pushd ../models/CV84X6
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen3/qwen3-4b-awq_w4f16_seq512_cv84x6_4core_static_20260922_004714.bmodel
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen3/qwen3-8b-awq_w4f16_seq512_cv84x6_4core_static_20260922_005119.bmodel
+    popd
+}
+
 if [ "$1" == "bm1688" ]; then
     download_bm1688
 elif [ "$1" == "cv186x" ]; then
     download_cv186x
+elif [ "$1" == "cv84x6" ]; then
+    download_cv84x6
 else
     download_bm1684x $1
 fi

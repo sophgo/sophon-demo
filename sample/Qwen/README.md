@@ -13,7 +13,7 @@
   - [6. 程序性能测试](#6-程序性能测试)
 
 ## 1. 简介
-Qwen / Qwen1.5/ Qwen2/ Qwen2.5/ Qwen3是开源中英双语对话模型，关于它的特性，请前往源repo查看：[Qwen](https://huggingface.co/Qwen)。 本例程对Qwen / Qwen1.5/ Qwen2/ Qwen2.5/ Qwen3进行移植，使之能在SOPHON BM1684X、BM1688/CV186X上进行推理测试。
+Qwen / Qwen1.5/ Qwen2/ Qwen2.5/ Qwen3是开源中英双语对话模型，关于它的特性，请前往源repo查看：[Qwen](https://huggingface.co/Qwen)。 本例程对Qwen / Qwen1.5/ Qwen2/ Qwen2.5/ Qwen3进行移植，使之能在SOPHON BM1684X、BM1688/CV186X上进行推理测试。其中Qwen3还支持在CV84X6（如SE13-64）上运行，实测环境为libsophon-0.4.13、sophon-sail 3.11.1。
 
 本例程还支持DeepSeek-R1-Distill-Qwen-1.5B/7B/14B，关于它们的特性，请前往源repo查看：[DeepSeek-R1-Distill-Qwen-1.5B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B)，[DeepSeek-R1-Distill-Qwen-7B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B)，[DeepSeek-R1-Distill-Qwen-14B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B)。本例程对这些模型进行移植，使之能在SOPHON BM1684X、BM1688/CV186X上进行推理测试。
 
@@ -26,6 +26,7 @@ Qwen / Qwen1.5/ Qwen2/ Qwen2.5/ Qwen3是开源中英双语对话模型，关于�
 ## 2. 特性
 * 支持BM1684X(x86 PCIe、SoC、riscv PCIe)
 * 支持BM1688/CV186X(SoC)
+* 支持CV84X6(SoC)，Qwen3支持在CV84X6上推理
 * QwQ-32B支持BM1684X(SC7-224T)
 * 支持INT8、INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
@@ -58,6 +59,11 @@ sudo reboot
 #如果是se9-8 4G版本设备，执行以下命令
 ./memory_edit.sh -c -npu 2300 -vpu 0 -vpp 40 #npu也可以访问vpu和vpp的内存
 sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/boot.itb /boot/boot.itb && sync
+sudo reboot
+
+#如果是cv84x6系列设备（如SE13-64），执行以下命令（运行Qwen3-8B建议使用较大的npu内存）
+./memory_edit.sh -c -npu 7615 -vpu 2048 -vpp 2048
+sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/emmcboot.itb /boot/emmcboot.itb && sync
 sudo reboot
 ```
 > **注意：**
@@ -98,6 +104,9 @@ sudo reboot
 # Include all cv186x models
 ./scripts/download.sh cv186x
 
+# Include all cv84x6 models (Qwen3-4B/8B)
+./scripts/download.sh cv84x6
+
 ```
 
 执行下载脚本后，当前目录下的文件如下：
@@ -115,6 +124,9 @@ sudo reboot
 │   │   └── qwq-32b
 │   ├── CV186X                    #download.sh下载的cv186x bmodel
 │   │   └── qwen1.5-xxx.bmodel
+│   ├── CV84X6                    #download.sh下载的cv84x6 bmodel
+│   │   ├── qwen3-4b-awq_w4f16_seq512_cv84x6_4core_static.bmodel
+│   │   └── qwen3-8b-awq_w4f16_seq512_cv84x6_4core_static.bmodel
 │   └── BM1688                    #download.sh下载的bm1688 bmodel
 │       ├── qwen1.5-xxx.bmodel
 │       ├── qwen2.5-xxx.bmodel
@@ -208,6 +220,8 @@ sudo reboot
 | SE9-16      | qwen.py           | qwen2.5-1.5b_int4_seq1024_1688_2core.bmodel          |    1.283              |    20.171                | 
 | SE9-16      | qwen.py           | qwen3-4b_w4bf16_seq512_bm1688_1core.bmodel            |   2.991              |    6.161                |
 | SE9-16      | qwen.py           | qwen3-4b_w4bf16_seq512_bm1688_2core.bmodel            |   1.656               |   7.982                 |
+| SE13-64     | qwen.py           | qwen3-4b-awq_w4f16_seq512_cv84x6_4core_static.bmodel  |   0.344               |   21.21                 |
+| SE13-64     | qwen.py           | qwen3-8b-awq_w4f16_seq512_cv84x6_4core_static.bmodel  |   0.556               |   14.68                 |
 | SE9-16      | qwen.py           | deepseek-r1-distill-qwen-1.5b_int4_seq1024_1688_2core.bmodel   |    1.418              |    19.261                | 
 | SE9-16      | qwen.py           | deepseek-r1-distill-qwen-7b_int4_seq1024_1688_2core.bmodel   |    10.565              |    5.286                |
 | SE9-8       | qwen.py           | qwen1.5-1.8b_int4_seq512_cv186x_1dev.bmodel          |    1.007              |    13.226                | 
@@ -226,3 +240,4 @@ sudo reboot
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 3. 这里使用的SDK版本是BM1684X V24.04.01, BM1688/CV186X V1.5.0；
+> 4. CV84X6（SE13-64）测试时TPU时钟频率为1GHz。

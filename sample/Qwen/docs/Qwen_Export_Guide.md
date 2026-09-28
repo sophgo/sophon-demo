@@ -263,6 +263,14 @@ llm_convert.py -m /workspace/Qwen3-4B -s 512 --quantize w4bf16 -g 128 -c bm1684x
 llm_convert.py -m /workspace/Qwen3-4B -s 512 --quantize w4bf16 -g 128 -c bm1688 --out_dir qwen3_4b
 ```
 
+编译84X6平台的模型时，将`-c`参数改为`cv84x6`即可（默认使用4个TPU核编译，即4core模型，AWQ源模型会自动产出w4f16）：
+```bash
+# cv84x6平台下执行（4B）：
+llm_convert.py -m /workspace/Qwen3-4B-AWQ -s 512 --quantize w4bf16 -g 128 -c cv84x6 --num_core 4 --out_dir qwen3_4b
+# cv84x6平台下执行（8B）：
+llm_convert.py -m /workspace/Qwen3-8B-AWQ -s 512 --quantize w4bf16 -g 128 -c cv84x6 --num_core 4 --out_dir qwen3_8b
+```
+
 > **注意**：
 > 1. Qwen2及之后的模型都可以使用此工具直接转换bmodel；
 > 2. 推荐下载AWQ量化版本的模型进行转换，可基本消除模型转换过程的精度损失。

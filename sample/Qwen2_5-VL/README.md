@@ -15,11 +15,11 @@
 ## 1. 简介
 Qwen2.5-VL 是阿里巴巴推出的新一代多模态大语言模型（Multimodal Large Language Model, MLLM），属于通义千问（Qwen）系列的最新成员。支持图像、文本、视频等多种输入模态，具备跨模态理解、推理、生成能力。适用于图像描述、视觉问答（VQA）、文档分析、多模态交互等任务。相比前代模型（Qwen-VL），在推理速度、准确性、多语言支持等方面均有显著提升。Qwen2.5-VL仓库可见[Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL)。
 
-本例程对Qwen2.5-VL进行移植，使其可在Sophon BM1684X以及BM1688芯片上运行。PCIE模式下，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行。在1684X SoC设备（如SE7、SM7、Airbox等）以及16G版本的1688设备（例如SE9-16）上，支持在V24.04.01(libsophon_0.5.1)SDK上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
+本例程对Qwen2.5-VL进行移植，使其可在Sophon BM1684X、CV84X6以及BM1688芯片上运行。PCIE模式下，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行。在1684X SoC设备（如SE7、SM7、Airbox等）以及16G版本的1688设备（例如SE9-16）上，支持在V24.04.01(libsophon_0.5.1)SDK上运行；在84X6 SoC设备（如SE13-64），已在libsophon-0.4.13、sophon-sail 3.11.1环境下测试通过。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
 
-* 支持BM1684X和BM1688(x86 PCIe、SoC)
+* 支持BM1684X、CV84X6和BM1688(x86 PCIe、SoC)
 * 支持INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持连续对话
@@ -62,9 +62,12 @@ sudo reboot
 ​本例程在`scripts`目录下提供了相关模型和数据的下载脚本
 ```bash
 └── scripts
-    ├── download_bm1684x_bmodel.sh                                        # 通过该脚本下载BM1684X平台的Qwen2.5-VL的BModel
-    ├── download_bm1688_bmodel.sh                                         # 通过该脚本下载BM1688平台的Qwen2.5-VL的BModel
-    ├── download_datasets.sh                                              # 通过该脚本下载Qwen2.5-VL的测试数据
+    ├── download_bm1684x_3b_awq_bmodel.sh                                   # 通过该脚本下载BM1684X平台的Qwen2.5-VL-3B的BModel
+    ├── download_bm1684x_7b_awq_bmodel.sh                                   # 通过该脚本下载BM1684X平台的Qwen2.5-VL-7B的BModel
+    ├── download_bm1688_3b_awq_bmodel.sh                                    # 通过该脚本下载BM1688平台的Qwen2.5-VL-3B的BModel
+    ├── download_bm1688_7b_awq_bmodel.sh                                    # 通过该脚本下载BM1688平台的Qwen2.5-VL-7B的BModel
+    ├── download_cv84x6_3b_awq_bmodel.sh                                    # 通过该脚本下载CV84X6平台的Qwen2.5-VL-3B的BModel
+    ├── download_datasets.sh                                                # 通过该脚本下载Qwen2.5-VL的测试数据
 ```
 
 > **注意：**
@@ -74,7 +77,7 @@ sudo reboot
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
 sudo apt install unzip
 chmod -R +x scripts/
-./scripts/download_bm1684x_bmodel.sh
+./scripts/download_bm1684x_3b_awq_bmodel.sh
 ./scripts/download_datasets.sh
 ```
 
@@ -82,8 +85,10 @@ chmod -R +x scripts/
 
 ```bash
 ├── models
-|   └── BM1684X                                        
-|       └── qwen2.5-vl-3b-instruct-awq_w4bf16_seq2048_bm1684x_1dev_20250428_143625.bmodel            # 使用TPU-MLIR编译，用于BM1684X的Qwen2.5-VL BModel，上下文长度为2k
+|   ├── BM1684X
+|   |   └── qwen2.5-vl-3b-instruct-awq_w4bf16_seq2048_bm1684x_1dev_20250428_143625.bmodel            # 使用TPU-MLIR编译，用于BM1684X的Qwen2.5-VL BModel，上下文长度为2k
+|   └── CV84X6
+|       └── qwen2.5-vl-3b-instruct-awq_w4f16_seq2048_cv84x6_4core_static_20260921_212532.bmodel      # 使用TPU-MLIR编译，用于CV84X6的Qwen2.5-VL BModel，上下文长度为2k，4核静态
 └── datasets
     ├── images                                                               # 测试图片目录
     └── videos                                                               # 测试视频目录
@@ -95,7 +100,7 @@ python3 -m dfss --url=open@sophgo.com:ext_model_information/LLM/LLM-TPU/qwen2.5-
 # 用于BM1688的Qwen2.5-VL-7B的BModel，上下文长度为2k
 python3 -m dfss --url=open@sophgo.com:ext_model_information/LLM/LLM-TPU/qwen2.5-vl-7b-instruct-awq_w4bf16_seq2048_bm1688_2core_20250428_152052.bmodel
 
-# 用于BM1684的Qwen2.5-VL-3B的BModel，上下文长度为8K
+# 用于BM1684X的Qwen2.5-VL-3B的BModel，上下文长度为8K
 python3 -m dfss --url=open@sophgo.com:/ext_model_information/LLM/LLM-TPU/qwen2.5-vl-3b-instruct-awq_w4bf16_seq8192_bm1684x_1dev_dyn_20250722_203019.bmodel
 ```
 ### 4.2 自行编译BModel模型
@@ -136,6 +141,11 @@ llm_convert.py --model_path Qwen2.5-VL-3B-Instruct-AWQ --seq_length 2048 --quant
 ```
 其中，视觉部分的长度`vision_length = max_pixels // 28 ** 2`，应保证其不超过`seq_length`。编译完成后生成的bmodel模型在当前目录的`models`文件夹。如果要使用动态模型需添加参数`--dynamic`
 
+编译84X6平台的模型时，将`--chip`参数改为`cv84x6`即可（默认使用4个TPU核编译，即4core模型）：
+```bash
+llm_convert.py --model_path Qwen2.5-VL-3B-Instruct-AWQ --seq_length 2048 --quantize w4bf16 --chip cv84x6 --num_device 1 --out_dir ./models --max_pixels 672,896
+```
+
 
 ## 5. 例程测试
 
@@ -157,7 +167,9 @@ python3 performance_test.py
 |    SE9-16    | qwen2.5-vl-3b-instruct-awq_w4bf16_seq2048_bm1688_2core.bmodel  |          0.266          |        3.298             |        11.254          |        7.412           |
 |    SE9-16    | qwen2.5-vl-7b-instruct-awq_w4bf16_seq2048_bm1688_2core.bmodel  |          0.248          |        3.370             |        26.407          |        4.443           |
 |    SE7-32    | qwen2.5-vl-3b-instruct-awq_w4bf16_seq8192_bm1684x_1dev_dyn.bmodel  |          0.198          |       1.332             |        2.393          |        11.007           |
+|    SE13-64   | qwen2.5-vl-3b-instruct-awq_w4f16_seq2048_cv84x6_4core_static_20260921_212532.bmodel |          -              |        -                 |        3.400           |        19.49           |
 > **测试说明**：  
 >1. 性能测试结果具有一定的波动性，且与输入也有关，此处结果是对12张照片测试后取的平均值；
 >2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 >3. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型；
+>4. CV84X6（SE13-64）测试时TPU时钟频率为1GHz。

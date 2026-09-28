@@ -612,13 +612,32 @@ class Qwen2_5_VL():
         self.token_pos_length = position_ids.max() + 1
         position_ids = position_ids.flatten()
 
-        ATTENTION_MASK = 0xC61C
+        # Attention mask padding value. The original 0xC61C is the bit pattern
+        # of -9984.0 in bfloat16 (i.e. ~= -10000), used as a large-negative
+        # mask value. It is only valid when the tensor is bfloat16; the same
+        # bit pattern as float16 is -6.1, which does NOT mask attention.
+        # So for float16 (w4f16) bmodels use the numeric value -10000.0 instead.
+        # On CV84X6 (sophon-sail 3.11.x), update_data on a 16-bit-float tensor
+        # requires the array as uint16 (raw bit pattern); build it in the native
+        # float dtype then view as uint16. Works for float16/bfloat16 on any chip.
+        am_np_dtype = type_convert(self.input_tensors[self.name_blocks[0]][2].dtype())
+        if am_np_dtype == np.uint16:
+            # bfloat16: keep original 0xC61C bit pattern (= -9984.0)
+            ATTENTION_MASK = 0xC61C
+            am_arr_dtype = np.uint16
+        elif am_np_dtype == np.float16:
+            # float16: use numeric -10000.0 (its bit pattern, not 0xC61C)
+            ATTENTION_MASK = -10000.0
+            am_arr_dtype = np.float16
+        else:
+            ATTENTION_MASK = 0xC61C
+            am_arr_dtype = am_np_dtype
         if self.is_dynamic:
             attention_mask = [ATTENTION_MASK] * (self.token_len * self.token_len)
             for i in range(self.token_len):
                 for j in range(i + 1):
                     attention_mask[i * self.token_len + j] = 0
-            attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[self.name_blocks[0]][2].dtype())).reshape(1, 1, self.token_len, self.token_len)
+            attention_mask = np.array(attention_mask, dtype=am_arr_dtype).reshape(1, 1, self.token_len, self.token_len)
             position_ids_pad = np.array(position_ids, dtype=type_convert(self.input_tensors[self.name_blocks[0]][1].dtype())).reshape(3, self.token_len)
 
             self.input_tensors[self.name_blocks[0]][0].reshape([1, self.token_len, self.hidden_size])
@@ -631,7 +650,7 @@ class Qwen2_5_VL():
                 for j in range(self.token_len):
                     if j <= i:
                         attention_mask[i * self.seq_len + j] = 0
-            attention_mask = np.array(attention_mask, dtype=type_convert(self.input_tensors[self.name_blocks[0]][2].dtype())).reshape(self.input_tensors[self.name_blocks[0]][2].shape())
+            attention_mask = np.array(attention_mask, dtype=am_arr_dtype).reshape(self.input_tensors[self.name_blocks[0]][2].shape())
 
             position_ids_pad = [0] * (3 * self.seq_len)
             ori_length = len(position_ids) // 3
@@ -641,11 +660,14 @@ class Qwen2_5_VL():
                 position_ids_pad[dst_offset : dst_offset + ori_length] = \
                     position_ids[ori_offset : ori_offset + ori_length]
             position_ids_pad = np.array(position_ids_pad, dtype=type_convert(self.input_tensors[self.name_blocks[0]][1].dtype())).reshape(self.input_tensors[self.name_blocks[0]][1].shape())
-            
+
             self.input_tensors[self.name_blocks[0]][0] = self.output_tensors[self.name_embed][0]
 
 
         self.input_tensors[self.name_blocks[0]][1].update_data(position_ids_pad)
+        if am_np_dtype == np.float16:
+            # float16 tensor: sail needs uint16 view of the float16 bit pattern
+            attention_mask = attention_mask.view(np.uint16)
         self.input_tensors[self.name_blocks[0]][2].update_data(attention_mask)
 
         for i in range(self.num_layers):
@@ -706,6 +728,9 @@ class Qwen2_5_VL():
         self.next_pos_ids_input.update_data(position_ids)
         if type_convert(self.next_attention_mask_input.dtype()) == np.uint16:
             causal_mask = torch.from_numpy(causal_mask).type(torch.bfloat16).view(torch.uint16).numpy()
+        elif type_convert(self.next_attention_mask_input.dtype()) == np.float16:
+            # float16 (w4f16): same uint16-view treatment as bfloat16 above.
+            causal_mask = torch.from_numpy(causal_mask).type(torch.float16).view(torch.uint16).numpy()
         self.next_attention_mask_input.update_data(causal_mask)
         block_output_tensors = { \
             0: self.next_hidden_states_output, \

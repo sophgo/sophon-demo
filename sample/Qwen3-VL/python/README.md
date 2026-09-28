@@ -49,7 +49,9 @@ python3 -m dfss --install sail
 
 - 需要**SDK v24.04.01及其以上版本**
 
-- 如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，请使用**SDK V24.04.01及其以上版本**对应的刷机包进行刷机，刷机成功后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
+- 如果您使用1684X的SoC平台（如SE7、SM7系列边缘设备），并使用它测试本例程，请使用**SDK V24.04.01及其以上版本**对应的刷机包进行刷机，刷机成功后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
+
+- CV84X6（如SE13-64）使用出厂预装的运行库即可（实测环境：libsophon-0.4.13、sophon-sail 3.11.1），sophon-sail的安装方式见下文`python3 -m dfss --install sail`。
 
 - 此外您可能还需要安装其他库：
 

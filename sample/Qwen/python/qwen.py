@@ -365,7 +365,8 @@ class Qwen:
         return self.sample_token()
     
     def chat_stream(self, messages):
-        self.tokens = self.tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, enable_thinking=self.enable_thinking)
+        result = self.tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, enable_thinking=self.enable_thinking)
+        self.tokens = result["input_ids"] if "input_ids" in result else result
         first_start = time.time()
         token = self.forward_first()
         first_end = time.time()
@@ -395,7 +396,8 @@ class Qwen:
 
     def chat_stream_for_api(self, params):
         messages = [param.dict() for param in params]
-        self.tokens = self.tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, enable_thinking=self.enable_thinking)
+        result = self.tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, enable_thinking=self.enable_thinking)
+        self.tokens = result["input_ids"] if "input_ids" in result else result
         token = self.forward_first()
         self.tokens.append(token)
         full_word_tokens = []
@@ -422,7 +424,8 @@ class Qwen:
 
     def chat_for_api(self, params):
         messages = [param.dict() for param in params]
-        self.tokens = self.tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, enable_thinking=self.enable_thinking)
+        result = self.tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, enable_thinking=self.enable_thinking)
+        self.tokens = result["input_ids"] if "input_ids" in result else result
         all_token = []
         token = self.forward_first()
         self.tokens.append(token)

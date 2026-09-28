@@ -15,11 +15,11 @@
 ## 1. 简介
 Qwen3-VL 是阿里巴巴推出的新一代多模态大语言模型（Multimodal Large Language Model, MLLM），属于通义千问（Qwen）系列的最新成员。支持图像、文本、视频等多种输入模态，具备跨模态理解、推理、生成能力。适用于图像描述、视觉问答（VQA）、文档分析、多模态交互等任务。相比前代模型（Qwen-VL），在推理速度、准确性、多语言支持等方面均有显著提升。Qwen3-VL仓库可见[Qwen3-VL](https://github.com/QwenLM/Qwen3-VL)。
 
-本例程对Qwen3-VL进行移植，使其可在Sophon BM1684X以及BM1688芯片上运行。PCIE模式下，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行。在1684X SoC设备（如SE7、SM7、Airbox等）以及16G版本的1688设备（例如SE9-16）上，支持在V24.04.01(libsophon_0.5.1)SDK上运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
+本例程对Qwen3-VL进行移植，使其可在Sophon BM1684X、CV84X6以及BM1688芯片上运行。PCIE模式下，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行。在1684X SoC设备（如SE7、SM7、Airbox等）以及16G版本的1688设备（例如SE9-16）上，支持在V24.04.01(libsophon_0.5.1)SDK上运行；在84X6 SoC设备（如SE13-64），已在libsophon-0.4.13、sophon-sail 3.11.1环境下测试通过。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
 
-* 支持BM1684X和BM1688(x86 PCIe、SoC)
+* 支持BM1684X、CV84X6和BM1688(x86 PCIe、SoC)
 * 支持INT4模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持连续对话
@@ -72,7 +72,7 @@ sudo reboot
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
 sudo apt install unzip
 chmod -R +x scripts/
-./scripts/download_bmodel.sh all # 提供了四种all|bm1684x_4b|bm1684x_8b|bm1688模型的下载
+./scripts/download_bmodel.sh all # 提供了五种all|bm1684x_4b|bm1684x_8b|bm1688|cv84x6_4b模型的下载
 ```
 
 执行下载脚本，将所有的模型都下载后，目录结构如下：
@@ -82,8 +82,10 @@ chmod -R +x scripts/
 |   ├── BM1684X
 |   |   ├── qwen3-vl-8b-instruct_w4bf16_seq2048_bm1684x_1dev_20251026_145323.bmodel
 |   |   └── qwen3-vl-4b-instruct_w4bf16_seq2048_bm1684x_1dev_20251026_141347.bmodel            # 使用TPU-MLIR编译，用于BM1684X的Qwen3-VL BModel，上下文长度为2k
-|   └── BM1688
-|       └── qwen3-vl-4b-instruct_w4bf16_seq2048_bm1688_2core_20251026_141708.bmodel
+|   ├── BM1688
+|   |   └── qwen3-vl-4b-instruct_w4bf16_seq2048_bm1688_2core_20251026_141708.bmodel
+|   └── CV84X6
+|       └── qwen3-vl-4b-instruct_w4bf16_seq2048_cv84x6_4core_dynamic_20260920_184236.bmodel    # 使用TPU-MLIR编译，用于CV84X6的Qwen3-VL BModel，上下文长度为2k，4核动态
 └── datasets
     ├── images                                                               # 测试图片目录
     └── videos                                                               # 测试视频目录
@@ -133,6 +135,11 @@ llm_convert.py -m /workspace/Qwen3-VL-4B-Instruct  -s 2048 --max_input_length 10
 ```
 编译完成后，在指定目录`qwen3vl_4b`生成`qwen3-vl-xxx.bmodel`和`config`
 
+编译84X6平台的模型时，将`-c`参数改为`cv84x6`即可（默认使用4个TPU核编译，即4core模型，并可加上`--dynamic`编译动态模型）：
+``` shell
+llm_convert.py -m /workspace/Qwen3-VL-4B-Instruct -s 2048 --max_input_length 1024 --quantize w4bf16 -c cv84x6 --out_dir qwen3vl_4b --max_pixels 768,768 --dynamic
+```
+
 
 ## 5. 例程测试
 
@@ -152,8 +159,10 @@ python qwen3_vl.py -m /models/BM1684X/qwen3-vl-4b-instruct_w4bf16_seq2048_bm1684
 |    SE7-32    | qwen3-vl-8b-instruct_w4bf16_seq2048_bm1684x_1dev_20251026_145323.bmodel  |        2.642           |        6.643          |
 |    SE7-32    | qwen3-vl-4b-instruct_w4bf16_seq2048_bm1684x_1dev_20251026_141347.bmodel  |        1.645           |        10.718           |
 |    SE9-16    | qwen3-vl-4b-instruct_w4bf16_seq2048_bm1688_2core_20251026_141708.bmodel  |        5.411          |          5.486         |
+|    SE13-64   | qwen3-vl-4b-instruct_w4bf16_seq2048_cv84x6_4core_dynamic_20260920_184236.bmodel |        1.518           |        14.49           |
 
 > **测试说明**：  
 >1. 性能测试结果具有一定的波动性，且与输入也有关，此处结果是对12张照片测试后取的平均值；
 >2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 >3. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型；
+>4. CV84X6（SE13-64）测试时TPU时钟频率为1GHz。

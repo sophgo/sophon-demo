@@ -78,6 +78,8 @@ python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwq/sophon-libsophon-dev_
 
 如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
+CV84X6（如SE13-64）使用出厂预装的运行库即可（实测环境：libsophon-0.4.13、sophon-sail 3.11.1）。
+
 此外您还需要安装其他第三方库：
 ```bash
 pip3 install -r python/requirements.txt

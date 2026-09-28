@@ -46,6 +46,15 @@ function download_bm1688 {
     popd
 }
 
+function download_cv84x6_4b {
+    if [ ! -d "../models/CV84X6" ]; then
+        mkdir -p ../models/CV84X6
+    fi
+    pushd ../models/CV84X6
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_VL/qwen3-vl-4b-instruct_w4bf16_seq2048_cv84x6_4core_dynamic_20260920_184236.bmodel
+    popd
+}
+
 if [ "$1" == "bm1684x_4b" ]; then
     download_datasets
     download_bm1684x_4b
@@ -55,13 +64,17 @@ elif [ "$1" == "bm1684x_8b" ]; then
 elif [ "$1" == "bm1688" ]; then
     download_datasets
     download_bm1688
+elif [ "$1" == "cv84x6_4b" ]; then
+    download_datasets
+    download_cv84x6_4b
 elif [ "$1" == "all" ]; then
     download_datasets
     download_bm1684x_4b
     download_bm1684x_8b
     download_bm1688
+    download_cv84x6_4b
 else
     echo "Error Parameter"
-    echo "Usage: $0 [all|bm1684x_4b|bm1684x_8b|bm1688]"
+    echo "Usage: $0 [all|bm1684x_4b|bm1684x_8b|bm1688|cv84x6_4b]"
     exit 1
 fi

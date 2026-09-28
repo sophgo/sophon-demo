@@ -73,7 +73,7 @@ sudo reboot
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
 sudo apt install unzip
 chmod -R +x scripts/
-./scripts/download_bmodel.sh all # 提供了all|bm1684x_2b|bm1684x_4b|bm1684x_9b|bm1688|cv84x6_2b|cv84x6_4b|cv84x6_9b|cv84x6_35b模型的下载
+./scripts/download_bmodel.sh all # 提供了all|bm1684x_2b|bm1684x_4b|bm1684x_9b|bm1688|cv84x6_2b|cv84x6_4b|cv84x6_9b|cv84x6_35b|cv84x6_35b_3.6模型的下载
 ```
 
 执行下载脚本，将所有的模型都下载后，目录结构如下：
@@ -97,6 +97,8 @@ chmod -R +x scripts/
 |   |   ├── qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_4core_history_dynamic_20260914_154012.bmodel  # 支持历史上下文
 |   |   ├── qwen3.5-35b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260917_182047.bmodel
 |   |   ├── qwen3.5-35b-int4-autoround_w4bf16_seq2048_cv84x6_4core_history_dynamic_20260918_122058.bmodel  # 支持历史上下文，MoE(256专家/8活跃)
+|   |   ├── qwen3.6-35b-a3b-int4-mixed-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260924_162342.bmodel  # Qwen3.6-35B-A3B，int4-mixed AutoRound
+|   |   └── qwen3.6-35b-a3b-int4-mixed-autoround_w4bf16_seq2048_cv84x6_4core_history_dynamic_20260924_165230.bmodel  # 支持历史上下文
 |   └── BM1688
 |       ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260415_212627.bmodel
 |       ├── qwen3.5-2b-int4-autoround_w4bf16_seq8192_bm1688_2core_history_dynamic_20260722_160000.bmodel  # 支持历史上下文，上下文长度为8k
@@ -186,6 +188,24 @@ llm_convert.py -m /workspace/Qwen3.5-35B-A3B-int4-AutoRound -s 2048 --quantize w
 > 4. 35B模型运行在Python端无需任何代码改动，`qwen3_5.py`自动适配模型层数和hidden_size。
 编译完成后，在指定目录`qwen3.5_2b`生成`qwen3.5-xxx.bmodel`和`config`
 
+- **编译Qwen3.6-35B-A3B模型**（Qwen3.6-35B-A3B，与3.5同架构`Qwen3_5MoeForConditionalGeneration`，新增MTP投机解码层，编译时MTP层自动跳过，按标准自回归推理编译；源模型为int4-mixed AutoRound量化，部分mlp.gate/shared_expert/attn权重保留fp16）
+
+``` shell
+# 下载Qwen3.6-35B-A3B模型 (约20GB，int4-mixed量化)
+git clone https://huggingface.co/Intel/Qwen3.6-35B-A3B-int4-mixed-AutoRound
+
+# 编译base模型（默认4core）
+llm_convert.py -m /workspace/Qwen3.6-35B-A3B-int4-mixed-AutoRound -s 2048 --quantize w4bf16 -c bm1684x2 --out_dir qwen3.6_35b --max_pixels 768,768
+
+# 编译history模型（支持多轮对话）
+llm_convert.py -m /workspace/Qwen3.6-35B-A3B-int4-mixed-AutoRound -s 2048 --quantize w4bf16 -c bm1684x2 --out_dir qwen3.6_35b_kv --max_pixels 768,768 --use_history_kv
+```
+
+> **注意：**
+> 1. Qwen3.6-35B-A3B的`model_type`仍为`qwen3_5_moe`，与3.5共用`Qwen3_5Converter`，llm_convert自动识别；
+> 2. 3.6新增的MTP（Multi-Token Prediction）投机解码层在编译时会被Converter自动跳过，产出标准自回归bmodel，`qwen3_5.py`无需改动即可运行；
+> 3. int4-mixed量化版本体积（约20GB）大于纯int4（约18GB），因部分关键层（gate/shared_expert/部分attn）保留fp16。
+
 
 ## 5. 例程测试
 
@@ -215,12 +235,15 @@ python3 qwen3_5.py -m ../models/BM1684X/qwen3.5-2b-int4-autoround_w4bf16_seq2048
 |    SE13-64    | qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260914_152921.bmodel  |         2.366           |        14.28           |
 |    SE13-64    | qwen3.5-35b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260917_182047.bmodel  |         3.007           |        23.58           |
 |    SE13-64    | qwen3.5-35b-int4-autoround_w4bf16_seq2048_cv84x6_4core_history_dynamic_20260918_122058.bmodel  |         2.571           |        23.42           |
+|    SE13-64    | qwen3.6-35b-a3b-int4-mixed-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260924_162342.bmodel  |        3.917           |        17.92           |
+|    SE13-64    | qwen3.6-35b-a3b-int4-mixed-autoround_w4bf16_seq2048_cv84x6_4core_history_dynamic_20260924_165230.bmodel  |        3.406           |        17.90           |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，且与输入也有关；
 > 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 3. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型；
 > 4. SE13-64的TPU有4个核，文件名含`1dev`/`1core`的bmodel为单核编译，含`4core`的为4核编译；相同模型下4核bmodel的首token延迟和吞吐均明显优于单核bmodel；
+> 5. CV84X6（SE13-64）测试时TPU时钟频率为1GHz。
 
 ## 7. 固定文本前缀缓存测试
 
