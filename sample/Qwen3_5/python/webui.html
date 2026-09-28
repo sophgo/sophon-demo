@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qwen3.5 · Sophon</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel2: #1e222b;
+    --border: #2a2f3a; --text: #e6e8ec; --dim: #8b93a3;
+    --accent: #4f8cff; --accent2: #7c5cff;
+    --user-bg: #2b4a7a; --ai-bg: #22262f; --err: #ff6b6b; --ok: #51cf66;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    display: flex; flex-direction: column;
+  }
+  header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; background: var(--panel);
+    border-bottom: 1px solid var(--border); flex: none;
+  }
+  header .logo {
+    width: 26px; height: 26px; border-radius: 6px; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+  }
+  header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+  header .meta { font-size: 12px; color: var(--dim); margin-left: auto;
+                 display: flex; gap: 12px; align-items: center; }
+  header .meta .dot { width: 7px; height: 7px; border-radius: 50%;
+                      background: var(--ok); display: inline-block; margin-right: 4px; }
+
+  main { flex: 1; overflow: hidden; display: flex; }
+
+  /* chat column */
+  #chat { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #messages { flex: 1; overflow-y: auto; padding: 16px; }
+  .msg { max-width: 86%; margin: 8px 0; padding: 10px 14px;
+         border-radius: 12px; line-height: 1.65; font-size: 14px;
+         white-space: pre-wrap; word-break: break-word; }
+  .msg.user { background: var(--user-bg); margin-left: auto; }
+  .msg.ai { background: var(--ai-bg); }
+  .msg.error { background: transparent; color: var(--err);
+               border: 1px solid var(--err); font-size: 13px; }
+  .msg .stats { display: block; margin-top: 8px; font-size: 11.5px;
+                color: var(--dim); white-space: normal; }
+  .msg .imgwrap { display: block; margin-bottom: 6px; }
+  .msg img { max-width: 220px; max-height: 160px; border-radius: 8px;
+             border: 1px solid var(--border); }
+  .typing::after { content: "▋"; animation: blink 1s steps(1) infinite;
+                   color: var(--accent); }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* composer */
+  #composer { flex: none; border-top: 1px solid var(--border);
+              background: var(--panel); padding: 10px 12px; }
+  #attachbar { display: none; align-items: center; gap: 8px; margin-bottom: 8px; }
+  #attachbar .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 4px 8px; font-size: 12px; color: var(--dim);
+  }
+  #attachbar .chip img { width: 34px; height: 34px; object-fit: cover;
+                         border-radius: 5px; }
+  #attachbar .chip button { background: none; border: none; color: var(--dim);
+                            cursor: pointer; font-size: 14px; padding: 0 2px; }
+  #attachbar .chip button:hover { color: var(--err); }
+  .inputrow { display: flex; gap: 8px; align-items: flex-end; }
+  textarea {
+    flex: 1; resize: none; background: var(--panel2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 9px 12px; font-size: 14px; font-family: inherit;
+    line-height: 1.5; max-height: 140px; min-height: 42px; outline: none;
+  }
+  textarea:focus { border-color: var(--accent); }
+  button.ctrl {
+    background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 12px; cursor: pointer; font-size: 14px;
+  }
+  button.ctrl:hover { border-color: var(--accent); }
+  #sendBtn { background: var(--accent); border-color: var(--accent);
+             color: #fff; padding: 10px 18px; font-weight: 600; }
+  #sendBtn:disabled { opacity: .45; cursor: not-allowed; }
+  #stopBtn { display: none; background: var(--err); border-color: var(--err);
+             color: #fff; padding: 10px 18px; font-weight: 600; }
+
+  /* side panel */
+  #side { flex: none; width: 240px; border-left: 1px solid var(--border);
+          background: var(--panel); padding: 14px; display: flex;
+          flex-direction: column; gap: 10px; font-size: 13px; }
+  #side h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+             color: var(--dim); margin: 4px 0 0; }
+  #side .row { display: flex; justify-content: space-between; padding: 2px 0; }
+  #side .row span:first-child { color: var(--dim); }
+  #clearBtn { margin-top: auto; width: 100%; }
+  .hint { color: var(--dim); font-size: 12px; line-height: 1.5; }
+
+  @media (max-width: 720px) { #side { display: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"></div>
+  <h1>Qwen3.5 <span style="color:var(--dim);font-weight:400;font-size:12px">Sophon TPU</span></h1>
+  <div class="meta">
+    <span><span class="dot" id="statDot"></span><span id="statTxt">空闲</span></span>
+  </div>
+</header>
+
+<main>
+  <div id="chat">
+    <div id="messages"></div>
+    <div id="composer">
+      <div id="attachbar"></div>
+      <div class="inputrow">
+        <button class="ctrl" id="attachBtn" title="附加图片/视频">📎</button>
+        <textarea id="question" rows="1"
+                  placeholder="输入问题，Enter 发送 / Shift+Enter 换行（多行粘贴随意）"></textarea>
+        <button id="sendBtn">发送</button>
+        <button id="stopBtn">停止</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="side">
+    <h2>会话</h2>
+    <div class="row"><span>模型</span><span id="mModel">-</span></div>
+    <div class="row"><span>seq_len</span><span id="mSeq">-</span></div>
+    <div class="row"><span>历史</span><span id="mHist">0 tokens</span></div>
+    <div class="row"><span>最近 FTL</span><span id="mFtl">-</span></div>
+    <div class="row"><span>最近 TPS</span><span id="mTps">-</span></div>
+    <button class="ctrl" id="clearBtn">🗑 清空对话</button>
+    <div class="hint">
+      图片/视频先点 📎 上传到板子，再提问。带 KV 历史模型支持多轮对话；
+      出错会自动清历史恢复。
+    </div>
+  </div>
+</main>
+
+<input type="file" id="fileInput" accept="image/*,video/*" hidden>
+
+<script>
+const $ = id => document.getElementById(id);
+const messages = $('messages'), question = $('question');
+let mediaPath = null, mediaMeta = null, busy = false;
+
+function addMsg(cls, text) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + cls; d.textContent = text;
+  messages.appendChild(d); scroll(); return d;
+}
+function scroll() { messages.scrollTop = messages.scrollHeight; }
+function setStatus(txt, busyFlag) {
+  $('statTxt').textContent = txt; busy = busyFlag;
+  $('sendBtn').disabled = busyFlag;
+  $('sendBtn').style.display = busyFlag ? 'none' : '';
+  $('stopBtn').style.display = busyFlag ? '' : 'none';
+}
+
+question.addEventListener('input', () => {
+  question.style.height = 'auto';
+  question.style.height = Math.min(question.scrollHeight, 140) + 'px';
+});
+question.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+    e.preventDefault(); send();
+  }
+});
+
+$('attachBtn').onclick = () => $('fileInput').click();
+$('fileInput').addEventListener('change', async () => {
+  const f = $('fileInput').files[0]; if (!f) return;
+  const fd = new FormData(); fd.append('file', f);
+  try {
+    const r = await fetch('/api/upload', { method: 'POST', body: fd });
+    const j = await r.json();
+    if (!r.ok) { alert(j.error || '上传失败'); return; }
+    if (mediaMeta && mediaMeta.previewUrl) URL.revokeObjectURL(mediaMeta.previewUrl);
+    mediaPath = j.path;
+    mediaMeta = { name: j.name, media_type: j.media_type,
+                  previewUrl: URL.createObjectURL(f) };
+    renderAttach();
+  } catch (e) { alert('上传失败：' + e); }
+  finally { $('fileInput').value = ''; }
+});
+function renderAttach() {
+  const bar = $('attachbar'); bar.style.display = 'flex';
+  const chip = document.createElement('span'); chip.className = 'chip';
+  if (mediaMeta.media_type === 'image' && mediaMeta.previewUrl) {
+    const img = document.createElement('img'); img.src = mediaMeta.previewUrl;
+    chip.appendChild(img);
+  } else { chip.textContent = '🎬 '; }
+  const nm = document.createElement('span');
+  nm.textContent = mediaMeta.name; chip.appendChild(nm);
+  const x = document.createElement('button'); x.textContent = '✕';
+  x.onclick = () => {
+    if (mediaMeta && mediaMeta.previewUrl) URL.revokeObjectURL(mediaMeta.previewUrl);
+    mediaPath = null; mediaMeta = null; bar.style.display = 'none';
+  };
+  chip.appendChild(x); bar.innerHTML = ''; bar.appendChild(chip);
+}
+
+$('stopBtn').onclick = () => fetch('/api/stop', { method: 'POST' });
+$('clearBtn').onclick = async () => {
+  if (busy) return alert('请先停止当前生成');
+  const r = await fetch('/api/clear', { method: 'POST' });
+  if (!r.ok) return alert((await r.json()).error);
+  if (mediaMeta && mediaMeta.previewUrl) URL.revokeObjectURL(mediaMeta.previewUrl);
+  messages.innerHTML = ''; mediaPath = null; mediaMeta = null;
+  $('attachbar').style.display = 'none';
+  $('mHist').textContent = '0 tokens';
+};
+
+async function send() {
+  const q = question.value.trim();
+  if (!q) return;
+  if (busy) return;
+  question.value = ''; question.style.height = 'auto';
+
+  const bubble = addMsg('user', q);
+  if (mediaPath && mediaMeta) {
+    const wrap = document.createElement('span'); wrap.className = 'imgwrap';
+    if (mediaMeta.media_type === 'image') {
+      const img = document.createElement('img');
+      img.src = mediaMeta.previewUrl || ''; wrap.appendChild(img);
+    } else { wrap.textContent = '🎬 ' + mediaMeta.name; }
+    bubble.insertBefore(wrap, bubble.firstChild);
+  }
+
+  const ai = addMsg('ai', ''); ai.classList.add('typing');
+  setStatus('生成中…', true);
+  let text = '';
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q, media_path: mediaPath || '' })
+    });
+    if (!resp.ok) {
+      const j = await resp.json().catch(() => ({}));
+      throw new Error(j.error || ('HTTP ' + resp.status));
+    }
+    const reader = resp.body.getReader(); const dec = new TextDecoder();
+    let buf = '';
+    for (;;) {
+      const { done, value } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        let ev; try { ev = JSON.parse(line); } catch { continue; }
+        if (ev.type === 'delta') { text += ev.text; ai.textContent = text; scroll(); }
+        else if (ev.type === 'info') { text += '\n[' + ev.message + ']\n'; ai.textContent = text; }
+        else if (ev.type === 'stats') {
+          $('mFtl').textContent = ev.ftl + ' s';
+          $('mTps').textContent = ev.tps + ' t/s';
+          $('mHist').textContent = ev.total_tokens + ' tokens';
+          const s = document.createElement('span'); s.className = 'stats';
+          s.textContent = (ev.stopped ? '[已停止] ' : '') +
+            'FTL ' + ev.ftl + 's · ' + ev.tps + ' tok/s · 共 ' + ev.total_tokens +
+            (ev.vision !== undefined ? ' · Vision ' + ev.vision + 's' : '');
+          ai.appendChild(s);
+        }
+        else if (ev.type === 'error') {
+          text += '\n[错误] ' + ev.message; ai.textContent = text;
+        }
+      }
+    }
+  } catch (e) {
+    ai.classList.remove('typing'); ai.className = 'msg error';
+    ai.textContent = text + '\n' + e;
+  }
+  ai.classList.remove('typing');
+  setStatus('空闲', false);
+}
+
+(async () => {
+  try {
+    const j = await (await fetch('/api/info')).json();
+    $('mModel').textContent = j.model.replace(/^qwen3\.5-/, '').slice(0, 22);
+    $('mSeq').textContent = j.seq_len + (j.support_history ? ' · history' : '');
+  } catch {}
+  addMsg('ai', '你好！我是 Qwen3.5。直接输入问题即可；📎 可附加图片/视频。');
+})();
+</script>
+</body>
+</html>

@@ -13,13 +13,15 @@
       - [视频占多少Token ?](#视频占多少token-)
     - [2.2 使用方式](#22-使用方式)
     - [2.3 固定文本前缀缓存测试](#23-固定文本前缀缓存测试)
+    - [2.4 Web UI 例程](#24-web-ui-例程)
 
 Qwen3.5能够输入单一图片/视频进行对话，python目录下提供了例程，具体情况如下：
 
 | 序号  |  Python例程       |            说明                 |
 | ---- | ---------------- | ------------------------------ |
-|   1  | qwen3_5.py       | 使用SAIL推理                     |
+|   1  | qwen3_5.py       | 使用SAIL推理（命令行交互）        |
 |   2  | qwen3_5_prefix_cache.py | 固定文本前缀缓存推理（文字固定、图片变化场景） |
+|   3  | webui.py + webui.html | Web UI 例程，浏览器访问，支持流式输出/图片视频上传/停止生成（需额外安装 flask） |
 
 > **注意：**
 > 35B-A3B (MoE) 模型与dense模型使用相同的Python推理代码，`qwen3_5.py` 从bmodel自动适配模型层数、hidden_size等参数，无需任何代码改动。35B模型仅需4核编译运行（不支持1core/1dev）。
@@ -119,9 +121,13 @@ python3 qwen3_5.py -m ../models/BM1684X/qwen3.5-2b-int4-autoround_w4bf16_seq2048
 ```
 
 ```
-在Question: 处输入问题，在Image or Video Path: 处输入图片路径（如`test.jpg`）。如果图片路径为空，则进入对话模式。
+在Question: 处输入问题，在Image or Video Path: 处输入图片路径（如`test.jpg`），直接回车（不输入路径）则为纯文本对话。图片/视频路径只需输入一次，后续问题默认沿用上一次的附件。
 
 终端将打印FTL、TPS性能数据，并输出回答结果，接着可进一步对图片或者视频进行提问，输入q即可退出。
+
+> **注意：**
+> 1. 命令行 `input()` 一次只读取一行：粘贴多行长文本时，后续行会泄漏到接下来的提问里。遇到空行会直接跳过并提示；要粘贴多行文本请先用 Web UI（见 2.4 节），或将文本合并为一行。
+> 2. 推理过程中按 Ctrl-C 或发生推理异常时，会自动清空历史以恢复，不会卡死在损坏的 KV 状态上。
 
 > **测试说明**：  
 > 1. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型。
@@ -170,3 +176,46 @@ python3 qwen3_5_prefix_cache.py -m ../models/BM1684X/qwen3.5-9b-int4-autoround_w
 > 1. 首次前缀预填充为一次性开销，图片数量越多摊销越划算；
 > 2. 固定文本越长（长系统提示词/固定文档），缓存节省的预填充计算越多，收益越大；
 > 3. 吞吐量（decode 速度）不受前缀缓存影响。
+
+### 2.4 Web UI 例程
+
+`webui.py` 在 `qwen3_5.py` 的推理引擎外套了一个极简的 Flask Web 服务，浏览器即可对话：流式输出、图片/视频上传、停止生成、清空对话、性能数据（FTL/TPS/Vision 耗时）展示。相比命令行交互，输入框天然支持多行文本粘贴（`input()` 一次只读一行，粘贴多行长文本会串行）。
+
+**额外依赖**（其余依赖与 `qwen3_5.py` 相同）：
+
+```bash
+pip3 install flask -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+**启动**（参数与 `qwen3_5.py` 一致，额外多 `--host`/`--port`）：
+
+```bash
+python3 webui.py -m ../models/BM1684X/qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260415_111517.bmodel -c config/ -d 0 --host 0.0.0.0 --port 8000
+```
+
+启动后在浏览器打开 `http://<设备IP>:8000` 即可使用。如果设备不在本地网段（例如在跳板机后面），可在本地做 SSH 端口转发后访问 `http://localhost:8000`：
+
+```bash
+ssh -L 8000:<设备IP>:8000 <user>@<跳板机IP>
+```
+
+**界面功能**：
+
+- 直接输入问题，Enter 发送 / Shift+Enter 换行；点 📎 上传图片或视频后再提问（附件对后续问题保持有效，可点 ✕ 移除）；
+- 回答流式输出，每条回答底部显示 FTL、TPS、总 token 数、Vision 耗时；
+- 生成中可点「停止」中断（在 token 之间停止，KV 历史保持一致，可接着继续对话）；
+- 侧栏显示模型名、seq_len、历史 token 数，「清空对话」按钮重置会话。
+
+**HTTP 接口**（返回 NDJSON 流，可直接被其他程序调用）：
+
+| 接口 | 说明 |
+| ---- | ---- |
+| `GET /api/info` | 模型名、seq_len、是否支持 history |
+| `POST /api/upload` | multipart `file` 上传图片/视频，返回 `path` |
+| `POST /api/chat` | `{"question": str, "media_path": str}`，NDJSON 流式返回 `delta/info/stats/error/done` 事件 |
+| `POST /api/stop` | 请求停止当前生成 |
+| `POST /api/clear` | 清空对话历史 |
+
+> **注意：**
+> 1. 服务为单会话设计：同一时刻只处理一轮生成，生成中再发 `/api/chat` 会返回 409；
+> 2. 监听 `0.0.0.0` 时请自行确认网络环境可信，本例程未做鉴权。

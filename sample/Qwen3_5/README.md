@@ -29,6 +29,7 @@ Qwen3.5 是阿里巴巴推出的新一代多模态大语言模型（Multimodal L
 * 支持视频抽帧
 * 支持动态模型
 * 支持历史上下文（仅`use_history_kv`的bmodel，详见[自行编译BModel模型](#42-自行编译bmodel模型)）
+* 提供 Web UI 例程（浏览器对话、流式输出、图片/视频上传、停止生成，见[Python例程](./python/README.md) 2.4 节）
 
 ## 3. 运行环境准备
 
