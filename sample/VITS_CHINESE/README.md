@@ -135,6 +135,6 @@ Python例程：
 - 测试说明
 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 2. SE7-32(BM1684X) SDK版本:V24.04.01；SE9-16(BM1688)和SE9-8(CV186X) SDK版本:V1.7；SE13-64(CV84X6) SDK版本:libsophon 0.4.13；
-3. SE7-32的主控处理器为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，SE13-64为8核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+3. SE7-32的主控处理器为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，SE13-64为8核CA55@2.0GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 4. C++例程将文本前处理（拼音转换、BERT推理）也集成在程序中，preprocess_time为文本处理+BERT TPU推理耗时，inference_time为VITS TPU推理耗时，postprocess_time为CPU侧音频后处理耗时（截断+去静音）；
 5. C++例程的SRM-10 PCIe测试环境运行在x86主机上（Intel Xeon处理器），插有SC7加速卡。C++例程不需要libsndfile依赖（WAV文件使用原生实现）。

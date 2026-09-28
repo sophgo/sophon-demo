@@ -291,4 +291,4 @@ CPP设置`--use_cpu_opt=false`或python不设置`--use_cpu_opt`进行测试，�
 > 3. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。
 > 4. SE7-32的主控处理器为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 5. flip=true会提高mAP精度，但会增加前处理，推理和后处理的时间；
-6. SE13-64的主控处理器为8核CA53@2.3GHz；CV84X6不支持FP32，上表SE13-64的测试结果为flip=true时使用前置检测模型yolov5s_v6.1_3output_int8_4b.bmodel的数据。
+6. SE13-64的主控处理器为8核CA55@2.0GHz；CV84X6不支持FP32，上表SE13-64的测试结果为flip=true时使用前置检测模型yolov5s_v6.1_3output_int8_4b.bmodel的数据。

@@ -121,7 +121,7 @@ bmrt_test --bmodel models/BM1684X/feartracker_fp32_1b.bmodel
 > 3. 模板图像仅在首帧预处理一次，后续帧复用模板图像，不计入后续帧的推理时间；
 > 4. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 5. SE9-16的主控处理器为8核CA55@1.6GHz，BM1688 TPU；
-> 6. SE13-64的主控处理器为8核CA53@1.6GHz，CV84X6 TPU；SE13系列对应CV84X6。
+> 6. SE13-64的主控处理器为8核CA55@2.0GHz，CV84X6 TPU；SE13系列对应CV84X6。
 
 ## 8. FAQ
 1. **推理结果与参考模型不一致**: 可检查初始边界框是否一致，以及模型是否使用相同的配置参数（template_size=128, instance_size=256, score_size=16）。

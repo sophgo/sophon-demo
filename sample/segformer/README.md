@@ -292,7 +292,7 @@ bmrt_test --bmodel models/BM1684/segformer.b0.512x1024.city.160k_fp32_1b.bmodel
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异。 
-> 5. SE13-64对应CV84X6，主控为8核CA53@1.6GHz；CV84X6当前固件不支持FP32，仅提供FP16/INT8数据。segformer_sail.soc基于sophon-sail C++库交叉编译（参考docs/Environment_Install_Guide.md §4.2）。
+> 5. SE13-64对应CV84X6，主控为8核CA55@2.0GHz；CV84X6当前固件不支持FP32，仅提供FP16/INT8数据。segformer_sail.soc基于sophon-sail C++库交叉编译（参考docs/Environment_Install_Guide.md §4.2）。
 
 ## 8. FAQ
 其他问题请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。

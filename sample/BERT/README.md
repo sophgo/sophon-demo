@@ -344,6 +344,6 @@ bmrt_test --bmodel models/BM1684/bert4torch_output_fp32_1b.bmodel
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
 > 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. BERT cpp的后处理只有softmax，耗时很短，可以忽略；
-> 5. SE13-64对应CV84X6，主控为8核CA53@1.6GHz；仅给bert_sail.py的FP16数据，原因见6.2测试说明。
+> 5. SE13-64对应CV84X6，主控为8核CA55@2.0GHz；仅给bert_sail.py的FP16数据，原因见6.2测试说明。
 ## 8. FAQ
 请参考[FAQ](../../docs/FAQ.md)查看一些常见的问题与解答。
