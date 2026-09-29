@@ -1,0 +1,45 @@
+# Downloaded models / datasets / assets (fetched by scripts/download.sh)
+models/
+datasets/
+
+# Compiled bmodels & intermediate mlir artifacts
+*.bmodel
+*.bmodel.json
+*.mlir
+*.npz
+*.prototxt
+*_cali_table
+*_qtable
+*_qtable_shape_pattern_part
+compiler_profile_*.txt
+*.profile
+shape_pattern_qtable
+
+# Exported onnx (large, regenerate via tools/export_onnx.py)
+*.onnx
+
+# Python
+__pycache__/
+*.pyc
+
+# Eval outputs
+out/
+python/log/
+result*.txt
+
+# GLC 官方源码（https://github.com/jzyustc/GLC），按需 clone，不随仓库分发
+GLC_src/
+
+# compressai 最小子集：仅主机侧生成 CDF 资产时用，设备端不需要
+tools/vendor/
+
+# tpu-mlir 独立 venv（编译 bmodel 用）
+.venv-mlir/
+
+# 熵编码/编译中间产物
+*.ref_files.json
+*_bm1684x_*.layer_group_*.json
+*_bm1688_*.layer_group_*.json
+
+# rANS 编译产物（tools/rans/build.sh 生成）
+libglc_rans_*.so

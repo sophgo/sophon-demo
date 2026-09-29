@@ -1,0 +1,98 @@
+{
+  "model_name": "GLC (Generative Latent Coding)",
+  "task": "Generative Image Compression",
+  "source": "https://github.com/jzyustc/GLC",
+  "paper": "arXiv:2403.18411 (CVPR 2024)",
+  "vendor": "Microsoft Research Asia / USTC",
+  "framework": "PyTorch",
+  "framework_note": "官方权重 GLC_image.pth.tar 为 PyTorch state_dict。源码 layers.py 有未使用的 `from torchvision import models`，环境无匹配 torchvision 时可用 tools/stubs/ 下的替身绕过。",
+  "architecture": {
+    "encoder": {
+      "type": "VQGAN Encoder + 质量调制 + 超先验编码",
+      "output": "隐变量 y (1,256,32,48) 与超隐变量 z (1,256,8,12)"
+    },
+    "decoder": {
+      "type": "超先验解码 + 四段空间先验 + VQGAN Generator",
+      "output": "重建图 x_hat (1,3,512,768) 与熵模型参数 y_q / scales_hat"
+    },
+    "codebook": {
+      "type": "z_vq 向量量化码本",
+      "size": 16384,
+      "dim": 256,
+      "note": "编码器与解码器之间的 argmin 查表在 CPU 上执行，见 split_rationale"
+    }
+  },
+  "sub_models": 2,
+  "sub_model_list": ["glc_encoder", "glc_decoder"],
+  "split_rationale": "两个子模型之间必须插一段 CPU 码本最近邻查找（z_vq.get_indices 的 argmin）。argmin 是数据依赖的离散选择，后续 get_quan_feat 又把它变回连续特征，这种「离散选择 -> 连续查表」的跳变在 TPU 上既难展开也不经济（argmin 在 TPU-MLIR 中支持有限，16384 类查表会显著增大图规模）。GLC 官方实现同样把这一步留在通用算子上。解码器额外输出 y_q 与 scales_hat，使设备端能就地算 bpp，省掉一次熵模型推理。",
+  "input": {
+    "x": {
+      "shape": [1, 3, 512, 768],
+      "dtype": "float32",
+      "range": "[-1, 1]",
+      "note": "RGB 图像。尺寸须为 64 的整数倍，且 H 能被 64 整除才能得到整数倍的 z 尺寸。静态 shape，其它分辨率需重新导出编译。"
+    },
+    "q_enc": {
+      "shape": [1, 256, 1, 1],
+      "dtype": "float32",
+      "note": "编码端质量向量，共 4 个档位（q_index 0..3），来自权重中的 q_enc 参数"
+    }
+  },
+  "output": {
+    "x_hat": {
+      "shape": [1, 3, 512, 768],
+      "dtype": "float32"
+    },
+    "bpp": {
+      "formula": "(bit_y + bit_z) / (H * W)",
+      "note": "bit_y 由 y_q 与 scales_hat 按高斯熵模型估算，bit_z = H_z*W_z*log2(16384) 为码本索引定长开销"
+    }
+  },
+  "preprocess": "读 RGB -> /255 -> (v-0.5)*2 归一到 [-1,1] -> HWC 转 CHW -> 加 batch 维。无 resize、无 mean/std 归一化。尺寸需 replicate padding 到 64 的整数倍。",
+  "postprocess": "x_hat 反归一化 (v/2+0.5)*255 -> clip 到 [0,255] -> 取整 -> HWC uint8 -> 裁掉 padding。",
+  "ops": ["Conv", "MatMul", "Softmax", "GroupNorm", "SiLU", "Add", "Mul", "Resize", "Permute", "Slice", "ScatterND"],
+  "bmodels": {
+    "BM1684X": {
+      "fp32": ["glc_encoder_fp32.bmodel", "glc_decoder_fp32.bmodel"],
+      "bf16": ["glc_encoder_bf16.bmodel", "glc_decoder_bf16.bmodel"],
+      "assets": ["codebook.npy", "q_enc.npy", "q_dec.npy"],
+      "compile_env": "TPU-MLIR v1.28.1"
+    },
+    "BM1688": {
+      "fp32": ["glc_encoder_fp32.bmodel", "glc_decoder_fp32.bmodel"],
+      "bf16": ["glc_encoder_bf16.bmodel", "glc_decoder_bf16.bmodel"],
+      "assets": ["codebook.npy", "q_enc.npy", "q_dec.npy"],
+      "compile_env": "TPU-MLIR v1.28.1",
+      "note": "与 BM1684X 的 bmodel 不可互换，须用 bm1688 重新编译。"
+    }
+  },
+  "precision_matrix": {
+    "fp32": {
+      "status": "supported",
+      "note": "与 PyTorch 基线逐位一致（单图最大 PSNR 偏差 0.00 dB，码本索引完全一致）。端到端 2854 ms。BM1684X 的 FP32 吞吐显著低于 BF16，故不推荐。"
+    },
+    "bf16": {
+      "status": "recommended",
+      "note": "端到端 688 ms，相对 FP32 加速约 4.2 倍；PSNR 相对 PyTorch 基线平均偏差 0.04 dB 以内，单图最大 0.20 dB。"
+    },
+    "fp16": {
+      "status": "excluded",
+      "reason": "模型激活超出 fp16 表示范围，推理结果为 NaN。详见 README 8. FAQ 的 Q3。"
+    },
+    "int8": {
+      "status": "excluded",
+      "reason": "校准代价过高，未取得可用模型。详见 README 8. FAQ 的 Q9。"
+    },
+    "w4bf16_w8bf16_int8bf16dyn": {
+      "status": "excluded",
+      "reason": "免校准的权重量化模式在本模型上静默退化为 BF16（产物逐字节同尺寸、推理逐位相同），无收益。"
+    }
+  },
+  "test_dataset": "Kodak24 中尺寸匹配的 18 张（512x768）",
+  "metrics": ["PSNR", "SSIM", "bpp"],
+  "platform": ["BM1684X", "BM1688"],
+  "target_arch": "soc",
+  "ref_sample": "sample/Real-ESRGAN",
+  "ref_sample_reason": "同为图像重建类模型、精度指标用 PSNR/SSIM、Python 例程为主，目录与文档组织可参照。",
+  "stateful_note": "无状态。每次推理独立，编码器与解码器之间只有一段无状态的 CPU 码本查找。"
+}
