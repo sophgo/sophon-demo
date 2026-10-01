@@ -1,0 +1,32 @@
+# Downloaded models / datasets (fetched by scripts/download*.sh)
+models/
+datasets/
+
+# Build artifacts (CMake build trees + cross-compiled executables in the variant dirs)
+build/
+build_*/
+*/build_*/
+cpp/wechat_qrcode_bmcv/wechat_qrcode_bmcv.soc
+cpp/wechat_qrcode_bmcv/wechat_qrcode_bmcv.pcie
+cpp/wechat_qrcode_sail/wechat_qrcode_sail.soc
+cpp/wechat_qrcode_sail/wechat_qrcode_sail.pcie
+
+# Model conversion intermediates (scripts/gen_bmodel.sh)
+*.bmodel
+*.bmodel.json
+*.mlir
+*.npz
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Test results
+results/
+
+# auto_test.sh runtime outputs (log/eval captures, bench logs, acc + bmrt tables)
+log.txt
+eval.txt
+*_bench.log
+scripts/acc.txt
+tools/benchmark.txt

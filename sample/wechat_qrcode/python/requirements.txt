@@ -1,0 +1,9 @@
+# Python dependencies for sample/wechat_qrcode (in addition to sophon-sail +
+# sophon-opencv provided by the sophon SDK).
+#
+#   wechat_qrcode_opencv.py : sophon.sail, numpy, opencv-python (cv2)
+#   wechat_qrcode_bmcv.py  : sophon.sail, numpy (decoding is on-device via sail.Decoder)
+#
+# sophon.sail is installed from the pysail wheel (see python/README.md), not pip.
+numpy
+opencv-python
