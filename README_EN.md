@@ -53,6 +53,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [wechat_qrcode](./sample/wechat_qrcode/README.md)             | QR Code Detection & Recognition    | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [OpenPose](./sample/OpenPose/README.md)                       | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688        |
 | [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [YOLO26_pose](./sample/YOLO26_pose/README.md)                 | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
 | [HRNet_pose](./sample/HRNet_pose/README.md)                   | Keypoint Detection                 | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [C3D](./sample/C3D/README.md)                                 | Video Recognition                  | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [SlowFast](./sample/SlowFast/README.md)                       | Video Recognition                  | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
@@ -147,6 +148,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 ## Release Notes
 | version | description | 
 |---|---|
+| 0.3.13 | Fix documentation and other issues. Release new sample YOLO26_pose. |
 | 0.3.12 | Fix documentation and other issues. Release new sample YOLO26_sem. |
 | 0.3.11 | Fix documentation and other issues. Release new samples ArcFace/FearTracker/MobileNetV4/SeACoParaformer/Silero/Unet/YOLO_world_v2, new application meeting_summary. Some samples add int8 bmodel. |
 | 0.3.10 | Fix documentation and other issues. Remove FCENet sample. Add C++ inference for VITS_CHINESE. Release new sample LFM2-VL. |
