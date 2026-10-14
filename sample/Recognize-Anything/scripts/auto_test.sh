@@ -15,7 +15,7 @@ CASE_MODE="fully"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|CV84X6|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c CASE_MODE fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|CV84X6|BM1688|CV186X] [ -s SOCSDK] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c CASE_MODE fully|partly]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
