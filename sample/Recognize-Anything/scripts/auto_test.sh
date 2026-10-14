@@ -203,8 +203,8 @@ function eval_cpp()
   if [ ! -d log ];then
     mkdir log
   fi
-  ./ram_$2.$1 --input=../../datasets/imagenet_val_1k/img --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1
-  judge_ret $? "./ram_$2.$1 --input=../../datasets/imagenet_val_1k/img --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
+  ./ram_$2.$1 --input=../../datasets/test --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID --tag_list=../../datasets/ram_tag_list.txt --tag_list_chinese=../../datasets/ram_tag_list_chinese.txt --tag_list_threshold=../../datasets/ram_tag_list_threshold.txt > log/$1_$2_$3_debug.log 2>&1
+  judge_ret $? "./ram_$2.$1 --input=../../datasets/test --bmodel=../../models/$TARGET/$3 --dev_id=$TPUID --tag_list=../../datasets/ram_tag_list.txt --tag_list_chinese=../../datasets/ram_tag_list_chinese.txt --tag_list_threshold=../../datasets/ram_tag_list_threshold.txt > log/$1_$2_$3_debug.log 2>&1" log/$1_$2_$3_debug.log
   tail -n 15 log/$1_$2_$3_debug.log
 
   echo "==================="
@@ -213,15 +213,6 @@ function eval_cpp()
   judge_ret $? "python3 ../../tools/compare_statis.py --target=$TARGET --platform=${MODE%_*} --program=ram_$2.$1 --language=cpp --input=log/$1_$2_$3_debug.log --bmodel=$3"
   echo "==================="
 
-  echo "Evaluating..."
-  res=$(python3 ../../tools/eval_imagenet.py --gt_path ../../datasets/imagenet_val_1k/label.txt --result_json results/$3_img_$2_cpp_result.json 2>&1 | tee log/$1_$2_$3_eval.log)
-  echo -e "$res"
-  
-  result=(${res#*ACC: })
-  acc=${result: 0: 5}
-  compare_res $acc $4
-  judge_ret $? "$3_img_$2_cpp_result: Precision compare!" log/$1_$2_$3_eval.log
-  printf "| %-12s | %-18s | %-25s | %8.2f |\n" "$PLATFORM" "ram_$2.$1" "$3" "$(printf "%.2f" $acc)" >> ../../scripts/acc.txt
   popd
   echo -e "########################\nCase End: eval cpp\n########################\n"
 }
@@ -260,6 +251,8 @@ then
   download $TARGET
   eval_python pillow ram_fp32_1b.bmodel
   eval_python pillow ram_fp16_1b.bmodel
+  eval_cpp pcie bmcv ram_fp32_1b.bmodel
+  eval_cpp pcie opencv ram_fp32_1b.bmodel
 elif test $MODE = "soc_build"
 then
   build_soc bmcv
@@ -274,6 +267,8 @@ then
   else
     eval_python pillow ram_fp32_1b.bmodel
     eval_python pillow ram_fp16_1b.bmodel
+    eval_cpp soc bmcv ram_fp32_1b.bmodel
+    eval_cpp soc opencv ram_fp32_1b.bmodel
   fi
 fi
 
