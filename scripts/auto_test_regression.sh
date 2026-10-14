@@ -12,7 +12,7 @@ PYTEST="auto_test"
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [-r Renew] [-p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [-r Renew] [-p PYTEST auto_test|pytest]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:r:p:" opt
@@ -94,7 +94,7 @@ function test_dpkg(){
       echo "$package_name is already installed."
   else
       echo "$package_name is not installed. Installing now..."
-      if [ $MODE = "compile_nntc" ] || [ $MODE = "compile_mlir" ];then
+      if [ $MODE = "compile_mlir" ];then
         apt-get install "$package_name"
       else
         sudo apt-get install "$package_name"
