@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest]" 1>&2 
 }
 
 while getopts ":m:t:s:a:d:p:" opt
@@ -157,14 +157,6 @@ function download()
   chmod -R +x scripts/
   ./scripts/download.sh
   judge_ret $? "download" 0
-}
-
-function compile_nntc()
-{
-  ./scripts/gen_fp32bmodel_nntc.sh $TARGET
-  judge_ret $? "generate $TARGET fp32bmodel" 0
-  ./scripts/gen_int8bmodel_nntc.sh $TARGET
-  judge_ret $? "generate $TARGET int8bmodel" 0
 }
 
 function compile_mlir()
@@ -313,11 +305,7 @@ function eval_python()
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
-if test $MODE = "compile_nntc"
-then
-  download
-  compile_nntc
-elif test $MODE = "compile_mlir"
+if test $MODE = "compile_mlir"
 then
   download
   compile_mlir

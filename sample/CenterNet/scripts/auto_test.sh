@@ -19,7 +19,7 @@ fi
 
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_nntc|compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -a SAIL]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X] [ -s SOCSDK] [ -d TPUID] [ -a SAIL]" 1>&2 
 }
 
 while getopts ":m:t:s:d:a:" opt
@@ -63,14 +63,6 @@ function download()
   chmod -R +x scripts/
   ./scripts/download.sh
   judge_ret $? "download"
-}
-
-function compile_nntc()
-{
-  ./scripts/gen_fp32bmodel_nntc.sh BM1684
-  judge_ret $? "generate BM1684 fp32bmodel"
-  ./scripts/gen_int8bmodel_nntc.sh BM1684
-  judge_ret $? "generate BM1684 int8bmodel"
 }
 
 function compile_mlir()
@@ -198,11 +190,7 @@ function eval_python()
   echo -e "########################\nCase End: eval python\n########################\n"
 }
 
-if test $MODE = "compile_nntc"
-then
-  download
-  compile_nntc
-elif test $MODE = "compile_mlir"
+if test $MODE = "compile_mlir"
 then
   download
   compile_mlir
