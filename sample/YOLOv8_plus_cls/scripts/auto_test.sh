@@ -235,14 +235,6 @@ function test_cpp()
   popd
 }
 
-function compile_nntc()
-{
-  ./scripts/gen_fp32bmodel_nntc.sh $TARGET
-  judge_ret $? "generate $TARGET fp32bmodel" 0
-  ./scripts/gen_int8bmodel_nntc.sh $TARGET
-  judge_ret $? "generate $TARGET int8bmodel" 0
-}
-
 function compile_mlir()
 {
   ./scripts/gen_fp32bmodel_mlir.sh $TARGET
