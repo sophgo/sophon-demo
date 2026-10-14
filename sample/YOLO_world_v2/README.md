@@ -27,6 +27,7 @@ YOLO-World 是腾讯人工智能实验室提出的实时开放词汇目标检测
 * 支持CV84X6(x86 PCIe、SoC)
 * 支持FP32、FP16、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的Python推理
+* 支持基于bmruntime的C++推理
 * 支持开放词汇（open-vocabulary）：运行时通过 `--class_names` 指定任意类别
 * 支持图片和视频测试
 
@@ -116,6 +117,7 @@ chmod -R +x scripts/
 
 ## 5. 例程测试
 - [Python例程](./python/README.md)
+- [C++例程](./cpp/README.md)
 
 ## 6. 精度测试
 ### 6.1 测试方法
