@@ -25,7 +25,7 @@ FEAR（Fast, Efficient, Accurate and Robust Visual Tracker）是一个基于深�
 ## 2. 特性
 * 支持BM1684X(x86 PCIe, SoC)、BM1688(SoC)、CV84X6(SoC)
 * 支持FP16模型编译和推理
-* 支持基于sail的Python推理
+* 支持基于sail的Python推理、基于bmruntime的C++推理
 * 支持视频文件的单目标跟踪
 * 支持自定义初始边界框、输出视频保存
 
@@ -79,6 +79,7 @@ bash scripts/download.sh --all
 
 ## 5. 例程测试
 - [Python例程](./python/README.md)
+- [C++例程](./cpp/README.md)
 
 ## 6. 精度测试
 ### 6.1 测试方法
