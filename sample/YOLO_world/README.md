@@ -24,7 +24,7 @@ YOLO_world，作为腾讯人工智能实验室的又一力作，不仅继承了Y
 * 支持CV84X6/BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC)
 * 支持FP32、FP16(BM1684X/CV84X6/BM1688/CV186X)、INT8模型编译和推理
 * 支持基于OpenCV和BMCV预处理的Python推理
-* 支持1个输出模型推理
+* 支持基于bmruntime的C++推理
 * 支持图片和视频测试
 
 ## 3. 准备模型与数据
@@ -130,6 +130,7 @@ chmod -R +x scripts/
 
 ## 5. 例程测试
 - [Python例程](./python/README.md)
+- [C++例程](./cpp/README.md)
 
 ## 6. 精度测试
 ### 6.1 测试方法

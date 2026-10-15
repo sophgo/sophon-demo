@@ -474,41 +474,42 @@ int YoloWorld::post_process(float ratio[2], int txy[2], int img_w, int img_h,
 }
 
 // ---------------------------------------------------------------------------
-// NMS — greedy NMS on xyxy boxes (matches Python nms_boxes with +0.00001 eps)
+// NMS — greedy NMS on xyxy boxes, matching Python nms_boxes: dets must be
+// sorted by score descending; the highest-score box survives and suppresses
+// lower-score boxes with IoU > threshold (same +0.00001 eps as Python).
 // ---------------------------------------------------------------------------
 void YoloWorld::NMS(YoloWorldBoxVec& dets, float nmsConfidence) {
-    int length = dets.size();
-    if (length == 0) return;
-    int index = length - 1;
+    int n = (int)dets.size();
+    if (n == 0) return;
 
-    // areas
-    std::vector<float> areas(length);
-    for (int i = 0; i < length; i++) {
-        float w = dets[i].x2 - dets[i].x1;
-        float h = dets[i].y2 - dets[i].y1;
-        areas[i] = w * h;
-    }
+    std::vector<float> areas(n);
+    for (int i = 0; i < n; i++)
+        areas[i] = (dets[i].x2 - dets[i].x1) * (dets[i].y2 - dets[i].y1);
 
-    while (index > 0) {
-        int i = 0;
-        while (i < index) {
-            float left   = std::max(dets[index].x1, dets[i].x1);
-            float top    = std::max(dets[index].y1, dets[i].y1);
-            float right  = std::min(dets[index].x2, dets[i].x2);
-            float bottom = std::min(dets[index].y2, dets[i].y2);
+    std::vector<char> suppressed(n, 0);
+    for (int i = 0; i < n; i++) {
+        if (suppressed[i]) continue;
+        for (int j = i + 1; j < n; j++) {
+            if (suppressed[j]) continue;
+            float left   = std::max(dets[i].x1, dets[j].x1);
+            float top    = std::max(dets[i].y1, dets[j].y1);
+            float right  = std::min(dets[i].x2, dets[j].x2);
+            float bottom = std::min(dets[i].y2, dets[j].y2);
             float overlap = std::max(0.0f, right - left + 0.00001f) *
                              std::max(0.0f, bottom - top + 0.00001f);
-            float iou = overlap / (areas[index] + areas[i] - overlap);
-            if (iou > nmsConfidence) {
-                areas.erase(areas.begin() + i);
-                dets.erase(dets.begin() + i);
-                index--;
-            } else {
-                i++;
-            }
+            float iou = overlap / (areas[i] + areas[j] - overlap);
+            if (iou > nmsConfidence) suppressed[j] = 1;
         }
-        index--;
     }
+
+    int keep = 0;
+    for (int i = 0; i < n; i++) {
+        if (!suppressed[i]) dets[keep++] = dets[i];
+    }
+    dets.resize(keep);
+
+    // max_det = 300, same as the Python example
+    if (dets.size() > 300) dets.resize(300);
 }
 
 // ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ BM1684X系列：该例程支持在V24.04.01（release时间在2024.11.10后）�
 * 支持BM1684X(x86 PCIe、SoC)
 * 支持FP32 BF16模型编译和推理
 * 支持基于SAIL推理的Python例程
+* 支持基于bmruntime的C++例程
 
 ## 3.运行环境搭建
 ### 3.1 BM1684X(x86 PCIe)
@@ -90,6 +91,7 @@ chmod -R +x scripts/
 ## 5. 例程测试
 
 - [Python例程](./python/README.md)
+- [C++例程](./cpp/README.md)
 
 ## 6. 程序性能测试
 ### 6.1 bmrt_test

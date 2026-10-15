@@ -20,6 +20,7 @@ BLIP (Bootstrapping Language-Image Pre-training) 是一种用于多模态学习�
 * 支持BM1688(SoC)、BM1684(x86 PCIe、SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、CV84X6(SoC)
 * CV84X6使用FP16 BModel（当前固件不支持FP32）
 * 支持Python例程
+* 支持基于bmruntime的C++例程
 * 支持图片测试
 
 ## 3. 运行环境准备
@@ -117,6 +118,7 @@ models
 
 - [Python例程](./python/README.md)
 - [WebUI例程](./web_ui/README.md)
+- [C++例程](./cpp/README.md)
 
 ## 7. 性能测试
 
