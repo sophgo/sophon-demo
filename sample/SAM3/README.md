@@ -13,6 +13,7 @@
     - [模型拆分说明](#模型拆分说明)
   - [5. 例程测试](#5-例程测试)
     - [Python例程](#python例程)
+    - [C++例程](#cpp例程)
   - [6. 精度测试](#6-精度测试)
     - [6.1 测试方法](#61-测试方法)
     - [6.2 测试结果](#62-测试结果)
@@ -55,6 +56,8 @@
 │   ├── simple_tokenizer.py                             # CLIP tokenizer（独立实现，免装 sam3 包）
 │   ├── requirements.txt                                # Python 依赖
 │   └── README.md                                       # SAM3 Python例程的说明文件
+├── cpp                                                # 存放C++例程及其README
+│   └── sam3_opencv                                     # C++ 例程（OpenCV前处理、BMRT推理、内置BPE tokenizer、CPU后处理）
 ├── README.md                                          # 本例程的中文指南
 ├── scripts
 │   ├── download.sh                                    # 模型和数据集下载脚本
@@ -279,6 +282,8 @@ SAM3 ViT主干网络包含32个Transformer Block，完整ONNX模型约1.7GB。�
 
 ### [Python例程](./python/README.md)
 
+### [C++例程](./cpp/README.md)
+
 ## 6. 精度测试
 
 ### 6.1 测试方法
@@ -449,6 +454,8 @@ SE7-32 默认 TPU 分区：npu 2.36GB + vpu 2.87GB + vpp 3.00GB（合计 8.23GB�
 |   SE7-32    |  sam3_infer.py  | BM1684X_504 FP16 (ViT 5part+Neck+TextEnc+GndEnc+GndDec) |       3       |   1116    |   951    |    9555      |     30      |     20      |       19        |   13394   |
 |   SE9-16    |  sam3_infer.py  | BM1688_504 FP16 (ViT 5part+Neck+TextEnc+GndEnc+GndDec) |    41   |   2695   |   2156   |    6342     |     61      |     43      |       46        |   N/A*   |
 |   SE13-64   |  sam3_infer.py  | CV84X6_504 FP16 (ViT 5part+Neck+TextEnc+GndEnc+GndDec) |    14   |    809   |   1552   |    6674     |     24      |     18      |       47        |   26630  |
+|   SE7-32    |  sam3_opencv.soc（流式） | BM1684X_504 FP16（同上） |    15    |   2819   |    33    |     14       |     45      |     —      |       199       |   4672   |
+|   SE7-32    |  sam3_opencv.soc（常驻） | BM1684X_504 FP16（同上） |    15    |   1507   |    33    |     14       |     45      |     —      |       199       |   4684   |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
@@ -461,6 +468,7 @@ SE7-32 默认 TPU 分区：npu 2.36GB + vpu 2.87GB + vpp 3.00GB（合计 8.23GB�
 > 8. SE9 (BM1688) mask_time 标 N/A*：SE9 用户态 RAM 仅约 851MB（BM1688 SoC 内存大量划给 TPU），全分辨率(1200×1800) numpy mask 解码器（~2.2GB 数组）内存不足无法跑通，测试时用 `SAM3_SKIP_MASK=1` 跳过；mask 解码为纯 numpy CPU 代码，与芯片无关，可参考 SE7 同代码的 13394ms。检测仍正常出框（truck score 0.53, cx=0.499/cy=0.465/w=0.850/h=0.484，结果图见 results/sam3_detection.jpg）；
 > 9. SE9 各 TPU 阶段相对 SE7 普遍 2.1–2.4×（BM1688 单核 F16 算力低于 BM1684X，与 7.1 一致）；唯 text_enc_time 反而 6342 < SE7 9555，是因 SE9 用独立 simple_tokenizer（绕开 sam3 包导入链）冷启动更轻，非芯片优势——SE9 TPU 纯文本推理 50.3ms 仍慢于 SE7 13.7ms（见 7.1）。SE9 preprocess=41ms（CPU 图像解码+resize，SE7 仅 3ms）。
 > 10. SE13-64 (CV84X6) 仅支持 FP16（固件不支持 FP32）；text_enc_time=6674ms 含 tokenizer 首次加载开销（bpe 词表读入 + 初始化），TPU 纯文本推理仅 23.0ms（见 7.1）；mask_time=26630ms 为 numpy mask 解码 CPU 后处理（SE13 用户态 RAM 2.6GB 可跑通全分辨率 mask）；检测 truck score 0.8291 (cx=0.495, cy=0.464, w=0.886, h=0.468)，与 SE7 结果一致；
+> 11. `sam3_opencv.soc` 为 C++ 例程（见 [cpp/README.md](./cpp/README.md)）。「流式」行 = `--streaming=true`（ViT part1-4 逐帧 load→run→free，峰值设备内存约 1.4G，默认 npu heap 即可）；「常驻」行 = 全部引擎常驻（约 2.8G 设备内存，默认 npu heap 约 2.4G 的 SE7 恰好可跑，跑前需确保无其他 TPU 占用）。C++ 的 gnd_enc+gnd_dec 合并计为 grounding（45ms），text_enc_time=14ms（C++ 内置 BPE tokenizer，无 python 导入开销）。mask_time=4672ms（C++ 手写 NEON gemm，较 numpy 13394ms 快约 2.9×）；精度与 python 对齐：truck score 0.7135 vs 0.7102、box 完全一致，dog score 0.6858 vs 0.6881。
 
 ## 8. FAQ
 

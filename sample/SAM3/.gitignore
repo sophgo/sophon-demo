@@ -1,0 +1,12 @@
+.git/
+models/
+datasets/
+__pycache__/
+
+build/
+*.soc
+*.zip
+*.npz
+core
+.vscode
+*.log
