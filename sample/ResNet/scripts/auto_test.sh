@@ -118,6 +118,7 @@ function bmrt_test_benchmark(){
       bmrt_test_case CV84X6/resnet50_fp16_1b.bmodel
       bmrt_test_case CV84X6/resnet50_int8_1b.bmodel
       bmrt_test_case CV84X6/resnet50_int8_4b.bmodel
+      bmrt_test_case CV84X6/resnet50_int8_4b_4core.bmodel
     fi
   
     popd
@@ -443,6 +444,7 @@ then
       eval_python opencv  resnet50_fp16_1b.bmodel 80.00
       eval_python opencv  resnet50_int8_1b.bmodel 79.80
       eval_python opencv  resnet50_int8_4b.bmodel 79.80
+      eval_python opencv  resnet50_int8_4b_4core.bmodel 79.80
       eval_python bmcv    resnet50_fp16_1b.bmodel 80.10
       eval_python bmcv    resnet50_int8_1b.bmodel 80.10
       eval_python bmcv    resnet50_int8_4b.bmodel 80.10
@@ -455,6 +457,7 @@ then
     elif test $CASE_MODE = "partly"
     then
       eval_python opencv  resnet50_int8_4b.bmodel 79.80
+      eval_python opencv  resnet50_int8_4b_4core.bmodel 79.80
       eval_python bmcv    resnet50_int8_4b.bmodel 80.10
       eval_cpp soc opencv resnet50_int8_4b.bmodel 80.00
       eval_cpp soc bmcv   resnet50_int8_4b.bmodel 80.10
