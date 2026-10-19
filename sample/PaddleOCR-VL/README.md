@@ -60,13 +60,7 @@ PaddleOCR-VL模型编译需要依赖[transformers官方仓库](https://github.co
 >1.编译模型需要保证CPU运行内存至少15G以上，编译的bmodel模型需要存储空间10G以上，请确保有足够的内存和磁盘空间完成此操作。  
 >2.由于本例程使用的transformers版本需要Python版本大于等于3.10.0。使用TPU-MLIR工具链提供的docker环境可满足此要求。
 
-- 模型编译前需要安装最新版本TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)创建并进入docker环境。
-
-- 进入docker环境后需要安装TPU-MLIR。本例程需要的TPU-MLIR版本较新，这里提供一个whl包供下载安装：
-```bash
-python3 -m dfss --url=open@sophgo.com:sophon-demo/PaddleOCR-VL/paddleocr-vl-0.9B/tpu_mlir-1.26b0-py3-none-any.whl
-pip3 install tpu_mlir-1.26b0-py3-none-any.whl --force-reinstall
-```
+- 模型编译前需要安装最新版本TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)创建并进入docker环境，并按文档安装TPU-MLIR。
 
 - 安装依赖
 ```bash
