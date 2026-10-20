@@ -19,6 +19,7 @@ PCIE模式下，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上�
 
 * 支持BM1684X和BM1688(x86 PCIe、SoC)
 * 支持cpp例程
+* 支持python例程
 
 ## 3. 准备模型
 
@@ -47,7 +48,7 @@ chmod -R +x scripts/
 |   ├── BM1684X
 |   |   ├── paddleocr-vl_bf16_seq2048_bm1684x_1dev_20260206_230325.bmodel
 |   └── BM1688
-|       └── paddleocr-vl_bf16_seq2048_bm1688_1core_20260207_125123.bmodel
+|       └── paddleocr-vl_bf16_seq2048_bm1688_1core_static_20260221_195626.bmodel
 └── datasets  #测试图片
 ```
 
@@ -87,6 +88,7 @@ llm_convert.py --model_path /workspace/open-source/PaddleOCR-VL/ -q bf16 -g 64 -
 ## 5. 例程测试
 
 - [cpp例程](./cpp/README.md)
+- [Python例程](./python/README.md)
 
 ## 6. 程序性能测试
 
@@ -96,3 +98,5 @@ llm_convert.py --model_path /workspace/open-source/PaddleOCR-VL/ -q bf16 -g 64 -
 |    测试平台   |               测试模型                                          | first token latency(s) |token per second(tokens/s)|
 | -----------  | ---------------------------------------------------------------| ---------------------   | -----------------------  |
 |    SE9-16    | ../../paddleocr-vl_bf16_seq2048_bm1688_1core_static_20260221_195626.bmodel  |        6.499          |          22.7494         |
+
+> **python例程说明**：python例程decode阶段为保证与C++例程输出一致，会做逐层d2s读回（见[python README](./python/README.md)），因此decode速度低于C++例程（SE9-16上约14.6 tokens/s）。
