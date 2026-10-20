@@ -63,6 +63,26 @@ function download_cv186ah {
     popd
 }
 
+function download_cv84x6 {
+    if [ ! -d "../models/CV84X6" ]; then
+        mkdir -p ../models/CV84X6
+    fi
+    pushd ../models/CV84X6
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPMV4/minicpm-v-4_w4bf16_seq2048_cv84x6_4core_static_20261020_124136.tar.gz
+        tar xzf minicpm-v-4_w4bf16_seq2048_cv84x6_4core_static_20261020_124136.tar.gz
+        mv minicpm-v-4_w4bf16_seq2048_cv84x6_4core_static_20261020_124136.bmodel .
+        rm -rf config minicpm-v-4_w4bf16_seq2048_cv84x6_4core_static_20261020_124136.tar.gz
+    popd
+
+    pushd ../python
+    if [ ! -d "token_config" ]; then
+        python3 -m dfss --url=open@sophgo.com:sophon-demo/MiniCPMV/token_config.zip
+        unzip token_config.zip -d .
+        rm token_config.zip
+    fi
+    popd
+}
+
 if [ "$1" == "bm1684x" ]; then
     download_pics
     download_bm1684x
@@ -72,8 +92,11 @@ elif [ "$1" == "bm1688" ]; then
 elif [ "$1" == "cv186ah" ]; then
     download_pics
     download_cv186ah
+elif [ "$1" == "cv84x6" ]; then
+    download_pics
+    download_cv84x6
 else
     echo "Error Parameter"
-    echo "Usage: $0 [bm1684x|bm1688|cv186ah]"
+    echo "Usage: $0 [bm1684x|bm1688|cv186ah|cv84x6]"
     exit 1
 fi

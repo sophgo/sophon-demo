@@ -40,6 +40,8 @@ python3 -m dfss --install sail
 
 如果您使用SoC平台（如SE、SM系列边缘设备），并使用它测试本例程，刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
+对于CV84X6 SoC设备（如SE13-64），需确保libsophon版本≥0.4.13、 sophon-sail版本≥3.11.1，并参照[运行环境准备](../README.md#3-运行环境准备)完成内存布局修改。
+
 此外您还需要安装其他第三方库：
 ```bash
 pip3 install -r python/requirements.txt

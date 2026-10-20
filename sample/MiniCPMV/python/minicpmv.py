@@ -19,7 +19,12 @@ import torch.nn.functional as F
 from PIL import Image
 from copy import deepcopy
 import json
-from decord import VideoReader, cpu
+try:
+    from decord import VideoReader, cpu
+    HAS_DECORD = True
+except ImportError:
+    HAS_DECORD = False
+    print("Warning: decord not installed, video support disabled")
 
 MAX_NUM_FRAMES = 64
 
@@ -103,6 +108,87 @@ class MiniCPMV():
         self.tokenizer = self.processor.tokenizer
         # warm up
         self.tokenizer.decode([0])
+
+        # Patch tokenizer with missing properties (transformers version compatibility)
+        if not hasattr(self.tokenizer, 'im_start_id'):
+            # Add special token properties for MiniCPM-V tokenizer
+            self.tokenizer.im_start = "<image>"
+            self.tokenizer.im_end = "</image>"
+            self.tokenizer.slice_start = "<slice>"
+            self.tokenizer.slice_end = "</slice>"
+            self.tokenizer.im_id_start = "<image_id>"
+            self.tokenizer.im_id_end = "</image_id>"
+            # Add properties that convert to IDs
+            type(self.tokenizer).im_start_id = property(lambda self: self.convert_tokens_to_ids("<image>"))
+            type(self.tokenizer).im_end_id = property(lambda self: self.convert_tokens_to_ids("</image>"))
+            type(self.tokenizer).slice_start_id = property(lambda self: self.convert_tokens_to_ids("<slice>"))
+            type(self.tokenizer).slice_end_id = property(lambda self: self.convert_tokens_to_ids("</slice>"))
+            type(self.tokenizer).im_id_start_id = property(lambda self: self.convert_tokens_to_ids("<image_id>"))
+            type(self.tokenizer).im_id_end_id = property(lambda self: self.convert_tokens_to_ids("</image_id>"))
+            type(self.tokenizer).eos_id = property(lambda self: self.eos_token_id)
+            type(self.tokenizer).bos_id = property(lambda self: self.bos_token_id)
+            type(self.tokenizer).unk_id = property(lambda self: self.unk_token_id)
+
+        # Store special token IDs for manual handling
+        self.image_token_id = self.tokenizer.convert_tokens_to_ids('<image>')
+        self.image_end_token_id = self.tokenizer.convert_tokens_to_ids('</image>')
+        self.slice_token_id = self.tokenizer.convert_tokens_to_ids('<slice>')
+        self.slice_end_token_id = self.tokenizer.convert_tokens_to_ids('</slice>')
+        self.image_id_token_id = self.tokenizer.convert_tokens_to_ids('<image_id>')
+        self.image_id_end_token_id = self.tokenizer.convert_tokens_to_ids('</image_id>')
+
+        # Patch processor's _convert method to handle special tokens properly
+        original_convert = self.processor._convert
+        def patched_convert(input_str, max_inp_length=None):
+            import re
+            # Define special token patterns and their IDs
+            special_tokens = {
+                '<image>': self.image_token_id,
+                '</image>': self.image_end_token_id,
+                '<slice>': self.slice_token_id,
+                '</slice>': self.slice_end_token_id,
+                '<image_id>': self.image_id_token_id,
+                '</image_id>': self.image_id_end_token_id,
+                '<unk>': self.tokenizer.unk_token_id,
+            }
+
+            # Split text by special tokens
+            pattern = '(' + '|'.join(re.escape(tok) for tok in special_tokens.keys()) + ')'
+            chunks = re.split(pattern, input_str)
+
+            # Encode each chunk
+            input_ids = []
+            for chunk in chunks:
+                if chunk in special_tokens:
+                    input_ids.append(special_tokens[chunk])
+                elif chunk:
+                    # Regular text - encode normally
+                    ids = self.tokenizer.encode(chunk, add_special_tokens=False)
+                    input_ids.extend(ids)
+
+            if max_inp_length is not None:
+                input_ids = input_ids[:max_inp_length]
+            input_ids = torch.tensor(input_ids, dtype=torch.int32)
+
+            # Find image bounds
+            start_cond = (input_ids == self.image_token_id) | (input_ids == self.slice_token_id)
+            end_cond = (input_ids == self.image_end_token_id) | (input_ids == self.slice_end_token_id)
+
+            image_start_tokens = torch.where(start_cond)[0]
+            image_start_tokens += 1
+            image_end_tokens = torch.where(end_cond)[0]
+
+            valid_image_nums = max(len(image_start_tokens), len(image_end_tokens))
+
+            image_bounds = torch.hstack(
+                [
+                    image_start_tokens[:valid_image_nums].unsqueeze(-1),
+                    image_end_tokens[:valid_image_nums].unsqueeze(-1),
+                ]
+            )
+            return input_ids, image_bounds
+
+        self.processor._convert = patched_convert
 
         self.ID_END = self.tokenizer.convert_tokens_to_ids('</s>')
         self.ID_START = self.tokenizer.convert_tokens_to_ids('<s>')

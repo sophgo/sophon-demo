@@ -16,13 +16,14 @@
   - [6. 程序性能测试](#6-程序性能测试)
 
 ## 1. 简介
-MiniCPM-V 4.0 是MiniCPM-V系列中的最新高效模型。该模型基于SigLIP2-400M和MiniCPM4-3B构建，总共有4.1B个参数。它继承了MiniCPM-V 2.6强大的单图、多图及视频理解性能，并大幅提高了效率。关于它的特性，请前往源repo查看：https://www.modelscope.cn/models/OpenBMB/MiniCPM-V-4-AWQ。 本例程对MiniCPM-V-4进行移植，使之能在SOPHON BM1684X、SOPHON BM1688以及SOPHON CV186AH上进行推理测试。
+MiniCPM-V 4.0 是MiniCPM-V系列中的最新高效模型。该模型基于SigLIP2-400M和MiniCPM4-3B构建，总共有4.1B个参数。它继承了MiniCPM-V 2.6强大的单图、多图及视频理解性能，并大幅提高了效率。关于它的特性，请前往源repo查看：https://www.modelscope.cn/models/OpenBMB/MiniCPM-V-4。 本例程对MiniCPM-V-4进行移植，使之能在SOPHON BM1684X、SOPHON BM1688、SOPHON CV186AH以及SOPHON CV84X6上进行推理测试。
 
-对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在BM1684X SoC设备（如SE7、SM7、Airbox等）上运行。对于BM1688、CV186AH，支持在V1.8及以上版本的SoC设备（SE9、SM9）运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
+对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在BM1684X SoC设备（如SE7、SM7、Airbox等）上运行。对于BM1688、CV186AH，支持在V1.8及以上版本的SoC设备（SE9、SM9）运行。对于CV84X6，支持在V2.0及以上版本的SoC设备（SE13-64）运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
 * 支持BM1684X(x86 PCIe、SoC)
 * 支持BM1688&CV186AH(SoC)
+* 支持CV84X6(SoC)
 * 支持W4A16模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持多轮对话
@@ -65,6 +66,9 @@ sudo reboot
 
 # minicpmv cv186ah
 ./scripts/download.sh cv186ah
+
+# minicpmv cv84x6
+./scripts/download.sh cv84x6
 ```
 
 执行下载脚本后，当前目录下的文件如下：
@@ -74,6 +78,8 @@ sudo reboot
 │       └── minicpm-v-4-awq_w4bf16_seq2048_bm1684x_1dev_20250915_204204.bmodel
 │   └── BM1688
 │       └── minicpm-v-4-awq_w4bf16_seq2048_bm1688_2core_20251011_141218.bmodel
+│   └── CV84X6
+│       └── minicpm-v-4_w4bf16_seq2048_cv84x6_4core_static_20261020_124136.bmodel
 ├── pics
 │   └── demo.png
 ├── python
@@ -111,9 +117,13 @@ sudo reboot
 (比较大，会花费较长时间)
 
 ``` shell
-# 下载模型
+# 下载AWQ量化模型（用于BM1684X、BM1688）
 git lfs install
 git clone https://www.modelscope.cn/OpenBMB/MiniCPM-V-4-AWQ.git
+
+# 下载BF16模型（用于CV84X6）
+git lfs install
+git clone https://www.modelscope.cn/OpenBMB/MiniCPM-V-4.git
 ```
 
 #### 4.2.2 下载TPU-MLIR docker，并配置TPU-MLIR编译环境
@@ -139,6 +149,11 @@ llm_convert.py -m /workspace/MiniCPM-V-4-AWQ -s 8192 --quantize w4bf16 -c bm1684
 llm_convert.py -m /workspace/MiniCPM-V-4-AWQ -s 2048 --quantize w4bf16 -c bm1688 --num_core 2 --out_dir minicpmv --max_pixels 980,980 
 ```
 
+编译CV84X6的模型，4核。使用BF16源模型。
+``` shell
+llm_convert.py -m /workspace/MiniCPM-V-4 -s 2048 --quantize w4bf16 -c cv84x6 --num_core 4 --out_dir minicpmv --max_pixels 980,980
+```
+
 
 ## 5. 例程测试
 - [Python例程](./python/README.md)
@@ -153,8 +168,9 @@ llm_convert.py -m /workspace/MiniCPM-V-4-AWQ -s 2048 --quantize w4bf16 -c bm1688
 | ----------- | ----------------  | --------------------------------------------------------------------- | --------------------- | ------------------------ | 
 | SE7-32      | minicpmv.py           |  minicpm-v-4-awq_w4bf16_seq2048_bm1684x_1dev_20250915_204204.bmodel    |     10.272             |       15.499           | 
 | SE9-16      | minicpmv.py           |  minicpmv-0.5b-gptq_w4bf16_seq512_bm1688_2core_20250616_122001.bmodel  |   31.078          |        7.747           |
+| SE13-64     | minicpmv.py           |  minicpm-v-4_w4bf16_seq2048_cv84x6_4core_static_20261020_124136.bmodel  |   7.457          |        28.758           |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，SE9-16的主控处理器为8核ARM A53 @1.6GHz，SE9-8的主控处理器为6核ARM A53 @1.6GHz；
-> 3. 这里使用的BM1684XSDK版本是 V24.04.01，BM1688以及CV186AH的版本是 V1.8；
+> 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，SE9-16的主控处理器为8核ARM A53 @1.6GHz，SE9-8的主控处理器为6核ARM A53 @1.6GHz，SE13-64的主控处理器为8核ARM A55 @2.0GHz；
+> 3. 这里使用的BM1684XSDK版本是 V24.04.01，BM1688以及CV186AH的版本是 V1.8，CV84X6的版本是 V2.0；

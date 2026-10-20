@@ -69,9 +69,29 @@ class MiniCPM4():
         _, _, self.ATTEN_HEAD_PAST_K, self.ATTEN_DIM_PAST_K = self.tensors["block_cache_0"]["input"][3].shape()
         _, _, self.ATTEN_HEAD_PAST_V, self.ATTEN_DIM_PAST_V = self.tensors["block_cache_0"]["input"][4].shape()
 
-        self.ATTENTION_MASK = 50716
-        if self.tensors["block_0"]["input"][2].dtype() == sail.Dtype.BM_BFLOAT16:
-            self.ATTENTION_MASK = 50716  # 0xC61C in uint16_t
+        # Attention mask value. Two constraints:
+        #  1) The bmodel graph treats attention_mask as a 16-bit-float additive
+        #     mask: causal positions get 0, padded positions get a large
+        #     negative sentinel (bit pattern 0xF0E2 in fp16 / 0xC61C in bf16,
+        #     both ≈ -10000).
+        #  2) CV84X6 (sophon-sail 3.11.x) `update_data` on a 16-bit-float
+        #     tensor requires the numpy array to be a uint16 view of the raw
+        #     bit pattern. We always build the mask in fp16/bf16 then view
+        #     as uint16 before upload.
+        # IMPORTANT: ATTENTION_MASK is the *float VALUE* used in np.ones()*X,
+        # not the uint16 bit pattern. For fp16 use -10000.0 (0xF0E2 pattern),
+        # for bf16 the original code used 50716 (=0xC61C pattern as raw bits,
+        # which conveniently is also -9984.0 in bf16 when reinterpreted).
+        _am_dtype = self.tensors["block_0"]["input"][2].dtype()
+        if _am_dtype == sail.Dtype.BM_FLOAT16:
+            self.ATTENTION_MASK = -10000.0   # fp16: correct bit pattern 0xF0E2
+            self.MASK_NP_DTYPE = np.float16
+        elif _am_dtype == sail.Dtype.BM_BFLOAT16:
+            self.ATTENTION_MASK = 0xC61C     # bf16: raw bit pattern (no np bf16)
+            self.MASK_NP_DTYPE = np.uint16
+        else:
+            self.ATTENTION_MASK = 0xC61C
+            self.MASK_NP_DTYPE = np.uint16
 
         self.name_lm = "lm_head"
         self.lm_input = self.model.create_max_input_tensors(self.name_lm)
@@ -194,7 +214,11 @@ class MiniCPM4():
             self.tensors[self.name_blocks[0]]["input"][3 * i + 1].update_data(position_id.reshape(self.tensors[self.name_blocks[0]]["input"][3 * i + 1].shape()))
 
             self.tensors[self.name_blocks[0]]["input"][3 * i + 2] = sail.Tensor(self.first_attention_mask[i], [1, 1, length, length], 0)
-            self.tensors[self.name_blocks[0]]["input"][3 * i + 2].update_data(attention_mask.reshape(self.tensors[self.name_blocks[0]]["input"][3 * i + 2].shape()).astype(np.uint16))
+            # Build mask in the tensor's native dtype (0 causal / ATTENTION_MASK
+            # sentinel padded), then upload as the uint16 raw-bit-pattern view
+            # that sail 3.11.x on CV84X6 requires.
+            _am = attention_mask.reshape(self.tensors[self.name_blocks[0]]["input"][3 * i + 2].shape()).astype(self.MASK_NP_DTYPE).view(np.uint16)
+            self.tensors[self.name_blocks[0]]["input"][3 * i + 2].update_data(_am)
        
        
         for i in range(self.NUM_LAYERS):
@@ -250,7 +274,8 @@ class MiniCPM4():
             self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1] = self.next_pid[i]
             self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2] = self.next_attention_mask[i]
             self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1].update_data(position_id.reshape(self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 1].shape()))
-            self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2].update_data(attention_mask.reshape(self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2].shape()).view(np.uint16))
+            _am = attention_mask.reshape(self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2].shape()).astype(self.MASK_NP_DTYPE).view(np.uint16)
+            self.tensors[self.name_blocks_cache[0]]["input"][5 * i + 2].update_data(_am)
 
         for i in range(self.NUM_LAYERS):
 

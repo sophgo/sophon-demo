@@ -16,13 +16,14 @@
   - [6. 程序性能测试](#6-程序性能测试)
 
 ## 1. 简介
-MiniCPM4是开源中英双语对话模型，关于它的特性，请前往源repo查看：https://github.com/OpenBMB/MiniCPM。 本例程对MiniCPM4进行移植，使之能在SOPHON BM1684X、SOPHON BM1688以及SOPHON CV186AH上进行推理测试。
+MiniCPM4是开源中英双语对话模型，关于它的特性，请前往源repo查看：https://github.com/OpenBMB/MiniCPM。 本例程对MiniCPM4进行移植，使之能在SOPHON BM1684X、SOPHON BM1688、SOPHON CV186AH以及SOPHON CV84X6上进行推理测试。
 
-对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在BM1684X SoC设备（如SE7、SM7、Airbox等）上运行。对于BM1688、CV186AH，支持在V1.8及以上版本的SoC设备（SE9、SM9）运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
+对于BM1684X，该例程支持在V24.04.01(libsophon_0.5.1)及以上的SDK上运行，支持在插有1684X加速卡(SC7系列)的x86主机上运行，也可以在BM1684X SoC设备（如SE7、SM7、Airbox等）上运行。对于BM1688、CV186AH，支持在V1.8及以上版本的SoC设备（SE9、SM9）运行。对于CV84X6，支持在libsophon 0.4.13、sophon-sail 3.11.1及以上版本的SoC设备（SE13-64）运行。在SoC上运行需要额外进行环境配置，请参照[运行环境准备](#3-运行环境准备)完成环境部署。
 
 ## 2. 特性
 * 支持BM1684X(x86 PCIe、SoC)
 * 支持BM1688&CV186AH(SoC)
+* 支持CV84X6(SoC)
 * 支持W4A16模型编译和推理
 * 支持基于SAIL推理的Python例程
 * 支持多轮对话
@@ -39,7 +40,7 @@ tar xvf memory_edit_v2.10.tar.gz
 cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息
 
-#如果是BM1684x系列设备，执行以下命令。BM1688、SV186AH系列产品可不用更改。
+#如果是BM1684x系列设备，执行以下命令。BM1688、SV186AH、CV84X6系列产品可不用更改。
 ./memory_edit.sh -c -npu 7615 -vpu 3072 -vpp 3072 #npu也可以访问vpu和vpp的内存
 sudo cp /data/memedit/memory_edit/emmcboot.itb /boot/emmcboot.itb && sync
 sudo reboot
@@ -64,14 +65,19 @@ sudo reboot
 
 # minicpm4 cv186ah
 ./scripts/download.sh cv186ah
+
+# minicpm4 cv84x6
+./scripts/download.sh cv84x6
 ```
 
 执行下载脚本后，当前目录下的文件如下：
 ```bash
 ├── models
-│   └── BM1684X
-│       ├── minicpm4-8b_w4bf16_seq512_bm1684x_1dev_20250613_175044.bmodel
-│       └── minicpm4-8b_w4bf16_seq8192_bm1684x_1dev_20250613_182940.bmodel
+│   ├── BM1684X
+│   │   ├── minicpm4-8b_w4bf16_seq512_bm1684x_1dev_20250613_175044.bmodel
+│   │   └── minicpm4-8b_w4bf16_seq8192_bm1684x_1dev_20250613_182940.bmodel
+│   └── CV84X6
+│       └── minicpm4.1-8b_w4bf16_seq512_cv84x6_4core_static_20261016_173652.bmodel
 ├── pics
 │   └── demo.png
 ├── python
@@ -127,6 +133,11 @@ llm_convert.py -m /workspace/MiniCPM4-0.5B-QAT-Int4-GPTQ-format -s 512 --quantiz
 llm_convert.py -m /workspace/MiniCPM4-0.5B-QAT-Int4-GPTQ-format -s 8192 --quantize w4bf16 -c bm1684x --dynamic --out_dir minicpm4_0.5b
 ```
 
+对于CV84X6(SE13-64)，编译命令如下（以MiniCPM4.1-8B为例）：
+``` shell
+llm_convert.py -m /workspace/MiniCPM4.1-8B -s 512 --quantize w4bf16 -c cv84x6 --num_core 4 --out_dir minicpm4_1_8b
+```
+
 ## 5. 例程测试
 - [Python例程](./python/README.md)
 
@@ -144,6 +155,7 @@ BM1688、CV186AH测试的是0.5b量级的模型，暂不支持动态模型，seq
 | SE7-32      | minicpm4.py           |  minicpm4-8b_w4bf16_seq8192_bm1684x_1dev_20250613_182940.bmodel    |    0.703             |        5.926           | 
 | SE9-16      | minicpm4.py           |  minicpm4-0.5b-gptq_w4bf16_seq512_bm1688_2core_20250616_122001.bmodel  |   0.261          |        38.408           |
 | SE9-8       | minicpm4.py           |  minicpm4-0.5b-gptq_w4bf16_seq512_cv186x_1core_20250616_122126.bmodel  |   0.397          |        34.280           |
+| SE13-64     | minicpm4.py           |  minicpm4.1-8b_w4bf16_seq512_cv84x6_4core_static_20261016_173652.bmodel |   0.424          |        17.02           |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性，建议多次测试取平均值；
