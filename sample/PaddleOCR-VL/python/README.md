@@ -97,5 +97,5 @@ python3 paddleocr_vl.py -m ../models/BM1688/paddleocr-vl_bf16_seq2048_bm1688_1co
 
 > **测试说明：**
 > 1. 图片在推理前会缩放到 784x784（编译模型时`--max_pixels 784,784`的固定分辨率）；
-> 2. decode阶段每个transformer层launch后会做一次小的d2s读回（约17ms/token），用于规避SoC上sail运行时的异步写竞争，保证解码结果确定、与C++例程一致；
+> 2. decode阶段各层的中间hidden与KV cache均使用应用侧分配的device tensor（同`Qwen2_5-VL`例程的接线方式），每层launch后用`sync_d2d`把新token的K/V写入cache（设备侧拷贝，异步排在launch之后），不做主机侧读回；
 > 3. 命令行 `input()` 一次只读取一行，粘贴多行长文本会串行。

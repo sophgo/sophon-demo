@@ -110,7 +110,6 @@ class PaddleOCR_VL(object):
         self.kv_dtype = self.net.get_input_dtype(self.name_blocks_cache[0], 3)
         # elements of one token's KV cache, e.g. [1,2048,2,128] -> 2*128
         self.kv_elems_per_token = int(np.prod(kv_shape[2:]))
-        self.kv_view_shape = [1, 1] + kv_shape[2:]  # [1,1,2,128]
 
         # ===== tensors =====
         self.input_tensors = {}
@@ -125,14 +124,30 @@ class PaddleOCR_VL(object):
         self.input_tensors[self.name_blocks[0]] = self.net.create_max_input_tensors(self.name_blocks[0])
         self.output_tensors[self.name_blocks[0]] = self.net.create_max_output_tensors(self.name_blocks[0])
 
-        # decode blocks use the bmodel's internal mems so the KV cache persists
+        # decode scratch tensors, allocated once (qwen2_5_vl.py wiring):
+        # pos/mask inputs and the new-token K/V scratch outputs are
+        # app-owned device tensors, and the K/V is copied into the cache with
+        # sync_d2d behind the launch -- no per-layer view tensors or d2s fence
+        self.next_pos_in = self._dev_tensor(self.name_blocks_cache[0], 1, True)
+        self.next_mask_in = self._dev_tensor(self.name_blocks_cache[0], 2, True)
+        # per-layer block_cache hidden outputs, allocated once: separate
+        # device tensors so layer N+1 never reads the mem layer N is still
+        # writing (in-place read/write of one shared output races with
+        # streaming kernels, see qwen3_5.py)
+        self.next_hidden_out = []
+        for _ in range(self.num_layers):
+            self.next_hidden_out.append(
+                self._dev_tensor(self.name_blocks_cache[0], 0, False))
+        self.present_key = self._dev_tensor(self.name_blocks_cache[0], 1, False)
+        self.present_value = self._dev_tensor(self.name_blocks_cache[0], 2, False)
+
+        # decode blocks use app-allocated KV cache buffers (qwen2_5_vl.py
+        # wiring): the bmodel's internal block_cache mems are NOT used
         self.past_key_input = []
         self.past_value_input = []
         for i in range(self.num_layers):
-            self.input_tensors[self.name_blocks_cache[i]] = self.net.get_input_tensors(self.name_blocks_cache[i])
-            self.output_tensors[self.name_blocks_cache[i]] = self.net.get_output_tensors(self.name_blocks_cache[i])
-            self.past_key_input.append(self.input_tensors[self.name_blocks_cache[i]][3])
-            self.past_value_input.append(self.input_tensors[self.name_blocks_cache[i]][4])
+            self.past_key_input.append(self._dev_tensor(self.name_blocks_cache[0], 3, True))
+            self.past_value_input.append(self._dev_tensor(self.name_blocks_cache[0], 4, True))
             self.past_key_input[i].zeros()
             self.past_value_input[i].zeros()
 
@@ -202,6 +217,16 @@ class PaddleOCR_VL(object):
         self.max_posid = 0
         self.history_max_posid = 0
         self.vit_run = False
+
+    def _dev_tensor(self, graph, idx, is_input):
+        # standalone device tensor with the shape/dtype of a graph io
+        if is_input:
+            shape = self.net.get_input_shape(graph, idx)
+            dtype = self.net.get_input_dtype(graph, idx)
+        else:
+            shape = self.net.get_output_shape(graph, idx)
+            dtype = self.net.get_output_dtype(graph, idx)
+        return sail.Tensor(self.handle, shape, dtype, False, True)
 
     # ===== preprocessing (mirrors cpp cv_utils.h) =====
     @staticmethod
@@ -497,44 +522,38 @@ class PaddleOCR_VL(object):
         self.input_tensors[self.name_embed_cache][0].update_data(token_input)
         self.net.process(self.name_embed_cache, self.input_tensors[self.name_embed_cache],
                          self.output_tensors[self.name_embed_cache])
+
+        # decode pos/mask tensors, allocated once, shared by all layers
+        # (qwen2_5_vl.py: next_pos_ids_input / next_attention_mask_input)
+        self.next_pos_in.update_data(np.asarray(position_ids, dtype=np.int32).reshape(3, 1))
+        self.next_mask_in.update_data(attention_mask)
+
         out_mem = self.output_tensors[self.name_embed_cache][0]
-
-        # pos/mask updated once on block_cache_0's tensors, shared by all layers
-        bc0_inputs = self.input_tensors[self.name_blocks_cache[0]]
-        bc0_inputs[1].update_data(np.asarray(position_ids, dtype=np.int32).reshape(3, 1))
-        bc0_inputs[2].update_data(attention_mask)
-
+        # hidden chains directly from layer i's output tensor into layer i+1's
+        # input (C++ style); no per-layer d2d copy
         token_offset = (self.history_length - 1) * self.kv_elems_per_token
-        if not hasattr(self, "_kv_view_keepalive"):
-            self._kv_view_keepalive = []
         for idx in range(self.num_layers):
-            new_k = sail.Tensor(self.past_key_input[idx], self.kv_view_shape, token_offset)
-            new_v = sail.Tensor(self.past_value_input[idx], self.kv_view_shape, token_offset)
-            # the view tensors must outlive the launch: sail frees the
-            # underlying device mem when the last reference drops
-            self._kv_view_keepalive.append((new_k, new_v))
             block_inputs = {
                 0: out_mem,
-                1: bc0_inputs[1],
-                2: bc0_inputs[2],
+                1: self.next_pos_in,
+                2: self.next_mask_in,
                 3: self.past_key_input[idx],
                 4: self.past_value_input[idx],
             }
-            block_outputs = {
-                0: self.output_tensors[self.name_blocks_cache[idx]][0],
-                1: new_k,
-                2: new_v,
-            }
+            block_outputs = {0: self.next_hidden_out[idx],
+                             1: self.present_key,
+                             2: self.present_value}
             self.net.process(self.name_blocks_cache[idx], block_inputs, block_outputs)
-            # d2s fence: without a readback after the block launch the KV
-            # cache write races with the next layer's launch on SoC and the
-            # decode output becomes non-deterministic run to run; a >=4KB
-            # readback per layer keeps it deterministic (verified against the
-            # C++ sample token-by-token). Costs ~17ms/token on BM1688.
-            _ = self.past_key_input[idx].asnumpy()[0, 0, 0, :2048]
-            out_mem = self.output_tensors[self.name_blocks_cache[idx]][0]
+            out_mem = block_outputs[0]
+            # copy the new token's K/V into the cache: sync_d2d is a device-side
+            # copy enqueued behind the launch, so no host readback fence is needed
+            self.past_key_input[idx].sync_d2d(
+                self.present_key, 0, token_offset, self.kv_elems_per_token)
+            self.past_value_input[idx].sync_d2d(
+                self.present_value, 0, token_offset, self.kv_elems_per_token)
 
-        self.net.process(self.name_lm, {0: out_mem}, self.output_tensors[self.name_lm])
+        self.net.process(self.name_lm, {0: out_mem},
+                         self.output_tensors[self.name_lm])
         token = self.generate()
         self.visited_tokens[self.token_length] = token
         self.tokens.append(token)

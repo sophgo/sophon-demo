@@ -94,9 +94,7 @@ llm_convert.py --model_path /workspace/open-source/PaddleOCR-VL/ -q bf16 -g 64 -
 
 使用`datasets/ocrtest.jpg`作为测试图片，测试模式为`ocr`:
 
-
-|    测试平台   |               测试模型                                          | first token latency(s) |token per second(tokens/s)|
-| -----------  | ---------------------------------------------------------------| ---------------------   | -----------------------  |
-|    SE9-16    | ../../paddleocr-vl_bf16_seq2048_bm1688_1core_static_20260221_195626.bmodel  |        6.499          |          22.7494         |
-
-> **python例程说明**：python例程decode阶段为保证与C++例程输出一致，会做逐层d2s读回（见[python README](./python/README.md)），因此decode速度低于C++例程（SE9-16上约14.6 tokens/s）。
+|    测试平台   |  例程   |               测试模型                                          | first token latency(s) |token per second(tokens/s)|
+| -----------  | ------  | ---------------------------------------------------------------| ---------------------   | -----------------------  |
+|    SE9-16    |  cpp    | ../../paddleocr-vl_bf16_seq2048_bm1688_1core_static_20260221_195626.bmodel  |        6.499          |          22.7494         |
+|    SE9-16    |  python | ../../paddleocr-vl_bf16_seq2048_bm1688_1core_static_20260221_195626.bmodel  |        6.502          |          18.85           |
