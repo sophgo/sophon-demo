@@ -98,3 +98,4 @@ llm_convert.py --model_path /workspace/open-source/PaddleOCR-VL/ -q bf16 -g 64 -
 | -----------  | ------  | ---------------------------------------------------------------| ---------------------   | -----------------------  |
 |    SE9-16    |  cpp    | ../../paddleocr-vl_bf16_seq2048_bm1688_1core_static_20260221_195626.bmodel  |        6.499          |          22.7494         |
 |    SE9-16    |  python | ../../paddleocr-vl_bf16_seq2048_bm1688_1core_static_20260221_195626.bmodel  |        6.502          |          18.85           |
+|    SE7-32    |  python | ../../paddleocr-vl_bf16_seq2048_bm1684x_1dev_20260206_230325.bmodel  |        9.687          |          44.15           |
