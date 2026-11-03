@@ -73,7 +73,7 @@ sudo reboot
 # 安装unzip，若已安装请跳过，非ubuntu系统视情况使用yum或其他方式安装
 sudo apt install unzip
 chmod -R +x scripts/
-./scripts/download_bmodel.sh all # 提供了all|bm1684x_2b|bm1684x_4b|bm1684x_9b|bm1688|cv84x6_2b|cv84x6_4b|cv84x6_9b|cv84x6_35b|cv84x6_35b_3.6模型的下载
+./scripts/download_bmodel.sh all # 提供了all|bm1684x_2b|bm1684x_4b|bm1684x_9b|bm1688|cv84x6_08b|cv84x6_2b|cv84x6_4b|cv84x6_9b|cv84x6_35b|cv84x6_35b_3.6模型的下载
 ```
 
 执行下载脚本，将所有的模型都下载后，目录结构如下：
@@ -86,6 +86,9 @@ chmod -R +x scripts/
 |   |   ├── qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260416_144422.bmodel
 |   |   └── qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260416_150658.bmodel  
 |   ├── CV84X6
+|   |   ├── qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_1core_dynamic_20261029_204708.bmodel
+|   |   ├── qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20261029_204926.bmodel
+|   |   ├── qwen3.5-0.8b-int4-autoround_w4bf16_seq8192_cv84x6_4core_history_dynamic_20261029_205126.bmodel  # 支持历史上下文，上下文长度为8k
 |   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_1dev_dynamic.bmodel
 |   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260914_220350.bmodel
 |   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq8192_cv84x6_4core_history_dynamic_20260914_162017.bmodel  # 支持历史上下文，上下文长度为8k
@@ -143,6 +146,9 @@ git clone https://huggingface.co/Intel/Qwen3.5-4B-int4-AutoRound
 
 # 如果想用9B模型
 git clone https://huggingface.co/Intel/Qwen3.5-9B-int4-AutoRound
+
+# 如果想用0.8B模型
+git clone https://huggingface.co/Intel/Qwen3.5-0.8B-int4-AutoRound
 ```
 
 - 编译模型生成bmodel
@@ -166,6 +172,19 @@ llm_convert.py -m /workspace/Qwen3.5-2B-int4-AutoRound --max_input_length 1024 -
 默认情况下，模型不支持历史上下文；--use_history_kv参数是必需的；使用--chunk_length指定每次预填充处理的最大长度；如果未指定，则默认为seq_length的1/4。当实际输入超过该值时，将执行多次预填充运行；历史KV长度固定为seq_length。
 ``` shell
 llm_convert.py -m /workspace/Qwen3.5/Qwen3.5-4B-int4-AutoRound -s 8192 -c bm1684x --out_dir qwen3.5_kv --use_history_kv --chunk_length 1024
+```
+
+- **编译0.8B模型**（Qwen3.5-0.8B，混合线性注意力架构：每4层中3层linear_attention + 1层full_attention，需transformers≥5.3.0）
+
+``` shell
+# 编译4core模型
+llm_convert.py -m /workspace/Qwen3.5-0.8B-int4-AutoRound --max_input_length 1024 -s 2048 --quantize w4bf16 -c cv84x6 --out_dir qwen3.5_0.8b --max_pixels 768,768
+
+# 编译单核模型
+llm_convert.py -m /workspace/Qwen3.5-0.8B-int4-AutoRound --max_input_length 1024 -s 2048 --quantize w4bf16 -c cv84x6 --num_core 1 --out_dir qwen3.5_0.8b --max_pixels 768,768
+
+# 编译支持历史上下文的模型（seq8192）
+llm_convert.py -m /workspace/Qwen3.5-0.8B-int4-AutoRound -s 8192 --quantize w4bf16 -c cv84x6 --out_dir qwen3.5_0.8b_kv --use_history_kv --chunk_length 1024 --max_pixels 768,768
 ```
 
 - **编译35B MoE模型**（Qwen3.5-35B-A3B，MoE架构，256专家/8活跃，约3B激活参数，INT4 AutoRound量化）
@@ -227,6 +246,9 @@ python3 qwen3_5.py -m ../models/BM1684X/qwen3.5-2b-int4-autoround_w4bf16_seq2048
 |    SE7-32    | qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260416_150658.bmodel  |          1.189       |           8.20         |
 |    SE9-16    | qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260415_212627.bmodel  |        1.799           |        11.860           |
 |    SE9-16    | qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260416_145112.bmodel  |        2.882          |        6.299           |
+|    SE13-64    | qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_1core_dynamic_20261029_204708.bmodel  |         1.320           |        35.35           |
+|    SE13-64    | qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20261029_204926.bmodel  |         0.676           |        56.11           |
+|    SE13-64    | qwen3.5-0.8b-int4-autoround_w4bf16_seq8192_cv84x6_4core_history_dynamic_20261029_205126.bmodel  |         0.510           |        50.87           |
 |    SE13-64    | qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_1dev_dynamic.bmodel  |         2.359           |        19.38           |
 |    SE13-64    | qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_1dev_dynamic.bmodel  |         3.916           |        11.02           |
 |    SE13-64    | qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_1core_dynamic_20260914_220006.bmodel  |         5.130           |        6.66           |

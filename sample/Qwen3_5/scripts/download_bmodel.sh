@@ -58,6 +58,17 @@ function download_bm1688 {
     popd
 }
 
+function download_cv84x6_08b {
+    if [ ! -d "../models/CV84X6" ]; then
+        mkdir -p ../models/CV84X6
+    fi
+    pushd ../models/CV84X6
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_1core_dynamic_20261029_204708.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20261029_204926.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-0.8b-int4-autoround_w4bf16_seq8192_cv84x6_4core_history_dynamic_20261029_205126.bmodel
+    popd
+}
+
 function download_cv84x6_2b {
     if [ ! -d "../models/CV84X6" ]; then
         mkdir -p ../models/CV84X6
@@ -123,6 +134,9 @@ elif [ "$1" == "bm1684x_9b" ]; then
 elif [ "$1" == "bm1688" ]; then
     download_datasets
     download_bm1688
+elif [ "$1" == "cv84x6_08b" ]; then
+    download_datasets
+    download_cv84x6_08b
 elif [ "$1" == "cv84x6_2b" ]; then
     download_datasets
     download_cv84x6_2b
@@ -144,12 +158,13 @@ elif [ "$1" == "all" ]; then
     download_bm1684x_4b
     download_bm1684x_9b
     download_bm1688
+    download_cv84x6_08b
     download_cv84x6_2b
     download_cv84x6_4b
     download_cv84x6_9b
     download_cv84x6_35b
 else
     echo "Error Parameter"
-    echo "Usage: $0 [all|bm1684x_2b|bm1684x_4b|bm1684x_9b|bm1688|cv84x6_2b|cv84x6_4b|cv84x6_9b|cv84x6_35b|cv84x6_35b_3.6]"
+    echo "Usage: $0 [all|bm1684x_2b|bm1684x_4b|bm1684x_9b|bm1688|cv84x6_08b|cv84x6_2b|cv84x6_4b|cv84x6_9b|cv84x6_35b|cv84x6_35b_3.6]"
     exit 1
 fi
