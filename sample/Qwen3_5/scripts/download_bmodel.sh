@@ -64,6 +64,8 @@ function download_cv84x6_08b {
     fi
     pushd ../models/CV84X6
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_1core_dynamic_20261029_204708.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261103_163740.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_3core_dynamic_20261103_164012.bmodel
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20261029_204926.bmodel
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-0.8b-int4-autoround_w4bf16_seq8192_cv84x6_4core_history_dynamic_20261029_205126.bmodel
     popd

@@ -87,6 +87,8 @@ chmod -R +x scripts/
 |   |   └── qwen3.5-9b-int4-autoround_w4bf16_seq2048_bm1684x_1dev_dynamic_20260416_150658.bmodel  
 |   ├── CV84X6
 |   |   ├── qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_1core_dynamic_20261029_204708.bmodel
+|   |   ├── qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261103_163740.bmodel
+|   |   ├── qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_3core_dynamic_20261103_164012.bmodel
 |   |   ├── qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20261029_204926.bmodel
 |   |   ├── qwen3.5-0.8b-int4-autoround_w4bf16_seq8192_cv84x6_4core_history_dynamic_20261029_205126.bmodel  # 支持历史上下文，上下文长度为8k
 |   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_1dev_dynamic.bmodel
@@ -183,6 +185,9 @@ llm_convert.py -m /workspace/Qwen3.5-0.8B-int4-AutoRound --max_input_length 1024
 # 编译单核模型
 llm_convert.py -m /workspace/Qwen3.5-0.8B-int4-AutoRound --max_input_length 1024 -s 2048 --quantize w4bf16 -c cv84x6 --num_core 1 --out_dir qwen3.5_0.8b --max_pixels 768,768
 
+# 编译2核/3核模型（将 --num_core 改为 2 或 3）
+llm_convert.py -m /workspace/Qwen3.5-0.8B-int4-AutoRound --max_input_length 1024 -s 2048 --quantize w4bf16 -c cv84x6 --num_core 2 --out_dir qwen3.5_0.8b --max_pixels 768,768
+
 # 编译支持历史上下文的模型（seq8192）
 llm_convert.py -m /workspace/Qwen3.5-0.8B-int4-AutoRound -s 8192 --quantize w4bf16 -c cv84x6 --out_dir qwen3.5_0.8b_kv --use_history_kv --chunk_length 1024 --max_pixels 768,768
 ```
@@ -247,6 +252,8 @@ python3 qwen3_5.py -m ../models/BM1684X/qwen3.5-2b-int4-autoround_w4bf16_seq2048
 |    SE9-16    | qwen3.5-2b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260415_212627.bmodel  |        1.799           |        11.860           |
 |    SE9-16    | qwen3.5-4b-int4-autoround_w4bf16_seq2048_bm1688_2core_dynamic_20260416_145112.bmodel  |        2.882          |        6.299           |
 |    SE13-64    | qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_1core_dynamic_20261029_204708.bmodel  |         1.320           |        35.35           |
+|    SE13-64    | qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261103_163740.bmodel  |         0.868           |        51.89           |
+|    SE13-64    | qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_3core_dynamic_20261103_164012.bmodel  |         0.681           |        55.20           |
 |    SE13-64    | qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20261029_204926.bmodel  |         0.676           |        56.11           |
 |    SE13-64    | qwen3.5-0.8b-int4-autoround_w4bf16_seq8192_cv84x6_4core_history_dynamic_20261029_205126.bmodel  |         0.510           |        50.87           |
 |    SE13-64    | qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_1dev_dynamic.bmodel  |         2.359           |        19.38           |
