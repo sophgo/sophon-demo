@@ -77,6 +77,8 @@ function download_cv84x6_2b {
     fi
     pushd ../models/CV84X6
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_1dev_dynamic.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261104_201122.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_3core_dynamic_20261104_201944.bmodel
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260914_220350.bmodel
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-2b-int4-autoround_w4bf16_seq8192_cv84x6_4core_history_dynamic_20260914_162017.bmodel
     popd
@@ -88,6 +90,7 @@ function download_cv84x6_4b {
     fi
     pushd ../models/CV84X6
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_1dev_dynamic.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261104_203244.bmodel
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260914_220525.bmodel
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_4core_history_dynamic_20260914_155714.bmodel
     popd
@@ -99,6 +102,7 @@ function download_cv84x6_9b {
     fi
     pushd ../models/CV84X6
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_1core_dynamic_20260914_220006.bmodel
+        python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261105_105915.bmodel
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260914_152921.bmodel
         python3 -m dfss --url=open@sophgo.com:/sophon-demo/Qwen3_5/qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_4core_history_dynamic_20260914_154012.bmodel
     popd

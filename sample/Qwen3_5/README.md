@@ -92,12 +92,16 @@ chmod -R +x scripts/
 |   |   ├── qwen3.5-0.8b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20261029_204926.bmodel
 |   |   ├── qwen3.5-0.8b-int4-autoround_w4bf16_seq8192_cv84x6_4core_history_dynamic_20261029_205126.bmodel  # 支持历史上下文，上下文长度为8k
 |   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_1dev_dynamic.bmodel
+|   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261104_201122.bmodel
+|   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_3core_dynamic_20261104_201944.bmodel
 |   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260914_220350.bmodel
 |   |   ├── qwen3.5-2b-int4-autoround_w4bf16_seq8192_cv84x6_4core_history_dynamic_20260914_162017.bmodel  # 支持历史上下文，上下文长度为8k
 |   |   ├── qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_1dev_dynamic.bmodel
+|   |   ├── qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261104_203244.bmodel
 |   |   ├── qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260914_220525.bmodel
 |   |   ├── qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_4core_history_dynamic_20260914_155714.bmodel  # 支持历史上下文
 |   |   ├── qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_1core_dynamic_20260914_220006.bmodel
+|   |   ├── qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261105_105915.bmodel
 |   |   ├── qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260914_152921.bmodel
 |   |   ├── qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_4core_history_dynamic_20260914_154012.bmodel  # 支持历史上下文
 |   |   ├── qwen3.5-35b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260917_182047.bmodel
@@ -123,12 +127,13 @@ Qwen3.5模型编译需要依赖[transformers官方仓库](https://github.com/hug
 
 - 模型编译前需要安装最新版本TPU-MLIR，具体可参考[TPU-MLIR环境搭建](../../docs/Environment_Install_Guide.md#1-tpu-mlir环境搭建)创建并进入docker环境。
 
-- 进入docker环境后需要安装TPU-MLIR。本例程需要的TPU-MLIR版本较新，这里提供一个whl包供下载安装：
+- 进入docker环境后需要安装TPU-MLIR。本例程需要的TPU-MLIR版本较新（v1.30.beta.0-g209892d9f-20261105，含CV84X6多核bmodel编译支持），这里提供一个whl包供下载安装：
 ```bash
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 python3 -m dfss --url=open@sophgo.com:/sophon-demo/common/tpu-mlir/cv84x6/tpu_mlir-1.30b0-py3-none-any.whl
 pip install tpu_mlir-1.30b0-py3-none-any.whl
 ```
+> **注意：** 2026-11-06 前下载的旧版whl缺少`libppl_dyn_host_cv84x6.so`（CV84X6多核编译需要），如编译报缺少ppl相关库或编译失败，请重新执行上面的下载命令覆盖安装最新whl。
 
 - 安装依赖
 ```bash
@@ -169,6 +174,11 @@ llm_convert.py -m /workspace/Qwen3.5-2B-int4-AutoRound --max_input_length 1024 -
 若需要只使用单个TPU核的单核模型，可加上`--num_core 1`参数：
 ``` shell
 llm_convert.py -m /workspace/Qwen3.5-2B-int4-AutoRound --max_input_length 1024 -s 2048 --quantize w4bf16 -c cv84x6 --num_core 1 --out_dir qwen3.5_2b --max_pixels 768,768
+``` 
+
+若需要2核/3核模型，将`--num_core`改为`2`或`3`即可（0.8B/2B支持1~4核；4B/9B目前支持1/2/4核，`--num_core 3`编译存在已知问题暂不可用）：
+``` shell
+llm_convert.py -m /workspace/Qwen3.5-2B-int4-AutoRound --max_input_length 1024 -s 2048 --quantize w4bf16 -c cv84x6 --num_core 2 --out_dir qwen3.5_2b --max_pixels 768,768
 ``` 
 
 默认情况下，模型不支持历史上下文；--use_history_kv参数是必需的；使用--chunk_length指定每次预填充处理的最大长度；如果未指定，则默认为seq_length的1/4。当实际输入超过该值时，将执行多次预填充运行；历史KV长度固定为seq_length。
@@ -259,8 +269,12 @@ python3 qwen3_5.py -m ../models/BM1684X/qwen3.5-2b-int4-autoround_w4bf16_seq2048
 |    SE13-64    | qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_1dev_dynamic.bmodel  |         2.359           |        19.38           |
 |    SE13-64    | qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_1dev_dynamic.bmodel  |         3.916           |        11.02           |
 |    SE13-64    | qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_1core_dynamic_20260914_220006.bmodel  |         5.130           |        6.66           |
+|    SE13-64    | qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261104_201122.bmodel  |         1.354           |        33.33           |
+|    SE13-64    | qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_3core_dynamic_20261104_201944.bmodel  |         1.225           |        34.91           |
 |    SE13-64    | qwen3.5-2b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260914_220350.bmodel  |         1.313           |        35.17           |
+|    SE13-64    | qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261104_203244.bmodel  |         2.017           |        20.20           |
 |    SE13-64    | qwen3.5-4b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260914_220525.bmodel  |         1.890           |        21.69           |
+|    SE13-64    | qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_2core_dynamic_20261105_105915.bmodel  |         4.292           |        11.47           |
 |    SE13-64    | qwen3.5-9b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260914_152921.bmodel  |         2.366           |        14.28           |
 |    SE13-64    | qwen3.5-35b-int4-autoround_w4bf16_seq2048_cv84x6_4core_dynamic_20260917_182047.bmodel  |         3.007           |        23.58           |
 |    SE13-64    | qwen3.5-35b-int4-autoround_w4bf16_seq2048_cv84x6_4core_history_dynamic_20260918_122058.bmodel  |         2.571           |        23.42           |
@@ -271,7 +285,7 @@ python3 qwen3_5.py -m ../models/BM1684X/qwen3.5-2b-int4-autoround_w4bf16_seq2048
 > 1. 性能测试结果具有一定的波动性，且与输入也有关；
 > 2. SE7-32的主控处理器为8核 ARM A53 42320 DMIPS @2.3GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 3. 图片或者视频尺寸越大，一般精度越高，直到达到一定尺寸，较大输入需要上下文较长的模型；
-> 4. SE13-64的TPU有4个核，文件名含`1dev`/`1core`的bmodel为单核编译，含`4core`的为4核编译；相同模型下4核bmodel的首token延迟和吞吐均明显优于单核bmodel；
+> 4. SE13-64的TPU有4个核，文件名含`1dev`/`1core`的bmodel为单核编译，含`2core`/`3core`/`4core`的为对应核数编译；相同模型下多核bmodel的首token延迟和吞吐均明显优于单核bmodel（0.8B/2B提供1~4核，4B/9B提供1/2/4核）；
 > 5. CV84X6（SE13-64）测试时TPU时钟频率为1GHz。
 
 ## 7. 固定文本前缀缓存测试
