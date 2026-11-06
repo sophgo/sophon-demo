@@ -64,6 +64,15 @@ if [ ! -d "BM1684X" ]; then
 else
     echo "BM1684X folder exist! Remove it if you need to update."
 fi
+
+# CV84X6
+if [ ! -d "CV84X6" ]; then
+    python3 -m dfss --url=open@sophgo.com:sophon-demo/PP-OCR/models_v6/CV84X6.tar.gz
+    tar xvf CV84X6.tar.gz && rm CV84X6.tar.gz
+    echo "CV84X6 models download!"
+else
+    echo "CV84X6 folder exist! Remove it if you need to update."
+fi
 popd
 
 popd

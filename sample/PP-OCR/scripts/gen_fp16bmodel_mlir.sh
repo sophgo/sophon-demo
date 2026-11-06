@@ -41,10 +41,18 @@ function gen_mlir()
 
 function gen_fp16bmodel()
 {
+    # CV84X6 的 FP16 Conv 算子在 det 模型尾部 7 层存在数值精度问题，需通过 quantize_table
+    # 将这 7 个 Conv 层强制设为 F32（混合精度），其余层保持 F16，数值结果与纯 FP32 一致。
+    det_qtable_arg=""
+    if test $target = "cv84x6"; then
+        det_qtable_arg="--quantize_table ch_PP-OCRv4_det_qtable_84x6"
+    fi
+
     model_deploy.py \
         --mlir ch_PP-OCRv4_det_$1b.mlir \
         --quantize F16 \
         --chip $target \
+        $det_qtable_arg \
         --model ch_PP-OCRv4_det_fp16_$1b.bmodel
 
     mv ch_PP-OCRv4_det_fp16_$1b.bmodel $outdir/

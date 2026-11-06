@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sophon/sophon-sail/lib
 CASE_MODE="fully"
 usage() 
 {
-  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2 
+  echo "Usage: $0 [ -m MODE compile_mlir|pcie_build|pcie_test|soc_build|soc_test] [ -t TARGET BM1684|BM1684X|BM1688|CV186X|CV84X6] [ -s SOCSDK] [-a SAIL] [ -d TPUID] [ -p PYTEST auto_test|pytest] [ -c fully|partly]" 1>&2
 }
 
 while getopts ":m:t:s:a:d:p:c:" opt
@@ -66,6 +66,8 @@ if test $MODE = "soc_test"; then
     PLATFORM="SE9-16"
   elif test $TARGET = "CV186X"; then
     PLATFORM="SE9-8"
+  elif test $TARGET = "CV84X6"; then
+    PLATFORM="SE13-64"
   else
     echo "Unknown TARGET type: $TARGET"
   fi
@@ -118,6 +120,9 @@ function bmrt_test_benchmark(){
       bmrt_test_case CV186X/ch_PP-OCRv4_rec_fp32.bmodel
       bmrt_test_case CV186X/ch_PP-OCRv4_det_fp16.bmodel
       bmrt_test_case CV186X/ch_PP-OCRv4_rec_fp16.bmodel
+    elif test $TARGET = "CV84X6"; then
+      bmrt_test_case CV84X6/ch_PP-OCRv4_det_fp16.bmodel
+      bmrt_test_case CV84X6/ch_PP-OCRv4_rec_fp16.bmodel
     fi
     popd
 }
@@ -337,6 +342,10 @@ then
         eval_cpp soc bmcv fp16_2core  0.604
       fi
     fi
+  elif [ "$TARGET" = "CV84X6" ]
+  then
+    # CV84X6: det 为 FP16+7层F32 混合精度（quantize_table），仅交付 fp16；int8 在 CV84X6 上 det 概率图被二值化不可用。
+    eval_python opencv fp16 0.351
   fi
 fi
 

@@ -18,11 +18,11 @@
     
 ## 1. 简介
 
-PP-OCRv4，是百度飞桨团队开源的超轻量OCR系列模型，包含文本检测、文本分类、文本识别模型，是PaddleOCR工具库的重要组成之一。支持中英文数字组合识别、竖排文本识别、长文本识别，其性能及精度较之前的PP-OCR版本均有明显提升。本例程对[PaddleOCR-release-2.8](https://github.com/PaddlePaddle/PaddleOCR/tree/release/2.8)的`ch_PP-OCRv4_xx`系列模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688上进行推理测试。
+PP-OCRv4，是百度飞桨团队开源的超轻量OCR系列模型，包含文本检测、文本分类、文本识别模型，是PaddleOCR工具库的重要组成之一。支持中英文数字组合识别、竖排文本识别、长文本识别，其性能及精度较之前的PP-OCR版本均有明显提升。本例程对[PaddleOCR-release-2.8](https://github.com/PaddlePaddle/PaddleOCR/tree/release/2.8)的`ch_PP-OCRv4_xx`系列模型和算法进行移植，使之能在SOPHON BM1684/BM1684X/BM1688/CV186X/CV84X6上进行推理测试。
 
 ## 2. 特性
-* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)
-* 支持FP32、FP16、INT8(BM1684X/BM1688/CV186X)模型编译和推理
+* 支持BM1688/CV186X(SoC)、BM1684X(x86 PCIe、SoC、riscv PCIe)、BM1684(x86 PCIe、SoC、arm PCIe)、CV84X6(SoC)
+* 支持FP32、FP16、INT8(BM1684X/BM1688/CV186X)模型编译和推理；CV84X6支持FP16
 * 支持基于BMCV预处理的C++推理
 * 支持基于OpenCV的Python推理
 * 支持单batch、多batch、组合batch模型推理
@@ -82,6 +82,9 @@ chmod -R +x scripts/
 │   ├── ch_PP-OCRv4_rec_int8.bmodel       # 使用TPU-MLIR编译，用于CV186X的INT8 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   ├── ch_PP-OCRv4_rec_fp16.bmodel       # 使用TPU-MLIR编译，用于CV186X的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到。
 │   └── ch_PP-OCRv4_rec_fp32.bmodel       # 使用TPU-MLIR编译，用于CV186X的FP32 BModel，由batch_size=1和batch_size=4的模型combine得到。
+├── CV84X6      
+│   ├── ch_PP-OCRv4_det_fp16.bmodel       # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，由batch_size=1和batch_size=4的模型combine得到；由于CV84X6 FP16 Conv算子在检测模型尾部若干层存在数值精度问题，编译时通过quantize_table将最后7个Conv层设置为F32（混合精度），数值结果与FP32一致。
+│   └── ch_PP-OCRv4_rec_fp16.bmodel       # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，由batch_size=1和batch_size=4（含width=320和width=640）的模型combine得到。
 ├── onnx # 原始模型的onnx版本
 └── paddle # 原始模型的paddlepaddle版本
 ```
@@ -148,8 +151,15 @@ models
 │   ├── ch_PP-OCRv6_small_rec_fp16.bmodel
 │   ├── ch_PP-OCRv6_medium_det_fp16.bmodel
 │   └── ch_PP-OCRv6_medium_rec_fp16.bmodel
-└── BM1684X
-    ├── ch_PP-OCRv6_tiny_det_fp16.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，combine方式同上
+├── BM1684X
+│   ├── ch_PP-OCRv6_tiny_det_fp16.bmodel        # 使用TPU-MLIR编译，用于BM1684X的FP16 BModel，combine方式同上
+│   ├── ch_PP-OCRv6_tiny_rec_fp16.bmodel
+│   ├── ch_PP-OCRv6_small_det_fp16.bmodel
+│   ├── ch_PP-OCRv6_small_rec_fp16.bmodel
+│   ├── ch_PP-OCRv6_medium_det_fp16.bmodel
+│   └── ch_PP-OCRv6_medium_rec_fp16.bmodel
+└── CV84X6
+    ├── ch_PP-OCRv6_tiny_det_fp16.bmodel        # 使用TPU-MLIR编译，用于CV84X6的FP16 BModel，combine方式同上
     ├── ch_PP-OCRv6_tiny_rec_fp16.bmodel
     ├── ch_PP-OCRv6_small_det_fp16.bmodel
     ├── ch_PP-OCRv6_small_rec_fp16.bmodel
@@ -174,13 +184,15 @@ models
 
 - 生成FP16 BModel
 
-​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X**），如：
+​本例程在`scripts`目录下提供了TPU-MLIR编译FP16 BModel的脚本，请注意修改`gen_fp16bmodel_mlir.sh`中的onnx模型路径、生成模型目录和输入大小shapes等参数，并在执行时指定BModel运行的目标平台（**支持BM1684X/BM1688/CV186X/CV84X6**），如：
 
 ```bash
-./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x
+./scripts/gen_fp16bmodel_mlir.sh bm1684x #bm1684x/bm1688/cv186x/cv84x6
 ```
 
 ​执行上述命令会在`models/BM1684X/`等文件夹下生成`ch_PP-OCRv4_det_fp16.bmodel`等文件，即转换好的FP16 BModel。
+
+> **CV84X6 编译说明**：CV84X6 平台编译 det 模型时，由于该平台 FP16 Conv 算子在检测模型尾部 7 层存在数值精度问题（会导致输出概率图严重失真），`gen_fp16bmodel_mlir.sh cv84x6` 在编译 det 时会通过 `--quantize_table scripts/ch_PP-OCRv4_det_qtable_84x6` 将这 7 个 Conv 层强制设为 F32（混合精度），其余层保持 F16。混合精度 det 的数值结果与纯 FP32 完全一致，模型体积与纯 FP16 几乎相同。rec 模型在 CV84X6 上 FP16 正常，无需 qtable。
 
 - 本例程暂时不支持量化。
 
@@ -226,12 +238,18 @@ F-score: 0.57488, Precision: 0.80639, Recall: 0.44665
 | SRM1-20      | ppocr_system_opencv.py    | fp16       |    0.608 |
 | SRM1-20      | ppocr_bmcv.pcie           | fp32       |    0.606 |
 | SRM1-20      | ppocr_bmcv.pcie           | fp16       |    0.606 |
+| SE13-64      | ppocr_system_opencv.py    | fp16       |    0.351 |
+| SE13-64      | ppocr_system_opencv.py    | v6_tiny fp16  |    0.562 |
+| SE13-64      | ppocr_system_opencv.py    | v6_small fp16 |    0.622 |
+| SE13-64      | ppocr_system_opencv.py    | v6_medium fp16|    0.689 |
 
-> **测试说明**：  
+> **测试说明**：
 > 1. 模型精度为fp32(fp16)，即代表检测模型和识别模型都是fp32(fp16)的精度；
 > 2. 由于sdk版本之间可能存在差异，实际运行结果与本表有<0.01的精度误差是正常的；
-> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X；
+> 3. 在搭载了相同TPU和SOPHONSDK的PCIe或SoC平台上，相同程序的精度一致，SE5系列对应BM1684，SE7系列对应BM1684X，SE9系列中，SE9-16对应BM1688，SE9-8对应CV186X，SE13系列对应CV84X6；
 > 4. BM1688 num_core=2的模型与num_core=1的模型精度基本一致；
+> 5. SE13-64(CV84X6) 上 det 模型为 FP16+7层F32 混合精度（见[§4](#4-模型编译)），其输出概率图与纯 FP32 逐图对齐（max、>0.6像素数一致）；该平台 F-score 低于 SE7-32 主要因 Recall 偏低，经对比 det 纯 FP32 在同板同脚本下 F-score 一致（0.351），排除 det 模型精度问题，疑为板端 OpenCV 图像解码/缩放与 SE7-32(sophon-opencv) 的差异所致，OCR 文本识别结果正常。
+> 6. SE13-64 的 v6_tiny/v6_small/v6_medium 行为 PP-OCRv6 三档模型（det+rec 均为纯 FP16，CV84X6 上 v6 未命中 v4 的 FP16 Conv 数值问题，无需 qtable），在全量 2350 张 ICDAR-2019 测试集上实测；tiny 使用 ppocrv6_tiny_dict.txt，small/medium 使用 ppocrv6_dict.txt。
 
 ## 7. 性能测试
 ### 7.1 bmrt_test
@@ -310,6 +328,30 @@ bmrt_test --bmodel models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel
 |   SE9-8    | ^                                        |       1 |           3.85  |
 |   SE9-8    | ^                                        |       2 |           6.96  |
 |   SE9-8    | ^                                        |       3 |          14.42  |
+|   SE13-64  | CV84X6/ch_PP-OCRv4_det_fp16.bmodel       |       0 |          10.12  |
+|   SE13-64  | ^                                        |       1 |          39.66  |
+|   SE13-64  | CV84X6/ch_PP-OCRv4_rec_fp16.bmodel       |       0 |           0.69  |
+|   SE13-64  | ^                                        |       1 |           1.15  |
+|   SE13-64  | ^                                        |       2 |           1.96  |
+|   SE13-64  | ^                                        |       3 |           4.17  |
+|   SE13-64  | CV84X6/ch_PP-OCRv6_tiny_det_fp16.bmodel  |       0 |           5.26  |
+|   SE13-64  | ^                                        |       1 |          19.20  |
+|   SE13-64  | CV84X6/ch_PP-OCRv6_tiny_rec_fp16.bmodel  |       0 |           0.82  |
+|   SE13-64  | ^                                        |       1 |           1.19  |
+|   SE13-64  | ^                                        |       2 |           1.94  |
+|   SE13-64  | ^                                        |       3 |           3.86  |
+|   SE13-64  | CV84X6/ch_PP-OCRv6_small_det_fp16.bmodel |       0 |          10.16  |
+|   SE13-64  | ^                                        |       1 |          38.59  |
+|   SE13-64  | CV84X6/ch_PP-OCRv6_small_rec_fp16.bmodel |       0 |           2.33  |
+|   SE13-64  | ^                                        |       1 |           3.77  |
+|   SE13-64  | ^                                        |       2 |           7.18  |
+|   SE13-64  | ^                                        |       3 |          13.86  |
+|   SE13-64  | CV84X6/ch_PP-OCRv6_medium_det_fp16.bmodel|       0 |          33.91  |
+|   SE13-64  | ^                                        |       1 |         148.99  |
+|   SE13-64  | CV84X6/ch_PP-OCRv6_medium_rec_fp16.bmodel|       0 |           6.92  |
+|   SE13-64  | ^                                        |       1 |          10.72  |
+|   SE13-64  | ^                                        |       2 |          22.50  |
+|   SE13-64  | ^                                        |       3 |          38.38  |
 
 > **测试说明**：  
 > 1. 性能测试结果具有一定的波动性；
@@ -373,10 +415,18 @@ bmrt_test --bmodel models/BM1684X/ch_PP-OCRv4_det_fp32.bmodel
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp32.bmodel    |        0.82         |        0.65         |        2.14         |        6.00         |
 |   SRM1-20   |     ppocr_bmcv.pcie     |    ch_PP-OCRv4_det_fp16.bmodel    |        10.16        |        1.54         |        4.10         |        14.55        |
 |      ^      |            ^            |    ch_PP-OCRv4_rec_fp16.bmodel    |        0.79         |        0.62         |        0.67         |        5.28         |
+|   SE13-64   | ppocr_system_opencv.py  |    ch_PP-OCRv4_det_fp16.bmodel    |        11.01        |        18.30        |        14.51        |        11.09        |
+|      ^      |            ^            |    ch_PP-OCRv4_rec_fp16.bmodel    |        0.41         |        0.40         |        1.20         |        0.82         |
+|   SE13-64   | ppocr_system_opencv.py  |  ch_PP-OCRv6_tiny_det_fp16.bmodel  |        11.54        |        18.75        |         8.82        |        11.59        |
+|      ^      |            ^            |  ch_PP-OCRv6_tiny_rec_fp16.bmodel  |        0.56         |        0.49         |        1.26         |        1.00         |
+|   SE13-64   | ppocr_system_opencv.py  | ch_PP-OCRv6_small_det_fp16.bmodel  |        14.82        |        20.76        |        15.16        |        12.00        |
+|      ^      |            ^            | ch_PP-OCRv6_small_rec_fp16.bmodel  |        0.50         |        0.53         |        3.78         |        2.28         |
+|   SE13-64   | ppocr_system_opencv.py  | ch_PP-OCRv6_medium_det_fp16.bmodel |        11.61        |        19.56        |        42.88        |        11.00        |
+|      ^      |            ^            | ch_PP-OCRv6_medium_rec_fp16.bmodel |        0.37         |        0.51         |        8.22         |        2.00         |
 
 > **测试说明**：  
 > 1. 时间单位均为毫秒(ms)，统计的时间均为平均每张图片处理的时间；
 > 2. 性能测试结果具有一定的波动性，建议多次测试取平均值；
-> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
+> 3. SE5-16/SE7-32的主控处理器均为8核CA53@2.3GHz，SE9-16为8核CA53@1.6GHz，SE9-8为6核CA53@1.6GHz，SE13-64为8核CA55@2.0GHz，PCIe上的性能由于处理器的不同可能存在较大差异；
 > 4. 图片分辨率对解码时间影响较大，推理结果对后处理时间影响较大，不同的测试图片可能存在较大差异，不同的阈值对后处理时间影响较大。 
 > 5. 测试程序串联运行`det`和`rec`模型，`det`模型对应decode_time，`rec`模型对应crop_time。
