@@ -1055,6 +1055,29 @@ class Qwen3_5():
                         old_kv_size = old_kvlen * fa_elements
                         block_input_tensors[2].sync_d2d(self.past_key_input[idx], 0, 0, old_kv_size)
                         block_input_tensors[3].sync_d2d(self.past_value_input[idx], 0, 0, old_kv_size)
+                        # Drain the device queue before launching the graph.
+                        # The two sync_d2d calls above are GDMA copies queued
+                        # immediately before net.process(); sail's sync_d2d
+                        # only ENQUEUES (no wait), so the graph launch can
+                        # race the in-flight copies and read partially-
+                        # updated past-KV templates -> nondeterministic
+                        # output (observed on the 9B history bmodel:
+                        # block_kv_3 output differs run-to-run with
+                        # byte-identical inputs). A D2H read right before
+                        # process() serializes the queue and yields the
+                        # fully-synchronized reference value.
+                        # IMPORTANT: read the FULL max-sized template
+                        # tensors, not the small [1, old_kvlen, ...] views.
+                        # Small reads do not drain the queue: reading only
+                        # the views worked at old_kvlen=512 but still
+                        # diverged on the cached path chunk 0 (old_kvlen=9,
+                        # ~18KB read — same failure class as reading
+                        # position ids); full-template reads were verified
+                        # deterministic 10/10 and equal to the reference.
+                        # Do this BEFORE the views replace the template
+                        # references below.
+                        _ = block_input_tensors[2].asnumpy()
+                        _ = block_input_tensors[3].asnumpy()
                         old_kv_shape = [1, old_kvlen] + list(self.fa_kv_shape[2:])
                         kv_view_2 = sail.Tensor(block_input_tensors[2], self.fa_kv_shape, 0)
                         kv_view_2.reshape(old_kv_shape)
