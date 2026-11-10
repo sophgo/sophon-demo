@@ -33,104 +33,110 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 |---                                                            |---               |---         | ---            |---                            |
 | [LPRNet](./sample/LPRNet/README.md)                           | 车牌识别          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
 | [ResNet](./sample/ResNet/README.md)                           | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
-| [Recognize-Anything](./sample/Recognize-Anything/README.md)   | 图像分类          | Python     | FP32/FP16/INT8 | BM1684X                      |
-| [YOLOv8_plus_cls](./sample/YOLOv8_plus_cls/README.md)         | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [Recognize-Anything](./sample/Recognize-Anything/README.md)   | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6                      |
+| [YOLOv8_plus_cls](./sample/YOLOv8_plus_cls/README.md)         | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688/CV186X        |
 | [MobileNetV4](./sample/MobileNetV4/README.md)                | 图像分类          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [RetinaFace](./sample/RetinaFace/README.md)                   | 人脸检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688        |
 | [SCRFD](./sample/SCRFD/README.md)                             | 人脸检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
-| [ArcFace](./sample/ArcFace/README.md)                       | 人脸识别          | C++/Python | FP32/FP16/INT8 | BM1684X                      |
-| [segformer](./sample/segformer/README.md)                     | 语义分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [ArcFace](./sample/ArcFace/README.md)                       | 人脸识别          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6                      |
+| [segformer](./sample/segformer/README.md)                     | 语义分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
 | [YOLO26_sem](./sample/YOLO26_sem/README.md)                   | 语义分割          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
-| [SAM](./sample/SAM/README.md)                                 | 语义分割          | Python     | FP32/FP16/INT8 | BM1684X                      |
-| [SAM2](./sample/SAM2/README.md)                               | 语义分割          | Python     | FP32/FP16/INT8 | BM1684X/BM1688               |
+| [SAM](./sample/SAM/README.md)                                 | 语义分割          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6                      |
+| [SAM2](./sample/SAM2/README.md)                               | 语义分割          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688               |
+| [SAM3](./sample/SAM3/README.md)                               | 语义分割          | C++/Python | FP32/FP16      | BM1684X/CV84X6/BM1688        |
 | [Unet](./sample/Unet/README.md)                             | 语义分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
-| [yolact](./sample/yolact/README.md)                           | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X               |
-| [YOLOv8_plus_seg](./sample/YOLOv8_plus_seg/README.md)         | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
+| [yolact](./sample/yolact/README.md)                           | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6               |
+| [YOLOv8_plus_seg](./sample/YOLOv8_plus_seg/README.md)         | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688               |
 | [YOLOv8_plus_seg_fuse](./sample/YOLOv8_plus_seg_fuse/README.md)| 实例分割(TPU后处理) | C++/Python | INT8          | BM1684X/BM1688               |
 | [YOLOv9_seg](./sample/YOLOv9_seg/README.md)              | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
-| [YOLO26_seg](./sample/YOLO26_seg/README.md)                   | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
-| [PP-OCR](./sample/PP-OCR/README.md)                           | OCR              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X  |
+| [YOLO26_seg](./sample/YOLO26_seg/README.md)                   | 实例分割          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688               |
+| [PP-OCR](./sample/PP-OCR/README.md)                           | OCR              | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X  |
+| [Unlimited-OCR](./sample/Unlimited-OCR/README.md)                           | OCR              | Python     | BF16/W4BF16    | BM1688                       |
 | [wechat_qrcode](./sample/wechat_qrcode/README.md)             | 二维码检测识别    | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
 | [OpenPose](./sample/OpenPose/README.md)                       | 人体关键点检测    | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688        |
-| [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | 人体关键点检测    | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [YOLOv8_pose](./sample/YOLOv8_pose/README.md)                 | 人体关键点检测    | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
 | [YOLO26_pose](./sample/YOLO26_pose/README.md)                 | 人体关键点检测    | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
-| [HRNet_pose](./sample/HRNet_pose/README.md)                   | 人体关键点检测    | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
-| [C3D](./sample/C3D/README.md)                                 | 视频动作识别      | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [SlowFast](./sample/SlowFast/README.md)                       | 视频动作识别      | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688               |
-| [DeepSORT](./sample/DeepSORT/README.md)                       | 多目标跟踪        | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [ByteTrack](./sample/ByteTrack/README.md)                     | 多目标跟踪        | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [FearTracker](./sample/FearTracker/README.md)               | 单目标跟踪        | Python     | FP16           | BM1684X/BM1688               |
-| [CenterNet](./sample/CenterNet/README.md)                     | 目标检测、姿态识别 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688       |
-| [YOLOv5](./sample/YOLOv5/README.md)                           | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [YOLOv34](./sample/YOLOv34/README.md)                         | 目标检测          | C++/Python | FP32/INT8      | BM1684/BM1684X/BM1688        |
-| [YOLOX](./sample/YOLOX/README.md)                             | 目标检测          | C++/Python | FP32/INT8      | BM1684/BM1684X/BM1688/CV186X |
+| [HRNet_pose](./sample/HRNet_pose/README.md)                   | 人体关键点检测    | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688/CV186X        |
+| [C3D](./sample/C3D/README.md)                                 | 视频动作识别      | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
+| [SlowFast](./sample/SlowFast/README.md)                       | 视频动作识别      | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688               |
+| [DeepSORT](./sample/DeepSORT/README.md)                       | 多目标跟踪        | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
+| [ByteTrack](./sample/ByteTrack/README.md)                     | 多目标跟踪        | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
+| [TAPNextPP](./sample/TAPNextPP/README.md)                             | 多目标跟踪        | C++/Python | FP16           | BM1688/CV84X6                |
+| [FearTracker](./sample/FearTracker/README.md)               | 单目标跟踪        | C++/Python | FP16           | BM1684X/CV84X6/BM1688               |
+| [CenterNet](./sample/CenterNet/README.md)                     | 目标检测、姿态识别 | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688       |
+| [YOLOv5](./sample/YOLOv5/README.md)                           | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
+| [YOLOv34](./sample/YOLOv34/README.md)                         | 目标检测          | C++/Python | FP32/INT8      | BM1684/BM1684X/CV84X6/BM1688        |
+| [YOLOX](./sample/YOLOX/README.md)                             | 目标检测          | C++/Python | FP32/INT8      | BM1684/BM1684X/CV84X6/BM1688/CV186X |
 | [SSD](./sample/SSD/README.md)                                 | 目标检测          | C++/Python | FP32/INT8      | BM1684/BM1684X               |
-| [YOLOv7](./sample/YOLOv7/README.md)                           | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [YOLOv8_det](./sample/YOLOv8_plus_det/README.md)              | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [YOLOv7](./sample/YOLOv7/README.md)                           | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
+| [YOLOv8_det](./sample/YOLOv8_plus_det/README.md)              | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
 | [YOLOv9_det](./sample/YOLOv9_det/README.md)              | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
 | [YOLOv11_det](./sample/YOLOv11_det/README.md)             | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
 | [YOLOv12_det](./sample/YOLOv12_det/README.md)             | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
-| [YOLO26_det](./sample/YOLO26/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X |
-| [YOLOv5_opt](./sample/YOLOv5_opt/README.md)                   | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X                      |
+| [YOLO26_det](./sample/YOLO26/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688/CV186X |
+| [YOLO26_depth](./sample/YOLO26_depth/README.md)                       | 单目深度估计      | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [YOLOv5_opt](./sample/YOLOv5_opt/README.md)                   | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6                      |
 | [YOLOv5_fuse](./sample/YOLOv5_fuse/README.md)                 | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
-| [YOLOv10](./sample/YOLOv10/README.md)                         | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
-| [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [YOLO_world](./sample/YOLO_world/README.md)                   | 目标检测          | Python     | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
-| [YOLO_world_v2](./sample/YOLO_world_v2/README.md)             | 开放词汇目标检测   | Python     | FP32/FP16/INT8 | BM1684X                      |
-| [D-FINE](./sample/D-FINE/README.md)                           | 目标检测          | Python     | FP16/INT8      | BM1684X/BM1688/CV186X        |
+| [YOLOv10](./sample/YOLOv10/README.md)                         | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688/CV186X        |
+| [ppYOLOv3](./sample/ppYOLOv3/README.md)                       | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
+| [ppYoloe](./sample/ppYoloe/README.md)                         | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
+| [YOLO_world](./sample/YOLO_world/README.md)                   | 目标检测          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688/CV186X        |
+| [YOLO_world_v2](./sample/YOLO_world_v2/README.md)             | 开放词汇目标检测   | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6                      |
+| [D-FINE](./sample/D-FINE/README.md)                           | 目标检测          | C++/Python | FP16/INT8      | BM1684X/CV84X6/BM1688/CV186X        |
 | [YOLOv8_obb](./sample/YOLOv8_obb/README.md)                | 旋转框目标检测     | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X       |
 | [YOLOv11_obb](./sample/YOLOv11_obb/README.md)              | 旋转框目标检测     | C++/Python | FP32/FP16/INT8  | BM1684X/BM1688/CV186X       |
-| [YOLO26_obb](./sample/YOLO26_obb/README.md)                   | 旋转框目标检测     | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X       |
-| [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [Whisper](./sample/Whisper/README.md)                         | 语音识别          | Python     | FP16           | BM1684X                      |
-| [Seamless](./sample/Seamless/README.md)                       | 语音识别          | Python     | FP32/FP16      | BM1684X/BM1688               |
-| [SeACoParaformer](./sample/SeAcoParaformer/README.md)       | 语音识别          | C++/Python | FP32           | BM1684X                      |
-| [BERT](./sample/BERT/README.md)                               | 语言模型          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
+| [YOLO26_obb](./sample/YOLO26_obb/README.md)                   | 旋转框目标检测     | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688/CV186X       |
+| [YOLOv8_plus_obb](./sample/YOLOv8_plus_obb/README.md)                 | 旋转框目标检测     | C++/Python | FP32/FP16      | BM1684X/CV84X6/BM1688/CV186X |
+| [WeNet](./sample/WeNet/README.md)                             | 语音识别          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
+| [Whisper](./sample/Whisper/README.md)                         | 语音识别          | Python     | FP16           | BM1684X/CV84X6                      |
+| [Seamless](./sample/Seamless/README.md)                       | 语音识别          | Python     | FP32/FP16      | BM1684X/CV84X6/BM1688               |
+| [SeACoParaformer](./sample/SeAcoParaformer/README.md)       | 语音识别          | C++/Python | FP32           | BM1684X/CV84X6                      |
+| [FunASR_Nano](./sample/FunASR_Nano/README.md)                         | 语音识别          | Python     | FP32/FP16      | BM1688/CV84X6                |
+| [BERT](./sample/BERT/README.md)                               | 语言模型          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
 | [ChatGLM2](./sample/ChatGLM2/README.md)                       | 大规模语言模型     | C++/Python | FP16/INT8/INT4 | BM1684X                     |
-| [Llama2](./sample/Llama2/README.md)                           | 大规模语言模型     | C++/Python | FP16/INT8/INT4 | BM1684X                     |
+| [Llama2](./sample/Llama2/README.md)                           | 大规模语言模型     | Python | FP16/INT8/INT4 | BM1684X                     |
 | [ChatGLM3](./sample/ChatGLM3/README.md)                       | 大规模语言模型     | Python     | FP16/INT8/INT4 | BM1684X/BM1688              |
-| [Qwen](./sample/Qwen/README.md)                               | 大规模语言模型     | C++/Python | FP16/INT8/INT4 | BM1684X/BM1688/CV186X       |
+| [Qwen](./sample/Qwen/README.md)                               | 大规模语言模型     | C++/Python | FP16/INT8/INT4 | BM1684X/CV84X6/BM1688/CV186X       |
 | [MiniCPM](./sample/MiniCPM/README.md)                         | 大规模语言模型     | C++        | INT8/INT4      | BM1684X/BM1688/CV186X       |
 | [Baichuan2](./sample/Baichuan2/README.md)                     | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
 | [ChatGLM4](./sample/ChatGLM4/README.md)                       | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
 | [MiniCPM3](./sample/MiniCPM3/README.md)                       | 大规模语言模型     | Python     | INT8/INT4      | BM1684X                     |
 | [DeepSeek](./sample/DeepSeek/README.md)                       | 大规模语言模型     | Python     | INT4           | BM1684X/BM1688               |
 | [Janus](./sample/Janus/README.md)                             | 大规模语言模型     | Python     | INT4           | BM1684X/BM1688               |
-| [MiniCPM4](./sample/MiniCPM4/README.md)                       | 大规模语言模型     | C++/Python | INT4           | BM1684X/BM1688/CV186X       |
-| [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | 图像生成          | Python     | FP32/FP16      | BM1684X                      |
-| [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | 图像生成          | Python     | FP32/FP16      | BM1684X                      |
-| [FLUX.1](./sample/FLUX.1/README.md)                           | 图像生成          | Python     | FP32/INT4      | BM1684X                      |
-| [GroundingDINO](./sample/GroundingDINO/README.md)             | 多模态目标检测     | Python     | FP16           | BM1684X/BM1688/CV186X       |
+| [MiniCPM4](./sample/MiniCPM4/README.md)                       | 大规模语言模型     | C++/Python | INT4           | BM1684X/CV84X6/BM1688/CV186X       |
+| [StableDiffusionV1.5](./sample/StableDiffusionV1_5/README.md) | 图像生成          | Python     | FP32/FP16      | BM1684X/CV84X6                      |
+| [StableDiffusionXL](./sample/StableDiffusionXL/README.md)     | 图像生成          | Python     | FP32/FP16      | BM1684X/CV84X6                      |
+| [FLUX.1](./sample/FLUX.1/README.md)                           | 图像生成          | Python     | FP32/INT4      | BM1684X/CV84X6                      |
+| [GroundingDINO](./sample/GroundingDINO/README.md)             | 多模态目标检测     | C++/Python | FP16           | BM1684X/CV84X6/BM1688/CV186X       |
 | [Qwen-VL-Chat](./sample/Qwen-VL-Chat/README.md)               | 大规模视觉语言模型 | Python     | FP16/INT8      | BM1684X                     |
 | [Qwen2-VL](./sample/Qwen2-VL/README.md)                       | 大规模视觉语言模型 | Python     | INT4            | BM1684X                     |
-| [Qwen2.5-VL](./sample/Qwen2_5-VL/README.md)                   | 大规模视觉语言模型 | Python     | INT4            | BM1684X/BM1688             |
-| [Qwen3-VL](./sample/Qwen3-VL/README.md)                       | 大规模视觉语言模型 | Python     | INT4            | BM1684X/BM1688             |
+| [Qwen2.5-VL](./sample/Qwen2_5-VL/README.md)                   | 大规模视觉语言模型 | Python     | INT4            | BM1684X/CV84X6/BM1688             |
+| [Qwen3-VL](./sample/Qwen3-VL/README.md)                       | 大规模视觉语言模型 | Python     | INT4            | BM1684X/CV84X6/BM1688             |
 | [InternVL2](./sample/InternVL2/README.md)                     | 大规模视觉语言模型 | Python     | INT4           | BM1684X/BM1688              |
-| [InternVL3](./sample/InternVL3/README.md)                     | 大规模视觉语言模型 | Python     | INT4           | BM1684X/BM1688              |
-| [Vila](./sample/Vila/README.md)                               | 大规模视觉语言模型 | Python     | INT8/INT4      | BM1684X/BM1688              |
+| [InternVL3](./sample/InternVL3/README.md)                     | 大规模视觉语言模型 | Python     | INT4           | BM1684X/CV84X6/BM1688              |
+| [Vila](./sample/Vila/README.md)                               | 大规模视觉语言模型 | C++/Python | INT8/INT4      | BM1684X/BM1688              |
 | [Llama3_2_Vision](./sample/Llama3_2_Vision/README.md)         | 大规模视觉语言模型 | Python     | INT8/INT4      | BM1684X                     |
 | [LFM2-VL](./sample/LFM2-VL/README.md)                         | 大规模视觉语言模型 | C++        | W4BF16         | BM1684X/BM1688              |
-| [MiniCPMV](./sample/MiniCPMV/README.md)                       | 大规模视觉语言模型 | Python     | INT4            | BM1684X                     |
-| [PaddleOCR-VL](./sample/PaddleOCR-VL/README.md)               | 大规模视觉语言模型 | C++        | BF16            | BM1684X/BM1688              |
+| [MiniCPMV](./sample/MiniCPMV/README.md)                       | 大规模视觉语言模型 | Python     | INT4            | BM1684X/CV84X6                     |
+| [PaddleOCR-VL](./sample/PaddleOCR-VL/README.md)               | 大规模视觉语言模型 | C++/Python | BF16            | BM1684X/BM1688              |
 | [Phi4mm](./sample/Phi4mm/README.md)                           | 多模态大语言模型   | Python     | INT4           | BM1684X/BM1688               |
 | [VITA1_5](./sample/VITA1_5/README.md)                         | 多模态大语言模型   | Python     | INT4           | BM1684X/BM1688                |
-| [Qwen3.5](./sample/Qwen3_5/README.md)                         | 多模态大语言模型 | Python     | INT4            | BM1684X/BM1688             |
+| [Qwen3.5](./sample/Qwen3_5/README.md)                         | 多模态大语言模型 | Python     | INT4            | BM1684X/CV84X6/BM1688             |
 | [Pi0.5](./sample/Pi0_5/README.md)                             | 视觉-语言-动作 VLA | C++      | W8BF16/BF16     | BM1684X                     |
-| [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | 超分辨            | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [Real-ESRGAN](./sample/Real-ESRGAN/README.md)                 | 超分辨            | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688/CV186X        |
 | [GLC](./sample/GLC/README.md)                                 | 图像压缩          | Python     | FP32/BF16      | BM1684X/BM1688               |
-| [P2PNet](./sample/P2PNet/README.md)                           | 人群计数          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/BM1688/CV186X |
-| [CLIP](./sample/CLIP/README.md)                               | 图文匹配          | C++/Python | FP16/INT8      | BM1684X/BM1688/CV186X        |
-| [BLIP](./sample/BLIP/README.md)                               | 多模态图文模型     | Python     | FP32           | BM1684/BM1684X/BM1688       |
-| [SuperGlue](./sample/SuperGlue/README.md)                     | 特征匹配          | C++        | FP32/FP16      | BM1684X/BM1688/CV186X        |
-| [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | 语音生成          | C++/Python | FP32/FP16      | BM1684X/BM1688/CV186X        |
-| [ChatTTS](./sample/ChatTTS/README.md)                         | 语音生成          | Python     | BF16/INT8/INT4 | BM1684X/BM1688        |
-| [DirectMHP](./sample/DirectMHP/README.md)                     | 头部姿势估计      | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
-| [CAM++](./sample/CAM++/README.md)                             | 说话人识别        | C++/Python | FP32           | BM1684X/BM1688/CV186X        |
-| [FaceFormer](./sample/FaceFormer/README.md)                   | 音频驱动口型      | Python     | FP32           | BM1684X        |
-| [MP_SENet](./sample/MP_SENet/README.md)                       | 语音降噪          | Python     | FP32/BF16      | BM1684X        |
-| [Silero](./sample/Silero/README.md)                         | 语音活动检测      | C++/Python | FP16           | BM1684X                      |
-| [LightStereo](./sample/LightStereo/README.md)                 | 立体匹配          | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [P2PNet](./sample/P2PNet/README.md)                           | 人群计数          | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
+| [CLIP](./sample/CLIP/README.md)                               | 图文匹配          | C++/Python | FP16/INT8      | BM1684X/CV84X6/BM1688/CV186X        |
+| [BLIP](./sample/BLIP/README.md)                               | 多模态图文模型     | C++/Python | FP32           | BM1684/BM1684X/CV84X6/BM1688       |
+| [SuperGlue](./sample/SuperGlue/README.md)                     | 特征匹配          | C++        | FP32/FP16      | BM1684X/CV84X6/BM1688/CV186X        |
+| [VITS_CHINESE](./sample/VITS_CHINESE/README.md)               | 语音生成          | C++/Python | FP32/FP16      | BM1684X/CV84X6/BM1688/CV186X        |
+| [ChatTTS](./sample/ChatTTS/README.md)                         | 语音生成          | Python     | BF16/INT8/INT4 | BM1684X/CV84X6/BM1688        |
+| [DirectMHP](./sample/DirectMHP/README.md)                     | 头部姿势估计      | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688/CV186X        |
+| [CAM++](./sample/CAM++/README.md)                             | 说话人识别        | C++/Python | FP32           | BM1684X/CV84X6/BM1688/CV186X        |
+| [FaceFormer](./sample/FaceFormer/README.md)                   | 音频驱动口型      | Python     | FP32           | BM1684X/CV84X6        |
+| [MP_SENet](./sample/MP_SENet/README.md)                       | 语音降噪          | C++/Python | FP32/BF16      | BM1684X        |
+| [Silero](./sample/Silero/README.md)                         | 语音活动检测      | C++/Python | FP16           | BM1684X/CV84X6                      |
+| [LightStereo](./sample/LightStereo/README.md)                 | 立体匹配          | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688/CV186X        |
 
 | application                                                              | 应用场景                  | 编程语言    | 支持硬件                     |
 |---                                                                       |---                       |---          | ---                         |
@@ -190,6 +196,8 @@ SOPHON-DEMO提供的例子从易到难分为`tutorial`、`sample`、`application
 SOPHON-DEMO主要依赖TPU-MLIR、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SOPHON-SAIL，对于BM1684/BM1684X SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.13 | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
+| 0.3.12 | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.11  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.10  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
 | 0.3.9  | >=1.15      | >=0.5.0 | >=0.7.3     | >=0.7.3     | >=3.8.0   | >=v24.04.01|
@@ -228,6 +236,8 @@ SOPHON-DEMO主要依赖TPU-MLIR、LIBSOPHON、SOPHON-FFMPEG、SOPHON-OPENCV、SO
 对于BM1688/CV186AH SOPHONSDK，其版本要求如下：
 |SOPHON-DEMO|TPU-MLIR  |LIBSOPHON|SOPHON-FFMPEG|SOPHON-OPENCV|SOPHON-SAIL| SOPHONSDK   |
 |-------- |------------|---------|---------    |----------   | ------    | --------  |
+| 0.3.13 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
+| 0.3.12 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.11 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.10 | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |
 | 0.3.9  | >=1.15      | >=0.4.9 | >=1.7.0     | >=1.7.0     | >=3.8.0   | >=v1.7.0  |

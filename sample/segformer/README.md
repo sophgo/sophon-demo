@@ -1,5 +1,3 @@
-[简体中文](./README.md) | [English](./README_EN.md)
-
 # SegFormer
 
 * [1. 简介](#1-简介)

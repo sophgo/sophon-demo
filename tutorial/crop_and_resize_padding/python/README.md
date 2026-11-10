@@ -14,7 +14,7 @@ python目录下提供了一系列Python例程，具体情况如下：
 
 | 序号 |  Python例程      | 说明                                |
 | ---- | ---------------- | -----------------------------------  |
-| 1    | [crop_and_resize_padding.py](./crop_and_resize_padding.py) | 使用SAIL将图片指定位置指定大小部分图片抠出，缩放后填充到大图中，空余部分填充指定像素数值 |
+| 1    | [crop_and_resize_padding.py](./crop_and_resize_padding_sail.py) | 使用SAIL将图片指定位置指定大小部分图片抠出，缩放后填充到大图中，空余部分填充指定像素数值 |
 
 ## 1. 环境准备
 ### 1.1 x86/arm PCIe平台

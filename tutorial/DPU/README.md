@@ -1,5 +1,3 @@
-[简体中文](./README.md) | [English](./README_EN.md)
-
 # DPU例程
 
 ## 目录
@@ -28,7 +26,7 @@ DPU（Depth Process Unit）是BM1688/CV186X的深度处理单元：利用双目�
 如果您使用SoC平台（如SE、SM系列边缘设备），刷机后在`/opt/sophon/`下已经预装了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，可直接使用它作为运行环境。还需要一台x86主机作为开发环境，用于交叉编译C++程序。
 
 
-C++程序运行前需要编译可执行文件。在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
+C++程序运行前需要编译可执行文件。在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件：
 ```bash

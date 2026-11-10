@@ -1,4 +1,3 @@
-[简体中文](./README.md) | [English](./README_EN.md)
 # SCRFD 精度评测脚本使用指南
 
 ## 目录

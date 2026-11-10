@@ -83,7 +83,6 @@ cd python
 python3 minicpmv.py --config ./config/minicpmv.yaml
 ```
 在读入模型后会显示"Question:"，然后输入就可以了。模型的回答会出现在"Answer"中。结束对话请输入"exit"或者"q"或者"quit"。
-![diagram](../pics/demo.png)
 
 如果需要**web服务或者Openai API接口服务**，请参考[MiniCPM3例程代码实现](../../MiniCPM3/README.md)
 

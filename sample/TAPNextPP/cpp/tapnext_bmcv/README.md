@@ -22,7 +22,7 @@ cpp目录下提供 C++ 版本的 TAPNext++ 推理例程 `tapnext_bmcv`，使用 
 
 ### 1.1 x86/arm/riscv PCIe平台
 
-如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
+如果您在x86/arm/riscv平台安装了PCIe加速卡（如SC系列加速卡），并使用它测试本例程，您需要安装libsophon、sophon-opencv和sophon-ffmpeg，具体请参考[x86-pcie平台的开发和运行环境搭建](../../../../docs/Environment_Install_Guide.md#3-x86-pcie平台的开发和运行环境搭建)或[arm-pcie平台的开发和运行环境搭建](../../../../docs/Environment_Install_Guide.md#5-arm-pcie平台的开发和运行环境搭建)或[riscv-pcie平台的开发和运行环境搭建](../../../../docs/Environment_Install_Guide.md#6-riscv-pcie平台的开发和运行环境搭建)。
 
 ### 1.2 SoC平台
 
@@ -33,7 +33,7 @@ cpp目录下提供 C++ 版本的 TAPNext++ 推理例程 `tapnext_bmcv`，使用 
 > export LD_LIBRARY_PATH=/opt/sophon/libsophon-current/lib:$LD_LIBRARY_PATH
 > ```
 >
-> SE9 SoC 内存布局调整请参考 [Python README 1.3 节](../python/README.md#13-se9-内存布局调整)。
+> SE9 SoC 内存布局调整请参考 [Python README 1.3 节](../../python/README.md#13-se9-内存布局调整)。
 
 ## 2. 编译
 
@@ -48,7 +48,7 @@ cmake .. && make
 
 ### 2.2 SoC平台
 
-在 x86 主机上交叉编译，需先使用 SOPHON SDK 搭建交叉编译环境，将程序依赖的头文件和库文件打包至 `soc-sdk` 目录，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程依赖 libsophon、sophon-opencv 和 sophon-ffmpeg 运行库包。
+在 x86 主机上交叉编译，需先使用 SOPHON SDK 搭建交叉编译环境，将程序依赖的头文件和库文件打包至 `soc-sdk` 目录，具体请参考[交叉编译环境搭建](../../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程依赖 libsophon、sophon-opencv 和 sophon-ffmpeg 运行库包。
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件：
 
@@ -112,7 +112,7 @@ export LD_LIBRARY_PATH=/opt/sophon/libsophon-current/lib:/opt/sophon/sophon-open
 
 > **坐标系说明:** 模型 track 输出为 `[y, x]`（行、列），范围为 [0, 255.5] 模型像素。查询点格式为 `[t, y, x]`。`--query` 给的是原图像素坐标，程序会按视频分辨率自动缩放到 256×256 模型像素。
 >
-> **精度说明:** 生产精度使用 FP16，详见 [Python README 精度说明](../python/README.md#22-视频跟踪)。
+> **精度说明:** 生产精度使用 FP16，详见 [Python README 精度说明](../../python/README.md#22-视频跟踪)。
 
 ### 3.3 架构说明
 

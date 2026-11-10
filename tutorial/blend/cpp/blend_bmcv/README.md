@@ -24,7 +24,7 @@ cpp目录下提供了C++例程以供参考使用，具体情况如下：
 C++程序运行前需要编译可执行文件，目前该功能只支持在BM1688/CV186X(SoC)上使用。
 
 ### 2.1 SoC平台
-通常在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
+通常在x86主机上交叉编译程序，您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中，具体请参考[交叉编译环境搭建](../../../../docs/Environment_Install_Guide.md#41-交叉编译环境搭建)。本例程主要依赖libsophon、sophon-opencv和sophon-ffmpeg运行库包。
 
 交叉编译环境搭建好后，使用交叉编译工具链编译生成可执行文件：
 #### 2.1.1 bmcv

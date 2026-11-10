@@ -143,4 +143,4 @@ make
 > 2. 若结果输出被打印信息"xxx pipe full"覆盖，可设置[datapipe.hpp](vlpr_bmcv/lprnet_multi/datapipe.hpp)中的宏```PIPE_INFO```为0，来关闭打印信息"xxx pipe full"
 
 ### 3.3 程序原理流程图
-可参考[C++程序原理流程图](../pics/cpp_pipeline.png)，其中yolo部分可参考[C++程序YOLOv5_multi流程图](../../YOLOv5_multi/pics/diagram.png)。
+可参考[C++程序原理流程图](../pics/cpp_pipeline.png)，其中yolo部分可参考[C++程序YOLOv5_multi流程图](../../YOLOv5_multi/pics/diagram_cpp.png)。

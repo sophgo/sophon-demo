@@ -45,7 +45,7 @@ sudo reboot
 
 ## 4. 模型编译
 ### 4.1 准备原始模型
-该模型目前只支持在BM1684X、BM1688和CV84X6上运行，已提供原始导出的onnx模型，onnx模型导出方法可参考[Seamless(S2T)_Export_ONNX.md](docs/Seamless(S2T)_Export_ONNX.md)
+该模型目前只支持在BM1684X、BM1688和CV84X6上运行，已提供原始导出的onnx模型，onnx模型导出方法可参考[Seamless(S2T)_Export_ONNX.md](docs/Seamless%28S2T%29_Export_ONNX.md)
 
 ​本例程在`scripts`目录下提供了相关模型和数据的下载脚本
 ```bash

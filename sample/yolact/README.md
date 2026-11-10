@@ -1,5 +1,3 @@
-[简体中文](./README.md) | [English](./README_EN.md)
-
 # yolact
 
 ## 目录
