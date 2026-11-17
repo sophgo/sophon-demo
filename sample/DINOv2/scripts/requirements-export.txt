@@ -1,0 +1,14 @@
+# DINOv2 ONNX 导出 / 标定数据生成依赖（不含 torch/torchvision）
+#
+# torch/torchvision 必须单独按 CPU 索引安装，避免默认源拉取 CUDA 运行时，
+# 也避免本文件解析时把已装好的 CPU 版 torch 升级成 CUDA 版：
+#   pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# 再安装本文件：
+#   pip3 install -r scripts/requirements-export.txt
+#
+# torch >= 2.6 才支持 torch.onnx.export(..., dynamo=True)；
+# 官方 dinov2 源码只需 clone 后通过 --dinov2_src 传入，不要安装其 requirements.txt。
+onnx>=1.14
+onnxsim>=0.4
+onnxruntime>=1.16
+pillow>=10

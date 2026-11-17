@@ -1,0 +1,43 @@
+# 模型与数据集由 scripts/download.sh 下载或本地编译生成，不进 git
+models/
+datasets/
+*.bmodel
+*.onnx
+*.npz
+
+# 编译与运行产物
+build/
+build_soc/
+__pycache__/
+*.pyc
+log/
+results/
+*.log
+
+# 自动测试生成的基准对比文件
+tools/acc.txt
+tools/benchmark.txt
+scripts/acc.txt
+
+# 交叉编译生成的可执行文件
+*.soc
+*.pcie
+
+# TPU-MLIR 编译中间产物（scripts/gen_*bmodel_mlir.sh 在 scripts/ 下生成，勿提交）
+*.mlir
+*.prototxt
+*.bmodel.json
+*.bmodel.net_*.profile
+*.layer_group_config.json
+*.layer_group_cache.json
+compiler_profile_*.txt
+shape_pattern_qtable
+# run_calibration.py 写出的日志文件（无后缀），以及 model_deploy.py 的中间二进制
+SmoothQuant
+*_cali_table
+*ref_files.json
+tensor_location.json
+.modify
+*.dat
+# 编辑器临时文件
+*.swp

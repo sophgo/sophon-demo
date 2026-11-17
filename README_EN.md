@@ -36,6 +36,7 @@ The examples provided by SOPHON-DEMO are divided into three modules: `tutorial`,
 | [Recognize-Anything](./sample/Recognize-Anything/README.md)   | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6                      |
 | [YOLOv8_plus_cls](./sample/YOLOv8_plus_cls/README.md)              | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6/BM1688/CV186X        |
 | [MobileNetV4](./sample/MobileNetV4/README.md)                | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
+| [DINOv2](./sample/DINOv2/README.md)                          | Image classification               | C++/Python | FP32/FP16/INT8 | BM1684X/BM1688/CV186X        |
 | [RetinaFace](./sample/RetinaFace/README.md)                   | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688        |
 | [SCRFD](./sample/SCRFD/README.md)                             | Face Detection                     | C++/Python | FP32/FP16/INT8 | BM1684/BM1684X/CV84X6/BM1688/CV186X |
 | [ArcFace](./sample/ArcFace/README.md)                       | Face Recognition                  | C++/Python | FP32/FP16/INT8 | BM1684X/CV84X6                      |
