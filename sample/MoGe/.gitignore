@@ -1,0 +1,42 @@
+# Downloaded models / datasets (fetched by scripts/download.sh)
+models/
+datasets/
+
+# Compiled bmodels & intermediate mlir artifacts
+*.bmodel
+*.bmodel.json
+*.bmodel.*.profile
+*.prototxt
+*.npz
+*.npz.*
+*.ref_files.json
+scripts/*_1b/
+scripts/*_2core/
+scripts/*_1b.mlir
+scripts/*_1b.mlir.*
+scripts/*_2core.bmodel
+scripts/*_origin.mlir
+scripts/*_final.mlir
+scripts/*_tpu.mlir
+scripts/*.layer_group_cache.json
+scripts/*.layer_group_config.json
+scripts/compiler_profile_*.txt
+
+# Python
+__pycache__/
+*.pyc
+
+# C++ build artifacts / cross-compiled binaries
+cpp/moge_bmcv/build/
+cpp/moge_bmcv/moge_bmcv.soc
+cpp/moge_bmcv/moge_bmcv.pcie
+
+# Results & logs
+results/
+log/
+cpp/moge_bmcv/log/
+tools/benchmark.txt
+tools/acc.txt
+auto_test_result.txt
+*_result.json
+*.log
